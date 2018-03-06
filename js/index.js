@@ -39,9 +39,15 @@
       context.fillStyle = 'hsla(216,95%,85%,0.25)';
       context.textBaseline = 'middle';
       context.fillText(t, (canvas.width - context.measureText(t).width) * 0.5, canvas.height * 0.4);
+
       //desc
       var t = "innovative cloud botting".split("").join(String.fromCharCode(0x2004));
-      context.font = "2.5vw Poiret One";
+      if (window.innerWidth < 600) {
+        context.font = "3.5vw Poiret One";
+      } else {
+        context.font = "2.5vw Poiret One";
+
+      }
       context.fillStyle = 'hsla(216,95%,85%,0.5)';
       context.textBaseline = 'middle';
       context.fillText(t, (canvas.width - context.measureText(t).width) * 0.5, canvas.height * 0.7);

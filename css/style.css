@@ -35,13 +35,13 @@ i {
   cursor: pointer;
 }
 
-@media screen and (min-width: 900px) {
+@media screen and (max-width: 800px) {
   i {
     position: absolute;
     color: rgba(56, 63, 74, 0.5);
     top: 5%;
     right: 5%;
-    font-size: 4vw;
+    font-size: 8vw;
     cursor: pointer;
   }
 }
