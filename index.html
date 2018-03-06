@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>nebula</title>
+      <link rel="stylesheet" href="css/style.css">
+      <script src="https://code.jquery.com/jquery-3.3.1.min.js"   integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="   crossorigin="anonymous"></script>
+      <link href="https://use.fontawesome.com/releases/v5.0.8/css/all.css" rel="stylesheet">
+      <link href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
+
+</head>
+<body>
+	
+	<div id="large-header" class="large-header">
+		<i id="before" class="ion-navicon" onclick="openMenu()"></i>
+		<div class="overlay">
+			<!-- menu item to be able to close -->
+			<i id="after" class="ion-android-close" onclick="openMenu()"></i>
+			<div class="flex-container">
+				<div class="row">
+					<!-- form -->
+					<div class="flex-item">
+						<form name="email-form" id="form" class="topBefore" onsubmit="return validateForm()">
+				  			<input name="email" id="email" type="text" placeholder="E-MAIL">
+		  					<input id="submit" type="submit" value=">>">
+		 				</form>
+		 			</div>
+
+	 				<div class="flex-item">
+	 				<!-- socials -->
+	 				</div>
+	 			</div>
+ 			</div>
+		</div>
+		<canvas id="canvas"></canvas>
+	</div>
+
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.10.1/firebase-database.js"></script>
+	<script>
+		// Initialize Firebase
+		var config = {
+			apiKey: "AIzaSyCquXb0HB6FRyCsepLQ9zMUTwjRquHVEl8",
+			authDomain: "nebula-bot-db.firebaseapp.com",
+			databaseURL: "https://nebula-bot-db.firebaseio.com",
+			projectId: "nebula-bot-db",
+			storageBucket: "nebula-bot-db.appspot.com",
+			messagingSenderId: "165252856697"
+		};
+		firebase.initializeApp(config);
+
+		var database = firebase.database();
+	</script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js'></script>
+	<script  src="js/index.js"></script>
+</body>
+</html>
