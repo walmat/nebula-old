@@ -249,17 +249,180 @@ function openMenu(){
     }
 }
 
+function removeAutofill() {
+
+    var is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
+    var is_explorer = navigator.userAgent.indexOf('MSIE') > -1;
+    var is_firefox = navigator.userAgent.indexOf('Firefox') > -1;
+    var is_safari = navigator.userAgent.indexOf("Safari") > -1;
+    var is_opera = navigator.userAgent.toLowerCase().indexOf("op") > -1;
+
+    if ((is_chrome)&&(is_safari)) { is_safari = false; }
+    if ((is_chrome)&&(is_opera)) { is_chrome = false; }
+
+
+    if (is_safari) {
+        window.setInterval(function(){
+            $('input:-webkit-autofill').each(function() {
+                var clone = $(this).clone(true, true);
+                $(this).after(clone).remove();
+            });
+        }, 20);
+    }
+}
+
+
+$("#form").submit(function(e) {
+    e.preventDefault();
+    validateForm();
+});
+
 function writeUserData(email) {
     //find a way to prevent duplicates
     firebase.database().ref('users/').push(email);
+    $('#email').prop('readonly', true);
+    $('#submit').remove();
+    $('input[name=email]').val('THANKS');
 }
 
 function validateForm() {
     var email = document.forms["email-form"]["email"].value;
-    if (email !== "") {
+    var exists = users.indexOf(email);
+    if (email !== "" && exists === -1) {
         writeUserData(email);
         return true;
     } else {
+        if (exists) {
+            $('input[name=email]').val('Already Registered');
+            $('#email').prop('readonly', true);
+            $('#submit').remove();
+        }
         return false;
     }
 }
+
+function getUsers() {
+
+    firebase.database().ref('users/').on("value", function(snapshot) {
+        snapshot.forEach(function(child) {
+            var key = child.key;
+            var val = child.val();
+            users.add(key, val);
+            console.log(key, val);
+        });
+
+    }, function(errorObject) {
+        console.log("failed to read: " + errorObject.code);
+    });
+}
+
+function LinkedList() { 
+  var length = 0; 
+  var head = null; 
+
+  var Node = function(key, val){
+    this.key = key;
+    this.val = val;
+    this.next = null; 
+  }; 
+
+  this.size = function(){
+    return length;
+  };
+
+  this.head = function(){
+    return head;
+  };
+
+  this.add = function(key, val){
+    var node = new Node(key, val);
+    if(head === null){
+        head = node;
+    } else {
+        var currentNode = head;
+
+        while(currentNode.next){
+            currentNode  = currentNode.next;
+        }
+
+        currentNode.next = node;
+    }
+
+    length++;
+  }; 
+
+  this.remove = function(key){
+    var currentNode = head;
+    var previousNode;
+    if(currentNode.key === key){
+        head = currentNode.next;
+    } else {
+        while(currentNode.key !== key) {
+            previousNode = currentNode;
+            currentNode = currentNode.next;
+        }
+
+        previousNode.next = currentNode.next;
+    }
+
+    length --;
+  };
+  
+  this.isEmpty = function() {
+    return length === 0;
+  };
+
+  this.indexOf = function(val) {
+    var currentNode = head;
+    var index = -1;
+
+    console.log(val);
+
+    while(currentNode){
+        index++;
+        console.log(currentNode.val);
+        if(currentNode.val === val){
+            return index;
+        }
+        currentNode = currentNode.next;
+    }
+
+    return -1;
+  };
+
+  this.elementAt = function(index) {
+    var currentNode = head;
+    var count = 0;
+    while (count < index){
+        count ++;
+        currentNode = currentNode.next
+    }
+    return currentNode.val;
+  };
+  
+  this.removeAt = function(index) {
+    var currentNode = head;
+    var previousNode;
+    var currentIndex = 0;
+    if (index < 0 || index >= length){
+        return null
+    }
+    if(index === 0){
+        head = currentNode.next;
+    } else {
+        while(currentIndex < index) {
+            currentIndex ++;
+            previousNode = currentNode;
+            currentNode = currentNode.next;
+        }
+        previousNode.next = currentNode.next
+    }
+    length--;
+    return currentNode.key;
+  }
+
+} 
+
+var users = new LinkedList();
+
+getUsers();
