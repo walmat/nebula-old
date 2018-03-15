@@ -237,8 +237,8 @@
 //menu toggle
 function openMenu(){
     var menu = $('.overlay');
-    var b = $('#before');
-    var a = $('#after');
+    var b = $('#menu-before');
+    var a = $('#menu-after');
     if(!menu.hasClass('active')) {
         b.fadeOut(); a.fadeIn();
         menu.fadeIn().toggleClass('active');
@@ -246,6 +246,20 @@ function openMenu(){
         
         b.fadeIn(); a.fadeOut();
         menu.fadeOut().removeClass('active');
+    }
+}
+
+function openAbout(){
+    var about = $('.about');
+    var b = $('#about-before');
+    var a = $('#about-after');
+    if(!about.hasClass('active')) {
+        b.fadeOut(); a.fadeIn();
+        about.fadeIn().toggleClass('active');
+    } else {
+        
+        b.fadeIn(); a.fadeOut();
+        about.fadeOut().removeClass('active');
     }
 }
 

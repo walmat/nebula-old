@@ -1,8 +1,31 @@
+* {
+  font-family: "Open Sans";
+  /*TODO: find a Sans-Serif that looks good (maybe Open Sans)*/
+}
+
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
+}
+
+hr {
+  border-color: rgba(56, 63, 74, 0.5);
+  margin: 0;
+  left:0;
+  width: 50%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: lighter;
+  color: rgba(56, 63, 74, 0.95);
+}
+
+p, a, link, ul, li {
+  font-size: 0.85em + 1vw;
+  font-weight: lighter;
+  color: rgba(244, 244, 244, 0.45);
 }
 
 .large-header {
@@ -26,7 +49,17 @@ html, body {
   background: rgba(15, 15, 15, 1);
 }
 
-i {
+.about {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(15, 15, 15, 1);
+}
+
+#menu-before {
   position: absolute;
   color: rgba(56, 63, 74, 0.5);
   top: 5%;
@@ -35,8 +68,35 @@ i {
   cursor: pointer;
 }
 
+#menu-after {
+  position: absolute;
+  color: rgba(56, 63, 74, 0.5);
+  top: 5%;
+  right: 5%;
+  font-size: 6vw;
+  cursor: pointer;
+}
+
+#about-after {
+  position: absolute;
+  color: rgba(56, 63, 74, 0.5);
+  top: 5%;
+  left: 5%;
+  font-size: 6vw;
+  cursor: pointer;
+}
+
+#about-before {
+  position: absolute;
+  color: rgba(56, 63, 74, 0.5);
+  top: 5%;
+  left: 5%;
+  font-size: 6vw;
+  cursor: pointer;
+}
+
 @media screen and (max-width: 800px) {
-  i {
+  #before {
     position: absolute;
     color: rgba(56, 63, 74, 0.5);
     top: 5%;
@@ -185,6 +245,14 @@ input:hover {
 }
 .flex-item {
     text-align: center;
+}
+
+#myBox {
+border: none;
+padding: 5px;
+width: 50%;
+height: 70%;
+overflow: scroll;
 }
 
 
