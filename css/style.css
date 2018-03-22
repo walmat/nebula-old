@@ -59,6 +59,16 @@ p, a, link, ul, li {
   background: rgba(15, 15, 15, 1);
 }
 
+.preview {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(15, 15, 15, 1);
+}
+
 #menu-before {
   position: absolute;
   color: rgba(56, 63, 74, 0.5);
@@ -91,6 +101,24 @@ p, a, link, ul, li {
   color: rgba(56, 63, 74, 0.5);
   top: 5%;
   left: 5%;
+  font-size: 6vw;
+  cursor: pointer;
+}
+
+#preview-after {
+  position: absolute;
+  color: rgba(56, 63, 74, 0.5);
+  bottom: 5%;
+  left: 47.5%;
+  font-size: 6vw;
+  cursor: pointer;
+}
+
+#preview-before {
+  position: absolute;
+  color: rgba(56, 63, 74, 0.5);
+  bottom: 5%;
+  left: 47.5%;
   font-size: 6vw;
   cursor: pointer;
 }

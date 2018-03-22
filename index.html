@@ -10,11 +10,10 @@
 
 </head>
 <body>
-	
 	<div id="large-header" class="large-header">
 		<i id="about-before" class="ion-arrow-expand" onclick="openAbout()"></i>
 		<i id="menu-before" class="ion-navicon" onclick="openMenu()"></i>
-		
+		<i id="preview-before" class="ion-eye" onclick="openPreview()"></i>
 		<!-- "about" -->
 		<div class="about">
 			<i id="about-after" class="ion-arrow-shrink" onclick="openAbout()"></i>
@@ -97,6 +96,20 @@
 				  			<input name="email" id="email" type="text" placeholder="E-MAIL" onclick="removeAutofill()">
 		  					<input id="submit" type="submit" value=">>">
 		 				</form>
+		 			</div>
+	 			</div>
+ 			</div>
+		</div>
+		<div class="preview">
+			<!-- menu item to be able to close -->
+			<i id="preview-after" class="ion-eye-disabled" onclick="openPreview()"></i>
+			<div class="flex-container">
+				<div class="row">
+					<!-- form -->
+					<div class="flex-item">
+						<section>
+							<img src="_assets/TASKS.png" style="width: 85%; max-width: 1000px;">
+						</section>
 		 			</div>
 	 			</div>
  			</div>

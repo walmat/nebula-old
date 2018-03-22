@@ -263,6 +263,19 @@ function openAbout(){
     }
 }
 
+function openPreview(){
+    var preview = $('.preview');
+    var b = $('#preview-before');
+    var a = $('#preview-after');
+    if(!preview.hasClass('active')) {
+        b.fadeOut(); a.fadeIn();
+        preview.fadeIn().toggleClass('active');
+    } else {
+        b.fadeIn(); a.fadeOut();
+        preview.fadeOut().removeClass('active');
+    }
+}
+
 function removeAutofill() {
 
     var is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
