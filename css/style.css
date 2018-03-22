@@ -132,6 +132,13 @@ p, a, link, ul, li {
     font-size: 8vw;
     cursor: pointer;
   }
+
+  input {
+    font-size: 2.5em;
+  }
+  #submit {
+    font-size: 2.5em;
+  }
 }
 
 /* Change the white to any color ;) */
