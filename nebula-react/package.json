@@ -7,10 +7,18 @@
     "react-dom": "^16.3.0",
     "react-scripts": "1.1.1"
   },
+  "main": "src/electron-starter.js",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts start & node src/electron-wait-react",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
+    "homepage": "./"
+  },
+  "devDependencies": {
+    "electron": "^1.8.4",
+    "foreman": "^2.0.0"
   }
 }
