@@ -1,0 +1,9 @@
+{
+  "name": "cli-service",
+  "version": "0.0.0",
+  "description": "For Handling CLI commands",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  }
+}
