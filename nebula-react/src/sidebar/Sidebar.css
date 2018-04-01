@@ -38,11 +38,13 @@ a {
 .App-icon-first {
     padding: 55px 0 15px 0;
     max-height: 45px;
+    cursor: pointer;
 }
 
 .App-icons {
     padding: 25px 0 15px 0;
     max-height: 45px;
+    cursor: pointer;
 }
 
 
