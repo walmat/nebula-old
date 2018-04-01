@@ -1,0 +1,57 @@
+.Sidebar {
+    height: 100%;
+    width: 70px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    overflow-x: hidden;
+    padding-top: 10px;
+    background: #cbc9d6;
+    border: 5px solid rgba(0,0,0,0.01);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    cursor: pointer;
+}
+
+.BottomIcons {
+    position: fixed;
+    bottom: 5px;
+    left: 9px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.App-logo {
+    padding: 30px 0 30px 0;
+    max-height: 50px;
+    -webkit-animation: App-logo-spin 5s infinite linear; /* Safari 4+ */
+    -moz-animation:    App-logo-spin 5s infinite linear; /* Fx 5+ */
+    -o-animation:      App-logo-spin 5s infinite linear; /* Opera 12+ */
+    animation:         App-logo-spin 5s infinite linear; /* IE 10+, Fx 29+ */
+}
+
+.App-icon-first {
+    padding: 55px 0 15px 0;
+    max-height: 45px;
+}
+
+.App-icons {
+    padding: 25px 0 15px 0;
+    max-height: 45px;
+}
+
+
+.App-icons-btm {
+    padding: 0 4px 0 4px;
+    max-height: 12px;
+}
+
+@keyframes App-logo-spin {
+from { transform: rotate(0deg); }
+to { transform: rotate(360deg); }
+}
