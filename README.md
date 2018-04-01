@@ -1,7 +1,7 @@
 
 <h1 align="center">
   <br>
-  <a href="http://bot-nebula.herokuapp.com"><img src="https://raw.githubusercontent.com/walmat/nebula/master/nebula-react/src/_assets/logo.svg?token=AF_k7c628IhBrFziN1UHYgTvpaVCW1g4ks5ayofOwA%3D%3D" alt="nebula" width="200" style="color:#000000;"></a>
+  <a href="http://bot-nebula.herokuapp.com"><img src="https://raw.githubusercontent.com/walmat/nebula/master/nebula-react/public/nebula_logo.png?token=AF_k7Xgi3HF8o5thLji_Z5szhpzCQ22zks5ayoiiwA%3D%3D" alt="nebula" width="200" style="color:#000000;"></a>
   <br>
   NEBULA
   <br>
