@@ -33,18 +33,21 @@ a {
     -moz-animation:    App-logo-spin 5s infinite linear; /* Fx 5+ */
     -o-animation:      App-logo-spin 5s infinite linear; /* Opera 12+ */
     animation:         App-logo-spin 5s infinite linear; /* IE 10+, Fx 29+ */
+    -webkit-app-region: no-drag;
 }
 
 .App-icon-first {
     padding: 55px 0 15px 0;
     max-height: 45px;
     cursor: pointer;
+    -webkit-app-region: no-drag;
 }
 
 .App-icons {
     padding: 25px 0 15px 0;
     max-height: 45px;
     cursor: pointer;
+    -webkit-app-region: no-drag;
 }
 
 
