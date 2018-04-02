@@ -1,0 +1,8 @@
+{
+  "sites": [
+    {"site":"yeezysupply.com","status":"monitoring"},
+    {"site":"undefeated.com","status":"monitoring"},
+    {"site":"blendsus.com","status":"monitoring"},
+    {"site":"dsmny.com","status":"monitoring"}
+  ]
+}
