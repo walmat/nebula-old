@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "express": "^4.16.3",
+    "firebase": "^4.12.1",
+    "jsonfile": "^4.0.0",
     "npm": "^5.8.0",
     "react": "^16.3.0",
     "react-dom": "^16.3.0",
@@ -11,7 +14,7 @@
   },
   "main": "src/electron-starter.js",
   "scripts": {
-    "start": "react-scripts start & node src/electron-wait-react",
+    "start": "react-scripts start & node src/electron-wait-react & node ../discord-bot/index.js",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
@@ -20,8 +23,10 @@
     "homepage": "./"
   },
   "devDependencies": {
+    "nodemon": "^1.17.3",
     "electron": "^1.8.4",
     "eslint": "^4.19.1",
-    "foreman": "^2.0.0"
+    "foreman": "^2.0.0",
+    "discord.js": "^11.3.2"
   }
 }
