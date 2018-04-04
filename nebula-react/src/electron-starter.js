@@ -13,7 +13,7 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({width: 800, height: 600});
+    mainWindow = new BrowserWindow({width: 1000, height: 715, frame: false, movable: true, titleBarStyle: "hidden", resizable: false});
 
     //this will load localhost:3000 in developer enviroments, otherwise it will load in production env
     const startUrl = process.env.ELECTRON_START_URL || url.format({
@@ -24,7 +24,7 @@ function createWindow() {
     mainWindow.loadURL(startUrl);
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {

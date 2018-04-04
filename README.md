@@ -1,7 +1,7 @@
 
 <h1 align="center">
   <br>
-  <a href="http://www.amitmerchant.com/electron-markdownify"><img src="https://raw.githubusercontent.com/amitmerchant1990/electron-markdownify/master/img/markdownify.png" alt="Markdownify" width="200"></a>
+  <a href="http://bot-nebula.herokuapp.com"><img src="https://raw.githubusercontent.com/walmat/nebula/master/nebula-react/public/nebula_logo.png?token=AF_k7Xgi3HF8o5thLji_Z5szhpzCQ22zks5ayoiiwA%3D%3D" alt="nebula" width="200" style="color:#000000;"></a>
   <br>
   NEBULA
   <br>
@@ -40,7 +40,7 @@
   - Instantly see what your Markdown documents look like in HTML as you create them.
 * Sync Scrolling
   - While you type, LivePreview will automatically scroll to the current location you're editing.
-* GitHub Flavored Markdown  
+* GitHub Flavored Markdown
 * Syntax highlighting
 * [KaTeX](https://khan.github.io/KaTeX/) Support
 * Dark/Light mode
