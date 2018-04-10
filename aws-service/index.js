@@ -1,49 +1,71 @@
 const AWS = require('aws-sdk');
 const connectToAWS = require('./connectToAWS');
+const readline = require('readline');
 
-async function main() {
+const inputStream = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+async function init() {
     try {
         let args = process.argv;
         await connectToAWS(args, AWS);
         console.log('Successfully connected with AWS account');
+        inputStream.on('line', main);
     } catch (err) {
         //we will need to exit with a process code here telling the main service why the action failed
         console.log(err);
     }
+
 }
 
-main();
+const MISSING_ARGUMENTS = 'Missing Arguments!';
+const TO_MANY_ARGUMENTS = 'To many Arguments!';
+const INVALID_ARGUMENTS = 'Invalid Arguments!';
+async function main(line) {
+    let args = line.split(' ');
+    let command = args.shift();
+    if (command.toLowerCase() === 'exit') {
+        if (args.length !== 0) {
+            console.log(TO_MANY_ARGUMENTS);
+            return
+        } else {
+            inputStream.close();
+        }
+    } else if (command.toLowerCase() === 'start') {
+        if(args.length === 0) {
+            console.log(MISSING_ARGUMENTS);
+            return;
+        } else if (args[0] === 'EC2') {
+            //start and close ec2 for testing
+            let ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
 
-// awsTest(args, awsUserAccout);
+            //create a ec2 object
+            let instanceParams = {
+                ImageId: 'ami-10fd7020', 
+                InstanceType: 't1.micro',
+                KeyName: 'KEY_PAIR_NAME',
+                MinCount: 1,
+                MaxCount: 1
+            };
+            console.log('starting instance');
+            try {
+                let newInstance = await ec2.runInstances(instanceParams).promise();
+                let instanceId = data.Instances[0].InstanceId;
+                let stopParams = {
+                    InstanceIds: [instanceId]
+                }
+                console.log('stopping instance');
+                ec2.stopInstances(stopParams).promise();
+                console.log('instance stopped');
+            } catch (err) {
+                console.log(err);
+            }
+        }
+    } else if (command.toLowerCase() === 'Shutdown') {
 
-// async function awsTest(args, awsUserAccount) {
-//     //set process environment variables
-//     process.env.AWS_ACCESS_KEY_ID = awsUserAccount.aws_access_key;
-//     process.env.AWS_SECRET_ACCESS_KEY = awsUserAccount.awsSecertAccessKey;
-//     process.env.AWS_REGION = awsUserAccout.region;
-//     console.log('HERE1');
-//     let ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+    }
+}
 
-//     //create a ec2 object
-//     let instanceParams = {
-//         ImageId: 'ami-10fd7020', 
-//         InstanceType: 't1.micro',
-//         KeyName: 'KEY_PAIR_NAME',
-//         MinCount: 1,
-//         MaxCount: 1
-//     };
-
-//     try {
-//         let newInstance = await ec2.runInstances(instanceParams).promise();
-//         let instanceId = data.Instances[0].InstanceId;
-//         console.log("Created instance", instanceId);
-    
-//         // spin down new ec2 instance
-//         let stopParams = {
-//             InstanceIds: [instanceId]
-//         }
-//         ec2.stopInstances(stopParams);
-//     } catch (err) {
-//         console.log(err);
-//     }
-// }
+init();
