@@ -1,24 +1,46 @@
+const errorMessages = require('./errorMessages');
 
 async function startEC2Instances(args, AWS) {
+	if(args.length < 2) {
+		return Promise.reject({error: errorMessages.missingArgs})
+	}
+
+	if(args.length > 2) {
+		return Promise.reject({error: errorMessages.toManyArgs})
+	}
+
+	let numberOfInstancesToStart = parseInt(args[1]);
+	if(isNaN(numberOfInstancesToStart)) {
+		return Promise.reject({error: errorMessages.invalidArgs});
+	}
 	//start and close ec2 for testing
 	let ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
 
 	//create a ec2 object
 	let instanceParams = {
-		ImageId: 'ami-10fd7020', 
-		InstanceType: 't1.micro',
-		KeyName: 'KEY_PAIR_NAME',
-		MinCount: 1,
-		MaxCount: 1
+		ImageId: 'ami-43a15f3e', 
+		InstanceType: 't2.micro',
+		KeyName: 'test', //TODO, this needs to be passed in somehow
+		MinCount: args[1],
+		MaxCount: args[1]
 	};
-	console.log('starting instance');
-	let newInstance = await ec2.runInstances(instanceParams).promise();
-	let instanceId = data.Instances[0].InstanceId;
-	let stopParams = {
-		InstanceIds: [instanceId]
+	console.log(`starting ${numberOfInstancesToStart} instance`);
+	let ec2Response = await ec2.runInstances(instanceParams).promise();
+	let Instances = ec2Response.Instances;
+	console.log(`${Instances.length} started`);
+
+	let InstanceIds = Instances.map((Instance) => {
+		return Instance.InstanceId;
+	});
+
+	let params = {
+		InstanceIds
 	}
+	await ec2.waitFor('instanceRunning', params).promise();
+	console.log('instance running');
+
 	console.log('stopping instance');
-	ec2.stopInstances(stopParams).promise();
+	await ec2.stopInstances(params).promise();
 	console.log('instance stopped');
 }
 
