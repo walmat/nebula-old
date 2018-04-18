@@ -8,5 +8,8 @@
   },
   "dependencies": {
     "aws-sdk": "^2.221.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1"
   }
 }

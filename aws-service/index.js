@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
 const connectToAWS = require('./connectToAWS');
 const readline = require('readline');
-const startHandler = require('./start');
+const ec2Handler = require('./ec2Handler');
 const errorMessages = require('./errorMessages');
 
 const inputStream = readline.createInterface({
@@ -33,10 +33,8 @@ async function main(line) {
             } else {
                 inputStream.close();
             }
-        } else if (command.toLowerCase() === 'start') {
-            startHandler(args, AWS);
-        } else if (command.toLowerCase() === 'Shutdown') {
-    
+        } else {
+            await ec2Handler(command, args, AWS);
         }
     } catch (err) {
         console.log(err);
