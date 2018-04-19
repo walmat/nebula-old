@@ -16,10 +16,9 @@ async function init() {
         await connectToAWS(args, AWS);
         console.log('Successfully connected with AWS account');
 
-        console.log('Creating Key Pair');
-        manageKeyPair.createKeyPair(AWS);
-        manageKeyPair.deleteKeyPair(AWS);
-
+        console.log('Creating Nebula Key Pair');
+        await manageKeyPair.createKeyPair(AWS);
+        console.log('Created Nebula Key Pair');
         inputStream.on('line', main);
     } catch (err) {
         //we will need to exit with a process code here telling the main service why the action failed
@@ -37,6 +36,9 @@ async function main(line) {
                 console.log(errorMessages.toManyArgs);
                 return
             } else {
+                console.log('Deleting Nebula Key Pair');
+                await manageKeyPair.deleteKeyPair(AWS);
+                console.log('Deleted Nebula Key Pair');
                 inputStream.close();
             }
         } else {
