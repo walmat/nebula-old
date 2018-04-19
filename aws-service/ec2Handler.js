@@ -1,5 +1,6 @@
 const errorMessages = require('./errorMessages');
 let InstanceIds = [];
+let InstancePublicIps = [];
 
 async function startEC2Instances(args, AWS) {
 	if(args.length < 2) {
@@ -21,7 +22,7 @@ async function startEC2Instances(args, AWS) {
 	let instanceParams = {
 		ImageId: 'ami-43a15f3e', 
 		InstanceType: 't2.micro',
-		KeyName: 'test', //TODO, this needs to be passed in somehow
+		KeyName: 'NebulaKey',
 		MinCount: args[1],
 		MaxCount: args[1]
 	};
@@ -41,6 +42,9 @@ async function startEC2Instances(args, AWS) {
 	}
 	await ec2.waitFor('instanceRunning', params).promise();
 	console.log('instances running');
+
+	let test = await ec2.describeInstances(params).promise();
+	console.log(test.Reservations[0].Instances[0]);
 }
 
 async function terminateEC2Instances(args, AWS) {
