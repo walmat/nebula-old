@@ -3,6 +3,7 @@ const connectToAWS = require('./connectToAWS');
 const readline = require('readline');
 const ec2Handler = require('./ec2Handler');
 const errorMessages = require('./errorMessages');
+const manageKeyPair = require('./manageKeyPair');
 
 const inputStream = readline.createInterface({
   input: process.stdin,
@@ -14,6 +15,11 @@ async function init() {
         let args = process.argv;
         await connectToAWS(args, AWS);
         console.log('Successfully connected with AWS account');
+
+        console.log('Creating Key Pair');
+        manageKeyPair.createKeyPair(AWS);
+        manageKeyPair.deleteKeyPair(AWS);
+
         inputStream.on('line', main);
     } catch (err) {
         //we will need to exit with a process code here telling the main service why the action failed
