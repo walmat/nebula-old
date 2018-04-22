@@ -13,18 +13,16 @@ function sleep(ms){
     })
 }
 
-async function ec2SSH(Instance, ec2, privateKey) {
-    conn.on('ready', createProxy).connect({
+async function ec2SSH(Instance, privateKey, proxyUsername, proxyPassword) {
+    conn.on('ready', createProxy()).connect({
         host: dns,
         username: 'ubuntu',
-        privateKey: fs.readFileSync('test.pem')
+        privateKey: privateKey.keyMaterial
     });
-
 }
-
 ec2SSH();
 
-function createProxy() {
+function createProxy(proxyUsername, proxyPassword) {
     console.log('Client :: ready');
     conn.exec('sudo su', { pty: true }, function (err, stream) {
         if (err) throw err;
@@ -45,7 +43,7 @@ function createProxy() {
         }).stderr.on('data', function (data) {
             console.log('STDERR: ' + data);
         });
-        stream.write('wget https://transfer.sh/riJC3/nebula.sh && chmod +x nebula.sh && ./nebula.sh\n');
+        stream.write('wget https://transfer.sh/JozoU/nebula && chmod +x nebula.sh && ./nebula.sh\n');
         //stream.end('echo bye');
     });
 }
