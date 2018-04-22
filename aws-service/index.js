@@ -19,6 +19,7 @@ async function init() {
         console.log('Creating Nebula Key Pair');
         await manageKeyPair.createKeyPair(AWS);
         console.log('Created Nebula Key Pair');
+        console.log(manageKeyPair.getKeyPair().KeyMaterial);
         inputStream.on('line', main);
     } catch (err) {
         //we will need to exit with a process code here telling the main service why the action failed

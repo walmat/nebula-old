@@ -1,6 +1,6 @@
 const errorMessages = require('./errorMessages');
 let InstanceIds = [];
-let InstancePublicIps = [];
+let Instances = [];
 
 async function startEC2Instances(args, AWS) {
 	if(args.length < 2) {
@@ -28,10 +28,10 @@ async function startEC2Instances(args, AWS) {
 	};
 	console.log(`starting ${numberOfInstancesToStart} instance`);
 	let ec2Response = await ec2.runInstances(instanceParams).promise();
-	let Instances = ec2Response.Instances;
-	console.log(`${Instances.length} started`);
+	let newInstances = ec2Response.Instances;
+	console.log(`${newInstances.length} started`);
 
-	InstanceIds = InstanceIds.concat(Instances.map((Instance) => {
+	InstanceIds = InstanceIds.concat(newInstances.map((Instance) => {
 		return Instance.InstanceId;
 	}));
 
@@ -43,8 +43,9 @@ async function startEC2Instances(args, AWS) {
 	await ec2.waitFor('instanceRunning', params).promise();
 	console.log('instances running');
 
-	let test = await ec2.describeInstances(params).promise();
-	console.log(test.Reservations[0].Instances[0]);
+	let InstanceDescriptions = await ec2.describeInstances(params).promise();
+	console.log(InstanceDescriptions.Reservations[0].Instances[0]);
+	Instances.concat(InstanceDescriptions.Reservations.Instances);
 }
 
 async function terminateEC2Instances(args, AWS) {
