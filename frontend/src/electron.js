@@ -13,7 +13,20 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({width: 1000, height: 715, frame: false, movable: true, titleBarStyle: "hidden", resizable: false});
+    mainWindow = new BrowserWindow({
+        width: 1000,
+        height: 715,
+        center: true,
+        frame: false,
+        fullscreenable: false,
+        movable: true,
+        resizable: false,
+        titleBarStyle: "hidden",
+        webPreferences: {
+            nodeIntegration: false,
+            preload: './preload.js'
+        }
+    });
 
     //this will load localhost:3000 in developer enviroments, otherwise it will load in production env
     const startUrl = process.env.ELECTRON_START_URL || url.format({
