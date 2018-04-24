@@ -10,6 +10,11 @@ package-lock.json
 # production
 /build
 
+# database
+_replicator
+_users
+pouch__all_dbs__
+
 # misc
 .DS_Store
 .env.local
