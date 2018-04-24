@@ -3,10 +3,10 @@ import './Tasks.css';
 
 class Tasks extends Component {
     state = {tasks: []};
+    task_num = 0;
 
     constructor(props) {
         super(props);
-        // this.createTask = this.createTask.bind(this);
         this.getTasks = this.getTasks.bind(this);
         this.createTask = this.createTask.bind(this);
     }
@@ -14,11 +14,13 @@ class Tasks extends Component {
     createTask(e) {
         // save task data to user's tasks and show it in 'view tasks' panel
         e.preventDefault();
+        /*grab current values*/
         const
             sku = document.getElementById('sku').innerHTML,
             size = document.getElementById('size').innerHTML,
             billings = document.getElementById('billings').innerHTML,
             num_pairs = document.getElementById('num_pairs').innerHTML;
+        /*Store the task in the db*/
         fetch('/tasks',
             {
                 headers: {
@@ -26,10 +28,13 @@ class Tasks extends Component {
                     'Content-Type': 'application/json'
                 },
                 method: "POST",
-                body: {"#":1,"sku": sku,"size": size,"billings": billings,"num_pairs": num_pairs}
+                body: {"task_num":this.task_num, "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs}
             })
             .then(res => res.json())
             .then(tasks => this.setState({tasks}));
+
+        /*increase task num*/
+        this.task_num++;
     }
 
     getTasks(e) {
