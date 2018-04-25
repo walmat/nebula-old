@@ -3,7 +3,7 @@ const connectToAWS = require('./connectToAWS');
 const readline = require('readline');
 const ec2Handler = require('./ec2Handler');
 const errorMessages = require('./errorMessages');
-const manageKeyPair = require('./manageKeyPair');
+const keyPairManager = require('./keyPairManager');
 
 const inputStream = readline.createInterface({
   input: process.stdin,
@@ -17,15 +17,31 @@ async function init() {
         console.log('Successfully connected with AWS account');
 
         console.log('Creating Nebula Key Pair');
-        await manageKeyPair.createKeyPair(AWS);
+        await createNebulaKeyPair(AWS);
         console.log('Created Nebula Key Pair');
-        console.log(manageKeyPair.getKeyPair().KeyMaterial);
         inputStream.on('line', main);
     } catch (err) {
         //we will need to exit with a process code here telling the main service why the action failed
         console.log(err);
     }
 
+}
+
+async function createNebulaKeyPair(AWS) {
+    try {
+        await keyPairManager.createKeyPair(AWS);
+    } catch (err) {
+        if (err.code === 'InvalidKeyPair.Duplicate') {
+            try {
+                await keyPairManager.deleteKeyPair(AWS);
+                await keyPairManager.createKeyPair(AWS);
+            } catch (err) {
+                return Promise.reject(err);
+            }
+        } else {
+            Promise.reject(err);
+        }
+    }
 }
 
 async function main(line) {
@@ -38,7 +54,7 @@ async function main(line) {
                 return
             } else {
                 console.log('Deleting Nebula Key Pair');
-                await manageKeyPair.deleteKeyPair(AWS);
+                await keyPairManager.deleteKeyPair(AWS);
                 console.log('Deleted Nebula Key Pair');
                 inputStream.close();
             }

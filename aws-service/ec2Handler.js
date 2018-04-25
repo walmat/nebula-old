@@ -1,4 +1,5 @@
 const errorMessages = require('./errorMessages');
+const ec2SSH = require('./ec2SSH');
 let InstanceIds = [];
 let Instances = [];
 
@@ -24,7 +25,8 @@ async function startEC2Instances(args, AWS) {
 		InstanceType: 't2.micro',
 		KeyName: 'NebulaKey',
 		MinCount: args[1],
-		MaxCount: args[1]
+		MaxCount: args[1],
+		SecurityGroups: ['default']
 	};
 	console.log(`starting ${numberOfInstancesToStart} instance`);
 	let ec2Response = await ec2.runInstances(instanceParams).promise();
@@ -40,12 +42,23 @@ async function startEC2Instances(args, AWS) {
 	let params = {
 		InstanceIds
 	}
-	await ec2.waitFor('instanceRunning', params).promise();
+	
+	try {
+		await ec2.waitFor('instanceRunning', params).promise();
+	} catch (err) {
+		err.code === 'ResourceNotReady' ? await ec2.waitFor('instanceRunning', params).promise() : Promise.reject(err);
+	}
 	console.log('instances running');
 
+	// update newInstances with the latest information now that they are running
 	let InstanceDescriptions = await ec2.describeInstances(params).promise();
-	console.log(InstanceDescriptions.Reservations[0].Instances[0]);
-	Instances.concat(InstanceDescriptions.Reservations.Instances);
+	newInstances = InstanceDescriptions.Reservations[0].Instances;
+
+	// now we need to create our proxies by sshing into each instance and running the squid script
+	Instances = Instances.concat(newInstances);
+	newInstances.forEach((Instance) => {
+		ec2SSH.createProxy(Instance, 'Nebula', 'Nebula');
+	});
 }
 
 async function terminateEC2Instances(args, AWS) {
@@ -83,6 +96,13 @@ async function terminateEC2Instances(args, AWS) {
 	console.log('instances terminated');
 }
 
+function createProxy() {
+	console.log(Instances);
+	Instances.forEach((Instance) => {
+		ec2SSH.createProxy(Instance, 'Nebula', 'Nebula');
+	});
+}
+
 module.exports = async function ec2Handler(command, args, AWS) {
 	try {
 		if(command.toLowerCase() === 'start') {
@@ -101,6 +121,9 @@ module.exports = async function ec2Handler(command, args, AWS) {
 			} else {
 				console.log(errorMessages.invalidArgs);
 			}
+		} else if (command.toLowerCase() === 'proxy') {
+			console.log('test');
+			createProxy();
 		}
 	} catch (err) {
 		console.log(err);

@@ -10,8 +10,7 @@ exports.createKeyPair = async function(AWS) {
 		};
 		keyPair = await ec2.createKeyPair(params).promise();
 	} catch (err) {
-		console.log(err);
-		Promise.reject(err);
+		return Promise.reject(err);
 	}
 }
 
@@ -23,8 +22,7 @@ exports.deleteKeyPair = async function(AWS) {
 		};
 		let result = await ec2.deleteKeyPair(params).promise();
 	} catch (err) {
-		console.log(err);
-		Promise.reject(err);
+		return Promise.reject(err);
 	}
 }
 

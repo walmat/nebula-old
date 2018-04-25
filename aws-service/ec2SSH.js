@@ -1,11 +1,6 @@
 const Client = require('ssh2').Client;
-const fs = require('fs');
-
-let password = 'test'
+const keyPairManager = require('./keyPairManager');
 let conn = new Client();
-
-let dns = 'ec2-54-234-51-151.compute-1.amazonaws.com';
-let ipAddress = '35.174.111.139';
 
 function sleep(ms){
     return new Promise(resolve=>{
@@ -13,17 +8,20 @@ function sleep(ms){
     })
 }
 
-async function ec2SSH(Instance, privateKey, proxyUsername, proxyPassword) {
-    conn.on('ready', createProxy()).connect({
-        host: dns,
+exports.createProxy = function (Instance, proxyUsername, proxyPassword) {
+    console.log(Instance.PublicDnsName);
+    console.log(keyPairManager.getKeyPair().KeyMaterial);
+    conn.on('ready', runProxyScript(proxyUsername, proxyPassword)).connect({
+        host: Instance.PublicDnsName,
         username: 'ubuntu',
-        privateKey: privateKey.keyMaterial
+        privateKey: keyPairManager.getKeyPair().KeyMaterial
     });
 }
-ec2SSH();
 
-function createProxy(proxyUsername, proxyPassword) {
+function runProxyScript(proxyUsername, proxyPassword) {
     console.log('Client :: ready');
+    sleep(100000);
+    console.log('after sleep)');
     conn.exec('sudo su', { pty: true }, function (err, stream) {
         if (err) throw err;
         stream.on('close', function () {
@@ -36,20 +34,18 @@ function createProxy(proxyUsername, proxyPassword) {
             if (dataString.includes('Y/N')) {
                 stream.write('y\n');
             } else if (dataString.includes('USERNAME')) {
-                stream.write('nebula\n');
+                stream.write(`${proxyUsername}\n`);
             } else if (dataString.includes('PASSWORD')) {
-                stream.write('nebula\n');
+                stream.write(`${proxyUsername}\n`);
+            } else if (dataString === 'DONE') {
+                stream.end();
             }
         }).stderr.on('data', function (data) {
             console.log('STDERR: ' + data);
         });
         stream.write('wget https://transfer.sh/JozoU/nebula && chmod +x nebula.sh && ./nebula.sh\n');
-        //stream.end('echo bye');
     });
 }
-
-// ip 35.173.177.45
-// public dns name 'ec2-35-173-177-45.compute-1.amazonaws.com'
 
 
 
