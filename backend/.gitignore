@@ -11,9 +11,7 @@ package-lock.json
 /build
 
 # database
-_replicator
-_users
-pouch__all_dbs__
+src/nebula
 
 # misc
 .DS_Store

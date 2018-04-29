@@ -14,25 +14,27 @@ class Tasks extends Component {
     createTask(e) {
         // save task data to user's tasks and show it in 'view tasks' panel
         e.preventDefault();
+        const
+            bill_id = document.getElementById('billings'),
+            size_id = document.getElementById('size');
         /*grab current values*/
         const
-            sku = document.getElementById('sku').innerHTML,
-            size = document.getElementById('size').innerHTML,
-            billings = document.getElementById('billings').innerHTML,
-            num_pairs = document.getElementById('num_pairs').innerHTML;
+            sku = document.getElementById('sku').value,
+            size = size_id.options[size_id.selectedIndex].text,
+            billings = bill_id.options[bill_id.selectedIndex].text,
+            num_pairs = document.getElementById('num_pairs').value;
+
         /*Store the task in the db*/
-        fetch('/tasks',
+        fetch('http://localhost:8080/tasks',
             {
+                method: "POST",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                method: "POST",
-                body: {"task_num":this.task_num, "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs}
+                body: JSON.stringify({"task_num":this.task_num, "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs})
             })
-            .then(res => res.json())
-            .then(tasks => this.setState({tasks}));
-
+            .then(res => console.log(res));
         /*increase task num*/
         this.task_num++;
     }
@@ -74,6 +76,10 @@ class Tasks extends Component {
 
     destroyTask() {
         // if user clicks the garbage can button, erase the task from tasks
+    }
+
+    deleteTasks() {
+
     }
 
     /* MORE HELPERS HERE IF NEED */
