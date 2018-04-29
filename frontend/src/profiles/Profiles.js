@@ -19,6 +19,39 @@ class Profiles extends Component {
         // saves input data to user's profiles
         e.preventDefault();
 
+        const
+            s_country_id = document.getElementById('sCountry'),
+            s_state_id = document.getElementById('sState'),
+            b_country_id = document.getElementById('bCountry'),
+            b_state_id = document.getElementById('bState');
+
+        const
+            sFirstName = document.getElementById('sFirstName').value,
+            sLastName = document.getElementById('sLastName').value,
+            sAddress1 = document.getElementById('sAddress1').value,
+            sAddress2 = document.getElementById('sAddress2').value,
+            sCity = document.getElementById('sCity').value,
+            sCountry = s_country_id.options[s_country_id.selectedIndex].text,
+            sState = s_state_id.options[s_state_id.selectedIndex].text,
+            sZipCode = document.getElementById('sZipCode').value,
+            sPhone = document.getElementById('sPhone').value,
+
+            bFirstName = document.getElementById('bFirstName').value,
+            bLastName = document.getElementById('bLastName').value,
+            bAddress1 = document.getElementById('bAddress1').value,
+            bAddress2 = document.getElementById('bAddress2').value,
+            bCity = document.getElementById('bCity').value,
+            bCountry = b_country_id.options[b_country_id.selectedIndex].text,
+            bState = b_state_id.options[b_state_id.selectedIndex].text,
+            bZipCode = document.getElementById('bZipCode').value,
+            bPhone = document.getElementById('bPhone').value,
+
+            email = document.getElementById('email').value,
+            cc = document.getElementById('cCardNumber').value,
+            exp = document.getElementById('cExpiration').value,
+            cvv = document.getElementById('cCVV').value;
+
+
         /*Store the profile in the db*/
         fetch('http://localhost:8080/profiles',
             {
@@ -27,7 +60,36 @@ class Profiles extends Component {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({yo: "yo"})
+                body: JSON.stringify({
+                    shipping: {
+                        "sFirstName": sFirstName,
+                        "sLastName": sLastName,
+                        "sAddress1": sAddress1,
+                        "sAddress2": sAddress2,
+                        "sCity": sCity,
+                        "sCountry": sCountry,
+                        "sState": sState,
+                        "sZipCode": sZipCode,
+                        "sPhone": sPhone
+                    },
+                    billing: {
+                        "bFirstName": bFirstName,
+                        "bLastName": bLastName,
+                        "bAddress1": bAddress1,
+                        "bAddress2": bAddress2,
+                        "bCity": bCity,
+                        "bCountry": bCountry,
+                        "bState": bState,
+                        "bZipCode": bZipCode,
+                        "bPhone": bPhone
+                    },
+                    payment: {
+                        "email": email,
+                        "cc": cc,
+                        "exp": exp,
+                        "cvv": cvv
+                    }
+                })
             })
             .then(res => console.log(res));
     }
