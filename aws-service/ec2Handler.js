@@ -4,9 +4,9 @@ const fs = require('fs');
 let InstanceIds = [];
 let Instances = [];
 
-let userDataEncoded = fs.readFileSync('./cloud-config.yaml').toString('base64');
-console.log(userDataEncoded);
 async function startEC2Instances(args, AWS) {
+	let userDataEncoded = fs.readFileSync('./cloud-config.yaml').toString('base64');
+	console.log(userDataEncoded);
 	if(args.length < 2) {
 		return Promise.reject({error: errorMessages.missingArgs})
 	}

