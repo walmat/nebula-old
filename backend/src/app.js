@@ -9,7 +9,9 @@ app.use(express.urlencoded()); // to support URL-encoded bodies
 app.use((req, res, next) => {
     const origin = req.get('origin');
 
-    // TODO Add origin validation
+    console.log(origin);
+
+    //TODO - figure out what origin should be and block all others
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
@@ -23,8 +25,13 @@ app.use((req, res, next) => {
     }
 });
 
+/*SETUP ROUTES*/
 let tasks = require('./routes/tasks');
-tasks(app);
+let profiles = require('./routes/profiles');
+let server = require('./routes/server');
+let settings = require('./routes/settings');
+tasks(app); profiles(app); server(app); settings(app);
+
 app.listen(port);
 
 console.log(`Nebula server started on port ${port}`);

@@ -1,7 +1,3 @@
-const PouchDB = require('PouchDB');
-// const db = new PouchDB('nebula');
-
-/*SETUP POUCH CONFIG AND SUCH*/
 module.exports = function(app) {
     app.get('/tasks', function(req, res) {
         console.log(req.body);
@@ -13,8 +9,8 @@ module.exports = function(app) {
 
         console.log(req.body);
         // put the task in the PouchDB
-        // db.put({
-        //     num: req.body.num,
+        // tasks.put({
+        //     task_num: req.body.task_num,
         //     status: req.body.status,
         //     sku: req.body.sku,
         //     num_pairs: req.body.num_pairs

@@ -1,4 +1,4 @@
-[Mon, 23 Apr 2018 20:51:32 GMT] [info] [<0.000.0>] pouchdb-server has started on http://127.0.0.1:6000/
+[Mon, 23 Apr 2018 20:51:32 GMT] [info] [<0.000.0>] pouchdb-app has started on http://127.0.0.1:6000/
 [Mon, 23 Apr 2018 20:51:32 GMT] [info] [<0.000.0>] navigate to http://127.0.0.1:6000/_utils for the Fauxton UI.
-[Mon, 23 Apr 2018 20:57:44 GMT] [info] [<0.000.0>] pouchdb-server has started on http://127.0.0.1:6000/
+[Mon, 23 Apr 2018 20:57:44 GMT] [info] [<0.000.0>] pouchdb-app has started on http://127.0.0.1:6000/
 [Mon, 23 Apr 2018 20:57:44 GMT] [info] [<0.000.0>] navigate to http://127.0.0.1:6000/_utils for the Fauxton UI.

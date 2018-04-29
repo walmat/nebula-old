@@ -32,7 +32,7 @@ class Tasks extends Component {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({"task_num":this.task_num, "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs})
+                body: JSON.stringify({"task_num":this.task_num, "status": "idle", "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs})
             })
             .then(res => console.log(res));
         /*increase task num*/
@@ -41,7 +41,7 @@ class Tasks extends Component {
 
     getTasks(e) {
         e.preventDefault();
-        fetch('/tasks',
+        fetch('http://localhost:8080/tasks',
             {
                 headers: {
                     'Accept': 'application/json',
@@ -130,9 +130,10 @@ class Tasks extends Component {
                                     <th>SKU</th>
                                     <th>PAIRS</th>
                                 </tr>
-                                {this.state.tasks.map(task =>
-                                    <td key={task.num}>{task.username}</td>
-                                )}
+                                /*make row for each task*/
+                                {/*{this.state.tasks.map(task =>*/}
+                                    {/*<td key={task.task_num}>{task.}</td>*/}
+                                {/*)}*/}
                             </table>
                         </div>
                     </div>

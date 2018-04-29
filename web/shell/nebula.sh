@@ -1,15 +1,5 @@
 #!/bin/sh
 
-while true; do
-    read -p "This Script Will Install Squid And Update Your SYSTEM.(y/n) to contine:" yn
-    case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
-
-
 apt-get update && apt-get install squid && cd /etc/squid/ && mv squid.conf squid.backup && wget http://happyvalentinesimages.com/squid.txt && mv squid.txt squid.conf && service squid restart && apt install apache2-utils  
 
 tput setaf 2; echo "Squid Has Been SuccessFully Installed if You're seeing this text as green coloured"
