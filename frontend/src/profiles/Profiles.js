@@ -54,11 +54,11 @@ class Profiles extends Component {
     }
 
     exportProfiles() {
-        // saves the user's profiles to a json file
+        // export the user's profiles to a json file
     }
 
     importProfiles() {
-        // loads a json file into user's profile
+        // imports a loaded json file into user's profiles
     }
 
     getAllProfiles() {
@@ -141,7 +141,7 @@ class Profiles extends Component {
                     <div>
                         <h3>Save Profile</h3>
                         <input id="profile-save" type="text" placeholder="Profile 1" required></input>
-                        <button id="submit-profile" onClick="saveProfile()">Save</button>
+                        <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                     </div>
                     <div>
                         <h3>Load Profile</h3>
@@ -149,7 +149,7 @@ class Profiles extends Component {
                             <option value="" selected disabled hidden>Choose a Profile</option>
                             <option>Profile 1</option>
                         </select>
-                        <button id="load-profile" onClick="loadProfile()">Load</button>
+                        <button id="load-profile" onClick={this.loadProfile}>Load</button>
                     </div>
                 </div>
             </div>
