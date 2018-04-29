@@ -14,11 +14,11 @@ var params = {
     TableName : "Profiles",
     KeySchema: [       
         { AttributeName: "registrationKey", KeyType: "HASH"},  //Partition key
-        { AttributeName: "name", KeyType: "RANGE" }  //Sort key
+        { AttributeName: "profileName", KeyType: "RANGE" }  //Sort key
     ],
     AttributeDefinitions: [       
-        { AttributeName: "registrationKey", AttributeType: "N" },
-        { AttributeName: "name", AttributeType: "S" }
+        { AttributeName: "registrationKey", AttributeType: "S" },
+        { AttributeName: "profileName", AttributeType: "S" }
     ],
     ProvisionedThroughput: {       
         ReadCapacityUnits: 5, 

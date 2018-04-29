@@ -51,7 +51,7 @@ class Profiles extends Component {
             exp = document.getElementById('cExpiration').value,
             cvv = document.getElementById('cCVV').value,
 
-            profile_name = document.getElementById('profile-save').value;
+            profileName = document.getElementById('profile-save').value;
 
 
         /*Store the profile in the db*/
@@ -63,7 +63,7 @@ class Profiles extends Component {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    profile_name: profile_name,
+                    profileName: profileName,
                     shipping: {
                         "sFirstName": sFirstName,
                         "sLastName": sLastName,
@@ -112,8 +112,7 @@ class Profiles extends Component {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({yo: "yo"})
+                }
             })
             .then(res => console.log(res));
     }
