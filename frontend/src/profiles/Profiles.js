@@ -49,7 +49,9 @@ class Profiles extends Component {
             email = document.getElementById('email').value,
             cc = document.getElementById('cCardNumber').value,
             exp = document.getElementById('cExpiration').value,
-            cvv = document.getElementById('cCVV').value;
+            cvv = document.getElementById('cCVV').value,
+
+            profile_name = document.getElementById('profile-save').value;
 
 
         /*Store the profile in the db*/
@@ -61,6 +63,7 @@ class Profiles extends Component {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    profile_name: profile_name,
                     shipping: {
                         "sFirstName": sFirstName,
                         "sLastName": sLastName,
