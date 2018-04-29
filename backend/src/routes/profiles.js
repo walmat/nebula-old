@@ -1,3 +1,7 @@
+let AWS = require('aws-sdk');
+let dyanmoDB = new AWS.DynamoDB({ endpoint: new AWS.Endpoint('http://localhost:8000') });
+
+
 module.exports = function(app) {
     app.get('/profiles', function(req, res) {
         console.log(req.body);
