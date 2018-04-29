@@ -1,8 +1,11 @@
 const errorMessages = require('./errorMessages');
 const ec2SSH = require('./ec2SSH');
+const fs = require('fs');
 let InstanceIds = [];
 let Instances = [];
 
+let userDataEncoded = fs.readFileSync('./cloud-config.yaml').toString('base64');
+console.log(userDataEncoded);
 async function startEC2Instances(args, AWS) {
 	if(args.length < 2) {
 		return Promise.reject({error: errorMessages.missingArgs})
@@ -26,7 +29,8 @@ async function startEC2Instances(args, AWS) {
 		KeyName: 'NebulaKey',
 		MinCount: args[1],
 		MaxCount: args[1],
-		SecurityGroups: ['default']
+		SecurityGroups: ['default'],
+		UserData: userDataEncoded
 	};
 	console.log(`starting ${numberOfInstancesToStart} instance`);
 	let ec2Response = await ec2.runInstances(instanceParams).promise();
@@ -57,7 +61,8 @@ async function startEC2Instances(args, AWS) {
 	// now we need to create our proxies by sshing into each instance and running the squid script
 	Instances = Instances.concat(newInstances);
 	newInstances.forEach((Instance) => {
-		ec2SSH.createProxy(Instance, 'Nebula', 'Nebula');
+		console.log(Instance);
+		// ec2SSH.createProxy(Instance, 'Nebula', 'Nebula');
 	});
 }
 

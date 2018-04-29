@@ -1,0 +1,15 @@
+Type: "AWS::EC2::Instance"
+Properties: 
+  DisableApiTermination: true
+  # IamInstanceProfile: String
+  ImageId: 'ami-43a15f3e'
+  InstanceInitiatedShutdownBehavior: 'terminate'
+  InstanceType: 't2.micro'
+  KeyName: 'Nebula'
+  # SecurityGroupIds: 
+  #   - 'Nebula'
+  SecurityGroups: 
+    - 'Nebula'
+  Tags: 
+    - 'Nebula Proxy'
+  UserData: 'Some Script'

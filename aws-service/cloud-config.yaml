@@ -1,0 +1,4 @@
+#cloud-config
+runcmd:
+ - [ mkdir, test]
+ - [ sh, -xc, "echo $(date) ': hello world!'" ]
