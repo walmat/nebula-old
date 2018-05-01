@@ -1,9 +1,10 @@
 #cloud-config
+#This file tells EC2 the set of commands to run on start up.
 runcmd:
  - [ mkdir, test]
  - [ mkdir, proxy]
  - [ cd, proxy]
  - [ mkdir, poop]
- - [ wget, 'https://transfer.sh/XSn88/nebula' ]
+ - [ wget, 'https://transfer.sh/KVgqT/nebula' ]
  - [ chmod, +x, nebula]
  - [ './nebula']

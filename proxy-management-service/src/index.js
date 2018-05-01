@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
 const connectToAWS = require('./connectToAWS');
 const readline = require('readline');
-const ec2Handler = require('./ec2Handler');
+const proxyHandler = require('./proxyHandler');
 const errorMessages = require('./errorMessages');
 const keyPairManager = require('./keyPairManager');
 
@@ -60,7 +60,7 @@ async function main(line) {
                 inputStream.close();
             }
         } else {
-            await ec2Handler(command, args, AWS);
+            await proxyHandler(command, args, AWS);
         }
     } catch (err) {
         console.log(err);

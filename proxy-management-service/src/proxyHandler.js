@@ -1,12 +1,11 @@
 const errorMessages = require('./errorMessages');
 const ec2SSH = require('./ec2SSH');
 const fs = require('fs');
-let InstanceIds = [];
 let Instances = [];
 
-async function startEC2Instances(args, AWS) {
-	let userDataEncoded = fs.readFileSync('./cloud-config.yaml').toString('base64');
-	console.log(userDataEncoded);
+async function startProxies(args, AWS) {
+	let userDataEncoded = fs.readFileSync('./src/cloud-config.yaml').toString('base64');
+
 	if(args.length < 2) {
 		return Promise.reject({error: errorMessages.missingArgs})
 	}
@@ -20,7 +19,6 @@ async function startEC2Instances(args, AWS) {
 		return Promise.reject({error: errorMessages.invalidArgs});
 	}
 
-
 	let ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
 
 	let instanceParams = {
@@ -32,16 +30,18 @@ async function startEC2Instances(args, AWS) {
 		SecurityGroups: ['default'],
 		UserData: userDataEncoded
 	};
-	console.log(`starting ${numberOfInstancesToStart} instance`);
+
+	// create our proxies
+	console.log(`creating ${numberOfInstancesToStart} proxies`);
 	let ec2Response = await ec2.runInstances(instanceParams).promise();
 	let newInstances = ec2Response.Instances;
-	console.log(`${newInstances.length} started`);
+	console.log(`${newInstances.length} created`);
 
-	InstanceIds = InstanceIds.concat(newInstances.map((Instance) => {
+
+	// wait for our new proxies to be running
+	let InstanceIds = newInstances.map((Instance) => {
 		return Instance.InstanceId;
-	}));
-
-	console.log(InstanceIds);
+	});
 
 	let params = {
 		InstanceIds
@@ -52,21 +52,22 @@ async function startEC2Instances(args, AWS) {
 	} catch (err) {
 		err.code === 'ResourceNotReady' ? await ec2.waitFor('instanceRunning', params).promise() : Promise.reject(err);
 	}
-	console.log('instances running');
+	console.log('New proxies running');
 
 	// update newInstances with the latest information now that they are running
 	let InstanceDescriptions = await ec2.describeInstances(params).promise();
 	newInstances = InstanceDescriptions.Reservations[0].Instances;
-
-	// now we need to create our proxies by sshing into each instance and running the squid script
 	Instances = Instances.concat(newInstances);
+
+	// TODO: Save the ip addresses of all the active running proxies to a file
+
+	// DEBUG
 	newInstances.forEach((Instance) => {
 		console.log(Instance);
-		// ec2SSH.createProxy(Instance, 'Nebula', 'Nebula');
 	});
 }
 
-async function terminateEC2Instances(args, AWS) {
+async function terminateProxies(args, AWS) {
 	if(args.length < 2) {
 		return Promise.reject({error: errorMessages.missingArgs})
 	}
@@ -80,7 +81,7 @@ async function terminateEC2Instances(args, AWS) {
 		return Promise.reject({error: errorMessages.invalidArgs});
 	}
 
-	if(numberOfInstancesToTerminate > InstanceIds.length) {
+	if(numberOfInstancesToTerminate > Instances.length) {
 		return Promise.reject({error: `Not that many EC2 Instances exist!`})
 	}
 
@@ -88,7 +89,7 @@ async function terminateEC2Instances(args, AWS) {
 
 	let instanceIdsToTerminate = [];
 	for(let i = 0; i < numberOfInstancesToTerminate; i++) {
-		instanceIdsToTerminate.push(InstanceIds.pop());
+		instanceIdsToTerminate.push(Instances.pop().InstanceId);
 	}
 
 	console.log(instanceIdsToTerminate);
@@ -101,34 +102,24 @@ async function terminateEC2Instances(args, AWS) {
 	console.log('instances terminated');
 }
 
-function createProxy() {
-	console.log(Instances);
-	Instances.forEach((Instance) => {
-		ec2SSH.createProxy(Instance, 'Nebula', 'Nebula');
-	});
-}
-
 module.exports = async function ec2Handler(command, args, AWS) {
 	try {
 		if(command.toLowerCase() === 'start') {
 			if (args.length === 0) {
 				console.log(errorMessages.missingArgs);
-			} else if (args[0] === 'EC2') {
-				await startEC2Instances(args, AWS);
+			} else if (args[0] === 'proxies') {
+				await startProxies(args, AWS);
 			} else {
 				console.log(errorMessages.invalidArgs);
 			}
 		} else if(command.toLowerCase() === 'terminate') {
 			if (args.length === 0) {
 				console.log(errorMessages.missingArgs);
-			} else if (args[0] === 'EC2') {
-				await terminateEC2Instances(args, AWS);
+			} else if (args[0] === 'proxies') {
+				await terminateProxies(args, AWS);
 			} else {
 				console.log(errorMessages.invalidArgs);
 			}
-		} else if (command.toLowerCase() === 'proxy') {
-			console.log('test');
-			createProxy();
 		}
 	} catch (err) {
 		console.log(err);
