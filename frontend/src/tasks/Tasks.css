@@ -1,0 +1,93 @@
+input, select {
+    /* Rectangle 163: */
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid rgba(0, 0, 0, 0.33);
+    border-radius: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+/*clear placeholder text on input focus*/
+input:focus::-webkit-input-placeholder {
+    opacity: 0;
+}
+
+input:focus {
+    cursor: default;
+}
+
+.flex-container {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#sku {
+    width: 90%;
+    line-height: 2.5em;
+    text-align: center;
+    margin-left: 5%;
+}
+
+#num_pairs {
+    width: 40%;
+    align-content: stretch;
+    margin-top: -2.5%;
+    margin-left: 5%;
+    margin-right: 5%;
+    line-height: 2.5em;
+    text-align: center;
+}
+
+#billings, #size {
+    width: 40%;
+    align-content: stretch;
+    margin-top: -2.5%;
+    margin-left: 5%;
+    margin-right: 0;
+    height:33px;
+    text-align: center;
+    padding:1px;
+
+}
+
+#form {
+    width: 100%;
+    height:250px;
+    background: rgba(0, 0, 0, 0.03);
+    padding: 5px;
+    padding-right: 10px;
+    border: whitesmoke;
+    border-radius: 4px;
+}
+
+.flex-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    padding: 5%;
+}
+
+.flex-col {
+    flex:1;
+    align-items: flex-start;
+    flex-direction: column;
+    white-space: normal;
+}
+
+#view-task-header, #create-task-header {
+    margin-bottom: 3px;
+    font-style: normal;
+    line-height: 2em;
+}
+
+#view-row, #create-row {
+    margin-right: 8px;
+}

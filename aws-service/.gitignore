@@ -2,16 +2,13 @@
 
 # dependencies
 node_modules
-package-lock.json
 
 # testing
 /coverage
 
 # production
 /build
-
-# database
-src/nebula
+package-lock.json
 
 # misc
 .DS_Store
@@ -23,3 +20,5 @@ src/nebula
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+secert
