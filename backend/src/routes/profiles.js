@@ -1,4 +1,6 @@
-let AWS = require('aws-sdk');
+const AWS = require('aws-sdk');
+const Joi = require('joi');
+
 AWS.config = {
     region: "us-west-2",
     endpoint: "http://localhost:8000",
@@ -42,5 +44,21 @@ module.exports = async function(app) {
             console.log(err);
         }
         /*put the task data in the db*/
+    });
+
+    //the schema will be used to validate our input on the POST request
+    const profilesSchema = Joi.object().keys({
+        profileName: Joi.string().required(),
+        shipping: Joi.object.keys({
+            sFirstName: Joi.string().required().label('Shipping first name'),
+            sLastName: Joi.string().required(),
+            sAddress1: Joi.string().required(),
+            sAddress2: Joi.string(),
+            sCity: Joi.string().required(),
+            sCountry: Joi.string().required(),
+            sState: Joi.string(),
+            sZipCode: Joi.string().required(),
+            sPhone: Joi.string().required()
+        })
     });
 };
