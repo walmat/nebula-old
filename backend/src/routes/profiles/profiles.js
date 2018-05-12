@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const Joi = require('joi');
+const validateProfile = require('./validateProfile');
 
 AWS.config = {
     region: "us-west-2",
@@ -31,8 +31,16 @@ module.exports = async function(app) {
     app.post('/profiles', async function(req, res) {
         try {
             let profileData = req.body;
-            profileData.registrationKey = 'test';
-            console.log(profileData);
+            let validation = validateProfile(profileData)
+            
+            if (validation.fail) {
+                res.status(400);
+                res.send({
+                    message: 'Invalid Profile',
+                    errors: validation.fail
+                })
+                return;
+            }
             
             let params = {
                 TableName: 'Profiles',
@@ -42,23 +50,11 @@ module.exports = async function(app) {
             console.log('Successfully saved item');
         } catch (err) {
             console.log(err);
+            res.send(400); //TODO move this into a check prior to catch. This should only catch dyanmo failures (AKA server errors)
+            res.send({
+                message: 'Profile Name not unqiue'
+            })
         }
         /*put the task data in the db*/
-    });
-
-    //the schema will be used to validate our input on the POST request
-    const profilesSchema = Joi.object().keys({
-        profileName: Joi.string().required(),
-        shipping: Joi.object.keys({
-            sFirstName: Joi.string().required().label('Shipping first name'),
-            sLastName: Joi.string().required(),
-            sAddress1: Joi.string().required(),
-            sAddress2: Joi.string(),
-            sCity: Joi.string().required(),
-            sCountry: Joi.string().required(),
-            sState: Joi.string(),
-            sZipCode: Joi.string().required(),
-            sPhone: Joi.string().required()
-        })
     });
 };

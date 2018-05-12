@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 
 /*SETUP ROUTES*/
 let tasks = require('./routes/tasks');
-let profiles = require('./routes/profiles');
+let profiles = require('./routes/profiles/profiles');
 let server = require('./routes/server');
 let settings = require('./routes/settings');
 tasks(app); profiles(app); server(app); settings(app);

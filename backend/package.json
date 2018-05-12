@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "devDependencies": {
+    "eslint-config-google": "^0.9.1",
     "nodemon": "^1.17.3"
   },
   "dependencies": {
