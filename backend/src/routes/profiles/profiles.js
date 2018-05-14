@@ -31,9 +31,11 @@ module.exports = async function(app) {
     app.post('/profiles', async function(req, res) {
         try {
             let profileData = req.body;
+            console.log(profileData);
             let validation = validateProfile(profileData)
             
             if (validation.fail) {
+                console.log(validation.fail);
                 res.status(400);
                 res.send({
                     message: 'Invalid Profile',

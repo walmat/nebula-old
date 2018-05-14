@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ValidationErrors from '../utils/ValidationErrors';
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
@@ -6,6 +7,10 @@ class Profiles extends Component {
 
     constructor(props) {
         super(props);
+        this.state = {
+            errors: {}
+        }
+
         this.fillExpiration = this.fillExpiration.bind(this);
         this.saveProfile = this.saveProfile.bind(this);
         this.loadProfile = this.loadProfile.bind(this);
@@ -15,7 +20,7 @@ class Profiles extends Component {
      * store the profile in the database for the user
      * @param e
      */
-    saveProfile(e) {
+    async saveProfile(e) {
         // saves input data to user's profiles
         e.preventDefault();
 
@@ -29,7 +34,7 @@ class Profiles extends Component {
             sFirstName = document.getElementById('sFirstName').value,
             sLastName = document.getElementById('sLastName').value,
             sAddress1 = document.getElementById('sAddress1').value,
-            sAddress2 = document.getElementById('sAddress2').value,
+            sAddress2 = document.getElementById('apt').value,
             sCity = document.getElementById('sCity').value,
             sCountry = s_country_id.options[s_country_id.selectedIndex].text,
             sState = s_state_id.options[s_state_id.selectedIndex].text,
@@ -39,7 +44,7 @@ class Profiles extends Component {
             bFirstName = document.getElementById('bFirstName').value,
             bLastName = document.getElementById('bLastName').value,
             bAddress1 = document.getElementById('bAddress1').value,
-            bAddress2 = document.getElementById('bAddress2').value,
+            bAddress2 = document.getElementById('bApt').value,
             bCity = document.getElementById('bCity').value,
             bCountry = b_country_id.options[b_country_id.selectedIndex].text,
             bState = b_state_id.options[b_state_id.selectedIndex].text,
@@ -55,7 +60,8 @@ class Profiles extends Component {
 
 
         /*Store the profile in the db*/
-        fetch('http://localhost:8080/profiles',
+        try {
+            let response = await fetch('http://localhost:8080/profiles',
             {
                 method: "POST",
                 headers: {
@@ -65,36 +71,44 @@ class Profiles extends Component {
                 body: JSON.stringify({
                     profileName: profileName,
                     shipping: {
-                        "sFirstName": sFirstName,
-                        "sLastName": sLastName,
-                        "sAddress1": sAddress1,
-                        "sAddress2": sAddress2,
-                        "sCity": sCity,
-                        "sCountry": sCountry,
-                        "sState": sState,
-                        "sZipCode": sZipCode,
-                        "sPhone": sPhone
+                        "firstName": sFirstName,
+                        "lastName": sLastName,
+                        "address": sAddress1,
+                        "city": sCity,
+                        "country": sCountry,
+                        "state": sState,
+                        "zipCode": sZipCode,
+                        "phone": sPhone
                     },
                     billing: {
-                        "bFirstName": bFirstName,
-                        "bLastName": bLastName,
-                        "bAddress1": bAddress1,
-                        "bAddress2": bAddress2,
-                        "bCity": bCity,
-                        "bCountry": bCountry,
-                        "bState": bState,
-                        "bZipCode": bZipCode,
-                        "bPhone": bPhone
+                        "firstName": bFirstName,
+                        "lastName": bLastName,
+                        "address": bAddress1,
+                        "city": bCity,
+                        "country": bCountry,
+                        "state": bState,
+                        "zipCode": bZipCode,
+                        "phone": bPhone
                     },
                     payment: {
                         "email": email,
-                        "cc": cc,
+                        "cardNumber": cc,
                         "exp": exp,
                         "cvv": cvv
                     }
                 })
-            })
-            .then(res => console.log(res));
+            });
+
+            let result = await response.json();
+            if (!result.ok) {
+                this.setState({
+                    errors: result.errors
+                });
+            }
+        } catch (err) {
+            console.log(err);
+        }
+
     }
 
     /**
@@ -140,83 +154,107 @@ class Profiles extends Component {
 
     render() {
         return (
-            <div className="container">
-                <div className="flex-container">
-                    <div className="flex-row">
-                        <div className="flex-col">
-                            <h2>Shipping Information</h2>
-                            <input id="sFirstName" type="text" placeholder="First Name" required></input>
-                            <input id="sLastName" type="text" placeholder="Last Name" required></input>
-                            <br></br>
-                            <input id="sAddress1" type="text" placeholder="Address" required></input>
-                            <input id="sAddress2" type="text" placeholder="Apt/Suite"></input>
-                            <br></br>
-                            <input id="sCity" type="text" placeholder="City" required></input>
-                            <br></br>
-                            <select id="sCountry">
-                                <option value="" selected disabled hidden>Country</option>
-                                <option>United States</option>
-                            </select>
-                            <select id="sState">
-                                <option value="" selected disabled hidden>State</option>
-                                <option>Alaska</option>
-                            </select>
-                            <input id="sZipCode" type="text" placeholder="Zip Code" required></input>
-                            <br></br>
-                            <input id="sPhone" type="text" placeholder="Phone" required></input>
+            <form>
+                <div className="container">
+                    <div className="flex-container">
+                        <div className="flex-row">
+                            <div className="flex-col">
+                                <h2>Shipping Information</h2>
+                                <input id="sFirstName" type="text" placeholder="First Name" required></input>
+                                <ValidationErrors errors={this.state.errors['/shipping/firstName']} />
+                                <input id="sLastName" type="text" placeholder="Last Name" required></input>
+                                <ValidationErrors errors={this.state.errors['/shipping/lastName']} />
+                                <br></br>
+                                <input id="sAddress1" type="text" placeholder="Address" required></input>
+                                <ValidationErrors errors={this.state.errors['/shipping/address']} />
+                                <input id="apt" type="text" placeholder="Apt/Suite"></input>
+                                <ValidationErrors errors={this.state.errors['/shipping/apt']} />
+                                <br></br>
+                                <input id="sCity" type="text" placeholder="City" required></input>
+                                <ValidationErrors errors={this.state.errors['/shipping/city']} />
+                                <br></br>
+                                <select id="sCountry">
+                                    <option value="" selected disabled hidden>Country</option>
+                                    <option>United States</option>
+                                </select>
+                                <ValidationErrors errors={this.state.errors['/shipping/country']} />
+                                <select id="sState">
+                                    <option value="" selected disabled hidden>State</option>
+                                    <option>Alaska</option>
+                                </select>
+                                <ValidationErrors errors={this.state.errors['/shipping/state']} />
+                                <input id="sZipCode" type="text" placeholder="Zip Code" required></input>
+                                <ValidationErrors errors={this.state.errors['/shipping/zipCode']} />
+                                <br></br>
+                                <input id="sPhone" type="text" placeholder="Phone" required></input>
+                                <ValidationErrors errors={this.state.errors['/shipping/phone']} />
+                            </div>
+                            <div className="flex-col">
+                                <h2>Billing Information</h2>
+                                <input id="bFirstName" type="text" placeholder="First Name" required></input>
+                                <ValidationErrors errors={this.state.errors['/billing/firstName']} />
+                                <input id="bLastName" type="text" placeholder="Last Name" required></input>
+                                <ValidationErrors errors={this.state.errors['/billing/lastName']} />
+                                <br></br>
+                                <input id="bAddress1" type="text" placeholder="Address" required></input>
+                                <ValidationErrors errors={this.state.errors['/billing/address']} />
+                                <input id="bApt" type="text" placeholder="Apt/Suite"></input>
+                                <ValidationErrors errors={this.state.errors['/billing/apt']} />
+                                <br></br>
+                                <input id="bCity" type="text" placeholder="City" required></input>
+                                <ValidationErrors errors={this.state.errors['/billing/city']} />
+                                <br></br>
+                                <select id="bCountry">
+                                    <option value="" selected disabled hidden>Country</option>
+                                    <option>United States</option>
+                                </select>
+                                <ValidationErrors errors={this.state.errors['/billing/country']} />
+                                <select id="bState">
+                                    <option value="" selected disabled hidden>State</option>
+                                    <option>Alaska</option>
+                                </select>
+                                <ValidationErrors errors={this.state.errors['/billing/address']} />
+                                <input id="bZipCode" type="text" placeholder="Zip Code" required></input>
+                                <ValidationErrors errors={this.state.errors['/billing/zipCode']} />
+                                <br></br>
+                                <input id="bPhone" type="text" placeholder="Phone" required></input>
+                                <ValidationErrors errors={this.state.errors['/billing/phone']} />
+                                <br></br>
+                                <input type="checkbox" name="checkbox" id="match"></input>
+                                <label htmlFor="match">Same as shipping information</label>
+                            </div>
                         </div>
-                        <div className="flex-col">
-                            <h2>Billing Information</h2>
-                            <input id="bFirstName" type="text" placeholder="First Name" required></input>
-                            <input id="bLastName" type="text" placeholder="Last Name" required></input>
-                            <br></br>
-                            <input id="bAddress1" type="text" placeholder="Address" required></input>
-                            <input id="bAddress2" type="text" placeholder="Apt/Suite"></input>
-                            <br></br>
-                            <input id="bCity" type="text" placeholder="City" required></input>
-                            <br></br>
-                            <select id="bCountry">
-                                <option value="" selected disabled hidden>Country</option>
-                                <option>United States</option>
-                            </select>
-                            <select id="bState">
-                                <option value="" selected disabled hidden>State</option>
-                                <option>Alaska</option>
-                            </select>
-                            <input id="bZipCode" type="text" placeholder="Zip Code" required></input>
-                            <br></br>
-                            <input id="bPhone" type="text" placeholder="Phone" required></input>
-                            <br></br>
-                            <input type="checkbox" name="checkbox" id="match"></input>
-                            <label htmlFor="match">Same as shipping information</label>
+                        <div className="flex-row">
+                            <div className="flex-col">
+                                <h2>Payment Information</h2>
+                                <input id="email" type="text" placeholder="Email Address" required></input>
+                                <ValidationErrors errors={this.state.errors['/payment/email']} />
+                                <br></br>
+                                <input id="cCardNumber" type="text" placeholder="Card Number" required></input>
+                                <ValidationErrors errors={this.state.errors['/payment/cardNumber']} />
+                                <br></br>
+                                <input id="cExpiration" type="text" placeholder="Expiration" required></input>
+                                <ValidationErrors errors={this.state.errors['/payment/exp']} />
+                                <input id="cCVV" type="text" placeholder="CVV" required></input>
+                                <ValidationErrors errors={this.state.errors['/payment/cvv']} />
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex-row">
-                        <div className="flex-col">
-                            <h2>Payment Information</h2>
-                            <input id="email" type="text" placeholder="Email Address" required></input>
-                            <br></br>
-                            <input id="cCardNumber" type="text" placeholder="Card Number" required></input>
-                            <br></br>
-                            <input id="cExpiration" type="text" placeholder="Expiration" required></input>
-                            <input id="cCVV" type="text" placeholder="CVV" required></input>
+                        <div>
+                            <h3>Save Profile</h3>
+                            <input id="profile-save" type="text" placeholder="Profile 1" required></input>
+                            <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                         </div>
-                    </div>
-                    <div>
-                        <h3>Save Profile</h3>
-                        <input id="profile-save" type="text" placeholder="Profile 1" required></input>
-                        <button id="submit-profile" onClick={this.saveProfile}>Save</button>
-                    </div>
-                    <div>
-                        <h3>Load Profile</h3>
-                        <select id="profile-load">
-                            <option value="" selected disabled hidden>Choose a Profile</option>
-                            <option>Profile 1</option>
-                        </select>
-                        <button id="load-profile" onClick={this.loadProfile}>Load</button>
+                        <div>
+                            <h3>Load Profile</h3>
+                            <select id="profile-load">
+                                <option value="" selected disabled hidden>Choose a Profile</option>
+                                <option>Profile 1</option>
+                            </select>
+                            <button id="load-profile" onClick={this.loadProfile}>Load</button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </form>
         );
     }
 }

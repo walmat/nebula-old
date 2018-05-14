@@ -22,7 +22,7 @@ const profilesSchema = Joi.object().keys({
 		city: Joi.string()
 				.required()
 				.label('Shipping City'),
-		county: Joi.string()
+		country: Joi.string()
 					.required()
 					.label('Shipping Country'),
 		state: Joi.string()
@@ -34,7 +34,7 @@ const profilesSchema = Joi.object().keys({
 					.required()
 					.label('Shipping Phone number')
 	}),
-	Billing: Joi.object().keys({
+	billing: Joi.object().keys({
 		firstName: Joi.string()
 					.required()
 					.label('Billing first name'),
@@ -59,7 +59,7 @@ const profilesSchema = Joi.object().keys({
 					.required()
 					.label('Shipping Phone number')
 	}),
-	Payment: Joi.object().keys({
+	payment: Joi.object().keys({
 		email: Joi.string()
 				.email()
 				.required()
@@ -72,8 +72,7 @@ const profilesSchema = Joi.object().keys({
 				.required()
 				.label('Expiration Date'),
 		cvv: Joi.string()
-				.regex(/[0-9]+/)
-				.length(3)
+				.regex(/[0-9]{3}/)
 				.required()
 				.label('CVV')
 	})
@@ -83,7 +82,20 @@ const options = {
 	abortEarly: false,
 	convert: false,
 	stripUnknown: true,
-	allowUnknown: true // this is to prevent breaking changes to the Profiles backend api
+	allowUnknown: true, // this is to prevent breaking changes to the Profiles backend api
+	language: {
+        any: {
+            required: '!!Required Field',
+			empty: '!!Required Field',
+		},
+		string: {
+			email: '!!Must be a valid email',
+			creditCard: '!!Must be a valid credit card number',
+			regex: {
+				base: '!!Must contain only numbers and be three characters long'
+			}
+		}
+    }
 }
 
 function toJSONPointerPath(pathParts) {
