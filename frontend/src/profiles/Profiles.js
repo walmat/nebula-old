@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
-import ValidationErrors from '../utils/ValidationErrors';
-const { body,validationResult } = require('express-validator/check');
-const { sanitizeBody } = require('express-validator/filter');
+// import ValidationErrors from '../utils/ValidationErrors';
 
 const errorStyle = {
-    borderColor: 'red'
+    borderColor: 'red',
+    backgroundImage: "url('../_assets/Symbol_check-01.png')",
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right center',
+    backgroundOrigin: 'content-box'
 };
 
 class Profiles extends Component {
@@ -13,7 +15,7 @@ class Profiles extends Component {
         super(props);
         this.state = {
             errors: {}
-        }
+        };
 
         this.fillExpiration = this.fillExpiration.bind(this);
         this.saveProfile = this.saveProfile.bind(this);
@@ -157,7 +159,35 @@ class Profiles extends Component {
     }
 
     setBorderColor(validationErrors) {
-        return validationErrors ? errorStyle : {};
+        return validationErrors ? errorStyle : {
+            backgroundImage: "url(../_assets/Symbol_check-01.png)",
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right center',
+            backgroundOrigin: 'content-box'
+        };
+    }
+    setDisabled() {
+        if (document.getElementById('match').checked) {
+            document.getElementById('bCountry').disabled = true,
+            document.getElementById('bState').disabled = true;
+            document.getElementById('bFirstName').disabled = true,
+            document.getElementById('bLastName').disabled = true,
+            document.getElementById('bAddress1').disabled = true,
+            document.getElementById('bApt').disabled = true,
+            document.getElementById('bCity').disabled = true,
+            document.getElementById('bZipCode').disabled = true,
+            document.getElementById('bPhone').disabled = true;
+        } else {
+            document.getElementById('bCountry').disabled = false,
+            document.getElementById('bState').disabled = false;
+            document.getElementById('bFirstName').disabled = false,
+            document.getElementById('bLastName').disabled = false,
+            document.getElementById('bAddress1').disabled = false,
+            document.getElementById('bApt').disabled = false,
+            document.getElementById('bCity').disabled = false,
+            document.getElementById('bZipCode').disabled = false,
+            document.getElementById('bPhone').disabled = false;
+        }
     }
 
     render() {
@@ -181,7 +211,7 @@ class Profiles extends Component {
                                     <option value="" selected disabled hidden>Country</option>
                                     <option>United States</option>
                                 </select>
-                                <select id="sState" style={this.setBorderColor(errors['/shipping/firstName'])}>
+                                <select id="sState" style={this.setBorderColor(errors['/shipping/state'])}>
                                     <option value="" selected disabled hidden>State</option>
                                     <option>Alaska</option>
                                 </select>
@@ -191,52 +221,39 @@ class Profiles extends Component {
                             </div>
                             <div className="flex-col">
                                 <h2>Billing Information</h2>
-                                <input id="bFirstName" type="text" placeholder="First Name" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/firstName']} />
-                                <input id="bLastName" type="text" placeholder="Last Name" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/lastName']} />
+                                <input id="bFirstName" type="text" placeholder="First Name" required style={this.setBorderColor(errors['/billing/firstName'])}></input>
+                                <input id="bLastName" type="text" placeholder="Last Name" required style={this.setBorderColor(errors['/billing/lastName'])}></input>
                                 <br></br>
-                                <input id="bAddress1" type="text" placeholder="Address" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/address']} />
-                                <input id="bApt" type="text" placeholder="Apt/Suite"></input>
-                                <ValidationErrors errors={this.state.errors['/billing/apt']} />
+                                <input id="bAddress1" type="text" placeholder="Address" required style={this.setBorderColor(errors['/billing/address'])}></input>
+                                <input id="bApt" type="text" placeholder="Apt/Suite" style={this.setBorderColor(errors['/billing/apt'])}></input>
                                 <br></br>
-                                <input id="bCity" type="text" placeholder="City" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/city']} />
+                                <input id="bCity" type="text" placeholder="City" required style={this.setBorderColor(errors['/billing/city'])}></input>
                                 <br></br>
-                                <select id="bCountry">
+                                <select id="bCountry" style={this.setBorderColor(errors['/billing/country'])}>
                                     <option value="" selected disabled hidden>Country</option>
                                     <option>United States</option>
                                 </select>
-                                <ValidationErrors errors={this.state.errors['/billing/country']} />
-                                <select id="bState">
+                                <select id="bState" style={this.setBorderColor(errors['/billing/state'])}>
                                     <option value="" selected disabled hidden>State</option>
                                     <option>Alaska</option>
                                 </select>
-                                <ValidationErrors errors={this.state.errors['/billing/address']} />
-                                <input id="bZipCode" type="text" placeholder="Zip Code" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/zipCode']} />
+                                <input id="bZipCode" type="text" placeholder="Zip Code" required style={this.setBorderColor(errors['/billing/zipCode'])}></input>
                                 <br></br>
-                                <input id="bPhone" type="text" placeholder="Phone" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/phone']} />
+                                <input id="bPhone" type="text" placeholder="Phone" required style={this.setBorderColor(errors['/billing/phone'])}></input>
                                 <br></br>
-                                <input type="checkbox" name="checkbox" id="match"></input>
+                                <input type="checkbox" name="checkbox" id="match" onClick={this.setDisabled}></input>
                                 <label htmlFor="match">Same as shipping information</label>
                             </div>
                         </div>
                         <div className="flex-row">
                             <div className="flex-col">
                                 <h2>Payment Information</h2>
-                                <input id="email" type="text" placeholder="Email Address" required></input>
-                                <ValidationErrors errors={this.state.errors['/payment/email']} />
+                                <input id="email" type="text" placeholder="Email Address" required style={this.setBorderColor(errors['/payment/email'])}></input>
                                 <br></br>
-                                <input id="cCardNumber" type="text" placeholder="Card Number" required></input>
-                                <ValidationErrors errors={this.state.errors['/payment/cardNumber']} />
+                                <input id="cCardNumber" type="text" placeholder="Card Number" required style={this.setBorderColor(errors['/payment/cardNumber'])}></input>
                                 <br></br>
-                                <input id="cExpiration" type="text" placeholder="Expiration" required></input>
-                                <ValidationErrors errors={this.state.errors['/payment/exp']} />
-                                <input id="cCVV" type="text" placeholder="CVV" required></input>
-                                <ValidationErrors errors={this.state.errors['/payment/cvv']} />
+                                <input id="cExpiration" type="text" placeholder="Expiration" required style={this.setBorderColor(errors['/payment/exp'])}></input>
+                                <input id="cCVV" type="text" placeholder="CVV" required style={this.setBorderColor(errors['/payment/cvv'])}></input>
                             </div>
                         </div>
                         <div>
