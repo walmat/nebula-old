@@ -61,6 +61,10 @@ input, select {
   cursor: pointer;
 }
 
+input:disabled, select:disabled {
+  cursor: default;
+}
+
 /*clear placeholder text on input focus*/
 input:focus::-webkit-input-placeholder {
   opacity: 0;

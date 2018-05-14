@@ -1,12 +1,14 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
+import valid from '../_assets/Symbol_check-01.png';
+import invalid from '../_assets/Symbol_check-02.png';
 // import ValidationErrors from '../utils/ValidationErrors';
 
 const errorStyle = {
-    borderColor: 'red',
-    backgroundImage: "url('../_assets/Symbol_check-01.png')",
+    backgroundImage: `url(${invalid})`,
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'right center',
-    backgroundOrigin: 'content-box'
+    backgroundOrigin: 'content-box',
+    backgroundSize: '15px 15px'
 };
 
 class Profiles extends Component {
@@ -68,42 +70,42 @@ class Profiles extends Component {
         /*Store the profile in the db*/
         try {
             let response = await fetch('http://localhost:8080/profiles',
-            {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    profileName: profileName,
-                    shipping: {
-                        "firstName": sFirstName,
-                        "lastName": sLastName,
-                        "address": sAddress1,
-                        "city": sCity,
-                        "country": sCountry,
-                        "state": sState,
-                        "zipCode": sZipCode,
-                        "phone": sPhone
+                {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    billing: {
-                        "firstName": bFirstName,
-                        "lastName": bLastName,
-                        "address": bAddress1,
-                        "city": bCity,
-                        "country": bCountry,
-                        "state": bState,
-                        "zipCode": bZipCode,
-                        "phone": bPhone
-                    },
-                    payment: {
-                        "email": email,
-                        "cardNumber": cc,
-                        "exp": exp,
-                        "cvv": cvv
-                    }
-                })
-            });
+                    body: JSON.stringify({
+                        profileName: profileName,
+                        shipping: {
+                            "firstName": sFirstName,
+                            "lastName": sLastName,
+                            "address": sAddress1,
+                            "city": sCity,
+                            "country": sCountry,
+                            "state": sState,
+                            "zipCode": sZipCode,
+                            "phone": sPhone
+                        },
+                        billing: {
+                            "firstName": bFirstName,
+                            "lastName": bLastName,
+                            "address": bAddress1,
+                            "city": bCity,
+                            "country": bCountry,
+                            "state": bState,
+                            "zipCode": bZipCode,
+                            "phone": bPhone
+                        },
+                        payment: {
+                            "email": email,
+                            "cardNumber": cc,
+                            "exp": exp,
+                            "cvv": cvv
+                        }
+                    })
+                });
 
             let result = await response.json();
             if (!result.ok) {
@@ -114,7 +116,6 @@ class Profiles extends Component {
         } catch (err) {
             console.log(err);
         }
-
     }
 
     /**
@@ -150,7 +151,6 @@ class Profiles extends Component {
     }
 
 
-
     /* HELPER METHODS */
 
     /* FORM METHODS */
@@ -158,35 +158,40 @@ class Profiles extends Component {
 
     }
 
-    setBorderColor(validationErrors) {
+    isValid(validationErrors) {
         return validationErrors ? errorStyle : {
-            backgroundImage: "url(../_assets/Symbol_check-01.png)",
+            backgroundImage: `url(${valid})`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'right center',
-            backgroundOrigin: 'content-box'
+            backgroundOrigin: 'content-box',
+            backgroundSize: '15px 15px',
         };
     }
+
+    /**
+     * sets the billing fields to disabled if the 'matched' option is checked
+     */
     setDisabled() {
         if (document.getElementById('match').checked) {
             document.getElementById('bCountry').disabled = true,
-            document.getElementById('bState').disabled = true;
+                document.getElementById('bState').disabled = true;
             document.getElementById('bFirstName').disabled = true,
-            document.getElementById('bLastName').disabled = true,
-            document.getElementById('bAddress1').disabled = true,
-            document.getElementById('bApt').disabled = true,
-            document.getElementById('bCity').disabled = true,
-            document.getElementById('bZipCode').disabled = true,
-            document.getElementById('bPhone').disabled = true;
+                document.getElementById('bLastName').disabled = true,
+                document.getElementById('bAddress1').disabled = true,
+                document.getElementById('bApt').disabled = true,
+                document.getElementById('bCity').disabled = true,
+                document.getElementById('bZipCode').disabled = true,
+                document.getElementById('bPhone').disabled = true;
         } else {
             document.getElementById('bCountry').disabled = false,
-            document.getElementById('bState').disabled = false;
+                document.getElementById('bState').disabled = false;
             document.getElementById('bFirstName').disabled = false,
-            document.getElementById('bLastName').disabled = false,
-            document.getElementById('bAddress1').disabled = false,
-            document.getElementById('bApt').disabled = false,
-            document.getElementById('bCity').disabled = false,
-            document.getElementById('bZipCode').disabled = false,
-            document.getElementById('bPhone').disabled = false;
+                document.getElementById('bLastName').disabled = false,
+                document.getElementById('bAddress1').disabled = false,
+                document.getElementById('bApt').disabled = false,
+                document.getElementById('bCity').disabled = false,
+                document.getElementById('bZipCode').disabled = false,
+                document.getElementById('bPhone').disabled = false;
         }
     }
 
@@ -199,47 +204,61 @@ class Profiles extends Component {
                         <div className="flex-row">
                             <div className="flex-col">
                                 <h2>Shipping Information</h2>
-                                <input id="sFirstName" type="text" placeholder="First Name" required style={this.setBorderColor(errors['/shipping/firstName'])}></input>
-                                <input id="sLastName" type="text" placeholder="Last Name" required style={this.setBorderColor(errors['/shipping/lastName'])}></input>
+                                <input id="sFirstName" type="text" placeholder="First Name" required
+                                       style={this.isValid(errors['/shipping/firstName'])}></input>
+                                <input id="sLastName" type="text" placeholder="Last Name" required
+                                       style={this.isValid(errors['/shipping/lastName'])}></input>
                                 <br></br>
-                                <input id="sAddress1" type="text" placeholder="Address" required style={this.setBorderColor(errors['/shipping/address'])}></input>
-                                <input id="apt" type="text" placeholder="Apt/Suite" style={this.setBorderColor(errors['/shipping/apt'])}></input>
+                                <input id="sAddress1" type="text" placeholder="Address" required
+                                       style={this.isValid(errors['/shipping/address'])}></input>
+                                <input id="apt" type="text" placeholder="Apt/Suite"
+                                       style={this.isValid(errors['/shipping/apt'])}></input>
                                 <br></br>
-                                <input id="sCity" type="text" placeholder="City" required style={this.setBorderColor(errors['/shipping/city'])}></input>
+                                <input id="sCity" type="text" placeholder="City" required
+                                       style={this.isValid(errors['/shipping/city'])}></input>
                                 <br></br>
-                                <select id="sCountry" style={this.setBorderColor(errors['/shipping/country'])}>
+                                <select id="sCountry" style={this.isValid(errors['/shipping/country'])}>
                                     <option value="" selected disabled hidden>Country</option>
                                     <option>United States</option>
                                 </select>
-                                <select id="sState" style={this.setBorderColor(errors['/shipping/state'])}>
+                                <select id="sState" style={this.isValid(errors['/shipping/state'])}>
                                     <option value="" selected disabled hidden>State</option>
                                     <option>Alaska</option>
                                 </select>
-                                <input id="sZipCode" type="text" placeholder="Zip Code" required style={this.setBorderColor(errors['/shipping/zipCode'])}></input>
+                                <input id="sZipCode" type="text" placeholder="Zip Code" required
+                                       style={this.isValid(errors['/shipping/zipCode'])}></input>
                                 <br></br>
-                                <input id="sPhone" type="text" placeholder="Phone" required style={this.setBorderColor(errors['/shipping/phone'])}></input>
+                                <input id="sPhone" type="text" placeholder="Phone" required
+                                       style={this.isValid(errors['/shipping/phone'])}></input>
                             </div>
                             <div className="flex-col">
                                 <h2>Billing Information</h2>
-                                <input id="bFirstName" type="text" placeholder="First Name" required style={this.setBorderColor(errors['/billing/firstName'])}></input>
-                                <input id="bLastName" type="text" placeholder="Last Name" required style={this.setBorderColor(errors['/billing/lastName'])}></input>
+                                <input id="bFirstName" type="text" placeholder="First Name" required
+                                       style={this.isValid(errors['/billing/firstName'])}></input>
+                                <input id="bLastName" type="text" placeholder="Last Name" required
+                                       style={this.isValid(errors['/billing/lastName'])}></input>
                                 <br></br>
-                                <input id="bAddress1" type="text" placeholder="Address" required style={this.setBorderColor(errors['/billing/address'])}></input>
-                                <input id="bApt" type="text" placeholder="Apt/Suite" style={this.setBorderColor(errors['/billing/apt'])}></input>
+                                <input id="bAddress1" type="text" placeholder="Address" required
+                                       style={this.isValid(errors['/billing/address'])}></input>
+                                <input id="bApt" type="text" placeholder="Apt/Suite"
+                                       style={this.isValid(errors['/billing/apt'])}></input>
                                 <br></br>
-                                <input id="bCity" type="text" placeholder="City" required style={this.setBorderColor(errors['/billing/city'])}></input>
+                                <input id="bCity" type="text" placeholder="City" required
+                                       style={this.isValid(errors['/billing/city'])}></input>
                                 <br></br>
-                                <select id="bCountry" style={this.setBorderColor(errors['/billing/country'])}>
+                                <select id="bCountry" style={this.isValid(errors['/billing/country'])}>
                                     <option value="" selected disabled hidden>Country</option>
                                     <option>United States</option>
                                 </select>
-                                <select id="bState" style={this.setBorderColor(errors['/billing/state'])}>
+                                <select id="bState" style={this.isValid(errors['/billing/state'])}>
                                     <option value="" selected disabled hidden>State</option>
                                     <option>Alaska</option>
                                 </select>
-                                <input id="bZipCode" type="text" placeholder="Zip Code" required style={this.setBorderColor(errors['/billing/zipCode'])}></input>
+                                <input id="bZipCode" type="text" placeholder="Zip Code" required
+                                       style={this.isValid(errors['/billing/zipCode'])}></input>
                                 <br></br>
-                                <input id="bPhone" type="text" placeholder="Phone" required style={this.setBorderColor(errors['/billing/phone'])}></input>
+                                <input id="bPhone" type="text" placeholder="Phone" required
+                                       style={this.isValid(errors['/billing/phone'])}></input>
                                 <br></br>
                                 <input type="checkbox" name="checkbox" id="match" onClick={this.setDisabled}></input>
                                 <label htmlFor="match">Same as shipping information</label>
@@ -248,12 +267,16 @@ class Profiles extends Component {
                         <div className="flex-row">
                             <div className="flex-col">
                                 <h2>Payment Information</h2>
-                                <input id="email" type="text" placeholder="Email Address" required style={this.setBorderColor(errors['/payment/email'])}></input>
+                                <input id="email" type="text" placeholder="Email Address" required
+                                       style={this.isValid(errors['/payment/email'])}></input>
                                 <br></br>
-                                <input id="cCardNumber" type="text" placeholder="Card Number" required style={this.setBorderColor(errors['/payment/cardNumber'])}></input>
+                                <input id="cCardNumber" type="text" placeholder="Card Number" required
+                                       style={this.isValid(errors['/payment/cardNumber'])}></input>
                                 <br></br>
-                                <input id="cExpiration" type="text" placeholder="Expiration" required style={this.setBorderColor(errors['/payment/exp'])}></input>
-                                <input id="cCVV" type="text" placeholder="CVV" required style={this.setBorderColor(errors['/payment/cvv'])}></input>
+                                <input id="cExpiration" type="text" placeholder="Expiration" required
+                                       style={this.isValid(errors['/payment/exp'])}></input>
+                                <input id="cCVV" type="text" placeholder="CVV" required
+                                       style={this.isValid(errors['/payment/cvv'])}></input>
                             </div>
                         </div>
                         <div>
