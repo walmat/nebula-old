@@ -65,15 +65,15 @@ const profilesSchema = Joi.object().keys({
 				.required()
 				.label('Email'),
 		cardNumber: Joi.string()
-				.creditCard()
 				.required()
+				.creditCard()
 				.label('Card Number'),
-		exp: Joi.date()
+		exp: Joi.string()
 				.required()
 				.label('Expiration Date'),
 		cvv: Joi.string()
-				.regex(/[0-9]{3}/)
 				.required()
+				.regex(/[0-9]{3}/, 'cvv')
 				.label('CVV')
 	})
 });
@@ -88,11 +88,16 @@ const options = {
             required: '!!Required Field',
 			empty: '!!Required Field',
 		},
+		date: {
+			base: '!!Must be a valid date'
+		},
 		string: {
 			email: '!!Must be a valid email',
 			creditCard: '!!Must be a valid credit card number',
 			regex: {
-				base: '!!Must contain only numbers and be three characters long'
+				base: {
+					cvv:'!!Must contain only numbers and be three characters long'
+				}
 			}
 		}
     }

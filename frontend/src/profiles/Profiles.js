@@ -3,6 +3,10 @@ import ValidationErrors from '../utils/ValidationErrors';
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
+const errorStyle = {
+    borderColor: 'red'
+};
+
 class Profiles extends Component {
 
     constructor(props) {
@@ -152,7 +156,12 @@ class Profiles extends Component {
 
     }
 
+    setBorderColor(validationErrors) {
+        return validationErrors ? errorStyle : {};
+    }
+
     render() {
+        const errors = this.state.errors;
         return (
             <form>
                 <div className="container">
@@ -160,34 +169,25 @@ class Profiles extends Component {
                         <div className="flex-row">
                             <div className="flex-col">
                                 <h2>Shipping Information</h2>
-                                <input id="sFirstName" type="text" placeholder="First Name" required></input>
-                                <ValidationErrors errors={this.state.errors['/shipping/firstName']} />
-                                <input id="sLastName" type="text" placeholder="Last Name" required></input>
-                                <ValidationErrors errors={this.state.errors['/shipping/lastName']} />
+                                <input id="sFirstName" type="text" placeholder="First Name" required style={this.setBorderColor(errors['/shipping/firstName'])}></input>
+                                <input id="sLastName" type="text" placeholder="Last Name" required style={this.setBorderColor(errors['/shipping/lastName'])}></input>
                                 <br></br>
-                                <input id="sAddress1" type="text" placeholder="Address" required></input>
-                                <ValidationErrors errors={this.state.errors['/shipping/address']} />
-                                <input id="apt" type="text" placeholder="Apt/Suite"></input>
-                                <ValidationErrors errors={this.state.errors['/shipping/apt']} />
+                                <input id="sAddress1" type="text" placeholder="Address" required style={this.setBorderColor(errors['/shipping/address'])}></input>
+                                <input id="apt" type="text" placeholder="Apt/Suite" style={this.setBorderColor(errors['/shipping/apt'])}></input>
                                 <br></br>
-                                <input id="sCity" type="text" placeholder="City" required></input>
-                                <ValidationErrors errors={this.state.errors['/shipping/city']} />
+                                <input id="sCity" type="text" placeholder="City" required style={this.setBorderColor(errors['/shipping/city'])}></input>
                                 <br></br>
-                                <select id="sCountry">
+                                <select id="sCountry" style={this.setBorderColor(errors['/shipping/country'])}>
                                     <option value="" selected disabled hidden>Country</option>
                                     <option>United States</option>
                                 </select>
-                                <ValidationErrors errors={this.state.errors['/shipping/country']} />
-                                <select id="sState">
+                                <select id="sState" style={this.setBorderColor(errors['/shipping/firstName'])}>
                                     <option value="" selected disabled hidden>State</option>
                                     <option>Alaska</option>
                                 </select>
-                                <ValidationErrors errors={this.state.errors['/shipping/state']} />
-                                <input id="sZipCode" type="text" placeholder="Zip Code" required></input>
-                                <ValidationErrors errors={this.state.errors['/shipping/zipCode']} />
+                                <input id="sZipCode" type="text" placeholder="Zip Code" required style={this.setBorderColor(errors['/shipping/zipCode'])}></input>
                                 <br></br>
-                                <input id="sPhone" type="text" placeholder="Phone" required></input>
-                                <ValidationErrors errors={this.state.errors['/shipping/phone']} />
+                                <input id="sPhone" type="text" placeholder="Phone" required style={this.setBorderColor(errors['/shipping/phone'])}></input>
                             </div>
                             <div className="flex-col">
                                 <h2>Billing Information</h2>
