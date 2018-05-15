@@ -1,60 +1,74 @@
 /* Navbar */
 
-.nav {
+.nav-container {
     height: 100%;
-    width: 70px;
+    width: 112px; /* 2px for border*/
     position: fixed;
     z-index: 1;
     top: 0;
     left: 0;
     overflow-x: hidden;
-    padding-top: 10px;
-    background: rgba(236, 235, 228, .1);
-    border-right: 4px solid rgba(0,0,0,0.02);
-    display: flex;
-    flex-direction: column;
 }
 
-a {
-    cursor: pointer;
-}
-
-.BottomIcons {
+#App-logo {
     position: absolute;
-    bottom: 16px;
-    left: 5px;
-    flex-direction: row;
-    justify-content: center;
+    top: 28px;
+    left: 19px;
+    width: 74px;
+    height: 74px;
 }
 
-.App-logo {
-    padding: 30px 0 30px 0;
-    max-height: 50px;
-    -webkit-animation: App-logo-spin 7.5s infinite linear; /* Safari 4+ */
-    -moz-animation:    App-logo-spin 7.5s infinite linear; /* Fx 5+ */
-    -o-animation:      App-logo-spin 7.5s infinite linear; /* Opera 12+ */
-    animation:         App-logo-spin 7.5s infinite linear; /* IE 10+, Fx 29+ */
+#vert-line {
+    position: absolute;
+    display: block;
+    top: 8.5px;
+    left: 110px;
+    height: 700.28px;
+    width: 1px;
+    border-left: 2px solid #EFEFEF;
 }
 
-.App-icon-first {
-    margin: 55px 0 15px 0;
-    max-height: 45px;
+#icon-tasks {
+    position:absolute;
+    top:175px;
+    left:29px;
+    width:61px;
+    height:49px;
     cursor: pointer;
 }
 
-.App-icons {
-    margin: 25px 0 15px 0;
-    max-height: 45px;
+#icon-profiles {
+    position:absolute;
+    top:271px;
+    left:29px;
+    width:44px;
+    height:43px;
     cursor: pointer;
 }
 
-
-.App-icons-btm {
-    padding: 0 4px 0 4px;
-    max-height: 12px;
+#icon-server {
+    position:absolute;
+    top:360px;
+    left:29px;
+    width:42px;
+    height:46px;
+    cursor: pointer;
 }
 
-@keyframes App-logo-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+#icon-settings {
+    position:absolute;
+    top:445px;
+    left:29px;
+    width:40px;
+    height:60px;
+    cursor: pointer;
+}
+
+#icon-logout {
+    position:absolute;
+    top:696px;
+    left:48px;
+    width:17px;
+    height:13px;
+    cursor: pointer;
 }

@@ -22,7 +22,7 @@ function createWindow() {
         fullscreenable: false,
         movable: true,
         resizable: false,
-        titleBarStyle: "hidden",
+        // titleBarStyle: "hidden",
         webPreferences: {
             nodeIntegration: false,
             preload: 'preload.js'

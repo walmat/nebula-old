@@ -1,93 +1,329 @@
-input, select {
-    /* Rectangle 163: */
-    background: rgba(255, 255, 255, 0.25);
-    border: 2px solid rgba(0, 0, 0, 0.33);
-    border-radius: 4px;
-    text-transform: uppercase;
-    cursor: pointer;
-}
+/* GENERIC CLASSES */
+    .text-header {
+        margin:0;
+        font-family: AvenirNext-DemiBold;
+        font-size: 48px;
+        color: #161318;
+        letter-spacing: 0.01px;
+    }
 
-/*clear placeholder text on input focus*/
-input:focus::-webkit-input-placeholder {
-    opacity: 0;
-}
+    .body-text {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #F0405E;
+        letter-spacing: 0;
+    }
 
-input:focus {
-    cursor: default;
-}
+    .flex-container {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        display: -webkit-box;
+        display: -moz-box;
+        display: -ms-flexbox;
+        display: -webkit-flex;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.flex-container {
-    height: 100%;
-    padding: 0;
-    margin: 0;
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    #task-header {
+        position: absolute;
+        top: 26px;
+        left: 140px;
+        width: 118px;
+        height: 66px;
+    }
+/* END GENERIC CLASSES*/
 
-#sku {
-    width: 90%;
-    line-height: 2.5em;
-    text-align: center;
-    margin-left: 5%;
-}
+/* CREATE SPECIFIC IDS */
+    #create-label {
+        margin: 0;
+        position: absolute;
+        top: 101px;
+        left: 140px;
+    }
 
-#num_pairs {
-    width: 40%;
-    align-content: stretch;
-    margin-top: -2.5%;
-    margin-left: 5%;
-    margin-right: 5%;
-    line-height: 2.5em;
-    text-align: center;
-}
+    #sku-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:134px;
+        left:153px;
+        width: 42px;
+        height: 12px;
+    }
 
-#billings, #size {
-    width: 40%;
-    align-content: stretch;
-    margin-top: -2.5%;
-    margin-left: 5%;
-    margin-right: 0;
-    height:33px;
-    text-align: center;
-    padding:1px;
+    #sku {
+        position: absolute;
+        top:150px;
+        left:153px;
+        width: 252px;
+        height: 29px;
+        border: 1px solid #F0405E;
+    }
 
-}
+    #profiles {
+        position: absolute;
+        top:205px;
+        left:153px;
+        width: 252px;
+        height: 29px;
+        border: 1px solid #F0405E;
+    }
 
-#form {
-    width: 100%;
-    height:250px;
-    background: rgba(0, 0, 0, 0.03);
-    padding: 5px;
-    padding-right: 10px;
-    border: whitesmoke;
-    border-radius: 4px;
-}
+    #dropdown-profiles-arrow {
+        position: absolute;
+        top:209px;
+        left:379px;
+        width: 21px;
+        height: 21px;
+        cursor: pointer;
+    }
 
-.flex-row {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-    padding: 5%;
-}
+    #profiles-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:190px;
+        left:153px;
+        width: 59px;
+        height: 12px;
+    }
 
-.flex-col {
-    flex:1;
-    align-items: flex-start;
-    flex-direction: column;
-    white-space: normal;
-}
+    #size {
+        position: absolute;
+        top:261px;
+        left:153px;
+        width: 113px;
+        height: 29px;
+        border: 1px solid #F0405E;
+    }
 
-#view-task-header, #create-task-header {
-    margin-bottom: 3px;
-    font-style: normal;
-    line-height: 2em;
-}
+    #dropdown-size-arrow {
+        position: absolute;
+        top:265px;
+        left:240px;
+        width: 21px;
+        height: 21px;
+        cursor: pointer;
+    }
 
-#view-row, #create-row {
-    margin-right: 8px;
-}
+    #size-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:246px;
+        left:153px;
+        width: 21px;
+        height: 12px;
+    }
+
+    #pairs-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:246px;
+        left:285px;
+        width: 27px;
+        height: 12px;
+    }
+
+    #pairs {
+        position: absolute;
+        top:261px;
+        left:285px;
+        width: 53px;
+        height: 29px;
+        border: 1px solid #F0405E;
+    }
+
+    #submit {
+        position: absolute;
+        top: 307px;
+        left: 321px;
+        cursor: pointer;
+    }
+
+    #create-box {
+        position: absolute;
+        top: 124px;
+        left: 140px;
+        width: 277px;
+        height: 226px;
+        border: 1px solid #F0405E;
+        border-radius: 3px;
+    }
+/* END CREATE SPECIFIC IDS */
+
+/* VIEW SPECIFIC IDS */
+    #view-label {
+        margin: 0;
+        position: absolute;
+        top: 30px;
+        left: 450px;
+    }
+
+    #view-box {
+        position: absolute;
+        top: 50px;
+        left: 453px;
+        width: 517px;
+        height: 300px;
+        border: 1px solid #F0405E;
+        border-radius: 3px;
+    }
+
+    #view-num {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 56px;
+        left: 464px;
+        width: 7px;
+        height: 16px;
+    }
+
+    #view-product {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 56px;
+        left: 487px;
+        width: 43px;
+        height: 16px;
+    }
+
+    #view-size {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 56px;
+        left: 657px;
+        width: 23px;
+        height: 16px;
+    }
+
+    #view-billings {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 56px;
+        left: 727px;
+        width: 21px;
+        height: 16px;
+    }
+
+    #view-pairs {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 56px;
+        left: 910px;
+        width: 36px;
+        height: 16px;
+    }
+
+    #view-line {
+        margin: 0;
+        border: 1px solid #EDBCC6;
+        position: absolute;
+        top:79.5px;
+        left:454px;
+        width:515px;
+    }
+/* END VIEW SPECIFIC IDS */
+
+/* LOG SPECIFIC IDS */
+    #log-label {
+        margin: 0;
+        position: absolute;
+        top: 362px;
+        left: 141px;
+    }
+
+    #log-box {
+        position: absolute;
+        top: 384.91px;
+        left: 141px;
+        width: 832px;
+        height: 307.04px;
+        border: 1px solid #F0405E;
+        border-radius: 3px;
+    }
+
+    #log-num {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 391px;
+        left: 154px;
+        width: 7px;
+        height: 16px;
+    }
+
+    #log-site {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 391px;
+        left: 179px;
+        width: 21px;
+        height: 16px;
+    }
+
+    #log-output {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 391px;
+        left: 349px;
+        width: 36px;
+        height: 16px;
+    }
+
+    #log-line {
+        margin: 0;
+        border: 1px solid #EDBCC6;
+        position: absolute;
+        top:413.5px;
+        left:142px;
+        width:830px;
+    }
+/* END LOG SPECIFIC IDS */
