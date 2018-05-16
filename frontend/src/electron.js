@@ -1,4 +1,5 @@
 const electron = require('electron');
+
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
@@ -21,10 +22,10 @@ function createWindow() {
         fullscreenable: false,
         movable: true,
         resizable: false,
-        titleBarStyle: "hidden",
+        // titleBarStyle: "hidden",
         webPreferences: {
             nodeIntegration: false,
-            preload: './preload.js'
+            preload: 'preload.js'
         }
     });
 

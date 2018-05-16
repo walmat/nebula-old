@@ -2,12 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const defaultListStyle = {
-    color: '#B9220A',
-    listStyle: 'none',
-    paddingLeft: 0,
-	marginTop: '3px',
-	marginBottom: '0px',
-	fontSize: '12px'
+    backgroundImage: 'url(../_assets/Symbol_check-02.png)',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right center',
+    backgroundOrigin: 'content-box'
 };
 
 function ValidationErrors(props) {

@@ -1,4 +1,8 @@
 import React, { Component } from 'react';
+import DDD from '../_assets/dropdown-down.svg';
+import DDU from '../_assets/dropdown-up.svg';
+import submit from '../_assets/submit.svg';
+import '../App.css';
 import './Tasks.css';
 
 class Tasks extends Component {
@@ -78,65 +82,51 @@ class Tasks extends Component {
         // if user clicks the garbage can button, erase the task from tasks
     }
 
-    deleteTasks() {
-
-    }
-
     /* MORE HELPERS HERE IF NEED */
 
     render() {
         return (
             <div className="container">
+                <h1 className="text-header" id="task-header">Tasks</h1>
                 <div className="flex-container">
-                    <div className="flex-col">
-                        {/*create task*/}
-                        <div className="flex-row" id="create-row">
-                            <h5 id="create-task-header">CREATE TASK</h5>
-                            <form id="form-create" className="topBefore" onSubmit={this.createTask}>
-                                <div className="flex-row">
-                                    <input id="sku" type="text" placeholder="ENTER PRODUCT CODE / SKU"></input>
-                                </div>
-                                <div className="flex-row">
-                                    <select id="size">
-                                        <option value="" selected disabled hidden>Size Options</option>
-                                        <option>8.0</option>
-                                        <option>8.5</option>
-                                        <option>9.0</option>
-                                    </select>
-                                    <select id="billings">
-                                        <option value="" selected disabled hidden>Billing Profile</option>
-                                        <option>billing 1</option>
-                                        <option>billing 2</option>
-                                        <option>billing 3</option>
-                                    </select>
-                                </div>
-                                <div className="flex-row">
-                                    <input id="num_pairs" type="text" placeholder="NUMBER OF PAIRS"></input>
-                                </div>
-                                <div className="flex-row">
-                                    <input id="submit" type="submit"></input>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <div className="flex-col">
-                        {/*view task*/}
-                        <div className="flex-row" id="view-row">
-                            <h5 id="view-task-header">VIEW TASKS</h5>
-                            <table id="tasks-table">
-                                <tr>
-                                    <th>#</th>
-                                    <th>STATUS</th>
-                                    <th>SKU</th>
-                                    <th>PAIRS</th>
-                                </tr>
-                                /*make row for each task*/
-                                {/*{this.state.tasks.map(task =>*/}
-                                    {/*<td key={task.task_num}>{task.}</td>*/}
-                                {/*)}*/}
-                            </table>
-                        </div>
-                    </div>
+                    {/*CREATE TASK*/}
+                        <p className="body-text" id="create-label">Create</p>
+                        <div id="create-box"></div>
+                        <p id="sku-label">Input SKU</p>
+                        <input id="sku" type="text" required></input>
+                        <p id="profiles-label">Billing Profiles</p>
+                        <select id="profiles" type="text" required></select>
+                        <div id="dropdown-profiles-box"></div>
+                        <img src={DDD} id="dropdown-profiles-arrow"></img>
+                        <p id="size-label">Sizes</p>
+                        <select id="size" type="text" required></select>
+                        <img src={DDD} id="dropdown-size-arrow"></img>
+                        <p id="pairs-label"># Pairs</p>
+                        <input id="pairs" type="text" required></input>
+                        <img id="submit" src={submit}></img>
+                    {/*END CREATE TASK*/}
+
+                    {/*VIEW TASK*/}
+                        <p className="body-text" id="view-label">View</p>
+                        <div id="view-box"></div>
+                        {/*TODO - add in actions*/}
+                        <p id="view-num">#</p>
+                        <p id="view-product">Product</p>
+                        <p id="view-size">Size</p>
+                        <p id="view-billings">Billings</p>
+                        <p id="view-pairs"># Pairs</p>
+                        <hr id="view-line"></hr>
+                    {/*END VIEW TASK*/}
+
+                    {/*TASK LOG*/}
+                        <p className="body-text" id="log-label">Log</p>
+                        <div id="log-box"></div>
+                        {/*TODO - add in actions*/}
+                        <p id="log-num">#</p>
+                        <p id="log-site">Site</p>
+                        <p id="log-output">Output</p>
+                        <hr id="log-line"></hr>
+                    {/*END TASK LOG*/}
                 </div>
             </div>
         );
