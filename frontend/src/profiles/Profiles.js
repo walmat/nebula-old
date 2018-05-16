@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ValidationErrors from '../utils/ValidationErrors';
+import ShippingFields from './ShippingFields';
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
@@ -12,7 +13,22 @@ class Profiles extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            errors: {}
+            errors: {},
+            currentProfile: {
+                shipping: {
+                    firstName: '',
+                    lastName: '',
+                    address: '',
+                    apt: '',
+                    city: '',
+                    country: '',
+                    state: '',
+                    zipCode: '',
+                    phone: ''
+                },
+                billing: {},
+                payment: {}
+            }
         }
 
         this.fillExpiration = this.fillExpiration.bind(this);
@@ -28,39 +44,39 @@ class Profiles extends Component {
         // saves input data to user's profiles
         e.preventDefault();
 
-        const
-            s_country_id = document.getElementById('sCountry'),
-            s_state_id = document.getElementById('sState'),
-            b_country_id = document.getElementById('bCountry'),
-            b_state_id = document.getElementById('bState');
+        // const
+        //     s_country_id = document.getElementById('sCountry'),
+        //     s_state_id = document.getElementById('sState'),
+        //     b_country_id = document.getElementById('bCountry'),
+        //     b_state_id = document.getElementById('bState');
 
-        const
-            sFirstName = document.getElementById('sFirstName').value,
-            sLastName = document.getElementById('sLastName').value,
-            sAddress1 = document.getElementById('sAddress1').value,
-            sAddress2 = document.getElementById('apt').value,
-            sCity = document.getElementById('sCity').value,
-            sCountry = s_country_id.options[s_country_id.selectedIndex].text,
-            sState = s_state_id.options[s_state_id.selectedIndex].text,
-            sZipCode = document.getElementById('sZipCode').value,
-            sPhone = document.getElementById('sPhone').value,
+        // const
+        //     sFirstName = document.getElementById('sFirstName').value,
+        //     sLastName = document.getElementById('sLastName').value,
+        //     sAddress1 = document.getElementById('sAddress1').value,
+        //     sAddress2 = document.getElementById('apt').value,
+        //     sCity = document.getElementById('sCity').value,
+        //     sCountry = s_country_id.options[s_country_id.selectedIndex].text,
+        //     sState = s_state_id.options[s_state_id.selectedIndex].text,
+        //     sZipCode = document.getElementById('sZipCode').value,
+        //     sPhone = document.getElementById('sPhone').value,
 
-            bFirstName = document.getElementById('bFirstName').value,
-            bLastName = document.getElementById('bLastName').value,
-            bAddress1 = document.getElementById('bAddress1').value,
-            bAddress2 = document.getElementById('bApt').value,
-            bCity = document.getElementById('bCity').value,
-            bCountry = b_country_id.options[b_country_id.selectedIndex].text,
-            bState = b_state_id.options[b_state_id.selectedIndex].text,
-            bZipCode = document.getElementById('bZipCode').value,
-            bPhone = document.getElementById('bPhone').value,
+        //     bFirstName = document.getElementById('bFirstName').value,
+        //     bLastName = document.getElementById('bLastName').value,
+        //     bAddress1 = document.getElementById('bAddress1').value,
+        //     bAddress2 = document.getElementById('bApt').value,
+        //     bCity = document.getElementById('bCity').value,
+        //     bCountry = b_country_id.options[b_country_id.selectedIndex].text,
+        //     bState = b_state_id.options[b_state_id.selectedIndex].text,
+        //     bZipCode = document.getElementById('bZipCode').value,
+        //     bPhone = document.getElementById('bPhone').value,
 
-            email = document.getElementById('email').value,
-            cc = document.getElementById('cCardNumber').value,
-            exp = document.getElementById('cExpiration').value,
-            cvv = document.getElementById('cCVV').value,
+        //     email = document.getElementById('email').value,
+        //     cc = document.getElementById('cCardNumber').value,
+        //     exp = document.getElementById('cExpiration').value,
+        //     cvv = document.getElementById('cCVV').value,
 
-            profileName = document.getElementById('profile-save').value;
+        //     profileName = document.getElementById('profile-save').value;
 
 
         /*Store the profile in the db*/
@@ -72,35 +88,7 @@ class Profiles extends Component {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    profileName: profileName,
-                    shipping: {
-                        "firstName": sFirstName,
-                        "lastName": sLastName,
-                        "address": sAddress1,
-                        "city": sCity,
-                        "country": sCountry,
-                        "state": sState,
-                        "zipCode": sZipCode,
-                        "phone": sPhone
-                    },
-                    billing: {
-                        "firstName": bFirstName,
-                        "lastName": bLastName,
-                        "address": bAddress1,
-                        "city": bCity,
-                        "country": bCountry,
-                        "state": bState,
-                        "zipCode": bZipCode,
-                        "phone": bPhone
-                    },
-                    payment: {
-                        "email": email,
-                        "cardNumber": cc,
-                        "exp": exp,
-                        "cvv": cvv
-                    }
-                })
+                body: JSON.stringify(this.state.currentProfile)
             });
 
             let result = await response.json();
@@ -160,6 +148,12 @@ class Profiles extends Component {
         return validationErrors ? errorStyle : {};
     }
 
+    onShippingFieldsChange = (shipping) => {
+        let currentProfile = this.state.currentProfile;
+        currentProfile.shipping = shipping;
+        this.setState(currentProfile);
+    }
+
     render() {
         const errors = this.state.errors;
         return (
@@ -167,28 +161,7 @@ class Profiles extends Component {
                 <div className="container">
                     <div className="flex-container">
                         <div className="flex-row">
-                            <div className="flex-col">
-                                <h2>Shipping Information</h2>
-                                <input id="sFirstName" type="text" placeholder="First Name" required style={this.setBorderColor(errors['/shipping/firstName'])}></input>
-                                <input id="sLastName" type="text" placeholder="Last Name" required style={this.setBorderColor(errors['/shipping/lastName'])}></input>
-                                <br></br>
-                                <input id="sAddress1" type="text" placeholder="Address" required style={this.setBorderColor(errors['/shipping/address'])}></input>
-                                <input id="apt" type="text" placeholder="Apt/Suite" style={this.setBorderColor(errors['/shipping/apt'])}></input>
-                                <br></br>
-                                <input id="sCity" type="text" placeholder="City" required style={this.setBorderColor(errors['/shipping/city'])}></input>
-                                <br></br>
-                                <select id="sCountry" style={this.setBorderColor(errors['/shipping/country'])}>
-                                    <option value="" selected disabled hidden>Country</option>
-                                    <option>United States</option>
-                                </select>
-                                <select id="sState" style={this.setBorderColor(errors['/shipping/firstName'])}>
-                                    <option value="" selected disabled hidden>State</option>
-                                    <option>Alaska</option>
-                                </select>
-                                <input id="sZipCode" type="text" placeholder="Zip Code" required style={this.setBorderColor(errors['/shipping/zipCode'])}></input>
-                                <br></br>
-                                <input id="sPhone" type="text" placeholder="Phone" required style={this.setBorderColor(errors['/shipping/phone'])}></input>
-                            </div>
+                            <ShippingFields onChange={this.onShippingFieldsChange}/>
                             <div className="flex-col">
                                 <h2>Billing Information</h2>
                                 <input id="bFirstName" type="text" placeholder="First Name" required></input>
