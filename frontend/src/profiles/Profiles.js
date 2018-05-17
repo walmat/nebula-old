@@ -197,73 +197,58 @@ class Profiles extends Component {
         return (
             <form>
                 <div className="container">
-                    <div className="flex-container">
-                        <div className="flex-row">
-                            <ShippingFields onChange={this.onShippingFieldsChange}/>
-                            <div className="flex-col">
-                                <h2>Billing Information</h2>
-                                <input id="bFirstName" type="text" placeholder="First Name" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/firstName']} />
-                                <input id="bLastName" type="text" placeholder="Last Name" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/lastName']} />
-                                <br></br>
-                                <input id="bAddress1" type="text" placeholder="Address" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/address']} />
-                                <input id="bApt" type="text" placeholder="Apt/Suite"></input>
-                                <ValidationErrors errors={this.state.errors['/billing/apt']} />
-                                <br></br>
-                                <input id="bCity" type="text" placeholder="City" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/city']} />
-                                <br></br>
-                                <select id="bCountry">
-                                    <option value="" selected disabled hidden>Country</option>
-                                    <option>United States</option>
-                                </select>
-                                <ValidationErrors errors={this.state.errors['/billing/country']} />
-                                <select id="bState">
-                                    <option value="" selected disabled hidden>State</option>
-                                    <option>Alaska</option>
-                                </select>
-                                <ValidationErrors errors={this.state.errors['/billing/address']} />
-                                <input id="bZipCode" type="text" placeholder="Zip Code" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/zipCode']} />
-                                <br></br>
-                                <input id="bPhone" type="text" placeholder="Phone" required></input>
-                                <ValidationErrors errors={this.state.errors['/billing/phone']} />
-                                <br></br>
-                                <input type="checkbox" name="checkbox" id="match"></input>
-                                <label htmlFor="match">Same as shipping information</label>
-                            </div>
-                        </div>
-                        <div className="flex-row">
-                            <div className="flex-col">
-                                <h2>Payment Information</h2>
-                                <input id="email" type="text" placeholder="Email Address" required></input>
-                                <ValidationErrors errors={this.state.errors['/payment/email']} />
-                                <br></br>
-                                <input id="cCardNumber" type="text" placeholder="Card Number" required></input>
-                                <ValidationErrors errors={this.state.errors['/payment/cardNumber']} />
-                                <br></br>
-                                <input id="cExpiration" type="text" placeholder="Expiration" required></input>
-                                <ValidationErrors errors={this.state.errors['/payment/exp']} />
-                                <input id="cCVV" type="text" placeholder="CVV" required></input>
-                                <ValidationErrors errors={this.state.errors['/payment/cvv']} />
-                            </div>
-                        </div>
-                        <div>
-                            <h3>Save Profile</h3>
-                            <input id="profile-save" type="text" placeholder="Profile 1" required></input>
-                            <button id="submit-profile" onClick={this.saveProfile}>Save</button>
-                        </div>
-                        <div>
-                            <h3>Load Profile</h3>
-                            <select id="profile-load">
-                                <option value="" selected disabled hidden>Choose a Profile</option>
-                                <option>Profile 1</option>
-                            </select>
-                            <button id="load-profile" onClick={this.loadProfile}>Load</button>
-                        </div>
-                    </div>
+                    <ShippingFields onChange={this.onShippingFieldsChange}/>
+                    <h2>Billing Information</h2>
+                    <input id="bFirstName" type="text" placeholder="First Name" required
+                        style={this.isValid(errors['/billing/firstName'])}></input>
+                    <input id="bLastName" type="text" placeholder="Last Name" required
+                        style={this.isValid(errors['/billing/lastName'])}></input>
+                    <br></br>
+                    <input id="bAddress1" type="text" placeholder="Address" required
+                        style={this.isValid(errors['/billing/address'])}></input>
+                    <input id="bApt" type="text" placeholder="Apt/Suite"
+                        style={this.isValid(errors['/billing/apt'])}></input>
+                    <br></br>
+                    <input id="bCity" type="text" placeholder="City" required
+                        style={this.isValid(errors['/billing/city'])}></input>
+                    <br></br>
+                    <select id="bCountry" style={this.isValid(errors['/billing/country'])}>
+                        <option value="" selected disabled hidden>Country</option>
+                        <option>United States</option>
+                    </select>
+                    <select id="bState" style={this.isValid(errors['/billing/state'])}>
+                        <option value="" selected disabled hidden>State</option>
+                        <option>Alaska</option>
+                    </select>
+                    <input id="bZipCode" type="text" placeholder="Zip Code" required
+                        style={this.isValid(errors['/billing/zipCode'])}></input>
+                    <br></br>
+                    <input id="bPhone" type="text" placeholder="Phone" required
+                        style={this.isValid(errors['/billing/phone'])}></input>
+                    <br></br>
+                    <input type="checkbox" name="checkbox" id="match" onClick={this.setDisabled}></input>
+                    <label htmlFor="match">Same as shipping information</label>
+
+                    <h2>Payment Information</h2>
+                    <input id="email" type="text" placeholder="Email Address" required
+                        style={this.isValid(errors['/payment/email'])}></input>
+                    <br></br>
+                    <input id="cCardNumber" type="text" placeholder="Card Number" required
+                        style={this.isValid(errors['/payment/cardNumber'])}></input>
+                    <br></br>
+                    <input id="cExpiration" type="text" placeholder="Expiration" required
+                        style={this.isValid(errors['/payment/exp'])}></input>
+                    <input id="cCVV" type="text" placeholder="CVV" required
+                        style={this.isValid(errors['/payment/cvv'])}></input>
+                    <h3>Save Profile</h3>
+                    <input id="profile-save" type="text" placeholder="Profile 1" required></input>
+                    <button id="submit-profile" onClick={this.saveProfile}>Save</button>
+                    <h3>Load Profile</h3>
+                    <select id="profile-load">
+                        <option value="" selected disabled hidden>Choose a Profile</option>
+                        <option>Profile 1</option>
+                    </select>
+                    <button id="load-profile" onClick={this.loadProfile}>Load</button>
                 </div>
             </form>
 

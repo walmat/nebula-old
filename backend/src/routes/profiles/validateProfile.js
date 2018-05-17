@@ -24,11 +24,11 @@ const profilesSchema = Joi.object().keys({
 				.label('Shipping City'),
 		country: Joi.string()
 					.required()
-            		.regex('^((?!country).)*$')
+            		.regex(/^((?!country).)*$/)
 					.label('Shipping Country'),
 		state: Joi.string()
 					.required()
-            		.regex('^((?!state).)*$')
+            		.regex(/^((?!state).)*$/)
 					.label('Shipping State'), //need to make this required if country is united state somehow
 		zipCode: Joi.string()
 					.required()
@@ -52,11 +52,11 @@ const profilesSchema = Joi.object().keys({
 				.label('Shipping City'),
 		country: Joi.string()
 					.required()
-					.regex('^((?!COUNTRY).)*$')
+					.regex(/^((?!COUNTRY).)*$/)
 					.label('Shipping Country'),
 		state: Joi.string()
 					.required()
-            		.regex('^((?!STATE).)*$')
+            		.regex(/^((?!STATE).)*$/)
 					.label('Shipping State'),
 		zipCode: Joi.string()
 					.required()
