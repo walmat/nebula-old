@@ -17,13 +17,18 @@ class Navbar extends Component {
         this.state = {};
     }
 
+
+    changeActive() {
+
+    }
+
     render() {
         return (
             <div className="nav-container">
                 <div className="flex-column">
                     <img src={logo} id="App-logo" alt="logo" draggable="false" />
                     <div id="vert-line"></div>
-                    <img src={tasks} id="icon-tasks" alt="tasks" onClick={() => this.props.history.push('/')} draggable="false"/>
+                    <img src={tasks} id="icon-tasks" alt="tasks" onClick={() => this.props.history.push('/')} draggable="false" />
                     <img src={profiles} id="icon-profiles" alt="profiles" onClick={() => this.props.history.push('/profiles')} draggable="false"/>
                     <img src={server} id="icon-server" alt="server" onClick={() => this.props.history.push('/server')} draggable="false"/>
                     <img src={settings} id="icon-settings" alt="settings" onClick={() => this.props.history.push('/settings')} draggable="false"/>
