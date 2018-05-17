@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import validationStatus from '../utils/validationStatus';
 
 const errorStyle = {
     borderColor: 'red'
@@ -87,36 +88,36 @@ class ShippingFields extends Component {
     }
 
 	render() {
-		const errors = this.state.errors;
+        const errors = this.props.errors;
         return (
 			<div className="flex-col">
 				<h2>Shipping Information</h2>
-				<input placeholder="First Name" onChange={this.onFirstNameChange} value={this.state.shipping.firstName} style={this.setBorderColor(errors['/shipping/firstName'])}></input>
-				<input placeholder="Last Name" onChange={this.onLastNameChange} value={this.state.shipping.lastName} required style={this.setBorderColor(errors['/shipping/lastName'])}></input>
+				<input placeholder="First Name" onChange={this.onFirstNameChange} value={this.state.shipping.firstName} style={validationStatus(errors['/shipping/firstName'])}></input>
+				<input placeholder="Last Name" onChange={this.onLastNameChange} value={this.state.shipping.lastName} required style={validationStatus(errors['/shipping/lastName'])}></input>
 				<br></br>
-				<input placeholder="Address" onChange={this.onAddressChange} value={this.state.shipping.address} style={this.setBorderColor(errors['/shipping/address'])}></input>
-				<input placeholder="Apt/Suite" onChange={this.onAptChange} value={this.state.shipping.apt} style={this.setBorderColor(errors['/shipping/apt'])}></input>
+				<input placeholder="Address" onChange={this.onAddressChange} value={this.state.shipping.address} style={validationStatus(errors['/shipping/address'])}></input>
+				<input placeholder="Apt/Suite" onChange={this.onAptChange} value={this.state.shipping.apt} style={validationStatus(errors['/shipping/apt'])}></input>
 				<br></br>
-				<input placeholder="City" onChange={this.onCityChange} value={this.state.shipping.city} style={this.setBorderColor(errors['/shipping/city'])}></input>
+				<input placeholder="City" onChange={this.onCityChange} value={this.state.shipping.city} style={validationStatus(errors['/shipping/city'])}></input>
 				<br></br>
-				<select onChange={this.onCountryChange} value={this.state.shipping.country} style={this.setBorderColor(errors['/shipping/country'])}>
+				<select onChange={this.onCountryChange} selected={this.state.shipping.country} style={validationStatus(errors['/shipping/country'])}>
 					<option value="" selected disabled hidden>Country</option>
 					<option>United States</option>
 				</select>
-				<select onChange={this.onStateChange} value={this.state.shipping.state} style={this.setBorderColor(errors['/shipping/firstName'])}>
+				<select onChange={this.onStateChange} selected={this.state.shipping.state} style={validationStatus(errors['/shipping/firstName'])}>
 					<option value="" selected disabled hidden>State</option>
 					<option>Alaska</option>
 				</select>
-				<input placeholder="Zip Code" onChange={this.onZipCodeChange} value={this.state.shipping.zipCode} style={this.setBorderColor(errors['/shipping/zipCode'])}></input>
+				<input placeholder="Zip Code" onChange={this.onZipCodeChange} value={this.state.shipping.zipCode} style={validationStatus(errors['/shipping/zipCode'])}></input>
 				<br></br>
-				<input placeholder="Phone" onChange={this.onPhoneNumberChange} value={this.state.shipping.phone} style={this.setBorderColor(errors['/shipping/phone'])}></input>
+				<input placeholder="Phone" onChange={this.onPhoneNumberChange} value={this.state.shipping.phone} style={validationStatus(errors['/shipping/phone'])}></input>
 			</div>
         );
     }
 }
 
 ShippingFields.propTypes = {
-    errors: PropTypes.errors,
+    errors: PropTypes.object,
     onChange: PropTypes.func
 };
 

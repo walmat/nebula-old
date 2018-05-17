@@ -177,7 +177,7 @@ class Profiles extends Component {
         return (
             <form>
                 <div className="container">
-                    <ShippingFields onChange={this.onShippingFieldsChange}/>
+                    <ShippingFields onChange={this.onShippingFieldsChange} errors={this.state.errors}/>
                     <h2>Billing Information</h2>
                     <input id="bFirstName" type="text" placeholder="First Name" required
                         style={validationStatus(errors['/billing/firstName'])}></input>
