@@ -1,19 +1,9 @@
 import React, { Component } from 'react';
-import ValidationErrors from '../utils/ValidationErrors';
+import validationStatus from '../utils/validationStatus';
 import ShippingFields from './ShippingFields';
-import valid from '../_assets/Symbol_check-01.png';
-import invalid from '../_assets/Symbol_check-02.png';
 import './Profiles.css';
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
-
-const errorStyle = {
-    backgroundImage: `url(${invalid})`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right center',
-    backgroundOrigin: 'content-box',
-    backgroundSize: '15px 15px'
-};
 
 class Profiles extends Component {
 
@@ -149,16 +139,6 @@ class Profiles extends Component {
 
     }
 
-    isValid(validationErrors) {
-        return validationErrors ? errorStyle : {
-            backgroundImage: `url(${valid})`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right center',
-            backgroundOrigin: 'content-box',
-            backgroundSize: '15px 15px',
-        };
-    }
-
     /**
      * sets the billing fields to disabled if the 'matched' option is checked
      */
@@ -200,46 +180,46 @@ class Profiles extends Component {
                     <ShippingFields onChange={this.onShippingFieldsChange}/>
                     <h2>Billing Information</h2>
                     <input id="bFirstName" type="text" placeholder="First Name" required
-                        style={this.isValid(errors['/billing/firstName'])}></input>
+                        style={validationStatus(errors['/billing/firstName'])}></input>
                     <input id="bLastName" type="text" placeholder="Last Name" required
-                        style={this.isValid(errors['/billing/lastName'])}></input>
+                        style={validationStatus(errors['/billing/lastName'])}></input>
                     <br></br>
                     <input id="bAddress1" type="text" placeholder="Address" required
-                        style={this.isValid(errors['/billing/address'])}></input>
+                        style={validationStatus(errors['/billing/address'])}></input>
                     <input id="bApt" type="text" placeholder="Apt/Suite"
-                        style={this.isValid(errors['/billing/apt'])}></input>
+                        style={validationStatus(errors['/billing/apt'])}></input>
                     <br></br>
                     <input id="bCity" type="text" placeholder="City" required
-                        style={this.isValid(errors['/billing/city'])}></input>
+                        style={validationStatus(errors['/billing/city'])}></input>
                     <br></br>
-                    <select id="bCountry" style={this.isValid(errors['/billing/country'])}>
+                    <select id="bCountry" style={validationStatus(errors['/billing/country'])}>
                         <option value="" selected disabled hidden>Country</option>
                         <option>United States</option>
                     </select>
-                    <select id="bState" style={this.isValid(errors['/billing/state'])}>
+                    <select id="bState" style={validationStatus(errors['/billing/state'])}>
                         <option value="" selected disabled hidden>State</option>
                         <option>Alaska</option>
                     </select>
                     <input id="bZipCode" type="text" placeholder="Zip Code" required
-                        style={this.isValid(errors['/billing/zipCode'])}></input>
+                        style={validationStatus(errors['/billing/zipCode'])}></input>
                     <br></br>
                     <input id="bPhone" type="text" placeholder="Phone" required
-                        style={this.isValid(errors['/billing/phone'])}></input>
+                        style={validationStatus(errors['/billing/phone'])}></input>
                     <br></br>
                     <input type="checkbox" name="checkbox" id="match" onClick={this.setDisabled}></input>
                     <label htmlFor="match">Same as shipping information</label>
 
                     <h2>Payment Information</h2>
                     <input id="email" type="text" placeholder="Email Address" required
-                        style={this.isValid(errors['/payment/email'])}></input>
+                        style={validationStatus(errors['/payment/email'])}></input>
                     <br></br>
                     <input id="cCardNumber" type="text" placeholder="Card Number" required
-                        style={this.isValid(errors['/payment/cardNumber'])}></input>
+                        style={validationStatus(errors['/payment/cardNumber'])}></input>
                     <br></br>
                     <input id="cExpiration" type="text" placeholder="Expiration" required
-                        style={this.isValid(errors['/payment/exp'])}></input>
+                        style={validationStatus(errors['/payment/exp'])}></input>
                     <input id="cCVV" type="text" placeholder="CVV" required
-                        style={this.isValid(errors['/payment/cvv'])}></input>
+                        style={validationStatus(errors['/payment/cvv'])}></input>
                     <h3>Save Profile</h3>
                     <input id="profile-save" type="text" placeholder="Profile 1" required></input>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
@@ -251,88 +231,6 @@ class Profiles extends Component {
                     <button id="load-profile" onClick={this.loadProfile}>Load</button>
                 </div>
             </form>
-
-            // <div className="container">
-            //     <h2 id="shipping-label">Shipping Information</h2>
-            //     <input id="sFirstName" type="text" placeholder="First Name" required
-            //            style={this.isValid(errors['/shipping/firstName'])}></input>
-            //     <input id="sLastName" type="text" placeholder="Last Name" required
-            //            style={this.isValid(errors['/shipping/lastName'])}></input>
-            //     <br></br>
-            //     <input id="sAddress1" type="text" placeholder="Address" required
-            //            style={this.isValid(errors['/shipping/address'])}></input>
-            //     <input id="apt" type="text" placeholder="Apt/Suite"
-            //            style={this.isValid(errors['/shipping/apt'])}></input>
-            //     <br></br>
-            //     <input id="sCity" type="text" placeholder="City" required
-            //            style={this.isValid(errors['/shipping/city'])}></input>
-            //     <br></br>
-            //     <select id="sCountry" style={this.isValid(errors['/shipping/country'])}>
-            //         <option value="" selected disabled hidden>Country</option>
-            //         <option>United States</option>
-            //     </select>
-            //     <select id="sState" style={this.isValid(errors['/shipping/state'])}>
-            //         <option value="" selected disabled hidden>State</option>
-            //         <option>Alaska</option>
-            //     </select>
-            //     <input id="sZipCode" type="text" placeholder="Zip Code" required
-            //            style={this.isValid(errors['/shipping/zipCode'])}></input>
-            //     <br></br>
-            //     <input id="sPhone" type="text" placeholder="Phone" required
-            //                        style={this.isValid(errors['/shipping/phone'])}></input>
-
-            //     <h2>Billing Information</h2>
-            //     <input id="bFirstName" type="text" placeholder="First Name" required
-            //            style={this.isValid(errors['/billing/firstName'])}></input>
-            //     <input id="bLastName" type="text" placeholder="Last Name" required
-            //            style={this.isValid(errors['/billing/lastName'])}></input>
-            //     <br></br>
-            //     <input id="bAddress1" type="text" placeholder="Address" required
-            //            style={this.isValid(errors['/billing/address'])}></input>
-            //     <input id="bApt" type="text" placeholder="Apt/Suite"
-            //            style={this.isValid(errors['/billing/apt'])}></input>
-            //     <br></br>
-            //     <input id="bCity" type="text" placeholder="City" required
-            //            style={this.isValid(errors['/billing/city'])}></input>
-            //     <br></br>
-            //     <select id="bCountry" style={this.isValid(errors['/billing/country'])}>
-            //         <option value="" selected disabled hidden>Country</option>
-            //         <option>United States</option>
-            //     </select>
-            //     <select id="bState" style={this.isValid(errors['/billing/state'])}>
-            //         <option value="" selected disabled hidden>State</option>
-            //         <option>Alaska</option>
-            //     </select>
-            //     <input id="bZipCode" type="text" placeholder="Zip Code" required
-            //            style={this.isValid(errors['/billing/zipCode'])}></input>
-            //     <br></br>
-            //     <input id="bPhone" type="text" placeholder="Phone" required
-            //            style={this.isValid(errors['/billing/phone'])}></input>
-            //     <br></br>
-            //     <input type="checkbox" name="checkbox" id="match" onClick={this.setDisabled}></input>
-            //     <label htmlFor="match">Same as shipping information</label>
-
-            //     <h2>Payment Information</h2>
-            //     <input id="email" type="text" placeholder="Email Address" required
-            //            style={this.isValid(errors['/payment/email'])}></input>
-            //     <br></br>
-            //     <input id="cCardNumber" type="text" placeholder="Card Number" required
-            //            style={this.isValid(errors['/payment/cardNumber'])}></input>
-            //     <br></br>
-            //     <input id="cExpiration" type="text" placeholder="Expiration" required
-            //            style={this.isValid(errors['/payment/exp'])}></input>
-            //     <input id="cCVV" type="text" placeholder="CVV" required
-            //            style={this.isValid(errors['/payment/cvv'])}></input>
-            //     <h3>Save Profile</h3>
-            //     <input id="profile-save" type="text" placeholder="Profile 1" required></input>
-            //     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
-            //             <h3>Load Profile</h3>
-            //             <select id="profile-load">
-            //                 <option value="" selected disabled hidden>Choose a Profile</option>
-            //                 <option>Profile 1</option>
-            //             </select>
-            //             <button id="load-profile" onClick={this.loadProfile}>Load</button>
-            // </div>
         );
     }
 }
