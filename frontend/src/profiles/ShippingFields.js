@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 
+import './Profiles.css';
+
 const errorStyle = {
     borderColor: 'red'
 };
@@ -91,26 +93,20 @@ class ShippingFields extends Component {
         const errors = this.props.errors;
         return (
 			<div className="flex-col">
-				<h2>Shipping Information</h2>
-				<input placeholder="First Name" onChange={this.onFirstNameChange} value={this.state.shipping.firstName} style={validationStatus(errors['/shipping/firstName'])}></input>
-				<input placeholder="Last Name" onChange={this.onLastNameChange} value={this.state.shipping.lastName} required style={validationStatus(errors['/shipping/lastName'])}></input>
-				<br></br>
-				<input placeholder="Address" onChange={this.onAddressChange} value={this.state.shipping.address} style={validationStatus(errors['/shipping/address'])}></input>
-				<input placeholder="Apt/Suite" onChange={this.onAptChange} value={this.state.shipping.apt} style={validationStatus(errors['/shipping/apt'])}></input>
-				<br></br>
-				<input placeholder="City" onChange={this.onCityChange} value={this.state.shipping.city} style={validationStatus(errors['/shipping/city'])}></input>
-				<br></br>
-				<select onChange={this.onCountryChange} selected={this.state.shipping.country} style={validationStatus(errors['/shipping/country'])}>
-					<option value="" selected disabled hidden>Country</option>
+				<p className="body-text" id="shipping-label">Shipping</p>
+				<input id="shipping-first-name" placeholder="First Name" onChange={this.onFirstNameChange} value={this.state.shipping.firstName} style={validationStatus(errors['/shipping/firstName'])} />
+				<input id="shipping-last-name" placeholder="Last Name" onChange={this.onLastNameChange} value={this.state.shipping.lastName} required style={validationStatus(errors['/shipping/lastName'])}/>
+				<input id="shipping-address-one" placeholder="Address Line 1" onChange={this.onAddressChange} value={this.state.shipping.address} style={validationStatus(errors['/shipping/address'])}/>
+				<input id="shipping-address-two" placeholder="Address Line 2" onChange={this.onAptChange} value={this.state.shipping.apt} style={validationStatus(errors['/shipping/apt'])}/>
+                <input id="shipping-city" placeholder="City" onChange={this.onCityChange} value={this.state.shipping.city} style={validationStatus(errors['/shipping/city'])}/>
+                <select id="shipping-state" onChange={this.onStateChange} selected={this.state.shipping.state} style={validationStatus(errors['/shipping/firstName'])}>
+                    <option>Alaska</option>
+                </select>
+                <input id="shipping-zip-code" placeholder="Zip Code" onChange={this.onZipCodeChange} value={this.state.shipping.zipCode} style={validationStatus(errors['/shipping/zipCode'])}/>
+                <select id="shipping-country" onChange={this.onCountryChange} selected={this.state.shipping.country} style={validationStatus(errors['/shipping/country'])}>
 					<option>United States</option>
 				</select>
-				<select onChange={this.onStateChange} selected={this.state.shipping.state} style={validationStatus(errors['/shipping/firstName'])}>
-					<option value="" selected disabled hidden>State</option>
-					<option>Alaska</option>
-				</select>
-				<input placeholder="Zip Code" onChange={this.onZipCodeChange} value={this.state.shipping.zipCode} style={validationStatus(errors['/shipping/zipCode'])}></input>
-				<br></br>
-				<input placeholder="Phone" onChange={this.onPhoneNumberChange} value={this.state.shipping.phone} style={validationStatus(errors['/shipping/phone'])}></input>
+				<input id="shipping-phone" placeholder="Phone" onChange={this.onPhoneNumberChange} value={this.state.shipping.phone} style={validationStatus(errors['/shipping/phone'])}/>
 			</div>
         );
     }

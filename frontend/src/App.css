@@ -19,8 +19,14 @@ html, body {
   overflow: hidden;
 }
 
+input, a, h1, h2, h3, h4, h5, h6, p, link {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+
 select {
-  -moz-appearance:none; /* Firefox */
   -webkit-appearance:none; /* Safari and Chrome */
   appearance:none;
 }
@@ -52,7 +58,7 @@ button:focus {
 }
 
 input, select {
-  text-transform: uppercase;
+  text-transform: capitalize;
   padding-left: 7.5px;
   padding-right: 7.5px;
   box-sizing: border-box;
@@ -86,7 +92,6 @@ input, select {
   background: rgba(255, 255, 255, 0.25);
   border: 2px solid rgba(0, 0, 0, 0.33);
   border-radius: 4px;
-  text-transform: uppercase;
   cursor: pointer;
 }
 
