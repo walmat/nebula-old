@@ -91,42 +91,43 @@ class Tasks extends Component {
                 <div className="flex-container">
                     {/*CREATE TASK*/}
                         <p className="body-text" id="create-label">Create</p>
-                        <div id="create-box"></div>
+                        <div id="create-box" />
                         <p id="sku-label">Input SKU</p>
-                        <input id="sku" type="text" required></input>
+                        <input id="sku" type="text" placeholder="SKU 000000000" required />
                         <p id="profiles-label">Billing Profiles</p>
-                        <select id="profiles" type="text" required></select>
-                        <div id="dropdown-profiles-box"></div>
-                        <img src={DDD} id="dropdown-profiles-arrow"></img>
+                        <select id="profiles" type="text" required />
+                        <div id="dropdown-profiles-box" />
+                        <img src={DDD} id="dropdown-profiles-arrow" />
                         <p id="size-label">Sizes</p>
-                        <select id="size" type="text" required></select>
-                        <img src={DDD} id="dropdown-size-arrow"></img>
+                        <select id="size" type="text" required />
+                        <img src={DDD} id="dropdown-size-arrow" />
                         <p id="pairs-label"># Pairs</p>
-                        <input id="pairs" type="text" required></input>
-                        <img id="submit" src={submit}></img>
+                        <input id="pairs" type="text" placeholder="00" required />
+                        <img id="submit" src={submit} />
                     {/*END CREATE TASK*/}
-
-                    {/*VIEW TASK*/}
-                        <p className="body-text" id="view-label">View</p>
-                        <div id="view-box"></div>
-                        {/*TODO - add in actions*/}
-                        <p id="view-num">#</p>
-                        <p id="view-product">Product</p>
-                        <p id="view-size">Size</p>
-                        <p id="view-billings">Billings</p>
-                        <p id="view-pairs"># Pairs</p>
-                        <hr id="view-line"></hr>
-                    {/*END VIEW TASK*/}
 
                     {/*TASK LOG*/}
                         <p className="body-text" id="log-label">Log</p>
-                        <div id="log-box"></div>
+                        <div id="log-box" />
                         {/*TODO - add in actions*/}
                         <p id="log-num">#</p>
                         <p id="log-site">Site</p>
                         <p id="log-output">Output</p>
-                        <hr id="log-line"></hr>
+                        <hr id="log-line" />
                     {/*END TASK LOG*/}
+
+                    {/*VIEW TASK*/}
+                    <p className="body-text" id="view-label">View</p>
+                    <div id="view-box" />
+                    {/*TODO - add in actions*/}
+                    <p id="view-num">#</p>
+                    <p id="view-product">Product</p>
+                    <p id="view-size">Size</p>
+                    <p id="view-billings">Billings</p>
+                    <p id="view-pairs"># Pairs</p>
+                    <p id="view-actions">Actions</p>
+                    <hr id="view-line" />
+                    {/*END VIEW TASK*/}
                 </div>
             </div>
         );
