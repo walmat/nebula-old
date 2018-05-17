@@ -214,6 +214,14 @@ input::placeholder, select {
     border-radius: 3px;
 }
 
+#billing-match-shipping {
+    position: absolute;
+    top: 564px;
+    left: 330px;
+    width: 21px;
+    height: 21px;
+    cursor: pointer;
+}
 
 #billing-label {
     font-family: AvenirNext-Medium;

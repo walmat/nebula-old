@@ -15,7 +15,7 @@ html, body {
   font-size: 100%;
   padding:0;
   margin:0;
-  background: whitesmoke;
+  background: #F5F5F5;
   overflow: hidden;
 }
 
@@ -89,7 +89,7 @@ input:focus {
 
 input, select {
   /* Rectangle 163: */
-  background: rgba(255, 255, 255, 0.25);
+  background: #F5F5F5;
   border: 2px solid rgba(0, 0, 0, 0.33);
   border-radius: 4px;
   cursor: pointer;

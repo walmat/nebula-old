@@ -6,6 +6,8 @@ import './Profiles.css';
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
+import checkboxUnchecked from '../_assets/Check_icons-02.svg';
+import checkboxChecked from '../_assets/Check_icons-01.svg';
 import DDU from '../_assets/dropdown-up.svg';
 
 class Profiles extends Component {
@@ -123,29 +125,52 @@ class Profiles extends Component {
     }
 
     /**
-     * sets the billing fields to disabled if the 'matched' option is checked
+     * sets the billing fields to disabled if the 'matched' checkbox is checked
+     *
+     * **NOTE – use '.src' to find whether or not it matches elsewhere
      */
     setDisabled() {
-        if (document.getElementById('match').checked) {
-            document.getElementById('bCountry').disabled = true,
-                document.getElementById('bState').disabled = true;
-            document.getElementById('bFirstName').disabled = true,
-                document.getElementById('bLastName').disabled = true,
-                document.getElementById('bAddress1').disabled = true,
-                document.getElementById('bApt').disabled = true,
-                document.getElementById('bCity').disabled = true,
-                document.getElementById('bZipCode').disabled = true,
-                document.getElementById('bPhone').disabled = true;
+        console.log(document.getElementById('billing-match-shipping').src);
+        if (document.getElementById('billing-match-shipping').getAttribute('src') === checkboxChecked) {
+            document.getElementById('billing-match-shipping').setAttribute('src', checkboxUnchecked);
+            document.getElementById('billing-first-name').disabled = false;
+            document.getElementById('billing-first-name').style.backgroundColor = '#F5F5F5';
+            document.getElementById('billing-last-name').disabled = false;
+            document.getElementById('billing-last-name').style.backgroundColor = '#F5F5F5';
+            document.getElementById('billing-address-one').disabled = false;
+            document.getElementById('billing-address-one').style.backgroundColor = '#F5F5F5';
+            document.getElementById('billing-address-two').disabled = false;
+            document.getElementById('billing-address-two').style.backgroundColor = '#F5F5F5';
+            document.getElementById('billing-city').disabled = false;
+            document.getElementById('billing-city').style.backgroundColor = '#F5F5F5';
+            document.getElementById('billing-state').disabled = false;
+            document.getElementById('billing-state').style.backgroundColor = '#F5F5F5';
+            document.getElementById('billing-zip-code').disabled = false;
+            document.getElementById('billing-zip-code').style.backgroundColor = '#F5F5F5';
+            document.getElementById('billing-country').disabled = false;
+            document.getElementById('billing-country').style.backgroundColor = '#F5F5F5';
+            document.getElementById('billing-phone').disabled = false;
+            document.getElementById('billing-phone').style.backgroundColor = '#F5F5F5';
         } else {
-            document.getElementById('bCountry').disabled = false,
-                document.getElementById('bState').disabled = false;
-            document.getElementById('bFirstName').disabled = false,
-                document.getElementById('bLastName').disabled = false,
-                document.getElementById('bAddress1').disabled = false,
-                document.getElementById('bApt').disabled = false,
-                document.getElementById('bCity').disabled = false,
-                document.getElementById('bZipCode').disabled = false,
-                document.getElementById('bPhone').disabled = false;
+            document.getElementById('billing-match-shipping').setAttribute('src', checkboxChecked);
+            document.getElementById('billing-first-name').disabled = true;
+            document.getElementById('billing-first-name').style.backgroundColor = '#e5e5e5';
+            document.getElementById('billing-last-name').disabled = true;
+            document.getElementById('billing-last-name').style.backgroundColor = '#e5e5e5';
+            document.getElementById('billing-address-one').disabled = true;
+            document.getElementById('billing-address-one').style.backgroundColor = '#e5e5e5';
+            document.getElementById('billing-address-two').disabled = true;
+            document.getElementById('billing-address-two').style.backgroundColor = '#e5e5e5';
+            document.getElementById('billing-city').disabled = true;
+            document.getElementById('billing-city').style.backgroundColor = '#e5e5e5';
+            document.getElementById('billing-state').disabled = true;
+            document.getElementById('billing-state').style.backgroundColor = '#e5e5e5';
+            document.getElementById('billing-zip-code').disabled = true;
+            document.getElementById('billing-zip-code').style.backgroundColor = '#e5e5e5';
+            document.getElementById('billing-country').disabled = true;
+            document.getElementById('billing-country').style.backgroundColor = '#e5e5e5';
+            document.getElementById('billing-phone').disabled = true;
+            document.getElementById('billing-phone').style.backgroundColor = '#e5e5e5';
         }
     }
 
@@ -187,6 +212,9 @@ class Profiles extends Component {
 
                     {/*SHIPPING INFORMATION*/}
                     <ShippingFields onChange={this.onShippingFieldsChange} errors={this.state.errors} />
+
+                    {/*BILLING MATCHES SHIPPING*/}
+                    <img src={checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled} />
 
                     {/*BILLING INFORMATION*/}
                     <BillingFields onChange={this.onBillingFieldsChange} errors={this.state.errors} />
