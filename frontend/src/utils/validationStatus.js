@@ -20,13 +20,7 @@ const validStyle = {
 }
 
 function validationStatus(validationErrors) {
-    return validationErrors ? errorStyle : {
-        backgroundImage: `url(${valid})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'right center',
-        backgroundOrigin: 'content-box',
-        backgroundSize: '15px 15px',
-    };
+    return validationErrors ? errorStyle : validStyle;
 }
 
 validationStatus.propTypes = {

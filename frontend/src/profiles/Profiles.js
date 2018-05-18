@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import ShippingFields from './ShippingFields';
 import BillingFields from './BillingFields';
 import PaymentFields from './PaymentFields';
+import LocationFields from './LocationFields';
 import './Profiles.css';
 
 // images
@@ -174,13 +174,15 @@ class Profiles extends Component {
         }
     }
 
-    onShippingFieldsChange = (shipping) => {
+    onShippingFieldsChange = (shipping, fieldChanged) => {
+        delete this.state.errors[`/shipping/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
         currentProfile.shipping = shipping;
         this.setState(currentProfile);
     };
 
-    onBillingFieldsChange = (billing) => {
+    onBillingFieldsChange = (billing, fieldChanged) => {
+        delete this.state.errors[`/billing/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
         currentProfile.billing = billing;
         this.setState(currentProfile);
@@ -192,8 +194,21 @@ class Profiles extends Component {
         this.setState(currentProfile);
     };
 
+    buildRealtiveErrors = (basePath) => {
+        const errors = this.state.errors;
+        let relativeErrors = {};
+        Object.keys(errors).forEach((path) => {
+            if (path.startsWith(basePath)) {
+                relativeErrors[path.replace(basePath, '')] = errors[path];
+            }
+        });
+        console.log(relativeErrors);
+        return relativeErrors;
+    }
+
     render() {
         const errors = this.state.errors;
+
         return (
             <form>
                 <div className="container">
@@ -211,13 +226,19 @@ class Profiles extends Component {
                     <button id="load-profile" onClick={this.loadProfile}>Load</button>
 
                     {/*SHIPPING INFORMATION*/}
-                    <ShippingFields onChange={this.onShippingFieldsChange} errors={this.state.errors} />
+                    <div className="flex-col">
+				        <p className="body-text" id="shipping-label">Shipping</p>
+                        <LocationFields onChange={this.onShippingFieldsChange} errors={this.buildRealtiveErrors('/shipping')} disabled={false} />
+                    </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
                     <img src={checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled} />
 
                     {/*BILLING INFORMATION*/}
-                    <BillingFields onChange={this.onBillingFieldsChange} errors={this.state.errors} />
+                    <div className="flex-col">
+                        <p className="body-text" id="billing-label">Billing</p>
+                        <BillingFields onChange={this.onBillingFieldsChange} errors={errors} disabled={false}/>
+                    </div>
 
                     {/*PAYMENT INFORMATION*/}
                     <PaymentFields onChance={this.onPaymentFieldsChange} errors={this.state.errors} />

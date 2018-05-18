@@ -99,7 +99,7 @@ class BillingFields extends Component {
                 <input id="billing-address-one" placeholder="Address Line 1" onChange={this.onAddressChange} value={this.state.billing.address} style={validationStatus(errors['/billing/address'])}/>
                 <input id="billing-address-two" placeholder="Address Line 2" onChange={this.onAptChange} value={this.state.billing.apt} style={validationStatus(errors['/billing/apt'])}/>
                 <input id="billing-city" placeholder="City" onChange={this.onCityChange} value={this.state.billing.city} style={validationStatus(errors['/billing/city'])}/>
-                <select id="billing-state" onChange={this.onStateChange} selected={this.state.billing.state} style={validationStatus(errors['/billing/firstName'])}>
+                <select id="billing-state" onChange={this.onStateChange} selected={this.state.billing.state} style={validationStatus(errors['/billing/state'])}>
                     <option>Alaska</option>
                 </select>
                 <input id="billing-zip-code" placeholder="Zip Code" onChange={this.onZipCodeChange} value={this.state.billing.zipCode} style={validationStatus(errors['/billing/zipCode'])}/>

@@ -109,19 +109,6 @@ const options = {
     }
 }
 
-function toJSONPointerPath(pathParts) {
-    return `/${pathParts.join('/')}`;
-}
-
-function convertToJSONPointer(errors) {
-    return errors.details.reduce((grouped, detail) => {
-        let path = toJSONPointerPath(detail.path);
-        (grouped[path] = grouped[path] || [])
-            .push(detail.message);
-        return grouped;
-    }, {});
-}
-
 module.exports = function validateProfile(profileData) {
     let result = Joi.validate(profileData, profilesSchema, options);
     if (result.error) {

@@ -33,7 +33,7 @@ module.exports = async function(app) {
             let profileData = req.body;
             console.log(profileData);
             let validation = validateProfile(profileData)
-            
+
             if (validation.fail) {
                 console.log(validation.fail);
                 res.status(400);
@@ -43,7 +43,7 @@ module.exports = async function(app) {
                 })
                 return;
             }
-            
+
             let params = {
                 TableName: 'Profiles',
                 Item: profileData
