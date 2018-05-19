@@ -10,6 +10,8 @@ import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
 import DDU from '../_assets/dropdown-up.svg';
 
+//TODO Need way to display that the server 'blew up'
+
 class Profiles extends Component {
 
     constructor(props) {
@@ -17,6 +19,7 @@ class Profiles extends Component {
         this.state = {
             errors: {},
             shippingMatchesBilling: false,
+            profiles: [],
             currentProfile: {
                 profileName: '',
                 shipping: {
@@ -52,7 +55,6 @@ class Profiles extends Component {
 
         this.fillExpiration = this.fillExpiration.bind(this);
         this.saveProfile = this.saveProfile.bind(this);
-        this.loadProfile = this.loadProfile.bind(this);
     }
 
     /**
@@ -85,7 +87,7 @@ class Profiles extends Component {
             let result = await response.json();
             if (!result.ok) {
                 this.setState({
-                    errors: result.errors
+                    errors: result.errors || {}
                 });
             }
         } catch (err) {
@@ -97,20 +99,21 @@ class Profiles extends Component {
      * load the profile
      * @param e
      */
-    loadProfile(e) {
+    loadProfile = async (e) => {
         // loads profile to screen (editing purposes mainly)
         e.preventDefault();
 
         /*FETCH THE PROFILE FROM THE DATABASE*/
-        fetch('http://localhost:8080/profiles',
-            {
-                method: "GET",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(res => console.log(res));
+        let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
+        {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        let profiles = (await result.json()).profiles;
+        this.setState({profiles});
     }
 
     exportProfiles() {
@@ -173,12 +176,22 @@ class Profiles extends Component {
     buildRealtiveErrors = (basePath) => {
         const errors = this.state.errors;
         let relativeErrors = {};
-        Object.keys(errors).forEach((path) => {
-            if (path.startsWith(basePath)) {
-                relativeErrors[path.replace(basePath, '')] = errors[path];
-            }
-        });
+        if(errors) {
+            Object.keys(errors).forEach((path) => {
+                if (path.startsWith(basePath)) {
+                    relativeErrors[path.replace(basePath, '')] = errors[path];
+                }
+            });
+        }
         return relativeErrors;
+    }
+
+    buildProfileOptions = () => {
+        let profiles = this.state.profiles;
+        return profiles.map((profile) => {
+            console.log(profile);
+            return <option key={profile.profileName}>{profile.profileName}</option>;
+        });
     }
 
     render() {
@@ -194,7 +207,7 @@ class Profiles extends Component {
                     <div id="load-profile-box" />
                     <p id="profile-name-label">Profile Name</p>
                     <select id="profile-load">
-                        <option>Profile 1</option>
+                        {this.buildProfileOptions()}
                     </select>
                     <img src={DDD} id="profile-select-arrow" />
                     <button id="load-profile" onClick={this.loadProfile}>Load</button>
