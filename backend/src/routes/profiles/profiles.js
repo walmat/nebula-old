@@ -52,9 +52,9 @@ module.exports = async function(app) {
             console.log('Successfully saved item');
         } catch (err) {
             console.log(err);
-            res.send(400); //TODO move this into a check prior to catch. This should only catch dyanmo failures (AKA server errors)
+            res.send(500);
             res.send({
-                message: 'Profile Name not unqiue'
+                message: 'Server Error'
             })
         }
         /*put the task data in the db*/

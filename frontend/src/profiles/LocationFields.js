@@ -98,7 +98,7 @@ class LocationFields extends Component {
     }
 
     isStatesDisabled = () => {
-        return this.props.value.country !== 'United States';
+        return this.props.value.country !== 'United States' || this.props.disabled;
     }
 
 	render() {
