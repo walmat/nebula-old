@@ -228,7 +228,7 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
 				        <p className="body-text" id="shipping-label">Shipping</p>
-                        <LocationFields onChange={this.onShippingFieldsChange} errors={this.buildRealtiveErrors('/shipping')} disabled={false} />
+                        <LocationFields onChange={this.onShippingFieldsChange} errors={this.buildRealtiveErrors('/shipping')} disabled={false} id={'shipping'}/>
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
@@ -237,7 +237,7 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <BillingFields onChange={this.onBillingFieldsChange} errors={errors} disabled={false}/>
+                        <LocationFields onChange={this.onBillingFieldsChange} errors={this.buildRealtiveErrors('/billing')} disabled={false} id={'billing'}/>
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
