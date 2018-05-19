@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
-
+import getAllCountires from '../getAllCountires';
+import getAllStates from '../getAllStates';
 import './Profiles.css';
 
 const errorStyle = {
@@ -82,6 +83,24 @@ class LocationFields extends Component {
         return style;
     }
 
+    buildCountryOptions = () => {
+        let countries = getAllCountires();
+        return countries.map((country) => {
+            return <option key={country.name} value={country.name}>{country.name}</option>
+        })
+    }
+
+    buildStateOptions = () => {
+        let states = getAllStates();
+        return states.map((state) => {
+            return <option key={state.name} value={state.name}>{state.name}</option>
+        })
+    }
+
+    isStatesDisabled = () => {
+        return this.props.value.country !== 'United States';
+    }
+
 	render() {
         const errors = this.props.errors;
         const disabled = this.props.disabled;
@@ -92,12 +111,13 @@ class LocationFields extends Component {
                 <input id={`${this.props.id}-address-one`} placeholder="Address Line 1" onChange={this.onAddressChange} value={this.props.value.address} style={this.buildStyle(disabled, errors['/address'])} disabled={disabled}/>
                 <input id={`${this.props.id}-address-two`} placeholder="Address Line 2" onChange={this.onAptChange} value={this.props.value.apt} style={this.buildStyle(disabled, errors['/apt'])} disabled={disabled}/>
                 <input id={`${this.props.id}-city`} placeholder="City" onChange={this.onCityChange} value={this.props.value.city} style={this.buildStyle(disabled, errors['/city'])} disabled={disabled}/>
-                <select id={`${this.props.id}-state`} onChange={this.onStateChange} selected={this.props.value.state} style={this.buildStyle(disabled, errors['/state'])} disabled={disabled}>
-                    <option>Alaska</option>
+                <select id={`${this.props.id}-state`} onChange={this.onStateChange} value={this.props.value.state} style={this.buildStyle(this.isStatesDisabled(), errors['/state'])} disabled={this.isStatesDisabled()}>
+                    <option value="" selected disabled hidden>{'Choose State'}</option>
+                    {this.buildStateOptions()}
                 </select>
                 <input id={`${this.props.id}-zip-code`} placeholder="Zip Code" onChange={this.onZipCodeChange} value={this.props.value.zipCode} style={this.buildStyle(disabled, errors['/zipCode'])} disabled={disabled}/>
-                <select id={`${this.props.id}-country`} onChange={this.onCountryChange} selected={this.props.value.country} style={this.buildStyle(disabled, errors['/country'])} disabled={disabled}>
-                    <option>United States</option>
+                <select id={`${this.props.id}-country`} onChange={this.onCountryChange} value={this.props.value.country} style={this.buildStyle(disabled, errors['/country'])} disabled={disabled}>
+                    {this.buildCountryOptions()}
                 </select>
                 <input id={`${this.props.id}-phone`} placeholder="Phone" onChange={this.onPhoneNumberChange} value={this.props.value.phone} style={this.buildStyle(disabled, errors['/phone']) } disabled={disabled}/>
             </div>

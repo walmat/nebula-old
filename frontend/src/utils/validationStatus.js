@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import valid from '../_assets/Symbol_check-01.png';
+import unknown from '../_assets/Empty_icons-03.svg';
 import invalid from '../_assets/Symbol_check-02.png';
 
 const errorStyle = {

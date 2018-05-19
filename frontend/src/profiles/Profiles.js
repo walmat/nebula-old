@@ -25,7 +25,7 @@ class Profiles extends Component {
                     address: '',
                     apt: '',
                     city: '',
-                    country: '',
+                    country: 'United States',
                     state: '',
                     zipCode: '',
                     phone: ''
@@ -36,7 +36,7 @@ class Profiles extends Component {
                     address: '',
                     apt: '',
                     city: '',
-                    country: '',
+                    country: 'United States',
                     state: '',
                     zipCode: '',
                     phone: ''
