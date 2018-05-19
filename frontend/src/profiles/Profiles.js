@@ -18,6 +18,7 @@ class Profiles extends Component {
             errors: {},
             shippingMatchesBilling: false,
             currentProfile: {
+                profileName: '',
                 shipping: {
                     firstName: '',
                     lastName: '',
@@ -58,9 +59,16 @@ class Profiles extends Component {
      * store the profile in the database for the user
      * @param e
      */
-    async saveProfile(e) {
+    saveProfile = async (e) => {
         // saves input data to user's profiles
         e.preventDefault();
+
+        let profile = this.state.currentProfile;
+        if (this.state.shippingMatchesBilling) {
+            profile.billing = profile.shipping;
+        }
+
+        profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY; //TODO this is only temporary until we get registration key stuff implemented
 
         /*Store the profile in the db*/
         try {
@@ -149,6 +157,12 @@ class Profiles extends Component {
         this.setState(currentProfile);
     };
 
+    onProfileNameChange = (event) => {
+        let currentProfile = this.state.currentProfile;
+        currentProfile.profileName = event.target.value;
+        this.setState(currentProfile);
+    }
+
     onPaymentFieldsChange = (payment, fieldChanged) => {
         delete this.state.errors[`/payment/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
@@ -164,11 +178,11 @@ class Profiles extends Component {
                 relativeErrors[path.replace(basePath, '')] = errors[path];
             }
         });
-        console.log(relativeErrors);
         return relativeErrors;
     }
 
     render() {
+        const currentProfile = this.state.currentProfile;
         return (
             <form>
                 <div className="container">
@@ -188,7 +202,7 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
 				        <p className="body-text" id="shipping-label">Shipping</p>
-                        <LocationFields onChange={this.onShippingFieldsChange} value={this.state.currentProfile.shipping} errors={this.buildRealtiveErrors('/shipping')} disabled={false} id={'shipping'}/>
+                        <LocationFields onChange={this.onShippingFieldsChange} value={currentProfile.shipping} errors={this.buildRealtiveErrors('/shipping')} disabled={false} id={'shipping'}/>
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
@@ -197,14 +211,14 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <LocationFields onChange={this.onBillingFieldsChange} value={this.state.currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
+                        <LocationFields onChange={this.onBillingFieldsChange} value={currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentFields onChange={this.onPaymentFieldsChange} value={this.state.currentProfile.payment} errors={this.buildRealtiveErrors('/payment')}/>
+                    <PaymentFields onChange={this.onPaymentFieldsChange} value={currentProfile.payment} errors={this.buildRealtiveErrors('/payment')}/>
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" type="text" placeholder="Profile Name" required style={validationStatus(this.state.errors['/profileName'])}/>
+                    <input id="profile-save" onChange={this.onProfileNameChange} value={currentProfile.profileName} style={validationStatus(this.state.errors['/profileName'])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                 </div>
             </form>

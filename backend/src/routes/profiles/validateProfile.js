@@ -20,7 +20,8 @@ const profilesSchema = Joi.object().keys({
 					.required()
 					.label('Shipping Address'),
 		apt: Joi.string()
-				.label('apt'),
+				.label('Apt/Suite Number')
+				.allow(''),
 		city: Joi.string()
 				.required()
 				.label('Shipping City'),
@@ -49,6 +50,9 @@ const profilesSchema = Joi.object().keys({
 		address: Joi.string()
 					.required()
 					.label('Shipping Address'),
+		apt: Joi.string()
+				.allow('')
+				.label('Apt/Suite Number'),
 		city: Joi.string()
 				.required()
 				.label('Shipping City'),
