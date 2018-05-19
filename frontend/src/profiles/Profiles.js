@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import BillingFields from './BillingFields';
 import PaymentFields from './PaymentFields';
 import LocationFields from './LocationFields';
 import './Profiles.css';
@@ -16,6 +15,7 @@ class Profiles extends Component {
         super(props);
         this.state = {
             errors: {},
+            shippingMatchesBilling: false,
             currentProfile: {
                 shipping: {
                     firstName: '',
@@ -129,49 +129,9 @@ class Profiles extends Component {
      *
      * **NOTE – use '.src' to find whether or not it matches elsewhere
      */
-    setDisabled() {
-        console.log(document.getElementById('billing-match-shipping').src);
-        if (document.getElementById('billing-match-shipping').getAttribute('src') === checkboxChecked) {
-            document.getElementById('billing-match-shipping').setAttribute('src', checkboxUnchecked);
-            document.getElementById('billing-first-name').disabled = false;
-            document.getElementById('billing-first-name').style.backgroundColor = '#F5F5F5';
-            document.getElementById('billing-last-name').disabled = false;
-            document.getElementById('billing-last-name').style.backgroundColor = '#F5F5F5';
-            document.getElementById('billing-address-one').disabled = false;
-            document.getElementById('billing-address-one').style.backgroundColor = '#F5F5F5';
-            document.getElementById('billing-address-two').disabled = false;
-            document.getElementById('billing-address-two').style.backgroundColor = '#F5F5F5';
-            document.getElementById('billing-city').disabled = false;
-            document.getElementById('billing-city').style.backgroundColor = '#F5F5F5';
-            document.getElementById('billing-state').disabled = false;
-            document.getElementById('billing-state').style.backgroundColor = '#F5F5F5';
-            document.getElementById('billing-zip-code').disabled = false;
-            document.getElementById('billing-zip-code').style.backgroundColor = '#F5F5F5';
-            document.getElementById('billing-country').disabled = false;
-            document.getElementById('billing-country').style.backgroundColor = '#F5F5F5';
-            document.getElementById('billing-phone').disabled = false;
-            document.getElementById('billing-phone').style.backgroundColor = '#F5F5F5';
-        } else {
-            document.getElementById('billing-match-shipping').setAttribute('src', checkboxChecked);
-            document.getElementById('billing-first-name').disabled = true;
-            document.getElementById('billing-first-name').style.backgroundColor = '#e5e5e5';
-            document.getElementById('billing-last-name').disabled = true;
-            document.getElementById('billing-last-name').style.backgroundColor = '#e5e5e5';
-            document.getElementById('billing-address-one').disabled = true;
-            document.getElementById('billing-address-one').style.backgroundColor = '#e5e5e5';
-            document.getElementById('billing-address-two').disabled = true;
-            document.getElementById('billing-address-two').style.backgroundColor = '#e5e5e5';
-            document.getElementById('billing-city').disabled = true;
-            document.getElementById('billing-city').style.backgroundColor = '#e5e5e5';
-            document.getElementById('billing-state').disabled = true;
-            document.getElementById('billing-state').style.backgroundColor = '#e5e5e5';
-            document.getElementById('billing-zip-code').disabled = true;
-            document.getElementById('billing-zip-code').style.backgroundColor = '#e5e5e5';
-            document.getElementById('billing-country').disabled = true;
-            document.getElementById('billing-country').style.backgroundColor = '#e5e5e5';
-            document.getElementById('billing-phone').disabled = true;
-            document.getElementById('billing-phone').style.backgroundColor = '#e5e5e5';
-        }
+    setDisabled = () => {
+        let shippingMatchesBilling = !this.state.shippingMatchesBilling;
+        this.setState({shippingMatchesBilling});
     }
 
     onShippingFieldsChange = (shipping, fieldChanged) => {
@@ -207,8 +167,6 @@ class Profiles extends Component {
     }
 
     render() {
-        const errors = this.state.errors;
-
         return (
             <form>
                 <div className="container">
@@ -232,16 +190,16 @@ class Profiles extends Component {
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
-                    <img src={checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled} />
+                    <img src={this.state.shippingMatchesBilling ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled}/>
 
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <LocationFields onChange={this.onBillingFieldsChange} errors={this.buildRealtiveErrors('/billing')} disabled={false} id={'billing'}/>
+                        <LocationFields onChange={this.onBillingFieldsChange} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentFields onChance={this.onPaymentFieldsChange} errors={this.state.errors} />
+                    <PaymentFields onChance={this.onPaymentFieldsChange} errors={this.state.errors}/>
 
                     {/*SAVE PROFILE*/}
                     <input id="profile-save" type="text" placeholder="Profile Name" required />

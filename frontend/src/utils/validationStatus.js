@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import valid from '../_assets/Symbol_check-01.png';
 import invalid from '../_assets/Symbol_check-02.png';
