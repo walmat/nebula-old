@@ -13,13 +13,34 @@ import settingsActive from '../_assets/settings-active.svg';
 import logout from '../_assets/logout.svg'
 import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
-
 import './Navbar.css';
 
 class Navbar extends Component {
     constructor(props) {
         super(props);
         this.state = {};
+
+        this.closeBot = this.closeBot.bind(this);
+        this.deactivate = this.deactivate.bind(this);
+    }
+
+    /**
+     * send the 'close' signal to the bot
+     */
+    closeBot() {
+
+    }
+
+    /**
+     * send the 'deactivate' signal to the bot.
+     * The user will need to authenticate their license key again,
+     * so the next time they launch the bot they will see the auth screen
+     *
+     * Also, this should clear the database of ALL traces of their data
+     * except from the 'users' table
+     */
+    deactivate() {
+
     }
 
     changeActive(active) {
@@ -74,8 +95,8 @@ class Navbar extends Component {
                         this.changeActive('icon-settings');
                     }} draggable="false"/>
                     <img src={info} id="icon-information" alt="information" draggable="false" />
-                    <img src={logout} id="icon-deactivate" alt="logout" draggable="false" />
-                    <img src={deactivate} id="icon-logout" alt="deactivate" draggable="false" />
+                    <img src={logout} id="icon-deactivate" alt="logout" draggable="false" onClick={this.closeBot} />
+                    <img src={deactivate} id="icon-logout" alt="deactivate" draggable="false" onClick={this.deactivate} />
 
                 </div>
             </div>
