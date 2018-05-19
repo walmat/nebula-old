@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PaymentFields from './PaymentFields';
 import LocationFields from './LocationFields';
+import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
 // images
@@ -148,7 +149,8 @@ class Profiles extends Component {
         this.setState(currentProfile);
     };
 
-    onPaymentFieldsChange = (payment) => {
+    onPaymentFieldsChange = (payment, fieldChanged) => {
+        delete this.state.errors[`/payment/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
         currentProfile.payment = payment;
         this.setState(currentProfile);
@@ -186,7 +188,7 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
 				        <p className="body-text" id="shipping-label">Shipping</p>
-                        <LocationFields onChange={this.onShippingFieldsChange} errors={this.buildRealtiveErrors('/shipping')} disabled={false} id={'shipping'}/>
+                        <LocationFields onChange={this.onShippingFieldsChange} value={this.state.currentProfile.shipping} errors={this.buildRealtiveErrors('/shipping')} disabled={false} id={'shipping'}/>
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
@@ -195,14 +197,14 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <LocationFields onChange={this.onBillingFieldsChange} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
+                        <LocationFields onChange={this.onBillingFieldsChange} value={this.state.currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentFields onChance={this.onPaymentFieldsChange} errors={this.state.errors}/>
+                    <PaymentFields onChange={this.onPaymentFieldsChange} value={this.state.currentProfile.payment} errors={this.buildRealtiveErrors('/payment')}/>
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" type="text" placeholder="Profile Name" required />
+                    <input id="profile-save" type="text" placeholder="Profile Name" required style={validationStatus(this.state.errors['/profileName'])}/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                 </div>
             </form>
