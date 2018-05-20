@@ -38,6 +38,8 @@ Kith.getProducts = function(url, proxy, userAgent, callback) {
 };
 
 //test
-Kith.getProducts("kith.com", "", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3107.4 Safari/537.36", null);
+Kith.getProducts("kith.com", "", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3107.4 Safari/537.36", function(data, msg) {
+    console.log(data, msg);
+});
 
 module.exports = Kith;
