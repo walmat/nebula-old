@@ -11,7 +11,7 @@ AWS.config.update({
 var dynamodb = new AWS.DynamoDB();
 
 var profiles = {
-    TableName : "profiles",
+    TableName : "Profiles",
     KeySchema: [
         { AttributeName: "registrationKey", KeyType: "HASH"},  //Partition key
         { AttributeName: "profileName", KeyType: "RANGE" }  //Sort key
@@ -27,13 +27,11 @@ var profiles = {
 };
 
 var users = {
-    TableName : "users",
+    TableName : "Users",
     KeySchema: [
-        { AttributeName: "discordURI", KeyType: "RANGE"},  //Partition key
-        { AttributeName: "registrationKey", KeyType: "HASH" }  //Sort key
+        { AttributeName: "registrationKey", KeyType: "HASH"},  //Partition key
     ],
     AttributeDefinitions: [
-        { AttributeName: "discordURI", AttributeType: "S" },
         { AttributeName: "registrationKey", AttributeType: "S" }
     ],
     ProvisionedThroughput: {

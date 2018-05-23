@@ -20,6 +20,7 @@ class Profiles extends Component {
             errors: {},
             shippingMatchesBilling: false,
             profiles: [],
+            selectedProfile: {},
             currentProfile: {
                 profileName: '',
                 shipping: {
@@ -53,8 +54,21 @@ class Profiles extends Component {
             }
         };
 
-        this.fillExpiration = this.fillExpiration.bind(this);
         this.saveProfile = this.saveProfile.bind(this);
+    }
+
+    componentDidMount = async () => {
+        /*FETCH THE PROFILES FROM THE DATABASE*/
+        let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
+        {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        let profiles = (await result.json()).profiles;
+        this.setState({profiles});
     }
 
     /**
@@ -97,49 +111,18 @@ class Profiles extends Component {
 
     /**
      * load the profile
-     * @param e
      */
-    loadProfile = async (e) => {
-        // loads profile to screen (editing purposes mainly)
-        e.preventDefault();
-
-        /*FETCH THE PROFILE FROM THE DATABASE*/
-        let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
-        {
-            method: "GET",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        let profiles = (await result.json()).profiles;
-        this.setState({profiles});
-    }
-
-    exportProfiles() {
-        // export the user's profiles to a json file
-    }
-
-    importProfiles() {
-        // imports a loaded json file into user's profiles
-    }
-
-    getAllProfiles() {
-        // pulls all profiles in for a given user
-    }
-
-
-    /* HELPER METHODS */
-
-    /* FORM METHODS */
-    fillExpiration() {
-
+    loadProfile = () => {
+        let currentProfile = this.state.currentProfile;
+        let selectedProfile = this.state.selectedProfile;
+        currentProfile = Object.assign(currentProfile, selectedProfile);
+        this.setState({currentProfile});
     }
 
     /**
      * sets the billing fields to disabled if the 'matched' checkbox is checked
      *
-     * **NOTE – use '.src' to find whether or not it matches elsewhere
+     *
      */
     setDisabled = () => {
         let shippingMatchesBilling = !this.state.shippingMatchesBilling;
@@ -166,6 +149,16 @@ class Profiles extends Component {
         this.setState(currentProfile);
     }
 
+    onProfileChange = (event) => {
+        const profileName = event.target.value;
+        let profiles = this.state.profiles;
+        let selectedProfile = profiles.find((profile) => {
+            return profile.profileName === profileName;
+        });
+
+        this.setState({selectedProfile});
+    }
+
     onPaymentFieldsChange = (payment, fieldChanged) => {
         delete this.state.errors[`/payment/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
@@ -188,10 +181,13 @@ class Profiles extends Component {
 
     buildProfileOptions = () => {
         let profiles = this.state.profiles;
-        return profiles.map((profile) => {
-            console.log(profile);
+        return profiles && profiles.map((profile) => {
             return <option key={profile.profileName}>{profile.profileName}</option>;
         });
+    }
+
+    componentDidUpdate = () => {
+        console.log('TESTING')
     }
 
     render() {
@@ -206,7 +202,8 @@ class Profiles extends Component {
                     <p className="body-text" id="load-profile-label">Load Profile</p>
                     <div id="load-profile-box" />
                     <p id="profile-name-label">Profile Name</p>
-                    <select id="profile-load">
+                    <select id="profile-load" onChange={this.onProfileChange} value={this.state.selectedProfile.profileName || ''}>
+                        <option value=""  hidden>{'Choose Profile to Load'}</option>
                         {this.buildProfileOptions()}
                     </select>
                     <img src={DDD} id="profile-select-arrow" />
