@@ -10,7 +10,9 @@ import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
 import DDU from '../_assets/dropdown-up.svg';
 
-//TODO Need way to display that the server 'blew up'
+// TODO Need way to display that the server 'blew up'
+// TODO Reload profiles when new profile saved
+// TODO Loading when getting profiles
 
 class Profiles extends Component {
 
@@ -51,6 +53,9 @@ class Profiles extends Component {
                     exp: '',
                     cvv: ''
                 }
+            },
+            test: {
+
             }
         };
 
@@ -113,9 +118,8 @@ class Profiles extends Component {
      * load the profile
      */
     loadProfile = () => {
-        let currentProfile = this.state.currentProfile;
         let selectedProfile = this.state.selectedProfile;
-        currentProfile = Object.assign(currentProfile, selectedProfile);
+        let currentProfile = Object.assign({}, selectedProfile);
         this.setState({currentProfile});
     }
 
@@ -187,7 +191,7 @@ class Profiles extends Component {
     }
 
     componentDidUpdate = () => {
-        console.log('TESTING')
+        console.log('UPDATE')
     }
 
     render() {
@@ -207,7 +211,7 @@ class Profiles extends Component {
                         {this.buildProfileOptions()}
                     </select>
                     <img src={DDD} id="profile-select-arrow" />
-                    <button id="load-profile" onClick={this.loadProfile}>Load</button>
+                    <button id="load-profile" type='button' onClick={this.loadProfile}>Load</button>
 
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
