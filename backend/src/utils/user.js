@@ -1,4 +1,4 @@
-let docClient = require('../dynamoDB.config');
+let docClient = require('../../dynamoDB.config');
 
 let user = {};
 

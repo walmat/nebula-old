@@ -1,13 +1,13 @@
-const request = require('request-promise');
+const request = require('request');
 const cheerio = require('cheerio');
 const xml2js = require('xml2js');
 
-let Kith = {};
+let Products = {};
 
-Kith.getProducts = function(url, proxy, userAgent, callback) {
+Products.findProducts = function(base_url, proxy, userAgent, callback) {
     request({
         method: 'get',
-        url: 'https://' + url + '/sitemap_products_1.xml',
+        url: 'https://' + base_url + '/sitemap_products_1.xml',
         proxy: proxy,
         gzip: true,
         followRedirect: true,
@@ -37,9 +37,9 @@ Kith.getProducts = function(url, proxy, userAgent, callback) {
     });
 };
 
-//test
-Kith.getProducts("kith.com", "", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3107.4 Safari/537.36", function(data, msg) {
+//TEST!!!
+Products.findProducts("kith.com", "", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3107.4 Safari/537.36", function(data, msg) {
     console.log(data, msg);
 });
 
-module.exports = Kith;
+module.exports = Products;
