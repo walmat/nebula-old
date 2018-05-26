@@ -26,6 +26,10 @@ client.on('message', async message => {
             break;
         }
         case 'link-builder': {
+            //delete the commanded message to make it prettier
+            const fetched = await message.channel.fetchMessages({count: 1});
+            message.delete(fetched)
+                .catch(error => message.send(`Couldn't delete messages because of: ${error}`));
             args.forEach(link => {
 
                 link_builder.build(link, (err, msg) => {

@@ -16,7 +16,7 @@ let userHasBeenNotifiedEmpty = false;
 
 module.exports = {};
 
-function findItem(config, slackBot, proxy, cb) {
+function findItem(config, discordBot, proxy, cb) {
     if (config.base_url.endsWith('.xml')) {
         request(
             {
@@ -30,14 +30,9 @@ function findItem(config, slackBot, proxy, cb) {
             function(err, res, body) {
                 parseString(body, function(err, result) {
                     if (err) {
-                        log(
-                            'An error occurred while trying to parse the sitemap provided',
-                            'error'
-                        );
+                        log('Error parsing site-map', 'error');
                         process.exit(1);
-                    };
-
-                    //console.log(result.url[0]);
+                    }
 
                     log('result.length ' + result.length);
                     if (process.env.DEBUG) {
@@ -45,8 +40,7 @@ function findItem(config, slackBot, proxy, cb) {
                             if (err) {
                                 log(err, 'error');
                             }
-                            log(
-                                'The file debug.html was saved the root of the project file.'
+                            log('The file debug.html was saved to the root of the project'
                             );
                         });
                     }
@@ -186,12 +180,12 @@ function selectStyle(config, discordBot, res, onSuccess) {
     if (match.variants.length === 1) {
         styleID = match.variants[0].id;
 
-        if (config.show_stock == false) {
+        if (config.show_stock === false) {
             stock = 'Disabled';
         } else {
             findvariantstock(
                 config,
-                slackBot,
+                discordBot,
                 match.handle,
                 match.variants[0].id,
                 function(err, res) {
@@ -216,7 +210,7 @@ function selectStyle(config, discordBot, res, onSuccess) {
             const styleName = match.variants[i].option1;
             const option2 = match.variants[i].option2;
 
-            if (config.show_stock == false) {
+            if (config.show_stock === false) {
                 stock = 'Disabled';
             } else {
                 findvariantstock(match.handle, match.variants[i].id, function(

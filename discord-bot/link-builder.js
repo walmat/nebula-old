@@ -9,6 +9,7 @@ link_builder.build = function(url, callback) {
 
     let links = [];
     let title = [];
+    let img = [];
 
     request({
         method: 'get',
@@ -25,23 +26,26 @@ link_builder.build = function(url, callback) {
             links.push(atclink);
         });
         let name = (`${json.product.title}`);
+        let picture = (`${json.product.image.src}`);
         title.push(name);
-
-        return callback(null, sendLinks(title, links, '#648767'));
+        img.push(picture);
+        return callback(null, sendLinks(title, links, img, '#648767'));
 
     }).catch(function (e) {
         title.push('N/A');
         links.push('Unable to find variants for that item');
 
-        return callback(e, sendLinks(title, links, '#A3333D'));
+        return callback(e, sendLinks(title, links, null, '#A3333D'));
 
     });
 };
 
-function sendLinks(title, links, color) {
+function sendLinks(title, links, img, color) {
+    if (!img) img = 'https://cdn.discordapp.com/embed/avatars/0.png';
     return new Discord.RichEmbed()
         .setAuthor(title)
         .setDescription(links)
+        .setThumbnail(img.toString())
         .setTimestamp(new Date().toISOString())
         .setColor(color)
         .setFooter('Nebula © 2018', 'https://cdn.discordapp.com/embed/avatars/0.png');

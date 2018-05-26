@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import BillingFields from './BillingFields';
 import PaymentFields from './PaymentFields';
-import LocationFields from './LocationFields';
 import './Profiles.css';
 
 // images
@@ -115,7 +114,6 @@ class Profiles extends Component {
     getAllProfiles() {
         // pulls all profiles in for a given user
     }
-
 
     /* HELPER METHODS */
 
