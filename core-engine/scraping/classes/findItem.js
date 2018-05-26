@@ -151,7 +151,7 @@ function findItem(config, slackBot, proxy, cb) {
 
 module.exports.findItem = findItem;
 
-const findvariantstock = function(config, slackBot, handle, id, cb) {
+const findvariantstock = function(config, discordBot, handle, id, cb) {
     request(
         {
             url: `${config.base_url}/products/` + handle + '.json',
@@ -165,11 +165,11 @@ const findvariantstock = function(config, slackBot, handle, id, cb) {
             try {
                 const variants = JSON.parse(body).product.variants;
 
-                const constiant = _.findWhere(variants, {
+                const constant = _.findWhere(variants, {
                     id: id,
                 });
-                if (constiant.inventory_quantity) {
-                    return cb(null, constiant.inventory_quantity);
+                if (constant.inventory_quantity) {
+                    return cb(null, constant.inventory_quantity);
                 } else {
                     return cb(null, 'Unavailable');
                 }
@@ -180,7 +180,7 @@ const findvariantstock = function(config, slackBot, handle, id, cb) {
     );
 };
 
-function selectStyle(config, slackBot, res, onSuccess) {
+function selectStyle(config, discordBot, res, onSuccess) {
     let stock;
     let styleID;
     if (match.variants.length === 1) {
@@ -241,7 +241,7 @@ function selectStyle(config, slackBot, res, onSuccess) {
             }
         }
 
-        if (config.slack.active) {
+        if (config.discord.active) {
             const styleoptions = [];
             for (let j = 0; j < match.variants.length; j++) {
                 styleoptions.push({
@@ -258,9 +258,9 @@ function selectStyle(config, slackBot, res, onSuccess) {
                 attachments: [
                     {
                         title: match.title,
-                        author_name: 'Trimalchio',
+                        author_name: 'Nebula',
                         image_url: match.images[0].src,
-                        author_icon: config.slack.settings.icon_url,
+                        author_icon: config.discord.settings.icon_url,
                     },
                     {
                         text: 'Select a Style...',
@@ -272,7 +272,7 @@ function selectStyle(config, slackBot, res, onSuccess) {
                     },
                 ],
             };
-            slackBot.postMessage(config.slack.channel, null, params);
+            discordBot.postMessage(config.discord.channel, null, params);
         }
 
         prompt.get(
