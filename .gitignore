@@ -1,2 +1,13 @@
+# front end
 node_modules/
-dynamodb_local/
+build/
+public/
+package-lock.json
+
+# back end
+
+# aws service
+
+# discord bot
+
+# website
