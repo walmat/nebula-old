@@ -2,6 +2,17 @@
   "name": "nebula",
   "version": "0.1.0",
   "private": true,
+  "main": "src/electron.js",
+  "scripts": {
+    "start": "react-scripts start & node src/electron-wait-react",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "lint": "eslint .",
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
+    "homepage": "./"
+  },
   "dependencies": {
     "express": "^4.16.3",
     "express-validator": "^5.1.2",
@@ -11,16 +22,6 @@
     "react-dom": "^16.3.0",
     "react-router-dom": "^4.2.2",
     "react-scripts": "1.1.1"
-  },
-  "main": "src/electron.js",
-  "scripts": {
-    "start": "react-scripts start & node src/electron-wait-react",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
-    "electron": "electron .",
-    "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
-    "homepage": "./"
   },
   "devDependencies": {
     "discord.js": "^11.3.2",

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-// import logo from '../_assets/logo.svg';
 import tasks from '../_assets/tasks.svg';
 import profiles from '../_assets/profiles.svg';
 import server from '../_assets/server.svg';
@@ -15,9 +14,7 @@ import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
 import './Navbar.css';
 
-import logo from '../_assets/logo.svg'; //remove this
-
-//TODO -- change the logo to the animated version
+import './nebula_player'; //todo - fix this
 
 class Navbar extends Component {
     constructor(props) {
@@ -103,7 +100,6 @@ class Navbar extends Component {
                     <img src={info} id="icon-information" alt="information" draggable="false" />
                     <img src={logout} id="icon-deactivate" alt="logout" draggable="false" onClick={this.closeBot} />
                     <img src={deactivate} id="icon-logout" alt="deactivate" draggable="false" onClick={this.deactivate} />
-
                 </div>
             </div>
         );
