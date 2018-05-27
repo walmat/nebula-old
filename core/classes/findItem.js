@@ -10,7 +10,7 @@ const request = require('request').defaults({
 
 const log = require('../utils/log');
 
-const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
+const userAgent = require('../utils/common').userAgent;
 let match;
 let userHasBeenNotifiedEmpty = false;
 
@@ -123,7 +123,8 @@ function findItem(config, discordBot, proxy, cb) {
                             return cb('Match not found yet...', null);
                         }
                     } catch (e) {
-                        if (res.statusCode == 430) {
+                        if (res.statusCode === 430) {
+                            //TODO -- swap the proxy out and re-run the process
                             log(
                                 `Shopify time out`,
                                 'error'

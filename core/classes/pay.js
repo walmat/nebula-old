@@ -8,10 +8,9 @@ const request = require('request').defaults({
     jar: j,
 });
 
+const {userAgent, } = require('../utils/common');
 const log = require('../utils/log');
 
-const userAgent =
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 let price, storeID, url, checkoutHost, checkoutID;
 let match;
 let styleID;
@@ -97,9 +96,7 @@ function pay(config, discordBot, _match, _styleID) {
                             checkoutHost = 'https://' + res.request.originalHost;
 
                             if (res.request.href.indexOf('stock_problems') > -1) {
-                                log(
-                                    `This item is currently Sold Out, sorry for the inconvenience`
-                                );
+                                log(`This item is currently Sold Out, sorry for the inconvenience`);
                                 process.exit(1);
                             }
 
@@ -146,8 +143,8 @@ function input(config, discordBot, auth_token) {
             'checkout[shipping_address][address1]': config.address,
             'checkout[shipping_address][address2]': '',
             'checkout[shipping_address][city]': config.city,
-            'checkout[shipping_address][country]': 'United States',
-            'checkout[shipping_address][province]': states[config.state],
+            'checkout[shipping_address][country]': config.country,
+            'checkout[shipping_address][province]': config.state,
             'checkout[shipping_address][zip]': config.zipCode,
             'checkout[shipping_address][phone]': config.phoneNumber,
             'checkout[remember_me]': '0',
@@ -168,8 +165,8 @@ function input(config, discordBot, auth_token) {
             'checkout[shipping_address][address1]': config.address,
             'checkout[shipping_address][address2]': '',
             'checkout[shipping_address][city]': config.city,
-            'checkout[shipping_address][country]': 'United States',
-            'checkout[shipping_address][province]': states[config.state],
+            'checkout[shipping_address][country]': config.country,
+            'checkout[shipping_address][province]': config.state,
             'checkout[shipping_address][zip]': config.zipCode,
             'checkout[shipping_address][phone]': config.phoneNumber,
             'checkout[remember_me]': '0',
@@ -208,7 +205,7 @@ function input(config, discordBot, auth_token) {
     );
 }
 
-function ship(config, slackBot, auth_token) {
+function ship(config, discordBot, auth_token) {
     let form;
 
     if (url.indexOf('checkout.shopify.com') > -1) {
@@ -220,14 +217,14 @@ function ship(config, slackBot, auth_token) {
             'checkout[client_details][browser_height]': '631',
             'checkout[client_details][javascript_enabled]': '1',
             'checkout[email]': config.email,
-            'checkout[shipping_address][address1]': config.address,
-            'checkout[shipping_address][address2]': '',
+            'checkout[shipping_address][address1]': config.address1,
+            'checkout[shipping_address][address2]': config.address2,
             'checkout[shipping_address][city]': config.city,
-            'checkout[shipping_address][country]': 'United States',
+            'checkout[shipping_address][country]': config.country,
             'checkout[shipping_address][first_name]': config.firstName,
             'checkout[shipping_address][last_name]': config.lastName,
             'checkout[shipping_address][phone]': config.phoneNumber,
-            'checkout[shipping_address][province]': states[config.state],
+            'checkout[shipping_address][province]': config.state,
             'checkout[shipping_address][zip]': config.zipCode,
             previous_step: 'contact_information',
             remember_me: 'false',
@@ -244,10 +241,10 @@ function ship(config, slackBot, auth_token) {
             'checkout[shipping_address][first_name]': config.firstName,
             'checkout[shipping_address][last_name]': config.lastName,
             'checkout[shipping_address][company]': '',
-            'checkout[shipping_address][address1]': config.address,
-            'checkout[shipping_address][address2]': '',
+            'checkout[shipping_address][address1]': config.address1,
+            'checkout[shipping_address][address2]': config.address2,
             'checkout[shipping_address][city]': config.city,
-            'checkout[shipping_address][country]': 'United States', //change this later to config.country
+            'checkout[shipping_address][country]': config.country,
             'checkout[shipping_address][province]': config.state,
             'checkout[shipping_address][zip]': config.zipCode,
             'checkout[shipping_address][phone]': phoneFormatter.format(
@@ -295,14 +292,14 @@ function ship(config, slackBot, auth_token) {
                     open(url);
                     process.exit(1);
                 } else {
-                    return submitShipping(config, slackBot, {
+                    return submitShipping(config, discordBot, {
                         type: 'direct',
                         value: firstShippingOption,
                         auth_token: $('input[name="authenticity_token"]').val(),
                     });
                 }
             }
-            return submitShipping(config, slackBot, {
+            return submitShipping(config, discordBot, {
                 type: 'poll',
                 value: shipping_pole_url,
             });
@@ -310,7 +307,7 @@ function ship(config, slackBot, auth_token) {
     );
 }
 
-function submitShipping(config, slackBot, res) {
+function submitShipping(config, discordBot, res) {
     if (res.type == 'poll') {
         log(`Shipping Poll URL: ${checkoutHost}${res.value}`);
         log(`Timing out Shipping for ${config.shipping_pole_timeout}ms`);
@@ -371,13 +368,9 @@ function submitShipping(config, slackBot, res) {
                                 'form[data-payment-form=""] input[name="authenticity_token"]'
                             ).attr('value');
 
-                            // log(`Final Auth Token: ${new_auth_token}`);
-                            // log(`Price: ${price}`);
-                            // log(`Payment Gateway ID: ${payment_gateway}`);
-
                             submitCC(
                                 config,
-                                slackBot,
+                                discordBot,
                                 new_auth_token,
                                 price,
                                 payment_gateway
@@ -387,7 +380,7 @@ function submitShipping(config, slackBot, res) {
                 }
             );
         }, parseInt(config.shipping_pole_timeout));
-    } else if (res.type == 'direct') {
+    } else if (res.type === 'direct') {
         log(`Shipping Method Value: ${res.value}`);
         log('Card information sending...');
 
@@ -422,7 +415,7 @@ function submitShipping(config, slackBot, res) {
                 log(`Price: ${price}`);
                 log(`Payment Gateway ID: ${payment_gateway}`);
 
-                submitCC(config, slackBot, new_auth_token, price, payment_gateway);
+                submitCC(config, discordBot, new_auth_token, price, payment_gateway);
             }
         );
     }
@@ -479,11 +472,11 @@ function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
                         'checkout[billing_address][first_name]': config.firstName,
                         'checkout[billing_address][last_name]': config.lastName,
                         'checkout[billing_address][company]': '',
-                        'checkout[billing_address][address1]': config.address,
-                        'checkout[billing_address][address2]': '',
+                        'checkout[billing_address][address1]': config.address1,
+                        'checkout[billing_address][address2]': config.address2,
                         'checkout[billing_address][city]': config.city,
-                        'checkout[billing_address][country]': 'United States',
-                        'checkout[billing_address][province]': states[config.state],
+                        'checkout[billing_address][country]': config.country,
+                        'checkout[billing_address][province]': config.state,
                         'checkout[billing_address][zip]': config.zipCode,
                         'checkout[billing_address][phone]': phoneFormatter.format(
                             config.phoneNumber,
@@ -508,7 +501,7 @@ function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
                         });
                     }
                     const $ = cheerio.load(body);
-                    if ($('input[name="step"]').val() == 'processing') {
+                    if ($('input[name="step"]').val() === 'processing') {
                         log(
                             'Payment is processing, go check your email for a confirmation.'
                         );
