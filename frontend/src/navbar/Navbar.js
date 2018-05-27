@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-import logo from '../_assets/logo.svg';
+// import logo from '../_assets/logo.svg';
 import tasks from '../_assets/tasks.svg';
 import profiles from '../_assets/profiles.svg';
 import server from '../_assets/server.svg';
@@ -15,6 +15,10 @@ import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
 import './Navbar.css';
 
+import logo from '../_assets/logo.svg'; //remove this
+
+//TODO -- change the logo to the animated version
+
 class Navbar extends Component {
     constructor(props) {
         super(props);
@@ -26,6 +30,8 @@ class Navbar extends Component {
 
     /**
      * send the 'close' signal to the bot
+     * ### this will not de-authenticate the user!!!!
+     * AKA:: they won't see the auth screen upon next launch
      */
     closeBot() {
 
