@@ -1,13 +1,13 @@
 import React from 'react'
-import ReactBodymovin from 'react-bodymovin'
-import animation from './nebula.json'
+import ReactBodymovin from './Reactbodymovin'
+import * as data from './nebula.json'
 
 const Logo = () => {
     const bodymovinOptions = {
         loop: true,
         autoplay: true,
         prerender: true,
-        animationData: animation
+        animationData: data,
     }
 
     return (
