@@ -8,7 +8,7 @@ const request = require('request').defaults({
     jar: j,
 });
 
-const {userAgent, } = require('../utils/common');
+const userAgent = require('../utils/common').userAgent;
 const log = require('../utils/log');
 
 let price, storeID, url, checkoutHost, checkoutID;

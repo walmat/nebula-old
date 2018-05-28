@@ -26,10 +26,10 @@ app.use((req, res, next) => {
 });
 
 /*SETUP ROUTES*/
-let tasks = require('./routes/tasks');
+let tasks = require('./routes/tasks/tasks');
 let profiles = require('./routes/profiles/profiles');
-let server = require('./routes/server');
-let settings = require('./routes/settings');
+let server = require('./routes/server/server');
+let settings = require('./routes/settings/settings');
 tasks(app); profiles(app); server(app); settings(app);
 
 app.listen(port);

@@ -1,28 +1,46 @@
+const dynamodb = require('../../../db.config');
+const docClient = dynamodb.DocumentClient();
+
+const validateTask = require('./validateTask');
+
 module.exports = function(app) {
-    app.get('/tasks', function(req, res) {
-        console.log(req.body);
-        // grab tasks data from database eventually
-        res.send({"#":1,"Status": "Running","SKU":"AC7033","Pairs": 15})
+    app.get('/tasks', async function(req, res) {
+        if (req.statusCode === 200) {
+            let params = {
+                TableName: 'tasks',
+                Key: {
+                    registrationKey: req.registrationKey,
+                    taskNum: req.taskNum
+                }
+            };
+            let result = await docClient.get(params).promise();
+            return res.send(result);
+        }
     });
 
-    app.post('/tasks', function(req, res) {
+    app.post('/tasks', async function(req, res) {
+        if (req.statusCode === 200) {
+            let taskData = req.body;
+            let validation = validateTask(taskData);
 
-        console.log(req.body);
-        // put the task in the PouchDB
-        // tasks.put({
-        //     task_num: req.body.task_num,
-        //     status: req.body.status,
-        //     sku: req.body.sku,
-        //     num_pairs: req.body.num_pairs
-        // }).then(function (res) {
-        //     console.log(res);
-        // });
-        // //send tasks data back to page on success
-        // db.get('tasks').then(function (doc) {
-        //     res.send(doc.rows);
-        // }).catch(function (err) {
-        //     console.log(err);
-        // });
+            if (validation.fail) {
+                console.log(validation.fail);
+                res.status(400);
+                return res.send({
+                    message: 'Invalid Task',
+                    errors: validation.fail
+                });
+            }
 
+            let params = {
+                TableName: 'tasks',
+                Item: taskData
+            };
+            let result = await docClient.put(params).promise();
+            return res.send(result);
+        } else {
+            // return the req status code and do something with it
+            return res.send(req.statusCode);
+        }
     });
 };

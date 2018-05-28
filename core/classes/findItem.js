@@ -126,7 +126,7 @@ function findItem(config, discordBot, proxy, cb) {
                         if (res.statusCode === 430) {
                             //TODO -- swap the proxy out and re-run the process
                             log(
-                                `Shopify time out`,
+                                `Shopify soft ban`,
                                 'error'
                             );
                             process.exit(1);

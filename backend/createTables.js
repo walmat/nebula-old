@@ -1,5 +1,5 @@
 // Run this to set up your local dynamoDB tables necessary to develop the backend
-const dynamodb = require('dynamoDB.config');
+const dynamodb = require('backend/db.config');
 const docClient = dynamodb.DocumentClient();
 
 const tables = {
