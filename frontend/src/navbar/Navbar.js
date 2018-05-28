@@ -14,15 +14,13 @@ import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
 import './Navbar.css';
 
-import './nebula_player'; //todo - fix this
+import Logo from "./animation";
 
 class Navbar extends Component {
+
     constructor(props) {
         super(props);
         this.state = {};
-
-        this.closeBot = this.closeBot.bind(this);
-        this.deactivate = this.deactivate.bind(this);
     }
 
     /**
@@ -30,9 +28,9 @@ class Navbar extends Component {
      * ### this will not de-authenticate the user!!!!
      * AKA:: they won't see the auth screen upon next launch
      */
-    closeBot() {
+    closeBot = () => {
 
-    }
+    };
 
     /**
      * send the 'deactivate' signal to the bot.
@@ -42,9 +40,9 @@ class Navbar extends Component {
      * Also, this should clear the database of ALL traces of their data
      * except from the 'users' table
      */
-    deactivate() {
+    deactivate = () => {
 
-    }
+    };
 
     changeActive(active) {
         let tasksIcon = document.getElementById('icon-tasks');
@@ -79,7 +77,8 @@ class Navbar extends Component {
         return (
             <div className="nav-container">
                 <div className="flex-column">
-                    <img src={logo} id="App-logo" alt="logo" draggable="false" />
+                    <Logo />
+                    {/*<img src={logo_src} id="App-logo" alt="logo" draggable="false" />*/}
                     <div id="vert-line" />
                     <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
                         this.props.history.push('/');

@@ -14,12 +14,16 @@
     "homepage": "./"
   },
   "dependencies": {
+    "bodymovin": "^4.13.0",
     "express": "^4.16.3",
     "express-validator": "^5.1.2",
     "jsonfile": "^4.0.0",
+    "lottie-web": "^5.1.15",
     "npm": "^6.0.6",
     "react": "^16.3.0",
+    "react-bodymovin": "^1.1.2",
     "react-dom": "^16.3.0",
+    "react-lottie": "^1.1.0",
     "react-router-dom": "^4.2.2",
     "react-scripts": "1.1.1"
   },
@@ -27,6 +31,12 @@
     "discord.js": "^11.3.2",
     "electron": "^1.8.4",
     "eslint": "^4.19.1",
-    "nodemon": "^1.17.3"
+    "json-loader": "^0.5.7",
+    "nodemon": "^1.17.3",
+    "webpack": "^4.9.1",
+    "webpack-cli": "^2.1.4",
+    "webpack-cleanup-plugin": "^0.5.1",
+    "webpack-dashboard": "^1.0.2",
+    "webpack-dev-server": "^2.9.4"
   }
 }
