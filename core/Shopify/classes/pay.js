@@ -285,10 +285,8 @@ function ship(config, discordBot, auth_token) {
                 const firstShippingOption = $(
                     'div.content-box__row .radio-wrapper'
                 ).attr('data-shipping-method');
-                if (firstShippingOption == undefined) {
-                    log(
-                        `${config.base_url} is Incompatible, sorry for the inconvenience. A browser checkout session will be opened momentarily.`
-                    );
+                if (firstShippingOption === undefined) {
+                    log(`${config.base_url} is Incompatible, sorry for the inconvenience. A browser checkout session will be opened momentarily.`);
                     open(url);
                     process.exit(1);
                 } else {
@@ -320,18 +318,14 @@ function submitShipping(config, discordBot, res) {
                     headers: {
                         Accept:
                             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                        'User-Agent': userAgent,
+                            'User-Agent': userAgent,
                     },
                 },
                 function(err, res, body) {
                     const $ = cheerio.load(body);
 
-                    const shipping_method_value = $('.radio-wrapper').attr(
-                        'data-shipping-method'
-                    );
-                    const auth_token = $(
-                        'form[data-shipping-method-form="true"] input[name="authenticity_token"]'
-                    ).attr('value');
+                    const shipping_method_value = $('.radio-wrapper').attr('data-shipping-method');
+                    const auth_token = $('form[data-shipping-method-form="true"] input[name="authenticity_token"]').attr('value');
 
                     log(`Shipping Method Value: ${shipping_method_value}`);
                     log('Card information sending...');
@@ -422,6 +416,7 @@ function submitShipping(config, discordBot, res) {
 }
 
 function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
+    //TODO – this info will be pulled from dynamo and stored locally
     const ccInfo = {
         credit_card: {
             number: config.cardNumber,
@@ -556,27 +551,14 @@ function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
                                 return process.exit(1);
                             }, 4500);
                         } else {
-                            notify(
-                                config,
-                                discordBot,
-                                '#ef5350',
-                                `${$('div.notice--warning p.notice__text').eq(0).text()}`
-                            );
-                            log(
-                                `${$('div.notice--warning p.notice__text').eq(0).text()}`,
-                                'error'
-                            );
+                            notify(config, discordBot, '#ef5350', `${$('div.notice--warning p.notice__text').eq(0).text()}`);
+                            log(`${$('div.notice--warning p.notice__text').eq(0).text()}`, 'error');
                             setTimeout(function() {
                                 return process.exit(1);
                             }, 4500);
                         }
                     } else {
-                        notify(
-                            config,
-                            discordBot,
-                            '#ef5350',
-                            'An unknown error has occurred.'
-                        );
+                        notify(config, discordBot, '#ef5350', 'An unknown error has occurred.');
                         log(`An unknown error has occurred please try again.`, 'error');
                         setTimeout(function() {
                             return process.exit(1);
@@ -589,47 +571,7 @@ function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
 }
 
 function notify(config, discordBot, color, type) {
-    if (config.discord.active) {
-        const params = {
-            username: config.discord.settings.username,
-            icon_url: config.discord.settings.icon_url,
-            attachments: [
-                {
-                    thumb_url: match.images[0].src,
-                    fallback: match.title + ': ' + type,
-                    title: match.title,
-                    title_link: config.base_url + '/' + match.handle,
-                    color: color,
-                    fields: [
-                        {
-                            title: 'Notification Message',
-                            value: type,
-                            short: 'false',
-                        },
-                        {
-                            title: 'Checkout URL',
-                            value: `<${url}|Click Here>`,
-                            short: 'false',
-                        },
-                        {
-                            title: 'Price',
-                            value: price,
-                            short: 'false',
-                        },
-                        {
-                            title: 'Keyword(s)',
-                            value: config.keywords,
-                            short: 'false',
-                        },
-                    ],
-                    footer: 'Nebula',
-                    ts: Math.floor(Date.now() / 1000),
-                    footer_icon: 'http://i.imgur.com/06ubORD.jpg',
-                },
-            ],
-        };
-        discordBot.postMessage(config.discord.channel, null, params);
-    }
+    //TODO send the notification of successful checkout to discord
 }
 
 module.exports.notify = notify;
