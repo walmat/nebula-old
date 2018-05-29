@@ -1,29 +1,68 @@
-const React = require('react');
-const bodymovin = require('bodymovin/build/player/bodymovin.min');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-class ReactBodymovin extends React.Component {
-    componentDidMount () {
-        const options = Object.assign({}, this.props.options);
-        options.wrapper = this.wrapper;
-        options.renderer = 'svg';
-        this.animation = bodymovin.loadAnimation(options);
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var React = require('react');
+var bodymovin = require('bodymovin/build/player/bodymovin.min');
+var isDOM = (typeof window === 'undefined' ? 'undefined' : _typeof(window)) === 'object' && _typeof(window.document) === 'object';
+
+var ReactBodymovin = function (_React$Component) {
+    _inherits(ReactBodymovin, _React$Component);
+
+    function ReactBodymovin() {
+        _classCallCheck(this, ReactBodymovin);
+
+        return _possibleConstructorReturn(this, (ReactBodymovin.__proto__ || Object.getPrototypeOf(ReactBodymovin)).apply(this, arguments));
     }
 
-    componentWillUnmount () {
-        this.animation.destroy()
-    }
+    _createClass(ReactBodymovin, [{
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            if (!isDOM) {
+                return;
+            }
+            var options = Object.assign({}, this.props.options);
+            options.wrapper = this.wrapper;
+            options.renderer = 'svg';
+            this.animation = bodymovin.loadAnimation(options);
+        }
+    }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+            if (!isDOM) {
+                return;
+            }
+            this.animation.destroy();
+        }
+    }, {
+        key: 'shouldComponentUpdate',
+        value: function shouldComponentUpdate() {
+            return false;
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var _this2 = this;
 
-    shouldComponentUpdate () {
-        return false
-    }
+            var storeWrapper = function storeWrapper(el) {
+                _this2.wrapper = el;
+            };
 
-    render () {
-        const storeWrapper = (el) => {
-            this.wrapper = el
-        };
+            return React.createElement(
+                'div',
+                { className: 'react-bodymovin-container', ref: storeWrapper },
+                this.props.children
+            );
+        }
+    }]);
 
-        return <div className='react-bodymovin-container' ref={storeWrapper} />
-    }
-}
+    return ReactBodymovin;
+}(React.Component);
 
 module.exports = ReactBodymovin;
