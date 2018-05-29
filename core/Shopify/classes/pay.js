@@ -306,7 +306,7 @@ function ship(config, discordBot, auth_token) {
 }
 
 function submitShipping(config, discordBot, res) {
-    if (res.type == 'poll') {
+    if (res.type === 'poll') {
         log(`Shipping Poll URL: ${checkoutHost}${res.value}`);
         log(`Timing out Shipping for ${config.shipping_pole_timeout}ms`);
 
@@ -352,23 +352,11 @@ function submitShipping(config, discordBot, res) {
                         function(err, res, body) {
                             const $ = cheerio.load(body);
 
-                            const price = $('input[name="checkout[total_price]"]').attr(
-                                'value'
-                            );
-                            const payment_gateway = $(
-                                'input[name="checkout[payment_gateway]"]'
-                            ).attr('value');
-                            const new_auth_token = $(
-                                'form[data-payment-form=""] input[name="authenticity_token"]'
-                            ).attr('value');
+                            const price = $('input[name="checkout[total_price]"]').attr('value');
+                            const payment_gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+                            const new_auth_token = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
 
-                            submitCC(
-                                config,
-                                discordBot,
-                                new_auth_token,
-                                price,
-                                payment_gateway
-                            );
+                            submitCC(config, discordBot, new_auth_token, price, payment_gateway);
                         }
                     );
                 }

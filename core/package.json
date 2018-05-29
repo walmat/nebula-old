@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "description": "Shopify core bot implementation",
-  "main": "index.js",
+  "main": "Shopify/main.js",
   "scripts": {
-    "start": "node main.js"
+    "start": "node Shopify/main.js"
   },
   "author": "Matthew Wall <matthew.wallt@gmail.com>",
   "license": "MIT",

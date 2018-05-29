@@ -5,6 +5,8 @@ import submit from '../_assets/submit.svg';
 import '../App.css';
 import './Tasks.css';
 
+const core = require('core');
+
 class Tasks extends Component {
     state = {tasks: []};
     task_num = 0;

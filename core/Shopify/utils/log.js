@@ -1,4 +1,6 @@
-module.exports = function log(msg, type) {
+module.exports = {};
+
+function log(msg, type) {
     switch (type) {
         case 'warning':
             console.warn(msg);
@@ -12,4 +14,6 @@ module.exports = function log(msg, type) {
         default:
             console.log(msg);
     }
-};
+}
+
+module.exports.log = log;

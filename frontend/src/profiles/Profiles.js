@@ -226,7 +226,7 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
 				        <p className="body-text" id="shipping-label">Shipping</p>
-                        <LocationFields onChange={this.onShippingFieldsChange} errors={this.buildRealtiveErrors('/shipping')} disabled={false} />
+                        {/*<LocationFields onChange={this.onShippingFieldsChange} errors={this.buildRealtiveErrors('/shipping')} disabled={false} />*/}
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}

@@ -1,5 +1,7 @@
-const { prefix, token } = require('./config.json');
+const { prefixes, token } = require('./config.json');
 const Discord = require('discord.js');
+const dynamodb = require('../backend/db.config');
+const docClient = dynamodb.DocumentClient;
 const link_builder = require('./link-builder');
 const fs = require('fs');
 const client = new Discord.Client();
@@ -8,16 +10,35 @@ client.on('ready', () => {
     console.log('Ready!');
 });
 
+client.on('guildMemberAdd', async ( member )=> {
+    //revoke all permissions and give them the role of `joined`
+    let role = client.guild.roles.find('name', 'joined');
+    if(member.roles.has(role.id)) return;
+    await(member.addRole(role.id));
+});
+
 client.on('message', async message => {
 
-    /* must be a DM – handle authenticating user */
-    if (message.guild === null) {
-        // users.users.push({user: message.author.id, key: message.content.trim()});
-        // return fs.writeFileSync('./users.json', JSON.stringify(users));
+    if (message.author.bot) return;
+
+    /* DM received to bot */
+    if (message.guild === null && !message.author.bot) {
+        // if valid license key and all that, grant them the role of `member`
+        // TODO – dynamo check all license keys against message.content
     }
 
-    if (!message.content.startsWith(prefix) || message.author.bot) return;
-    const args = message.content.slice(prefix.length).split(' ');
+    let c = false;
+    let arg_index = 0;
+
+    for (let i = 0; i < prefixes.length; i++) {
+        if (message.content.startsWith(prefixes[i])) {
+            c = true;
+            arg_index = i;
+            break;
+        }
+    }
+
+    const args = message.content.slice(prefixes[arg_index].length).split(' ');
     const command = args.shift().toLowerCase();
 
     switch(message.channel.name) {
@@ -27,16 +48,16 @@ client.on('message', async message => {
         }
         case 'link-builder': {
             //delete the commanded message to make it prettier
-            const fetched = await message.channel.fetchMessages({count: 1});
-            message.delete(fetched)
-                .catch(error => message.send(`Couldn't delete messages because of: ${error}`));
-            args.forEach(link => {
+            if (prefixes[arg_index] === '$') {
+                deleteMessage(message);
+                args.forEach(link => {
 
-                link_builder.build(link, (err, msg) => {
-                    message.channel.send(msg);
+                    link_builder.build(link, (err, msg) => {
+                        message.channel.send(msg);
+                    });
+
                 });
-
-            });
+            }
             break;
         }
         case 'restocks': {
@@ -107,14 +128,10 @@ client.on('message', async message => {
     }
 });
 
+async function deleteMessage(message) {
+    const fetched = await message.channel.fetchMessages({count: 1});
+    message.delete(fetched)
+        .catch(error => message.send(`Couldn't delete messages because of: ${error}`));
+}
+
 client.login(token);
-
-
-/* helper methods */
-Object.size = function(obj) {
-    let size = 0, key;
-    for (key in obj) {
-        if (obj.hasOwnProperty(key)) size++;
-    }
-    return size;
-};

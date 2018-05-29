@@ -1,5 +1,5 @@
 const dynamodb = require('../../../db.config');
-const docClient = dynamodb.DocumentClient();
+const docClient = dynamodb;
 
 const validateProfile = require('./validateProfile');
 
