@@ -12,17 +12,26 @@ import settingsActive from '../_assets/settings-active.svg';
 import logout from '../_assets/logout.svg'
 import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
+import logoAnimation from './nebula';
 import './Navbar.css';
+import Bodymovin from './Bodymovin';
 
-import './nebula_player'; //todo - fix this
+const bodymovinOptions = {
+    loop: true,
+    autoplay: true,
+    prerender: true,
+    animationData: logoAnimation
+}
 
 class Navbar extends Component {
     constructor(props) {
         super(props);
-        this.state = {};
 
         this.closeBot = this.closeBot.bind(this);
         this.deactivate = this.deactivate.bind(this);
+    }
+
+    componentDidMount = async () => {
     }
 
     /**
@@ -79,7 +88,7 @@ class Navbar extends Component {
         return (
             <div className="nav-container">
                 <div className="flex-column">
-                    <img src={logo} id="App-logo" alt="logo" draggable="false" />
+                    <Bodymovin options={bodymovinOptions} />
                     <div id="vert-line" />
                     <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
                         this.props.history.push('/');
