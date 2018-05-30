@@ -1,0 +1,19 @@
+<svg width="51px" height="51px" viewBox="0 0 51 51" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Artboard" transform="translate(-899.000000, -382.000000)">
+            <g id="Action-Icons_All-Selection" transform="translate(899.000000, 382.000000)">
+                <g id="Start-All-Icon">
+                    <g id="All-Selection-Icons" fill="#F0405E">
+                        <rect id="Rectangle-8" x="0" y="0" width="51" height="51" rx="2.4"></rect>
+                    </g>
+                    <g id="Resume-Task-Icon" transform="translate(15.937500, 15.140625)" fill="#EFEFEF" stroke="#EFEFEF" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8">
+                        <path d="M10.7578125,4.78125 L10.7578125,0 L21.515625,10.7578125 L10.7578125,21.515625 L10.7578125,16.734375 L0,16.734375 L0,4.78125 L10.7578125,4.78125 Z" id="Combined-Shape"></path>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

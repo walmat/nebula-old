@@ -85,6 +85,11 @@ class Navbar extends Component {
         }
     }
 
+    //todo - change "active" icon to .active class
+    changeActive() {
+        let imgs = document.getElementsByTagName("img");
+    }
+
     render() {
         return (
             <div className="nav-container">
