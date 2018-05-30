@@ -28,6 +28,10 @@
     border-left: 2px solid #EFEFEF;
 }
 
+.active {
+    fill: #EDBCC6;
+}
+
 #icon-tasks {
     position:absolute;
     top:175px;

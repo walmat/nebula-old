@@ -1,7 +1,12 @@
 import React, { Component } from 'react';
+
 import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
 import submit from '../_assets/submit.svg';
+import startAll from '../_assets/start-all.svg';
+import stopAll from '../_assets/stop-all.svg';
+import destroyAll from '../_assets/destroy-all.svg';
+
 import '../App.css';
 import './Tasks.css';
 
@@ -84,6 +89,18 @@ class Tasks extends Component {
         // if user clicks the garbage can button, erase the task from tasks
     }
 
+    startAllTasks() {
+
+    }
+
+    stopAllTasks() {
+
+    }
+
+    destroyAllTasks() {
+
+    }
+
     /* MORE HELPERS HERE IF NEED */
 
     render() {
@@ -129,6 +146,9 @@ class Tasks extends Component {
                     <p id="view-pairs"># Pairs</p>
                     <p id="view-actions">Actions</p>
                     <hr id="view-line" />
+                    <img src={startAll} id="start-all" onClick={this.startAllTasks} />
+                    <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} />
+                    <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} />
                     {/*END VIEW TASK*/}
                 </div>
             </div>

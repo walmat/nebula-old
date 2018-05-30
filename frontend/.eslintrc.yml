@@ -1,0 +1,3 @@
+extends: airbnb
+rules:
+  func-style: 0

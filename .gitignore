@@ -1,13 +1,15 @@
-# front end
-node_modules/
+# frontend
+node_modules/*
 build/
 public/
 package-lock.json
 
-# back end
+# backend
 
-# aws service
+# aws-service
 
-# discord bot
+# discord-bot
 
 # website
+dynamodb_local/
+.DS_Store

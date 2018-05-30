@@ -10,43 +10,34 @@ class PaymentFields extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            errors: {},
-            payment: {
-                email: '',
-                cardNumber: '',
-                exp: '',
-                cvv: ''
-            }
-        };
     }
 
-    broadCastChanges = () => {
-        this.props.onChange(this.state.payment);
+    broadCastChanges = (updatedPayment, fieldChanged) => {
+        this.props.onChange(updatedPayment, fieldChanged);
     };
 
     onEmailChange = (event) => {
-        let payment = this.state.payment;
+        let payment = this.props.value;
         payment.email = event.target.value;
-        this.setState(payment, this.broadCastChanges);
+        this.broadCastChanges(payment, 'email');
     };
 
     onCardChange = (event) => {
-        let payment = this.state.payment;
+        let payment = this.props.value;
         payment.cardNumber = event.target.value;
-        this.setState(payment, this.broadCastChanges);
+        this.broadCastChanges(payment, 'cardNumber');
     };
 
     onExpirationChange = (event) => {
-        let payment = this.state.payment;
+        let payment = this.props.value;
         payment.exp = event.target.value;
-        this.setState(payment, this.broadCastChanges);
+        this.broadCastChanges(payment, 'exp');
     };
 
     onCVVChange = (event) => {
-        let payment = this.state.payment;
+        let payment = this.props.value;
         payment.cvv = event.target.value;
-        this.setState(payment, this.broadCastChanges);
+        this.broadCastChanges(payment, 'cvv');
     };
 
     render() {
@@ -54,10 +45,10 @@ class PaymentFields extends Component {
         return (
             <div className="flex-col">
                 <p className="body-text" id="payment-label">Payment</p>
-                <input id="email" placeholder="Email Address" onChange={this.onEmailChange} value={this.state.payment.email} style={validationStatus(errors['/payment/email'])} />
-                <input id="card-number" placeholder="XXXX XXXX XXXX XXXX" onChange={this.onCardChange} value={this.state.payment.cardNumber} required style={validationStatus(errors['/payment/cardNumber'])}/>
-                <input id="expiration" placeholder="Expiration" onChange={this.onExpirationChange} value={this.state.payment.exp} style={validationStatus(errors['/payment/exp'])}/>
-                <input id="cvv" placeholder="CVV" onChange={this.onCVVChange} value={this.state.payment.cvv} style={validationStatus(errors['/payment/cvv'])}/>
+                <input id="email" placeholder="Email Address" onChange={this.onEmailChange} value={this.props.value.email} style={validationStatus(errors['/email'])} />
+                <input id="card-number" placeholder="XXXX XXXX XXXX XXXX" onChange={this.onCardChange} value={this.props.value.cardNumber} required style={validationStatus(errors['/cardNumber'])}/>
+                <input id="expiration" placeholder="Expiration" onChange={this.onExpirationChange} value={this.props.value.exp} style={validationStatus(errors['/exp'])}/>
+                <input id="cvv" placeholder="CVV" onChange={this.onCVVChange} value={this.props.value.cvv} style={validationStatus(errors['/cvv'])}/>
                 <img src={info} id="payment-info-btn" />
             </div>
         );
@@ -66,7 +57,8 @@ class PaymentFields extends Component {
 
 PaymentFields.propTypes = {
     errors: PropTypes.object,
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+    value: PropTypes.object
 };
 
 export default PaymentFields;

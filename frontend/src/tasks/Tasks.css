@@ -281,6 +281,27 @@
         left:141px;
         width:739px;
     }
+
+    #start-all {
+        position: absolute;
+        top: 385px;
+        left: 899px;
+        cursor: pointer;
+    }
+
+    #stop-all {
+        position: absolute;
+        top: 454px;
+        left: 899px;
+        cursor: pointer;
+    }
+
+    #destroy-all {
+        position: absolute;
+        top: 523px;
+        left: 899px;
+        cursor: pointer;
+    }
 /* END VIEW SPECIFIC IDS */
 
 /* LOG SPECIFIC IDS */

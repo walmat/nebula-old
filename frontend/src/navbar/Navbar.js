@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-import logo from '../_assets/logo.svg';
 import tasks from '../_assets/tasks.svg';
 import profiles from '../_assets/profiles.svg';
 import server from '../_assets/server.svg';
@@ -13,14 +12,49 @@ import settingsActive from '../_assets/settings-active.svg';
 import logout from '../_assets/logout.svg'
 import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
-
+import logoAnimation from './nebula';
 import './Navbar.css';
+import Bodymovin from './Bodymovin';
+
+const bodymovinOptions = {
+    loop: true,
+    autoplay: true,
+    prerender: true,
+    animationData: logoAnimation
+}
 
 class Navbar extends Component {
+
     constructor(props) {
         super(props);
-        this.state = {};
+
+        this.closeBot = this.closeBot.bind(this);
+        this.deactivate = this.deactivate.bind(this);
     }
+
+    componentDidMount = async () => {
+    }
+
+    /**
+     * send the 'close' signal to the bot
+     * ### this will not de-authenticate the user!!!!
+     * AKA:: they won't see the auth screen upon next launch
+     */
+    closeBot = () => {
+
+    };
+
+    /**
+     * send the 'deactivate' signal to the bot.
+     * The user will need to authenticate their license key again,
+     * so the next time they launch the bot they will see the auth screen
+     *
+     * Also, this should clear the database of ALL traces of their data
+     * except from the 'users' table
+     */
+    deactivate = () => {
+
+    };
 
     changeActive(active) {
         let tasksIcon = document.getElementById('icon-tasks');
@@ -51,11 +85,16 @@ class Navbar extends Component {
         }
     }
 
+    //todo - change "active" icon to .active class
+    changeActive() {
+        let imgs = document.getElementsByTagName("img");
+    }
+
     render() {
         return (
             <div className="nav-container">
                 <div className="flex-column">
-                    <img src={logo} id="App-logo" alt="logo" draggable="false" />
+                    <Bodymovin options={bodymovinOptions} />
                     <div id="vert-line" />
                     <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
                         this.props.history.push('/');
@@ -74,9 +113,8 @@ class Navbar extends Component {
                         this.changeActive('icon-settings');
                     }} draggable="false"/>
                     <img src={info} id="icon-information" alt="information" draggable="false" />
-                    <img src={logout} id="icon-deactivate" alt="logout" draggable="false" />
-                    <img src={deactivate} id="icon-logout" alt="deactivate" draggable="false" />
-
+                    <img src={logout} id="icon-deactivate" alt="logout" draggable="false" onClick={this.closeBot} />
+                    <img src={deactivate} id="icon-logout" alt="deactivate" draggable="false" onClick={this.deactivate} />
                 </div>
             </div>
         );

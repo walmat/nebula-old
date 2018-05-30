@@ -1,46 +1,88 @@
-const dynamodb = require('../../../db.config');
-const docClient = dynamodb;
-
+const AWS = require('aws-sdk');
 const validateProfile = require('./validateProfile');
 
+const dynamodb = require('../../../db.config');
+const docClient = dynamodb.DocumentClient;
+
+function emptyStringsToNull(profile) {
+    Object.keys(profile.shipping).forEach((key) => {
+        if (!profile.shipping[key]) {
+            profile.shipping[key] = null;
+        }
+    });
+    Object.keys(profile.billing).forEach((key) => {
+        if (!profile.billing[key]) {
+            profile.billing[key] = null;
+        }
+    })
+    return profile;
+}
+
 module.exports = async function(app) {
-    app.get('/profiles', async function(req, res) {
-        if (req.statusCode === 200) {
-            let params = {
-                TableName: 'profiles',
-                Key: {
-                    registrationKey: req.registrationKey,
-                    profileName: req.profileName
+    app.get('/profiles/:registrationkey', async function(req, res) {
+        let registrationKey = req.params['registrationkey'];
+        try {
+            var params = {
+                TableName : 'Profiles',
+                Key: registrationKey,
+                KeyConditionExpression: '#regKey = :regKey',
+                ExpressionAttributeNames:{
+                    '#regKey': 'registrationKey'
+                },
+                ExpressionAttributeValues: {
+                    ":regKey": registrationKey
                 }
             };
-            let result = await docClient.get(params).promise();
-            return res.send(result);
+            let result = await docClient.query(params).promise();
+            console.log(result);
+            res.status(200).json({
+                profiles: result.Items
+            });
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({
+                error: 'Server Error'
+            });
         }
+
     });
 
     app.post('/profiles', async function(req, res) {
-        if (req.statusCode === 200) {
+        try {
             let profileData = req.body;
-            let validation = validateProfile(profileData);
+            console.log(profileData);
+            let validation = validateProfile(profileData)
 
             if (validation.fail) {
                 console.log(validation.fail);
                 res.status(400);
-                return res.send({
+                res.send({
                     message: 'Invalid Profile',
                     errors: validation.fail
-                });
+                })
+                return;
             }
+
+            profileData = validation.success;
+            console.log(profileData);
+            profileData = emptyStringsToNull(profileData);
+            console.log(profileData);
 
             let params = {
                 TableName: 'Profiles',
                 Item: profileData
-            };
-            let result = await docClient.put(params).promise();
-            return res.send(result);
-        } else {
-            // return the req status code and do something with it
-            return res.send(req.statusCode);
+            }
+            await docClient.put(params).promise();
+            console.log('Successfully saved item');
+            res.status(200).json({
+                result: profileData
+            });
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({
+                error: 'Server Error'
+            });
         }
+        /*put the task data in the db*/
     });
 };
