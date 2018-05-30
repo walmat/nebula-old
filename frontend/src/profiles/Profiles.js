@@ -1,12 +1,18 @@
 import React, { Component } from 'react';
-import ShippingFields from './ShippingFields';
-import BillingFields from './BillingFields';
 import PaymentFields from './PaymentFields';
+import LocationFields from './LocationFields';
+import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
+import checkboxUnchecked from '../_assets/Check_icons-02.svg';
+import checkboxChecked from '../_assets/Check_icons-01.svg';
 import DDU from '../_assets/dropdown-up.svg';
+
+// TODO Need way to display that the server 'blew up'
+// TODO Reload profiles when new profile saved
+// TODO Loading when getting profiles
 
 class Profiles extends Component {
 
@@ -14,14 +20,18 @@ class Profiles extends Component {
         super(props);
         this.state = {
             errors: {},
+            shippingMatchesBilling: false,
+            profiles: [],
+            selectedProfile: {},
             currentProfile: {
+                profileName: '',
                 shipping: {
                     firstName: '',
                     lastName: '',
                     address: '',
                     apt: '',
                     city: '',
-                    country: '',
+                    country: 'United States',
                     state: '',
                     zipCode: '',
                     phone: ''
@@ -32,7 +42,7 @@ class Profiles extends Component {
                     address: '',
                     apt: '',
                     city: '',
-                    country: '',
+                    country: 'United States',
                     state: '',
                     zipCode: '',
                     phone: ''
@@ -43,21 +53,43 @@ class Profiles extends Component {
                     exp: '',
                     cvv: ''
                 }
+            },
+            test: {
+
             }
         };
 
-        this.fillExpiration = this.fillExpiration.bind(this);
         this.saveProfile = this.saveProfile.bind(this);
-        this.loadProfile = this.loadProfile.bind(this);
+    }
+
+    componentDidMount = async () => {
+        /*FETCH THE PROFILES FROM THE DATABASE*/
+        let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
+        {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        let profiles = (await result.json()).profiles;
+        this.setState({profiles});
     }
 
     /**
      * store the profile in the database for the user
      * @param e
      */
-    async saveProfile(e) {
+    saveProfile = async (e) => {
         // saves input data to user's profiles
         e.preventDefault();
+
+        let profile = this.state.currentProfile;
+        if (this.state.shippingMatchesBilling) {
+            profile.billing = profile.shipping;
+        }
+
+        profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY; //TODO this is only temporary until we get registration key stuff implemented
 
         /*Store the profile in the db*/
         try {
@@ -74,7 +106,7 @@ class Profiles extends Component {
             let result = await response.json();
             if (!result.ok) {
                 this.setState({
-                    errors: result.errors
+                    errors: result.errors || {}
                 });
             }
         } catch (err) {
@@ -84,91 +116,86 @@ class Profiles extends Component {
 
     /**
      * load the profile
-     * @param e
      */
-    loadProfile(e) {
-        // loads profile to screen (editing purposes mainly)
-        e.preventDefault();
-
-        /*FETCH THE PROFILE FROM THE DATABASE*/
-        fetch('http://localhost:8080/profiles',
-            {
-                method: "GET",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(res => console.log(res));
-    }
-
-    exportProfiles() {
-        // export the user's profiles to a json file
-    }
-
-    importProfiles() {
-        // imports a loaded json file into user's profiles
-    }
-
-    getAllProfiles() {
-        // pulls all profiles in for a given user
-    }
-
-
-    /* HELPER METHODS */
-
-    /* FORM METHODS */
-    fillExpiration() {
-
+    loadProfile = () => {
+        let selectedProfile = this.state.selectedProfile;
+        let currentProfile = Object.assign({}, selectedProfile);
+        this.setState({currentProfile});
     }
 
     /**
-     * sets the billing fields to disabled if the 'matched' option is checked
+     * sets the billing fields to disabled if the 'matched' checkbox is checked
+     *
+     *
      */
-    setDisabled() {
-        if (document.getElementById('match').checked) {
-            document.getElementById('bCountry').disabled = true,
-                document.getElementById('bState').disabled = true;
-            document.getElementById('bFirstName').disabled = true,
-                document.getElementById('bLastName').disabled = true,
-                document.getElementById('bAddress1').disabled = true,
-                document.getElementById('bApt').disabled = true,
-                document.getElementById('bCity').disabled = true,
-                document.getElementById('bZipCode').disabled = true,
-                document.getElementById('bPhone').disabled = true;
-        } else {
-            document.getElementById('bCountry').disabled = false,
-                document.getElementById('bState').disabled = false;
-            document.getElementById('bFirstName').disabled = false,
-                document.getElementById('bLastName').disabled = false,
-                document.getElementById('bAddress1').disabled = false,
-                document.getElementById('bApt').disabled = false,
-                document.getElementById('bCity').disabled = false,
-                document.getElementById('bZipCode').disabled = false,
-                document.getElementById('bPhone').disabled = false;
-        }
+    setDisabled = () => {
+        let shippingMatchesBilling = !this.state.shippingMatchesBilling;
+        this.setState({shippingMatchesBilling});
     }
 
-    onShippingFieldsChange = (shipping) => {
+    onShippingFieldsChange = (shipping, fieldChanged) => {
+        delete this.state.errors[`/shipping/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
         currentProfile.shipping = shipping;
         this.setState(currentProfile);
     };
 
-    onBillingFieldsChange = (billing) => {
+    onBillingFieldsChange = (billing, fieldChanged) => {
+        delete this.state.errors[`/billing/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
         currentProfile.billing = billing;
         this.setState(currentProfile);
     };
 
-    onPaymentFieldsChange = (payment) => {
+    onProfileNameChange = (event) => {
+        let currentProfile = this.state.currentProfile;
+        currentProfile.profileName = event.target.value;
+        this.setState(currentProfile);
+    }
+
+    onProfileChange = (event) => {
+        const profileName = event.target.value;
+        let profiles = this.state.profiles;
+        let selectedProfile = profiles.find((profile) => {
+            return profile.profileName === profileName;
+        });
+
+        this.setState({selectedProfile});
+    }
+
+    onPaymentFieldsChange = (payment, fieldChanged) => {
+        delete this.state.errors[`/payment/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
         currentProfile.payment = payment;
         this.setState(currentProfile);
     };
 
-    render() {
+    buildRealtiveErrors = (basePath) => {
         const errors = this.state.errors;
+        let relativeErrors = {};
+        if(errors) {
+            Object.keys(errors).forEach((path) => {
+                if (path.startsWith(basePath)) {
+                    relativeErrors[path.replace(basePath, '')] = errors[path];
+                }
+            });
+        }
+        return relativeErrors;
+    }
+
+    buildProfileOptions = () => {
+        let profiles = this.state.profiles;
+        return profiles && profiles.map((profile) => {
+            return <option key={profile.profileName}>{profile.profileName}</option>;
+        });
+    }
+
+    componentDidUpdate = () => {
+        console.log('UPDATE')
+    }
+
+    render() {
+        const currentProfile = this.state.currentProfile;
         return (
             <form>
                 <div className="container">
@@ -179,23 +206,33 @@ class Profiles extends Component {
                     <p className="body-text" id="load-profile-label">Load Profile</p>
                     <div id="load-profile-box" />
                     <p id="profile-name-label">Profile Name</p>
-                    <select id="profile-load">
-                        <option>Profile 1</option>
+                    <select id="profile-load" onChange={this.onProfileChange} value={this.state.selectedProfile.profileName || ''}>
+                        <option value=""  hidden>{'Choose Profile to Load'}</option>
+                        {this.buildProfileOptions()}
                     </select>
                     <img src={DDD} id="profile-select-arrow" />
-                    <button id="load-profile" onClick={this.loadProfile}>Load</button>
+                    <button id="load-profile" type='button' onClick={this.loadProfile}>Load</button>
 
                     {/*SHIPPING INFORMATION*/}
-                    <ShippingFields onChange={this.onShippingFieldsChange} errors={this.state.errors} />
+                    <div className="flex-col">
+				        <p className="body-text" id="shipping-label">Shipping</p>
+                        <LocationFields onChange={this.onShippingFieldsChange} value={currentProfile.shipping} errors={this.buildRealtiveErrors('/shipping')} disabled={false} id={'shipping'}/>
+                    </div>
+
+                    {/*BILLING MATCHES SHIPPING*/}
+                    <img src={this.state.shippingMatchesBilling ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled}/>
 
                     {/*BILLING INFORMATION*/}
-                    <BillingFields onChange={this.onBillingFieldsChange} errors={this.state.errors} />
+                    <div className="flex-col">
+                        <p className="body-text" id="billing-label">Billing</p>
+                        <LocationFields onChange={this.onBillingFieldsChange} value={currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
+                    </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentFields onChance={this.onPaymentFieldsChange} errors={this.state.errors} />
+                    <PaymentFields onChange={this.onPaymentFieldsChange} value={currentProfile.payment} errors={this.buildRealtiveErrors('/payment')}/>
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" type="text" placeholder="Profile Name" required />
+                    <input id="profile-save" onChange={this.onProfileNameChange} value={currentProfile.profileName} style={validationStatus(this.state.errors['/profileName'])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                 </div>
             </form>

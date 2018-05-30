@@ -19,6 +19,9 @@ const profilesSchema = Joi.object().keys({
 		address: Joi.string()
 					.required()
 					.label('Shipping Address'),
+		apt: Joi.string()
+				.label('Apt/Suite Number')
+				.allow(''),
 		city: Joi.string()
 				.required()
 				.label('Shipping City'),
@@ -47,6 +50,9 @@ const profilesSchema = Joi.object().keys({
 		address: Joi.string()
 					.required()
 					.label('Shipping Address'),
+		apt: Joi.string()
+				.allow('')
+				.label('Apt/Suite Number'),
 		city: Joi.string()
 				.required()
 				.label('Shipping City'),
@@ -107,19 +113,6 @@ const options = {
 			}
 		}
     }
-}
-
-function toJSONPointerPath(pathParts) {
-    return `/${pathParts.join('/')}`;
-}
-
-function convertToJSONPointer(errors) {
-    return errors.details.reduce((grouped, detail) => {
-        let path = toJSONPointerPath(detail.path);
-        (grouped[path] = grouped[path] || [])
-            .push(detail.message);
-        return grouped;
-    }, {});
 }
 
 module.exports = function validateProfile(profileData) {

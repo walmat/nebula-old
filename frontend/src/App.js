@@ -13,7 +13,7 @@ class App extends Component {
         return (
             <BrowserRouter>
                 <div id="container-wrapper">
-                    <div className="titlebar"></div>
+                    <div className="titlebar" />
                     <Navbar />
                     <div className="main-container">
                         <Switch>
