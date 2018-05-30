@@ -1,6 +1,6 @@
 import { makeActionCreator } from '../ActionCreator';
 
-const EDIT_LOCATION = 'EDIT_LOCATION';
+export const EDIT_LOCATION = 'EDIT_LOCATION';
 
 export const LOCATION_FIELDS = {
   FIRST_NAME: 'FIRST_NAME',
