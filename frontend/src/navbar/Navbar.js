@@ -24,6 +24,7 @@ const bodymovinOptions = {
 }
 
 class Navbar extends Component {
+
     constructor(props) {
         super(props);
 
@@ -39,9 +40,9 @@ class Navbar extends Component {
      * ### this will not de-authenticate the user!!!!
      * AKA:: they won't see the auth screen upon next launch
      */
-    closeBot() {
+    closeBot = () => {
 
-    }
+    };
 
     /**
      * send the 'deactivate' signal to the bot.
@@ -51,9 +52,9 @@ class Navbar extends Component {
      * Also, this should clear the database of ALL traces of their data
      * except from the 'users' table
      */
-    deactivate() {
+    deactivate = () => {
 
-    }
+    };
 
     changeActive(active) {
         let tasksIcon = document.getElementById('icon-tasks');

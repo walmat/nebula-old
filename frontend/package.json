@@ -7,7 +7,6 @@
     "start": "react-scripts start & node src/electron-wait-react",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "lint": "eslint .",
     "eject": "react-scripts eject",
     "electron": "electron .",
     "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
@@ -27,7 +26,6 @@
   "devDependencies": {
     "discord.js": "^11.3.2",
     "electron": "^1.8.4",
-    "eslint": "^4.19.1",
-    "nodemon": "^1.17.3"
+    "eslint": "^4.19.1"
   }
 }
