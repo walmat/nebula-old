@@ -1,0 +1,38 @@
+{
+  "base_url": "http://kith.com/sitemap_products_1.xml",
+  "pos_keywords": [
+    "Converse",
+    "Off"
+  ],
+  "neg_keywords": [
+  ],
+  "sizeStyle1": null,
+  "sizeStyle2": null,
+  "ccn": "6011 0042 6607 0000",
+  "nameOnCard": "Matthew Wall",
+  "month": 7,
+  "year": 22,
+  "ccv": "484",
+  "firstName": "Matthew",
+  "lastName": "Wall",
+  "address": "1206 S 4th St. Apt 306",
+  "city": "Ames",
+  "state": "IA",
+  "zipCode": "50010",
+  "phoneNumber": "5157206516",
+  "email": "matthew.wallt@gmail.com",
+  "shipping_pole_timeout": 2500,
+  "paypal": false,
+  "slack": {
+    "active": false,
+    "token": "token goes here",
+    "channel": "general",
+    "settings": {
+      "username": "Trimalchio",
+      "icon_url": "http://i.imgur.com/06ubORD.jpg"
+    }
+  },
+  "error_delay": 60000,
+  "monitor_delay": 1000,
+  "show_stock": true
+}

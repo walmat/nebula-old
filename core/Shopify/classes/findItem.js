@@ -10,34 +10,74 @@ const request = require('request').defaults({
 
 const log = require('../utils/log');
 
-const userAgent = require('../utils/common').userAgent;
+const userAgent =
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 let match;
 let userHasBeenNotifiedEmpty = false;
 
 module.exports = {};
 
-function findItem(config, discordBot, proxy, cb) {
-    //site map parsing
+function findItem(config, proxy, cb) {
     if (config.base_url.endsWith('.xml')) {
+
+        let matchString;
+        let foundItems = [];
+
         request(
             {
-                url: config.base_url,
                 method: 'get',
+                url: config.base_url,
+                proxy: proxy,
+                gzip: true,
                 headers: {
-                    'User-Agent': userAgent,
-                },
-                proxy: proxy
+                    'User-Agent': userAgent
+                }
             },
             function(err, res, body) {
+
+                //TODO – error handling
+
                 parseString(body, function(err, result) {
                     if (err) {
-                        log('Error parsing site-map', 'error');
+                        log('error parsing sitemap', 'error');
+                        process.exit(1);
                     }
-                    log('result.length ' + result.length);
+
+                    let products = result['urlset']['url'];
+                    products.shift();
+
+                    //TODO – optimize this further
+                    for (let i = 0; i < products.length; i++) {
+
+                        let matchCount = 0; //overall "match" count (manipulated by pos/neg keywords)
+                        matchString = products[i]['image:image'];
+                        if (matchString) {
+                            let chk_words = matchString[0]['image:title'].toString().split(' ').splice('-');
+
+                            config.pos_keywords.forEach(word => {
+                                chk_words.forEach(chk => {
+                                    if (chk.toLowerCase().indexOf(word.toLowerCase()) > -1) { //match detected
+                                        //TODO - remove duplicate entries of words so matchCount doesn't increase for the same word
+                                        matchCount++;
+                                    }
+                                });
+                            });
+
+                            if (matchCount === config.pos_keywords.length) {
+                                foundItems.push(products[i]);
+                            }
+                        }
+                    }
+
+                    foundItems.forEach(item => {
+                        console.log(item['image:image'][0]['image:title']);
+                    });
+                    console.log('length: ' + foundItems.length);
+
                 });
             }
         );
-    } else { //we're on the product page (e.g. base_url = https://kith.com/products/cn162204c/)
+    } else {
         request(
             {
                 url: `${config.base_url}/products.json`,
@@ -50,31 +90,29 @@ function findItem(config, discordBot, proxy, cb) {
             function(err, res, body) {
                 if (err) {
                     log(err);
-                    return cb(err, null);
+                    return cb(err, 1000, null);
                 } else {
                     try {
                         const products = JSON.parse(body);
+
                         const foundItems = [];
 
                         if (products.products.length === 0) {
                             if (userHasBeenNotifiedEmpty) {
-                                return cb(true, null);
+                                return cb(true, 1000, null);
                             } else {
                                 userHasBeenNotifiedEmpty = true;
-                                log("No item's available right now still looking...", 'error');
-                                return cb(true, null);
+                                log("No item's yet...", 'error');
+                                return cb(true, 1000, null);
                             }
                         }
 
-                        //TODO – find a better way to do this, O(n^2) time as of now. NEED THIS TO BE FAST!!
-
-                        //loop over all products
-                        for (let x = 0; x < products.products.length; x++) {
-                            for (let y = 0; y < config.pos_keywords.length; y++) {
+                        //todo -- configure this with negative && positive keywords
+                        //todo -- find a more efficient way to do this. O(n^2) is trash
+                        for (let i = 0; i < config.keywords.length; i++) {
+                            for (let x = 0; x < products.products.length; x++) {
                                 const name = products.products[x].title;
-                                //check for match
-                                if (name.toLowerCase().indexOf(config.pos_keywords[y].toLowerCase()) > -1) {
-                                    //push item to the list of found items
+                                if (name.toLowerCase().indexOf(config.keywords[i].toLowerCase()) > -1) {
                                     foundItems.push(products.products[x]);
                                 }
                             }
@@ -84,37 +122,28 @@ function findItem(config, discordBot, proxy, cb) {
                             if (foundItems.length === 1) {
                                 log(`Item Found! - "${foundItems[0].title}"`);
                                 match = foundItems[0];
-                                return cb(null, foundItems[0]);
+                                return cb(null, null, foundItems[0]);
                             } else {
-                                log(`More than 1 item matched\n`, 'warning');
-                                //TODO handle this case
-                                // prompt.get(
-                                //     [
-                                //         {
-                                //             name: 'productSelect',
-                                //             required: true,
-                                //             description: 'Select a Product # (ex: "2")',
-                                //         },
-                                //     ],
-                                //     function(err, result) {
-                                //         const choice = parseInt(result.productSelect);
-                                //         match = foundItems[choice - 1];
-                                //         log(`You selected - "${match.title}`);
-                                //         return cb(null, match);
-                                //     }
-                                // );
+                                //TODO -- narrow the search down to JUST one item
+                                log(`More than 1 item, please select..\n`, 'warning');
+                                for (let j = 0; j < foundItems.length; j++) {
+                                    log(`Product Choice #${j + 1}: "${foundItems[j].title}"`);
+                                }
+                                match = foundItems[0]; //todo change this later
                             }
                         } else {
-                            return cb('Match not found yet...', null);
+                            return cb('Match not found yet...', null, null);
                         }
                     } catch (e) {
                         if (res.statusCode === 430) {
-                            //TODO -- swap the proxy out and re-run the process
-                            log(
-                                `Shopify soft ban`,
-                                'error'
-                            );
-                            process.exit(1);
+                            log(`Soft Ban`, 'error');
+                            return cb(true, 60000, null); //TODO change this later to a global config
+                        } else if (res.statusCode === 401) {
+                            log('Password Page detected', 'error');
+                            return cb(true, 1000, null); //TODO change this later to a global config
+                        } else {
+                            log('Unknown error, handle it');
+                            return cb(true, null, res.statusCode);
                         }
                     }
                 }
@@ -125,19 +154,10 @@ function findItem(config, discordBot, proxy, cb) {
 
 module.exports.findItem = findItem;
 
-
-/**
- * Used to grab the stock of an individual size of a product
- * @param config – used to get the base_url
- * @param discordBot – will be a 'middleman' between the bot and user
- * @param handle – in this case, most likely will be the product SKU, but sometimes stores switch it up
- * @param id – product size id (e.g. – 2450955108359)
- * @param cb – callback function
- */
-const findvariantstock = function(config, discordBot, handle, id, cb) {
+const findvariantstock = function(config, handle, id, cb) {
     request(
         {
-            url: `${config.base_url}/products/` + handle + '.json', //e.g. - https://kith.com/products/cn162204c.json
+            url: `${config.base_url}/products/` + handle + '.json',
             followAllRedirects: true,
             method: 'get',
             headers: {
@@ -146,70 +166,49 @@ const findvariantstock = function(config, discordBot, handle, id, cb) {
         },
         function(err, res, body) {
             try {
-                const variants = JSON.parse(body).product.variants; //grabs variants
+                const variants = JSON.parse(body).product.variants;
 
-                const constant = _.findWhere(variants, {
+                const constiant = _.findWhere(variants, {
                     id: id,
                 });
-                //TODO – fix this
-                if (constant.inventory_quantity) {
-                    return cb(null, constant.inventory_quantity);
+
+                // console.log(constiant);
+
+                if (constiant.inventory_quantity) {
+                    return cb(null, constiant.inventory_quantity);
                 } else {
                     return cb(null, 'Unavailable');
                 }
             } catch (e) {
-                return cb(true, null);
+                return cb(true, 'Unavailable');
             }
         }
     );
 };
 
-/**
- *
- * @param config
- * @param discordBot
- * @param res
- * @param onSuccess
- */
-function selectStyle(config, discordBot, res, onSuccess) {
-    let stock;
+function selectStyle(config, res, onSuccess) {
     let styleID;
 
-    //only want one size
-    if (match.variants.length === 1) {
-        styleID = match.variants[0].id;
+    //loop over all product variants
+    for (let i = 0; i < match.variants.length; i++) {
+        styleID = match.variants[i].id; //grab the id of the product
+        let size = match.variants[i].option1;
+        let optional = match.variants[i].option2;
 
-        findvariantstock(config, discordBot, match.handle, match.variants[0].id, function(err, res) {
-            if (err) {
-                //must be out of stock
-                log(`${match.variants[0].option1} is out of stock`);
-                onSuccess(match, styleID);
-            } else {
-                log(`${match.variants[0].option1}: ${styleID} – ${res}`);
-                onSuccess(match, styleID);
-            }
-        });
-    } else {
-        //loop through all size options
-        for (let i = 0; i < match.variants.length; i++) {
-            const size = match.variants[i].option1;
-            const product_id = match.variants[i].option2;
-            let stock = "0";
-
-            findvariantstock(match.handle, match.variants[i].id, function (err, res) {
-               if (err) stock = "0";
-               else {
-                   stock = res;
-               }
-            });
-
-            if (product_id === null) {
-                log(`Size: ${size} | Stock: (${stock})`);
-            } else {
-                log(`SKU: ${product_id} | Size: ${size} | Stock: (${stock}`);
+        //loop over all user's desired sizes
+        for (let j = 0; j < config.sizes.length; j++) {
+            if (size === config.sizes[j] || optional === config.sizes[j]) { //check to see if it matches one of the user's desired sizes
+                findvariantstock(config, match.handle, styleID, function(err, res) {
+                    if (err) { // means oos
+                        log(`Product: "${size}" (${styleID}) | Stock: ${res}`);
+                        onSuccess(match, styleID);
+                    } else { // in stock, report that
+                        log(`Product: "${size}" (${styleID}) | Stock: ${res}`);
+                        onSuccess(match, styleID);
+                    }
+                });
             }
         }
-        //TODO – send this data to pay
     }
 }
 

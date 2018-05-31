@@ -10,6 +10,7 @@ import destroyAll from '../_assets/destroy-all.svg';
 import '../App.css';
 import './Tasks.css';
 
+const config = require('./config.json');
 const core = require('core');
 
 class Tasks extends Component {
@@ -18,17 +19,19 @@ class Tasks extends Component {
 
     constructor(props) {
         super(props);
+        this.state = {
+            tasks: [],
+
+        };
         this.getTasks = this.getTasks.bind(this);
-        this.createTask = this.createTask.bind(this);
     }
 
-    createTask(e) {
+    createTask = async (e) => {
         // save task data to user's tasks and show it in 'view tasks' panel
         e.preventDefault();
         const
-            bill_id = document.getElementById('billings'),
+            bill_id = document.getElementById('profiles'),
             size_id = document.getElementById('size');
-        /*grab current values*/
         const
             sku = document.getElementById('sku').value,
             size = size_id.options[size_id.selectedIndex].text,
@@ -45,12 +48,13 @@ class Tasks extends Component {
                 },
                 body: JSON.stringify({"task_num":this.task_num, "status": "idle", "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs})
             })
-            .then(res => console.log(res));
-        /*increase task num*/
-        this.task_num++;
-    }
+            .then(res => {
+                this.state.tasks.push(JSON.stringify(res.body));
+                this.task_num++;
+            });
+    };
 
-    getTasks(e) {
+    getTasks = async (e) => {
         e.preventDefault();
         fetch('http://localhost:8080/tasks',
             {
@@ -63,42 +67,42 @@ class Tasks extends Component {
             })
             .then(res => res.json())
             .then(tasks => this.setState({tasks}));
-    }
+    };
 
     viewTasks() {
         // get tasks and display them
     }
 
-    exportTasks() {
-        // send current tasks to json file
-    }
-
-    importTasks() {
-        // load json file to current tasks and display them
-    }
-
-    runTask() {
+    runTask(index) {
         // if user clicks the play button, start the task
+        // core.run(this.state.tasks[index]);
     }
 
     stopTask() {
         // if user clicks pause button, stop the task
     }
 
-    destroyTask() {
-        // if user clicks the garbage can button, erase the task from tasks
-    }
+    destroyTask = () => {
+        // if user clicks the `garbage can` button, erase the task from tasks
+    };
 
+    editTask = () => {
+        //expand the task dialog and look for changes
+    };
+
+    /**
+     * if user clicks the large `right arrow` button, run all the tasks
+     */
     startAllTasks() {
 
     }
 
     stopAllTasks() {
-
+        // if user clicks the large `x` button, stop all tasks
     }
 
     destroyAllTasks() {
-
+        // if user clicks the large `garbage can` button, erase all tasks
     }
 
     /* MORE HELPERS HERE IF NEED */
@@ -112,7 +116,7 @@ class Tasks extends Component {
                         <p className="body-text" id="create-label">Create</p>
                         <div id="create-box" />
                         <p id="sku-label">Input SKU</p>
-                        <input id="sku" type="text" placeholder="SKU 000000000" required />
+                        <input id="sku" type="text" placeholder="SKU 000000" required />
                         <p id="profiles-label">Billing Profiles</p>
                         <select id="profiles" type="text" required />
                         <div id="dropdown-profiles-box" />

@@ -97,20 +97,20 @@ class Navbar extends Component {
                     <Bodymovin options={bodymovinOptions} />
                     <div id="vert-line" />
                     <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
-                        this.props.history.push('/');
                         this.changeActive('icon-tasks');
+                        return this.props.history.push('/');
                     }} draggable="false"/>
                     <img src={profiles} className="main-icons" id="icon-profiles" alt="profiles" onClick={() => {
-                        this.props.history.push('/profiles');
                         this.changeActive('icon-profiles');
+                        return this.props.history.push('/profiles');
                     }} draggable="false"/>
                     <img src={server} className="main-icons" id="icon-server" alt="server" onClick={() => {
-                        this.props.history.push('/server');
                         this.changeActive('icon-server');
+                        return this.props.history.push('/server');
                     }} draggable="false"/>
                     <img src={settings} className="main-icons" id="icon-settings" alt="settings" onClick={() => {
-                        this.props.history.push('/settings');
                         this.changeActive('icon-settings');
+                        return this.props.history.push('/settings');
                     }} draggable="false"/>
                     <img src={info} id="icon-information" alt="information" draggable="false" />
                     <img src={logout} id="icon-deactivate" alt="logout" draggable="false" onClick={this.closeBot} />
