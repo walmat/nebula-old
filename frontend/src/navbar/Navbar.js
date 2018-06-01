@@ -16,6 +16,8 @@ import logoAnimation from './nebula';
 import './Navbar.css';
 import Bodymovin from './Bodymovin';
 
+import logo from '../_assets/logo.svg';
+
 const bodymovinOptions = {
     loop: true,
     autoplay: true,
@@ -85,16 +87,12 @@ class Navbar extends Component {
         }
     }
 
-    //todo - change "active" icon to .active class
-    changeActive() {
-        let imgs = document.getElementsByTagName("img");
-    }
-
     render() {
         return (
             <div className="nav-container">
                 <div className="flex-column">
-                    <Bodymovin options={bodymovinOptions} />
+                    {/*<Bodymovin options={bodymovinOptions} />*/}
+                    <img src={logo} id="App-logo" draggable="false" />
                     <div id="vert-line" />
                     <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
                         this.props.history.push('/');
