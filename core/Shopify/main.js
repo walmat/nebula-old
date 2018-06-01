@@ -1,5 +1,3 @@
-const log = require('./utils/log');
-
 // INIT PROXIES - NEED TO LOAD PROXIES FROM DB
 var proxies = [];
 let index = 0;

@@ -10,8 +10,7 @@ const request = require('request').defaults({
 
 const log = require('../utils/log');
 
-const userAgent =
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
+const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 let match;
 let userHasBeenNotifiedEmpty = false;
 

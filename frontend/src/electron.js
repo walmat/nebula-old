@@ -1,4 +1,6 @@
 const electron = require('electron');
+const dynamodb = require('../../backend/db.config');
+const docClient = dynamodb.DocumentClient;
 
 // Module to control application life.
 const app = electron.app;

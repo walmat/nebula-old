@@ -9,6 +9,14 @@
     left: 0;
     overflow-x: hidden;
 }
+.react-bodymovin-container {
+    width:100%;
+    height:100%;
+}
+
+#App-logo > div > svg > g > g:nth-child(2) {
+    font-size: 700%!important;
+}
 
 #App-logo {
     position: absolute;

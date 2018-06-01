@@ -10,18 +10,17 @@ import destroyAll from '../_assets/destroy-all.svg';
 import '../App.css';
 import './Tasks.css';
 
-const config = require('./config.json');
+const config = require('./config.json'); //TODO *** temp
 const core = require('core');
+const Pool = require('threads').Pool;
 
 class Tasks extends Component {
     state = {tasks: []};
-    task_num = 0;
 
     constructor(props) {
         super(props);
         this.state = {
-            tasks: [],
-
+            tasks: []
         };
         this.getTasks = this.getTasks.bind(this);
     }
@@ -73,37 +72,41 @@ class Tasks extends Component {
         // get tasks and display them
     }
 
-    runTask(index) {
+    runTask = async (index) => {
         // if user clicks the play button, start the task
         // core.run(this.state.tasks[index]);
-    }
+        //TODO setup multi-threading
+        core.run(config);
+    };
 
-    stopTask() {
+    stopTask = async () => {
         // if user clicks pause button, stop the task
-    }
+    };
 
-    destroyTask = () => {
+    destroyTask = async () => {
         // if user clicks the `garbage can` button, erase the task from tasks
     };
 
-    editTask = () => {
+    editTask = async () => {
         //expand the task dialog and look for changes
     };
 
     /**
      * if user clicks the large `right arrow` button, run all the tasks
      */
-    startAllTasks() {
+    startAllTasks = async () => {
+        const pool = new Pool(); //ceate a new thread pool
+        //TODO – create thread for each task and run it
 
-    }
+    };
 
-    stopAllTasks() {
+    stopAllTasks = async () => {
         // if user clicks the large `x` button, stop all tasks
-    }
+    };
 
-    destroyAllTasks() {
+    destroyAllTasks = async () => {
         // if user clicks the large `garbage can` button, erase all tasks
-    }
+    };
 
     /* MORE HELPERS HERE IF NEED */
 

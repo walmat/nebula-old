@@ -14,6 +14,7 @@ import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
 import logoAnimation from './nebula';
 import './Navbar.css';
+
 import Bodymovin from './Bodymovin';
 
 const bodymovinOptions = {
@@ -56,7 +57,7 @@ class Navbar extends Component {
 
     };
 
-    changeActive(active) {
+    changeActive = (active) => {
         let tasksIcon = document.getElementById('icon-tasks');
         let profilesIcon = document.getElementById('icon-profiles');
         let serverIcon = document.getElementById('icon-server');
@@ -83,18 +84,15 @@ class Navbar extends Component {
             serverIcon.src = server;
             settingsIcon.src = settingsActive;
         }
-    }
-
-    //todo - change "active" icon to .active class
-    changeActive() {
-        let imgs = document.getElementsByTagName("img");
-    }
+    };
 
     render() {
         return (
             <div className="nav-container">
                 <div className="flex-column">
-                    <Bodymovin options={bodymovinOptions} />
+                    <div id="App-logo">
+                        <Bodymovin options={bodymovinOptions} />
+                    </div>
                     <div id="vert-line" />
                     <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
                         this.changeActive('icon-tasks');
