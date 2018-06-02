@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import getAllCountires from '../getAllCountires';
 import getAllStates from '../getAllStates';
-import { editLocation, LOCATION_FIELDS } from '../state/actions/Actions.js';
+import { LOCATION_FIELDS } from '../state/actions/profiles/ProfileActions';
 import './Profiles.css';
 
 const errorStyle = {
@@ -17,16 +16,13 @@ class LocationFields extends Component {
         super(props);
 	}
 
-	broadCastChanges = (updatedLocation, fieldChanged) => {
-		this.props.onChange(updatedLocation, fieldChanged);
-	}
 	setBorderColor(validationErrors) {
     return validationErrors ? errorStyle : {};
   }
 
   createOnChangeHandler(field) {
     return (event) => {
-      this.props.dispatch(editLocation(field, event.target.value));
+      this.props.onChange({field: field, value: event.target.value});
     }
   }
 

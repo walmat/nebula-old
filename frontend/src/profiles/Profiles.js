@@ -4,6 +4,9 @@ import LocationFields from './LocationFields';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
+import { dispatch } from 'react-redux';
+import { editProfile } from '../state/actions/profiles/ProfileActions';
+
 // images
 import DDD from '../_assets/dropdown-down.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
@@ -131,6 +134,13 @@ class Profiles extends Component {
     setDisabled = () => {
         let shippingMatchesBilling = !this.state.shippingMatchesBilling;
         this.setState({shippingMatchesBilling});
+    }
+
+    createLocationFieldsChange(type) {
+      return (changes) => {
+        console.log(`editProfile: current, ${type}, ${changes}`);
+        // dispatch(editProfile(0, type, changes.value, changes.field));
+      }
     }
 
     onShippingFieldsChange = (shipping, fieldChanged) => {
