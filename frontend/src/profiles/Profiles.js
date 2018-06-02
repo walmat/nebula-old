@@ -3,6 +3,7 @@ import PaymentFields from './PaymentFields';
 import LocationFields from './LocationFields';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
+import PropTypes from 'prop-types';
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
@@ -63,17 +64,22 @@ class Profiles extends Component {
     }
 
     componentDidMount = async () => {
+        this.props.history.push('/login');
         /*FETCH THE PROFILES FROM THE DATABASE*/
-        let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
-        {
-            method: "GET",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        let profiles = (await result.json()).profiles;
-        this.setState({profiles});
+        try {
+            let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
+            {
+                method: "GET",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            let profiles = (await result.json()).profiles;
+            this.setState({profiles});
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     /**
@@ -238,5 +244,9 @@ class Profiles extends Component {
         );
     }
 }
+
+Profiles.propTypes = {
+    discordSecurityContext: PropTypes.object
+};
 
 export default Profiles;
