@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Task from './task';
+import ViewTask from './view-task';
 
 import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
@@ -168,7 +168,7 @@ class Tasks extends Component {
                     <p id="view-actions">Actions</p>
                     <hr id="view-line" />
                     <div id="view-scroll-box">
-                        { this.state.tasks.forEach((task) => {return <Task data={task} />}) }
+                        { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
                     </div>
                     <img src={startAll} id="start-all" onClick={this.startAllTasks} />
                     <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} />

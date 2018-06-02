@@ -27,7 +27,7 @@ module.exports = function(app) {
                 console.log(validation.fail);
                 res.status(400);
                 return res.send({
-                    message: 'Invalid Task',
+                    message: 'Invalid ViewTask',
                     errors: validation.fail
                 });
             }
