@@ -6,7 +6,7 @@ import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
 import { connect } from 'react-redux';
-import { editProfile, EDIT_SHIPPING, EDIT_BILLING } from '../state/actions/profiles/ProfileActions';
+import { profileActions, PROFILE_FIELDS } from '../state/Actions';
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
@@ -86,16 +86,6 @@ class Profiles extends Component {
         this.setState({currentProfile});
     }
 
-    /**
-     * sets the billing fields to disabled if the 'matched' checkbox is checked
-     *
-     *
-     */
-    setDisabled = () => {
-        let shippingMatchesBilling = !this.props.shippingMatchesBilling;
-        this.setState({shippingMatchesBilling});
-    }
-
     onProfileNameChange = (event) => {
         let currentProfile = this.props.currentProfile;
         currentProfile.profileName = event.target.value;
@@ -161,7 +151,7 @@ class Profiles extends Component {
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
-                    <img src={this.props.shippingMatchesBilling ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled}/>
+                    <img src={this.props.billingMatchesShipping ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.props.onClickBillingMatchesShipping}/>
 
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
@@ -185,4 +175,13 @@ const mapStateToProps = (state) => {
   return state
 }
 
-export default connect(mapStateToProps)(Profiles);
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onClickBillingMatchesShipping: () => {
+            console.log('clicked');
+            dispatch(profileActions.edit(0, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Profiles);
