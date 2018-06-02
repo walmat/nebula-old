@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PaymentFields from './PaymentFields';
+import PaymentEntry from './PaymentEntry';
 import BillingEntry from './BillingEntry';
 import ShippingEntry from './ShippingEntry';
 import validationStatus from '../utils/validationStatus';
@@ -96,20 +96,6 @@ class Profiles extends Component {
         this.setState({shippingMatchesBilling});
     }
 
-    onShippingFieldsChange = (shipping, fieldChanged) => {
-        delete this.props.errors[`/shipping/${fieldChanged}`];
-        let currentProfile = this.props.currentProfile;
-        currentProfile.shipping = shipping;
-        this.setState(currentProfile);
-    };
-
-    onBillingFieldsChange = (billing, fieldChanged) => {
-        delete this.props.errors[`/billing/${fieldChanged}`];
-        let currentProfile = this.props.currentProfile;
-        currentProfile.billing = billing;
-        this.setState(currentProfile);
-    };
-
     onProfileNameChange = (event) => {
         let currentProfile = this.props.currentProfile;
         currentProfile.profileName = event.target.value;
@@ -125,13 +111,6 @@ class Profiles extends Component {
 
         this.setState({selectedProfile});
     }
-
-    onPaymentFieldsChange = (payment, fieldChanged) => {
-        delete this.props.currentProfile.errors[`/payment/${fieldChanged}`];
-        let currentProfile = this.props.currentProfile;
-        currentProfile.payment = payment;
-        this.setState(currentProfile);
-    };
 
     buildRealtiveErrors = (basePath) => {
         const errors = this.props.errors;
@@ -191,7 +170,7 @@ class Profiles extends Component {
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentFields onChange={this.onPaymentFieldsChange} value={this.props.currentProfile.payment} errors={this.buildRealtiveErrors('/payment')}/>
+                    <PaymentEntry errors={this.buildRealtiveErrors('/payment')}/>
 
                     {/*SAVE PROFILE*/}
                     <input id="profile-save" onChange={this.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors['/profileName'])} placeholder="Profile Name"/>

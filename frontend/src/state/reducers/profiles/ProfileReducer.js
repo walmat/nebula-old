@@ -1,5 +1,6 @@
-import { EDIT_SHIPPING, EDIT_BILLING } from '../../actions/Actions';
+import { EDIT_SHIPPING, EDIT_BILLING, EDIT_PAYMENT } from '../../actions/Actions';
 import { locationReducer, initialLocationState } from './LocationReducer';
+import { paymentReducer, initialPaymentState } from './PaymentReducer';
 
 export const initialProfileState = {
   id: 0,
@@ -8,7 +9,7 @@ export const initialProfileState = {
   billingMatchesShipping: false,
   shipping: initialLocationState,
   billing: initialLocationState,
-  payment: {}
+  payment: initialPaymentState
 }
 
 export function profileReducer(state = initialProfileState, action) {
@@ -22,6 +23,11 @@ export function profileReducer(state = initialProfileState, action) {
     case EDIT_BILLING:
       change = {
         billing: locationReducer(state.billing, {type: action.subfield, value: action.value})
+      };
+      break;
+    case EDIT_PAYMENT:
+      change = {
+        payment: paymentReducer(state.payment, {type: action.subfield, value: action.value})
       };
       break;
     default:

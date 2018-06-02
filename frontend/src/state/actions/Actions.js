@@ -4,10 +4,13 @@
 
 import * as profiles from './profiles/ProfileActions';
 import * as location from './profiles/LocationActions';
+import * as payment from './profiles/PaymentActions';
 
 export const EDIT_BILLING = profiles.EDIT_BILLING;
 export const EDIT_SHIPPING = profiles.EDIT_SHIPPING;
+export const EDIT_PAYMENT = profiles.EDIT_PAYMENT;
 export const LOCATION_FIELDS = location.LOCATION_FIELDS;
+export const PAYMENT_FIELDS = payment.PAYMENT_FIELDS;
 
 export const PROFILE_ACTIONS = {
   ADD: profiles.ADD_PROFILE,
