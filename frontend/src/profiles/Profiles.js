@@ -191,7 +191,6 @@ class Profiles extends Component {
     }
 
     componentDidUpdate = () => {
-        console.log('UPDATE')
     }
 
     render() {
