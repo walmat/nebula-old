@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
-import { PAYMENT_FIELDS } from '../state/actions/Actions';
+import { PAYMENT_FIELDS } from '../state/Actions';
 
 import info from '../_assets/info.svg';
 

@@ -1,4 +1,4 @@
-import { EDIT_SHIPPING, EDIT_BILLING, EDIT_PAYMENT } from '../../actions/Actions';
+import { PROFILE_FIELDS } from '../../Actions';
 import { locationReducer, initialLocationState } from './LocationReducer';
 import { paymentReducer, initialPaymentState } from './PaymentReducer';
 
@@ -15,17 +15,17 @@ export const initialProfileState = {
 export function profileReducer(state = initialProfileState, action) {
   let change = {};
   switch(action.field) {
-    case EDIT_SHIPPING:
+    case PROFILE_FIELDS.EDIT_SHIPPING:
       change = {
         shipping: locationReducer(state.shipping, {type: action.subfield, value: action.value})
       };
       break;
-    case EDIT_BILLING:
+    case PROFILE_FIELDS.EDIT_BILLING:
       change = {
         billing: locationReducer(state.billing, {type: action.subfield, value: action.value})
       };
       break;
-    case EDIT_PAYMENT:
+    case PROFILE_FIELDS.EDIT_PAYMENT:
       change = {
         payment: paymentReducer(state.payment, {type: action.subfield, value: action.value})
       };

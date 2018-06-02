@@ -1,4 +1,4 @@
-import { LOCATION_FIELDS } from '../../actions/Actions'
+import { LOCATION_FIELDS } from '../../Actions'
 
 export const initialLocationState = {
   firstName: '',

@@ -1,3 +1,4 @@
 node_modules/
 dynamodb_local/
 .DS_Store
+.vscode/
