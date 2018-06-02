@@ -9,10 +9,9 @@ import Auth from './auth/Auth';
 
 import './App.css';
 
-const authURL = `https://discordapp.com/oauth2/authorize?client_id=${REACT_APP_DISCORD_ID}&scope=identify&response_type=code&redirect_uri=${redirect}`;
 const REACT_APP_DISCORD_ID = process.env.REACT_APP_DISCORD_ID;
-const REACT_APP_DISCORD_SECRET = process.env.REACT_APP_DISCORD_SECRET;
 const redirect = 'http://localhost:3000/auth';
+const authURL = `https://discordapp.com/oauth2/authorize?client_id=${REACT_APP_DISCORD_ID}&scope=identify&response_type=code&redirect_uri=${redirect}`;
 
 class App extends Component {
     render() {
