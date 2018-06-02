@@ -5,7 +5,7 @@ import ShippingEntry from './ShippingEntry';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
-import { dispatch } from 'react-redux';
+import { connect } from 'react-redux';
 import { editProfile, EDIT_SHIPPING, EDIT_BILLING } from '../state/actions/profiles/ProfileActions';
 
 // images
@@ -22,47 +22,6 @@ class Profiles extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            errors: {},
-            shippingMatchesBilling: false,
-            profiles: [],
-            selectedProfile: {},
-            currentProfile: {
-                profileName: '',
-                shipping: {
-                    firstName: '',
-                    lastName: '',
-                    address: '',
-                    apt: '',
-                    city: '',
-                    country: 'United States',
-                    state: '',
-                    zipCode: '',
-                    phone: ''
-                },
-                billing: {
-                    firstName: '',
-                    lastName: '',
-                    address: '',
-                    apt: '',
-                    city: '',
-                    country: 'United States',
-                    state: '',
-                    zipCode: '',
-                    phone: ''
-                },
-                payment: {
-                    email: '',
-                    cardNumber: '',
-                    exp: '',
-                    cvv: ''
-                }
-            },
-            test: {
-
-            }
-        };
-
         this.saveProfile = this.saveProfile.bind(this);
     }
 
@@ -88,8 +47,8 @@ class Profiles extends Component {
         // saves input data to user's profiles
         e.preventDefault();
 
-        let profile = this.state.currentProfile;
-        if (this.state.shippingMatchesBilling) {
+        let profile = this.props.currentProfile;
+        if (this.props.shippingMatchesBilling) {
             profile.billing = profile.shipping;
         }
 
@@ -122,7 +81,7 @@ class Profiles extends Component {
      * load the profile
      */
     loadProfile = () => {
-        let selectedProfile = this.state.selectedProfile;
+        let selectedProfile = this.props.selectedProfile;
         let currentProfile = Object.assign({}, selectedProfile);
         this.setState({currentProfile});
     }
@@ -133,33 +92,33 @@ class Profiles extends Component {
      *
      */
     setDisabled = () => {
-        let shippingMatchesBilling = !this.state.shippingMatchesBilling;
+        let shippingMatchesBilling = !this.props.shippingMatchesBilling;
         this.setState({shippingMatchesBilling});
     }
 
     onShippingFieldsChange = (shipping, fieldChanged) => {
-        delete this.state.errors[`/shipping/${fieldChanged}`];
-        let currentProfile = this.state.currentProfile;
+        delete this.props.errors[`/shipping/${fieldChanged}`];
+        let currentProfile = this.props.currentProfile;
         currentProfile.shipping = shipping;
         this.setState(currentProfile);
     };
 
     onBillingFieldsChange = (billing, fieldChanged) => {
-        delete this.state.errors[`/billing/${fieldChanged}`];
-        let currentProfile = this.state.currentProfile;
+        delete this.props.errors[`/billing/${fieldChanged}`];
+        let currentProfile = this.props.currentProfile;
         currentProfile.billing = billing;
         this.setState(currentProfile);
     };
 
     onProfileNameChange = (event) => {
-        let currentProfile = this.state.currentProfile;
+        let currentProfile = this.props.currentProfile;
         currentProfile.profileName = event.target.value;
         this.setState(currentProfile);
     }
 
     onProfileChange = (event) => {
         const profileName = event.target.value;
-        let profiles = this.state.profiles;
+        let profiles = this.props.profiles;
         let selectedProfile = profiles.find((profile) => {
             return profile.profileName === profileName;
         });
@@ -168,14 +127,14 @@ class Profiles extends Component {
     }
 
     onPaymentFieldsChange = (payment, fieldChanged) => {
-        delete this.state.errors[`/payment/${fieldChanged}`];
-        let currentProfile = this.state.currentProfile;
+        delete this.props.currentProfile.errors[`/payment/${fieldChanged}`];
+        let currentProfile = this.props.currentProfile;
         currentProfile.payment = payment;
         this.setState(currentProfile);
     };
 
     buildRealtiveErrors = (basePath) => {
-        const errors = this.state.errors;
+        const errors = this.props.errors;
         let relativeErrors = {};
         if(errors) {
             Object.keys(errors).forEach((path) => {
@@ -188,7 +147,7 @@ class Profiles extends Component {
     }
 
     buildProfileOptions = () => {
-        let profiles = this.state.profiles;
+        let profiles = this.props.profiles;
         return profiles && profiles.map((profile) => {
             return <option key={profile.profileName}>{profile.profileName}</option>;
         });
@@ -199,7 +158,6 @@ class Profiles extends Component {
     }
 
     render() {
-        const currentProfile = this.state.currentProfile;
         return (
             <form>
                 <div className="container">
@@ -210,7 +168,7 @@ class Profiles extends Component {
                     <p className="body-text" id="load-profile-label">Load Profile</p>
                     <div id="load-profile-box" />
                     <p id="profile-name-label">Profile Name</p>
-                    <select id="profile-load" onChange={this.onProfileChange} value={this.state.selectedProfile.profileName || ''}>
+                    <select id="profile-load" onChange={this.onProfileChange} value={this.props.selectedProfile.profileName || ''}>
                         <option value=""  hidden>{'Choose Profile to Load'}</option>
                         {this.buildProfileOptions()}
                     </select>
@@ -224,19 +182,19 @@ class Profiles extends Component {
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
-                    <img src={this.state.shippingMatchesBilling ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled}/>
+                    <img src={this.props.shippingMatchesBilling ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled}/>
 
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <LocationFields onChange={console.log} value={currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
+                        <LocationFields onChange={console.log} value={this.props.currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.props.shippingMatchesBilling} id={'billing'}/>
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentFields onChange={this.onPaymentFieldsChange} value={currentProfile.payment} errors={this.buildRealtiveErrors('/payment')}/>
+                    <PaymentFields onChange={this.onPaymentFieldsChange} value={this.props.currentProfile.payment} errors={this.buildRealtiveErrors('/payment')}/>
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" onChange={this.onProfileNameChange} value={currentProfile.profileName} style={validationStatus(this.state.errors['/profileName'])} placeholder="Profile Name"/>
+                    <input id="profile-save" onChange={this.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors['/profileName'])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                 </div>
             </form>
@@ -244,4 +202,8 @@ class Profiles extends Component {
     }
 }
 
-export default Profiles;
+const mapStateToProps = (state) => {
+  return state
+}
+
+export default connect(mapStateToProps)(Profiles);
