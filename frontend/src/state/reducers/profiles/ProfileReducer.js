@@ -30,6 +30,15 @@ export function profileReducer(state = initialProfileState, action) {
         payment: paymentReducer(state.payment, {type: action.subfield, value: action.value})
       };
       break;
+    case PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING:
+      change = {
+        billingMatchesShipping: !state.billingMatchesShipping
+      };
+      break;
+    case PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING:
+      change = {
+        billingMatchesShipping: action.value
+      };
     default:
       change = {};
   }
