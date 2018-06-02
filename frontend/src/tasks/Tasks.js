@@ -15,6 +15,7 @@ const core = require('core');
 const Pool = require('threads').Pool;
 
 class Tasks extends Component {
+
     /*
     * {
     *   edit: edit_img,
