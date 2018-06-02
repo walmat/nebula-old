@@ -2,7 +2,7 @@
 
 .nav-container {
     height: 100%;
-    width: 112px; /* 2px for border*/
+    width: 112px; /* 2px extra for border*/
     position: fixed;
     z-index: 1;
     top: 0;
@@ -10,15 +10,6 @@
     overflow-x: hidden;
 }
 .react-bodymovin-container {
-    width:100%;
-    height:100%;
-}
-
-#App-logo > div > svg > g > g:nth-child(2) {
-    font-size: 700%!important;
-}
-
-#App-logo {
     position: absolute;
     top: 28px;
     left: 19px;

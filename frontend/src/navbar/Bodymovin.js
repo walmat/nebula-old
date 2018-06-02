@@ -10,6 +10,7 @@ class Bodymovin extends React.Component {
     const options = Object.assign({}, this.props.options);
     options.wrapper = this.wrapper;
     options.renderer = 'svg';
+    options.preserveAspectRatio = 'xMaxYMax meet';
     this.animation = bodymovin.loadAnimation(options)
   }
 

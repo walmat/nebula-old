@@ -193,6 +193,7 @@
         height: 300px;
         border: 1px solid #F0405E;
         border-radius: 3px;
+        overflow: scroll;
     }
 
     #view-num {

@@ -21,7 +21,11 @@ const bodymovinOptions = {
     loop: true,
     autoplay: true,
     prerender: true,
-    animationData: logoAnimation
+    animationData: logoAnimation,
+    rendererSettings: {
+        progressiveLoad:false,
+        preserveAspectRatio: 'xMidYMid slice'
+    }
 }
 
 class Navbar extends Component {
@@ -90,9 +94,7 @@ class Navbar extends Component {
         return (
             <div className="nav-container">
                 <div className="flex-column">
-                    <div id="App-logo">
-                        <Bodymovin options={bodymovinOptions} />
-                    </div>
+                    <Bodymovin options={bodymovinOptions} />
                     <div id="vert-line" />
                     <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
                         this.changeActive('icon-tasks');
