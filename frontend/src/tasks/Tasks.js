@@ -10,12 +10,26 @@ import destroyAll from '../_assets/destroy-all.svg';
 import '../App.css';
 import './Tasks.css';
 
-const config = require('./config.json'); //TODO *** temp
+const config = require('./config.json'); //TODO *** temp data structure
 const core = require('core');
 const Pool = require('threads').Pool;
 
 class Tasks extends Component {
-    state = {tasks: []};
+    /*
+    * {
+    *   edit: edit_img,
+    *   task_num: task_num,
+    *   sku: sku,
+    *   profiles: profiles,
+    *   sizes: sizes,
+    *   num_pairs: num_pairs,
+    *   actions: [
+    *       run: run_img,
+    *       stop: stop_img,
+    *       destroy: destroy_img
+    *   ]
+    * }
+    * */
 
     constructor(props) {
         super(props);
@@ -69,14 +83,10 @@ class Tasks extends Component {
             .then(tasks => this.setState({tasks}));
     };
 
-    viewTasks() {
-        // get tasks and display them
-    }
-
     runTask = async (index) => {
         // if user clicks the play button, start the task
         // core.run(this.state.tasks[index]);
-        //TODO setup multi-threading
+        //TODO setup threading
         core.run(config);
     };
 
@@ -157,7 +167,9 @@ class Tasks extends Component {
                     <p id="view-pairs"># Pairs</p>
                     <p id="view-actions">Actions</p>
                     <hr id="view-line" />
-                    <div> { this.state.tasks.forEach((task) => {return <Task data={task} />}) } </div>
+                    <div id="view-scroll-box">
+                        { this.state.tasks.forEach((task) => {return <Task data={task} />}) }
+                    </div>
                     <img src={startAll} id="start-all" onClick={this.startAllTasks} />
                     <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} />
                     <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} />

@@ -21,9 +21,9 @@ class Task extends Component {
                     <td>{this.state.data.profiles}</td>
                     <td>{this.state.data.sizes}</td>
                     <td>{this.state.data.num_pairs}</td>
-                    <td>{this.state.data.run}</td>
-                    <td>{this.state.data.stop}</td>
-                    <td>{this.state.data.destroy}</td>
+                    <td>{this.state.data.actions.run}</td>
+                    <td>{this.state.data.actions.stop}</td>
+                    <td>{this.state.data.actions.destroy}</td>
                 </tr>
             )
         }
@@ -32,7 +32,7 @@ class Task extends Component {
 
     render() {
         return (
-            <div id="view-scroll-box">{this.createTable}</div>
+            <div>{this.createTable}</div>
         );
     }
 }

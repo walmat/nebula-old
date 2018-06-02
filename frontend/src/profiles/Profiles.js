@@ -14,6 +14,9 @@ import DDU from '../_assets/dropdown-up.svg';
 // TODO Reload profiles when new profile saved
 // TODO Loading when getting profiles
 
+
+//TODO ENCRYPT INFORMATION WHEN SENT
+
 class Profiles extends Component {
 
     constructor(props) {
