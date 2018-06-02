@@ -5,6 +5,7 @@
 import * as profiles from './profiles/ProfileActions';
 import * as location from './profiles/LocationActions';
 
+export const EDIT_BILLING = profiles.EDIT_BILLING;
 export const EDIT_SHIPPING = profiles.EDIT_SHIPPING;
 export const LOCATION_FIELDS = location.LOCATION_FIELDS;
 

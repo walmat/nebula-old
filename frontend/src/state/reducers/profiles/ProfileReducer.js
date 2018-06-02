@@ -1,24 +1,31 @@
-import { EDIT_SHIPPING } from '../../actions/Actions';
-import locationReducer from './LocationReducer';
+import { EDIT_SHIPPING, EDIT_BILLING } from '../../actions/Actions';
+import { locationReducer, initialLocationState } from './LocationReducer';
 
-const initialProfileState = {
+export const initialProfileState = {
   id: 0,
   profileName: '',
   errors: {},
   billingMatchesShipping: false,
-  shipping: {},
-  billing: {},
+  shipping: initialLocationState,
+  billing: initialLocationState,
   payment: {}
 }
 
 export function profileReducer(state = initialProfileState, action) {
+  let change = {};
   switch(action.field) {
     case EDIT_SHIPPING:
-      let change = {
-        shipping: locationReducer(state.shipping, {field: action.subfield, value: action.value})
+      change = {
+        shipping: locationReducer(state.shipping, {type: action.subfield, value: action.value})
       };
-      return Object.assign({}, state, change);
+      break;
+    case EDIT_BILLING:
+      change = {
+        billing: locationReducer(state.billing, {type: action.subfield, value: action.value})
+      };
+      break;
     default:
-      return state;
+      change = {};
   }
+  return Object.assign({}, state, change);
 }

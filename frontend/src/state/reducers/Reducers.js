@@ -3,7 +3,7 @@
  * files, this is just a shared import point.
  */
 import { combineReducers } from 'redux'
-import { profileReducer } from './profiles/ProfileReducer';
+import { profileReducer, initialProfileState } from './profiles/ProfileReducer';
 
 const topLevelReducer = (state = initialState, action) => {
   let changes = {
@@ -20,72 +20,6 @@ export default topLevelReducer;
  */
 const initialState = {
   profiles: [],
-  selectedProfile: {
-    id: 0,
-    profileName: '',
-    errors: {},
-    billingMatchesShipping: false,
-    shipping: {
-        firstName: '',
-        lastName: '',
-        address: '',
-        apt: '',
-        city: '',
-        country: 'United States',
-        state: '',
-        zipCode: '',
-        phone: ''
-    },
-    billing: {
-        firstName: '',
-        lastName: '',
-        address: '',
-        apt: '',
-        city: '',
-        country: 'United States',
-        state: '',
-        zipCode: '',
-        phone: ''
-    },
-    payment: {
-        email: '',
-        cardNumber: '',
-        exp: '',
-        cvv: ''
-    }
-  },
-  currentProfile: {
-    id: 0,
-    profileName: '',
-    errors: {},
-    shippingMatchesBilling: false,
-    shipping: {
-        firstName: '',
-        lastName: '',
-        address: '',
-        apt: '',
-        city: '',
-        country: 'United States',
-        state: '',
-        zipCode: '',
-        phone: ''
-    },
-    billing: {
-        firstName: '',
-        lastName: '',
-        address: '',
-        apt: '',
-        city: '',
-        country: 'United States',
-        state: '',
-        zipCode: '',
-        phone: ''
-    },
-    payment: {
-        email: '',
-        cardNumber: '',
-        exp: '',
-        cvv: ''
-    }
-  }
+  selectedProfile: initialProfileState,
+  currentProfile: initialProfileState
 };

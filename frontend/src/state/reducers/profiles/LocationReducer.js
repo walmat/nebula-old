@@ -1,6 +1,6 @@
 import { LOCATION_FIELDS } from '../../actions/Actions'
 
-const initialLocationState = {
+export const initialLocationState = {
   firstName: '',
   lastName: '',
   address: '',
@@ -12,9 +12,9 @@ const initialLocationState = {
   phone: ''
 }
 
-const locationReducer = (state = initialLocationState, action) => {
+export const locationReducer = (state = initialLocationState, action) => {
   let change = {};
-  switch (action.field) {
+  switch (action.type) {
     case LOCATION_FIELDS.FIRST_NAME:
       change = {firstName: action.value}; break;
     case LOCATION_FIELDS.LAST_NAME:
@@ -38,5 +38,3 @@ const locationReducer = (state = initialLocationState, action) => {
   }
   return Object.assign({}, state, change);
 }
-
-export default locationReducer;

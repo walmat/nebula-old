@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PaymentFields from './PaymentFields';
-import LocationFields from './LocationFields';
+import BillingEntry from './BillingEntry';
 import ShippingEntry from './ShippingEntry';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
@@ -177,7 +177,7 @@ class Profiles extends Component {
 
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
-				        <p className="body-text" id="shipping-label">Shipping</p>
+				                <p className="body-text" id="shipping-label">Shipping</p>
                         <ShippingEntry id={'shipping'} errors={this.buildRealtiveErrors('/shipping')} disabled={false} />
                     </div>
 
@@ -187,7 +187,7 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <LocationFields onChange={console.log} value={this.props.currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.props.shippingMatchesBilling} id={'billing'}/>
+                        <BillingEntry id={'billing'} errors={this.buildRealtiveErrors('/billing')} disabled={this.props.currentProfile.billingMatchesShipping} />
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
