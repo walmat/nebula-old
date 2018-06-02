@@ -3,11 +3,15 @@
  * files, this is just a shared import point.
  */
 import { combineReducers } from 'redux'
-import { locationReducer } from './profiles/LocationReducer';
+import { locationReducer } from './profiles/ProfileReducer';
 
- const topLevelReducer = combineReducers({
-   shipping: locationReducer
- });
+const topLevelReducer = (state = initialState, action) => {
+  return {
+    currentProfile: {
+      shipping: locationReducer(state, action)
+    }
+  }
+}
 
 export default topLevelReducer;
 

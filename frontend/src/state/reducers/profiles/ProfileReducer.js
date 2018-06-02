@@ -1,8 +1,12 @@
-import { EDIT_LOCATION, LOCATION_FIELDS } from '../../actions/Actions';
+import { EDIT_SHIPPING, LOCATION_FIELDS } from '../../actions/Actions';
 
-function locationReducer(state = {}, action) {
+export function locationReducer(state = {}, action) {
+  if(state === undefined) {
+    return {};
+  }
+
   switch (action.type) {
-    case EDIT_LOCATION:
+    case EDIT_SHIPPING:
       let change = {};
       switch (action.field) {
         case LOCATION_FIELDS.FIRST_NAME:
@@ -24,7 +28,7 @@ function locationReducer(state = {}, action) {
         case LOCATION_FIELDS.PHONE_NUMBER:
           change = {phone: action.value}; break;
       }
-      return Object.assign({}, location, change);
+      return Object.assign({}, state, change);
     default:
       return state;
   }

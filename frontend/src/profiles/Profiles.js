@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import PaymentFields from './PaymentFields';
 import LocationFields from './LocationFields';
+import ShippingEntry from './ShippingEntry';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
 import { dispatch } from 'react-redux';
-import { editProfile } from '../state/actions/profiles/ProfileActions';
+import { editProfile, EDIT_SHIPPING, EDIT_BILLING } from '../state/actions/profiles/ProfileActions';
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
@@ -136,13 +137,6 @@ class Profiles extends Component {
         this.setState({shippingMatchesBilling});
     }
 
-    createLocationFieldsChange(type) {
-      return (changes) => {
-        console.log(`editProfile: current, ${type}, ${changes}`);
-        // dispatch(editProfile(0, type, changes.value, changes.field));
-      }
-    }
-
     onShippingFieldsChange = (shipping, fieldChanged) => {
         delete this.state.errors[`/shipping/${fieldChanged}`];
         let currentProfile = this.state.currentProfile;
@@ -226,7 +220,7 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
 				        <p className="body-text" id="shipping-label">Shipping</p>
-                        <LocationFields onChange={this.onShippingFieldsChange} value={currentProfile.shipping} errors={this.buildRealtiveErrors('/shipping')} disabled={false} id={'shipping'}/>
+                        <ShippingEntry id={'shipping'} errors={this.buildRealtiveErrors('/shipping')} disabled={false} />
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
@@ -235,7 +229,7 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <LocationFields onChange={this.onBillingFieldsChange} value={currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
+                        <LocationFields onChange={console.log} value={currentProfile.billing} errors={this.buildRealtiveErrors('/billing')} disabled={this.state.shippingMatchesBilling} id={'billing'}/>
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
