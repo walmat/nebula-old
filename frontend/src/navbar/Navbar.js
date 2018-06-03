@@ -14,7 +14,6 @@ import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
 import logoAnimation from './nebula';
 import './Navbar.css';
-
 import Bodymovin from './Bodymovin';
 
 const bodymovinOptions = {
@@ -32,21 +31,19 @@ class Navbar extends Component {
 
     constructor(props) {
         super(props);
-
-        this.closeBot = this.closeBot.bind(this);
-        this.deactivate = this.deactivate.bind(this);
     }
 
     componentDidMount = async () => {
-    }
+    };
 
     /**
      * send the 'close' signal to the bot
      * ### this will not de-authenticate the user!!!!
      * AKA:: they won't see the auth screen upon next launch
      */
-    closeBot = () => {
-
+    closeBot = async () => {
+        const remote = require('electron').remote;
+        remote.getCurrentWindow().close();
     };
 
     /**
@@ -57,7 +54,7 @@ class Navbar extends Component {
      * Also, this should clear the database of ALL traces of their data
      * except from the 'users' table
      */
-    deactivate = () => {
+    deactivate = async () => {
 
     };
 
