@@ -88,13 +88,14 @@ class Navbar extends Component {
             serverIcon.src = server;
             settingsIcon.src = settingsActive;
         }
-    };
+    }
 
     render() {
         return (
             <div className="nav-container">
                 <div className="flex-column">
                     <Bodymovin options={bodymovinOptions} />
+                    {/*<img src={logo} id="App-logo" draggable="false" />*/}
                     <div id="vert-line" />
                     <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
                         this.changeActive('icon-tasks');
