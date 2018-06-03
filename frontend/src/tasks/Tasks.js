@@ -47,13 +47,16 @@ class Tasks extends Component {
         const size_id = document.getElementById('size');
 
         const sku = document.getElementById('sku').value;
-        const size = size_id.options[size_id.selectedIndex].text;
-        const billings = bill_id.options[bill_id.selectedIndex].text;
-        const num_pairs = document.getElementById('num_pairs').value;
+        //const size = size_id.options[size_id.selectedIndex].text;
+        //const billings = bill_id.options[bill_id.selectedIndex].text;
+        const num_pairs = document.getElementById('pairs').value;
+
+        const size = '8.5';
+        const billings = 'profile 1';
 
 
         /*Store the task in the db*/
-        fetch('http://localhost:8080/tasks',
+        await fetch('http://localhost:8080/tasks',
             {
                 method: "POST",
                 headers: {
@@ -71,7 +74,7 @@ class Tasks extends Component {
 
     getTasks = async (e) => {
         e.preventDefault();
-        fetch('http://localhost:8080/tasks',
+        await fetch('http://localhost:8080/tasks',
             {
                 headers: {
                     'Accept': 'application/json',

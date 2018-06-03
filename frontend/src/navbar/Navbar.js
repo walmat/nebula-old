@@ -53,14 +53,17 @@ class Navbar extends Component {
      * except from the 'users' table
      */
     deactivate = async () => {
-        //TODO
+        //TODO – de-auth user and show auth screen upon next launch
     };
 
     launchInfo = async () => {
-        // window.open("");
-        //TODO – launch a child window
+        // window.open("http://bot-nebula.herokuapp.com");
+        //TODO – launch a child window to website
     };
 
+    /**
+     * changes the active icon corresponding to the page
+     */
     changeActive = (active) => {
         let tasksIcon = document.getElementById('icon-tasks');
         let profilesIcon = document.getElementById('icon-profiles');
