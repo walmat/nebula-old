@@ -6,17 +6,16 @@ function validateEmail(email) {
 }
 
 function validateCardNumber(cardNumber) {
-// TODO: create regex for this
-  return true;
+  return cardNumber && regexes.creditCardNumber.test(cardNumber);
 }
 
 function validateExp(exp) {
 // TODO: create regex for this
-  return true;
+  return exp && regexes.creditCardExp.test(exp);
 }
 
 function validateCVV(cvv) {
-  return cvv && regexes.cvv.test(cvv);
+  return cvv && regexes.creditCardCvv.test(cvv);
 }
 
 const paymentAttributeValidators = {
