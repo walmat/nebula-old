@@ -33,8 +33,7 @@ class Navbar extends Component {
         super(props);
     }
 
-    componentDidMount = async () => {
-    };
+    componentDidMount = async () => {};
 
     /**
      * send the 'close' signal to the bot
@@ -42,8 +41,7 @@ class Navbar extends Component {
      * AKA:: they won't see the auth screen upon next launch
      */
     closeBot = async () => {
-        const remote = require('electron').remote;
-        remote.getCurrentWindow().close();
+        window.close();
     };
 
     /**
@@ -55,11 +53,12 @@ class Navbar extends Component {
      * except from the 'users' table
      */
     deactivate = async () => {
-
+        //TODO
     };
 
     launchInfo = async () => {
-
+        // window.open("");
+        //TODO – launch a child window
     };
 
     changeActive = (active) => {
