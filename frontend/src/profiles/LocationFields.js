@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import getAllCountires from '../getAllCountires';
 import getAllStates from '../getAllStates';
-import { LOCATION_FIELDS } from '../state/actions/Actions';
+import { LOCATION_FIELDS } from '../state/Actions';
 import './Profiles.css';
 
 const errorStyle = {

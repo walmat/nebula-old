@@ -13,3 +13,4 @@ package-lock.json
 # website
 dynamodb_local/
 .DS_Store
+.vscode/

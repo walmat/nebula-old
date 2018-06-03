@@ -3,7 +3,7 @@
  * files, this is just a shared import point.
  */
 import { combineReducers } from 'redux'
-import { profileReducer, initialProfileState } from './profiles/ProfileReducer';
+import { profileReducer, initialProfileState } from './reducers/profiles/ProfileReducer';
 
 const topLevelReducer = (state = initialState, action) => {
   let changes = {

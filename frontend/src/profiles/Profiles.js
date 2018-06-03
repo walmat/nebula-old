@@ -6,7 +6,7 @@ import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
 import { connect } from 'react-redux';
-import { editProfile, EDIT_SHIPPING, EDIT_BILLING } from '../state/actions/profiles/ProfileActions';
+import { profileActions, PROFILE_FIELDS } from '../state/Actions';
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
@@ -86,22 +86,6 @@ class Profiles extends Component {
         this.setState({currentProfile});
     }
 
-    /**
-     * sets the billing fields to disabled if the 'matched' checkbox is checked
-     *
-     *
-     */
-    setDisabled = () => {
-        let shippingMatchesBilling = !this.props.shippingMatchesBilling;
-        this.setState({shippingMatchesBilling});
-    }
-
-    onProfileNameChange = (event) => {
-        let currentProfile = this.props.currentProfile;
-        currentProfile.profileName = event.target.value;
-        this.setState(currentProfile);
-    }
-
     onProfileChange = (event) => {
         const profileName = event.target.value;
         let profiles = this.props.profiles;
@@ -161,7 +145,7 @@ class Profiles extends Component {
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
-                    <img src={this.props.shippingMatchesBilling ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.setDisabled}/>
+                    <img src={this.props.currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.props.onClickBillingMatchesShipping}/>
 
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
@@ -173,7 +157,7 @@ class Profiles extends Component {
                     <PaymentEntry errors={this.buildRealtiveErrors('/payment')}/>
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" onChange={this.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors['/profileName'])} placeholder="Profile Name"/>
+                    <input id="profile-save" onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors['/profileName'])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                 </div>
             </form>
@@ -182,7 +166,18 @@ class Profiles extends Component {
 }
 
 const mapStateToProps = (state) => {
-    return state
+  return state
 };
 
-export default connect(mapStateToProps)(Profiles);
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onClickBillingMatchesShipping: () => {
+            dispatch(profileActions.edit(0, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
+        },
+        onProfileNameChange: (event) => {
+            dispatch(profileActions.edit(0, PROFILE_FIELDS.EDIT_NAME, event.target.value));
+        }
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Profiles);

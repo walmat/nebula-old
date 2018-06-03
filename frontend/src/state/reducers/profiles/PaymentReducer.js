@@ -1,4 +1,4 @@
-import { PAYMENT_FIELDS } from '../../actions/Actions';
+import { PAYMENT_FIELDS } from '../../Actions';
 
 export const initialPaymentState = {
   email: '',

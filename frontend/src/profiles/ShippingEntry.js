@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
 
 import LocationFields from './LocationFields';
-import { profileActions , EDIT_SHIPPING } from '../state/actions/Actions';
+import { profileActions , PROFILE_FIELDS } from '../state/Actions';
 
 const mapStateToProps = (state, ownProps) => {
   return {
@@ -15,7 +15,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = dispatch => {
   return {
     onChange: (changes) => {
-      dispatch(profileActions.edit(0, EDIT_SHIPPING, changes.value, changes.field));
+      dispatch(profileActions.edit(0, PROFILE_FIELDS.EDIT_SHIPPING, changes.value, changes.field));
     }
   };
 };
