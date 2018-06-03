@@ -1,4 +1,5 @@
 import regexes from '../validation';
+import { PAYMENT_FIELDS } from '../../state/Actions';
 
 function validateEmail(email) {
   return email && regexes.email.test(email);
@@ -19,10 +20,10 @@ function validateCVV(cvv) {
 }
 
 const paymentAttributeValidators = {
-  email: validateEmail,
-  cardNumber: validateCardNumber,
-  exp: validateExp,
-  cvv: validateCVV,
+  [PAYMENT_FIELDS.EMAIL]: validateEmail,
+  [PAYMENT_FIELDS.CARD_NUMBER]: validateCardNumber,
+  [PAYMENT_FIELDS.EXP]: validateExp,
+  [PAYMENT_FIELDS.CVV]: validateCVV,
 };
 
 export default paymentAttributeValidators;

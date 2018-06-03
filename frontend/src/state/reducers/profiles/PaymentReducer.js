@@ -14,9 +14,7 @@ export const initialPaymentState = {
 }
 
 export const paymentReducer = (state = initialPaymentState, action) => {
-  let change = {
-    errors: action.errors,
-  };
+  let change = {};
 
   switch (action.type) {
     case PAYMENT_FIELDS.EMAIL:
@@ -30,5 +28,7 @@ export const paymentReducer = (state = initialPaymentState, action) => {
     default:
       break;
   }
+
+  change.errors = action.errors;
   return Object.assign({}, state, change);
 }
