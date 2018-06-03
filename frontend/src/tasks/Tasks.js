@@ -139,10 +139,10 @@ class Tasks extends Component {
                         <p id="profiles-label">Billing Profiles</p>
                         <select id="profiles" type="text" onClick={this.toggleSVG('profiles')} required />
                         <div id="dropdown-profiles-box" />
-                        <img src={DDD} id="dropdown-profiles-arrow" />
+                        <img src={DDD} id="dropdown-profiles-arrow" draggable="false" />
                         <p id="size-label">Sizes</p>
                         <select id="size" type="text" onClick={this.toggleSVG('size')} required />
-                        <img src={DDD} id="dropdown-size-arrow" />
+                        <img src={DDD} id="dropdown-size-arrow" draggable="false" />
                         <p id="pairs-label"># Pairs</p>
                         <input id="pairs" type="text" placeholder="00" required />
                         <button id="submit-tasks" onClick={this.createTask} >Submit</button>
@@ -171,9 +171,9 @@ class Tasks extends Component {
                     <div id="view-scroll-box">
                         { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
                     </div>
-                    <img src={startAll} id="start-all" onClick={this.startAllTasks} />
-                    <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} />
-                    <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} />
+                    <img src={startAll} id="start-all" onClick={this.startAllTasks} draggable="false" />
+                    <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} draggable="false" />
+                    <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} draggable="false" />
                     {/*END VIEW TASK*/}
                 </div>
             </div>

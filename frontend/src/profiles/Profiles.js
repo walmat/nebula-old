@@ -135,7 +135,7 @@ class Profiles extends Component {
                         <option value=""  hidden>{'Choose Profile to Load'}</option>
                         {this.buildProfileOptions()}
                     </select>
-                    <img src={DDD} id="profile-select-arrow" />
+                    <img src={DDD} id="profile-select-arrow" draggable="false" />
                     <button id="load-profile" type='button' onClick={this.loadProfile}>Load</button>
 
                     {/*SHIPPING INFORMATION*/}
