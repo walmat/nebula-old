@@ -39,6 +39,12 @@ export function profileReducer(state = initialProfileState, action) {
       change = {
         billingMatchesShipping: action.value
       };
+      break;
+    case PROFILE_FIELDS.EDIT_NAME:
+      change = {
+        profileName: action.value
+      };
+      break;
     default:
       change = {};
   }
