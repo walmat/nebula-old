@@ -13,10 +13,10 @@ export const PAYMENT_FIELDS = payment.PAYMENT_FIELDS;
 export const PROFILE_ACTIONS = {
   ADD: profiles.ADD_PROFILE,
   REMOVE: profiles.REMOVE_PROFILE,
-  EDIT: profiles.EDIT_PROFILE
+  EDIT: profiles.EDIT_PROFILE,
 };
 export const profileActions = {
   add: profiles.addProfile,
   remove: profiles.removeProfile,
-  edit: profiles.editProfile
+  edit: profiles.editProfile,
 };

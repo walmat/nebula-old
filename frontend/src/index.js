@@ -1,12 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { createStore } from 'redux';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
+import configureStore from './state/ConfigureStore';
 
-import topLevelReducer from './state/Reducers';
-
-const store = createStore(topLevelReducer);
+const store = configureStore();
 
 const unsubscribe = store.subscribe(() =>
   console.log(store.getState())

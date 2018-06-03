@@ -7,5 +7,5 @@ export const LOCATION_FIELDS = {
   ZIP_CODE: 'zipCode',
   PHONE_NUMBER: 'phoneNumber',
   COUNTRY: 'country',
-  STATE: 'state'
+  STATE: 'state',
 };
