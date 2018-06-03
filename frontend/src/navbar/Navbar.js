@@ -61,6 +61,10 @@ class Navbar extends Component {
 
     };
 
+    launchInfo = async () => {
+
+    };
+
     changeActive = (active) => {
         let tasksIcon = document.getElementById('icon-tasks');
         let profilesIcon = document.getElementById('icon-profiles');
@@ -88,7 +92,7 @@ class Navbar extends Component {
             serverIcon.src = server;
             settingsIcon.src = settingsActive;
         }
-    }
+    };
 
     render() {
         return (
@@ -113,7 +117,7 @@ class Navbar extends Component {
                         this.changeActive('icon-settings');
                         return this.props.history.push('/settings');
                     }} draggable="false"/>
-                    <img src={info} id="icon-information" alt="information" draggable="false" />
+                    <img src={info} id="icon-information" alt="information" draggable="false" onClick={this.launchInfo} />
                     <img src={logout} id="icon-deactivate" alt="logout" draggable="false" onClick={this.closeBot} />
                     <img src={deactivate} id="icon-logout" alt="deactivate" draggable="false" onClick={this.deactivate} />
                 </div>

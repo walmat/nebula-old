@@ -26,7 +26,7 @@ function createWindow() {
         fullscreenable: false,
         movable: true,
         resizable: false,
-        // titleBarStyle: "hidden",
+        icon: path.join(__dirname, '_assets/icons/png/64x64.png'),
         webPreferences: {
             nodeIntegration: false,
             preload: 'preload.js'

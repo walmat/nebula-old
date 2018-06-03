@@ -169,7 +169,9 @@ class Tasks extends Component {
                     <p id="view-actions">Actions</p>
                     <hr id="view-line" />
                     <div id="view-scroll-box">
-                        { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
+                        <table>
+                            { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
+                        </table>
                     </div>
                     <img src={startAll} id="start-all" onClick={this.startAllTasks} draggable="false" />
                     <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} draggable="false" />

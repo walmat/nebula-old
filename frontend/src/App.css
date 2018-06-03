@@ -103,3 +103,41 @@ input:focus::-webkit-input-placeholder {
 input:focus {
   cursor: default;
 }
+
+/* GENERIC CLASSES */
+.text-header {
+  margin:0;
+  font-family: AvenirNext-DemiBold;
+  font-size: 48px;
+  color: #6D6E70;
+  letter-spacing: 0.01px;
+}
+
+.body-text {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #F0405E;
+  letter-spacing: 0;
+}
+
+.flex-container {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#task-header {
+  position: absolute;
+  top: 26px;
+  left: 140px;
+  width: 118px;
+  height: 66px;
+}
+/* END GENERIC CLASSES*/

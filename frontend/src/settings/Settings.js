@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 
 import save from '../_assets/save.svg';
 
+import '../App.css';
 import './Settings.css';
+
 
 class Settings extends Component {
 
