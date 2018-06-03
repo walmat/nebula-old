@@ -5,7 +5,9 @@ import { paymentReducer, initialPaymentState } from './PaymentReducer';
 export const initialProfileState = {
   id: 0,
   profileName: '',
-  errors: {},
+  errors: {
+    profileName: null
+  },
   billingMatchesShipping: false,
   shipping: initialLocationState,
   billing: initialLocationState,

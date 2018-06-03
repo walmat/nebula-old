@@ -1,3 +1,6 @@
-export const paymentRegexes = {
+const regexes = {
+    email: /^[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/,
     cvv: /^\d{3}$/
 }
+
+export default regexes;

@@ -4,7 +4,13 @@ export const initialPaymentState = {
   email: '',
   cardNumber: '',
   exp: '',
-  cvv: ''
+  cvv: '',
+  errors: {
+    email: null,
+    cardNumber: null,
+    exp: null,
+    cvv: null
+  }
 }
 
 export const paymentReducer = (state = initialPaymentState, action) => {

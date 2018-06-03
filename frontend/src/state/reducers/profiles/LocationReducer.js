@@ -9,7 +9,18 @@ export const initialLocationState = {
   country: 'United States',
   state: '',
   zipCode: '',
-  phone: ''
+  phone: '',
+  errors: {
+    firstName: null,
+    lastName: null,
+    address: null,
+    apt: null,
+    city: null,
+    country: null,
+    state: null,
+    zipCode: null,
+    phone: null
+  }
 }
 
 export const locationReducer = (state = initialLocationState, action) => {
