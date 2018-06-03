@@ -24,7 +24,7 @@ function validationStatus(validationErrors) {
 }
 
 validationStatus.propTypes = {
-    errors: PropTypes.arrayOf(PropTypes.string)
+    validationErrors: PropTypes.bool
 };
 
 export default validationStatus;

@@ -2,10 +2,11 @@ import { connect } from 'react-redux';
 
 import PaymentFields from './PaymentFields';
 import { profileActions, PROFILE_FIELDS } from '../state/Actions'
+import buildRelativeErrors from '../utils/buildRelativeErrors';
 
 const mapStateToProps = (state, ownProps) => {
   return {
-    errors: ownProps.errors,
+    errors: buildRelativeErrors('/payment', state.currentProfile.errors),
     value: state.currentProfile.payment
   };
 };

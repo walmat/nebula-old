@@ -96,7 +96,7 @@ class Profiles extends Component {
         this.setState({selectedProfile});
     }
 
-    buildRealtiveErrors = (basePath) => {
+    buildRelativeErrors = (basePath) => {
         const errors = this.props.errors;
         let relativeErrors = {};
         if(errors) {
@@ -141,7 +141,7 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
 				                <p className="body-text" id="shipping-label">Shipping</p>
-                        <ShippingEntry id={'shipping'} errors={this.buildRealtiveErrors('/shipping')} disabled={false} />
+                        <ShippingEntry id={'shipping'} errors={this.buildRelativeErrors('/shipping')} disabled={false} />
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
@@ -150,11 +150,11 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <BillingEntry id={'billing'} errors={this.buildRealtiveErrors('/billing')} disabled={this.props.currentProfile.billingMatchesShipping} />
+                        <BillingEntry id={'billing'} errors={this.buildRelativeErrors('/billing')} disabled={this.props.currentProfile.billingMatchesShipping} />
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentEntry errors={this.buildRealtiveErrors('/payment')}/>
+                    <PaymentEntry />
 
                     {/*SAVE PROFILE*/}
                     <input id="profile-save" onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors['/profileName'])} placeholder="Profile Name"/>
