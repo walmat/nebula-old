@@ -28,7 +28,7 @@
 }
 
 .active {
-    fill: #EDBCC6;
+    opacity: 0.5;
 }
 
 #icon-tasks {

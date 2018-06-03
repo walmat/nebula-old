@@ -1,0 +1,332 @@
+/* GENERIC CLASSES */
+.text-header {
+    margin:0;
+    font-family: AvenirNext-DemiBold;
+    font-size: 48px;
+    color: #6D6E70;
+    letter-spacing: 0.01px;
+}
+
+.body-text {
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #F0405E;
+    letter-spacing: 0;
+}
+
+.flex-container {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#server-header {
+    position: absolute;
+    top: 26px;
+    left: 140px;
+    width: 118px;
+    height: 66px;
+}
+/* END GENERIC CLASSES*/
+
+#login-label {
+    margin: 0;
+    position: absolute;
+    top: 101px;
+    left: 140px;
+}
+
+#login-box {
+    position: absolute;
+    top: 124px;
+    left: 140px;
+    width: 277px;
+    height: 167px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+}
+
+#username-login-label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    margin: 0;
+    position: absolute;
+    top: 134px;
+    left: 153px;
+    width: 43px;
+    height: 12px;
+}
+
+#username-login {
+    position: absolute;
+    top:150px;
+    left:153px;
+    width: 252px;
+    height: 29px;
+    border: 1px solid #F0405E;
+}
+
+#password-login-label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    margin: 0;
+    position: absolute;
+    top: 190px;
+    left: 153px;
+    width: 40px;
+    height: 12px;
+}
+
+#password-login {
+    position: absolute;
+    top:205px;
+    left:153px;
+    width: 252px;
+    height: 29px;
+    border: 1px solid #F0405E;
+}
+
+#submit-aws-login {
+    position: absolute;
+    top: 247px;
+    left: 321px;
+    width: 83px;
+    height: 29px;
+    cursor: pointer;
+    background: #F0405E;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+}
+
+#proxies-label {
+    margin: 0;
+    position: absolute;
+    top: 101px;
+    left: 432px;
+    width: 40px;
+    height: 16px;
+}
+
+#proxies-box {
+    position: absolute;
+    top: 124px;
+    left: 432px;
+    width: 258px;
+    height: 219px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+}
+
+#number-label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    margin: 0;
+    position: absolute;
+    top: 134px;
+    left: 445px;
+    width: 35px;
+    height: 12px;
+}
+
+#number {
+    position: absolute;
+    top:150px;
+    left:445px;
+    width: 106px;
+    height: 29px;
+    border: 1px solid #F0405E;
+}
+
+#username-proxies-label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    margin: 0;
+    position: absolute;
+    top: 190px;
+    left: 445px;
+    width: 40px;
+    height: 12px;
+}
+
+#username-proxies {
+    position: absolute;
+    top:205px;
+    left:445px;
+    width: 233px;
+    height: 29px;
+    border: 1px solid #F0405E;
+}
+
+#password-proxies-label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    margin: 0;
+    position: absolute;
+    top: 245px;
+    left: 445px;
+    width: 40px;
+    height: 12px;
+}
+
+#password-proxies {
+    position: absolute;
+    top:260px;
+    left:445px;
+    width: 233px;
+    height: 29px;
+    border: 1px solid #F0405E;
+}
+
+#destroy-proxies {
+    position: absolute;
+    top: 301px;
+    left: 445px;
+    width: 110px;
+    height: 29px;
+    cursor: pointer;
+    background: #46ADB4;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+}
+
+#generate-proxies {
+    position: absolute;
+    top: 301px;
+    left: 568px;
+    width: 110px;
+    height: 29px;
+    cursor: pointer;
+    background: #F0405E;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+}
+
+#server-label {
+    margin: 0;
+    position: absolute;
+    top: 101px;
+    left: 705px;
+    width: 40px;
+    height: 16px;
+}
+
+#server-box {
+    position: absolute;
+    top: 124px;
+    left: 705px;
+    width: 258px;
+    height: 219px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+}
+
+#type-server-label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    margin: 0;
+    position: absolute;
+    top: 134px;
+    left: 718px;
+    width: 35px;
+    height: 12px;
+}
+
+#type-server {
+    position: absolute;
+    top:150px;
+    left:718px;
+    width: 233px;
+    height: 29px;
+    border: 1px solid #F0405E;
+}
+
+#size-server-label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    margin: 0;
+    position: absolute;
+    top: 190px;
+    left: 718px;
+    width: 40px;
+    height: 12px;
+}
+
+#size-server {
+    position: absolute;
+    top:205px;
+    left:718px;
+    width: 233px;
+    height: 29px;
+    border: 1px solid #F0405E;
+}
+
+#location-server-label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    margin: 0;
+    position: absolute;
+    top: 245px;
+    left: 718px;
+    width: 40px;
+    height: 12px;
+}
+
+#location-server {
+    position: absolute;
+    top:260px;
+    left:718px;
+    width: 233px;
+    height: 29px;
+    border: 1px solid #F0405E;
+}
+
+#destroy-server {
+    position: absolute;
+    top: 301px;
+    left: 718px;
+    width: 110px;
+    height: 29px;
+    cursor: pointer;
+    background: #46ADB4;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+}
+
+#create-server {
+    position: absolute;
+    top: 301px;
+    left: 841px;
+    width: 110px;
+    height: 29px;
+    cursor: pointer;
+    background: #F0405E;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+}

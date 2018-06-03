@@ -80,16 +80,16 @@ input::placeholder, select {
     border: 1px solid #F0405E;
     border-radius: 3px;
     position: absolute;
-    top: 152px;
+    top: 153px;
     left: 153px;
-    width: 249px;
+    width: 252px;
     height: 29px;
 }
 
 #profile-select-arrow {
     position: absolute;
-    top: 156px;
-    left: 376px;
+    top: 157px;
+    left: 379px;
     width: 21px;
     height: 21px;
     cursor: pointer;
@@ -105,7 +105,7 @@ input::placeholder, select {
     border: none;
     position: absolute;
     top: 192px;
-    left: 319px;
+    left: 322px;
     width: 83px;
     height: 29px;
     cursor: pointer;

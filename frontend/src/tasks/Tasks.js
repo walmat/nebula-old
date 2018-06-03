@@ -63,7 +63,7 @@ class Tasks extends Component {
                 body: JSON.stringify({"task_num":this.task_num, "status": "idle", "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs})
             })
             .then(res => {
-                this.setState()
+                this.setState();
                 this.state.tasks.push(JSON.stringify(res.body));
                 this.task_num++;
             });
@@ -145,7 +145,7 @@ class Tasks extends Component {
                         <img src={DDD} id="dropdown-size-arrow" />
                         <p id="pairs-label"># Pairs</p>
                         <input id="pairs" type="text" placeholder="00" required />
-                        <button id="submit" onClick={this.createTask} >Submit</button>
+                        <button id="submit-tasks" onClick={this.createTask} >Submit</button>
                     {/*END CREATE TASK*/}
 
                     {/*TASK LOG*/}
