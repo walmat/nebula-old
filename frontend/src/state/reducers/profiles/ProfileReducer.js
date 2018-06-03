@@ -29,7 +29,7 @@ export function profileReducer(state = initialProfileState, action) {
       break;
     case PROFILE_FIELDS.EDIT_PAYMENT:
       change = {
-        payment: paymentReducer(state.payment, { type: action.subField, value: action.value }),
+        payment: paymentReducer(state.payment, { type: action.subField, value: action.value, errors: action.errors }),
       };
       break;
     case PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING:

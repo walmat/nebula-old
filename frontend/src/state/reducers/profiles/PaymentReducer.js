@@ -14,7 +14,10 @@ export const initialPaymentState = {
 }
 
 export const paymentReducer = (state = initialPaymentState, action) => {
-  let change = {};
+  let change = {
+    errors: action.errors,
+  };
+
   switch (action.type) {
     case PAYMENT_FIELDS.EMAIL:
       change = { email: action.value }; break;
@@ -25,7 +28,7 @@ export const paymentReducer = (state = initialPaymentState, action) => {
     case PAYMENT_FIELDS.CVV:
       change = { cvv: action.value }; break;
     default:
-      change = {};
+      break;
   }
   return Object.assign({}, state, change);
 }
