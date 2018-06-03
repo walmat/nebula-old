@@ -11,14 +11,26 @@ class Settings extends Component {
         this.state = {};
     }
 
+    /*
+    * Launch a new browser window that opens a sign-in google window
+    * and then redirects to youtube.
+    */
     launchYoutube = async () => {
 
     };
 
+    /*
+    * Launch a sub-window with built in AI for image recognition
+    * and capabilities of one-click harvesting
+    */
     harvester = async () => {
 
     };
 
+
+    /*
+    * Signs current google user out. Will clear cookies as well
+    */
     closeSession = async () => {
 
     };
@@ -35,7 +47,6 @@ class Settings extends Component {
                 <button id="proxy-button-youtube" onClick={this.launchYoutube} >YouTube</button>
                 <button id="proxy-button-captcha" onClick={this.harvester} >Captcha</button>
                 <button id="proxy-button-close-session" onClick={this.closeSession} >End Session</button>
-
             </div>
         );
     }
