@@ -1,4 +1,4 @@
-import { TASK_FIELDS } from '../../Actions';
+import {TASK_ACTIONS, TASK_FIELDS} from '../../Actions';
 
 export const initialTaskState = {
     sku: '',
@@ -15,31 +15,33 @@ export const initialTaskState = {
 
 export function taskReducer(state = initialTaskState, action) {
     let change = {};
-    switch (action.field) {
-        case TASK_FIELDS.EDIT_SKU:
-            change = {
-                sku: action.value
-            };
-            break;
-        case TASK_FIELDS.EDIT_BILLING:
-            change = {
-                billing: action.value
-            };
-            break;
-        case TASK_FIELDS.EDIT_SIZES:
-            change = {
-                sizes: action.value
-            };
-            break;
-        case TASK_FIELDS.EDIT_PAIRS:
-            change = {
-                pairs: action.value
-            };
-            break;
-        default:
-            change = {};
+    if (action.type === TASK_ACTIONS.EDIT) {
+        switch (action.field) {
+            case TASK_FIELDS.EDIT_SKU:
+                change = {
+                    sku: action.value
+                };
+                break;
+            case TASK_FIELDS.EDIT_BILLING:
+                change = {
+                    billing: action.value
+                };
+                break;
+            case TASK_FIELDS.EDIT_SIZES:
+                change = {
+                    sizes: action.value
+                };
+                break;
+            case TASK_FIELDS.EDIT_PAIRS:
+                change = {
+                    pairs: action.value
+                };
+                break;
+            default:
+                change = {};
+        }
     }
     change.errors = action.errors;
-    
+
     return Object.assign({}, state, change);
 }

@@ -57,7 +57,7 @@ class CreateTask extends Component {
                 <img src={DDD} id="dropdown-size-arrow" draggable="false" />
                 <p id="pairs-label"># Pairs</p>
                 <input id="pairs" type="text" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} required />
-                <button id="submit-tasks" >Submit</button>
+                <button id="submit-tasks">Submit</button>
             </div>
         );
     }
@@ -79,7 +79,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         onChange: (changes) => {
-            dispatch(taskActions.edit(0, changes.field, changes.value));
+            dispatch(taskActions.edit(null, changes.field, changes.value));
         },
     };
 };
