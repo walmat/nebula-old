@@ -7,6 +7,7 @@ import * as location from './actions/profiles/LocationActions';
 import * as payment from './actions/profiles/PaymentActions';
 
 export const PROFILE_FIELDS = profiles.PROFILE_FIELDS;
+export const mapProfileFieldToKey = profiles.mapProfileFieldToKey;
 export const LOCATION_FIELDS = location.LOCATION_FIELDS;
 export const PAYMENT_FIELDS = payment.PAYMENT_FIELDS;
 

@@ -19,12 +19,12 @@ export function profileReducer(state = initialProfileState, action) {
   switch (action.field) {
     case PROFILE_FIELDS.EDIT_SHIPPING:
       change = {
-        shipping: locationReducer(state.shipping, { type: action.subField, value: action.value }),
+        shipping: locationReducer(state.shipping, { type: action.subField, value: action.value, errors: action.errors }),
       };
       break;
     case PROFILE_FIELDS.EDIT_BILLING:
       change = {
-        billing: locationReducer(state.billing, { type: action.subField, value: action.value }),
+        billing: locationReducer(state.billing, { type: action.subField, value: action.value, errors: action.errors }),
       };
       break;
     case PROFILE_FIELDS.EDIT_PAYMENT:

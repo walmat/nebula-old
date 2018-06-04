@@ -7,7 +7,7 @@ const mapStateToProps = (state, ownProps) => {
   return {
     id: ownProps.id,
     disabled: ownProps.disabled,
-    errors: ownProps.errors,
+    errors: state.currentProfile.shipping.errors,
     value: state.currentProfile.shipping
   };
 };

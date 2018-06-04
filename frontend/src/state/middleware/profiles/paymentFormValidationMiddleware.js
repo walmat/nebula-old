@@ -3,7 +3,7 @@ import paymentAttributeValidators from '../../../utils/validation/paymentAttribu
 
 const paymentFormValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing the payment field of a profile...
-  if(action.type !== PROFILE_ACTIONS.EDIT || action.field !== PROFILE_FIELDS.EDIT_PAYMENT) {
+  if (action.type !== PROFILE_ACTIONS.EDIT || action.field !== PROFILE_FIELDS.EDIT_PAYMENT) {
     return next(action);
   }
 
