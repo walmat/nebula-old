@@ -1,20 +1,20 @@
 import { connect } from 'react-redux';
 
 import PaymentFields from './PaymentFields';
-import { profileActions, PROFILE_FIELDS } from '../state/Actions'
+import { profileActions, PROFILE_FIELDS } from '../state/Actions';
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state) => {
   return {
-    errors: ownProps.errors,
-    value: state.currentProfile.payment
+    errors: state.currentProfile.payment.errors,
+    value: state.currentProfile.payment,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     onChange: (changes) => {
       dispatch(profileActions.edit(0, PROFILE_FIELDS.EDIT_PAYMENT, changes.value, changes.field));
-    }
+    },
   };
 };
 

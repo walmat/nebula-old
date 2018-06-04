@@ -4,22 +4,31 @@ export const initialPaymentState = {
   email: '',
   cardNumber: '',
   exp: '',
-  cvv: ''
+  cvv: '',
+  errors: {
+    email: null,
+    cardNumber: null,
+    exp: null,
+    cvv: null,
+  }
 }
 
 export const paymentReducer = (state = initialPaymentState, action) => {
   let change = {};
+
   switch (action.type) {
     case PAYMENT_FIELDS.EMAIL:
-      change = {email: action.value}; break;
+      change = { email: action.value }; break;
     case PAYMENT_FIELDS.CARD_NUMBER:
-      change = {cardNumber: action.value}; break;
+      change = { cardNumber: action.value }; break;
     case PAYMENT_FIELDS.EXP:
-      change = {exp: action.value}; break;
+      change = { exp: action.value }; break;
     case PAYMENT_FIELDS.CVV:
-      change = {cvv: action.value}; break;
+      change = { cvv: action.value }; break;
     default:
-      change = {};
+      break;
   }
+
+  change.errors = action.errors;
   return Object.assign({}, state, change);
 }
