@@ -1,4 +1,3 @@
-const AWS = require('aws-sdk');
 const validateProfile = require('./validateProfile');
 
 const dynamodb = require('../../../db.config');
@@ -14,7 +13,7 @@ function emptyStringsToNull(profile) {
         if (!profile.billing[key]) {
             profile.billing[key] = null;
         }
-    })
+    });
     return profile;
 }
 

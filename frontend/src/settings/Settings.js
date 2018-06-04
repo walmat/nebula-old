@@ -17,9 +17,7 @@ class Settings extends Component {
     * Launch a new browser window that opens a sign-in google window
     * and then redirects to youtube.
     */
-    launchYoutube = async () => {
-
-    };
+    launchYoutube = async () => {};
 
     /*
     * Launch a sub-window with built in AI for image recognition
