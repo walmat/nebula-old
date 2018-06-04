@@ -23,7 +23,7 @@ const topLevelReducer = (state = initialState, action) => {
   const changes = {
     currentProfile: profileReducer(state.currentProfile, action),
     currentTask: taskReducer(state.currentTask, action),
-    tasks: taskListReducer
+    tasks: taskListReducer(state.tasks, action)
   };
 
   return Object.assign({}, state, changes);
