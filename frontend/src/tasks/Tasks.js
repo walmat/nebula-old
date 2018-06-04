@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ViewTask from './view-task';
+import CreateTask from './CreateTask';
 
 import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
@@ -132,6 +133,8 @@ class Tasks extends Component {
                 <h1 className="text-header" id="task-header">Tasks</h1>
                 <div className="flex-container">
                     {/*CREATE TASK*/}
+
+                    <CreateTask/>
 
                     {/*END CREATE TASK*/}
 

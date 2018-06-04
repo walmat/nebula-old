@@ -1,9 +1,13 @@
 import React, { Component } from 'react';
-import TASK_FIELDS, {taskActions} from '../state/Actions';
+import { TASK_FIELDS, taskActions } from '../state/Actions';
+import PropTypes from 'prop-types';
+
+import DDD from '../_assets/dropdown-down.svg';
+import DDU from '../_assets/dropdown-up.svg';
 import './Tasks.css';
 import {connect} from "react-redux";
 
-class createTask extends Component {
+class CreateTask extends Component {
 
     constructor(props) {
         super(props);
@@ -21,23 +25,25 @@ class createTask extends Component {
                 <p className="body-text" id="create-label">Create</p>
                 <div id="create-box" />
                 <p id="sku-label">Input SKU</p>
-                <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} required />
+                <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(taskActions.EDIT_SKU)} value={this.props.value.sku} required />
                 <p id="profiles-label">Billing Profiles</p>
-                <select id="profiles" type="text" onClick={this.toggleSVG('profiles')} onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} required />
+                <select id="profiles" type="text" onChange={this.createOnChangeHandler(taskActions.EDIT_BILLING)} value={this.props.value.billingProfile} required>
+
+                </select>
                 <div id="dropdown-profiles-box" />
                 <img src={DDD} id="dropdown-profiles-arrow" draggable="false" />
                 <p id="size-label">Sizes</p>
-                <select id="size" type="text" onClick={this.toggleSVG('size')} onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} required />
+                <select id="size" type="text" onChange={this.createOnChangeHandler(taskActions.EDIT_SIZES)} required />
                 <img src={DDD} id="dropdown-size-arrow" draggable="false" />
                 <p id="pairs-label"># Pairs</p>
-                <input id="pairs" type="text" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} required />
-                <button id="submit-tasks" onClick={this.createTask} >Submit</button>
+                <input id="pairs" type="text" placeholder="00" onChange={this.createOnChangeHandler(taskActions.EDIT_PAIRS)} required />
+                <button id="submit-tasks" >Submit</button>
             </div>
         );
     }
 }
 
-createTask.propTypes = {
+CreateTask.propTypes = {
     errors: PropTypes.object,
     onChange: PropTypes.func,
     value: PropTypes.object
@@ -58,4 +64,4 @@ const mapDispatchToProps = (dispatch) => {
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Tasks);
+export default connect(mapStateToProps, mapDispatchToProps)(CreateTask);
