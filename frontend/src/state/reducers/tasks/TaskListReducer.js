@@ -1,33 +1,15 @@
 import {TASK_FIELDS, TASK_ACTIONS} from '../../Actions';
+import {taskReducer} from "./TaskReducer";
 
 export const initialTaskListState = [];
 
 export function taskListReducer(state = initialTaskListState, action) {
     let change = {};
     if (action.type === TASK_FIELDS.EDIT && action.id !== null) {
-        switch (action.field) {
-            case TASK_FIELDS.EDIT_SKU:
-                change = {
-                    sku: action.value
-                };
-                break;
-            case TASK_FIELDS.EDIT_BILLING:
-                change = {
-                    billing: action.value
-                };
-                break;
-            case TASK_FIELDS.EDIT_SIZES:
-                change = {
-                    sizes: action.value
-                };
-                break;
-            case TASK_FIELDS.EDIT_PAIRS:
-                change = {
-                    pairs: action.value
-                };
-                break;
-            default:
-                change = {};
+        for (let i = 0; i < state.length; i++) {
+            if (state[i].id === action.id) {
+                taskReducer() //todo fin this
+            }
         }
     }
     else if (action.type === TASK_ACTIONS.ADD) {
