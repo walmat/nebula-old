@@ -40,5 +40,6 @@ export function taskReducer(state = initialTaskState, action) {
             change = {};
     }
     change.errors = action.errors;
+    
     return Object.assign({}, state, change);
 }
