@@ -19,7 +19,10 @@ export function profileListReducer(state = initialProfileListState, action) {
   switch (action.type) {
     case PROFILE_ACTIONS.ADD: {
       // perform a deep copy of given profile
-      const newProfile = JSON.parse(JSON.stringify(action.value));
+      const newProfile = JSON.parse(JSON.stringify(action.profile));
+      if (newProfile.billingMatchesShipping) {
+        newProfile.billing = newProfile.shipping;
+      }
 
       // assign new id
       let newId = uuidv4();
@@ -40,7 +43,7 @@ export function profileListReducer(state = initialProfileListState, action) {
       nextState = JSON.parse(JSON.stringify(state));
 
       // Filter out the given id
-      nextState = nextState.filter(p => p.id === action.value);
+      nextState = nextState.filter(p => p.id === action.id);
       break;
     }
     case PROFILE_ACTIONS.EDIT: {

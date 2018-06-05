@@ -46,34 +46,39 @@ class Profiles extends Component {
         // saves input data to user's profiles
         e.preventDefault();
 
-        let profile = this.props.currentProfile;
-        if (this.props.shippingMatchesBilling) {
-            profile.billing = profile.shipping;
-        }
+        console.log(this.props.currentProfile);
+        this.props.onAddNewProfile(this.props.currentProfile);
 
-        profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY; //TODO this is only temporary until we get registration key stuff implemented
+        // let profile = this.props.currentProfile;
+        // if (this.props.shippingMatchesBilling) {
+        //     profile.billing = profile.shipping;
+        // }
+
+
+        // TODO: Move this into a middleware the does this when a PROFILE_ACTION.ADD action is detected!
+        // profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY; //TODO this is only temporary until we get registration key stuff implemented
 
         /*Store the profile in the db*/
-        try {
-            let response = await fetch('http://localhost:8080/profiles',
-            {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(this.state.currentProfile)
-            });
+        // try {
+        //     let response = await fetch('http://localhost:8080/profiles',
+        //     {
+        //         method: "POST",
+        //         headers: {
+        //             'Accept': 'application/json',
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(this.state.currentProfile)
+        //     });
 
-            let result = await response.json();
-            if (!result.ok) {
-                this.setState({
-                    errors: result.errors || {}
-                });
-            }
-        } catch (err) {
-            console.log(err);
-        }
+        //     let result = await response.json();
+        //     if (!result.ok) {
+        //         this.setState({
+        //             errors: result.errors || {}
+        //         });
+        //     }
+        // } catch (err) {
+        //     console.log(err);
+        // }
     }
 
     /**
@@ -105,7 +110,6 @@ class Profiles extends Component {
     }
 
     render() {
-        const idToEdit = this.props.currentProfile.id || null;
         return (
             <form>
                 <div className="container">
@@ -164,7 +168,10 @@ const mapDispatchToProps = (dispatch) => {
         },
         onProfileNameChange: (event) => {
             dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));
-        }
+        },
+        onAddNewProfile: (newProfile) => {
+            dispatch(profileActions.add(newProfile))
+        },
     };
 };
 
