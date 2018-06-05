@@ -6,18 +6,21 @@ export const PROFILE_ACTIONS = {
   REMOVE: 'REMOVE_PROFILE',
   EDIT: 'EDIT_PROFILE',
   SELECT: 'SELECT_PROFILE',
+  LOAD: 'LOAD_PROFILE',
 };
 
 const addProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
 const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
 const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
+const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 
 export const profileActions = {
   add: addProfile,
   remove: removeProfile,
   edit: editProfile,
   select: selectProfile,
+  load: loadProfile,
 };
 
 // Field Edits

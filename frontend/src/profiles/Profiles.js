@@ -180,7 +180,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(profileActions.add(newProfile));
         },
         onLoadProfile: (profile) => {
-            dispatch(profileActions.select(profile));
+            dispatch(profileActions.load(profile));
         },
     };
 };
