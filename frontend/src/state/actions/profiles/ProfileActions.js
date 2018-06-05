@@ -1,13 +1,24 @@
 import makeActionCreator from '../ActionCreator';
 
 // Top level Actions
-export const ADD_PROFILE = 'ADD_PROFILE';
-export const REMOVE_PROFILE = 'REMOVE_PROFILE';
-export const EDIT_PROFILE = 'EDIT_PROFILE';
+export const PROFILE_ACTIONS = {
+  ADD: 'ADD_PROFILE',
+  REMOVE: 'REMOVE_PROFILE',
+  EDIT: 'EDIT_PROFILE',
+  SELECT: 'SELECT_PROFILE',
+};
 
-export const addProfile = makeActionCreator(ADD_PROFILE, 'profile');
-export const removeProfile = makeActionCreator(REMOVE_PROFILE, 'id');
-export const editProfile = makeActionCreator(EDIT_PROFILE, 'id', 'field', 'value', 'subField');
+const addProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
+const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
+const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
+const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
+
+export const profileActions = {
+  add: addProfile,
+  remove: removeProfile,
+  edit: editProfile,
+  select: selectProfile,
+};
 
 // Field Edits
 export const PROFILE_FIELDS = {
@@ -26,4 +37,4 @@ export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.EDIT_NAME]: 'name',
-}
+};

@@ -78,6 +78,14 @@ export function currentProfileReducer(state = initialProfileState, action) {
       // If adding a new profile, we should reset the current profile to default values
       return Object.assign({}, initialProfileState);
     }
+    case PROFILE_ACTIONS.SELECT: {
+      // If selecting a profile, we should return the profile that is given
+      const selectedProfile = Object.assign({}, action.profile);
+      selectedProfile.editId = selectedProfile.id;
+      selectedProfile.id = null;
+
+      return selectedProfile;
+    }
     default:
       break;
   }

@@ -22,20 +22,26 @@ class Profiles extends Component {
     constructor(props) {
         super(props);
         this.saveProfile = this.saveProfile.bind(this);
+
+        this.state = {};
     }
 
     componentDidMount = async () => {
-        /*FETCH THE PROFILES FROM THE DATABASE*/
-        let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
-        {
-            method: "GET",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        let profiles = (await result.json()).profiles;
-        this.setState({profiles});
+        /* TODO: FETCH THE PROFILES FROM THE DATABASE */
+        // THIS WILL HAPPEN IN AN ACTION VIA MIDDLEWARE 
+
+        // let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
+        // {
+        //     method: "GET",
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Content-Type': 'application/json'
+        //     }
+        // });
+        // let profiles = (await result.json()).profiles;
+        // this.setState({profiles});
+
+        this.setState({});
     }
 
     /**
@@ -46,8 +52,9 @@ class Profiles extends Component {
         // saves input data to user's profiles
         e.preventDefault();
 
-        console.log(this.props.currentProfile);
         this.props.onAddNewProfile(this.props.currentProfile);
+
+        this.setState({selectedProfile: Object.assign({}, this.props.currentProfile)});
 
         // let profile = this.props.currentProfile;
         // if (this.props.shippingMatchesBilling) {
@@ -85,17 +92,17 @@ class Profiles extends Component {
      * load the profile
      */
     loadProfile = () => {
-
+        this.props.onLoadProfile(this.state.selectedProfile);
     }
 
     onProfileChange = (event) => {
-        // const profileName = event.target.value;
-        // let profiles = this.props.profiles;
-        // let selectedProfile = profiles.find((profile) => {
-        //     return profile.profileName === profileName;
-        // });
+        const profileName = event.target.value;
+        let profiles = this.props.profiles;
+        let selectedProfile = profiles.find((profile) => {
+            return profile.profileName === profileName;
+        });
 
-        // this.setState({selectedProfile});
+        this.setState({selectedProfile});
     }
 
     buildProfileOptions = () => {
@@ -120,7 +127,7 @@ class Profiles extends Component {
                     <p className="body-text" id="load-profile-label">Load Profile</p>
                     <div id="load-profile-box" />
                     <p id="profile-name-label">Profile Name</p>
-                    <select id="profile-load" onChange={this.onProfileChange} value={this.props.currentProfile.profileName || ''}>
+                    <select id="profile-load" onChange={this.onProfileChange} value={this.state.selectedProfile || ''}>
                         <option value=""  hidden>{'Choose Profile to Load'}</option>
                         {this.buildProfileOptions()}
                     </select>
@@ -170,7 +177,10 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));
         },
         onAddNewProfile: (newProfile) => {
-            dispatch(profileActions.add(newProfile))
+            dispatch(profileActions.add(newProfile));
+        },
+        onLoadProfile: (profile) => {
+            dispatch(profileActions.select(profile));
         },
     };
 };
