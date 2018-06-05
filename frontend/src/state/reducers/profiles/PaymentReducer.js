@@ -10,8 +10,8 @@ export const initialPaymentState = {
     cardNumber: null,
     exp: null,
     cvv: null,
-  }
-}
+  },
+};
 
 export const paymentReducer = (state = initialPaymentState, action) => {
   let change = {};
@@ -31,4 +31,4 @@ export const paymentReducer = (state = initialPaymentState, action) => {
 
   change.errors = action.errors;
   return Object.assign({}, state, change);
-}
+};

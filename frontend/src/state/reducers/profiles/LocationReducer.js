@@ -47,5 +47,6 @@ export const locationReducer = (state = initialLocationState, action) => {
     default:
       change = {};
   }
+  change.errors = action.errors;
   return Object.assign({}, state, change);
 };

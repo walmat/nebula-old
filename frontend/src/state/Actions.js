@@ -8,20 +8,13 @@ import * as payment from './actions/profiles/PaymentActions';
 import * as task from './actions/tasks/TaskActions';
 
 export const PROFILE_FIELDS = profiles.PROFILE_FIELDS;
+export const PROFILE_ACTIONS = profiles.PROFILE_ACTIONS;
+export const profileActions = profiles.profileActions;
+export const mapProfileFieldToKey = profiles.mapProfileFieldToKey;
+
 export const LOCATION_FIELDS = location.LOCATION_FIELDS;
 export const PAYMENT_FIELDS = payment.PAYMENT_FIELDS;
 export const TASK_FIELDS = task.TASK_FIELDS;
-
-export const PROFILE_ACTIONS = {
-  ADD: profiles.ADD_PROFILE,
-  REMOVE: profiles.REMOVE_PROFILE,
-  EDIT: profiles.EDIT_PROFILE
-};
-export const profileActions = {
-  add: profiles.addProfile,
-  remove: profiles.removeProfile,
-  edit: profiles.editProfile
-};
 
 export const TASK_ACTIONS = {
   ADD: task.ADD_TASK,

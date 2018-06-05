@@ -90,6 +90,7 @@ class Tasks extends Component {
         // core.run(this.state.tasks[index]);
         //TODO setup threading
         core.run(config);
+
     };
 
     stopTask = async () => {

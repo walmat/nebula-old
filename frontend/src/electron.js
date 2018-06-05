@@ -10,7 +10,7 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
 
-let auth = false; //todo change later
+let auth = true; //todo change later
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -115,7 +115,7 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (mainWindow === null && auth) {
+    if (mainWindow === null && auth === true) {
         startMainWindow();
     } else {
         startAuthWindow();
