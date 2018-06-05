@@ -3,20 +3,22 @@
  * files, this is just a shared import point.
  */
 // import { combineReducers } from 'redux';
-import { profileReducer, initialProfileState } from './reducers/profiles/ProfileReducer';
+import { currentProfileReducer, initialProfileState } from './reducers/profiles/ProfileReducer';
+import { profileListReducer, initialProfileListState } from './reducers/profiles/ProfileListReducer';
 
 /**
  * Application State
  */
 export const initialState = {
-  profiles: [],
+  profiles: initialProfileListState,
   selectedProfile: initialProfileState,
   currentProfile: initialProfileState,
 };
 
 const topLevelReducer = (state = initialState, action) => {
   const changes = {
-    currentProfile: profileReducer(state.currentProfile, action),
+    profiles: profileListReducer(state.profiles, action),
+    currentProfile: currentProfileReducer(state.currentProfile, action),
   };
 
   return Object.assign({}, state, changes);

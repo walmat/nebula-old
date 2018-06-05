@@ -8,21 +8,26 @@ const mapStateToProps = (state, ownProps) => {
     id: ownProps.id,
     disabled: ownProps.disabled,
     errors: state.currentProfile.billing.errors,
-    value: state.currentProfile.billing
+    value: state.currentProfile.billing,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     onChange: (changes) => {
-      dispatch(profileActions.edit(0, PROFILE_FIELDS.EDIT_BILLING, changes.value, changes.field));
-    }
+      dispatch(profileActions.edit(
+        ownProps.idToEdit,
+        PROFILE_FIELDS.EDIT_BILLING,
+        changes.value,
+        changes.field,
+      ));
+    },
   };
 };
 
 const BillingEntry = connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(LocationFields);
 
 export default BillingEntry;

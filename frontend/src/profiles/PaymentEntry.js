@@ -10,10 +10,15 @@ const mapStateToProps = (state) => {
   };
 };
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     onChange: (changes) => {
-      dispatch(profileActions.edit(0, PROFILE_FIELDS.EDIT_PAYMENT, changes.value, changes.field));
+      dispatch(profileActions.edit(
+        ownProps.idToEdit,
+        PROFILE_FIELDS.EDIT_PAYMENT,
+        changes.value,
+        changes.field,
+      ));
     },
   };
 };

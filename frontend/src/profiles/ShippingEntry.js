@@ -8,21 +8,26 @@ const mapStateToProps = (state, ownProps) => {
     id: ownProps.id,
     disabled: ownProps.disabled,
     errors: state.currentProfile.shipping.errors,
-    value: state.currentProfile.shipping
+    value: state.currentProfile.shipping,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     onChange: (changes) => {
-      dispatch(profileActions.edit(0, PROFILE_FIELDS.EDIT_SHIPPING, changes.value, changes.field));
-    }
+      dispatch(profileActions.edit(
+        ownProps.idToEdit,
+        PROFILE_FIELDS.EDIT_SHIPPING,
+        changes.value,
+        changes.field,
+      ));
+    },
   };
 };
 
 const ShippingEntry = connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(LocationFields);
 
 export default ShippingEntry;

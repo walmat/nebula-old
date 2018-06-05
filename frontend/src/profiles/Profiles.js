@@ -81,38 +81,24 @@ class Profiles extends Component {
      * load the profile
      */
     loadProfile = () => {
-        let selectedProfile = this.props.selectedProfile;
-        let currentProfile = Object.assign({}, selectedProfile);
-        this.setState({currentProfile});
+
     }
 
     onProfileChange = (event) => {
-        const profileName = event.target.value;
-        let profiles = this.props.profiles;
-        let selectedProfile = profiles.find((profile) => {
-            return profile.profileName === profileName;
-        });
+        // const profileName = event.target.value;
+        // let profiles = this.props.profiles;
+        // let selectedProfile = profiles.find((profile) => {
+        //     return profile.profileName === profileName;
+        // });
 
-        this.setState({selectedProfile});
-    }
-
-    buildRelativeErrors = (basePath) => {
-        const errors = this.props.errors;
-        let relativeErrors = {};
-        if(errors) {
-            Object.keys(errors).forEach((path) => {
-                if (path.startsWith(basePath)) {
-                    relativeErrors[path.replace(basePath, '')] = errors[path];
-                }
-            });
-        }
-        return relativeErrors;
+        // this.setState({selectedProfile});
     }
 
     buildProfileOptions = () => {
         let profiles = this.props.profiles;
+        console.log(profiles);
         return profiles && profiles.map((profile) => {
-            return <option key={profile.profileName}>{profile.profileName}</option>;
+            return <option key={profile.id}>{profile.profileName}</option>;
         });
     }
 
@@ -121,6 +107,7 @@ class Profiles extends Component {
     }
 
     render() {
+        const idToEdit = this.props.currentProfile.id || null;
         return (
             <form>
                 <div className="container">
@@ -131,7 +118,7 @@ class Profiles extends Component {
                     <p className="body-text" id="load-profile-label">Load Profile</p>
                     <div id="load-profile-box" />
                     <p id="profile-name-label">Profile Name</p>
-                    <select id="profile-load" onChange={this.onProfileChange} value={this.props.selectedProfile.profileName || ''}>
+                    <select id="profile-load" onChange={this.onProfileChange} value={this.props.currentProfile.profileName || ''}>
                         <option value=""  hidden>{'Choose Profile to Load'}</option>
                         {this.buildProfileOptions()}
                     </select>
@@ -141,7 +128,7 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
 				                <p className="body-text" id="shipping-label">Shipping</p>
-                        <ShippingEntry id={'shipping'} errors={this.buildRelativeErrors('/shipping')} disabled={false} />
+                        <ShippingEntry id={'shipping'} idToEdit={idToEdit} disabled={false} />
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
@@ -150,14 +137,14 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <BillingEntry id={'billing'} errors={this.buildRelativeErrors('/billing')} disabled={this.props.currentProfile.billingMatchesShipping} />
+                        <BillingEntry id={'billing'} idToEdit={idToEdit} disabled={this.props.currentProfile.billingMatchesShipping} />
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentEntry />
+                    <PaymentEntry idToEdit={idToEdit} />
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors['/profileName'])} placeholder="Profile Name"/>
+                    <input id="profile-save" required onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors[PROFILE_FIELDS.EDIT_NAME])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                 </div>
             </form>
@@ -166,16 +153,19 @@ class Profiles extends Component {
 }
 
 const mapStateToProps = (state) => {
-  return state
+  return {
+      profiles: state.profiles,
+      currentProfile: state.currentProfile,
+  }
 };
 
 const mapDispatchToProps = (dispatch) => {
     return {
         onClickBillingMatchesShipping: () => {
-            dispatch(profileActions.edit(0, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
+            dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
         },
         onProfileNameChange: (event) => {
-            dispatch(profileActions.edit(0, PROFILE_FIELDS.EDIT_NAME, event.target.value));
+            dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));
         }
     };
 };

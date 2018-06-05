@@ -3,7 +3,7 @@ import { locationReducer, initialLocationState } from './LocationReducer';
 import { paymentReducer, initialPaymentState } from './PaymentReducer';
 
 export const initialProfileState = {
-  id: 0,
+  id: null,
   profileName: '',
   errors: {
     profileName: null,
@@ -19,17 +19,26 @@ export function profileReducer(state = initialProfileState, action) {
   switch (action.field) {
     case PROFILE_FIELDS.EDIT_SHIPPING:
       change = {
-        shipping: locationReducer(state.shipping, { type: action.subField, value: action.value, errors: action.errors }),
+        shipping: locationReducer(
+          state.shipping,
+          { type: action.subField, value: action.value, errors: action.errors },
+        ),
       };
       break;
     case PROFILE_FIELDS.EDIT_BILLING:
       change = {
-        billing: locationReducer(state.billing, { type: action.subField, value: action.value, errors: action.errors }),
+        billing: locationReducer(
+          state.billing,
+          { type: action.subField, value: action.value, errors: action.errors },
+        ),
       };
       break;
     case PROFILE_FIELDS.EDIT_PAYMENT:
       change = {
-        payment: paymentReducer(state.payment, { type: action.subField, value: action.value, errors: action.errors }),
+        payment: paymentReducer(
+          state.payment,
+          { type: action.subField, value: action.value, errors: action.errors },
+        ),
       };
       break;
     case PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING:
@@ -51,4 +60,12 @@ export function profileReducer(state = initialProfileState, action) {
       change = {};
   }
   return Object.assign({}, state, change);
+}
+
+export function currentProfileReducer(state = initialProfileState, action) {
+  // only modify the current profile if the action id is null
+  if (action.id == null) {
+    return profileReducer(state, action);
+  }
+  return Object.assign({}, state);
 }
