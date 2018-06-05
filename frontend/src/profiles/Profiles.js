@@ -135,7 +135,7 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <LocationFields id={'billing'} profileToEdit={this.props.currentProfile} fieldToEdit={PROFILE_FIELDS.EDIT_BILLING} disabled={this.props.currentProfile.billingMatchesShipping} />
+                        <LocationFields id={'billing'} profileToEdit={this.props.currentProfile} fieldToEdit={this.props.currentProfile.billingMatchesShipping ? PROFILE_FIELDS.EDIT_SHIPPING : PROFILE_FIELDS.EDIT_BILLING} disabled={this.props.currentProfile.billingMatchesShipping} />
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
