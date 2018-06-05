@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PaymentEntry from './PaymentEntry';
-import BillingEntry from './BillingEntry';
-import ShippingEntry from './ShippingEntry';
+import LocationFields from './LocationFields';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
@@ -96,7 +95,6 @@ class Profiles extends Component {
 
     buildProfileOptions = () => {
         let profiles = this.props.profiles;
-        console.log(profiles);
         return profiles && profiles.map((profile) => {
             return <option key={profile.id}>{profile.profileName}</option>;
         });
@@ -128,7 +126,7 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
 				                <p className="body-text" id="shipping-label">Shipping</p>
-                        <ShippingEntry id={'shipping'} idToEdit={idToEdit} disabled={false} />
+                        <LocationFields id={'shipping'} profileToEdit={this.props.currentProfile} fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING} disabled={false} />
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
@@ -137,7 +135,7 @@ class Profiles extends Component {
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <BillingEntry id={'billing'} idToEdit={idToEdit} disabled={this.props.currentProfile.billingMatchesShipping} />
+                        <LocationFields id={'billing'} profileToEdit={this.props.currentProfile} fieldToEdit={PROFILE_FIELDS.EDIT_BILLING} disabled={this.props.currentProfile.billingMatchesShipping} />
                     </div>
 
                     {/*PAYMENT INFORMATION*/}

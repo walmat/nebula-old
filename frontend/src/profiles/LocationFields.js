@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import getAllCountries from '../getAllCountries';
 import getAllStates from '../getAllStates';
-import { LOCATION_FIELDS } from '../state/Actions';
+import { LOCATION_FIELDS, PROFILE_FIELDS, profileActions, mapProfileFieldToKey } from '../state/Actions';
 import './Profiles.css';
 
 const errorStyle = {
@@ -26,14 +27,14 @@ class LocationFields extends Component {
     }
   }
 
-  buildStyle = (disabled, errors) => {
+  buildStyle(disabled, errors) {
       let style = {};
       style.backgroundColor = disabled ? '#e5e5e5' : '#F5F5F5';
       style = Object.assign(style, validationStatus(errors));
       return style;
   }
 
-  buildCountryOptions = () => {
+  buildCountryOptions() {
       let countries = getAllCountries();
       return countries.map((country) => {
           return <option key={country.name} value={country.name}>{country.name}</option>
@@ -83,4 +84,29 @@ LocationFields.propTypes = {
     value: PropTypes.object
 };
 
-export default LocationFields;
+const mapStateToProps = (state, ownProps) => {
+    return {
+        id: ownProps.id,
+        disabled: ownProps.disabled,
+        errors: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]].errors,
+        value: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]],
+    };
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+    return {
+        onChange: (changes) => {
+            dispatch(profileActions.edit(
+                ownProps.profileToEdit.id,
+                ownProps.fieldToEdit,
+                changes.value,
+                changes.field,
+            ));
+        },
+    };
+};
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(LocationFields);
