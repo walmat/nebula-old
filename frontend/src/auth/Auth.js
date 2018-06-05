@@ -44,6 +44,9 @@ class Auth extends Component {
 
 			let userInfo = await response.json();
 			console.log(userInfo);
+
+			//check the discord uid against the server and get the registration key
+
 		} catch (err) {
 			console.log(err);
 			this.setState({error: true});
