@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ViewTask from './view-task';
+import CreateTask from './CreateTask';
 
 import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
@@ -135,20 +136,9 @@ class Tasks extends Component {
                 <h1 className="text-header" id="task-header">Tasks</h1>
                 <div className="flex-container">
                     {/*CREATE TASK*/}
-                        <p className="body-text" id="create-label">Create</p>
-                        <div id="create-box" />
-                        <p id="sku-label">Input SKU</p>
-                        <input id="sku" type="text" placeholder="SKU 000000" required />
-                        <p id="profiles-label">Billing Profiles</p>
-                        <select id="profiles" type="text" onClick={this.toggleSVG('profiles')} required />
-                        <div id="dropdown-profiles-box" />
-                        <img src={DDD} id="dropdown-profiles-arrow" draggable="false" />
-                        <p id="size-label">Sizes</p>
-                        <select id="size" type="text" onClick={this.toggleSVG('size')} required />
-                        <img src={DDD} id="dropdown-size-arrow" draggable="false" />
-                        <p id="pairs-label"># Pairs</p>
-                        <input id="pairs" type="text" placeholder="00" required />
-                        <button id="submit-tasks" onClick={this.createTask} >Submit</button>
+
+                    <CreateTask/>
+
                     {/*END CREATE TASK*/}
 
                     {/*TASK LOG*/}

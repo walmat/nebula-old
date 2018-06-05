@@ -1,15 +1,9 @@
-// INIT PROXIES - NEED TO LOAD PROXIES FROM DB
-var proxies = [];
-let index = 0;
-
 const { pay } = require('./classes/pay');
 const { findItem, selectStyle } = require('./classes/findItem');
 
-function run(config) {
+let supportedSites = []; //pull in the list of supported sites
 
-    if (index >= proxies.length) {
-        index = 0;
-    }
+function run(config) {
 
     findItem(config, proxies[index], function(err, delay, res) {
 
