@@ -1,29 +1,75 @@
+//{
+//  "base_url": "http://kith.com/sitemap_products_1.xml",
+//  "pos_keywords": [
+//    "Conv",
+//    "Off"
+//  ],
+//  "neg_keywords": [
+//  ],
+//  "sizeStyle1": null,
+//  "sizeStyle2": null,
+//  "ccn": "0000 0000 0000 0000",
+//  "nameOnCard": "Matthew Wall",
+//  "month": 7,
+//  "year": 22,
+//  "ccv": "484",
+//  "firstName": "Matthew",
+//  "lastName": "Wall",
+//  "address": "1206 S 4th St. Apt 306",
+//  "city": "Ames",
+//  "state": "IA",
+//  "zipCode": "50010",
+//  "phoneNumber": "5157206516",
+//  "email": "matthew.wallt@gmail.com",
+//  "shipping_pole_timeout": 2500,
+//  "paypal": false,
+//  "error_delay": 60000,
+//  "monitor_delay": 1000,
+//  "show_stock": true
+//}
+
 {
-  "base_url": "http://kith.com/sitemap_products_1.xml",
-  "pos_keywords": [
-    "Conv",
-    "Off"
-  ],
-  "neg_keywords": [
-  ],
-  "sizeStyle1": null,
-  "sizeStyle2": null,
-  "ccn": "0000 0000 0000 0000",
-  "nameOnCard": "Matthew Wall",
-  "month": 7,
-  "year": 22,
-  "ccv": "484",
-  "firstName": "Matthew",
-  "lastName": "Wall",
-  "address": "1206 S 4th St. Apt 306",
-  "city": "Ames",
-  "state": "IA",
-  "zipCode": "50010",
-  "phoneNumber": "5157206516",
-  "email": "matthew.wallt@gmail.com",
-  "shipping_pole_timeout": 2500,
-  "paypal": false,
-  "error_delay": 60000,
-  "monitor_delay": 1000,
-  "show_stock": true
+  "sku": "AC7033",
+  "profiles": {
+    "1": {
+      "billing": {
+        "firstName": "",
+        "lastName": "",
+        "address1": "",
+        "address2": "",
+        "city": "",
+        "state": "",
+        "zipCode": "",
+        "country": "",
+        "phone": ""
+      },
+      "shipping": {
+        "firstName": "",
+        "lastName": "",
+        "address1": "",
+        "address2": "",
+        "city": "",
+        "state": "",
+        "zipCode": "",
+        "country": "",
+        "phone": ""
+      },
+      "payment": {
+        "email": "",
+        "cardHolder": "", //firstname + lastname
+        "cardNumber": "",
+        "month": "",
+        "year": "",
+        "cvv": ""
+      }
+    }
+  },
+  "sizes": {
+    "1": 5.5,
+    "2": 7,
+    "3": 9
+  },
+  "pairs": 1,
+  "errorDelay": 6000,
+  "monitorDelay": 1000
 }
