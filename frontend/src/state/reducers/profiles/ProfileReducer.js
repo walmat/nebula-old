@@ -92,3 +92,16 @@ export function currentProfileReducer(state = initialProfileState, action) {
 
   return Object.assign({}, state);
 }
+
+export function selectedProfileReducer(state = initialProfileState, action) {
+  switch (action.type) {
+    case PROFILE_ACTIONS.SELECT: {
+      // Set the next state to the selected profile
+      return Object.assign({}, action.profile);
+    }
+    default:
+      break;
+  }
+
+  return Object.assign({}, state);
+}

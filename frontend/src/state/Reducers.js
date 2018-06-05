@@ -3,7 +3,7 @@
  * files, this is just a shared import point.
  */
 // import { combineReducers } from 'redux';
-import { currentProfileReducer, initialProfileState } from './reducers/profiles/ProfileReducer';
+import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/ProfileReducer';
 import { profileListReducer, initialProfileListState } from './reducers/profiles/ProfileListReducer';
 
 /**
@@ -19,6 +19,7 @@ const topLevelReducer = (state = initialState, action) => {
   const changes = {
     profiles: profileListReducer(state.profiles, action),
     currentProfile: currentProfileReducer(state.currentProfile, action),
+    selectedProfile: selectedProfileReducer(state.selectedProfile, action),
   };
 
   return Object.assign({}, state, changes);

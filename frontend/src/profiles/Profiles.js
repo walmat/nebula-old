@@ -40,8 +40,6 @@ class Profiles extends Component {
         // });
         // let profiles = (await result.json()).profiles;
         // this.setState({profiles});
-
-        this.setState({});
     }
 
     /**
@@ -92,7 +90,7 @@ class Profiles extends Component {
      * load the profile
      */
     loadProfile = () => {
-        this.props.onLoadProfile(this.state.selectedProfile);
+        this.props.onLoadProfile(this.props.selectedProfile);
     }
 
     onProfileChange = (event) => {
@@ -102,7 +100,7 @@ class Profiles extends Component {
             return profile.profileName === profileName;
         });
 
-        this.setState({selectedProfile});
+        this.props.onSelectProfile(selectedProfile);
     }
 
     buildProfileOptions = () => {
@@ -127,7 +125,7 @@ class Profiles extends Component {
                     <p className="body-text" id="load-profile-label">Load Profile</p>
                     <div id="load-profile-box" />
                     <p id="profile-name-label">Profile Name</p>
-                    <select id="profile-load" onChange={this.onProfileChange} value={this.state.selectedProfile || ''}>
+                    <select id="profile-load" onChange={this.onProfileChange} value={this.props.selectedProfile.profileName || ''}>
                         <option value=""  hidden>{'Choose Profile to Load'}</option>
                         {this.buildProfileOptions()}
                     </select>
@@ -165,6 +163,7 @@ const mapStateToProps = (state) => {
   return {
       profiles: state.profiles,
       currentProfile: state.currentProfile,
+      selectedProfile: state.selectedProfile,
   }
 };
 
@@ -181,6 +180,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         onLoadProfile: (profile) => {
             dispatch(profileActions.load(profile));
+        },
+        onSelectProfile: (profile) => {
+            dispatch(profileActions.select(profile));
         },
     };
 };

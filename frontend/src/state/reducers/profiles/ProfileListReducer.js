@@ -7,9 +7,9 @@ import { profileReducer } from './ProfileReducer';
 import { initialProfileState } from './ProfileReducer';
 
 export const initialProfileListState = [
-  Object.assign({}, initialProfileState, {id: 0}),
-  Object.assign({}, initialProfileState, {id: 1}),
-  Object.assign({}, initialProfileState, {id: 2}),
+  Object.assign({}, initialProfileState, {id: 0, profileName: 'test1'}),
+  Object.assign({}, initialProfileState, {id: 1, profileName: 'test2'}),
+  Object.assign({}, initialProfileState, {id: 2, profileName: 'test3'}),
 ];
 
 export function profileListReducer(state = initialProfileListState, action) {
