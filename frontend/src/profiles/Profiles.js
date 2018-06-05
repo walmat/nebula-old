@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PaymentEntry from './PaymentEntry';
+import PaymentFields from './PaymentFields';
 import LocationFields from './LocationFields';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
@@ -139,7 +139,7 @@ class Profiles extends Component {
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentEntry idToEdit={idToEdit} />
+                    <PaymentFields profileToEdit={this.props.currentProfile} />
 
                     {/*SAVE PROFILE*/}
                     <input id="profile-save" required onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors[PROFILE_FIELDS.EDIT_NAME])} placeholder="Profile Name"/>
