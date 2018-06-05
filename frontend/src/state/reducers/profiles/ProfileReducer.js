@@ -78,6 +78,10 @@ export function currentProfileReducer(state = initialProfileState, action) {
       // If adding a new profile, we should reset the current profile to default values
       return Object.assign({}, initialProfileState);
     }
+    case PROFILE_ACTIONS.UPDATE: {
+      // If updating an existing profile, we should reset the current profile to default values
+      return Object.assign({}, initialProfileState);
+    }
     case PROFILE_ACTIONS.LOAD: {
       // If selecting a profile, we should return the profile that is given
       const loadedProfile = Object.assign({}, action.profile);

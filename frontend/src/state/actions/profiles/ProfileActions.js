@@ -7,6 +7,7 @@ export const PROFILE_ACTIONS = {
   EDIT: 'EDIT_PROFILE',
   SELECT: 'SELECT_PROFILE',
   LOAD: 'LOAD_PROFILE',
+  UPDATE: 'UPDATE_PROFILE',
 };
 
 const addProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
@@ -14,6 +15,7 @@ const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
 const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
 const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
+const updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE, 'id', 'profile');
 
 export const profileActions = {
   add: addProfile,
@@ -21,6 +23,7 @@ export const profileActions = {
   edit: editProfile,
   select: selectProfile,
   load: loadProfile,
+  update: updateProfile,
 };
 
 // Field Edits

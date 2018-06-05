@@ -64,6 +64,24 @@ export function profileListReducer(state = initialProfileListState, action) {
       nextState[idx] = profileReducer(found, action);
       break;
     }
+    case PROFILE_ACTIONS.UPDATE: {
+      // check if id is given (we only change the state on a non-null id)
+      if (action.id == null) {
+        break;
+      }
+
+      // find the element with the given id
+      const found = nextState.find((p => p.id === action.id));
+      if (found === undefined) {
+        break;
+      }
+      // find the index of the old object
+      const idx = nextState.indexOf(found);
+
+      // Update the profile value with the one that was given to us
+      nextState[idx] = Object.assign({}, action.profile, { id: action.id });
+      break;
+    }
     default:
       break;
   }

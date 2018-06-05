@@ -22,8 +22,6 @@ class Profiles extends Component {
     constructor(props) {
         super(props);
         this.saveProfile = this.saveProfile.bind(this);
-
-        this.state = {};
     }
 
     componentDidMount = async () => {
@@ -50,9 +48,20 @@ class Profiles extends Component {
         // saves input data to user's profiles
         e.preventDefault();
 
-        this.props.onAddNewProfile(this.props.currentProfile);
-
-        this.setState({selectedProfile: Object.assign({}, this.props.currentProfile)});
+        // Check if current profile has an editId associated with it
+        if (this.props.currentProfile.editId !== undefined) {
+            // make sure the profile id exists in profiles before call in the load
+            if (this.props.profiles.some(p => p.id === this.props.currentProfile.editId)) {
+                // The current profile has the same id as a profile in the profiles list, update that profile
+                this.props.onUpdateProfile(this.props.currentProfile);
+            } else {
+                // The current profile has an edit id, but it doesn't match any on the profiles list, add this as a new profile.
+                this.props.onAddNewProfile(this.props.currentProfile);
+            }
+        } else {
+            // No edit id tag exists, add this as a new profile.
+            this.props.onAddNewProfile(this.props.currentProfile);
+        }
 
         // let profile = this.props.currentProfile;
         // if (this.props.shippingMatchesBilling) {
@@ -183,6 +192,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         onSelectProfile: (profile) => {
             dispatch(profileActions.select(profile));
+        },
+        onUpdateProfile: (profile) => {
+            dispatch(profileActions.update(profile.editId, profile));
         },
     };
 };
