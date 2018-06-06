@@ -5,7 +5,7 @@ import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 
 import { connect } from 'react-redux';
-import { profileActions, PROFILE_FIELDS } from '../state/Actions';
+import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/Actions';
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
@@ -160,7 +160,7 @@ class Profiles extends Component {
                     <PaymentFields profileToEdit={this.props.currentProfile} />
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" required onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors[PROFILE_FIELDS.EDIT_NAME])} placeholder="Profile Name"/>
+                    <input id="profile-save" required onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
                 </div>
             </form>

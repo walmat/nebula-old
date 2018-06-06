@@ -45,16 +45,19 @@ export function profileReducer(state = initialProfileState, action) {
       case PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING:
         change = {
           billingMatchesShipping: !state.billingMatchesShipping,
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       case PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING:
         change = {
           billingMatchesShipping: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       case PROFILE_FIELDS.EDIT_NAME:
         change = {
           profileName: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       default:

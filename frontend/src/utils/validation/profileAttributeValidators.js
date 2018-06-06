@@ -5,7 +5,7 @@ import paymentAttributeValidators from './paymentAttributeValidators';
 
 function validateName(name) {
     // TODO: Check if we want to limit this to numbers and letters only...
-    return true;
+    return name && name !== '';
 }
 
 function validateBillingMatchesShipping(billingMatchesShipping) {
