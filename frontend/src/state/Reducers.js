@@ -3,15 +3,16 @@
  * files, this is just a shared import point.
  */
 // import { combineReducers } from 'redux';
-import { profileReducer, initialProfileState } from './reducers/profiles/ProfileReducer';
 import { taskReducer, initialTaskState } from "./reducers/tasks/TaskReducer";
 import { taskListReducer, initialTaskListState } from './reducers/tasks/TaskListReducer';
+import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/ProfileReducer';
+import { profileListReducer, initialProfileListState } from './reducers/profiles/ProfileListReducer';
 
 /**
  * Application State
  */
 export const initialState = {
-  profiles: [],
+  profiles: initialProfileListState,
   selectedProfile: initialProfileState,
   currentProfile: initialProfileState,
   tasks: [],
@@ -21,9 +22,11 @@ export const initialState = {
 
 const topLevelReducer = (state = initialState, action) => {
   const changes = {
-    currentProfile: profileReducer(state.currentProfile, action),
     currentTask: taskReducer(state.currentTask, action),
-    tasks: taskListReducer(state.tasks, action)
+    tasks: taskListReducer(state.tasks, action),
+    profiles: profileListReducer(state.profiles, action),
+    currentProfile: currentProfileReducer(state.currentProfile, action),
+    selectedProfile: selectedProfileReducer(state.selectedProfile, action),
   };
 
   return Object.assign({}, state, changes);
