@@ -51,17 +51,18 @@ async function createUser(res, registrationKey, discordId) {
 	// verify registration key is valid and is not being used
 	const savedRegistationKey = await getRegistationKey(registrationKey);
 	if (!savedRegistationKey) {
-		return res.send(404).json({
+		return res.status(404).json({
 			error: 'Invalid registration key!'
 		});
 	}
 
 	if (savedRegistationKey.discordId) {
-		return res.send(404).json({
+		return res.status(404).json({
 			error: 'Registration key in use!'
 		});
 	}
 
+	// update key with the associated discord id and add the new user
 	await updateKeyWithDiscordUser(registrationKey, discordId);
 	await addUser(registrationKey, discordId);
 
@@ -82,7 +83,7 @@ module.exports = function(app) {
 					error: 'Missing registration key or discordId!'
 				});
 			} else {
-				return await createUser(res, userData.registrationKey, userData.discordId);
+				await createUser(res, userData.registrationKey, userData.discordId);
 			}
 		} catch (err) {
 			console.log(err);
