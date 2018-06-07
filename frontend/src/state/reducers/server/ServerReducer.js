@@ -1,16 +1,27 @@
 import { SERVER_FIELDS, SERVER_ACTIONS } from '../../Actions';
 
 export const initialServerState = {
-    id: null,
-    selectedServer: '',
-    serverName: '',
-    serverSize: '',
-    serverLocation: '',
+    AWSCredentials: {
+        AWSUsername: '',
+        AWSPassword: ''
+    },
+    proxies: {
+        numProxies: 0,
+        proxy: {
+            id: null,
+            ip: '',
+            port: '',
+            username: '',
+            password: ''
+        }
+    },
+    server: {
+        name: '',
+        size: '',
+        location: ''
+    },
     errors: {
-        serverName: null,
-        serverSize: null,
-        serverLocation: null,
-        selectedServer: null
+        //todo - fill these out
     }
 };
 
@@ -20,7 +31,7 @@ export function serverReducer(state = initialServerState, action) {
         switch (action.field) {
             case SERVER_FIELDS.EDIT_SERVER_CHOICE:
                 change = {
-                    serverName: action.value
+                    server: action.value
                 };
                 break;
             case SERVER_FIELDS.EDIT_SERVER_SIZE:
@@ -31,6 +42,21 @@ export function serverReducer(state = initialServerState, action) {
             case SERVER_FIELDS.EDIT_SERVER_LOCATION:
                 change = {
                     serverLocation: action.value
+                };
+                break;
+            case SERVER_FIELDS.EDIT_PROXY_NUMBER:
+                change = {
+                    numProxies: action.value
+                };
+                break;
+            case SERVER_FIELDS.EDIT_PROXY_USERNAME:
+                change = {
+                    proxyUsername: action.value
+                };
+                break;
+            case SERVER_FIELDS.EDIT_PROXY_PASSWORD:
+                change = {
+                    proxyPassword: action.value
                 };
                 break;
             default:

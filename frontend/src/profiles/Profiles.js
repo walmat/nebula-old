@@ -21,7 +21,6 @@ class Profiles extends Component {
 
     constructor(props) {
         super(props);
-        this.saveProfile = this.saveProfile.bind(this);
     }
 
     componentDidMount = async () => {

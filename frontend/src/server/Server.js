@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {SERVER_FIELDS, serverActions} from "../state/Actions";
+import {profileActions, SERVER_FIELDS, serverActions} from "../state/Actions";
 import {connect} from "react-redux";
 
 import '../App.css';
@@ -54,7 +54,7 @@ class Server extends Component {
     };
 
     createServer = () => {
-
+        this.props.onSaveServerOptions(this.props.selectedServer);
     };
 
     render() {
@@ -74,11 +74,11 @@ class Server extends Component {
                 <p className="body-text" id="proxies-label">Proxies</p>
                 <div id="proxies-box" />
                 <p id="number-label">Number</p>
-                <input id="number" type="text" placeholder="00" required />
+                <input id="number" type="text" placeholder="00" onChange={this.props.onNumProxiesChange} required />
                 <p id="username-proxies-label">Username</p>
-                <input id="username-proxies" type="text" placeholder="" required />
+                <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.props.onProxyUsernameChange} required />
                 <p id="password-proxies-label">Password</p>
-                <input id="password-proxies" type="text" placeholder="" required />
+                <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.props.onProxyPasswordChange} required />
                 <button id="destroy-proxies" onClick={this.destroyProxies} >Destroy All</button>
                 <button id="generate-proxies" onClick={this.generateProxies} >Generate</button>
 
@@ -135,7 +135,16 @@ const mapDispatchToProps = (dispatch) => {
         },
         onDestroyServer: (server) => {
             dispatch(serverActions.remove(server));
-        }
+        },
+        onNumProxiesChange: (event) => {
+            dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_NUMBER, event.target.value));
+        },
+        onProxyUsernameChange: (event) => {
+            dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_USERNAME, event.target.value));
+        },
+        onProxyPasswordChange: (event) => {
+            dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_PASSWORD, event.target.value));
+        },
     };
 };
 
