@@ -34,9 +34,9 @@ let tasks = require('./routes/tasks');
 let profiles = require('./routes/profiles/profiles');
 let server = require('./routes/server');
 let settings = require('./routes/settings');
-let authorization = require('./routes/authorization');
+let getUser = require('./routes/user/getUser');
 let createUser = require('./routes/user/createUser');
-tasks(app); profiles(app); server(app); settings(app); createUser(app);
+tasks(app); profiles(app); server(app); settings(app); createUser(app); getUser(app);
 
 app.listen(port);
 

@@ -29,8 +29,8 @@ var profiles = {
 var users = {
     TableName : "Users",
     KeySchema: [
-        { AttributeName: "registrationKey", KeyType: "HASH"},  //Partition key
-        { AttributeName: "discordId", KeyType: "RANGE"},  //Sort key
+        { AttributeName: "discordId", KeyType: "HASH"},  //Partition key
+        { AttributeName: "registrationKey", KeyType: "RANGE"},  //Sort key
     ],
     AttributeDefinitions: [
         { AttributeName: "registrationKey", AttributeType: "S" },
