@@ -220,6 +220,15 @@
     height: 12px;
 }
 
+#type-server-button {
+    position: absolute;
+    top:154px;
+    left:925px;
+    width: 21px;
+    height: 21px;
+    cursor: pointer;
+}
+
 #type-server {
     position: absolute;
     top:150px;
@@ -240,6 +249,15 @@
     height: 12px;
 }
 
+#size-server-button {
+    position: absolute;
+    top:209px;
+    left:925px;
+    width: 21px;
+    height: 21px;
+    cursor: pointer;
+}
+
 #size-server {
     position: absolute;
     top:205px;
@@ -258,6 +276,15 @@
     left: 718px;
     width: 40px;
     height: 12px;
+}
+
+#location-server-button {
+    position: absolute;
+    top:264px;
+    left:925px;
+    width: 21px;
+    height: 21px;
+    cursor: pointer;
 }
 
 #location-server {

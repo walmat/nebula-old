@@ -12,6 +12,7 @@
     width: 351px;
     height: 286px;
     border: 1px solid #F0405E;
+    padding-bottom: 3px;
     border-radius: 3px;
 }
 
@@ -35,7 +36,7 @@
 
 #proxy-button-youtube {
     position: absolute;
-    top: 500px;
+    top: 450px;
     left: 140px;
     width: 83px;
     height: 29px;
@@ -51,7 +52,7 @@
 
 #proxy-button-captcha {
     position: absolute;
-    top: 500px;
+    top: 450px;
     left: 246px;
     width: 111px;
     height: 29px;
@@ -67,7 +68,7 @@
 
 #proxy-button-close-session {
     position: absolute;
-    top: 500px;
+    top: 450px;
     left: 380px;
     width: 110px;
     height: 29px;

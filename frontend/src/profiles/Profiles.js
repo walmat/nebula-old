@@ -102,6 +102,13 @@ class Profiles extends Component {
         this.props.onLoadProfile(this.props.selectedProfile);
     }
 
+    /**
+     * Delete the profile from the database
+     */
+    deleteProfile = () => {
+        this.props.onDestroyProfile(this.props.selectedProfile);
+    }
+
     onProfileChange = (event) => {
         const profileName = event.target.value;
         let profiles = this.props.profiles;
@@ -148,7 +155,7 @@ class Profiles extends Component {
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
-                    <img src={this.props.currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.props.onClickBillingMatchesShipping}/>
+                    <img src={this.props.currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.props.onClickBillingMatchesShipping} draggable="false"/>
 
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
@@ -164,7 +171,7 @@ class Profiles extends Component {
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
 
                     {/*DELETE PROFILE*/}
-                    <button id="delete-prpfile" onClick={this.deleteProfile}>Delete</button>
+                    <button id="delete-profile" onClick={this.deleteProfile}>Delete</button>
                 </div>
             </form>
         );
@@ -192,6 +199,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         onLoadProfile: (profile) => {
             dispatch(profileActions.load(profile));
+        },
+        onDestroyProfile: (profile) => {
+            dispatch(profileActions.remove(profile));
         },
         onSelectProfile: (profile) => {
             dispatch(profileActions.select(profile));

@@ -7,6 +7,8 @@ import { taskReducer, initialTaskState } from "./reducers/tasks/TaskReducer";
 import { taskListReducer, initialTaskListState } from './reducers/tasks/TaskListReducer';
 import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/ProfileReducer';
 import { profileListReducer, initialProfileListState } from './reducers/profiles/ProfileListReducer';
+import { serverReducer, initialServerState } from "./reducers/server/ServerReducer";
+import { settingsReducer, initialSettingsState } from "./reducers/settings/SettingsReducer";
 
 /**
  * Application State
@@ -17,7 +19,12 @@ export const initialState = {
   currentProfile: initialProfileState,
   tasks: [],
   selectedTask: initialTaskState,
-  currentTask: initialTaskState
+  currentTask: initialTaskState,
+  proxies: initialSettingsState,
+  selectedServer: initialServerState,
+  serverName: initialServerState,
+  serverSize: initialServerState,
+  serverLocation: initialServerState
 };
 
 const topLevelReducer = (state = initialState, action) => {
@@ -27,6 +34,12 @@ const topLevelReducer = (state = initialState, action) => {
     profiles: profileListReducer(state.profiles, action),
     currentProfile: currentProfileReducer(state.currentProfile, action),
     selectedProfile: selectedProfileReducer(state.selectedProfile, action),
+    proxies: settingsReducer(state.proxies, action),
+    selectedServer: serverReducer(state.selectedServer, action),
+    serverName: serverReducer(state.serverName, action),
+    serverSize: serverReducer(state.serverSize, action),
+    serverLocation: serverReducer(state.serverLocation, action)
+
   };
 
   return Object.assign({}, state, changes);

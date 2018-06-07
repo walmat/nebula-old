@@ -41,6 +41,7 @@ class Navbar extends Component {
      * AKA:: they won't see the auth screen upon next launch
      */
     closeBot = async () => {
+        //TODO - close ALL windows..
         window.close();
     };
 

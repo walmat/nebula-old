@@ -111,6 +111,22 @@ input::placeholder, select {
     cursor: pointer;
 }
 
+#delete-profile {
+    background: #46ADB4;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+    border-radius: 3px;
+    border: none;
+    position: absolute;
+    top: 192px;
+    left: 226px;
+    width: 83px;
+    height: 29px;
+    cursor: pointer;
+}
+
 #shipping-label {
     font-family: AvenirNext-Medium;
     font-size: 12px;
