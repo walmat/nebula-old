@@ -6,7 +6,7 @@ import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 import '../App.css';
 import './Settings.css';
-import {SETTINGS_FIELDS, settingsActions} from "../state/Actions";
+import {profileActions, SETTINGS_FIELDS, settingsActions} from "../state/Actions";
 import {connect} from "react-redux";
 
 
@@ -15,6 +15,25 @@ class Settings extends Component {
     constructor(props) {
         super(props);
     }
+
+    saveProxies = async (e) => {
+        // saves input data to user's profiles
+        e.preventDefault();
+
+        this.props.onSaveProxies(this.props.settings.proxies);
+    };
+
+    formatProxy = async (str) => {
+        //format --> ip:port:user:pass || ip:port
+        let data = str.split(':');
+        if (data.length === 2) {
+            return 'http://' + data[0] + ':' + data[1];
+        } else if (data.length === 4) {
+            return 'http://' + data[2] + ':' + data[3] + '@' + data[0] + ':' + data[1];
+        } else {
+            return null; // can't parse
+        }
+    };
 
     /*
     * Launch a new browser window that opens a sign-in google window
@@ -46,7 +65,7 @@ class Settings extends Component {
                 {/*LOGIN*/}
                 <p className="body-text" id="proxy-list-label">Proxy List</p>
                 <div id="proxy-list-box" />
-                <textarea id="proxy-list-text" placeholder="IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS" />
+                <textarea id="proxy-list-text" onChange={this.props.onProxiesChange} placeholder="IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS" />
                 <img src={save} onClick={this.props.saveProxies} id="proxy-list-save" draggable="false"/>
                 <button id="proxy-button-youtube" onClick={this.launchYoutube} >YouTube</button>
                 <button id="proxy-button-captcha" onClick={this.harvester} >Captcha</button>
@@ -64,8 +83,11 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        saveProxies: (event) => {
+        onProxiesChange: (event) => {
             dispatch(settingsActions.edit(null, SETTINGS_FIELDS.EDIT_PROXIES, event.target.value));
+        },
+        onSaveProxies: (newProfile) => {
+            dispatch(profileActions.add(newProfile));
         }
     };
 };

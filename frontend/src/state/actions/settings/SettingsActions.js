@@ -13,7 +13,7 @@ export const settingsActions = {
 
 // Field Edits
 export const SETTINGS_FIELDS = {
-    EDIT_PROXIES: 'EDIT_PROXIES'
+    EDIT_PROXIES: 'EDIT_PROXIES',
 };
 
 export const mapProfileFieldToKey = {

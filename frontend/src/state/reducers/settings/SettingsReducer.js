@@ -10,7 +10,7 @@ export function settingsReducer(state = initialSettingsState, action) {
         switch (action.field) {
             case SETTINGS_FIELDS.EDIT_PROXIES:
                 change = {
-                    proxies: action.value.split('/\\r*\\n/')
+                    proxies: action.value.split(/\r?\n/)
                 };
                 break;
             default:
