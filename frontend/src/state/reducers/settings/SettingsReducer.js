@@ -1,7 +1,7 @@
 import {SETTINGS_ACTIONS, SETTINGS_FIELDS} from '../../Actions';
 
 export const initialSettingsState = {
-    proxies: {}
+    proxies: []
 };
 
 export function settingsReducer(state = initialSettingsState, action) {
@@ -17,6 +17,9 @@ export function settingsReducer(state = initialSettingsState, action) {
                 change = {};
         }
     }
+
+    console.log(action, change);
+
     change.errors = action.errors;
 
     return Object.assign({}, state, change);

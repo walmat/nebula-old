@@ -14,9 +14,6 @@ class Settings extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            settings:[]
-        };
     }
 
     /*
@@ -24,28 +21,7 @@ class Settings extends Component {
     * and then redirects to youtube.
     */
     launchYoutube = async () => {
-        // let youtube = new BrowserWindow({
-        //     width: 400,
-        //     height: 600,
-        //     center: true,
-        //     frame: true,
-        //     fullscreenable: false,
-        //     movable: true,
-        //     resizable: false,
-        //     webPreferences: {
-        //         nodeIntegration: false,
-        //         preload: 'preload.js'
-        //     }
-        // });
-        // youtube.loadURL('http://youtube.com');
-        //
-        // // Emitted when the window is closed.
-        // youtube.on('closed', function () {
-        //     // Dereference the window object, usually you would store windows
-        //     // in an array if your app supports multi windows, this is the time
-        //     // when you should delete the corresponding element.
-        //     youtube = null
-        // })
+
     };
 
     /*
@@ -88,8 +64,8 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        saveProxies: () => {
-            dispatch(settingsActions.edit(null, SETTINGS_FIELDS.EDIT_PROXIES));
+        saveProxies: (event) => {
+            dispatch(settingsActions.edit(SETTINGS_FIELDS.EDIT_PROXIES, event.target.value));
         }
     };
 };

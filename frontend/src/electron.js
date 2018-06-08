@@ -1,6 +1,4 @@
 const electron = require('electron');
-const dynamodb = require('../../backend/db.config');
-const docClient = dynamodb.DocumentClient;
 
 // Module to control application life.
 const app = electron.app;
@@ -10,12 +8,10 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
 
-let auth = true; //todo change later
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow;
-let authWindow;
+let mainWindow, authWindow, captchaWindow, youtubeWindow;
 
 function startMainWindow() {
 
@@ -96,11 +92,7 @@ function startAuthWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', function () {
-  if (auth) {
-      startMainWindow();
-  }  else {
-      startAuthWindow();
-  }
+    startMainWindow();
 });
 
 // Quit when all windows are closed.
@@ -114,10 +106,8 @@ app.on('before-quit', () => {
 app.on('activate', function () {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (mainWindow === null && auth === true) {
+    if (mainWindow === null) {
         startMainWindow();
-    } else {
-        startAuthWindow();
     }
 });
 
