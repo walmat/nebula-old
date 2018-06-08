@@ -1,4 +1,3 @@
-const AWS = require('aws-sdk');
 const validateProfile = require('./validateProfile');
 
 AWS.config = {
@@ -19,7 +18,7 @@ function emptyStringsToNull(profile) {
         if (!profile.billing[key]) {
             profile.billing[key] = null;
         }
-    })
+    });
     return profile;
 }
 

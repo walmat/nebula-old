@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ViewTask from './view-task';
+import CreateTask from './CreateTask';
 
 import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
@@ -47,13 +48,16 @@ class Tasks extends Component {
         const size_id = document.getElementById('size');
 
         const sku = document.getElementById('sku').value;
-        const size = size_id.options[size_id.selectedIndex].text;
-        const billings = bill_id.options[bill_id.selectedIndex].text;
-        const num_pairs = document.getElementById('num_pairs').value;
+        //const size = size_id.options[size_id.selectedIndex].text;
+        //const billings = bill_id.options[bill_id.selectedIndex].text;
+        const num_pairs = document.getElementById('pairs').value;
+
+        const size = '8.5';
+        const billings = 'profile 1';
 
 
         /*Store the task in the db*/
-        fetch('http://localhost:8080/tasks',
+        await fetch('http://localhost:8080/tasks',
             {
                 method: "POST",
                 headers: {
@@ -63,7 +67,7 @@ class Tasks extends Component {
                 body: JSON.stringify({"task_num":this.task_num, "status": "idle", "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs})
             })
             .then(res => {
-                this.setState()
+                this.setState();
                 this.state.tasks.push(JSON.stringify(res.body));
                 this.task_num++;
             });
@@ -71,7 +75,7 @@ class Tasks extends Component {
 
     getTasks = async (e) => {
         e.preventDefault();
-        fetch('http://localhost:8080/tasks',
+        await fetch('http://localhost:8080/tasks',
             {
                 headers: {
                     'Accept': 'application/json',
@@ -132,20 +136,9 @@ class Tasks extends Component {
                 <h1 className="text-header" id="task-header">Tasks</h1>
                 <div className="flex-container">
                     {/*CREATE TASK*/}
-                        <p className="body-text" id="create-label">Create</p>
-                        <div id="create-box" />
-                        <p id="sku-label">Input SKU</p>
-                        <input id="sku" type="text" placeholder="SKU 000000" required />
-                        <p id="profiles-label">Billing Profiles</p>
-                        <select id="profiles" type="text" onClick={this.toggleSVG('profiles')} required />
-                        <div id="dropdown-profiles-box" />
-                        <img src={DDD} id="dropdown-profiles-arrow" />
-                        <p id="size-label">Sizes</p>
-                        <select id="size" type="text" onClick={this.toggleSVG('size')} required />
-                        <img src={DDD} id="dropdown-size-arrow" />
-                        <p id="pairs-label"># Pairs</p>
-                        <input id="pairs" type="text" placeholder="00" required />
-                        <button id="submit" onClick={this.createTask} >Submit</button>
+
+                    <CreateTask/>
+
                     {/*END CREATE TASK*/}
 
                     {/*TASK LOG*/}
@@ -169,11 +162,13 @@ class Tasks extends Component {
                     <p id="view-actions">Actions</p>
                     <hr id="view-line" />
                     <div id="view-scroll-box">
-                        { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
+                        <table>
+                            { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
+                        </table>
                     </div>
-                    <img src={startAll} id="start-all" onClick={this.startAllTasks} />
-                    <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} />
-                    <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} />
+                    <img src={startAll} id="start-all" onClick={this.startAllTasks} draggable="false" />
+                    <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} draggable="false" />
+                    <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} draggable="false" />
                     {/*END VIEW TASK*/}
                 </div>
             </div>

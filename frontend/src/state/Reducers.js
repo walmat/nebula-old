@@ -2,24 +2,47 @@
  * Container for all state reducers. Reducers are available in their specific
  * files, this is just a shared import point.
  */
-import { combineReducers } from 'redux'
-import { profileReducer, initialProfileState } from './reducers/profiles/ProfileReducer';
-
-const topLevelReducer = (state = initialState, action) => {
-  let changes = {
-    currentProfile: profileReducer(state.currentProfile, action)
-  };
-
-  return Object.assign({}, state, changes);
-}
-
-export default topLevelReducer;
+// import { combineReducers } from 'redux';
+import { taskReducer, initialTaskState } from "./reducers/tasks/TaskReducer";
+import { taskListReducer, initialTaskListState } from './reducers/tasks/TaskListReducer';
+import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/ProfileReducer';
+import { profileListReducer, initialProfileListState } from './reducers/profiles/ProfileListReducer';
+import { serverReducer, initialServerState } from "./reducers/server/ServerReducer";
+import { settingsReducer, initialSettingsState } from "./reducers/settings/SettingsReducer";
 
 /**
  * Application State
  */
-const initialState = {
-  profiles: [],
+export const initialState = {
+  profiles: initialProfileListState,
   selectedProfile: initialProfileState,
-  currentProfile: initialProfileState
+  currentProfile: initialProfileState,
+  tasks: [],
+  selectedTask: initialTaskState,
+  currentTask: initialTaskState,
+  proxies: initialSettingsState,
+  selectedServer: initialServerState,
+  serverName: initialServerState,
+  serverSize: initialServerState,
+  serverLocation: initialServerState
 };
+
+const topLevelReducer = (state = initialState, action) => {
+  const changes = {
+    currentTask: taskReducer(state.currentTask, action),
+    tasks: taskListReducer(state.tasks, action),
+    profiles: profileListReducer(state.profiles, action),
+    currentProfile: currentProfileReducer(state.currentProfile, action),
+    selectedProfile: selectedProfileReducer(state.selectedProfile, action),
+    proxies: settingsReducer(state.proxies, action),
+    selectedServer: serverReducer(state.selectedServer, action),
+    serverName: serverReducer(state.serverName, action),
+    serverSize: serverReducer(state.serverSize, action),
+    serverLocation: serverReducer(state.serverLocation, action)
+
+  };
+
+  return Object.assign({}, state, changes);
+};
+
+export default topLevelReducer;

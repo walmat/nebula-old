@@ -1,11 +1,11 @@
 export const LOCATION_FIELDS = {
-  FIRST_NAME: 'FIRST_NAME',
-  LAST_NAME: 'LAST_NAME',
-  ADDRESS: 'ADDRESS',
-  APT: 'APT',
-  CITY: 'CITY',
-  ZIP_CODE: 'ZIP_CODE',
-  PHONE_NUMBER: 'PHONE_NUMBER',
-  COUNTRY: 'COUNTRY',
-  STATE: 'STATE'
+  FIRST_NAME: 'firstName',
+  LAST_NAME: 'lastName',
+  ADDRESS: 'address',
+  APT: 'apt',
+  CITY: 'city',
+  ZIP_CODE: 'zipCode',
+  PHONE_NUMBER: 'phone',
+  COUNTRY: 'country',
+  STATE: 'state',
 };

@@ -1,22 +1,46 @@
-import { makeActionCreator } from '../ActionCreator';
+import makeActionCreator from '../ActionCreator';
 
 // Top level Actions
-export const ADD_PROFILE = 'ADD_PROFILE';
-export const REMOVE_PROFILE = 'REMOVE_PROFILE';
-export const EDIT_PROFILE = 'EDIT_PROFILE';
+export const PROFILE_ACTIONS = {
+  ADD: 'ADD_PROFILE',
+  REMOVE: 'REMOVE_PROFILE',
+  EDIT: 'EDIT_PROFILE',
+  SELECT: 'SELECT_PROFILE',
+  LOAD: 'LOAD_PROFILE',
+  UPDATE: 'UPDATE_PROFILE',
+};
 
-export const addProfile    = makeActionCreator(ADD_PROFILE, 'profile');
-export const removeProfile = makeActionCreator(REMOVE_PROFILE, 'id');
-export const editProfile   = makeActionCreator(EDIT_PROFILE, 'id', 'field', 'value', 'subfield');
+const addProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
+const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
+const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
+const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
+const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
+const updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE, 'id', 'profile');
+
+export const profileActions = {
+  add: addProfile,
+  remove: removeProfile,
+  edit: editProfile,
+  select: selectProfile,
+  load: loadProfile,
+  update: updateProfile,
+};
 
 // Field Edits
 export const PROFILE_FIELDS = {
-    EDIT_SHIPPING: 'EDIT_SHIPPING',
-    EDIT_BILLING: 'EDIT_BILLING',
-    EDIT_PAYMENT: 'EDIT_PAYMENT',
-    EDIT_BILLING_MATCHES_SHIPPING: 'EDIT_BILLING_MATCHES_SHIPPING',
-    TOGGLE_BILLING_MATCHES_SHIPPING: 'TOGGLE_BILLING_MATCHES_SHIPPING',
-    EDIT_NAME: 'EDIT_NAME',
-    ADD_VALIDATION_ERROR: 'ADD_VALIDATION_ERROR',
-    REMOVE_VALIDATION_ERROR: 'REMOVE_VALUDATION_ERROR'
-}
+  EDIT_SHIPPING: 'EDIT_SHIPPING',
+  EDIT_BILLING: 'EDIT_BILLING',
+  EDIT_PAYMENT: 'EDIT_PAYMENT',
+  EDIT_BILLING_MATCHES_SHIPPING: 'EDIT_BILLING_MATCHES_SHIPPING',
+  TOGGLE_BILLING_MATCHES_SHIPPING: 'TOGGLE_BILLING_MATCHES_SHIPPING',
+  EDIT_NAME: 'EDIT_NAME',
+};
+
+export const mapProfileFieldToKey = {
+  [PROFILE_FIELDS.EDIT_SHIPPING]: 'shipping',
+  [PROFILE_FIELDS.EDIT_BILLING]: 'billing',
+  [PROFILE_FIELDS.EDIT_PAYMENT]: 'payment',
+  [PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
+  [PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
+  [PROFILE_FIELDS.EDIT_NAME]: 'name',
+};

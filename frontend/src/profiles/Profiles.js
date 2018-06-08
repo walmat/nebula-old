@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import PaymentEntry from './PaymentEntry';
-import BillingEntry from './BillingEntry';
-import ShippingEntry from './ShippingEntry';
+import PaymentFields from './PaymentFields';
+import LocationFields from './LocationFields';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 import PropTypes from 'prop-types';
@@ -23,12 +22,11 @@ class Profiles extends Component {
 
     constructor(props) {
         super(props);
-        this.saveProfile = this.saveProfile.bind(this);
     }
 
     componentDidMount = async () => {
         // this.props.history.push('/login');
-        /*FETCH THE PROFILES FROM THE DATABASE*/
+        /*FETCH THE PROFILES FROM THE API*/
         let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
             {
                 method: "GET",
@@ -49,43 +47,65 @@ class Profiles extends Component {
         // saves input data to user's profiles
         e.preventDefault();
 
-        let profile = this.props.currentProfile;
-        if (this.props.shippingMatchesBilling) {
-            profile.billing = profile.shipping;
+        // Check if current profile has an editId associated with it
+        if (this.props.currentProfile.editId !== undefined) {
+            // make sure the profile id exists in profiles before call in the load
+            if (this.props.profiles.some(p => p.id === this.props.currentProfile.editId)) {
+                // The current profile has the same id as a profile in the profiles list, update that profile
+                this.props.onUpdateProfile(this.props.currentProfile);
+            } else {
+                // The current profile has an edit id, but it doesn't match any on the profiles list, add this as a new profile.
+                this.props.onAddNewProfile(this.props.currentProfile);
+            }
+        } else {
+            // No edit id tag exists, add this as a new profile.
+            this.props.onAddNewProfile(this.props.currentProfile);
         }
 
-        profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY; //TODO this is only temporary until we get registration key stuff implemented
+        // let profile = this.props.currentProfile;
+        // if (this.props.shippingMatchesBilling) {
+        //     profile.billing = profile.shipping;
+        // }
+
+
+        // TODO: Move this into a middleware the does this when a PROFILE_ACTION.ADD action is detected!
+        // profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY; //TODO this is only temporary until we get registration key stuff implemented
 
         /*Store the profile in the db*/
-        try {
-            let response = await fetch('http://localhost:8080/profiles',
-                {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(this.state.currentProfile)
-                });
+        // try {
+        //     let response = await fetch('http://localhost:8080/profiles',
+        //     {
+        //         method: "POST",
+        //         headers: {
+        //             'Accept': 'application/json',
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(this.state.currentProfile)
+        //     });
 
-            let result = await response.json();
-            if (!result.ok) {
-                this.setState({
-                    errors: result.errors || {}
-                });
-            }
-        } catch (err) {
-            console.log(err);
-        }
+        //     let result = await response.json();
+        //     if (!result.ok) {
+        //         this.setState({
+        //             errors: result.errors || {}
+        //         });
+        //     }
+        // } catch (err) {
+        //     console.log(err);
+        // }
     }
 
     /**
      * load the profile
      */
     loadProfile = () => {
-        let selectedProfile = this.props.selectedProfile;
-        let currentProfile = Object.assign({}, selectedProfile);
-        this.setState({currentProfile});
+        this.props.onLoadProfile(this.props.selectedProfile);
+    }
+
+    /**
+     * Delete the profile from the database
+     */
+    deleteProfile = () => {
+        this.props.onDestroyProfile(this.props.selectedProfile);
     }
 
     onProfileChange = (event) => {
@@ -95,26 +115,13 @@ class Profiles extends Component {
             return profile.profileName === profileName;
         });
 
-        this.setState({selectedProfile});
-    }
-
-    buildRealtiveErrors = (basePath) => {
-        const errors = this.props.errors;
-        let relativeErrors = {};
-        if(errors) {
-            Object.keys(errors).forEach((path) => {
-                if (path.startsWith(basePath)) {
-                    relativeErrors[path.replace(basePath, '')] = errors[path];
-                }
-            });
-        }
-        return relativeErrors;
+        this.props.onSelectProfile(selectedProfile);
     }
 
     buildProfileOptions = () => {
         let profiles = this.props.profiles;
         return profiles && profiles.map((profile) => {
-            return <option key={profile.profileName}>{profile.profileName}</option>;
+            return <option key={profile.id}>{profile.profileName}</option>;
         });
     }
 
@@ -143,24 +150,27 @@ class Profiles extends Component {
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="shipping-label">Shipping</p>
-                        <ShippingEntry id={'shipping'} errors={this.buildRealtiveErrors('/shipping')} disabled={false} />
+                        <LocationFields id={'shipping'} profileToEdit={this.props.currentProfile} fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING} disabled={false} />
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
-                    <img src={this.props.currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.props.onClickBillingMatchesShipping}/>
+                    <img src={this.props.currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.props.onClickBillingMatchesShipping} draggable="false"/>
 
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
                         <p className="body-text" id="billing-label">Billing</p>
-                        <BillingEntry id={'billing'} errors={this.buildRealtiveErrors('/billing')} disabled={this.props.currentProfile.billingMatchesShipping} />
+                        <LocationFields id={'billing'} profileToEdit={this.props.currentProfile} fieldToEdit={this.props.currentProfile.billingMatchesShipping ? PROFILE_FIELDS.EDIT_SHIPPING : PROFILE_FIELDS.EDIT_BILLING} disabled={this.props.currentProfile.billingMatchesShipping} />
                     </div>
 
                     {/*PAYMENT INFORMATION*/}
-                    <PaymentEntry errors={this.buildRealtiveErrors('/payment')}/>
+                    <PaymentFields profileToEdit={this.props.currentProfile} />
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors['/profileName'])} placeholder="Profile Name"/>
+                    <input id="profile-save" required onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors[PROFILE_FIELDS.EDIT_NAME])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
+
+                    {/*DELETE PROFILE*/}
+                    <button id="delete-profile" onClick={this.deleteProfile}>Delete</button>
                 </div>
             </form>
         );
@@ -168,17 +178,36 @@ class Profiles extends Component {
 }
 
 const mapStateToProps = (state) => {
-  return state
+    return {
+        profiles: state.profiles,
+        currentProfile: state.currentProfile,
+        selectedProfile: state.selectedProfile,
+    }
 };
 
 const mapDispatchToProps = (dispatch) => {
     return {
         onClickBillingMatchesShipping: () => {
-            dispatch(profileActions.edit(0, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
+            dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
         },
         onProfileNameChange: (event) => {
-            dispatch(profileActions.edit(0, PROFILE_FIELDS.EDIT_NAME, event.target.value));
-        }
+            dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));
+        },
+        onAddNewProfile: (newProfile) => {
+            dispatch(profileActions.add(newProfile));
+        },
+        onLoadProfile: (profile) => {
+            dispatch(profileActions.load(profile));
+        },
+        onDestroyProfile: (profile) => {
+            dispatch(profileActions.remove(profile));
+        },
+        onSelectProfile: (profile) => {
+            dispatch(profileActions.select(profile));
+        },
+        onUpdateProfile: (profile) => {
+            dispatch(profileActions.update(profile.editId, profile));
+        },
     };
 };
 
