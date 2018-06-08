@@ -39,7 +39,6 @@ const topLevelReducer = (state = initialState, action) => {
     serverName: serverReducer(state.serverName, action),
     serverSize: serverReducer(state.serverSize, action),
     serverLocation: serverReducer(state.serverLocation, action)
-
   };
 
   return Object.assign({}, state, changes);
