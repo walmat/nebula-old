@@ -23,18 +23,6 @@ class Settings extends Component {
         this.props.onSaveProxies(this.props.settings.proxies);
     };
 
-    formatProxy = async (str) => {
-        //format --> ip:port:user:pass || ip:port
-        let data = str.split(':');
-        if (data.length === 2) {
-            return 'http://' + data[0] + ':' + data[1];
-        } else if (data.length === 4) {
-            return 'http://' + data[2] + ':' + data[3] + '@' + data[0] + ':' + data[1];
-        } else {
-            return null; // can't parse
-        }
-    };
-
     /*
     * Launch a new browser window that opens a sign-in google window
     * and then redirects to youtube.
@@ -86,8 +74,8 @@ const mapDispatchToProps = (dispatch) => {
         onProxiesChange: (event) => {
             dispatch(settingsActions.edit(null, SETTINGS_FIELDS.EDIT_PROXIES, event.target.value));
         },
-        onSaveProxies: (newProfile) => {
-            dispatch(profileActions.add(newProfile));
+        onSaveProxies: (proxies) => {
+            dispatch(profileActions.add(proxies));
         }
     };
 };
