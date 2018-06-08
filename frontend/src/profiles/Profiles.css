@@ -11,7 +11,7 @@ input::placeholder, select {
     margin:0;
     font-family: AvenirNext-DemiBold;
     font-size: 48px;
-    color: #161318;
+    color: #6D6E70;
     letter-spacing: 0.01px;
 }
 
@@ -47,7 +47,7 @@ input::placeholder, select {
 #load-profile-label {
     margin: 0;
     position: absolute;
-    top: 100px;
+    top: 101px;
     left: 140px;
     width: 66px;
     height: 16px;
@@ -57,7 +57,7 @@ input::placeholder, select {
     border: 1px solid #F0405E;
     border-radius: 3px;
     position: absolute;
-    top: 123px;
+    top: 124px;
     left: 140px;
     width: 277px;
     height: 112px;
@@ -66,7 +66,7 @@ input::placeholder, select {
 #profile-name-label {
     margin: 0;
     position: absolute;
-    top: 135px;
+    top: 134px;
     left: 153px;
     width: 54px;
     height: 12px;
@@ -80,16 +80,16 @@ input::placeholder, select {
     border: 1px solid #F0405E;
     border-radius: 3px;
     position: absolute;
-    top: 152px;
+    top: 150px;
     left: 153px;
-    width: 249px;
+    width: 252px;
     height: 29px;
 }
 
 #profile-select-arrow {
     position: absolute;
-    top: 156px;
-    left: 376px;
+    top: 154px;
+    left: 379px;
     width: 21px;
     height: 21px;
     cursor: pointer;
@@ -105,7 +105,23 @@ input::placeholder, select {
     border: none;
     position: absolute;
     top: 192px;
-    left: 319px;
+    left: 322px;
+    width: 83px;
+    height: 29px;
+    cursor: pointer;
+}
+
+#delete-profile {
+    background: #46ADB4;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+    border-radius: 3px;
+    border: none;
+    position: absolute;
+    top: 192px;
+    left: 226px;
     width: 83px;
     height: 29px;
     cursor: pointer;

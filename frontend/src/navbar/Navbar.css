@@ -2,15 +2,14 @@
 
 .nav-container {
     height: 100%;
-    width: 112px; /* 2px for border*/
+    width: 112px; /* 2px extra for border*/
     position: fixed;
     z-index: 1;
     top: 0;
     left: 0;
     overflow-x: hidden;
 }
-
-#App-logo {
+.react-bodymovin-container {
     position: absolute;
     top: 28px;
     left: 19px;
@@ -29,7 +28,7 @@
 }
 
 .active {
-    fill: #EDBCC6;
+    opacity: 0.5;
 }
 
 #icon-tasks {
@@ -53,7 +52,7 @@
 #icon-server {
     position:absolute;
     top:360px;
-    left:32px;
+    left:33px;
     width:42px;
     height:46px;
     cursor: pointer;
@@ -62,7 +61,7 @@
 #icon-settings {
     position:absolute;
     top:445px;
-    left:33px;
+    left:34px;
     width:40px;
     height:60px;
     cursor: pointer;

@@ -1,0 +1,45 @@
+{
+  "sku": "AC7033",
+  "profiles": {
+    "1": {
+      "billing": {
+        "firstName": "",
+        "lastName": "",
+        "address1": "",
+        "address2": "",
+        "city": "",
+        "state": "",
+        "zipCode": "",
+        "country": "",
+        "phone": ""
+      },
+      "shipping": {
+        "firstName": "",
+        "lastName": "",
+        "address1": "",
+        "address2": "",
+        "city": "",
+        "state": "",
+        "zipCode": "",
+        "country": "",
+        "phone": ""
+      },
+      "payment": {
+        "email": "",
+        "cardHolder": "",
+        "cardNumber": "",
+        "month": "",
+        "year": "",
+        "cvv": ""
+      }
+    }
+  },
+  "sizes": {
+    "1": 5.5,
+    "2": 7,
+    "3": 9
+  },
+  "pairs": 1,
+  "errorDelay": 6000,
+  "monitorDelay": 1000
+}

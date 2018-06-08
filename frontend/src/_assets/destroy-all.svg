@@ -10,7 +10,7 @@
             <g id="Action-Icons_All-Selection" transform="translate(899.000000, 382.000000)">
                 <g id="Delete-All-Icon" transform="translate(0.000000, 138.000000)">
                     <rect id="Rectangle-8" fill="#B8D9D2" x="0" y="0" width="51" height="51" rx="2.4"></rect>
-                    <g id="Trash-Task-Icon" transform="translate(11.156250, 13.546875)">
+                    <g id="Trash-ViewTask-Icon" transform="translate(11.156250, 13.546875)">
                         <ellipse id="Oval" stroke="#EFEFEF" stroke-width="2.4" cx="13.9453125" cy="3.36860795" rx="3.40204327" ry="3.36860795"></ellipse>
                         <g id="Rectangle-7">
                             <use fill="#B8D9D2" fill-rule="evenodd" xlink:href="#path-1"></use>

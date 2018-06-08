@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
+import ViewTask from './view-task';
+import CreateTask from './CreateTask';
 
 import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
-import submit from '../_assets/submit.svg';
 import startAll from '../_assets/start-all.svg';
 import stopAll from '../_assets/stop-all.svg';
 import destroyAll from '../_assets/destroy-all.svg';
@@ -10,31 +11,53 @@ import destroyAll from '../_assets/destroy-all.svg';
 import '../App.css';
 import './Tasks.css';
 
+const config = require('./config.json'); //TODO *** temp data structure
+// const core = require('core');
+const Pool = require('threads').Pool;
+
 class Tasks extends Component {
-    state = {tasks: []};
-    task_num = 0;
+
+    /*
+    * {
+    *   edit: edit_img,
+    *   task_num: task_num,
+    *   sku: sku,
+    *   profiles: profiles,
+    *   sizes: sizes,
+    *   num_pairs: num_pairs,
+    *   actions: [
+    *       run: run_img,
+    *       stop: stop_img,
+    *       destroy: destroy_img
+    *   ]
+    * }
+    * */
 
     constructor(props) {
         super(props);
+        this.state = {
+            tasks: []
+        };
         this.getTasks = this.getTasks.bind(this);
-        this.createTask = this.createTask.bind(this);
     }
 
-    createTask(e) {
+    createTask = async (e) => {
         // save task data to user's tasks and show it in 'view tasks' panel
         e.preventDefault();
-        const
-            bill_id = document.getElementById('billings'),
-            size_id = document.getElementById('size');
-        /*grab current values*/
-        const
-            sku = document.getElementById('sku').value,
-            size = size_id.options[size_id.selectedIndex].text,
-            billings = bill_id.options[bill_id.selectedIndex].text,
-            num_pairs = document.getElementById('num_pairs').value;
+        const bill_id = document.getElementById('profiles');
+        const size_id = document.getElementById('size');
+
+        const sku = document.getElementById('sku').value;
+        //const size = size_id.options[size_id.selectedIndex].text;
+        //const billings = bill_id.options[bill_id.selectedIndex].text;
+        const num_pairs = document.getElementById('pairs').value;
+
+        const size = '8.5';
+        const billings = 'profile 1';
+
 
         /*Store the task in the db*/
-        fetch('http://localhost:8080/tasks',
+        await fetch('http://localhost:8080/tasks',
             {
                 method: "POST",
                 headers: {
@@ -43,14 +66,16 @@ class Tasks extends Component {
                 },
                 body: JSON.stringify({"task_num":this.task_num, "status": "idle", "sku": sku,"size": size, "billings": billings, "num_pairs": num_pairs})
             })
-            .then(res => console.log(res));
-        /*increase task num*/
-        this.task_num++;
-    }
+            .then(res => {
+                this.setState();
+                this.state.tasks.push(JSON.stringify(res.body));
+                this.task_num++;
+            });
+    };
 
-    getTasks(e) {
+    getTasks = async (e) => {
         e.preventDefault();
-        fetch('http://localhost:8080/tasks',
+        await fetch('http://localhost:8080/tasks',
             {
                 headers: {
                     'Accept': 'application/json',
@@ -61,45 +86,49 @@ class Tasks extends Component {
             })
             .then(res => res.json())
             .then(tasks => this.setState({tasks}));
-    }
+    };
 
-    viewTasks() {
-        // get tasks and display them
-    }
-
-    exportTasks() {
-        // send current tasks to json file
-    }
-
-    importTasks() {
-        // load json file to current tasks and display them
-    }
-
-    runTask() {
+    runTask = async (index) => {
         // if user clicks the play button, start the task
-    }
+        // core.run(this.state.tasks[index]);
+        //TODO setup threading
+        // core.run(config);
+    };
 
-    stopTask() {
+    stopTask = async () => {
         // if user clicks pause button, stop the task
-    }
+    };
 
-    destroyTask() {
-        // if user clicks the garbage can button, erase the task from tasks
-    }
+    destroyTask = async () => {
+        // if user clicks the `garbage can` button, erase the task from tasks
+    };
 
-    startAllTasks() {
+    editTask = async () => {
+        //expand the task dialog and look for changes
+    };
 
-    }
+    /**
+     * if user clicks the large `right arrow` button, run all the tasks
+     */
+    startAllTasks = async () => {
+        const pool = new Pool(); //ceate a new thread pool
+        //TODO – create thread for each task and run it
 
-    stopAllTasks() {
+    };
 
-    }
+    stopAllTasks = async () => {
+        // if user clicks the large `x` button, stop all tasks
+    };
 
-    destroyAllTasks() {
-
-    }
+    destroyAllTasks = async () => {
+        // if user clicks the large `garbage can` button, erase all tasks
+    };
 
     /* MORE HELPERS HERE IF NEED */
+
+    toggleSVG = async (state) => {
+        //based on the state of the <select> tags, change the src of the img
+    };
 
     render() {
         return (
@@ -107,20 +136,9 @@ class Tasks extends Component {
                 <h1 className="text-header" id="task-header">Tasks</h1>
                 <div className="flex-container">
                     {/*CREATE TASK*/}
-                        <p className="body-text" id="create-label">Create</p>
-                        <div id="create-box" />
-                        <p id="sku-label">Input SKU</p>
-                        <input id="sku" type="text" placeholder="SKU 000000000" required />
-                        <p id="profiles-label">Billing Profiles</p>
-                        <select id="profiles" type="text" required />
-                        <div id="dropdown-profiles-box" />
-                        <img src={DDD} id="dropdown-profiles-arrow" />
-                        <p id="size-label">Sizes</p>
-                        <select id="size" type="text" required />
-                        <img src={DDD} id="dropdown-size-arrow" />
-                        <p id="pairs-label"># Pairs</p>
-                        <input id="pairs" type="text" placeholder="00" required />
-                        <button id="submit" onClick={this.createTask} >Submit</button>
+
+                    <CreateTask/>
+
                     {/*END CREATE TASK*/}
 
                     {/*TASK LOG*/}
@@ -136,7 +154,6 @@ class Tasks extends Component {
                     {/*VIEW TASK*/}
                     <p className="body-text" id="view-label">View</p>
                     <div id="view-box" />
-                    {/*TODO - add in actions*/}
                     <p id="view-num">#</p>
                     <p id="view-product">Product</p>
                     <p id="view-size">Size</p>
@@ -144,9 +161,14 @@ class Tasks extends Component {
                     <p id="view-pairs"># Pairs</p>
                     <p id="view-actions">Actions</p>
                     <hr id="view-line" />
-                    <img src={startAll} id="start-all" onClick={this.startAllTasks} />
-                    <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} />
-                    <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} />
+                    <div id="view-scroll-box">
+                        <table>
+                            { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
+                        </table>
+                    </div>
+                    <img src={startAll} id="start-all" onClick={this.startAllTasks} draggable="false" />
+                    <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} draggable="false" />
+                    <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} draggable="false" />
                     {/*END VIEW TASK*/}
                 </div>
             </div>

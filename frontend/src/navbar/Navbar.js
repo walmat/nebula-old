@@ -16,11 +16,23 @@ import logoAnimation from './nebula';
 import './Navbar.css';
 import Bodymovin from './Bodymovin';
 
+// const bodymovinOptions = {
+//     loop: true,
+//     autoplay: true,
+//     prerender: true,
+//     animationData: logoAnimation
+// }
+
+
 const bodymovinOptions = {
     loop: true,
     autoplay: true,
     prerender: true,
-    animationData: logoAnimation
+    animationData: logoAnimation,
+    rendererSettings: {
+        progressiveLoad:false,
+        preserveAspectRatio: 'xMidYMid slice'
+    }
 }
 
 class Navbar extends Component {
@@ -50,8 +62,9 @@ class Navbar extends Component {
      * ### this will not de-authenticate the user!!!!
      * AKA:: they won't see the auth screen upon next launch
      */
-    closeBot = () => {
-
+    closeBot = async () => {
+        //TODO - close ALL windows..
+        window.close();
     };
 
     /**
@@ -62,8 +75,13 @@ class Navbar extends Component {
      * Also, this should clear the database of ALL traces of their data
      * except from the 'users' table
      */
-    deactivate = () => {
+    deactivate = async () => {
+        //TODO – de-auth user and show auth screen upon next launch
+    };
 
+    launchInfo = async () => {
+        // window.open("http://bot-nebula.herokuapp.com");
+        //TODO – launch a child window to website
     };
 
     updateIcons() {
@@ -116,7 +134,7 @@ class Navbar extends Component {
                         this.props.history.push('/settings');
                         this.updateIcons();
                     }} draggable="false"/>
-                    <img src={info} id="icon-information" alt="information" draggable="false" />
+                    <img src={info} id="icon-information" alt="information" draggable="false" onClick={this.launchInfo} />
                     <img src={logout} id="icon-deactivate" alt="logout" draggable="false" onClick={this.closeBot} />
                     <img src={deactivate} id="icon-logout" alt="deactivate" draggable="false" onClick={this.deactivate} />
                 </div>
