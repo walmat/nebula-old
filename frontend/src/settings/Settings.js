@@ -6,7 +6,7 @@ import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 import '../App.css';
 import './Settings.css';
-import {PROFILE_FIELDS, profileActions, SETTINGS_FIELDS, settingsActions} from "../state/Actions";
+import {SETTINGS_FIELDS, settingsActions} from "../state/Actions";
 import {connect} from "react-redux";
 
 
@@ -46,7 +46,7 @@ class Settings extends Component {
                 {/*LOGIN*/}
                 <p className="body-text" id="proxy-list-label">Proxy List</p>
                 <div id="proxy-list-box" />
-                <textarea id="proxy-list-text" />
+                <textarea id="proxy-list-text" placeholder="IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS&#10;IP:PORT:USER:PASS" />
                 <img src={save} onClick={this.props.saveProxies} id="proxy-list-save" draggable="false"/>
                 <button id="proxy-button-youtube" onClick={this.launchYoutube} >YouTube</button>
                 <button id="proxy-button-captcha" onClick={this.harvester} >Captcha</button>
@@ -58,7 +58,7 @@ class Settings extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        currentSettings: state.proxies
+        currentSettings: state.settings
     }
 };
 
