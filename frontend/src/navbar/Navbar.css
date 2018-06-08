@@ -68,7 +68,6 @@
 }
 
 #icon-information {
-<<<<<<< HEAD
     position:absolute;
     top:692px;
     left: 26px;
@@ -80,19 +79,6 @@
 #icon-deactivate {
     position:absolute;
     top:692px;
-=======
-    position:absolute;
-    top:692px;
-    left: 26px;
-    width: 12px;
-    height: 12px;
-    cursor: pointer;
-}
-
-#icon-deactivate {
-    position:absolute;
-    top:692px;
->>>>>>> master
     left:48px;
     width:17px;
     height:12px;

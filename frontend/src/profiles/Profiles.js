@@ -4,6 +4,7 @@ import BillingEntry from './BillingEntry';
 import ShippingEntry from './ShippingEntry';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
+import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 import { profileActions, PROFILE_FIELDS } from '../state/Actions';
@@ -26,6 +27,7 @@ class Profiles extends Component {
     }
 
     componentDidMount = async () => {
+        // this.props.history.push('/login');
         /*FETCH THE PROFILES FROM THE DATABASE*/
         let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
             {
