@@ -1,0 +1,22 @@
+<svg width="14px" height="13px" viewBox="0 0 14 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Artboard" transform="translate(-840.000000, -420.000000)">
+            <g id="View-ViewTask" transform="translate(141.000000, 360.000000)">
+                <g id="Actions-Icons-Column-Example" transform="translate(665.000000, 61.000000)">
+                    <g id="Actions-Icons">
+                        <g id="Trash-ViewTask-Icon" transform="translate(34.000000, 0.000000)">
+                            <ellipse id="Oval" stroke="#B8D9D2" cx="7" cy="1.63636364" rx="1.61538462" ry="1.63636364"></ellipse>
+                            <path d="M2.65384615,1.59090909 L2.65384615,9.99910459 C2.65384615,10.8295203 3.32751083,11.5 4.16209857,11.5 L9.83790143,11.5 C10.6741734,11.5 11.3461538,10.8294043 11.3461538,9.99910459 L11.3461538,1.59090909 L2.65384615,1.59090909 Z" id="Rectangle-7" stroke="#B8D9D2" fill="#F4F4F4"></path>
+                            <path d="M5.38461538,4.90909091 L5.38461538,9.27272727" id="Path-8" stroke="#B8D9D2" stroke-linecap="round"></path>
+                            <path d="M8.61538462,4.90909091 L8.61538462,9.27272727" id="Path-8" stroke="#B8D9D2" stroke-linecap="round"></path>
+                            <rect id="Rectangle-6" fill="#B8D9D2" x="0" y="1.09090909" width="14" height="2.18181818" rx="1"></rect>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -7,7 +7,7 @@
             <g id="Action-Icons_All-Selection" transform="translate(899.000000, 382.000000)">
                 <g id="Stop-All-Icon" transform="translate(0.000000, 69.000000)">
                     <rect id="Rectangle-8" fill="#46ADB4" x="0" y="0" width="51" height="51" rx="2.4"></rect>
-                    <g id="Stop-Task-Icon" transform="translate(15.937500, 16.734375)" stroke="#EFEFEF" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+                    <g id="Stop-ViewTask-Icon" transform="translate(15.937500, 16.734375)" stroke="#EFEFEF" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
                         <path d="M0.27890625,0.796875 L18.6933151,18.9839454" id="Path-7"></path>
                         <path d="M0.27890625,0.796875 L18.6933151,18.9839454" id="Path-7" transform="translate(9.486111, 9.890410) rotate(-270.000000) translate(-9.486111, -9.890410) "></path>
                     </g>

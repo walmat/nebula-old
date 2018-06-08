@@ -1,4 +1,3 @@
-const AWS = require('aws-sdk');
 const validateProfile = require('./validateProfile');
 
 AWS.config = {
@@ -7,7 +6,7 @@ AWS.config = {
     accessKeyId: 'local',
     secretAccessKey: 'local'
 }
-var docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint('http://localhost:8000') })
+var docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint('http://localhost:8000') });
 
 function emptyStringsToNull(profile) {
     Object.keys(profile.shipping).forEach((key) => {
@@ -19,7 +18,7 @@ function emptyStringsToNull(profile) {
         if (!profile.billing[key]) {
             profile.billing[key] = null;
         }
-    })
+    });
     return profile;
 }
 

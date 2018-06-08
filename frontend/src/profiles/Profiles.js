@@ -3,6 +3,7 @@ import PaymentFields from './PaymentFields';
 import LocationFields from './LocationFields';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
+import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/Actions';
@@ -21,21 +22,20 @@ class Profiles extends Component {
 
     constructor(props) {
         super(props);
-        this.saveProfile = this.saveProfile.bind(this);
     }
 
     componentDidMount = async () => {
-        /* TODO: FETCH THE PROFILES FROM THE DATABASE */
-        // THIS WILL HAPPEN IN AN ACTION VIA MIDDLEWARE 
-
+        // this.props.history.push('/login');
+        // THIS WILL BE HANDLED IN A MIDDLEWARE
+        /*FETCH THE PROFILES FROM THE API*/
         // let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
-        // {
-        //     method: "GET",
-        //     headers: {
-        //         'Accept': 'application/json',
-        //         'Content-Type': 'application/json'
-        //     }
-        // });
+        //     {
+        //         method: "GET",
+        //         headers: {
+        //             'Accept': 'application/json',
+        //             'Content-Type': 'application/json'
+        //         }
+        //     });
         // let profiles = (await result.json()).profiles;
         // this.setState({profiles});
     }
@@ -69,6 +69,13 @@ class Profiles extends Component {
      */
     loadProfile = () => {
         this.props.onLoadProfile(this.props.selectedProfile);
+    }
+
+    /**
+     * Delete the profile from the database
+     */
+    deleteProfile = () => {
+        this.props.onDestroyProfile(this.props.selectedProfile);
     }
 
     onProfileChange = (event) => {
@@ -112,12 +119,12 @@ class Profiles extends Component {
 
                     {/*SHIPPING INFORMATION*/}
                     <div className="flex-col">
-				                <p className="body-text" id="shipping-label">Shipping</p>
+                        <p className="body-text" id="shipping-label">Shipping</p>
                         <LocationFields id={'shipping'} profileToEdit={this.props.currentProfile} fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING} disabled={false} />
                     </div>
 
                     {/*BILLING MATCHES SHIPPING*/}
-                    <img src={this.props.currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.props.onClickBillingMatchesShipping}/>
+                    <img src={this.props.currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked} id="billing-match-shipping" onClick={this.props.onClickBillingMatchesShipping} draggable="false"/>
 
                     {/*BILLING INFORMATION*/}
                     <div className="flex-col">
@@ -131,6 +138,9 @@ class Profiles extends Component {
                     {/*SAVE PROFILE*/}
                     <input id="profile-save" required onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
+
+                    {/*DELETE PROFILE*/}
+                    <button id="delete-profile" onClick={this.deleteProfile}>Delete</button>
                 </div>
             </form>
         );
@@ -138,11 +148,11 @@ class Profiles extends Component {
 }
 
 const mapStateToProps = (state) => {
-  return {
-      profiles: state.profiles,
-      currentProfile: state.currentProfile,
-      selectedProfile: state.selectedProfile,
-  }
+    return {
+        profiles: state.profiles,
+        currentProfile: state.currentProfile,
+        selectedProfile: state.selectedProfile,
+    }
 };
 
 const mapDispatchToProps = (dispatch) => {
@@ -158,6 +168,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         onLoadProfile: (profile) => {
             dispatch(profileActions.load(profile));
+        },
+        onDestroyProfile: (profile) => {
+            dispatch(profileActions.remove(profile));
         },
         onSelectProfile: (profile) => {
             dispatch(profileActions.select(profile));

@@ -7,8 +7,13 @@ import Tasks from './tasks/Tasks';
 import Profiles from './profiles/Profiles';
 import Server from './server/Server';
 import Settings from './settings/Settings';
+import Auth from './auth/Auth';
 
 import './App.css';
+
+const REACT_APP_DISCORD_ID = process.env.REACT_APP_DISCORD_ID;
+const redirect = 'http://localhost:3000/auth';
+const authURL = `https://discordapp.com/oauth2/authorize?client_id=${REACT_APP_DISCORD_ID}&scope=identify&response_type=code&redirect_uri=${redirect}`;
 
 class App extends Component {
     render() {
@@ -24,6 +29,7 @@ class App extends Component {
                               <Route component={Profiles} path='/profiles' />
                               <Route component={Server} path='/server'/>
                               <Route component={Settings} path='/settings'/>
+                              <Route component={Auth} path='/auth' />
                               <Route path='/'>
                                   <Redirect to='/tasks' />
                               </Route>

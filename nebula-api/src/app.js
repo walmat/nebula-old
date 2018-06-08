@@ -1,3 +1,7 @@
+// This is to load in environment variables from the .env file
+const dotenv = require('dotenv');
+dotenv.load();
+
 const express = require('express'),
     app     = express(),
     port    = parseInt(process.env.PORT, 10) || 8080;
@@ -12,7 +16,7 @@ app.use((req, res, next) => {
     console.log(origin);
 
     //TODO - figure out what origin should be and block all others
-    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
@@ -30,8 +34,10 @@ let tasks = require('./routes/tasks');
 let profiles = require('./routes/profiles/profiles');
 let server = require('./routes/server');
 let settings = require('./routes/settings');
-tasks(app); profiles(app); server(app); settings(app);
+let getUser = require('./routes/user/getUser');
+let createUser = require('./routes/user/createUser');
+tasks(app); profiles(app); server(app); settings(app); createUser(app); getUser(app);
 
 app.listen(port);
 
-console.log(`Nebula server started on port ${port}`);
+console.log(`Nebula API server started on port ${port}`);
