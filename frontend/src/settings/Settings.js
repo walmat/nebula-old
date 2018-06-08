@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
 
 import save from '../_assets/save.svg';
-import checkboxChecked from '../_assets/Check_icons-01.svg';
-import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 import '../App.css';
 import './Settings.css';
 import {profileActions, SETTINGS_FIELDS, settingsActions} from "../state/Actions";
 import {connect} from "react-redux";
-
 
 class Settings extends Component {
 
