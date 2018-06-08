@@ -21,10 +21,10 @@ class Auth extends Component {
 			const nebulaCredentials = btoa(`${REACT_APP_DISCORD_ID}:${REACT_APP_DISCORD_SECRET}`);
 			let response = await fetch(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${discordCode}&redirect_uri=${redirect}`,
 			{
-			  method: 'POST',
-			  headers: {
-				Authorization: `Basic ${nebulaCredentials}`,
-			  },
+                method: 'POST',
+                headers: {
+                    Authorization: `Basic ${nebulaCredentials}`,
+                },
 			});
 			let discordAuthInfo = await response.json();
 
@@ -34,12 +34,12 @@ class Auth extends Component {
 			}
 
 			// we got the discord auth info, now get the user informaiton
-			response = await fetch(`https://discordapp.com/api/users/@me`,
-			{
-			  method: 'GET',
-			  headers: {
-				Authorization: `Bearer ${discordAuthInfo.access_token}`,
-			  },
+			response = await fetch(`http://localhost:8080/user/${discordAuthInfo.access_token}`, {
+				method: 'GET',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				}
 			});
 
 			let userInfo = await response.json();
