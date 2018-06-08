@@ -14,8 +14,15 @@ import info from '../_assets/info-bot.svg';
 import deactivate from '../_assets/Pause_Bot_icon-01.svg';
 import logoAnimation from './nebula';
 import './Navbar.css';
-
 import Bodymovin from './Bodymovin';
+
+// const bodymovinOptions = {
+//     loop: true,
+//     autoplay: true,
+//     prerender: true,
+//     animationData: logoAnimation
+// }
+
 
 const bodymovinOptions = {
     loop: true,
@@ -33,11 +40,21 @@ class Navbar extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            icons: {
+                tasksIcon: tasks,
+                profilesIcon: profiles,
+                serverIcon: server,
+                settingsIcon: settings
+            }
+        }
+
         this.closeBot = this.closeBot.bind(this);
         this.deactivate = this.deactivate.bind(this);
     }
 
-    componentDidMount = async () => {
+    componentDidMount = () => {
+        this.updateIcons();
     }
 
     /**
@@ -61,57 +78,55 @@ class Navbar extends Component {
 
     };
 
-    changeActive = (active) => {
-        let tasksIcon = document.getElementById('icon-tasks');
-        let profilesIcon = document.getElementById('icon-profiles');
-        let serverIcon = document.getElementById('icon-server');
-        let settingsIcon = document.getElementById('icon-settings');
-
-        if (active === 'icon-tasks') {
-            tasksIcon.src = tasksActive;
-            profilesIcon.src = profiles;
-            serverIcon.src = server;
-            settingsIcon.src = settings;
-        } else if (active === 'icon-profiles') {
-            tasksIcon.src = tasks;
-            profilesIcon.src = profilesActive;
-            serverIcon.src = server;
-            settingsIcon.src = settings;
-        } else if (active === 'icon-server') {
-            tasksIcon.src = tasks;
-            profilesIcon.src = profiles;
-            serverIcon.src = serverActive;
-            settingsIcon.src = settings;
-        } else if (active === 'icon-settings') {
-            tasksIcon.src = tasks;
-            profilesIcon.src = profiles;
-            serverIcon.src = server;
-            settingsIcon.src = settingsActive;
+    updateIcons() {
+        let currentLocation = this.props.history.location.pathname;
+        let icons = this.state.icons;
+        if (currentLocation === '/' || currentLocation === '/tasks') {
+            icons.tasksIcon = tasksActive;
+            icons.profilesIcon = profiles;
+            icons.serverIcon = server;
+            icons.settingsIcon = settings;
+        } else if (currentLocation === '/profiles') {
+            icons.tasksIcon = tasks;
+            icons.profilesIcon = profilesActive;
+            icons.serverIcon = server;
+            icons.settingsIcon = settings;
+        } else if (currentLocation === '/server') {
+            icons.tasksIcon = tasks;
+            icons.profilesIcon = profiles;
+            icons.serverIcon = serverActive;
+            icons.settingsIcon = settings;
+        } else if (currentLocation === '/settings') {
+            icons.tasksIcon = tasks;
+            icons.profilesIcon = profiles;
+            icons.serverIcon = server;
+            icons.settingsIcon = settingsActive;
         }
+        this.setState({icons});
     }
 
     render() {
+        let icons = this.state.icons;
         return (
             <div className="nav-container">
                 <div className="flex-column">
                     <Bodymovin options={bodymovinOptions} />
-                    {/*<img src={logo} id="App-logo" draggable="false" />*/}
                     <div id="vert-line" />
-                    <img src={tasksActive} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
-                        this.changeActive('icon-tasks');
-                        return this.props.history.push('/');
+                    <img src={icons.tasksIcon} className="main-icons" id="icon-tasks" alt="tasks" onClick={() => {
+                        this.props.history.push('/');
+                        this.updateIcons();
                     }} draggable="false"/>
-                    <img src={profiles} className="main-icons" id="icon-profiles" alt="profiles" onClick={() => {
-                        this.changeActive('icon-profiles');
-                        return this.props.history.push('/profiles');
+                    <img src={icons.profilesIcon} className="main-icons" id="icon-profiles" alt="profiles" onClick={() => {
+                        this.props.history.push('/profiles');
+                        this.updateIcons();
                     }} draggable="false"/>
-                    <img src={server} className="main-icons" id="icon-server" alt="server" onClick={() => {
-                        this.changeActive('icon-server');
-                        return this.props.history.push('/server');
+                    <img src={icons.serverIcon} className="main-icons" id="icon-server" alt="server" onClick={() => {
+                        this.props.history.push('/server');
+                        this.updateIcons();
                     }} draggable="false"/>
-                    <img src={settings} className="main-icons" id="icon-settings" alt="settings" onClick={() => {
-                        this.changeActive('icon-settings');
-                        return this.props.history.push('/settings');
+                    <img src={icons.settingsIcon} className="main-icons" id="icon-settings" alt="settings" onClick={() => {
+                        this.props.history.push('/settings');
+                        this.updateIcons();
                     }} draggable="false"/>
                     <img src={info} id="icon-information" alt="information" draggable="false" />
                     <img src={logout} id="icon-deactivate" alt="logout" draggable="false" onClick={this.closeBot} />

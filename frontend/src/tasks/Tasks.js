@@ -11,7 +11,7 @@ import '../App.css';
 import './Tasks.css';
 
 const config = require('./config.json'); //TODO *** temp data structure
-const core = require('core');
+// const core = require('core');
 const Pool = require('threads').Pool;
 
 class Tasks extends Component {
@@ -88,7 +88,7 @@ class Tasks extends Component {
         // if user clicks the play button, start the task
         // core.run(this.state.tasks[index]);
         //TODO setup threading
-        core.run(config);
+        // core.run(config);
     };
 
     stopTask = async () => {
