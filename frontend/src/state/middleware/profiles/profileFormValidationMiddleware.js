@@ -13,6 +13,7 @@ const profileFormValidationMiddleware = store => next => action => {
             action.errors = {};
             const errors = action.errors;
             const profile = action.profile;
+            let combinedErrors = false;
 
             // set the error maps correctly both on the profile and the action
             Object.entries(profileAttributeValidatorMap).forEach(pair => {
@@ -23,6 +24,11 @@ const profileFormValidationMiddleware = store => next => action => {
                     case PROFILE_FIELDS.EDIT_BILLING:
                     case PROFILE_FIELDS.EDIT_SHIPPING:
                     case PROFILE_FIELDS.EDIT_PAYMENT:
+                        // If we are looking at billing, but billing matches shipping, use shipping instead.
+                        let sourceField = field
+                        if(field === PROFILE_FIELDS.EDIT_BILLING && profile.billingMatchesShipping) {
+                            sourceField = PROFILE_FIELDS.EDIT_SHIPPING;
+                        }
                         const validatorMap = pair[1];
                         // We have a sub validator map, we need to go on level deeper
                         const profileField = profile[mapProfileFieldToKey[field]];
@@ -32,8 +38,9 @@ const profileFormValidationMiddleware = store => next => action => {
                             // subPair[1] is the validator
                             const subField = subPair[0];
                             const validator = subPair[1];
-                            profileField.errors[subField] = !validator(profileField[subField]);
+                            profileField.errors[subField] = !validator(profile[mapProfileFieldToKey[sourceField]][subField]);
                             errors[mapProfileFieldToKey[field]][subField] = profileField.errors[subField];
+                            combinedErrors = combinedErrors || profileField.errors[subField];
                         });
                         break;
                     case PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING:
@@ -42,13 +49,17 @@ const profileFormValidationMiddleware = store => next => action => {
                         const validator = pair[1];
                         profile.errors[mapProfileFieldToKey[field]] = !validator(profile[mapProfileFieldToKey[field]]);
                         errors[mapProfileFieldToKey[field]] = profile.errors[mapProfileFieldToKey[field]];
+                        combinedErrors = combinedErrors || profile.errors[mapProfileFieldToKey[field]];
                         break;
                     default:
                         break;
                 }
             });
 
-            console.log(action);
+            // Clear out errors if none exist
+            if (combinedErrors === false) {
+                delete action.errors;
+            }
             break;
         default:
             break;
