@@ -61,24 +61,25 @@ export function serverReducer(state = initialServerState, action) {
                 break;
             default:
                 change = {};
+                break;
         }
     } else if (action.type === SERVER_ACTIONS.ADD) {
         switch(action.field) {
             case SERVER_FIELDS.ADD:
                 change = {
                     selectedServer: action.value
-                }
+                };
+                break;
         }
     } else if (action.type === SERVER_ACTIONS.REMOVE) {
         switch(action.field) {
             case SERVER_FIELDS.REMOVE:
                 change = {
                     selectedServer: action.value //TODO maybe this is wrong??
-                }
+                };
+                break;
         }
     }
-
-    console.log(action, change);
 
     return Object.assign({}, state, change);
 }

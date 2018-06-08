@@ -1,7 +1,7 @@
 import {SETTINGS_ACTIONS, SETTINGS_FIELDS} from '../../Actions';
 
 export const initialSettingsState = {
-    proxies: []
+    proxies: {}
 };
 
 export function settingsReducer(state = initialSettingsState, action) {
@@ -15,10 +15,11 @@ export function settingsReducer(state = initialSettingsState, action) {
                 break;
             default:
                 change = {};
+                break;
         }
     }
 
-    console.log(action, change);
+    console.log(change, action);
 
     change.errors = action.errors;
 

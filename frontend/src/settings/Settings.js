@@ -6,7 +6,7 @@ import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 import '../App.css';
 import './Settings.css';
-import {SETTINGS_FIELDS, settingsActions} from "../state/Actions";
+import {PROFILE_FIELDS, profileActions, SETTINGS_FIELDS, settingsActions} from "../state/Actions";
 import {connect} from "react-redux";
 
 
@@ -65,7 +65,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         saveProxies: (event) => {
-            dispatch(settingsActions.edit(SETTINGS_FIELDS.EDIT_PROXIES, event.target.value));
+            dispatch(settingsActions.edit(null, SETTINGS_FIELDS.EDIT_PROXIES, event.target.value));
         }
     };
 };

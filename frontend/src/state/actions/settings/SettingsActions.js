@@ -5,7 +5,7 @@ export const SETTINGS_ACTIONS = {
     EDIT: 'EDIT_SETTINGS',
 };
 
-const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
+const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'id', 'field', 'value');
 
 export const settingsActions = {
     edit: editSettings
