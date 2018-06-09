@@ -6,7 +6,7 @@ import './Profiles.css';
 import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
-import { profileActions, PROFILE_FIELDS } from '../state/Actions';
+import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/Actions';
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
@@ -26,17 +26,18 @@ class Profiles extends Component {
 
     componentDidMount = async () => {
         // this.props.history.push('/login');
+        // THIS WILL BE HANDLED IN A MIDDLEWARE
         /*FETCH THE PROFILES FROM THE API*/
-        let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
-            {
-                method: "GET",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-        let profiles = (await result.json()).profiles;
-        this.setState({profiles});
+        // let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
+        //     {
+        //         method: "GET",
+        //         headers: {
+        //             'Accept': 'application/json',
+        //             'Content-Type': 'application/json'
+        //         }
+        //     });
+        // let profiles = (await result.json()).profiles;
+        // this.setState({profiles});
     }
 
     /**
@@ -61,37 +62,6 @@ class Profiles extends Component {
             // No edit id tag exists, add this as a new profile.
             this.props.onAddNewProfile(this.props.currentProfile);
         }
-
-        // let profile = this.props.currentProfile;
-        // if (this.props.shippingMatchesBilling) {
-        //     profile.billing = profile.shipping;
-        // }
-
-
-        // TODO: Move this into a middleware the does this when a PROFILE_ACTION.ADD action is detected!
-        // profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY; //TODO this is only temporary until we get registration key stuff implemented
-
-        /*Store the profile in the db*/
-        // try {
-        //     let response = await fetch('http://localhost:8080/profiles',
-        //     {
-        //         method: "POST",
-        //         headers: {
-        //             'Accept': 'application/json',
-        //             'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify(this.state.currentProfile)
-        //     });
-
-        //     let result = await response.json();
-        //     if (!result.ok) {
-        //         this.setState({
-        //             errors: result.errors || {}
-        //         });
-        //     }
-        // } catch (err) {
-        //     console.log(err);
-        // }
     }
 
     /**
@@ -166,7 +136,7 @@ class Profiles extends Component {
                     <PaymentFields profileToEdit={this.props.currentProfile} />
 
                     {/*SAVE PROFILE*/}
-                    <input id="profile-save" required onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors[PROFILE_FIELDS.EDIT_NAME])} placeholder="Profile Name"/>
+                    <input id="profile-save" required onChange={this.props.onProfileNameChange} value={this.props.currentProfile.profileName} style={validationStatus(this.props.currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]])} placeholder="Profile Name"/>
                     <button id="submit-profile" onClick={this.saveProfile}>Save</button>
 
                     {/*DELETE PROFILE*/}

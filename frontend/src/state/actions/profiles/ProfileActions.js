@@ -42,5 +42,5 @@ export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_PAYMENT]: 'payment',
   [PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
-  [PROFILE_FIELDS.EDIT_NAME]: 'name',
+  [PROFILE_FIELDS.EDIT_NAME]: 'profileName',
 };

@@ -5,7 +5,7 @@ import getAllStates from '../../getAllStates';
 
 function validateAddress(address) {
     // TODO: Create regex for addresses (or use google location api)
-    return true;
+    return address && address !== '';
 }
 
 function validateApt(apt) {
@@ -15,22 +15,22 @@ function validateApt(apt) {
 
 function validateCity(city) {
     // TOOD: create regex for cities (or use google location api)
-    return true;
+    return city && city !== '';
 }
 
 function validateCountry(country) {
     const countries = getAllCountries();
-    return country && countries.filter(c => c.name === country).length > 0;
+    return country && countries.some(c => c.name === country);
 }
 
 function validateFirstName(firstName) {
-    // no validation needed
-    return true;
+    // Make sure first name is not empty
+    return firstName && firstName !== '';
 }
 
 function validateLastName(lastName) {
-    // no validation needed
-    return true;
+    // Make sure last name is not empty
+    return lastName && lastName !== '';
 }
 
 function validatePhoneNumber(phoneNumber) {
@@ -39,12 +39,12 @@ function validatePhoneNumber(phoneNumber) {
 
 function validateState(state) {
     const states = getAllStates();
-    return state && states.filter(s => s.name === state).length > 0;
+    return state && states.some(s => s.name === state);
 }
 
 function validateZipCode(zipCode) {
     // TODO: create regex for zip codes (or use google location api)
-    return true;
+    return zipCode && zipCode !== '';
 }
 
 const locationAttributeValidators = {

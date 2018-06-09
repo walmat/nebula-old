@@ -45,16 +45,19 @@ export function profileReducer(state = initialProfileState, action) {
       case PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING:
         change = {
           billingMatchesShipping: !state.billingMatchesShipping,
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       case PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING:
         change = {
           billingMatchesShipping: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       case PROFILE_FIELDS.EDIT_NAME:
         change = {
           profileName: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       default:
@@ -75,10 +78,20 @@ export function currentProfileReducer(state = initialProfileState, action) {
       break;
     }
     case PROFILE_ACTIONS.ADD: {
+      // If we have a response error, we should do nothing
+      if(action.response !== undefined && action.response.error !== undefined) {
+        return Object.assign({}, action.profile);
+      }
+
       // If adding a new profile, we should reset the current profile to default values
       return Object.assign({}, initialProfileState);
     }
     case PROFILE_ACTIONS.UPDATE: {
+      // If we have a response error, we should do nothing
+      if(action.response !== undefined && action.response.error !== undefined) {
+        return Object.assign({}, action.profile);
+      }
+      
       // If updating an existing profile, we should reset the current profile to default values
       return Object.assign({}, initialProfileState);
     }

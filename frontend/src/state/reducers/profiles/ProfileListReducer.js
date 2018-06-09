@@ -18,6 +18,13 @@ export function profileListReducer(state = initialProfileListState, action) {
 
   switch (action.type) {
     case PROFILE_ACTIONS.ADD: {
+      // If we have a response error, we should do nothing
+      if(action.response !== undefined && action.response.error !== undefined) {
+        console.log(`ERROR with PROFILE ADD`);
+        console.log(action.response);
+        break;
+      }
+
       // perform a deep copy of given profile
       const newProfile = JSON.parse(JSON.stringify(action.profile));
       if (newProfile.billingMatchesShipping) {
@@ -39,6 +46,13 @@ export function profileListReducer(state = initialProfileListState, action) {
       break;
     }
     case PROFILE_ACTIONS.REMOVE: {
+      // If we have a response error, we should do nothing
+      if(action.response !== undefined && action.response.error !== undefined) {
+        console.log(`ERROR with PROFILE REMOVE`);
+        console.log(action.response);
+        break;
+      }
+
       // perform a deep copy of given state
       nextState = JSON.parse(JSON.stringify(state));
 
@@ -65,6 +79,13 @@ export function profileListReducer(state = initialProfileListState, action) {
       break;
     }
     case PROFILE_ACTIONS.UPDATE: {
+      // If we have a response error, we should do nothing
+      if(action.response !== undefined && action.response.error !== undefined) {
+        console.log(`ERROR with PROFILE UPDATE`);
+        console.log(action.response);
+        break;
+      }
+
       // check if id is given (we only change the state on a non-null id)
       if (action.id == null) {
         break;
