@@ -1,8 +1,10 @@
 const jwt = require('jsonwebtoken');
 
 async function isValidUser(discordId, registrationKey) {
+    console.log('Hey')
     let params = {
         TableName : 'Users',
+        Key: discordId,
         KeyConditionExpression: '#discordId = :discordId AND #registrationKey = :registrationKey',
         ExpressionAttributeNames:{
             '#discordId': 'discordId',

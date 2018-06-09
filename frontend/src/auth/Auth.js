@@ -16,6 +16,7 @@ class Auth extends Component {
 
 	async componentDidMount() {
 		try {
+            console.log('hey!!')
 			const params = queryString.parse(this.props.location.search);
 			const discordCode = params.code;
 			const nebulaCredentials = btoa(`${REACT_APP_DISCORD_ID}:${REACT_APP_DISCORD_SECRET}`);

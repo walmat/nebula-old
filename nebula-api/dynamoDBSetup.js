@@ -30,10 +30,8 @@ var users = {
     TableName : "Users",
     KeySchema: [
         { AttributeName: "discordId", KeyType: "HASH"},  //Partition key
-        { AttributeName: "registrationKey", KeyType: "RANGE"},  //Sort key
     ],
     AttributeDefinitions: [
-        { AttributeName: "registrationKey", AttributeType: "S" },
         { AttributeName: "discordId", AttributeType: "S" }
     ],
     ProvisionedThroughput: {
