@@ -1,4 +1,5 @@
 const validateProfile = require('./validateProfile');
+const AWS = require('aws-sdk');
 
 AWS.config = {
     region: "us-west-2",
