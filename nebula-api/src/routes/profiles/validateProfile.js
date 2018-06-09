@@ -3,9 +3,6 @@ const convertJoiErrorsToJSONPointer = require('../../utils/convertJoiErrorsToJSO
 
 //the schema will be used to validate our input on the POST request
 const profilesSchema = Joi.object().keys({
-	registrationKey: Joi.string()
-		.required()
-		.label('Registration Key'),
 	profileName: Joi.string()
 		.required()
 		.label('Profile Name'),

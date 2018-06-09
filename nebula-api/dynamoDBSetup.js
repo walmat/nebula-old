@@ -13,11 +13,11 @@ var dynamodb = new AWS.DynamoDB();
 var profiles = {
     TableName : "Profiles",
     KeySchema: [
-        { AttributeName: "registrationKey", KeyType: "HASH"},  //Partition key
+        { AttributeName: "discordId", KeyType: "HASH"},  //Partition key
         { AttributeName: "profileName", KeyType: "RANGE" }  //Sort key
     ],
     AttributeDefinitions: [
-        { AttributeName: "registrationKey", AttributeType: "S" },
+        { AttributeName: "discordId", AttributeType: "S" },
         { AttributeName: "profileName", AttributeType: "S" }
     ],
     ProvisionedThroughput: {
@@ -74,7 +74,7 @@ dynamodb.createTable(profiles, function(err, data) {
 
 dynamodb.createTable(keys, function(err, data) {
     if (err) {
-        console.error("Unable to create table profiles. Error JSON:", JSON.stringify(err, null, 2));
+        console.error("Unable to create table keys. Error JSON:", JSON.stringify(err, null, 2));
     } else {
         console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
     }

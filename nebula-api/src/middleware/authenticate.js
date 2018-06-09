@@ -21,7 +21,7 @@ module.exports = async function(req, res, next) {
     let token = req.headers['x-access-token'];
 
     if (!token) {
-        res.status(401).json({
+        return res.status(401).json({
             error: {
                 name: 'NoJWTProvided',
                 message: 'No auth token provided'
@@ -29,7 +29,7 @@ module.exports = async function(req, res, next) {
         });
     }
 
-    jwt.verify(token, process.env.NEBULA_API_JWT_SECERT, function(error, decoded) {
+    jwt.verify(token, process.env.NEBULA_API_JWT_SECERT, async function(error, decoded) {
         if (error) {
             return res.status(401).json({
                 error
