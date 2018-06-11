@@ -35,14 +35,24 @@ class Settings extends Component {
     * and capabilities of one-click harvesting
     */
     harvester = async () => {
-
+        if (window.Bridge) {
+            window.Bridge.launchHarvester();
+        } else {
+            //TODO - error handling
+            console.error('Unable to launch harvester!')
+        }
     };
 
     /*
     * Signs current google user out. Will clear cookies as well
     */
     closeSession = async () => {
-
+        if (window.Bridge) {
+            window.Bridge.endSession();
+        } else {
+            //TODO - error handling
+            console.error('Unable to end current session');
+        }
     };
 
     render() {
