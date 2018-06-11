@@ -9,11 +9,6 @@ import './Settings.css';
 import {SETTINGS_FIELDS, settingsActions} from "../state/Actions";
 import {connect} from "react-redux";
 
-/* global require */
-const electron = window.require('electron');
-const ipcRenderer = electron.ipcRenderer;
-
-
 class Settings extends Component {
 
     constructor(props) {
@@ -28,7 +23,11 @@ class Settings extends Component {
     * and then redirects to youtube.
     */
     launchYoutube = async () => {
-        ipcRenderer.send('window-event', 'launchYoutube');
+        if (window.Bridge) {
+            window.Bridge.launchYoutube();
+        } else {
+            console.error('Unable to launch youtube!');
+        }
     };
 
     /*
