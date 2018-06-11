@@ -14,8 +14,6 @@ const _quit = () => {
 const _launchYoutube = () => {
   _sendEvent('window-event', 'launchYoutube');
 };
-<<<<<<< HEAD
-=======
 
 const _launchHarvester = () => {
   _sendEvent('window-event', 'launchHarvester');
@@ -24,7 +22,6 @@ const _launchHarvester = () => {
 const _endSession = () => {
   _sendEvent('window-event', 'endSession');
 };
->>>>>>> master
 
 // Once the process is loaded, create api bridge
 process.once('loaded', () => {

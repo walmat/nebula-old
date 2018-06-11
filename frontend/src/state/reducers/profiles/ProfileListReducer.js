@@ -1,12 +1,15 @@
 import uuidv4 from 'uuid/v4';
 
-import { PROFILE_ACTIONS } from '../../actions';
-import { profileReducer, initialProfileState } from './profileReducer';
+import { PROFILE_ACTIONS } from '../../Actions';
+import { profileReducer } from './ProfileReducer';
+
+// TEMPORARY
+import { initialProfileState } from './ProfileReducer';
 
 export const initialProfileListState = [
-  Object.assign({}, initialProfileState, { id: 0, profileName: 'test1' }),
-  Object.assign({}, initialProfileState, { id: 1, profileName: 'test2' }),
-  Object.assign({}, initialProfileState, { id: 2, profileName: 'test3' }),
+  Object.assign({}, initialProfileState, {id: 0, profileName: 'test1'}),
+  Object.assign({}, initialProfileState, {id: 1, profileName: 'test2'}),
+  Object.assign({}, initialProfileState, {id: 2, profileName: 'test3'}),
 ];
 
 export function profileListReducer(state = initialProfileListState, action) {
@@ -16,8 +19,8 @@ export function profileListReducer(state = initialProfileListState, action) {
   switch (action.type) {
     case PROFILE_ACTIONS.ADD: {
       // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE ADD');
+      if(action.response !== undefined && action.response.error !== undefined) {
+        console.log(`ERROR with PROFILE ADD`);
         console.log(action.response);
         break;
       }
@@ -44,8 +47,8 @@ export function profileListReducer(state = initialProfileListState, action) {
     }
     case PROFILE_ACTIONS.REMOVE: {
       // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE REMOVE');
+      if(action.response !== undefined && action.response.error !== undefined) {
+        console.log(`ERROR with PROFILE REMOVE`);
         console.log(action.response);
         break;
       }
@@ -77,8 +80,8 @@ export function profileListReducer(state = initialProfileListState, action) {
     }
     case PROFILE_ACTIONS.UPDATE: {
       // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE UPDATE');
+      if(action.response !== undefined && action.response.error !== undefined) {
+        console.log(`ERROR with PROFILE UPDATE`);
         console.log(action.response);
         break;
       }

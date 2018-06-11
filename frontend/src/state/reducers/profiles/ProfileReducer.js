@@ -1,6 +1,6 @@
-import { PROFILE_FIELDS, PROFILE_ACTIONS } from '../../actions';
-import { locationReducer, initialLocationState } from './locationReducer';
-import { paymentReducer, initialPaymentState } from './paymentReducer';
+import { PROFILE_FIELDS, PROFILE_ACTIONS } from '../../Actions';
+import { locationReducer, initialLocationState } from './LocationReducer';
+import { paymentReducer, initialPaymentState } from './PaymentReducer';
 
 export const initialProfileState = {
   id: null,
