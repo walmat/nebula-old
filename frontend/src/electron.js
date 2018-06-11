@@ -28,7 +28,7 @@ function startMainWindow() {
     resizable: true,
     webPreferences: {
       nodeIntegration: false,
-      preload: `${__dirname}/preload.js`,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
@@ -44,30 +44,30 @@ function startMainWindow() {
     skipTaskbar: true,
     useContentSize: true,
     webPreferences: {
-        nodeIntegration: false,
-        preload: __dirname + '/preload.js'
-    }
-    });
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  });
 
-    // Set the default browser window settings
-    windowManager.setDefaultSetup({
-        width: 1000,
-        height: 715,
-        center: true,
-        frame: false,
-        fullscreenable: false,
-        movable: true,
-        resizable: false,
-        icon: path.join(__dirname, '_assets/icons/png/64x64.png'),
-        webPreferences: {
-            nodeIntegration: false,
-            preload: __dirname + '/preload.js',
-        },
-        'onLoadFailure': function(window) {
-            console.log('window load failure');
-            console.log(window);
-        }
-    });
+  // Set the default browser window settings
+  windowManager.setDefaultSetup({
+    width: 1000,
+    height: 715,
+    center: true,
+    frame: false,
+    fullscreenable: false,
+    movable: true,
+    resizable: false,
+    icon: path.join(__dirname, '_assets/icons/png/64x64.png'),
+    webPreferences: {
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js'),
+    },
+    onLoadFailure: (window) => {
+      console.log('window load failure');
+      console.log(window);
+    },
+  });
 
   // this will load localhost:3000 in developer environments,
   // otherwise it will load in production env
@@ -107,31 +107,31 @@ app.on('activate', () => {
 
 // From here, React should handle what the Electron app does
 ipcMain.on('window-event', (event, arg) => {
-    switch (arg) {
-        case 'launchYoutube': {
-            // open youtube url using youtube window template
-            windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', {parent: mainWindow}, true);
-            break;
-        }
-        case 'launchHarvester': {
-            // open a captcha harvesting window
-            //function(name, title, content, setupTemplate, setup, showDevTools)
-            windowManager.open('captcha', 'Harvester', path.join(__dirname, '../build/captcha.html'), 'captcha', {parent: mainWindow}, true);
-            break;
-        }
-        case 'endSession': {
-            // closes the YouTube window and signs the user out of that account
-            windowManager.closeAllExcept('main');
-            //TODO - sign the user out
-            // session.defaultSession.clearStorageData([]);
-            // session.defaultSession.clearCache();
-            break;
-        }
-        case 'quit': {
-            app.quit();
-            break;
-        }
-        default:
-            break;
+  switch (arg) {
+    case 'launchYoutube': {
+      // open youtube url using youtube window template
+      windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', { parent: mainWindow }, true);
+      break;
     }
+    case 'launchHarvester': {
+      // open a captcha harvesting window
+      // function(name, title, content, setupTemplate, setup, showDevTools)
+      windowManager.open('captcha', 'Harvester', path.join(__dirname, '../build/captcha.html'), 'captcha', { parent: mainWindow }, true);
+      break;
+    }
+    case 'endSession': {
+      // closes the YouTube window and signs the user out of that account
+      windowManager.closeAllExcept('main');
+      // TODO - sign the user out
+      // session.defaultSession.clearStorageData([]);
+      // session.defaultSession.clearCache();
+      break;
+    }
+    case 'quit': {
+      app.quit();
+      break;
+    }
+    default:
+      break;
+  }
 });

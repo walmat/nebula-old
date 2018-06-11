@@ -24,17 +24,29 @@ class Settings extends Component {
   }
 
   /*
-  * Launch a sub-window with built in AI for image recognition
-  * and capabilities of one-click harvesting
-  */
-  // async harvester() {
-  // };
+    * Launch a sub-window with built in AI for image recognition
+    * and capabilities of one-click harvesting
+    */
+  static async harvester() {
+    if (window.Bridge) {
+      window.Bridge.launchHarvester();
+    } else {
+      // TODO - error handling
+      console.error('Unable to launch harvester!')
+    }
+  }
 
   /*
-  * Signs current google user out. Will clear cookies as well
-  */
-  // async closeSession() {
-  // };
+    * Signs current google user out. Will clear cookies as well
+    */
+  static async closeSession() {
+    if (window.Bridge) {
+      window.Bridge.endSession();
+    } else {
+      // TODO - error handling
+      console.error('Unable to end current session');
+    }
+  }
 
   render() {
     return (
@@ -53,8 +65,8 @@ class Settings extends Component {
           <img src={save} alt="save proxy" id="proxy-list-save" draggable="false" />
         </div>
         <button id="proxy-button-youtube" onClick={Settings.launchYoutube} >YouTube</button>
-        <button id="proxy-button-captcha" onClick={this.harvester} >Captcha</button>
-        <button id="proxy-button-close-session" onClick={this.closeSession} >End Session</button>
+        <button id="proxy-button-captcha" onClick={Settings.harvester} >Captcha</button>
+        <button id="proxy-button-close-session" onClick={Settings.closeSession} >End Session</button>
       </div>
     );
   }
