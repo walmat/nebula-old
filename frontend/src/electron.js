@@ -112,7 +112,12 @@ ipcMain.on('window-event', (event, arg) => {
     case 'launchHarvester': {
       // open a captcha harvesting window
       // function(name, title, content, setupTemplate, setup, showDevTools)
-      windowManager.open('captcha', 'Harvester', path.join(__dirname, '../build/captcha.html'), 'captcha', { parent: mainWindow }, true);
+      const startUrl = url.format({
+          pathname: path.join(__dirname, '/../build/captcha.html'),
+          protocol: 'file:',
+          slashes: true,
+      });
+      windowManager.open('captcha', 'Harvester', startUrl, 'captcha', { parent: mainWindow }, true);
       break;
     }
     case 'endSession': {

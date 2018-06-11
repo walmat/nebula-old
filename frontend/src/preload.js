@@ -1,4 +1,10 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, webFrame } = require('electron');
+webFrame.setZoomFactor(1);
+webFrame.setZoomLevelLimits(1, 1);
+webFrame.setVisualZoomLevelLimits(1, 1);
+webFrame.setLayoutZoomLevelLimits(0, 0);
+
+//TODO - fix Ctrl/CMD +/- zooming
 
 // Wrap ipcRenderer call
 const _sendEvent = (channel, msg) => {
