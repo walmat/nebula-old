@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import EnsureAuthorization from '../EnsureAuthorization';
 
 import save from '../_assets/save.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
@@ -94,4 +95,4 @@ const mapDispatchToProps = (dispatch) => {
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Settings));

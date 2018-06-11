@@ -134,48 +134,46 @@ class Tasks extends Component {
 
     render() {
         return (
-            <EnsureAuthorization location={this.props.location}>
-                <div className="container">
-                    <h1 className="text-header" id="task-header">Tasks</h1>
-                    <div className="flex-container">
-                        {/*CREATE TASK*/}
+            <div className="container">
+                <h1 className="text-header" id="task-header">Tasks</h1>
+                <div className="flex-container">
+                    {/*CREATE TASK*/}
 
-                        <CreateTask/>
+                    <CreateTask/>
 
-                        {/*END CREATE TASK*/}
+                    {/*END CREATE TASK*/}
 
-                        {/*TASK LOG*/}
-                            <p className="body-text" id="log-label">Log</p>
-                            <div id="log-box" />
-                            {/*TODO - add in actions*/}
-                            <p id="log-num">#</p>
-                            <p id="log-site">Site</p>
-                            <p id="log-output">Output</p>
-                            <hr id="log-line" />
-                        {/*END TASK LOG*/}
+                    {/*TASK LOG*/}
+                        <p className="body-text" id="log-label">Log</p>
+                        <div id="log-box" />
+                        {/*TODO - add in actions*/}
+                        <p id="log-num">#</p>
+                        <p id="log-site">Site</p>
+                        <p id="log-output">Output</p>
+                        <hr id="log-line" />
+                    {/*END TASK LOG*/}
 
-                        {/*VIEW TASK*/}
-                        <p className="body-text" id="view-label">View</p>
-                        <div id="view-box" />
-                        <p id="view-num">#</p>
-                        <p id="view-product">Product</p>
-                        <p id="view-size">Size</p>
-                        <p id="view-billings">Billings</p>
-                        <p id="view-pairs"># Pairs</p>
-                        <p id="view-actions">Actions</p>
-                        <hr id="view-line" />
-                        <div id="view-scroll-box">
-                            <table>
-                                { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
-                            </table>
-                        </div>
-                        <img src={startAll} id="start-all" onClick={this.startAllTasks} draggable="false" />
-                        <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} draggable="false" />
-                        <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} draggable="false" />
-                        {/*END VIEW TASK*/}
+                    {/*VIEW TASK*/}
+                    <p className="body-text" id="view-label">View</p>
+                    <div id="view-box" />
+                    <p id="view-num">#</p>
+                    <p id="view-product">Product</p>
+                    <p id="view-size">Size</p>
+                    <p id="view-billings">Billings</p>
+                    <p id="view-pairs"># Pairs</p>
+                    <p id="view-actions">Actions</p>
+                    <hr id="view-line" />
+                    <div id="view-scroll-box">
+                        <table>
+                            { this.state.tasks.forEach((task) => {return <ViewTask data={task} />}) }
+                        </table>
                     </div>
+                    <img src={startAll} id="start-all" onClick={this.startAllTasks} draggable="false" />
+                    <img src={stopAll} id="stop-all" onClick={this.stopAllTasks} draggable="false" />
+                    <img src={destroyAll} id="destroy-all" onClick={this.destroyAllTasks} draggable="false" />
+                    {/*END VIEW TASK*/}
                 </div>
-            </EnsureAuthorization>
+            </div>
         );
     }
 }
@@ -185,4 +183,4 @@ Tasks.propTypes = {
 	location: PropTypes.object
 };
 
-export default Tasks;
+export default EnsureAuthorization(Tasks);

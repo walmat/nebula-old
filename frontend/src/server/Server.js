@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {profileActions, SERVER_FIELDS, serverActions} from "../state/Actions";
 import {connect} from "react-redux";
+import EnsureAuthorization from '../EnsureAuthorization'
 
 import '../App.css';
 import './Server.css';
@@ -148,4 +149,4 @@ const mapDispatchToProps = (dispatch) => {
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Server);
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Server));

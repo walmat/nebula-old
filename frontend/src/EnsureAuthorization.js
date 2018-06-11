@@ -4,58 +4,60 @@ import { Provider } from 'react-redux';
 import {BrowserRouter, Route, Switch, Redirect} from 'react-router-dom';
 import { ENGINE_METHOD_CIPHERS } from 'constants';
 
-const REACT_APP_DISCORD_ID = process.env.REACT_APP_DISCORD_ID;
-const redirect = 'http://localhost:3000/auth';
-const authURL = `https://discordapp.com/oauth2/authorize?client_id=${REACT_APP_DISCORD_ID}&scope=identify&response_type=code&redirect_uri=${redirect}`;
-
-class EnsureAuthorization extends Component {
-    constructor(props) {
-        super(props);
-    }
-
-    handleAuthentication = async () => {
-        let token = localStorage.getItem('authToken');
-        if (!token) {
-            // login
-            return window.location = authURL
-        }
-
-        // check that token is valid
-        let response = await fetch('http://localhost:8080/auth',
-        {
-            method: "GET",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'x-access-token': token
+export default function (ComposedComponent) {
+    class EnsureAuthorization extends Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                authenticated: true
             }
-        });
+        }
 
-        let result = await response.json();
-        if (!result.auth) {
-            window.location = authURL
+        checkAuthentication = async () => {
+            try {
+                let token = localStorage.getItem('authToken');
+                console.log('TOKEN', token);
+                if (!token) {
+                    // login
+                    this.props.history.push('/auth');
+                }
+
+                // check that token is valid
+                let response = await fetch('http://localhost:8080/auth',
+                {
+                    method: "GET",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'x-access-token': token
+                    }
+                });
+
+                console.log('RESPONSE', response);
+
+                let result = await response.json();
+                console.log('RESULT', result);
+                if (!result.auth) {
+                    return this.props.history.push('/auth');
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+
+        componentDidMount = async () => {
+            await this.checkAuthentication();
+        }
+
+        render() {
+            return <ComposedComponent {...this.props} {...this.state} />;
         }
     }
 
-    async componentDidMount() {
-        console.log(this.props.location);
-        //TODO At some point we should add a timestamp to when the token was created.
-        //This will allow us to know when to refresh and allow us to track if we already ensured we are authorized in the state of this component
-        //Therefor we will have less calls going out to the nebula api and better performance
-        if (this.props.location.pathname !== '/auth') {
-            this.handleAuthentication();
-        }
-    }
+    EnsureAuthorization.propTypes = {
+      location: PropTypes.object,
+      history: PropTypes.object
+    };
 
-    render() {
-        return this.props.children;
-    }
+    return EnsureAuthorization;
 }
-
-EnsureAuthorization.propTypes = {
-  children: PropTypes.node,
-  location: PropTypes.object,
-  history: PropTypes.object
-};
-
-export default EnsureAuthorization;

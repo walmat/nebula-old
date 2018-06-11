@@ -8,12 +8,11 @@ import Profiles from './profiles/Profiles';
 import Server from './server/Server';
 import Settings from './settings/Settings';
 import Auth from './auth/Auth';
-import EnsureAuthorization from './EnsureAuthorization';
-
 import './App.css';
 
 class App extends Component {
     render() {
+        /*The Router path='/' must always be last, otherwise you get a horrible routing bug that I got burned on :(!!!*/
         return (
             <Provider store = {this.props.store}>
               <BrowserRouter>
@@ -26,10 +25,10 @@ class App extends Component {
                             <Route component={Profiles} path='/profiles' />
                             <Route component={Server} path='/server'/>
                             <Route component={Settings} path='/settings'/>
+                            <Route component={Auth} path='/auth' />
                             <Route path='/'>
                                 <Redirect to='/tasks' />
                             </Route>
-                            <Route component={Auth} path='/auth' />
                         </Switch>
                     </div>
                 </div>

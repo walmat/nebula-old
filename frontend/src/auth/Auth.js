@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 
-const REACT_APP_DISCORD_ID = process.env.REACT_APP_DISCORD_ID;
 const REACT_APP_DISCORD_SECRET = process.env.REACT_APP_DISCORD_SECRET;
+const REACT_APP_DISCORD_ID = process.env.REACT_APP_DISCORD_ID;
 const redirect = 'http://localhost:3000/auth';
+const authURL = `https://discordapp.com/oauth2/authorize?client_id=${REACT_APP_DISCORD_ID}&scope=identify&response_type=code&redirect_uri=${redirect}`;
 
 class Auth extends Component {
 	constructor(props) {
@@ -16,37 +17,48 @@ class Auth extends Component {
 
 	async componentDidMount() {
 		try {
-            console.log('hey!!')
-			const params = queryString.parse(this.props.location.search);
-			const discordCode = params.code;
-			const nebulaCredentials = btoa(`${REACT_APP_DISCORD_ID}:${REACT_APP_DISCORD_SECRET}`);
-			let response = await fetch(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${discordCode}&redirect_uri=${redirect}`,
-			{
-                method: 'POST',
-                headers: {
-                    Authorization: `Basic ${nebulaCredentials}`,
-                },
-			});
-			let discordAuthInfo = await response.json();
+            const params = queryString.parse(this.props.location.search);
+            if (params.code) {
+                const discordCode = params.code;
+                const nebulaCredentials = btoa(`${REACT_APP_DISCORD_ID}:${REACT_APP_DISCORD_SECRET}`);
+                let response = await fetch(`https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${discordCode}&redirect_uri=${redirect}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Basic ${nebulaCredentials}`,
+                    },
+                });
+                let discordAuthInfo = await response.json();
 
-			if (discordAuthInfo.error) {
-				this.setState({error: true});
-				return;
-			}
+                if (discordAuthInfo.error) {
+                    this.setState({error: true});
+                    return;
+                }
 
-			// we got the discord auth info, now get the user informaiton
-			response = await fetch(`http://localhost:8080/user/${discordAuthInfo.access_token}`, {
-				method: 'GET',
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json'
-				}
-			});
+                // we got the discord auth info, now get the jwt token
+                response = await fetch(`http://localhost:8080/user/${discordAuthInfo.access_token}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-			let userInfo = await response.json();
-			console.log(userInfo);
+                let result = await response.json();
 
-			//check the discord uid against the server and get the registration key
+                if (!result.auth) {
+                    this.setState({error: true});
+                    return;
+                }
+
+                localStorage.setItem('authToken', result.token);
+                console.log(this.props.history.go(-2));
+            } else {
+                // redirect to discord for token
+                window.location = authURL
+            }
+
+
 
 		} catch (err) {
 			console.log(err);
