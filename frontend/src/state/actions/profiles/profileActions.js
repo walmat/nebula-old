@@ -1,4 +1,4 @@
-import makeActionCreator from '../actionCreator';
+import makeActionCreator from '../ActionCreator';
 
 // Top level Actions
 export const PROFILE_ACTIONS = {
@@ -36,30 +36,11 @@ export const PROFILE_FIELDS = {
   EDIT_NAME: 'EDIT_NAME',
 };
 
-export const LOCATION_FIELDS = {
-  FIRST_NAME: 'firstName',
-  LAST_NAME: 'lastName',
-  ADDRESS: 'address',
-  APT: 'apt',
-  CITY: 'city',
-  ZIP_CODE: 'zipCode',
-  PHONE_NUMBER: 'phone',
-  COUNTRY: 'country',
-  STATE: 'state',
-};
-
-export const PAYMENT_FIELDS = {
-  EMAIL: 'email',
-  CARD_NUMBER: 'cardNumber',
-  EXP: 'exp',
-  CVV: 'cvv',
-};
-
 export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_SHIPPING]: 'shipping',
   [PROFILE_FIELDS.EDIT_BILLING]: 'billing',
   [PROFILE_FIELDS.EDIT_PAYMENT]: 'payment',
   [PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
-  [PROFILE_FIELDS.EDIT_NAME]: 'profileName',
+  [PROFILE_FIELDS.EDIT_NAME]: 'name',
 };

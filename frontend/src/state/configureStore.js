@@ -1,17 +1,17 @@
 import { createStore, applyMiddleware } from 'redux';
-import topLevelReducer, { initialState } from './reducers';
-import profileAttributeValidationMiddleware from './middleware/profiles/profileAttributeValidationMiddleware';
-import profileFormValidationMiddleware from './middleware/profiles/profileFormValidationMiddleware';
-import profileApiMiddleware from './middleware/profiles/profileFormApiMiddleware';
+import topLevelReducer, { initialState } from './Reducers';
+import paymentFormValidationMiddleware from './middleware/profiles/paymentFormValidationMiddleware';
+import locationFormValidationMiddleware from './middleware/profiles/locationFormValidationMiddleware';
+import { PROFILE_FIELDS } from './Actions';
 
 export default function configureStore() {
   return createStore(
     topLevelReducer,
     initialState,
     applyMiddleware(
-      profileAttributeValidationMiddleware,
-      profileFormValidationMiddleware,
-      profileApiMiddleware,
+      paymentFormValidationMiddleware,
+      locationFormValidationMiddleware(PROFILE_FIELDS.EDIT_SHIPPING),
+      locationFormValidationMiddleware(PROFILE_FIELDS.EDIT_BILLING),
     ),
   );
 }
