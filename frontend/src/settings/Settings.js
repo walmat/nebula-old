@@ -9,6 +9,10 @@ import './Settings.css';
 import {SETTINGS_FIELDS, settingsActions} from "../state/Actions";
 import {connect} from "react-redux";
 
+/* global require */
+const electron = window.require('electron');
+const ipcRenderer = electron.ipcRenderer;
+
 
 class Settings extends Component {
 
@@ -46,6 +50,8 @@ class Settings extends Component {
         //     // when you should delete the corresponding element.
         //     youtube = null
         // })
+
+        ipcRenderer.send('window-event', 'launchYoutube');
     };
 
     /*

@@ -16,6 +16,10 @@ import logoAnimation from './nebula';
 import './Navbar.css';
 import Bodymovin from './Bodymovin';
 
+/* global require */
+const electron = window.require('electron');
+const ipcRenderer = electron.ipcRenderer;
+
 // const bodymovinOptions = {
 //     loop: true,
 //     autoplay: true,
@@ -64,7 +68,7 @@ class Navbar extends Component {
      */
     closeBot = async () => {
         //TODO - close ALL windows..
-        window.close();
+        ipcRenderer.send('window-event', 'quit');
     };
 
     /**
