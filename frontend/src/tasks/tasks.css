@@ -1,0 +1,335 @@
+/* CREATE SPECIFIC IDS */
+    #create-label {
+        margin: 0;
+        position: absolute;
+        top: 101px;
+        left: 140px;
+    }
+
+    #sku-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:134px;
+        left:153px;
+        width: 42px;
+        height: 12px;
+    }
+
+    #sku {
+        position: absolute;
+        top:150px;
+        left:153px;
+        width: 252px;
+        height: 29px;
+        border: 1px solid #F0405E;
+    }
+
+    #profiles {
+        position: absolute;
+        top:205px;
+        left:153px;
+        width: 252px;
+        height: 29px;
+        border: 1px solid #F0405E;
+    }
+
+    #dropdown-profiles-arrow {
+        position: absolute;
+        top:209px;
+        left:379px;
+        width: 21px;
+        height: 21px;
+        cursor: pointer;
+    }
+
+    #profiles-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:190px;
+        left:153px;
+        width: 59px;
+        height: 12px;
+    }
+
+    #size {
+        position: absolute;
+        top:261px;
+        left:153px;
+        width: 113px;
+        height: 29px;
+        border: 1px solid #F0405E;
+    }
+
+    #dropdown-size-arrow {
+        position: absolute;
+        top:265px;
+        left:240px;
+        width: 21px;
+        height: 21px;
+        cursor: pointer;
+    }
+
+    #size-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:246px;
+        left:153px;
+        width: 21px;
+        height: 12px;
+    }
+
+    #pairs-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:246px;
+        left:285px;
+        width: 27px;
+        height: 12px;
+    }
+
+    #pairs {
+        position: absolute;
+        top:261px;
+        left:285px;
+        width: 53px;
+        height: 29px;
+        border: 1px solid #F0405E;
+    }
+
+    #submit-tasks {
+        position: absolute;
+        top: 307px;
+        left: 321px;
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        background: #F0405E;
+        border: none;
+        border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #EFEFEF;
+        letter-spacing: 0;
+    }
+
+    #create-box {
+        position: absolute;
+        top: 124px;
+        left: 140px;
+        width: 277px;
+        height: 226px;
+        border: 1px solid #F0405E;
+        border-radius: 3px;
+    }
+/* END CREATE SPECIFIC IDS */
+
+/* VIEW SPECIFIC IDS */
+    #view-label {
+        margin: 0;
+        position: absolute;
+        top: 363px;
+        left: 140px;
+    }
+
+    #view-box {
+        position: absolute;
+        top: 385px;
+        left: 140px;
+        width: 741px;
+        height: 300px;
+        border: 1px solid #F0405E;
+        border-radius: 3px;
+        overflow: scroll;
+    }
+
+    #view-num {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 392px;
+        left: 175px;
+        width: 7px;
+        height: 16px;
+    }
+
+    #view-product {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 392px;
+        left: 220px;
+        width: 43px;
+        height: 16px;
+    }
+
+    #view-billings {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 392px;
+        left: 425px;
+        width: 35px;
+        height: 16px;
+    }
+
+    #view-size {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 392px;
+        left: 695px;
+        width: 35px;
+        height: 16px;
+    }
+
+    #view-pairs {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 392px;
+        left: 740px;
+        width: 36px;
+        height: 16px;
+    }
+
+    #view-actions {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 392px;
+        left: 806px;
+        width: 42px;
+        height: 16px;
+    }
+
+    #view-line {
+        margin: 0;
+        border: 1px solid #EDBCC6;
+        position: absolute;
+        top:412.5px;
+        left:141px;
+        width:739px;
+    }
+
+    #start-all {
+        position: absolute;
+        top: 385px;
+        left: 899px;
+        cursor: pointer;
+    }
+
+    #stop-all {
+        position: absolute;
+        top: 454px;
+        left: 899px;
+        cursor: pointer;
+    }
+
+    #destroy-all {
+        position: absolute;
+        top: 523px;
+        left: 899px;
+        cursor: pointer;
+    }
+/* END VIEW SPECIFIC IDS */
+
+/* LOG SPECIFIC IDS */
+    #log-label {
+        margin: 0;
+        position: absolute;
+        top: 26px;
+        left: 449px;
+    }
+
+    #log-box {
+        position: absolute;
+        top: 50px;
+        left: 448px;
+        width: 504px;
+        height: 300px;
+        border: 1px solid #F0405E;
+        border-radius: 3px;
+    }
+
+    #log-num {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 55px;
+        left: 462px;
+        width: 7px;
+        height: 16px;
+    }
+
+    #log-site {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 55px;
+        left: 487px;
+        width: 21px;
+        height: 16px;
+    }
+
+    #log-output {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 55px;
+        left: 657px;
+        width: 40px;
+        height: 16px;
+    }
+
+    #log-line {
+        margin: 0;
+        border: 1px solid #EDBCC6;
+        position: absolute;
+        top:77.5px;
+        left:448.5px;
+        width:503px;
+    }
+/* END LOG SPECIFIC IDS */
