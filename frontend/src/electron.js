@@ -6,7 +6,7 @@ const windowManager = require('electron-window-manager');
  * BrowserWindow - module to create native window browser
  * ipcMain - module to intercept renderer messages
  */
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, ipcMain, session } = require('electron');
 const path = require('path');
 const url = require('url');
 
@@ -110,21 +110,30 @@ ipcMain.on('window-event', (event, arg) => {
   switch (arg) {
     case 'launchYoutube': {
       // open youtube url using youtube window template
-      windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', { parent: mainWindow }, true);
+      windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', { parent: mainWindow }, false);
       break;
     }
     case 'launchHarvester': {
       // open a captcha harvesting window
-      // function(name, title, content, setupTemplate, setup, showDevTools)
-      windowManager.open('captcha', 'Harvester', path.join(__dirname, '../build/captcha.html'), 'captcha', { parent: mainWindow }, true);
+
+      const captchaUrl = url.format({
+          pathname: path.join(__dirname, '/../build/captcha.html'),
+          protocol: 'file:',
+          slashes: true,
+      });
+
+      windowManager.open('captcha', 'Harvester', captchaUrl, 'captcha', { parent: mainWindow }, false);
       break;
     }
     case 'endSession': {
       // closes the YouTube window and signs the user out of that account
       windowManager.closeAllExcept('main');
-      // TODO - sign the user out
-      // session.defaultSession.clearStorageData([]);
-      // session.defaultSession.clearCache();
+      session.defaultSession.clearStorageData({}, () => {
+        //todo - error handle
+      });
+      session.defaultSession.clearCache(() => {
+        //todo - error handle
+      });
       break;
     }
     case 'quit': {
