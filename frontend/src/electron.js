@@ -1,9 +1,13 @@
 const electron = require('electron');
+const windowManager = require('electron-window-manager');
 
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
+
+// IPC Main to intercept requires from the renderer
+const ipcMain = electron.ipcMain;
 
 const path = require('path');
 const url = require('url');
@@ -13,9 +17,23 @@ const url = require('url');
 let mainWindow, authWindow, captchaWindow;
 
 function startMainWindow() {
+    // Create a youtube window template
+    windowManager.templates.set('youtube', {
+        width: 700,
+        height: 600,
+        center: true,
+        frame: true,
+        fullscreenable: false,
+        movable: true,
+        resizable: true,
+        webPreferences: {
+            nodeIntegration: true,
+            preload: 'preload.js'
+        },
+    });
 
-    // Create the browser window.
-    mainWindow = new BrowserWindow({
+    // Set the default browser window settings
+    windowManager.setDefaultSetup({
         width: 1000,
         height: 715,
         center: true,
@@ -25,8 +43,12 @@ function startMainWindow() {
         resizable: false,
         icon: path.join(__dirname, '_assets/icons/png/64x64.png'),
         webPreferences: {
-            nodeIntegration: false,
+            nodeIntegration: true,
             preload: 'preload.js'
+        },
+        'onLoadFailure': function(window) {
+            console.log('window load failure');
+            console.log(window);
         }
     });
 
@@ -36,18 +58,11 @@ function startMainWindow() {
         protocol: 'file:',
         slashes: true
     });
-    mainWindow.loadURL(startUrl);
 
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // Use window manager to create main window
+    mainWindow = windowManager.createNew('main', 'NEBULA', startUrl, null, null, true);
 
-    // Emitted when the window is closed.
-    mainWindow.on('closed', function () {
-        // Dereference the window object, usually you would store windows
-        // in an array if your app supports multi windows, this is the time
-        // when you should delete the corresponding element.
-        mainWindow = null
-    })
+    mainWindow.open();
 }
 
 // This method will be called when Electron has finished
@@ -61,8 +76,7 @@ app.on('ready', function () {
 app.on('window-all-closed', app.quit);
 
 app.on('before-quit', () => {
-    mainWindow.removeAllListeners('close');
-    mainWindow.close();
+    windowManager.closeAll();
 });
 
 app.on('activate', function () {
@@ -74,3 +88,18 @@ app.on('activate', function () {
 });
 
 //From here, React should handle what the Electron app does
+ipcMain.on('window-event', (event, arg) => {
+    switch (arg) {
+        case 'launchYoutube': {
+            // open youtube url using youtube window template
+            windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', {parent: mainWindow}, true);
+            break;
+        }
+        case 'quit': {
+            app.quit();
+            break;
+        }
+        default:
+            break;
+    }
+});

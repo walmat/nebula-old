@@ -9,6 +9,10 @@ import './Settings.css';
 import {SETTINGS_FIELDS, settingsActions} from "../state/Actions";
 import {connect} from "react-redux";
 
+/* global require */
+const electron = window.require('electron');
+const ipcRenderer = electron.ipcRenderer;
+
 
 class Settings extends Component {
 
@@ -24,28 +28,7 @@ class Settings extends Component {
     * and then redirects to youtube.
     */
     launchYoutube = async () => {
-        // let youtube = new BrowserWindow({
-        //     width: 400,
-        //     height: 600,
-        //     center: true,
-        //     frame: true,
-        //     fullscreenable: false,
-        //     movable: true,
-        //     resizable: false,
-        //     webPreferences: {
-        //         nodeIntegration: false,
-        //         preload: 'preload.js'
-        //     }
-        // });
-        // youtube.loadURL('http://youtube.com');
-        //
-        // // Emitted when the window is closed.
-        // youtube.on('closed', function () {
-        //     // Dereference the window object, usually you would store windows
-        //     // in an array if your app supports multi windows, this is the time
-        //     // when you should delete the corresponding element.
-        //     youtube = null
-        // })
+        ipcRenderer.send('window-event', 'launchYoutube');
     };
 
     /*

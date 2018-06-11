@@ -11,7 +11,7 @@ const unsubscribe = store.subscribe(() =>
 )
 
 ReactDOM.render(
-  <App store = {store} />,
+  <App store = {store} nodeIntegration="true"/>,
   document.getElementById('root')
 );
 registerServiceWorker();
