@@ -1,5 +1,5 @@
 import regexes from '../validation';
-import { PAYMENT_FIELDS } from '../../state/Actions';
+import { PAYMENT_FIELDS } from '../../state/actions';
 
 function validateEmail(email) {
   return email && regexes.email.test(email);
