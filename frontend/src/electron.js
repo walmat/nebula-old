@@ -27,8 +27,8 @@ function startMainWindow() {
         movable: true,
         resizable: true,
         webPreferences: {
-            nodeIntegration: true,
-            preload: 'preload.js'
+            nodeIntegration: false,
+            preload: __dirname + '/preload.js',
         },
     });
 
@@ -43,8 +43,8 @@ function startMainWindow() {
         resizable: false,
         icon: path.join(__dirname, '_assets/icons/png/64x64.png'),
         webPreferences: {
-            nodeIntegration: true,
-            preload: 'preload.js'
+            nodeIntegration: false,
+            preload: __dirname + '/preload.js',
         },
         'onLoadFailure': function(window) {
             console.log('window load failure');

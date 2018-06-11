@@ -16,10 +16,6 @@ import logoAnimation from './nebula';
 import './Navbar.css';
 import Bodymovin from './Bodymovin';
 
-/* global require */
-const electron = window.require('electron');
-const ipcRenderer = electron.ipcRenderer;
-
 // const bodymovinOptions = {
 //     loop: true,
 //     autoplay: true,
@@ -67,8 +63,11 @@ class Navbar extends Component {
      * AKA:: they won't see the auth screen upon next launch
      */
     closeBot = async () => {
-        //TODO - close ALL windows..
-        ipcRenderer.send('window-event', 'quit');
+        if (window.Bridge) {
+            window.Bridge.quit();
+        } else {
+            console.error('Unable to quit!');
+        }
     };
 
     /**
