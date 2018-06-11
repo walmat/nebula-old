@@ -5,8 +5,9 @@ const windowManager = require('electron-window-manager');
  * app - module to control application life.
  * BrowserWindow - module to create native window browser
  * ipcMain - module to intercept renderer messages
+ * session - where localstorage and cache is stored
  */
-const { app, ipcMain } = require('electron');
+const { app, ipcMain, session } = require('electron');
 const path = require('path');
 const url = require('url');
 
@@ -123,9 +124,12 @@ ipcMain.on('window-event', (event, arg) => {
     case 'endSession': {
       // closes the YouTube window and signs the user out of that account
       windowManager.closeAllExcept('main');
-      // TODO - sign the user out
-      // session.defaultSession.clearStorageData([]);
-      // session.defaultSession.clearCache();
+      session.defaultSession.clearStorageData({}, () => {
+        //error handling
+      });
+      session.defaultSession.clearCache(() => {
+        //error handling
+      });
       break;
     }
     case 'quit': {
