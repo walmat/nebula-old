@@ -4,6 +4,7 @@ import LocationFields from './LocationFields';
 import validationStatus from '../utils/validationStatus';
 import './Profiles.css';
 import PropTypes from 'prop-types';
+import EnsureAuthorization from '../EnsureAuthorization';
 
 import { connect } from 'react-redux';
 import { profileActions, PROFILE_FIELDS } from '../state/Actions';
@@ -27,12 +28,14 @@ class Profiles extends Component {
     componentDidMount = async () => {
         // this.props.history.push('/login');
         /*FETCH THE PROFILES FROM THE API*/
-        let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
+        let token = localStorage.getItem('authToken');
+        let result = await fetch(`http://localhost:8080/profiles`,
             {
                 method: "GET",
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'x-access-token': token
                 }
             });
         let profiles = (await result.json()).profiles;
@@ -211,4 +214,4 @@ const mapDispatchToProps = (dispatch) => {
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Profiles);
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Profiles));
