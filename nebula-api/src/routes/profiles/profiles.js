@@ -25,7 +25,7 @@ function emptyStringsToNull(profile) {
 }
 
 module.exports = async function(app) {
-    app.get('/profiles', authenticate, async function(user, req, res) {
+    app.get('/profiles', authenticate, async function(req, res) {
         try {
             let params = {
                 TableName : 'Profiles',
@@ -34,7 +34,7 @@ module.exports = async function(app) {
                     '#discordId': 'discordId'
                 },
                 ExpressionAttributeValues: {
-                    ":discordId": user.discordId
+                    ":discordId": req.user.discordId
                 }
             };
 

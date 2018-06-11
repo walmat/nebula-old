@@ -1,11 +1,19 @@
 const jwt = require('jsonwebtoken');
+const AWS = require('aws-sdk');
+AWS.config = {
+    region: "us-west-2",
+    endpoint: "http://localhost:8000",
+    accessKeyId: 'local',
+    secretAccessKey: 'local'
+}
+let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint('http://localhost:8000') });
 
 async function isValidUser(discordId, registrationKey) {
-    console.log('Hey')
     let params = {
         TableName : 'Users',
         Key: discordId,
-        KeyConditionExpression: '#discordId = :discordId AND #registrationKey = :registrationKey',
+        KeyConditionExpression: '#discordId = :discordId',
+        FilterExpression: '#registrationKey = :registrationKey',
         ExpressionAttributeNames:{
             '#discordId': 'discordId',
             '#registrationKey': 'registrationKey'
@@ -32,29 +40,34 @@ module.exports = async function(req, res, next) {
     }
 
     jwt.verify(token, process.env.NEBULA_API_JWT_SECERT, async function(error, decoded) {
-        if (error) {
-            return res.status(401).json({
-                error
+        try {
+            if (error) {
+                return res.status(401).json({
+                    error
+                });
+            }
+
+            let discordId = decoded.user.discordId;
+            let registrationKey = decoded.user.registrationKey;
+
+            if (await isValidUser(discordId, registrationKey)) {
+                req.user = {
+                    discordId,
+                    registrationKey
+                };
+                return next();
+            }
+
+            return res.status(404).send({
+                error: {
+                    name: 'InvalidUser',
+                    message: 'Not a valid user'
+                }
             });
+        } catch (err) {
+            console.log('Authentication error: ', err);
         }
 
-        let discordId = decoded.discordId;
-        let registrationKey = decoded.registrationKey;
-
-        if (await isValidUser(discordId, registrationKey)) {
-            let user = {
-                discordId,
-                registrationKey
-            }
-            return next(user);
-        }
-
-        return res.status(404).send({
-            error: {
-                name: 'InvalidUser',
-                message: 'Not a valid user'
-            }
-        });
     });
 
 };
