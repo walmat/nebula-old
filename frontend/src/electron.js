@@ -45,7 +45,7 @@ function startMainWindow() {
         webPreferences: {
             nodeIntegration: true,
             preload: 'preload.js'
-        }, 
+        },
         'onLoadFailure': function(window) {
             console.log('window load failure');
             console.log(window);
@@ -92,14 +92,14 @@ ipcMain.on('window-event', (event, arg) => {
     switch (arg) {
         case 'launchYoutube': {
             // open youtube url using youtube window template
-            windowManager.open('youtube', 'YOUTUBE', 'https://www.youtube.com', 'youtube', {parent: mainWindow}, true);
+            windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', {parent: mainWindow}, true);
             break;
         }
         case 'quit': {
             app.quit();
             break;
         }
-        default: 
+        default:
             break;
     }
 });
