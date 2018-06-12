@@ -45,14 +45,13 @@ class Auth extends Component {
                 });
 
                 let result = await response.json();
-
                 if (!result.auth) {
                     this.setState({error: true});
                     return;
                 }
 
                 localStorage.setItem('authToken', result.token);
-                console.log(this.props.history.go(-2));
+                this.props.history.push('/tasks');
             } else {
                 // redirect to discord for token
                 window.location = authURL

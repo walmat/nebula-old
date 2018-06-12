@@ -13,9 +13,6 @@ app.use(express.urlencoded()); // to support URL-encoded bodies
 app.use((req, res, next) => {
     const origin = req.get('origin');
 
-    console.log(origin);
-
-    //TODO - figure out what origin should be and block all others
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');

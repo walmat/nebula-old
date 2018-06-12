@@ -16,7 +16,6 @@ export default function (ComposedComponent) {
         checkAuthentication = async () => {
             try {
                 let token = localStorage.getItem('authToken');
-                console.log('TOKEN', token);
                 if (!token) {
                     // login
                     this.props.history.push('/auth');
@@ -33,10 +32,7 @@ export default function (ComposedComponent) {
                     }
                 });
 
-                console.log('RESPONSE', response);
-
                 let result = await response.json();
-                console.log('RESULT', result);
                 if (!result.auth) {
                     return this.props.history.push('/auth');
                 }

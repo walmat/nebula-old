@@ -1,0 +1,28 @@
+Guide on how to set up your local dev environment to be Authenticated. This will change as we develop the app.
+
+1. Download dynamodb from Amazon https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html
+    I. Put the extracted folder wherever you want. I threw mine in nebula. We currently ignore the folder calledd dynamodb_local
+    II. Run java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb to start the local dynamodb
+
+2. Go into the nebula-api directory
+    I. node dynamoDBDeleteTables.js (may need to do node dynamoDBDeleteTables if you previously had tables set up that are no longer valid)
+    II. node generateKey.js Grab the key that is generated.
+
+3. Go into discord-bot
+    I. Get the config.json from another developer. This has the secert key for the discord bot
+    II. npm install
+    III. npm start
+    IV. Got to nebula discord server and message the nebula bot directly with the following message: !bind <registation key>
+
+Your discord account is now registered with nebula :D
+
+4. Go back into nebula-api directory
+    I. npm install
+    II. npm start
+
+5. Go into frontend
+    I. npm install
+    II. npm start
+
+At this point you should be prompted to approve authentication from discord. After that you will have access :D.
+Every seven days the token will expire at which point discord will ask for approval again.
