@@ -117,9 +117,9 @@ ipcMain.on('window-event', (event, arg) => {
       // open a captcha harvesting window
 
       const captchaUrl = url.format({
-          pathname: path.join(__dirname, '/../build/captcha.html'),
-          protocol: 'file:',
-          slashes: true,
+        pathname: path.join(__dirname, '/../build/captcha.html'),
+        protocol: 'file:',
+        slashes: true,
       });
 
       windowManager.open('captcha', 'Harvester', captchaUrl, 'captcha', { parent: mainWindow }, false);
@@ -129,10 +129,10 @@ ipcMain.on('window-event', (event, arg) => {
       // closes the YouTube window and signs the user out of that account
       windowManager.closeAllExcept('main');
       session.defaultSession.clearStorageData({}, () => {
-        //todo - error handle
+        // todo - error handle
       });
       session.defaultSession.clearCache(() => {
-        //todo - error handle
+        // todo - error handle
       });
       break;
     }
