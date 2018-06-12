@@ -2,6 +2,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 class ViewTask extends Component {
+  constructor(props) {
+    super(props);
+    this.createTable = this.createTable.bind(this);
+  }
+
   createTable() {
     const tableRow = [];
 

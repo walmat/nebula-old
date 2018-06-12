@@ -20,6 +20,15 @@ import checkboxChecked from '../_assets/Check_icons-01.svg';
 // TODO Loading when getting profiles
 
 class Profiles extends Component {
+  constructor(props) {
+    super(props);
+    this.onProfileChange = this.onProfileChange.bind(this);
+    this.saveProfile = this.saveProfile.bind(this);
+    this.deleteProfile = this.deleteProfile.bind(this);
+    this.loadProfile = this.loadProfile.bind(this);
+    this.buildProfileOptions = this.buildProfileOptions.bind(this);
+  }
+
   async componentDidMount() {
     // this.props.history.push('/login');
     // THIS WILL BE HANDLED IN A MIDDLEWARE

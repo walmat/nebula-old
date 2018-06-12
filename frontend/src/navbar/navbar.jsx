@@ -77,6 +77,7 @@ class Navbar extends Component {
         settingsIcon: settings,
       },
     };
+    this.updateIcons = this.updateIcons.bind(this);
   }
 
   componentDidMount() {

@@ -14,6 +14,10 @@ class Server extends Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.buildServerChoices = this.buildServerChoices.bind(this);
+    this.buildServerSizeChoices = this.buildServerSizeChoices.bind(this);
+    this.buildServerLocationChoices = this.buildServerLocationChoices.bind(this);
+    this.createServer = this.createServer.bind(this);
   }
 
   buildServerChoices() {
