@@ -23,6 +23,11 @@ class CreateTask extends Component {
       (<option key={profile.name} value={profile.name}>{profile.name}</option>));
   }
 
+  constructor(props) {
+    super(props);
+    this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
+  }
+
   createOnChangeHandler(field) {
     return (event) => {
       this.props.onChange({ field, value: event.target.value });
