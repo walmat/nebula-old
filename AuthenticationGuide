@@ -7,6 +7,8 @@ Guide on how to set up your local dev environment to be Authenticated. This will
 2. Go into the nebula-api directory
     I. node dynamoDBDeleteTables.js (may need to do node dynamoDBDeleteTables if you previously had tables set up that are no longer valid)
     II. node generateKey.js Grab the key that is generated.
+    III. npm install (just in case it hasn't been run)
+    IV. npm start
 
 3. Go into discord-bot
     I. Get the config.json from another developer. This has the secert key for the discord bot
@@ -15,10 +17,6 @@ Guide on how to set up your local dev environment to be Authenticated. This will
     IV. Got to nebula discord server and message the nebula bot directly with the following message: !bind <registation key>
 
 Your discord account is now registered with nebula :D
-
-4. Go back into nebula-api directory
-    I. npm install
-    II. npm start
 
 5. Go into frontend
     I. npm install
