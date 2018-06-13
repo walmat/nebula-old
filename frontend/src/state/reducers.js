@@ -22,9 +22,20 @@ export const initialState = {
   currentTask: initialTaskState,
   proxies: initialSettingsState,
   selectedServer: initialServerState,
-  serverName: initialServerState,
-  serverSize: initialServerState,
-  serverLocation: initialServerState,
+  servers: [
+    {
+      type: 'test1', name: 'test1', size: 'small', location: 'Midwest',
+    },
+    {
+      type: 'test2', name: 'test2', size: 'medium', location: 'East',
+    },
+    {
+      type: 'test3', name: 'test3', size: 'large', location: 'West',
+    },
+    {
+      type: 'test4', name: 'test4', size: 'extra-large', location: 'South',
+    },
+  ],
 };
 
 const topLevelReducer = (state = initialState, action) => {
@@ -36,9 +47,6 @@ const topLevelReducer = (state = initialState, action) => {
     selectedProfile: selectedProfileReducer(state.selectedProfile, action),
     proxies: settingsReducer(state.proxies, action),
     selectedServer: serverReducer(state.selectedServer, action),
-    serverName: serverReducer(state.serverName, action),
-    serverSize: serverReducer(state.serverSize, action),
-    serverLocation: serverReducer(state.serverLocation, action),
   };
 
   return Object.assign({}, state, changes);

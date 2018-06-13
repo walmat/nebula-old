@@ -1,50 +1,68 @@
 import {
   SERVER_FIELDS,
   SERVER_ACTIONS,
+  mapServerFieldToKey,
 } from '../../actions';
 
 export const initialServerState = {
-  AWSCredentials: {
+  credentials: {
     AWSUsername: '',
     AWSPassword: '',
+    errors: {
+      AWSUsername: null,
+      AWSPassword: null,
+    },
   },
-  proxies: {
+  proxy: {
     numProxies: 0,
-    proxy: {
+    id: null,
+    ip: '',
+    port: '',
+    username: '',
+    password: '',
+    errors: {
       id: null,
-      ip: '',
-      port: '',
-      username: '',
-      password: '',
+      ip: null,
+      port: null,
+      username: null,
+      password: null,
+      numProxies: null,
     },
   },
   server: {
-    name: '',
+    type: '',
     size: '',
     location: '',
-  },
-  errors: {
-    // todo - fill these out
+    errors: {
+      type: null,
+      size: null,
+      location: null,
+    },
   },
 };
 
 export function serverReducer(state = initialServerState, action) {
+  // initialize change object
   let change = {};
+  // Deep copy the current state
+  const nextState = JSON.parse(JSON.stringify(state));
+  // Check if we are performing an edit
   if (action.type === SERVER_ACTIONS.EDIT) {
+    // Choose what to change based on the field
     switch (action.field) {
-      case SERVER_FIELDS.EDIT_SERVER_CHOICE:
+      case SERVER_FIELDS.EDIT_SERVER_TYPE:
         change = {
-          server: action.value,
+          type: action.value,
         };
         break;
       case SERVER_FIELDS.EDIT_SERVER_SIZE:
         change = {
-          serverSize: action.value,
+          size: action.value,
         };
         break;
       case SERVER_FIELDS.EDIT_SERVER_LOCATION:
         change = {
-          serverLocation: action.value,
+          location: action.value,
         };
         break;
       case SERVER_FIELDS.EDIT_PROXY_NUMBER:
@@ -54,28 +72,44 @@ export function serverReducer(state = initialServerState, action) {
         break;
       case SERVER_FIELDS.EDIT_PROXY_USERNAME:
         change = {
-          proxyUsername: action.value,
+          username: action.value,
         };
         break;
       case SERVER_FIELDS.EDIT_PROXY_PASSWORD:
         change = {
-          proxyPassword: action.value,
+          password: action.value,
+        };
+        break;
+      case SERVER_FIELDS.EDIT_AWS_USERNAME:
+        change = {
+          AWSUsername: action.value,
+        };
+        break;
+      case SERVER_FIELDS.EDIT_AWS_PASSWORD:
+        change = {
+          AWSPassword: action.value,
         };
         break;
       default:
-        change = {};
+        return nextState;
     }
-  } else if (action.type === SERVER_ACTIONS.ADD && action.field === SERVER_FIELDS.ADD) {
-    change = {
-      selectedServer: action.value,
-    };
-  } else if (action.type === SERVER_ACTIONS.REMOVE && action.field === SERVER_FIELDS.REMOVE) {
-    change = {
-      selectedServer: action.value, // TODO maybe this is wrong??
-    };
+    // Update the correct errors map
+    change.errors = Object.assign(
+      {},
+      state[mapServerFieldToKey[action.field]].errors, action.errors,
+    );
+
+    // Edit the correct part of the next state based on the given field
+    nextState[mapServerFieldToKey[action.field]] =
+      Object.assign(
+        {},
+        nextState[mapServerFieldToKey[action.field]],
+        change,
+      );
   }
 
+  // TEMPORARY
   console.log(action, change);
 
-  return Object.assign({}, state, change);
+  return nextState;
 }
