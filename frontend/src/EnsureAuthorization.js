@@ -1,8 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Provider } from 'react-redux';
-import {BrowserRouter, Route, Switch, Redirect} from 'react-router-dom';
-import { ENGINE_METHOD_CIPHERS } from 'constants';
 
 export default function (ComposedComponent) {
     class EnsureAuthorization extends Component {
