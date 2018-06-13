@@ -1,17 +1,14 @@
-import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import createApp from './app';
 import registerServiceWorker from './registerServiceWorker';
-import configureStore from './state/ConfigureStore';
+import configureStore from './state/configureStore';
 
 const store = configureStore();
 
-const unsubscribe = store.subscribe(() =>
-  console.log(store.getState())
-)
+store.subscribe(() => console.log(store.getState()));
 
 ReactDOM.render(
-  <App store = {store} />,
-  document.getElementById('root')
+  createApp(store),
+  document.getElementById('root'),
 );
 registerServiceWorker();
