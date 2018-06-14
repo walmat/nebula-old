@@ -4,9 +4,5 @@
 node_modules
 
 # private files
-config.json
-package-lock.json
-sites.json
-users.json
-valid_keys.json
 .eslintrc.json
+config.json

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import EnsureAuthorization from '../EnsureAuthorization';
 
 import ViewTask from './viewTask';
 import CreateTask from './createTask';
@@ -207,4 +208,4 @@ const mapStateToProps = state => ({
   tasks: state.tasks,
 });
 
-export default connect(mapStateToProps)(Tasks);
+export default EnsureAuthorization(connect(mapStateToProps)(Tasks));

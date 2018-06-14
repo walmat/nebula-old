@@ -13,13 +13,10 @@ app.use(express.urlencoded()); // to support URL-encoded bodies
 app.use((req, res, next) => {
     const origin = req.get('origin');
 
-    console.log(origin);
-
-    //TODO - figure out what origin should be and block all others
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, x-access-token');
 
     // intercept OPTIONS method
     if (req.method === 'OPTIONS') {
@@ -36,7 +33,8 @@ let server = require('./routes/server');
 let settings = require('./routes/settings');
 let getUser = require('./routes/user/getUser');
 let createUser = require('./routes/user/createUser');
-tasks(app); profiles(app); server(app); settings(app); createUser(app); getUser(app);
+let auth = require('./routes/auth');
+tasks(app); profiles(app); server(app); settings(app); createUser(app); getUser(app); auth(app);
 
 app.listen(port);
 
