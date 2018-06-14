@@ -83,8 +83,8 @@ class Auth extends Component {
 }
 
 Auth.propTypes = {
-	history: PropTypes.object,
-	location: PropTypes.object
+	history: PropTypes.object.isRequired,
+	location: PropTypes.object.isRequired
 };
 
 export default Auth;

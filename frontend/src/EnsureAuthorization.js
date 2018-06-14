@@ -3,14 +3,11 @@ import PropTypes from 'prop-types';
 
 export default function (ComposedComponent) {
     class EnsureAuthorization extends Component {
-        constructor(props) {
-            super(props);
-            this.state = {
-                authenticated: true
-            }
-        }
-
         checkAuthentication = async () => {
+            if (process.env.NODE_ENV === 'development') {
+                return;
+            }
+
             try {
                 let token = localStorage.getItem('authToken');
                 if (!token) {
@@ -48,8 +45,8 @@ export default function (ComposedComponent) {
     }
 
     EnsureAuthorization.propTypes = {
-      location: PropTypes.object,
-      history: PropTypes.object
+      location: PropTypes.object.isReqiured,
+      history: PropTypes.object.isReqiured
     };
 
     return EnsureAuthorization;
