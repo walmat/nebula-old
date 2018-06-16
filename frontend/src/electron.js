@@ -43,6 +43,7 @@ function startMainWindow() {
 
   windowManager.templates.set('captcha', {
     backgroundColor: '#f0f0f0',
+    proxyRules: '127.0.0.1:8080',
     center: true,
     fullscreen: false,
     height: 450,
@@ -148,13 +149,13 @@ ipcMain.on('window-event', (event, arg) => {
         break;
     }
     case 'launchHarvester': {
+        //todo fix this shitty shit
 
-        //todo get the captcha file from api/harvester
-        session.defaultSession.setProxy({
-            proxyRules: `http://localhost:8080`
-        }, function () {
-            windowManager.open('captcha', 'Harvester', "http://checkout.shopify.com", 'captcha', { parent: mainWindow }, true);
+        let file = fetch('http://localhost:8080/harvester').then(res => {
+            return res;
         });
+
+        windowManager.open('captcha', 'Harvester', "http://checkout.shopify.com", 'captcha', { parent: mainWindow }, true);
         break;
     }
     case 'endSession': {
