@@ -1,0 +1,19 @@
+<html>
+  <body>
+    <center>
+    <form action="/submit" method="post" style="margin-top: 180px;">
+        <div class="g-recaptcha" data-sitekey="6LcGNl8UAAAAANFmzTQ0oUwhd_QCu8stZsQR1ApU" data-callback="_harvest"></div>
+        <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
+    </form>
+  </center>
+    <script>
+
+      const ipcRenderer = require('electron').ipcRenderer
+
+      function sub() {
+        ipcRenderer.send('harvest', document.getElementsByClassName('g-recaptcha').val());
+        grecaptcha.reset();
+      }
+    </script>
+  </body>
+</html>

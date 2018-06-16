@@ -23,6 +23,35 @@ const _endSession = () => {
   _sendEvent('window-event', 'endSession');
 };
 
+const _harvest = (token) => {
+  _sendEvent('harvest', token)
+};
+
+const _refresh = () => {
+    _sendEvent('refreshMainWindow', null);
+}
+
+const _updateHistory = () => {
+    setInterval(() => {
+        for (let i = 0; i < captchas.length; i++) {
+
+            // send the updated time for us to keep track of
+            _sendEvent('updateHistory', {
+                time: 110 - moment().diff(moment(captchas[i].ts), 'seconds'),
+                token: captchas[i].token
+            });
+
+            // remove captcha if expired
+            if (moment().diff(moment(captchas[i].ts), 'seconds') > 110) {
+                _sendEvent('captchaExpired', captchas[i]);
+                captchas = _.regect(captchas, (el) => {
+                    return el.token === captchas[i].token;
+                });
+            }
+        }
+    }, 1000);
+};
+
 // Once the process is loaded, create api bridge
 process.once('loaded', () => {
   window.Bridge = window.Bridge || {};
@@ -30,6 +59,9 @@ process.once('loaded', () => {
   /* BRIDGED EVENTS */
   window.Bridge.launchYoutube = _launchYoutube;
   window.Bridge.launchHarvester = _launchHarvester;
+  window.Bridge.refresh = _refresh;
+  window.Bridge.updateHistory = _updateHistory;
+  window.Bridge.harvest = _harvest;
   window.Bridge.endSession = _endSession;
   window.Bridge.quit = _quit;
 });

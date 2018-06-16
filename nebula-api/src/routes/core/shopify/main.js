@@ -3,7 +3,7 @@ const { findItem, selectStyle } = require('./classes/findItem');
 
 let supportedSites = []; //pull in the list of supported sites
 
-function run(config) {
+module.exports = function(config) {
 
     findItem(config, proxies[index], function(err, delay, res) {
 
@@ -24,6 +24,4 @@ function run(config) {
             });
         }
     });
-}
-
-module.exports.run = run;
+};

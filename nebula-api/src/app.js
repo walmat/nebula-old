@@ -9,13 +9,11 @@ const express = require('express'),
 app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.urlencoded()); // to support URL-encoded bodies
 
-/*config CORS*/
 app.use((req, res, next) => {
     const origin = req.get('origin');
 
     console.log(origin);
 
-    //TODO - figure out what origin should be and block all others
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
@@ -30,13 +28,20 @@ app.use((req, res, next) => {
 });
 
 /*SETUP ROUTES*/
-let tasks = require('./routes/tasks');
+let tasks = require('./routes/tasks/tasks');
+let shopify = require('./routes/core/shopify/main');
+let harvester = require('./routes/core/shopify/harvester');
 let profiles = require('./routes/profiles/profiles');
-let server = require('./routes/server');
-let settings = require('./routes/settings');
+let server = require('./routes/server/server');
+let settings = require('./routes/settings/settings');
 let getUser = require('./routes/user/getUser');
 let createUser = require('./routes/user/createUser');
-tasks(app); profiles(app); server(app); settings(app); createUser(app); getUser(app);
+
+// wrap the app
+tasks(app); profiles(app);
+server(app); settings(app);
+createUser(app); getUser(app);
+shopify(app); harvester(app);
 
 app.listen(port);
 
