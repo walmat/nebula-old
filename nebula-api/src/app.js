@@ -7,7 +7,7 @@ const express = require('express'),
     port    = parseInt(process.env.PORT, 10) || 8080;
 
 app.use(express.json());       // to support JSON-encoded bodies
-app.use(express.urlencoded()); // to support URL-encoded bodies
+app.use(express.urlencoded({extended: true})); // to support URL-encoded bodies
 
 app.use((req, res, next) => {
     const origin = req.get('origin');
@@ -41,7 +41,8 @@ let createUser = require('./routes/user/createUser');
 tasks(app); profiles(app);
 server(app); settings(app);
 createUser(app); getUser(app);
-shopify(app); harvester(app);
+//shopify(app);
+harvester(app);
 
 app.listen(port);
 

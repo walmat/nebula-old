@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const windowManager = require('electron-window-manager');
 
 /**
@@ -147,13 +148,13 @@ ipcMain.on('window-event', (event, arg) => {
         break;
     }
     case 'launchHarvester': {
-        let captchaUrl = url.format({
-            pathname: path.join(__dirname, './captcha.html'),
-            protocol: 'file:',
-            slashes: true
-        });
 
-        windowManager.open('captcha', 'Harvester', captchaUrl, 'captcha', { parent: mainWindow }, true);
+        //todo get the captcha file from api/harvester
+        session.defaultSession.setProxy({
+            proxyRules: `http://localhost:8080`
+        }, function () {
+            windowManager.open('captcha', 'Harvester', "http://checkout.shopify.com", 'captcha', { parent: mainWindow }, true);
+        });
         break;
     }
     case 'endSession': {
