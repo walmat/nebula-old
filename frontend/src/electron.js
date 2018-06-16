@@ -82,7 +82,7 @@ function startMainWindow() {
   const startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
     protocol: 'file:',
-    slashes: true,
+    slashes: true
   });
 
   // Use window manager to create main window
@@ -133,7 +133,7 @@ ipcMain.on('harvest', function(event, token) {
         token: token,
         timestamp: moment(),
         host: 'http://checkout.shopify.com',
-        sitekey: '6LcGNl8UAAAAANFmzTQ0oUwhd_QCu8stZsQR1ApU'
+        sitekey: '6LfuO18UAAAAAClMxiQUvYyeGTn3xP5kZE0TFFHs'
     });
 
     console.log(captchas);
@@ -147,7 +147,13 @@ ipcMain.on('window-event', (event, arg) => {
         break;
     }
     case 'launchHarvester': {
-        windowManager.open('captcha', 'Harvester', captchaUrl, 'captcha', { parent: mainWindow }, false);
+        let captchaUrl = url.format({
+            pathname: path.join(__dirname, './captcha.html'),
+            protocol: 'file:',
+            slashes: true
+        });
+
+        windowManager.open('captcha', 'Harvester', captchaUrl, 'captcha', { parent: mainWindow }, true);
         break;
     }
     case 'endSession': {
