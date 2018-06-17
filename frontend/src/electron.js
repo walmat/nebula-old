@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
 const windowManager = require('electron-window-manager');
+var express = require('express');
 
 /**
  * Get eletron dependencies:
@@ -43,7 +44,7 @@ function startMainWindow() {
 
   windowManager.templates.set('captcha', {
     backgroundColor: '#f0f0f0',
-    proxyRules: '127.0.0.1:8080',
+    proxyRules: 'http://127.0.0.1:8080',
     center: true,
     fullscreen: false,
     height: 450,
@@ -149,13 +150,32 @@ ipcMain.on('window-event', (event, arg) => {
         break;
     }
     case 'launchHarvester': {
-        //todo fix this shitty shit
+        // launch a harvester window
 
-        let file = fetch('http://localhost:8080/harvester').then(res => {
-            return res;
+        //todo -- move this to the api
+        /* to be done:
+        *  1. send the event to the main process (a task that is needing a captcha)
+        *  2. refresh the captcha page
+        * */
+
+        expressApp = express();
+        expressApp.set('port', 6000);
+        expressApp.use(express.json());
+        expressApp.use(express.urlencoded({ extended: true }));
+
+        expressApp.get('/', function(req, res) {
+            res.sendFile('./captcha.html', {root: __dirname});
+            session.defaultSession.setProxy({proxyRules:""}, function () {});
         });
 
-        windowManager.open('captcha', 'Harvester', "http://checkout.shopify.com", 'captcha', { parent: mainWindow }, true);
+        var server = expressApp.listen(expressApp.get('port'));
+
+        session.defaultSession.setProxy({
+            proxyRules: `http://127.0.0.1:6000`
+        }, function (r) {
+            windowManager.open('captcha', 'Harvester', 'http://checkout.shopify.com', 'captcha', {parent: mainWindow}, true);
+        });
+        // windowManager.open('captcha', 'Harvester', "http://checkout.shopify.com", 'captcha', { parent: mainWindow }, true);
         break;
     }
     case 'endSession': {
