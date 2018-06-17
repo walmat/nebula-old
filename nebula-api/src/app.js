@@ -42,8 +42,21 @@ tasks(app); profiles(app);
 server(app); settings(app);
 createUser(app); getUser(app);
 //shopify(app);
-harvester(app);
 
 app.listen(port);
 
 console.log(`Nebula API server started on port ${port}`);
+//
+//
+// // captcha server
+// let captcha = express();
+// let captchaPort = parseInt(process.env.PORT, 10) || 6000;
+//
+// captcha.use(express.json());       // to support JSON-encoded bodies
+// captcha.use(express.urlencoded({extended: true})); // to support URL-encoded bodies
+//
+// harvester(captcha);
+//
+// captcha.listen(captchaPort);
+//
+// console.log(`Captcha server started on port ${captchaPort}`);

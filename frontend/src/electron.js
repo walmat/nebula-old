@@ -1,4 +1,3 @@
-const fetch = require('node-fetch');
 const windowManager = require('electron-window-manager');
 var express = require('express');
 
@@ -29,8 +28,8 @@ let mainWindow;
 function startMainWindow() {
   // Create a youtube window template
   windowManager.templates.set('youtube', {
-    width: 700,
-    height: 600,
+    width: 450,
+    height: 475,
     center: true,
     frame: true,
     fullscreenable: false,
@@ -47,7 +46,7 @@ function startMainWindow() {
     proxyRules: 'http://127.0.0.1:8080',
     center: true,
     fullscreen: false,
-    height: 450,
+    height: 475,
     width: 450,
     maximizable: false,
     minimizable: false,
