@@ -24,12 +24,12 @@ const _endSession = () => {
 };
 
 const _harvest = (token) => {
-  _sendEvent('harvest', token)
+  _sendEvent('harvest', token);
 };
 
-const _refresh = () => {
-    _sendEvent('refreshMainWindow', null);
-}
+const _refresh = (window) => {
+    _sendEvent('refresh', window);
+};
 
 const _updateHistory = () => {
     setInterval(() => {
@@ -44,7 +44,7 @@ const _updateHistory = () => {
             // remove captcha if expired
             if (moment().diff(moment(captchas[i].ts), 'seconds') > 110) {
                 _sendEvent('captchaExpired', captchas[i]);
-                captchas = _.regect(captchas, (el) => {
+                captchas = _.reject(captchas, (el) => {
                     return el.token === captchas[i].token;
                 });
             }

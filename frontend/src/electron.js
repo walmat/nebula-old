@@ -158,8 +158,10 @@ ipcMain.on('window-event', (event, arg) => {
         *  2. refresh the captcha page
         * */
 
+        let port = 6000;
+
         expressApp = express();
-        expressApp.set('port', 6000);
+        expressApp.set('port', port || port - 10);
         expressApp.use(express.json());
         expressApp.use(express.urlencoded({ extended: true }));
 
@@ -175,7 +177,6 @@ ipcMain.on('window-event', (event, arg) => {
         }, function (r) {
             windowManager.open('captcha', 'Harvester', 'http://checkout.shopify.com', 'captcha', {parent: mainWindow}, true);
         });
-        // windowManager.open('captcha', 'Harvester', "http://checkout.shopify.com", 'captcha', { parent: mainWindow }, true);
         break;
     }
     case 'endSession': {

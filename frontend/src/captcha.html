@@ -2,10 +2,21 @@
   <body>
     <center>
     <form action="/submit" method="post" style="margin-top: 180px;">
-        <div class="g-recaptcha" data-sitekey="6LfuO18UAAAAAClMxiQUvYyeGTn3xP5kZE0TFFHs" data-callback="_harvest"></div>
+        <div id="captchaFrame"></div>
         <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
     </form>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="preload.js"></script>
     </center>
   </body>
+
+  <script>
+      
+      $('#captchaFrame').html(`<div class="g-recaptcha" data-sitekey="6LfuO18UAAAAAClMxiQUvYyeGTn3xP5kZE0TFFHs" data-callback="_harvest"></div>`);
+
+      function _harvest() {
+          ipcRenderer.send('harvest', $('#g-recaptcha-response').val());
+          grecaptcha.reset();
+      }
+  </script>
 </html>
