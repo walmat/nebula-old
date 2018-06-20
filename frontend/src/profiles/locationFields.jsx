@@ -93,7 +93,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       ownProps.profileToEdit.id,
       ownProps.fieldToEdit,
       changes.value,
-      changes.field,
+      changes.field
     ));
   },
 });

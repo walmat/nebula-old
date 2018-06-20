@@ -149,10 +149,8 @@ ipcMain.on('window-event', (event, arg) => {
         break;
     }
     case 'launchHarvester': {
-        // launch a harvester window
-
         //todo -- move this to the api
-        /* to be done:
+        /*
         *  1. send the event to the main process (a task that is needing a captcha)
         *  2. refresh the captcha page
         * */

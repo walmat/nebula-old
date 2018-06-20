@@ -191,7 +191,7 @@ Profiles.propTypes = {
   onLoadProfile: PropTypes.func.isRequired,
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
-  onUpdateProfile: PropTypes.func.isRequired,
+  onUpdateProfile: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({

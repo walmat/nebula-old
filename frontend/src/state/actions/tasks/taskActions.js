@@ -1,19 +1,20 @@
 import makeActionCreator from '../actionCreator';
 
-// Top level Actions
-export const ADD_TASK = 'ADD_TASK';
-export const REMOVE_TASK = 'REMOVE_TASK';
-export const EDIT_TASK = 'EDIT_TASK';
-
 export const TASK_ACTIONS = {
   ADD: 'ADD_TASK',
   REMOVE: 'REMOVE_TASK',
   EDIT: 'EDIT_TASK',
+  SELECT: 'SELECT_TASK',
+  LOAD: 'LOAD_TASK',
+  UPDATE: 'UPDATE_TASK'
 };
 
-export const addTask = makeActionCreator(ADD_TASK, 'task');
-export const removeTask = makeActionCreator(REMOVE_TASK, 'id');
-export const editTask = makeActionCreator(EDIT_TASK, 'id', 'field', 'value');
+export const addTask = makeActionCreator(TASK_ACTIONS.ADD, 'task');
+export const removeTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'id');
+export const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
+export const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
+export const updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'id', 'task');
+export const loadTask = makeActionCreator(TASK_ACTIONS.LOAD, 'task');
 
 // Field Edits
 export const TASK_FIELDS = {
@@ -27,4 +28,14 @@ export const taskActions = {
   add: addTask,
   remove: removeTask,
   edit: editTask,
+  select: selectTask,
+  load: loadTask,
+  update: updateTask
 };
+
+export const mapTasksFieldToKey = {
+  [TASK_FIELDS.EDIT_BILLING]: 'billing',
+  [TASK_FIELDS.EDIT_PAIRS]: 'pairs',
+  [TASK_FIELDS.EDIT_SIZES]: 'sizes',
+  [TASK_FIELDS.EDIT_SKU]: 'sku'
+}

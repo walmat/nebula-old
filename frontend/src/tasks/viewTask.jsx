@@ -18,7 +18,7 @@ class ViewTask extends Component {
           <td>{this.props.data.sku}</td>
           <td>{this.props.data.profiles}</td>
           <td>{this.props.data.sizes}</td>
-          <td>{this.props.data.num_pairs}</td>
+          <td>{this.props.data.pairs}</td>
           <td>{this.props.data.actions.run}</td>
           <td>{this.props.data.actions.stop}</td>
           <td>{this.props.data.actions.destroy}</td>
