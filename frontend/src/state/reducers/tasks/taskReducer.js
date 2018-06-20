@@ -8,7 +8,7 @@ import {initialProfileState, profileReducer} from "../profiles/profileReducer";
 export const initialTaskState = {
   id: null,
   sku: '',
-  profiles: {},
+  profile: {},
   sizes: {},
   pairs: 0,
   errors: {

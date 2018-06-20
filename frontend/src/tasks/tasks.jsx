@@ -13,7 +13,7 @@ import destroyAll from '../_assets/destroy-all.svg';
 
 import '../app.css';
 import './tasks.css';
-import {TASK_FIELDS, mapTasksFieldToKey, taskActions} from "../state/actions";
+import {TASK_FIELDS, taskActions} from "../state/actions";
 
 // const config = require('./config.json'); // TODO *** temp data structure
 // const core = require('core');
@@ -60,7 +60,7 @@ class Tasks extends Component {
   /* changes when the edit button for each task is clicked */
   async onTaskChange(event) {
     const taskId = event.target.value;
-    const {task} = this.props;
+    const {tasks} = this.props;
     const selectedTask = tasks.find(t => t.id === taskId);
 
     this.props.onSelectTask(selectedTask);

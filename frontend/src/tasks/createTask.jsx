@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import {TASK_FIELDS, taskActions} from '../state/actions';
+import {TASK_FIELDS, mapTasksFieldToKey, taskActions} from '../state/actions';
 import getAllSizes from './getSizes';
 import getAllProfiles from './getProfiles';
 
@@ -41,11 +41,11 @@ class CreateTask extends Component {
           } else {
               // The current profile has an edit id, but it doesn't match
               // any on the profiles list, add this as a new profile.
-              this.props.onAddNewProfile(this.props.currentProfile);
+              this.props.onAddNewTask(this.props.currentTask);
           }
       } else {
           // No edit id tag exists, add this as a new profile.
-          this.props.onAddNewProfile(this.props.currentProfile);
+          this.props.onAddNewTask(this.props.currentTask);
       }
   };
 
@@ -64,7 +64,7 @@ class CreateTask extends Component {
         <p id="sku-label">Input SKU</p>
         <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.value.profiles} required>
+        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.value.profile} required>
           <option value="" selected disabled hidden>Choose Profiles</option>
           {CreateTask.buildProfileOptions()}
         </select>
@@ -82,7 +82,7 @@ class CreateTask extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.props.createTask}>
+            onClick={this.props.saveTask}>
             Submit
         </button>
       </div>

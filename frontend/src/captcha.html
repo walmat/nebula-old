@@ -14,7 +14,7 @@
       $('#captchaFrame').html(`<div class="g-recaptcha" data-sitekey="6LfuO18UAAAAAClMxiQUvYyeGTn3xP5kZE0TFFHs" data-callback="_harvest"></div>`);
 
       function _harvest() {
-          ipcRenderer.send('harvest', $('#g-recaptcha-response').val());
+          window.Bridge.harvest($('#g-recaptcha-response').val());
           grecaptcha.reset();
       }
   </script>

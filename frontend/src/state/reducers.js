@@ -31,7 +31,6 @@ const topLevelReducer = (state = initialState, action) => {
   const changes = {
     tasks: taskListReducer(state.tasks, action),
     currentTask: currentTaskReducer(state.currentTask, action),
-    selectedTask: selectedTaskReducer(state.selectedTask, action),
     profiles: profileListReducer(state.profiles, action),
     currentProfile: currentProfileReducer(state.currentProfile, action),
     selectedProfile: selectedProfileReducer(state.selectedProfile, action),
