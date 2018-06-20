@@ -1,9 +1,7 @@
 import {
-    PROFILE_ACTIONS,
     TASK_ACTIONS,
     TASK_FIELDS,
 } from '../../actions';
-import {initialProfileState, profileReducer} from "../profiles/profileReducer";
 
 export const initialTaskState = {
   id: null,
@@ -84,7 +82,7 @@ export function currentTaskReducer(state = initialTaskState, action) {
             // If updating an existing task, we should reset the current task to default values
             return Object.assign({}, initialTaskState);
         }
-        case PROFILE_ACTIONS.LOAD: {
+        case TASK_ACTIONS.LOAD: {
             // If selecting a task, we should return the task that is given
             const loadedTask = Object.assign({}, action.tasks);
             loadedTask.editId = loadedTask.id;

@@ -62,9 +62,9 @@ class CreateTask extends Component {
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
         <p id="sku-label">Input SKU</p>
-        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
+        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.currentTask.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.value.profile} required>
+        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.currentTask.profile} required>
           <option value="" selected disabled hidden>Choose Profiles</option>
           {CreateTask.buildProfileOptions()}
         </select>
@@ -99,8 +99,8 @@ CreateTask.propTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
-  errors: ownProps.taskToEdit[mapTasksFieldToKey[ownProps.fieldToEdit]].errors,
-  value: ownProps.taskToEdit[mapTasksFieldToKey[ownProps.fieldToEdit]]
+  errors: ownProps.taskToEdit.errors,
+  value: ownProps.taskToEdit.value
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
