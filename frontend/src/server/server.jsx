@@ -11,57 +11,27 @@ import DDD from '../_assets/dropdown-down.svg';
 // import DDU from '../_assets/dropdown-up.svg';
 
 class Server extends Component {
+  static buildServerTypeChoices(options) {
+    return () =>
+      options && options.map(o =>
+        (<option key={o.id} value={o.id}>{o.label}</option>));
+  }
+
+  static changeServerChoice(options, onChange) {
+    return (event) => {
+      const change = options.find(o => `${o.id}` === event.target.value);
+      onChange(change);
+    };
+  }
+
   constructor(props) {
     super(props);
-    this.state = {};
-    this.buildServerTypeChoices = this.buildServerTypeChoices.bind(this);
-    this.buildServerSizeChoices = this.buildServerSizeChoices.bind(this);
-    this.buildServerLocationChoices = this.buildServerLocationChoices.bind(this);
     this.loginAWS = this.loginAWS.bind(this);
     this.destroyProxies = this.destroyProxies.bind(this);
     this.generateProxies = this.generateProxies.bind(this);
     this.destroyServer = this.destroyProxies.bind(this);
     this.createServer = this.createServer.bind(this);
     this.createCredentialsChangeHandler = this.createCredentialsChangeHandler.bind(this);
-    this.changeServerTypeChoice = this.changeServerTypeChoice.bind(this);
-    this.changeServerSizeChoice = this.changeServerSizeChoice.bind(this);
-    this.changeServerLocationChoice = this.changeServerLocationChoice.bind(this);
-  }
-
-  buildServerTypeChoices() {
-    const { types } = this.props.serverListOptions;
-    return types && types.map(type =>
-      (<option key={type.id} value={type.id}>{type.label}</option>));
-  }
-
-  buildServerSizeChoices() {
-    const { sizes } = this.props.serverListOptions;
-    return sizes && sizes.map(size =>
-      (<option key={size.id} value={size.id}>{size.label}</option>));
-  }
-
-  buildServerLocationChoices() {
-    const { locations } = this.props.serverListOptions;
-    return locations && locations.map(location =>
-      (<option key={location.id} value={location.id}>{location.label}</option>));
-  }
-
-  changeServerTypeChoice(event) {
-    const { types } = this.props.serverListOptions;
-    const type = types.find(t => `${t.id}` === event.target.value);
-    this.props.onServerTypeChoiceChange(type);
-  }
-
-  changeServerSizeChoice(event) {
-    const { sizes } = this.props.serverListOptions;
-    const size = sizes.find(s => `${s.id}` === event.target.value);
-    this.props.onServerSizeChoiceChange(size);
-  }
-
-  changeServerLocationChoice(event) {
-    const { locations } = this.props.serverListOptions;
-    const location = locations.find(l => `${l.id}` === event.target.value);
-    this.props.onServerLocationChoiceChange(location);
   }
 
   loginAWS(user, pass) {
@@ -88,6 +58,62 @@ class Server extends Component {
 
   createCredentialsChangeHandler(field) {
     return event => this.props.onCredentialsChange(field, event.target.value);
+  }
+
+  renderServerOptionComponent(type) {
+    switch (type) {
+      case 'type':
+        return Server.renderServerOptionComponent(
+          'type',
+          'Type',
+          'Choose Server',
+          this.props.serverName.id,
+          Server.changeServerChoice(
+            this.props.serverListOptions.types,
+            this.props.onServerTypeChoiceChange,
+          ),
+          Server.buildServerTypeChoices(this.props.serverListOptions.types),
+        );
+      case 'size':
+        return Server.renderServerOptionComponent(
+          'size',
+          'Size',
+          'Choose Size',
+          this.props.serverSize.id,
+          Server.changeServerChoice(
+            this.props.serverListOptions.sizes,
+            this.props.onServerSizeChoiceChange,
+          ),
+          Server.buildServerTypeChoices(this.props.serverListOptions.sizes),
+        );
+      case 'location':
+        return Server.renderServerOptionComponent(
+          'location',
+          'Location',
+          'Choose Location',
+          this.props.serverLocation.id,
+          Server.changeServerChoice(
+            this.props.serverListOptions.locations,
+            this.props.onServerLocationChoiceChange,
+          ),
+          Server.buildServerTypeChoices(this.props.serverListOptions.locations),
+        );
+      default:
+        return null;
+    }
+  }
+
+  static renderServerOptionComponent(type, label, defaultOption, value, onChange, optionGenerator) {
+    return (
+      <div>
+        <p id={`${type}-server-label`}>{label}</p>
+        <select id={`${type}-server`} onChange={onChange} value={value} required>
+          <option value="" hidden>{defaultOption}</option>
+          {optionGenerator()}
+        </select>
+        <img src={DDD} alt="dropdown button" id={`${type}-server-button`} />
+      </div>
+    );
   }
 
   render() {
@@ -118,23 +144,9 @@ class Server extends Component {
         {/* CONNECT */}
         <p className="body-text" id="server-label">Connect</p>
         <div id="server-box" />
-        <p id="type-server-label">Type</p>
-        <select id="type-server" onChange={this.changeServerTypeChoice} value={this.props.serverName} required>
-          <option value="" hidden>Choose Server</option>
-          {this.buildServerTypeChoices()}
-        </select>
-        <img src={DDD} alt="dropdown button" id="type-server-button" />
-        <p id="size-server-label">Size</p>
-        <select id="size-server" onChange={this.changeServerSizeChoice} value={this.props.serverSize} disabled={!this.props.serverName} required>
-          <option value="" hidden>Choose Size</option>
-          {this.buildServerSizeChoices()}
-        </select>
-        <img src={DDD} alt="dropdown button" id="size-server-button" />
-        <p id="location-server-label">Location</p>
-        <select id="location-server" onChange={this.changeServerLocationChoice} value={this.props.serverLocation} disabled={!this.props.serverSize} required>
-          <option value="" hidden>Choose Location</option>
-          {this.buildServerLocationChoices()}
-        </select>
+        {this.renderServerOptionComponent('type')}
+        {this.renderServerOptionComponent('size')}
+        {this.renderServerOptionComponent('location')}
         <img src={DDD} alt="dropdown button" id="location-server-button" />
         <button id="destroy-server" onClick={this.destroyServer}>Destroy</button>
         <button id="create-server" onClick={this.createServer}>Create</button>
@@ -150,9 +162,9 @@ Server.propTypes = {
     sizes: PropTypes.arrayOf(PropTypes.any).isRequired,
     locations: PropTypes.arrayOf(PropTypes.any).isRequired,
   }).isRequired,
-  serverName: PropTypes.string.isRequired,
-  serverSize: PropTypes.string.isRequired,
-  serverLocation: PropTypes.string.isRequired,
+  serverName: PropTypes.objectOf(PropTypes.any).isRequired,
+  serverSize: PropTypes.objectOf(PropTypes.any).isRequired,
+  serverLocation: PropTypes.objectOf(PropTypes.any).isRequired,
   onCredentialsChange: PropTypes.func.isRequired,
   onServerTypeChoiceChange: PropTypes.func.isRequired,
   onServerSizeChoiceChange: PropTypes.func.isRequired,
@@ -166,9 +178,9 @@ Server.propTypes = {
 
 const mapStateToProps = state => ({
   selectedServer: state.selectedServer,
-  serverName: state.selectedServer.server.type.label || '',
-  serverSize: state.selectedServer.server.size.label || '',
-  serverLocation: state.selectedServer.server.location.label || '',
+  serverName: state.selectedServer.server.type,
+  serverSize: state.selectedServer.server.size,
+  serverLocation: state.selectedServer.server.location,
   serverListOptions: state.serverListOptions,
 });
 
