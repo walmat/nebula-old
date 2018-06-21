@@ -75,7 +75,5 @@ export function serverReducer(state = initialServerState, action) {
     };
   }
 
-  console.log(action, change);
-
   return Object.assign({}, state, change);
 }

@@ -7,8 +7,8 @@ export const initialTaskState = {
   id: null,
   sku: '',
   profile: {},
-  sizes: {},
-  pairs: 0,
+  sizes: null,
+  pairs: null,
   errors: {
     sku: null,
     profile: null,
@@ -28,7 +28,7 @@ export function taskReducer(state = initialTaskState, action) {
           errors: Object.assign({}, state.errors, action.errors)
         };
         break;
-      case TASK_FIELDS.EDIT_BILLING:
+      case TASK_FIELDS.EDIT_PROFILE:
         change = {
           profile: action.value,
           errors: Object.assign({}, state.errors, action.errors)
@@ -54,7 +54,7 @@ export function taskReducer(state = initialTaskState, action) {
   return Object.assign({}, state, change);
 }
 
-export function currentTaskReducer(state = initialTaskState, action) {
+export function newTaskReducer(state = initialTaskState, action) {
     switch (action.type) {
         case TASK_ACTIONS.EDIT: {
             // only modify the current task if the action id is null
@@ -64,30 +64,27 @@ export function currentTaskReducer(state = initialTaskState, action) {
             break;
         }
         case TASK_ACTIONS.ADD: {
+
             // If we have a response error, we should do nothing
             if(action.response !== undefined && action.response.error !== undefined) {
-                return Object.assign({}, action.tasks);
+                return Object.assign({}, action.task);
             }
 
             // If adding a new task, we should reset the current task to default values
             return Object.assign({}, initialTaskState);
         }
-        case TASK_ACTIONS.UPDATE: {
-            // If we have a response error, we should do nothing
-            if(action.response !== undefined && action.response.error !== undefined) {
-                return Object.assign({}, action.tasks);
-            }
+        default:
+            break;
+    }
 
-            // If updating an existing task, we should reset the current task to default values
-            return Object.assign({}, initialTaskState);
-        }
-        case TASK_ACTIONS.LOAD: {
-            // If selecting a task, we should return the task that is given
-            const loadedTask = Object.assign({}, action.tasks);
-            loadedTask.editId = loadedTask.id;
-            loadedTask.id = null;
+    return Object.assign({}, state);
+}
 
-            return loadedTask;
+export function selectedTaskReducer(state = initialTaskState, action) {
+    switch (action.type) {
+        case TASK_ACTIONS.SELECT: {
+            // Set the next state to the selected profile
+            return Object.assign({}, action.task);
         }
         default:
             break;

@@ -67,13 +67,13 @@ class Tasks extends Component {
   }
 
   render() {
-    const {currentTask} = this.props;
+    const {newTask} = this.props;
     return (
       <div className="container">
         <h1 className="text-header" id="task-header">Tasks</h1>
         <div className="flex-container">
           {/* CREATE TASK */}
-          <CreateTask taskToEdit={currentTask}/>
+          <CreateTask taskToEdit={newTask}/>
 
           {/* TASK LOG */}
           <p className="body-text" id="log-label">Log</p>
@@ -127,7 +127,7 @@ class Tasks extends Component {
 
 Tasks.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
-  currentTask: PropTypes.objectOf(PropTypes.any).isRequired,
+  newTask: PropTypes.objectOf(PropTypes.any).isRequired,
   selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
   onAddNewTask: PropTypes.func.isRequired,
   onLoadTask: PropTypes.func.isRequired,
@@ -139,14 +139,11 @@ Tasks.propTypes = {
 
 const mapStateToProps = state => ({
    tasks: state.tasks,
-   currentTask: state.currentTask,
+   newTask: state.newTask,
    selectedTask: state.selectedTask
 });
 
 const mapDispatchToProps = dispatch => ({
-    onAddNewTask: (newTask) => {
-      dispatch(taskActions.add(newTask));
-    },
     onLoadTask: (task) => {
       dispatch(taskActions.load(task));
     },

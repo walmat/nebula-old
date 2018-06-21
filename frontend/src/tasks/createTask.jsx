@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 
 import {TASK_FIELDS, taskActions} from '../state/actions';
 import getAllSizes from './getSizes';
-import getAllProfiles from './getProfiles';
 
 import DDD from '../_assets/dropdown-down.svg';
 import './tasks.css';
@@ -15,6 +14,7 @@ class CreateTask extends Component {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
+    this.saveTask = this.saveTask.bind(this);
   }
 
 
@@ -29,35 +29,27 @@ class CreateTask extends Component {
 
     console.log(this.props.profiles);
     return profiles.map(profile =>
-      (<option key={profile.profileName} value={profile.profileName}>{profile.profileName}</option>));
+        (<option key={profile.id} value={profile.id}>{profile.profileName}</option>));
   };
 
-  static async saveTask(e) {
+  async saveTask(e) {
       e.preventDefault();
-
-      if (this.props.currentTask.editId !== undefined) {
-
-          // make sure the profile id exists in profiles before call in the load
-          if (this.props.tasks.some(t => t.id === this.props.currentTask.editId)) {
-              // The current profile has the same id as a profile
-              // in the profiles list, update that profile
-              this.props.onUpdateTask(this.props.currentTask);
-          } else {
-              // The current profile has an edit id, but it doesn't match
-              // any on the profiles list, add this as a new profile.
-              this.props.onAddNewTask(this.props.currentTask);
-          }
-      } else {
-          // No edit id tag exists, add this as a new profile.
-          this.props.onAddNewTask(this.props.currentTask);
-      }
+      this.props.onAddNewTask(this.props.newTask);
   };
 
-  createOnChangeHandler(field) {
-    return (event) => {
-      this.props.onChange({ field, value: event.target.value });
-    };
-  }
+    createOnChangeHandler(field) {
+        switch (field) {
+            case TASK_FIELDS.EDIT_PROFILE:
+                return (event) => {
+                    const change = this.props.profiles.find(p => `${p.id}` === event.target.value);
+                    this.props.onChange({ field, value: change});
+                };
+            default:
+                return (event) => {
+                    this.props.onChange({ field, value: event.target.value });
+                };
+        }
+    }
 
   render() {
     const { errors } = this.props;
@@ -68,25 +60,25 @@ class CreateTask extends Component {
         <p id="sku-label">Input SKU</p>
         <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.profiles.profileName} required>
+        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)} value={this.props.value.profile.id} required>
           <option value="" selected disabled hidden>Choose Profiles</option>
           {this.buildProfileOptions()}
         </select>
         <div id="dropdown-profiles-box" />
         <img src={DDD} alt="dropdown" id="dropdown-profiles-arrow" draggable="false" />
         <p id="size-label">Sizes</p>
-        <select id="size" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} value={this.props.value.size} required>
+        <select id="size" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} value={this.props.value.sizes} required>
           <option value="" selected disabled hidden>Choose Size</option>
           {CreateTask.buildSizeOptions()}
         </select>
         <img src={DDD} alt="dropdown" id="dropdown-size-arrow" draggable="false" />
         <p id="pairs-label"># Pairs</p>
-        <input id="pairs" type="text" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} required />
+        <input id="pairs" type="text" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} value={this.props.value.pairs} required />
         <button id="submit-tasks"
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.props.saveTask}>
+            onClick={this.saveTask}>
             Submit
         </button>
       </div>
@@ -97,6 +89,7 @@ class CreateTask extends Component {
 CreateTask.propTypes = {
   errors: PropTypes.objectOf(PropTypes.any).isRequired,
   onChange: PropTypes.func.isRequired,
+  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   value: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
@@ -113,7 +106,10 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch) => ({
     onChange: (changes) => {
         dispatch(taskActions.edit(null, changes.field, changes.value));
-    }
+    },
+    onAddNewTask: (newTask) => {
+        dispatch(taskActions.add(newTask));
+    },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(CreateTask);

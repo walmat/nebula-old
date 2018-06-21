@@ -19,7 +19,7 @@ export const loadTask = makeActionCreator(TASK_ACTIONS.LOAD, 'task');
 // Field Edits
 export const TASK_FIELDS = {
   EDIT_SKU: 'EDIT_SKU',
-  EDIT_BILLING: 'EDIT_BILLING',
+  EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
   EDIT_PAIRS: 'EDIT_PAIRS',
 };
@@ -32,10 +32,3 @@ export const taskActions = {
   load: loadTask,
   update: updateTask
 };
-
-export const mapTasksFieldToKey = {
-  [TASK_FIELDS.EDIT_BILLING]: 'billing',
-  [TASK_FIELDS.EDIT_PAIRS]: 'pairs',
-  [TASK_FIELDS.EDIT_SIZES]: 'sizes',
-  [TASK_FIELDS.EDIT_SKU]: 'sku'
-}
