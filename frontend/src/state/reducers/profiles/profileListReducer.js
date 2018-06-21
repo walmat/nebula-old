@@ -4,9 +4,9 @@ import { PROFILE_ACTIONS } from '../../actions';
 import { profileReducer, initialProfileState } from './profileReducer';
 
 export const initialProfileListState = [
-  Object.assign({}, initialProfileState, { id: 0, profileName: 'test1' }),
-  Object.assign({}, initialProfileState, { id: 1, profileName: 'test2' }),
-  Object.assign({}, initialProfileState, { id: 2, profileName: 'test3' }),
+  Object.assign({}, initialProfileState, { id: 1, profileName: 'test1' }),
+  Object.assign({}, initialProfileState, { id: 2, profileName: 'test2' }),
+  Object.assign({}, initialProfileState, { id: 3, profileName: 'test3' }),
 ];
 
 export function profileListReducer(state = initialProfileListState, action) {

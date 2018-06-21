@@ -4,11 +4,11 @@ import {
 } from '../../actions';
 
 export const initialTaskState = {
-  id: null,
+  id: '',
   sku: '',
   profile: {},
-  sizes: null,
-  pairs: null,
+  sizes: '',
+  pairs: '',
   errors: {
     sku: null,
     profile: null,
@@ -64,7 +64,6 @@ export function newTaskReducer(state = initialTaskState, action) {
             break;
         }
         case TASK_ACTIONS.ADD: {
-
             // If we have a response error, we should do nothing
             if(action.response !== undefined && action.response.error !== undefined) {
                 return Object.assign({}, action.task);

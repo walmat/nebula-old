@@ -1,36 +1,72 @@
-import {
-  TASK_FIELDS,
-  TASK_ACTIONS,
-} from '../../actions';
+import uuidv4 from 'uuid/v4';
+
+import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
 
 export const initialTaskListState = [];
 
 export function taskListReducer(state = initialTaskListState, action) {
-  const change = {};
-
   let nextState = JSON.parse(JSON.stringify(state));
 
-  if (action.type === TASK_FIELDS.EDIT && action.id !== null) {
-    for (let i = 0; i < state.length; i += 1) {
-      if (state[i].id === action.id) {
-        taskReducer(); // todo fin this
+  switch (action.type) {
+    case TASK_ACTIONS.ADD: {
+      // If we have a response error, we should do nothing
+      if (action.response !== undefined && action.response.error !== undefined) {
+        console.log('ERROR with TASK ADD');
+        console.log(action.response);
+        break;
       }
+      // perform a deep copy of given profile
+      const newTask = JSON.parse(JSON.stringify(action.task));
+
+      // assign new id
+      let newId = uuidv4();
+
+      // check if generate id already exists
+      const idCheck = t => t.id === newId;
+      while (nextState.some(idCheck)) {
+        newId = uuidv4();
+      }
+
+      // add new profile
+      newTask.id = newId;
+      nextState.push(newTask);
+      break;
     }
-  } else if (action.type === TASK_ACTIONS.ADD) {
+    case TASK_ACTIONS.REMOVE: {
+      // If we have a response error, we should do nothing
+      if (action.response !== undefined && action.response.error !== undefined) {
+        console.log('ERROR with TASK REMOVE');
+        console.log(action.response);
+        break;
+      }
 
-    const newTask = Object.assign({}, action.task);
+      // filter out given id
+      nextState = nextState.filter(t => t.id !== action.id);
+      break;
+    }
+    case TASK_ACTIONS.EDIT: {
+      // check if id is given (we only change the state on a non-null id)
+      if (action.id == null) {
+        break;
+      }
 
-    newTask.id = state.length;
+      // find the element with the given id
+      const found = nextState.find(t => t.id === action.id);
+      if (found === undefined) {
+        break;
+      }
 
-    nextState.push(newTask);
-    return nextState;
-  } else if (action.type === TASK_ACTIONS.REMOVE) {
-    return state.filter((task) => {
-      return task !== action.id;
-    });
+      // find the index of the old object
+      const idx = nextState.indexOf(found);
+
+      // Reduce the found task using our task reducer
+      nextState[idx] = taskReducer(found, action);
+      break;
+    }
+    default:
+      break;
   }
-  change.errors = action.errors;
 
-  return Object.assign({}, state, change);
+  return nextState;
 }
