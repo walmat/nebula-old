@@ -11,10 +11,15 @@ import DDD from '../_assets/dropdown-down.svg';
 // import DDU from '../_assets/dropdown-up.svg';
 
 class Server extends Component {
-  static buildServerTypeChoices(options) {
-    return () =>
-      options && options.map(o =>
+  static buildServerTypeChoices(options, onFilter) {
+    return () => {
+      if (!options) {
+        return options;
+      }
+      const filtered = onFilter ? options.filter(onFilter) : options;
+      return filtered.map(o =>
         (<option key={o.id} value={o.id}>{o.label}</option>));
+    }
   }
 
   static changeServerChoice(options, onChange) {
@@ -72,7 +77,12 @@ class Server extends Component {
             this.props.serverListOptions.types,
             this.props.onServerTypeChoiceChange,
           ),
-          Server.buildServerTypeChoices(this.props.serverListOptions.types),
+          Server.buildServerTypeChoices(
+            this.props.serverListOptions.types,
+            (t => (this.props.serverSize.id
+              ? t.sizes.some(s => s === this.props.serverSize.id)
+              : true)),
+          ),
         );
       case 'size':
         return Server.renderServerOptionComponent(
