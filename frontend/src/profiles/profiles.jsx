@@ -61,7 +61,8 @@ class Profiles extends Component {
   /**
    * Delete the profile from the database
    */
-  deleteProfile() {
+  deleteProfile(e) {
+    e.preventDefault();
     this.props.onDestroyProfile(this.props.selectedProfile);
   }
 

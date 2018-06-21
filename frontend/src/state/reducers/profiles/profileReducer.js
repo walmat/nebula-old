@@ -131,7 +131,8 @@ export function selectedProfileReducer(state = initialProfileState, action) {
       return Object.assign({}, action.profile);
     }
     case PROFILE_ACTIONS.REMOVE: {
-      // If we have a response error, we should do nothing
+
+        // If we have a response error, we should do nothing
       if (action.response !== undefined && action.response.error !== undefined) {
         return Object.assign({}, state);
       }
