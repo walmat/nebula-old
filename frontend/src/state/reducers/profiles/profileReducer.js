@@ -3,7 +3,7 @@ import { locationReducer, initialLocationState } from './locationReducer';
 import { paymentReducer, initialPaymentState } from './paymentReducer';
 
 export const initialProfileState = {
-  id: null,
+  id: '',
   profileName: '',
   errors: {
     profileName: null,
@@ -110,7 +110,7 @@ export function currentProfileReducer(state = initialProfileState, action) {
       }
 
       // Check if we are removing the current profile
-      if (action.id === state.id) {
+      if (action.id === (state.id || state.editId)) {
         // Return initial state
         return Object.assign({}, initialProfileState);
       }
