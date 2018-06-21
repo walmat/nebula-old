@@ -158,6 +158,17 @@
         overflow: scroll;
     }
 
+    #view-scroll-box {
+        position: absolute;
+        top: 415px;
+        left: 141px;
+        width: 741px;
+        height: 272px;
+        border: none;
+        border-radius: 3px;
+        overflow: scroll;
+    }
+
     #view-num {
         font-family: AvenirNext-Medium;
         font-size: 12px;

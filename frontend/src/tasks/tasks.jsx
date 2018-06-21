@@ -95,7 +95,7 @@ class Tasks extends Component {
           <hr id="view-line" />
           <div id="view-scroll-box">
             <table>
-              {/*{this.props.tasks.forEach(task => <ViewTask data={task} />)}*/}
+              {this.props.tasks.forEach(task => <ViewTask data={task} />)}
             </table>
           </div>
           <div

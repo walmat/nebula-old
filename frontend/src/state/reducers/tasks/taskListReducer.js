@@ -4,6 +4,7 @@ import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
 
 export const initialTaskListState = [];
+export var num = 1;
 
 export function taskListReducer(state = initialTaskListState, action) {
   let nextState = JSON.parse(JSON.stringify(state));
@@ -20,12 +21,12 @@ export function taskListReducer(state = initialTaskListState, action) {
       const newTask = JSON.parse(JSON.stringify(action.task));
 
       // assign new id
-      let newId = uuidv4();
+      let newId = num;
 
       // check if generate id already exists
       const idCheck = t => t.id === newId;
       while (nextState.some(idCheck)) {
-        newId = uuidv4();
+        newId = num++;
       }
 
       // add new profile

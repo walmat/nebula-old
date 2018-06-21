@@ -10,11 +10,13 @@ class ViewTask extends Component {
   createTable() {
     const tableRow = [];
 
+    // TODO – define height/widths for each table data entry
+
     for (let i = 0; i < this.props.data.length; i += 1) {
       tableRow.push((
         <tr>
           <td>{this.props.data.edit}</td>
-          <td>{this.props.data.task_num}</td>
+          <td>{this.props.data.id}</td>
           <td>{this.props.data.sku}</td>
           <td>{this.props.data.profiles}</td>
           <td>{this.props.data.sizes}</td>
