@@ -6,12 +6,8 @@ import {
 
 export const initialServerState = {
   credentials: {
-    AWSUsername: '',
-    AWSPassword: '',
-    errors: {
-      AWSUsername: null,
-      AWSPassword: null,
-    },
+    AWSAccessKey: '',
+    AWSSecretKey: '',
   },
   proxy: {
     numProxies: 0,
@@ -20,24 +16,11 @@ export const initialServerState = {
     port: '',
     username: '',
     password: '',
-    errors: {
-      id: null,
-      ip: null,
-      port: null,
-      username: null,
-      password: null,
-      numProxies: null,
-    },
   },
   server: {
-    type: '',
-    size: '',
-    location: '',
-    errors: {
-      type: null,
-      size: null,
-      location: null,
-    },
+    type: {},
+    size: {},
+    location: {},
   },
 };
 

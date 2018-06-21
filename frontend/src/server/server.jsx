@@ -14,7 +14,7 @@ class Server extends Component {
   constructor(props) {
     super(props);
     this.state = {};
-    this.buildServerChoices = this.buildServerChoices.bind(this);
+    this.buildServerTypeChoices = this.buildServerTypeChoices.bind(this);
     this.buildServerSizeChoices = this.buildServerSizeChoices.bind(this);
     this.buildServerLocationChoices = this.buildServerLocationChoices.bind(this);
     this.loginAWS = this.loginAWS.bind(this);
@@ -23,24 +23,45 @@ class Server extends Component {
     this.destroyServer = this.destroyProxies.bind(this);
     this.createServer = this.createServer.bind(this);
     this.createCredentialsChangeHandler = this.createCredentialsChangeHandler.bind(this);
+    this.changeServerTypeChoice = this.changeServerTypeChoice.bind(this);
+    this.changeServerSizeChoice = this.changeServerSizeChoice.bind(this);
+    this.changeServerLocationChoice = this.changeServerLocationChoice.bind(this);
   }
 
-  buildServerChoices() {
-    const { servers } = this.props;
-    return servers && servers.map(server =>
-      (<option key={server.type}>{server.name}</option>));
+  buildServerTypeChoices() {
+    const { types } = this.props.serverListOptions;
+    return types && types.map(type =>
+      (<option key={type.id} value={type.id}>{type.label}</option>));
   }
 
   buildServerSizeChoices() {
-    const { servers } = this.props;
-    return servers && servers.map(server =>
-      (<option key={server.type}>{server.size}</option>));
+    const { sizes } = this.props.serverListOptions;
+    return sizes && sizes.map(size =>
+      (<option key={size.id} value={size.id}>{size.label}</option>));
   }
 
   buildServerLocationChoices() {
-    const { servers } = this.props;
-    return servers && servers.map(server =>
-      (<option key={server.type}>{server.location}</option>));
+    const { locations } = this.props.serverListOptions;
+    return locations && locations.map(location =>
+      (<option key={location.id} value={location.id}>{location.label}</option>));
+  }
+
+  changeServerTypeChoice(event) {
+    const { types } = this.props.serverListOptions;
+    const type = types.find(t => `${t.id}` === event.target.value);
+    this.props.onServerTypeChoiceChange(type);
+  }
+
+  changeServerSizeChoice(event) {
+    const { sizes } = this.props.serverListOptions;
+    const size = sizes.find(s => `${s.id}` === event.target.value);
+    this.props.onServerSizeChoiceChange(size);
+  }
+
+  changeServerLocationChoice(event) {
+    const { locations } = this.props.serverListOptions;
+    const location = locations.find(l => `${l.id}` === event.target.value);
+    this.props.onServerLocationChoiceChange(location);
   }
 
   loginAWS(user, pass) {
@@ -76,10 +97,10 @@ class Server extends Component {
         {/* LOGIN */}
         <p className="body-text" id="login-label">Login</p>
         <div id="login-box" />
-        <p id="username-login-label">Username</p>
-        <input id="username-login" type="text" placeholder="John Smith" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_USERNAME)} value={this.props.selectedServer.credentials.AWSUsername} required />
-        <p id="password-login-label">Password</p>
-        <input id="password-login" type="password" placeholder="xxxxxxx" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_PASSWORD)} value={this.props.selectedServer.credentials.AWSPassword} required />
+        <p id="username-login-label">AWS Access Key</p>
+        <input id="username-login" type="text" placeholder="Access Key" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)} value={this.props.selectedServer.credentials.AWSAccessKey} required />
+        <p id="password-login-label">AWS Secret Key</p>
+        <input id="password-login" type="password" placeholder="xxxxxxx" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)} value={this.props.selectedServer.credentials.AWSSecretKey} required />
         <button id="submit-aws-login" onClick={this.loginAWS} >Submit</button>
 
         {/* PROXIES */}
@@ -98,19 +119,19 @@ class Server extends Component {
         <p className="body-text" id="server-label">Connect</p>
         <div id="server-box" />
         <p id="type-server-label">Type</p>
-        <select id="type-server" onChange={this.props.onServerChoiceChange} value={this.props.serverName || ''} required>
+        <select id="type-server" onChange={this.changeServerTypeChoice} value={this.props.serverName} required>
           <option value="" hidden>Choose Server</option>
-          {this.buildServerChoices()}
+          {this.buildServerTypeChoices()}
         </select>
         <img src={DDD} alt="dropdown button" id="type-server-button" />
         <p id="size-server-label">Size</p>
-        <select id="size-server" onChange={this.props.onServerSizeChoiceChange} value={this.props.serverSize || ''} disabled={!this.props.serverName} required>
+        <select id="size-server" onChange={this.changeServerSizeChoice} value={this.props.serverSize} disabled={!this.props.serverName} required>
           <option value="" hidden>Choose Size</option>
           {this.buildServerSizeChoices()}
         </select>
         <img src={DDD} alt="dropdown button" id="size-server-button" />
         <p id="location-server-label">Location</p>
-        <select id="location-server" onChange={this.props.onServerLocationChoiceChange} value={this.props.serverLocation || ''} disabled={!this.props.serverSize} required>
+        <select id="location-server" onChange={this.changeServerLocationChoice} value={this.props.serverLocation} disabled={!this.props.serverSize} required>
           <option value="" hidden>Choose Location</option>
           {this.buildServerLocationChoices()}
         </select>
@@ -124,12 +145,16 @@ class Server extends Component {
 
 Server.propTypes = {
   selectedServer: PropTypes.objectOf(PropTypes.any).isRequired,
-  servers: PropTypes.arrayOf(PropTypes.any).isRequired,
+  serverListOptions: PropTypes.shape({
+    types: PropTypes.arrayOf(PropTypes.any).isRequired,
+    sizes: PropTypes.arrayOf(PropTypes.any).isRequired,
+    locations: PropTypes.arrayOf(PropTypes.any).isRequired,
+  }).isRequired,
   serverName: PropTypes.string.isRequired,
   serverSize: PropTypes.string.isRequired,
   serverLocation: PropTypes.string.isRequired,
   onCredentialsChange: PropTypes.func.isRequired,
-  onServerChoiceChange: PropTypes.func.isRequired,
+  onServerTypeChoiceChange: PropTypes.func.isRequired,
   onServerSizeChoiceChange: PropTypes.func.isRequired,
   onServerLocationChoiceChange: PropTypes.func.isRequired,
   onSaveServerOptions: PropTypes.func.isRequired,
@@ -141,24 +166,24 @@ Server.propTypes = {
 
 const mapStateToProps = state => ({
   selectedServer: state.selectedServer,
-  serverName: state.selectedServer.server.type,
-  serverSize: state.selectedServer.server.size,
-  serverLocation: state.selectedServer.server.location,
-  servers: state.servers,
+  serverName: state.selectedServer.server.type.label || '',
+  serverSize: state.selectedServer.server.size.label || '',
+  serverLocation: state.selectedServer.server.location.label || '',
+  serverListOptions: state.serverListOptions,
 });
 
 const mapDispatchToProps = dispatch => ({
   onCredentialsChange: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
-  onServerChoiceChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_TYPE, event.target.value));
+  onServerTypeChoiceChange: (type) => {
+    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_TYPE, type));
   },
-  onServerSizeChoiceChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_SIZE, event.target.value));
+  onServerSizeChoiceChange: (size) => {
+    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_SIZE, size));
   },
-  onServerLocationChoiceChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_LOCATION, event.target.value));
+  onServerLocationChoiceChange: (location) => {
+    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_LOCATION, location));
   },
   onSaveServerOptions: (newServer) => {
     dispatch(serverActions.add(newServer));
