@@ -215,7 +215,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(profileActions.load(profile));
   },
   onDestroyProfile: (profile) => {
-    dispatch(profileActions.remove(profile));
+    dispatch(profileActions.remove(profile.id));
   },
   onSelectProfile: (profile) => {
     dispatch(profileActions.select(profile));

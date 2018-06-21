@@ -79,7 +79,7 @@ export function currentProfileReducer(state = initialProfileState, action) {
     }
     case PROFILE_ACTIONS.ADD: {
       // If we have a response error, we should do nothing
-      if(action.response !== undefined && action.response.error !== undefined) {
+      if (action.response !== undefined && action.response.error !== undefined) {
         return Object.assign({}, action.profile);
       }
 
@@ -88,10 +88,10 @@ export function currentProfileReducer(state = initialProfileState, action) {
     }
     case PROFILE_ACTIONS.UPDATE: {
       // If we have a response error, we should do nothing
-      if(action.response !== undefined && action.response.error !== undefined) {
+      if (action.response !== undefined && action.response.error !== undefined) {
         return Object.assign({}, action.profile);
       }
-      
+
       // If updating an existing profile, we should reset the current profile to default values
       return Object.assign({}, initialProfileState);
     }
@@ -102,6 +102,20 @@ export function currentProfileReducer(state = initialProfileState, action) {
       loadedProfile.id = null;
 
       return loadedProfile;
+    }
+    case PROFILE_ACTIONS.REMOVE: {
+      // If we have a response error, we should do nothing
+      if (action.response !== undefined && action.response.error !== undefined) {
+        return Object.assign({}, state);
+      }
+
+      // Check if we are removing the current profile
+      if (action.id === state.id) {
+        // Return initial state
+        return Object.assign({}, initialProfileState);
+      }
+
+      break;
     }
     default:
       break;
@@ -115,6 +129,20 @@ export function selectedProfileReducer(state = initialProfileState, action) {
     case PROFILE_ACTIONS.SELECT: {
       // Set the next state to the selected profile
       return Object.assign({}, action.profile);
+    }
+    case PROFILE_ACTIONS.REMOVE: {
+      // If we have a response error, we should do nothing
+      if (action.response !== undefined && action.response.error !== undefined) {
+        return Object.assign({}, state);
+      }
+
+      // Check if we are removing the current profile
+      if (action.id === state.id) {
+        // Return initial state
+        return Object.assign({}, initialProfileState);
+      }
+
+      break;
     }
     default:
       break;

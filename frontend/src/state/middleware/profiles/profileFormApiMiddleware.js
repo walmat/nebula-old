@@ -1,6 +1,4 @@
-import {
-  PROFILE_ACTIONS,
-} from '../../actions';
+import { PROFILE_ACTIONS } from '../../actions';
 
 // TODO this is only temporary until we get registration key stuff implemented
 // profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY
@@ -110,6 +108,7 @@ const profileFormApiMiddleware = store => next => (action) => {
 
   // If we already have a response, continue on to the next middleware
   if (action.response !== undefined) {
+    console.log('action already has response, pass it on...');
     return next(action);
   }
 
@@ -147,6 +146,8 @@ const profileFormApiMiddleware = store => next => (action) => {
         const newAction = Object.assign({}, action, {
           response: id,
         });
+        console.log('dispatching new remove action');
+        console.log(newAction);
         store.dispatch(newAction);
       });
       break;
@@ -155,6 +156,8 @@ const profileFormApiMiddleware = store => next => (action) => {
       // Not a relevant action -- pass on to the next middleware
       return next(action);
   }
+
+  return null;
 };
 
 export default profileFormApiMiddleware;

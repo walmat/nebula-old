@@ -54,7 +54,7 @@ export function profileListReducer(state = initialProfileListState, action) {
       nextState = JSON.parse(JSON.stringify(state));
 
       // Filter out the given id
-      nextState = nextState.filter(p => p.id === action.id);
+      nextState = nextState.filter(p => p.id !== action.id);
       break;
     }
     case PROFILE_ACTIONS.EDIT: {
