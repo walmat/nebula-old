@@ -11,7 +11,7 @@ export const initialTaskState = {
   pairs: 0,
   errors: {
     sku: null,
-    billing: null,
+    profile: null,
     sizes: null,
     pairs: null,
   },
@@ -30,7 +30,7 @@ export function taskReducer(state = initialTaskState, action) {
         break;
       case TASK_FIELDS.EDIT_BILLING:
         change = {
-          billing: action.value,
+          profile: action.value,
           errors: Object.assign({}, state.errors, action.errors)
         };
         break;
@@ -50,7 +50,6 @@ export function taskReducer(state = initialTaskState, action) {
         change = {};
     }
   }
-  change.errors = action.errors;
 
   return Object.assign({}, state, change);
 }

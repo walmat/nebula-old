@@ -14,6 +14,7 @@ class CreateTask extends Component {
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
+    this.buildProfileOptions = this.buildProfileOptions.bind(this);
   }
 
 
@@ -23,11 +24,13 @@ class CreateTask extends Component {
       (<option key={size.name} value={size.name}>{size.name}</option>));
   }
 
-  static buildProfileOptions() {
-    const billings = getAllProfiles();
-    return billings.map(profile =>
-      (<option key={profile.name} value={profile.name}>{profile.name}</option>));
-  }
+  buildProfileOptions = () => {
+    const profiles = this.props.profiles;
+
+    console.log(this.props.profiles);
+    return profiles.map(profile =>
+      (<option key={profile.profileName} value={profile.profileName}>{profile.profileName}</option>));
+  };
 
   static async saveTask(e) {
       e.preventDefault();
@@ -65,14 +68,14 @@ class CreateTask extends Component {
         <p id="sku-label">Input SKU</p>
         <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.value.profile} required>
+        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.profiles.profileName} required>
           <option value="" selected disabled hidden>Choose Profiles</option>
-          {CreateTask.buildProfileOptions()}
+          {this.buildProfileOptions()}
         </select>
         <div id="dropdown-profiles-box" />
         <img src={DDD} alt="dropdown" id="dropdown-profiles-arrow" draggable="false" />
         <p id="size-label">Sizes</p>
-        <select id="size" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} required>
+        <select id="size" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} value={this.props.value.size} required>
           <option value="" selected disabled hidden>Choose Size</option>
           {CreateTask.buildSizeOptions()}
         </select>
@@ -95,22 +98,21 @@ CreateTask.propTypes = {
   errors: PropTypes.objectOf(PropTypes.any).isRequired,
   onChange: PropTypes.func.isRequired,
   value: PropTypes.objectOf(PropTypes.any).isRequired,
-  id: PropTypes.string.isRequired
 };
 
-const mapStateToProps = (state, ownProps) => ({
-    id: ownProps.taskToEdit.id,
-    value: ownProps.taskToEdit,
-    errors: ownProps.taskToEdit.errors,
-});
+const mapStateToProps = (state, ownProps) => {
+    console.log(state);
+    console.log(ownProps);
+    return {
+        profiles: state.profiles,
+        value: ownProps.taskToEdit,
+        errors: ownProps.taskToEdit.errors
+    }
+};
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch) => ({
     onChange: (changes) => {
-        dispatch(taskActions.edit(
-            ownProps.id,
-            changes.value,
-            changes.field
-        ));
+        dispatch(taskActions.edit(null, changes.field, changes.value));
     }
 });
 

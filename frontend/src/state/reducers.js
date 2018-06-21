@@ -18,7 +18,6 @@ export const initialState = {
   selectedProfile: initialProfileState,
   currentProfile: initialProfileState,
   tasks: initialTaskListState,
-  selectedTask: initialTaskState,
   currentTask: initialTaskState,
   proxies: initialSettingsState,
   selectedServer: initialServerState,
@@ -29,7 +28,7 @@ export const initialState = {
 
 const topLevelReducer = (state = initialState, action) => {
   const changes = {
-    tasks: taskListReducer(state.tasks, action),
+    // tasks: taskListReducer(state.tasks, action),
     currentTask: currentTaskReducer(state.currentTask, action),
     profiles: profileListReducer(state.profiles, action),
     currentProfile: currentProfileReducer(state.currentProfile, action),

@@ -8,6 +8,9 @@ export const initialTaskListState = [];
 
 export function taskListReducer(state = initialTaskListState, action) {
   const change = {};
+
+  let nextState = JSON.parse(JSON.stringify(state));
+
   if (action.type === TASK_FIELDS.EDIT && action.id !== null) {
     for (let i = 0; i < state.length; i += 1) {
       if (state[i].id === action.id) {
