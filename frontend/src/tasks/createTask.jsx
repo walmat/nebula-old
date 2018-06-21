@@ -34,7 +34,7 @@ class CreateTask extends Component {
 
   async saveTask(e) {
       e.preventDefault();
-      this.props.onAddNewTask(this.props.newTask);
+      this.props.onAddNewTask(this.props.value);
   };
 
     createOnChangeHandler(field) {
@@ -94,8 +94,6 @@ CreateTask.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => {
-    console.log(state);
-    console.log(ownProps);
     return {
         profiles: state.profiles,
         value: ownProps.taskToEdit,

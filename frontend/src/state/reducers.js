@@ -28,7 +28,7 @@ export const initialState = {
 
 const topLevelReducer = (state = initialState, action) => {
   const changes = {
-    // tasks: taskListReducer(state.tasks, action),
+    tasks: taskListReducer(state.tasks, action),
     newTask: newTaskReducer(state.newTask, action),
     profiles: profileListReducer(state.profiles, action),
     currentProfile: currentProfileReducer(state.currentProfile, action),
