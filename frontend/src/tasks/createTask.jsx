@@ -2,15 +2,21 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import {TASK_FIELDS, mapTasksFieldToKey, taskActions} from '../state/actions';
+import {TASK_FIELDS, taskActions} from '../state/actions';
 import getAllSizes from './getSizes';
 import getAllProfiles from './getProfiles';
 
 import DDD from '../_assets/dropdown-down.svg';
-// import DDU from '../_assets/dropdown-up.svg';
 import './tasks.css';
 
 class CreateTask extends Component {
+
+  constructor(props) {
+    super(props);
+    this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
+  }
+
+
   static buildSizeOptions() {
     const sizes = getAllSizes();
     return sizes.map(size =>
@@ -21,11 +27,6 @@ class CreateTask extends Component {
     const billings = getAllProfiles();
     return billings.map(profile =>
       (<option key={profile.name} value={profile.name}>{profile.name}</option>));
-  }
-
-  constructor(props) {
-    super(props);
-    this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
   }
 
   static async saveTask(e) {
@@ -62,9 +63,9 @@ class CreateTask extends Component {
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
         <p id="sku-label">Input SKU</p>
-        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.currentTask.sku} required />
+        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.currentTask.profile} required>
+        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_BILLING)} value={this.props.value.profile} required>
           <option value="" selected disabled hidden>Choose Profiles</option>
           {CreateTask.buildProfileOptions()}
         </select>
@@ -98,16 +99,15 @@ CreateTask.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => ({
-  id: ownProps.id,
-  errors: ownProps.taskToEdit.errors,
-  value: ownProps.taskToEdit.value
+    id: ownProps.taskToEdit.id,
+    value: ownProps.taskToEdit,
+    errors: ownProps.taskToEdit.errors,
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     onChange: (changes) => {
         dispatch(taskActions.edit(
-            ownProps.taskToEdit.id,
-            ownProps.fieldToEdit,
+            ownProps.id,
             changes.value,
             changes.field
         ));
