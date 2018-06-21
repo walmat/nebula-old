@@ -153,9 +153,8 @@ const profileFormApiMiddleware = store => next => (action) => {
     }
     default:
       // Not a relevant action -- pass on to the next middleware
-      break;
+      return next(action);
   }
-  return next(action);
 };
 
 export default profileFormApiMiddleware;
