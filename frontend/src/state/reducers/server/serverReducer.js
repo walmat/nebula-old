@@ -34,8 +34,11 @@ export function serverReducer(state = initialServerState, action) {
     // Choose what to change based on the field
     switch (action.field) {
       case SERVER_FIELDS.EDIT_SERVER_TYPE:
+        const { type, size } = state[mapServerFieldToKey[action.field]];
         change = {
           type: action.value,
+          // If we are selecting a different type, reset the size to force the user to reselect
+          size: type.id === action.value.id ? size : {},
         };
         break;
       case SERVER_FIELDS.EDIT_SERVER_SIZE:

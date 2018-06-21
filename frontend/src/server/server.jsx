@@ -19,7 +19,7 @@ class Server extends Component {
       const filtered = onFilter ? options.filter(onFilter) : options;
       return filtered.map(o =>
         (<option key={o.id} value={o.id}>{o.label}</option>));
-    }
+    };
   }
 
   static changeServerChoice(options, onChange) {
@@ -65,59 +65,64 @@ class Server extends Component {
     return event => this.props.onCredentialsChange(field, event.target.value);
   }
 
-  renderServerOptionComponent(type) {
-    switch (type) {
-      case 'type':
-        return Server.renderServerOptionComponent(
-          'type',
-          'Type',
-          'Choose Server',
-          this.props.serverName.id,
-          Server.changeServerChoice(
-            this.props.serverListOptions.types,
-            this.props.onServerTypeChoiceChange,
-          ),
-          Server.buildServerTypeChoices(
-            this.props.serverListOptions.types,
-            (t => (this.props.serverSize.id
-              ? t.sizes.some(s => s === this.props.serverSize.id)
-              : true)),
-          ),
-        );
-      case 'size':
-        return Server.renderServerOptionComponent(
-          'size',
-          'Size',
-          'Choose Size',
-          this.props.serverSize.id,
-          Server.changeServerChoice(
-            this.props.serverListOptions.sizes,
-            this.props.onServerSizeChoiceChange,
-          ),
-          Server.buildServerTypeChoices(this.props.serverListOptions.sizes),
-        );
-      case 'location':
-        return Server.renderServerOptionComponent(
-          'location',
-          'Location',
-          'Choose Location',
-          this.props.serverLocation.id,
-          Server.changeServerChoice(
-            this.props.serverListOptions.locations,
-            this.props.onServerLocationChoiceChange,
-          ),
-          Server.buildServerTypeChoices(this.props.serverListOptions.locations),
-        );
-      default:
-        return null;
-    }
+  renderServerTypeComponent() {
+    return Server.renderServerOptionComponent(
+      'type',
+      'Type',
+      'Choose Server',
+      this.props.serverType.id,
+      false,
+      Server.changeServerChoice(
+        this.props.serverListOptions.types,
+        this.props.onServerTypeChoiceChange,
+      ),
+      Server.buildServerTypeChoices(this.props.serverListOptions.types),
+    );
   }
 
-  static renderServerOptionComponent(type, label, defaultOption, value, onChange, optionGenerator) {
+  renderServerSizeComponent() {
+    return Server.renderServerOptionComponent(
+      'size',
+      'Size',
+      'Choose Size',
+      this.props.serverSize.id,
+      !this.props.serverType.id,
+      Server.changeServerChoice(
+        this.props.serverListOptions.sizes,
+        this.props.onServerSizeChoiceChange,
+      ),
+      Server.buildServerTypeChoices(
+        this.props.serverListOptions.sizes,
+        (s => (this.props.serverType.id
+          ? s.types.some(t => t === this.props.serverType.id)
+          : true)),
+      ),
+    );
+  }
+
+  renderServerLocationComponent() {
+    return Server.renderServerOptionComponent(
+      'location',
+      'Location',
+      'Choose Location',
+      this.props.serverLocation.id,
+      false,
+      Server.changeServerChoice(
+        this.props.serverListOptions.locations,
+        this.props.onServerLocationChoiceChange,
+      ),
+      Server.buildServerTypeChoices(this.props.serverListOptions.locations),
+    );
+  }
+
+  static renderServerOptionComponent(
+    type, label, defaultOption, value,
+    disabled, onChange, optionGenerator,
+  ) {
     return (
       <div>
         <p id={`${type}-server-label`}>{label}</p>
-        <select id={`${type}-server`} onChange={onChange} value={value} required>
+        <select id={`${type}-server`} onChange={onChange} value={value} disabled={disabled} required>
           <option value="" hidden>{defaultOption}</option>
           {optionGenerator()}
         </select>
@@ -154,9 +159,9 @@ class Server extends Component {
         {/* CONNECT */}
         <p className="body-text" id="server-label">Connect</p>
         <div id="server-box" />
-        {this.renderServerOptionComponent('type')}
-        {this.renderServerOptionComponent('size')}
-        {this.renderServerOptionComponent('location')}
+        {this.renderServerTypeComponent()}
+        {this.renderServerSizeComponent()}
+        {this.renderServerLocationComponent()}
         <img src={DDD} alt="dropdown button" id="location-server-button" />
         <button id="destroy-server" onClick={this.destroyServer}>Destroy</button>
         <button id="create-server" onClick={this.createServer}>Create</button>
@@ -172,7 +177,7 @@ Server.propTypes = {
     sizes: PropTypes.arrayOf(PropTypes.any).isRequired,
     locations: PropTypes.arrayOf(PropTypes.any).isRequired,
   }).isRequired,
-  serverName: PropTypes.objectOf(PropTypes.any).isRequired,
+  serverType: PropTypes.objectOf(PropTypes.any).isRequired,
   serverSize: PropTypes.objectOf(PropTypes.any).isRequired,
   serverLocation: PropTypes.objectOf(PropTypes.any).isRequired,
   onCredentialsChange: PropTypes.func.isRequired,
@@ -188,7 +193,7 @@ Server.propTypes = {
 
 const mapStateToProps = state => ({
   selectedServer: state.selectedServer,
-  serverName: state.selectedServer.server.type,
+  serverType: state.selectedServer.server.type,
   serverSize: state.selectedServer.server.size,
   serverLocation: state.selectedServer.server.location,
   serverListOptions: state.serverListOptions,
