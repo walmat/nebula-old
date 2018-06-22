@@ -3,8 +3,8 @@
  * files, this is just a shared import point.
  */
 // import { combineReducers } from 'redux';
-import { taskReducer, initialTaskState } from './reducers/tasks/taskReducer';
-import { initialTaskListState } from './reducers/tasks/taskListReducer';
+import { taskReducer, newTaskReducer, initialTaskState } from './reducers/tasks/taskReducer';
+import {initialTaskListState, taskListReducer} from './reducers/tasks/taskListReducer';
 import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/profileReducer';
 import { profileListReducer, initialProfileListState } from './reducers/profiles/profileListReducer';
 import { serverReducer, initialServerState } from './reducers/server/serverReducer';
@@ -18,8 +18,7 @@ export const initialState = {
   selectedProfile: initialProfileState,
   currentProfile: initialProfileState,
   tasks: initialTaskListState,
-  selectedTask: initialTaskState,
-  currentTask: initialTaskState,
+  newTask: initialTaskState,
   proxies: initialSettingsState,
   selectedServer: initialServerState,
   serverName: initialServerState,
@@ -29,8 +28,8 @@ export const initialState = {
 
 const topLevelReducer = (state = initialState, action) => {
   const changes = {
-    currentTask: taskReducer(state.currentTask, action),
-    // tasks: taskListReducer(state.tasks, action),
+    tasks: taskListReducer(state.tasks, action),
+    newTask: newTaskReducer(state.newTask, action),
     profiles: profileListReducer(state.profiles, action),
     currentProfile: currentProfileReducer(state.currentProfile, action),
     selectedProfile: selectedProfileReducer(state.selectedProfile, action),

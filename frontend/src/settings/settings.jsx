@@ -44,6 +44,7 @@ class Settings extends Component {
   static async closeSession() {
     if (window.Bridge) {
       window.Bridge.endSession();
+      console.log('session ended');
     } else {
       // TODO - error handling
       console.error('Unable to end current session');

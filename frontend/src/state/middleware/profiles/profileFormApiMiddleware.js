@@ -108,7 +108,6 @@ const profileFormApiMiddleware = store => next => (action) => {
 
   // If we already have a response, continue on to the next middleware
   if (action.response !== undefined) {
-    console.log('action already has response, pass it on...');
     return next(action);
   }
 
@@ -146,8 +145,6 @@ const profileFormApiMiddleware = store => next => (action) => {
         const newAction = Object.assign({}, action, {
           response: id,
         });
-        console.log('dispatching new remove action');
-        console.log(newAction);
         store.dispatch(newAction);
       });
       break;

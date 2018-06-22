@@ -1,4 +1,5 @@
 const windowManager = require('electron-window-manager');
+var express = require('express');
 
 /**
  * Get eletron dependencies:
@@ -6,9 +7,17 @@ const windowManager = require('electron-window-manager');
  * BrowserWindow - module to create native window browser
  * ipcMain - module to intercept renderer messages
  */
-const { app, ipcMain, session } = require('electron');
+const electron = require('electron');
+const {
+  app,
+  ipcMain,
+  session,
+  Menu
+} = electron;
 const path = require('path');
 const url = require('url');
+const moment = require('moment');
+let captchas = []; //TODO - change this
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -19,8 +28,8 @@ let mainWindow;
 function startMainWindow() {
   // Create a youtube window template
   windowManager.templates.set('youtube', {
-    width: 700,
-    height: 600,
+    width: 450,
+    height: 475,
     center: true,
     frame: true,
     fullscreenable: false,
@@ -34,9 +43,10 @@ function startMainWindow() {
 
   windowManager.templates.set('captcha', {
     backgroundColor: '#f0f0f0',
+    proxyRules: 'http://127.0.0.1:8080',
     center: true,
     fullscreen: false,
-    height: 450,
+    height: 475,
     width: 450,
     maximizable: false,
     minimizable: false,
@@ -74,12 +84,27 @@ function startMainWindow() {
   const startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
     protocol: 'file:',
-    slashes: true,
+    slashes: true
   });
 
-    // Use window manager to create main window
+  // Use window manager to create main window
   mainWindow = windowManager.createNew('main', 'NEBULA', startUrl, null, null, true);
 
+  // Make the window menu
+  const menuTemplate = [{
+      label: 'File',
+      submenu: [
+          {
+              label: 'Quit',
+              click() {
+                  app.quit()
+              },
+              accelerator: 'CmdOrCtrl+Q',
+          }]
+      }
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
   mainWindow.open();
 }
 
@@ -105,30 +130,56 @@ app.on('activate', () => {
   }
 });
 
-// From here, React should handle what the Electron app does
+ipcMain.on('harvest', function(event, token) {
+    captchas.push({
+        token: token,
+        timestamp: moment(),
+        host: 'http://checkout.shopify.com',
+        sitekey: '6LfuO18UAAAAAClMxiQUvYyeGTn3xP5kZE0TFFHs'
+    });
+
+    console.log(captchas);
+});
+
 ipcMain.on('window-event', (event, arg) => {
   switch (arg) {
     case 'launchYoutube': {
-      // open youtube url using youtube window template
-      windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', { parent: mainWindow }, false);
-      break;
+        // open youtube url using youtube window template
+        windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', { parent: mainWindow }, false);
+        break;
     }
     case 'launchHarvester': {
-      // open a captcha harvesting window
+        //todo -- move this to the api
+        /*
+        *  1. send the event to the main process (a task that is needing a captcha)
+        *  2. refresh the captcha page
+        * */
 
-      const captchaUrl = url.format({
-        pathname: path.join(__dirname, '/../build/captcha.html'),
-        protocol: 'file:',
-        slashes: true,
-      });
+        let port = 6000;
 
-      windowManager.open('captcha', 'Harvester', captchaUrl, 'captcha', { parent: mainWindow }, false);
-      break;
+        expressApp = express();
+        expressApp.set('port', port || port - 10);
+        expressApp.use(express.json());
+        expressApp.use(express.urlencoded({ extended: true }));
+
+        expressApp.get('/', function(req, res) {
+            res.sendFile('./captcha.html', {root: __dirname});
+            session.defaultSession.setProxy({proxyRules:""}, function () {});
+        });
+
+        var server = expressApp.listen(expressApp.get('port'));
+
+        session.defaultSession.setProxy({
+            proxyRules: `http://127.0.0.1:6000`
+        }, function (r) {
+            windowManager.open('captcha', 'Harvester', 'http://checkout.shopify.com', 'captcha', {parent: mainWindow}, true);
+        });
+        break;
     }
     case 'endSession': {
       // closes the YouTube window and signs the user out of that account
       windowManager.closeAllExcept('main');
-      session.defaultSession.clearStorageData({}, () => {
+      session.defaultSession.clearStorageData([], () => {
         // todo - error handle
       });
       session.defaultSession.clearCache(() => {
