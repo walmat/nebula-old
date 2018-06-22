@@ -40,7 +40,7 @@ async function getNebulaUser(discordId) {
         let result = await docClient.query(params).promise();
         return result.Items.length > 0 ? result.Items[0] : null;
     } catch (err) {
-        console.log(err);
+        console.log('Get User', err);
     }
 }
 

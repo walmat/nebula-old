@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import EnsureAuthorization from '../EnsureAuthorization';
 
 import ViewTask from './viewTask';
 import CreateTask from './createTask';
@@ -156,4 +157,4 @@ const mapDispatchToProps = dispatch => ({
     }
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Tasks);
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Tasks));

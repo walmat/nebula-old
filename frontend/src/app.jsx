@@ -11,12 +11,9 @@ import Auth from './auth/auth';
 
 import './app.css';
 
-// const { REACT_APP_DISCORD_ID } = process.env;
-// const redirect = 'http://localhost:3000/auth';
-// const authURL = `https://discordapp.com/oauth2/authorize?client_id=${REACT_APP_DISCORD_ID}&scope=identify&response_type=code&redirect_uri=${redirect}`;
-
 class App extends PureComponent {
   render() {
+    /*The Router path='/' must always be last, otherwise you get a horrible routing bug that I got burned on :(!!!*/
     return (
       <Provider store={this.props.store}>
         <BrowserRouter>

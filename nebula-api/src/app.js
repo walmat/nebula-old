@@ -17,7 +17,7 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, x-access-token');
 
     // intercept OPTIONS method
     if (req.method === 'OPTIONS') {
@@ -36,12 +36,13 @@ let server = require('./routes/server/server');
 let settings = require('./routes/settings/settings');
 let getUser = require('./routes/user/getUser');
 let createUser = require('./routes/user/createUser');
+let auth = require('./routes/auth');
 
 // wrap the app
 tasks(app); profiles(app);
 server(app); settings(app);
 createUser(app); getUser(app);
-//shopify(app);
+auth(app);
 
 app.listen(port);
 

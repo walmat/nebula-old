@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import EnsureAuthorization from '../EnsureAuthorization';
 
 import PaymentFields from './paymentFields';
 import LocationFields from './locationFields';
@@ -229,4 +230,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Profiles);
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Profiles));
