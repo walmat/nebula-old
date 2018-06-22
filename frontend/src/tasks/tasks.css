@@ -26,6 +26,7 @@
         width: 252px;
         height: 29px;
         border: 1px solid #F0405E;
+        text-transform: uppercase;
     }
 
     #profiles {
@@ -167,6 +168,14 @@
         border: none;
         border-radius: 3px;
         overflow: scroll;
+    }
+
+    #view-tasks-table {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
     }
 
     #view-num {

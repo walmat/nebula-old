@@ -1,5 +1,3 @@
-import uuidv4 from 'uuid/v4';
-
 import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
 
@@ -29,7 +27,7 @@ export function taskListReducer(state = initialTaskListState, action) {
         newId = num++;
       }
 
-      // add new profile
+      // add new task
       newTask.id = newId;
       nextState.push(newTask);
       break;

@@ -5,15 +5,13 @@ import PropTypes from 'prop-types';
 import ViewTask from './viewTask';
 import CreateTask from './createTask';
 
-// import DDD from '../_assets/dropdown-down.svg';
-// import DDU from '../_assets/dropdown-up.svg';
 import startAll from '../_assets/start-all.svg';
 import stopAll from '../_assets/stop-all.svg';
 import destroyAll from '../_assets/destroy-all.svg';
 
 import '../app.css';
 import './tasks.css';
-import {TASK_FIELDS, taskActions} from "../state/actions";
+import {taskActions} from "../state/actions";
 
 // const config = require('./config.json'); // TODO *** temp data structure
 // const core = require('core');
@@ -51,10 +49,7 @@ class Tasks extends Component {
 
   async destroyTask() {
     // if user clicks the `garbage can` button, erase the task from tasks
-  }
 
-  async loadTask() {
-    this.props.onLoadTask(this.props.selectedTask);
   }
 
   /* changes when the edit button for each task is clicked */
@@ -73,7 +68,7 @@ class Tasks extends Component {
         <h1 className="text-header" id="task-header">Tasks</h1>
         <div className="flex-container">
           {/* CREATE TASK */}
-          <CreateTask taskToEdit={newTask}/>
+          <CreateTask taskToEdit={newTask} />
 
           {/* TASK LOG */}
           <p className="body-text" id="log-label">Log</p>
@@ -94,8 +89,8 @@ class Tasks extends Component {
           <p id="view-actions">Actions</p>
           <hr id="view-line" />
           <div id="view-scroll-box">
-            <table>
-              {this.props.tasks.forEach(task => <ViewTask data={task} />)}
+            <table id ="view-tasks-table">
+              {/*TODO - build the view list here*/}
             </table>
           </div>
           <div

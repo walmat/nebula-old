@@ -26,8 +26,6 @@ class CreateTask extends Component {
 
   buildProfileOptions = () => {
     const profiles = this.props.profiles;
-
-    console.log(this.props.profiles);
     return profiles.map(profile =>
         (<option key={profile.id} value={profile.id}>{profile.profileName}</option>));
   };
@@ -60,14 +58,14 @@ class CreateTask extends Component {
         <p id="sku-label">Input SKU</p>
         <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <select id="profiles" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)} value={this.props.value.profile.id || ''} required>
+        <select id="profiles" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)} value={this.props.value.profile.id || ''} required>
           <option value="" selected disabled hidden>Choose Profiles</option>
           {this.buildProfileOptions()}
         </select>
         <div id="dropdown-profiles-box" />
         <img src={DDD} alt="dropdown" id="dropdown-profiles-arrow" draggable="false" />
         <p id="size-label">Sizes</p>
-        <select id="size" type="text" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} value={this.props.value.sizes} required>
+        <select id="size" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} value={this.props.value.sizes} required>
           <option value="" selected disabled hidden>Choose Size</option>
           {CreateTask.buildSizeOptions()}
         </select>
