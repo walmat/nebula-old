@@ -62,7 +62,8 @@ class Profiles extends Component {
   /**
    * Delete the profile from the database
    */
-  deleteProfile() {
+  deleteProfile(e) {
+    e.preventDefault();
     this.props.onDestroyProfile(this.props.selectedProfile);
   }
 
@@ -220,7 +221,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(profileActions.load(profile));
   },
   onDestroyProfile: (profile) => {
-    dispatch(profileActions.remove(profile));
+    dispatch(profileActions.remove(profile.id));
   },
   onSelectProfile: (profile) => {
     dispatch(profileActions.select(profile));

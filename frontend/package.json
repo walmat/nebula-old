@@ -12,6 +12,7 @@
     "electron-dev-server": "react-scripts start",
     "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
     "electron-dev-windows": "set ELECTRON_START_URL=http://localhost:3000 && electron .",
+    "lint": "./node_modules/.bin/eslint src/",
     "homepage": "./"
   },
   "dependencies": {
