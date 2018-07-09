@@ -39,25 +39,29 @@ class Server extends Component {
     this.createCredentialsChangeHandler = this.createCredentialsChangeHandler.bind(this);
   }
 
-  loginAWS(user, pass) {
-    console.log(this.props);
-    console.log(user, pass);
-  }
-
-  destroyProxies() {
+  loginAWS(e) {
+    e.preventDefault();
     console.log(this.props);
   }
 
-  generateProxies(number) {
-    console.log(this.props, number);
+  destroyProxies(e) {
+    e.preventDefault();
+    console.log(this.props);
   }
 
-  destroyServer() {
+  generateProxies(e) {
+    e.preventDefault();
+    console.log(this.props);
+  }
+
+  destroyServer(e) {
+    e.preventDefault();
     console.log(this.props);
     this.props.onDestroyServer(null);
   }
 
-  createServer() {
+  createServer(e) {
+    e.preventDefault();
     this.props.onSaveServerOptions(this.props.selectedServer);
   }
 
