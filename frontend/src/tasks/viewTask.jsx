@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 class ViewTask extends Component {
@@ -37,8 +38,16 @@ class ViewTask extends Component {
   }
 }
 
+const mapStateToProps = state => ({
+
+});
+
+const mapDispatchToProps = dispatch => ({
+
+});
+
 ViewTask.propTypes = {
   data: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
-export default ViewTask;
+export default connect(mapStateToProps, mapDispatchToProps)(ViewTask);

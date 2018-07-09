@@ -46,6 +46,9 @@ class Tasks extends Component {
     // if user clicks the `garbage can` button, erase the task from tasks
   }
 
+  static async buildTasks() {
+    // build "view tasks" table
+  }
   componentDidUpdate() {
     console.log('UPDATE');
   }
@@ -87,7 +90,7 @@ class Tasks extends Component {
           <p id="view-actions">Actions</p>
           <hr id="view-line" />
           <div id="view-scroll-box">
-            <table id="view-tasks-table" />
+            {<ViewTask tasks={this.state.tasks} />}
           </div>
           <div
             role="button"
