@@ -90,7 +90,7 @@ class Tasks extends Component {
           <p id="view-actions">Actions</p>
           <hr id="view-line" />
           <div id="view-scroll-box">
-            {<ViewTask tasks={this.state.tasks} />}
+            {<ViewTask tasks={this.tasks} />}
           </div>
           <div
             role="button"
