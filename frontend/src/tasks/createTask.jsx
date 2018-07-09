@@ -6,14 +6,7 @@ import { TASK_FIELDS, taskActions } from '../state/actions';
 import getAllSizes from './getSizes';
 
 import DDD from '../_assets/dropdown-down.svg';
-import start from '../_assets/run.svg';
-import line from '../_assets/horizontal-line.svg';
-import stop from '../_assets/stop.svg';
-import destroy from '../_assets/destroy.svg';
-import edit from '../_assets/edit_icon.svg';
 import './tasks.css';
-
-const $ = require('jquery');
 
 class CreateTask extends Component {
   static buildSizeOptions() {
