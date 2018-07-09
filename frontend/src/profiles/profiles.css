@@ -363,6 +363,7 @@ input::placeholder, select {
     height: 29px;
     border: 1px solid #F0405E;
     border-radius: 3px;
+    text-transform: lowercase;
 }
 
 #card-number {

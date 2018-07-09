@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import EnsureAuthorization from '../EnsureAuthorization';
 
 import PaymentFields from './paymentFields';
 import LocationFields from './locationFields';
@@ -11,6 +12,7 @@ import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/a
 
 // images
 import DDD from '../_assets/dropdown-down.svg';
+import DDU from '../_assets/dropdown-up.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
 // import DDU from '../_assets/dropdown-up.svg';
@@ -60,7 +62,8 @@ class Profiles extends Component {
   /**
    * Delete the profile from the database
    */
-  deleteProfile() {
+  deleteProfile(e) {
+    e.preventDefault();
     this.props.onDestroyProfile(this.props.selectedProfile);
   }
 
@@ -119,8 +122,13 @@ class Profiles extends Component {
             <option value="" hidden>Choose Profile to Load</option>
             {this.buildProfileOptions()}
           </select>
-          <img src={DDD} alt="dropdown arrow down" id="profile-select-arrow" />
-          <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
+            <img
+                src={currentProfile ? DDD : DDU}
+                alt="dropdown arrow"
+                id="profile-select-arrow"
+                draggable="false"
+            />
+            <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
 
           {/* SHIPPING INFORMATION */}
           <div className="flex-col">
@@ -133,8 +141,7 @@ class Profiles extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.props.onClickBillingMatchesShipping}
-          >
+            onClick={this.props.onClickBillingMatchesShipping}>
             <img
               src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
               alt="billing matches shipping checkbox"
@@ -191,7 +198,7 @@ Profiles.propTypes = {
   onLoadProfile: PropTypes.func.isRequired,
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
-  onUpdateProfile: PropTypes.func.isRequired,
+  onUpdateProfile: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -214,7 +221,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(profileActions.load(profile));
   },
   onDestroyProfile: (profile) => {
-    dispatch(profileActions.remove(profile));
+    dispatch(profileActions.remove(profile.id));
   },
   onSelectProfile: (profile) => {
     dispatch(profileActions.select(profile));
@@ -224,4 +231,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Profiles);
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Profiles));

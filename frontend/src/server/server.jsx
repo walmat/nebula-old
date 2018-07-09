@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import EnsureAuthorization from '../EnsureAuthorization';
 
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 
@@ -233,4 +234,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Server);
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Server));

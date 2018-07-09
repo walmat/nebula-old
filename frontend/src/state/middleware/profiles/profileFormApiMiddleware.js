@@ -1,6 +1,4 @@
-import {
-  PROFILE_ACTIONS,
-} from '../../actions';
+import { PROFILE_ACTIONS } from '../../actions';
 
 // TODO this is only temporary until we get registration key stuff implemented
 // profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY
@@ -153,9 +151,10 @@ const profileFormApiMiddleware = store => next => (action) => {
     }
     default:
       // Not a relevant action -- pass on to the next middleware
-      break;
+      return next(action);
   }
-  return next(action);
+
+  return null;
 };
 
 export default profileFormApiMiddleware;

@@ -94,8 +94,5 @@ export function serverReducer(state = initialServerState, action) {
       );
   }
 
-  // TEMPORARY
-  console.log(action, change);
-
   return nextState;
 }

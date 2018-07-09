@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import EnsureAuthorization from '../EnsureAuthorization';
+
 
 import save from '../_assets/save.svg';
 // import checkboxChecked from '../_assets/Check_icons-01.svg';
@@ -42,6 +44,7 @@ class Settings extends Component {
   static async closeSession() {
     if (window.Bridge) {
       window.Bridge.endSession();
+      console.log('session ended');
     } else {
       // TODO - error handling
       console.error('Unable to end current session');
@@ -87,4 +90,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Settings));
