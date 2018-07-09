@@ -66,14 +66,14 @@ export function serverReducer(state = initialServerState, action) {
           password: action.value,
         };
         break;
-      case SERVER_FIELDS.EDIT_AWS_USERNAME:
+      case SERVER_FIELDS.EDIT_AWS_ACCESS_KEY:
         change = {
-          AWSUsername: action.value,
+          AWSAccessKey: action.value,
         };
         break;
-      case SERVER_FIELDS.EDIT_AWS_PASSWORD:
+      case SERVER_FIELDS.EDIT_AWS_SECRET_KEY:
         change = {
-          AWSPassword: action.value,
+          AWSSecretKey: action.value,
         };
         break;
       default:

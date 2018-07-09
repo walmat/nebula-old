@@ -138,10 +138,10 @@ class Server extends Component {
         {/* LOGIN */}
         <p className="body-text" id="login-label">Login</p>
         <div id="login-box" />
-        <p id="username-login-label">AWS Access Key</p>
-        <input id="username-login" type="text" placeholder="Access Key" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)} value={this.props.selectedServer.credentials.AWSAccessKey} required />
-        <p id="password-login-label">AWS Secret Key</p>
-        <input id="password-login" type="password" placeholder="xxxxxxx" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)} value={this.props.selectedServer.credentials.AWSSecretKey} required />
+        <p id="access-key-label">AWS Access Key</p>
+        <input id="access-key" type="text" placeholder="Access Key" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)} value={this.props.selectedServer.credentials.AWSAccessKey} required />
+        <p id="secret-key-label">AWS Secret Key</p>
+        <input id="secret-key" type="password" placeholder="xxxxxxx" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)} value={this.props.selectedServer.credentials.AWSSecretKey} required />
         <button id="submit-aws-login" onClick={this.loginAWS} >Submit</button>
 
         {/* PROXIES */}
