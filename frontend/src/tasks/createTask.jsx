@@ -98,7 +98,6 @@ CreateTask.propTypes = {
 };
 
 
-// this.state.todos.filter(filterTodo => filterTodo !== todo);
 const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   value: ownProps.taskToEdit,

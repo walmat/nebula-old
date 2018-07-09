@@ -10,8 +10,7 @@ class ViewTask extends Component {
 
   createTable() {
     const table = [];
-
-    for (let i = 0; i < this.props.tasks; i += 1) {
+    for (let i = 0; i < this.props.tasks.length; i += 1) {
       table.push((
         <tr>
           <td id={`${this.props.tasks[i].id}-edit`}>{this.props.tasks[i].edit}</td>
@@ -37,7 +36,7 @@ class ViewTask extends Component {
 }
 
 const mapStateToProps = state => ({
-
+  tasks: state.tasks,
 });
 
 const mapDispatchToProps = dispatch => ({
