@@ -11,18 +11,13 @@ import destroyAll from '../_assets/destroy-all.svg';
 
 import '../app.css';
 import './tasks.css';
-import {taskActions} from "../state/actions";
+import { taskActions } from '../state/actions';
 
 // const config = require('./config.json'); // TODO *** temp data structure
 // const core = require('core');
 // const Pool = require('threads').Pool;
 
 class Tasks extends Component {
-
-
-  componentDidUpdate() {
-    console.log('UPDATE');
-  }
   /**
    * if user clicks the large `right arrow` button, run all the tasks
    */
@@ -39,30 +34,33 @@ class Tasks extends Component {
     // if user clicks the large `garbage can` button, erase all tasks
   }
 
-  async runTask() {
+  static async runTask() {
     // if user clicks the play button, start the task
-  };
+  }
 
-  async stopTask() {
+  static async stopTask() {
     // if user clicks pause button, stop the task
   }
 
-  async destroyTask() {
+  static async destroyTask() {
     // if user clicks the `garbage can` button, erase the task from tasks
+  }
 
+  componentDidUpdate() {
+    console.log('UPDATE');
   }
 
   /* changes when the edit button for each task is clicked */
   async onTaskChange(event) {
     const taskId = event.target.value;
-    const {tasks} = this.props;
+    const { tasks } = this.props;
     const selectedTask = tasks.find(t => t.id === taskId);
 
     this.props.onSelectTask(selectedTask);
   }
 
   render() {
-    const {newTask} = this.props;
+    const { newTask } = this.props;
     return (
       <div className="container">
         <h1 className="text-header" id="task-header">Tasks</h1>
@@ -89,29 +87,30 @@ class Tasks extends Component {
           <p id="view-actions">Actions</p>
           <hr id="view-line" />
           <div id="view-scroll-box">
-            <table id ="view-tasks-table">
-              {/*TODO - build the view list here*/}
-            </table>
+            <table id="view-tasks-table" />
           </div>
           <div
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.startAllTasks}>
+            onClick={this.startAllTasks}
+          >
             <img src={startAll} alt="start all tasks" id="start-all" draggable="false" />
           </div>
           <div
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.stopAllTasks}>
+            onClick={this.stopAllTasks}
+          >
             <img src={stopAll} alt="stop all tasks" id="stop-all" draggable="false" />
           </div>
           <div
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.destroyAllTasks}>
+            onClick={this.destroyAllTasks}
+          >
             <img src={destroyAll} alt="destroy all tasks" id="destroy-all" draggable="false" />
           </div>
         </div>
@@ -133,27 +132,27 @@ Tasks.propTypes = {
 };
 
 const mapStateToProps = state => ({
-   tasks: state.tasks,
-   newTask: state.newTask,
-   selectedTask: state.selectedTask
+  tasks: state.tasks,
+  newTask: state.newTask,
+  selectedTask: state.selectedTask,
 });
 
 const mapDispatchToProps = dispatch => ({
-    onLoadTask: (task) => {
-      dispatch(taskActions.load(task));
-    },
-    onSelectTask: (task) => {
-      dispatch(taskActions.select(task));
-    },
-    onUpdateTask: (task) => {
-      dispatch(taskActions.update(task.editId, task));
-    },
-    onRemoveTask: (task) => {
-      dispatch(taskActions.remove(task));
-    },
-    onChangeField: (change, field, event) => {
-      dispatch(taskActions.edit(null, field, event.target.value))
-    }
+  onLoadTask: (task) => {
+    dispatch(taskActions.load(task));
+  },
+  onSelectTask: (task) => {
+    dispatch(taskActions.select(task));
+  },
+  onUpdateTask: (task) => {
+    dispatch(taskActions.update(task.editId, task));
+  },
+  onRemoveTask: (task) => {
+    dispatch(taskActions.remove(task));
+  },
+  onChangeField: (change, field, event) => {
+    dispatch(taskActions.edit(null, field, event.target.value))
+  },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Tasks);

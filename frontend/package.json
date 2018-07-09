@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "src/electron.js",
+  "homepage": "./",
   "scripts": {
     "start": "react-scripts start & node src/electron-wait-react",
     "build": "react-scripts build",
@@ -11,8 +12,7 @@
     "electron": "electron .",
     "electron-dev-server": "react-scripts start",
     "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
-    "electron-dev-windows": "set ELECTRON_START_URL=http://localhost:3000 && electron .",
-    "homepage": "./"
+    "electron-dev-windows": "set ELECTRON_START_URL=http://localhost:3000 && electron ."
   },
   "dependencies": {
     "bodymovin": "^4.13.0",
@@ -20,6 +20,7 @@
     "electron-window-manager": "^1.0.6",
     "express": "^4.16.3",
     "express-validator": "^5.1.2",
+    "jquery": "^3.3.1",
     "jsonfile": "^4.0.0",
     "moment": "^2.22.2",
     "npm": "^6.0.6",

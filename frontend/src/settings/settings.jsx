@@ -32,7 +32,7 @@ class Settings extends Component {
       window.Bridge.launchHarvester();
     } else {
       // TODO - error handling
-      console.error('Unable to launch harvester!')
+      console.error('Unable to launch harvester!');
     }
   }
 
@@ -47,6 +47,11 @@ class Settings extends Component {
       // TODO - error handling
       console.error('Unable to end current session');
     }
+  }
+
+  static async saveProxies(e) {
+    e.preventDefault();
+    this.props.saveProxies(this.props.value);
   }
 
   render() {
@@ -76,15 +81,16 @@ class Settings extends Component {
 Settings.propTypes = {
   // currentSettings: PropTypes.objectOf(PropTypes.any).isRequired,
   saveProxies: PropTypes.func.isRequired,
+  value: PropTypes.isRequired,
 };
 
 const mapStateToProps = state => ({
-  currentSettings: state.proxies,
+  proxies: state.proxies,
 });
 
 const mapDispatchToProps = dispatch => ({
-  saveProxies: () => {
-    dispatch(settingsActions.edit(null, SETTINGS_FIELDS.EDIT_PROXIES));
+  onSaveProxies: (data) => {
+    dispatch(settingsActions.add(data, SETTINGS_FIELDS.EDIT_PROXIES));
   },
 });
 

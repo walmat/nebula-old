@@ -178,6 +178,55 @@
         height: 100%;
     }
 
+    .view-tasks-edit {
+        position: absolute;
+        left: 5px;
+        height:6px;
+        width: 18px;
+    }
+
+    .view-tasks-id {
+        position: absolute;
+        left: 32px;
+        width: 25px;
+        height: 25px;
+    }
+
+    .view-tasks-sku {
+        position: absolute;
+        left: 75px;
+        width: 100px;
+        height: 25px;
+    }
+
+    .view-tasks-profile {
+        position: absolute;
+        left: 287px;
+        width: 70px;
+        height: 25px;
+    }
+
+    .view-tasks-sizes {
+        position: absolute;
+        left: 553px;
+        width: 70px;
+        height: 25px;
+    }
+
+    .view-tasks-pairs {
+        position: absolute;
+        left: 615px;
+        width: 70px;
+        height: 25px;
+    }
+
+    .view-tasks-actions {
+        position: absolute;
+        left: 662px;
+        width: 70px;
+        height: 25px;
+    }
+
     #view-num {
         font-family: AvenirNext-Medium;
         font-size: 12px;

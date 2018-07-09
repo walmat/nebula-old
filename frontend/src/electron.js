@@ -1,5 +1,5 @@
 const windowManager = require('electron-window-manager');
-var express = require('express');
+const express = require('express');
 
 /**
  * Get eletron dependencies:
@@ -8,16 +8,19 @@ var express = require('express');
  * ipcMain - module to intercept renderer messages
  */
 const electron = require('electron');
+
 const {
   app,
   ipcMain,
+  ipcRenderer,
   session,
-  Menu
+  Menu,
 } = electron;
 const path = require('path');
 const url = require('url');
 const moment = require('moment');
-let captchas = []; //TODO - change this
+
+const captchas = []; // TODO - change this
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -84,7 +87,7 @@ function startMainWindow() {
   const startUrl = process.env.ELECTRON_START_URL || url.format({
     pathname: path.join(__dirname, '/../build/index.html'),
     protocol: 'file:',
-    slashes: true
+    slashes: true,
   });
 
   // Use window manager to create main window
@@ -92,17 +95,21 @@ function startMainWindow() {
 
   // Make the window menu
   const menuTemplate = [{
-      label: 'File',
-      submenu: [
-          {
-              label: 'Quit',
-              click() {
-                  app.quit()
-              },
-              accelerator: 'CmdOrCtrl+Q',
-          }]
-      }
-  ];
+    label: 'File',
+    submenu: [{
+      label: 'Quit',
+      click() {
+        app.quit();
+      },
+      accelerator: 'CmdOrCtrl+Q',
+    }],
+  },
+  {
+    label: 'Edit',
+    submenu: [{ role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectall' }],
+  }];
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
   mainWindow.open();
@@ -130,51 +137,49 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.on('harvest', function(event, token) {
-    captchas.push({
-        token: token,
-        timestamp: moment(),
-        host: 'http://checkout.shopify.com',
-        sitekey: '6LfuO18UAAAAAClMxiQUvYyeGTn3xP5kZE0TFFHs'
-    });
-
-    console.log(captchas);
+ipcMain.on('harvest', (event, token) => {
+  captchas.push({
+    token,
+    timestamp: moment(),
+    host: 'http://checkout.shopify.com',
+    sitekey: '6LfuO18UAAAAAClMxiQUvYyeGTn3xP5kZE0TFFHs',
+  });
 });
 
 ipcMain.on('window-event', (event, arg) => {
   switch (arg) {
     case 'launchYoutube': {
-        // open youtube url using youtube window template
-        windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', { parent: mainWindow }, false);
-        break;
+      // open youtube url using youtube window template
+      windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', { parent: mainWindow }, false);
+      break;
     }
     case 'launchHarvester': {
-        //todo -- move this to the api
-        /*
-        *  1. send the event to the main process (a task that is needing a captcha)
-        *  2. refresh the captcha page
-        * */
+      // todo -- move this to the api
+      /*
+      *  1. send the event to the main process (a task that is needing a captcha)
+      *  2. refresh the captcha page
+      * */
 
-        let port = 6000;
+      const port = 6000;
 
-        expressApp = express();
-        expressApp.set('port', port || port - 10);
-        expressApp.use(express.json());
-        expressApp.use(express.urlencoded({ extended: true }));
+      const expressApp = express();
+      expressApp.set('port', port || port - 10);
+      expressApp.use(express.json());
+      expressApp.use(express.urlencoded({ extended: true }));
 
-        expressApp.get('/', function(req, res) {
-            res.sendFile('./captcha.html', {root: __dirname});
-            session.defaultSession.setProxy({proxyRules:""}, function () {});
-        });
+      expressApp.get('/', (req, res) => {
+        res.sendFile('./captcha.html', { root: __dirname });
+        session.defaultSession.setProxy({ proxyRules: '' }, () => {});
+      });
 
-        var server = expressApp.listen(expressApp.get('port'));
+      const server = expressApp.listen(expressApp.get('port'));
 
-        session.defaultSession.setProxy({
-            proxyRules: `http://127.0.0.1:6000`
-        }, function (r) {
-            windowManager.open('captcha', 'Harvester', 'http://checkout.shopify.com', 'captcha', {parent: mainWindow}, true);
-        });
-        break;
+      session.defaultSession.setProxy({
+        proxyRules: 'http://127.0.0.1:6000',
+      }, (r) => {
+        windowManager.open('captcha', 'Harvester', 'http://checkout.shopify.com', 'captcha', { parent: mainWindow }, true);
+      });
+      break;
     }
     case 'endSession': {
       // closes the YouTube window and signs the user out of that account
