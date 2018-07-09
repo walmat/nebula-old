@@ -181,34 +181,42 @@
     .view-tasks-edit {
         position: absolute;
         left: 5px;
-        height:6px;
-        width: 18px;
+        vertical-align:middle;
+    }
+
+    .view-tasks-edit > img {
+        cursor:pointer;
     }
 
     .view-tasks-id {
         position: absolute;
-        left: 32px;
+        left: 33px;
         width: 25px;
         height: 25px;
+        vertical-align:middle;
     }
 
     .view-tasks-sku {
         position: absolute;
-        left: 75px;
+        text-transform: uppercase;
+        left: 78px;
         width: 100px;
         height: 25px;
+        vertical-align:middle;
     }
 
     .view-tasks-profile {
         position: absolute;
-        left: 287px;
+        text-transform: uppercase;
+        left: 285px;
         width: 70px;
         height: 25px;
+        vertical-align:middle;
     }
 
     .view-tasks-sizes {
         position: absolute;
-        left: 553px;
+        left: 554px;
         width: 70px;
         height: 25px;
     }
@@ -218,6 +226,7 @@
         left: 615px;
         width: 70px;
         height: 25px;
+        vertical-align:middle;
     }
 
     .view-tasks-actions {
@@ -225,6 +234,7 @@
         left: 662px;
         width: 70px;
         height: 25px;
+        vertical-align:middle;
     }
 
     #view-num {

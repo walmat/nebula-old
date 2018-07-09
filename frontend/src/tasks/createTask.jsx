@@ -7,6 +7,7 @@ import getAllSizes from './getSizes';
 
 import DDD from '../_assets/dropdown-down.svg';
 import start from '../_assets/run.svg';
+import line from '../_assets/horizontal-line.svg';
 import stop from '../_assets/stop.svg';
 import destroy from '../_assets/destroy.svg';
 import edit from '../_assets/edit_icon.svg';
@@ -38,14 +39,17 @@ class CreateTask extends Component {
     this.props.onAddNewTask(this.props.value);
     // move this properly
     $('#view-tasks-table').after(`<tr id="view-tasks-row-${this.props.value.id}" style="height:30px;">
-      <td class="view-tasks-edit"><img src="${edit}" /></td>
-      <td class="view-tasks-id">0</td>
-      <td class="view-tasks-sku">${this.props.value.sku}</td>
+      <td class="view-tasks-edit"><img src="${edit}" onClick="console.log('clicked ${this.props.value.sku}');"/></td>
+      <td class="view-tasks-id">${this.props.value.id || 0}</td>
+      <td class="view-tasks-sku">SKU ${this.props.value.sku || 'N/A'}</td>
       <td class="view-tasks-profile">${this.props.value.profile.profileName}</td>
       <td class="view-tasks-sizes">${this.props.value.sizes}</td>
       <td class="view-tasks-pairs">${this.props.value.pairs}</td>
       <td class="view-tasks-actions"><img style="padding-right: 5px;cursor:pointer;" id="task-start-${this.props.value.id}" src="${start}"/><img style="padding-right: 5px;cursor:pointer;" id="task-stop-${this.props.value.id}" src="${stop}"/><img style="cursor:pointer;" id="task-destroy-${this.props.value.id}" src="${destroy}"/></td>
     </tr>`);
+    // if (this.state.tasks > 1) {
+    //   $('#view-tasks-table').append(`<img src="${line}"`);
+    // }
   }
 
   createOnChangeHandler(field) {
