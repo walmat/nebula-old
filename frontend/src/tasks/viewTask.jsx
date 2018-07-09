@@ -22,15 +22,15 @@ class ViewTask extends Component {
     for (let i = 0; i < this.props.tasks.length; i += 1) {
       table.push((
         <tr key={this.props.tasks[i].id}>
-          <td id={`${this.props.tasks[i].id}-edit`}><img src={edit} alt="edit" /></td>
-          <td id={`${this.props.tasks[i].id}-id`}>{this.props.tasks[i].id}</td>
-          <td id={`${this.props.tasks[i].id}-sku`}>{this.props.tasks[i].sku}</td>
-          <td id={`${this.props.tasks[i].id}-profile`}>{this.props.tasks[i].profile.profileName}</td>
-          <td id={`${this.props.tasks[i].id}-sizes`}>{this.props.tasks[i].sizes}</td>
-          <td id={`${this.props.tasks[i].id}-pairs`}>{this.props.tasks[i].pairs}</td>
-          <td id={`${this.props.tasks[i].id}-run`}><img src={start} alt="start" /></td>
-          <td id={`${this.props.tasks[i].id}-stop`}><img src={stop} alt="stop" /></td>
-          <td id={`${this.props.tasks[i].id}-destroy`}><img src={destroy} alt="destroy" /></td>
+          <td className="tasks_edit"><img src={edit} alt="edit" /></td>
+          <td className="tasks_id">{this.props.tasks[i].id}</td>
+          <td className="tasks_sku">{this.props.tasks[i].sku}</td>
+          <td className="tasks_profile">{this.props.tasks[i].profile.profileName}</td>
+          <td className="tasks_sizes">{this.props.tasks[i].sizes}</td>
+          <td className="tasks_pairs">{this.props.tasks[i].pairs}</td>
+          <td className="tasks_start"><img src={start} alt="start" /></td>
+          <td className="tasks_stop"><img src={stop} alt="stop" /></td>
+          <td className="tasks_destroy"><img src={destroy} alt="destroy" /></td>
         </tr>
       ));
     }
@@ -39,7 +39,9 @@ class ViewTask extends Component {
 
   render() {
     return (
-      <table>{this.createTable()}</table>
+      <table>
+        <tbody>{this.createTable()}</tbody>
+      </table>
     );
   }
 }

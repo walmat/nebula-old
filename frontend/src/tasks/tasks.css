@@ -178,17 +178,17 @@
         height: 100%;
     }
 
-    .view-tasks-edit {
+    .tasks_edit {
         position: absolute;
         left: 5px;
         vertical-align:middle;
     }
 
-    .view-tasks-edit > img {
+    .tasks_edit > img {
         cursor:pointer;
     }
 
-    .view-tasks-id {
+    .tasks_id {
         position: absolute;
         left: 33px;
         width: 25px;
@@ -196,7 +196,7 @@
         vertical-align:middle;
     }
 
-    .view-tasks-sku {
+    .tasks_sku {
         position: absolute;
         text-transform: uppercase;
         left: 78px;
@@ -205,23 +205,23 @@
         vertical-align:middle;
     }
 
-    .view-tasks-profile {
+    .tasks_profile {
         position: absolute;
         text-transform: uppercase;
-        left: 285px;
+        left: 284px;
         width: 70px;
         height: 25px;
         vertical-align:middle;
     }
 
-    .view-tasks-sizes {
+    .tasks_sizes {
         position: absolute;
         left: 554px;
         width: 70px;
         height: 25px;
     }
 
-    .view-tasks-pairs {
+    .tasks_pairs {
         position: absolute;
         left: 615px;
         width: 70px;
@@ -229,12 +229,34 @@
         vertical-align:middle;
     }
 
-    .view-tasks-actions {
+    .tasks_start {
         position: absolute;
         left: 662px;
-        width: 70px;
-        height: 25px;
         vertical-align:middle;
+    }
+
+    .tasks_start > img {
+        cursor: pointer;
+    }
+
+    .tasks_stop {
+        position: absolute;
+        left: 681px;
+        vertical-align:middle;
+    }
+
+    .tasks_stop > img {
+        cursor: pointer;
+    }
+
+    .tasks_destroy {
+        position: absolute;
+        left: 700px;
+        vertical-align:middle;
+    }
+
+    .tasks_destroy > img {
+        cursor: pointer;
     }
 
     #view-num {
