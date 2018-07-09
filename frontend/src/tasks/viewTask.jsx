@@ -9,26 +9,23 @@ class ViewTask extends Component {
   }
 
   createTable() {
-    const tableRow = [];
-
-    // TODO – define height/widths for each table data entry
-
-    for (let i = 0; i < this.props.data.length; i += 1) {
-      tableRow.push((
+    const table = [];
+    for (let i = 0; i < this.props.tasks.length; i += 1) {
+      table.push((
         <tr>
-          <td id={`${this.props.data.id}-edit`}>{this.props.data.edit}</td>
-          <td id={`${this.props.data.id}-id`}>{this.props.data.id}</td>
-          <td id={`${this.props.data.id}-sku`}>{this.props.data.sku}</td>
-          <td id={`${this.props.data.id}-profile`}>{this.props.data.profile}</td>
-          <td id={`${this.props.data.id}-sizes`}>{this.props.data.sizes}</td>
-          <td id={`${this.props.data.id}-pairs`}>{this.props.data.pairs}</td>
-          <td id={`${this.props.data.id}-run`}>{this.props.data.actions.run}</td>
-          <td id={`${this.props.data.id}-stop`}>{this.props.data.actions.stop}</td>
-          <td id={`${this.props.data.id}-destroy`}>{this.props.data.actions.destroy}</td>
+          <td id={`${this.props.tasks[i].id}-edit`}>{this.props.tasks[i].edit}</td>
+          <td id={`${this.props.tasks[i].id}-id`}>{this.props.tasks[i].id}</td>
+          <td id={`${this.props.tasks[i].id}-sku`}>{this.props.tasks[i].sku}</td>
+          <td id={`${this.props.tasks[i].id}-profile`}>{this.props.tasks[i].profile}</td>
+          <td id={`${this.props.tasks[i].id}-sizes`}>{this.props.tasks[i].sizes}</td>
+          <td id={`${this.props.tasks[i].id}-pairs`}>{this.props.tasks[i].pairs}</td>
+          <td id={`${this.props.tasks[i].id}-run`}>{this.props.tasks[i].actions.run}</td>
+          <td id={`${this.props.tasks[i].id}-stop`}>{this.props.tasks[i].actions.stop}</td>
+          <td id={`${this.props.tasks[i].id}-destroy`}>{this.props.tasks[i].actions.destroy}</td>
         </tr>
       ));
     }
-    return tableRow;
+    return table;
   }
 
   render() {
@@ -47,7 +44,7 @@ const mapDispatchToProps = dispatch => ({
 });
 
 ViewTask.propTypes = {
-  data: PropTypes.objectOf(PropTypes.any).isRequired,
+  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewTask);
