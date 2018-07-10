@@ -17,14 +17,9 @@ class ViewTask extends Component {
   createTable() {
     const table = [];
 
-    console.log(this.props.tasks);
-
     for (let i = 0; i < this.props.tasks.length; i += 1) {
-      // if (i !== 0) {
-      //   table.push(<tr><img src={line} alt="line" /> </tr>);
-      // }
       table.push((
-        <tr key={this.props.tasks[i].id}>
+        <tr key={this.props.tasks[i].id} className="tasks_row">
           <td className="tasks_edit"><img src={edit} alt="edit" /></td>
           <td className="tasks_id">{this.props.tasks[i].id}</td>
           <td className="tasks_sku">{this.props.tasks[i].sku}</td>

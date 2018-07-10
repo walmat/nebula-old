@@ -171,11 +171,12 @@
     }
 
     #view-tasks-table {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        width:100%;
+    }
+
+    .tasks_row {
+        width:100%;
+        height: 30px;
     }
 
     .tasks_edit {
@@ -205,24 +206,22 @@
         position: relative;
         text-transform: uppercase;
         left: 210px;
-        width: 70px;
-        height: 25px;
         vertical-align:middle;
     }
 
     .tasks_sizes {
         position: relative;
-        left: 405px;
+        left: 440px;
     }
 
     .tasks_pairs {
         position: relative;
-        left: 444px;
+        left: 475px;
         vertical-align:middle;
     }
 
     .tasks_start {
-        left: 480px;
+        left: 502px;
         position: relative;
         vertical-align:middle;
     }
@@ -232,7 +231,7 @@
     }
 
     .tasks_stop {
-        left: 485px;
+        left: 507px;
         position: relative;
         vertical-align:middle;
     }
@@ -242,7 +241,7 @@
     }
 
     .tasks_destroy {
-        left: 490px;
+        left: 512px;
         position: relative;
         vertical-align:middle;
     }
