@@ -2,18 +2,12 @@ import makeActionCreator from '../actionCreator';
 
 // Top level Actions
 export const SERVER_ACTIONS = {
-  ADD: 'ADD_SERVER',
-  REMOVE: 'REMOVE_SERVER',
-  EDIT: 'EDIT_SERVER',
+  EDIT: 'EDIT_SERVER_OPTIONS',
 };
 
-const addServer = makeActionCreator(SERVER_ACTIONS.ADD, 'server');
-const removeServer = makeActionCreator(SERVER_ACTIONS.REMOVE, 'id');
 const editServer = makeActionCreator(SERVER_ACTIONS.EDIT, 'id', 'field', 'value');
 
 export const serverActions = {
-  add: addServer,
-  remove: removeServer,
   edit: editServer,
 };
 
@@ -30,12 +24,12 @@ export const SERVER_FIELDS = {
 };
 
 export const mapServerFieldToKey = {
-  [SERVER_FIELDS.EDIT_SERVER_TYPE]: 'server',
-  [SERVER_FIELDS.EDIT_SERVER_SIZE]: 'server',
-  [SERVER_FIELDS.EDIT_SERVER_LOCATION]: 'server',
-  [SERVER_FIELDS.EDIT_PROXY_NUMBER]: 'proxy',
-  [SERVER_FIELDS.EDIT_PROXY_USERNAME]: 'proxy',
-  [SERVER_FIELDS.EDIT_PROXY_PASSWORD]: 'proxy',
+  [SERVER_FIELDS.EDIT_SERVER_TYPE]: 'serverOptions',
+  [SERVER_FIELDS.EDIT_SERVER_SIZE]: 'serverOptions',
+  [SERVER_FIELDS.EDIT_SERVER_LOCATION]: 'serverOptions',
+  [SERVER_FIELDS.EDIT_PROXY_NUMBER]: 'proxyOptions',
+  [SERVER_FIELDS.EDIT_PROXY_USERNAME]: 'proxyOptions',
+  [SERVER_FIELDS.EDIT_PROXY_PASSWORD]: 'proxyOptions',
   [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'credentials',
   [SERVER_FIELDS.EDIT_AWS_SECRET_KEY]: 'credentials',
 };

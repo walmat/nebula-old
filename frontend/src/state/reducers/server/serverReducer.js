@@ -9,7 +9,7 @@ export const initialServerState = {
     AWSAccessKey: '',
     AWSSecretKey: '',
   },
-  proxy: {
+  proxyOptions: {
     numProxies: 0,
     id: null,
     ip: '',
@@ -17,7 +17,7 @@ export const initialServerState = {
     username: '',
     password: '',
   },
-  server: {
+  serverOptions: {
     type: {},
     size: {},
     location: {},
