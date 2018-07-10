@@ -37,7 +37,7 @@ class Server extends Component {
     this.generateProxies = this.generateProxies.bind(this);
     this.destroyServer = this.destroyProxies.bind(this);
     this.createServer = this.createServer.bind(this);
-    this.createCredentialsChangeHandler = this.createCredentialsChangeHandler.bind(this);
+    this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(this);
   }
 
   loginAWS(e) {
@@ -63,11 +63,11 @@ class Server extends Component {
 
   createServer(e) {
     e.preventDefault();
-    this.props.onSaveServerOptions(this.props.selectedServer);
+    this.props.onSaveServerOptions(this.props.serverInfo);
   }
 
-  createCredentialsChangeHandler(field) {
-    return event => this.props.onCredentialsChange(field, event.target.value);
+  createServerInfoChangeHandler(field) {
+    return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
   }
 
   renderServerTypeComponent() {
@@ -79,7 +79,7 @@ class Server extends Component {
       false,
       Server.changeServerChoice(
         this.props.serverListOptions.types,
-        this.props.onServerTypeChoiceChange,
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_TYPE),
       ),
       Server.buildServerTypeChoices(this.props.serverListOptions.types),
     );
@@ -94,7 +94,7 @@ class Server extends Component {
       !this.props.serverType.id,
       Server.changeServerChoice(
         this.props.serverListOptions.sizes,
-        this.props.onServerSizeChoiceChange,
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE),
       ),
       Server.buildServerTypeChoices(
         this.props.serverListOptions.sizes,
@@ -114,7 +114,7 @@ class Server extends Component {
       false,
       Server.changeServerChoice(
         this.props.serverListOptions.locations,
-        this.props.onServerLocationChoiceChange,
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_LOCATION),
       ),
       Server.buildServerTypeChoices(this.props.serverListOptions.locations),
     );
@@ -144,20 +144,20 @@ class Server extends Component {
         <p className="body-text" id="login-label">Login</p>
         <div id="login-box" />
         <p id="access-key-label">AWS Access Key</p>
-        <input id="access-key" type="text" placeholder="Access Key" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)} value={this.props.selectedServer.credentials.AWSAccessKey} required />
+        <input id="access-key" type="text" placeholder="Access Key" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)} value={this.props.serverInfo.credentials.AWSAccessKey} required />
         <p id="secret-key-label">AWS Secret Key</p>
-        <input id="secret-key" type="password" placeholder="xxxxxxx" onChange={this.createCredentialsChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)} value={this.props.selectedServer.credentials.AWSSecretKey} required />
+        <input id="secret-key" type="password" placeholder="xxxxxxx" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)} value={this.props.serverInfo.credentials.AWSSecretKey} required />
         <button id="submit-aws-login" onClick={this.loginAWS} >Submit</button>
 
         {/* PROXIES */}
         <p className="body-text" id="proxies-label">Proxies</p>
         <div id="proxies-box" />
         <p id="number-label">Number</p>
-        <input id="number" type="text" placeholder="00" onChange={this.props.onNumProxiesChange} value={this.props.selectedServer.proxy.numProxies} required />
+        <input id="number" type="text" placeholder="00" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)} value={this.props.serverInfo.proxyOptions.numProxies} required />
         <p id="username-proxies-label">Username</p>
-        <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.props.onProxyUsernameChange} value={this.props.selectedServer.proxy.username} required />
+        <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)} value={this.props.serverInfo.proxyOptions.username} required />
         <p id="password-proxies-label">Password</p>
-        <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.props.onProxyPasswordChange} value={this.props.selectedServer.proxy.password} required />
+        <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)} value={this.props.serverInfo.proxyOptions.password} required />
         <button id="destroy-proxies" onClick={this.destroyProxies} >Destroy All</button>
         <button id="generate-proxies" onClick={this.generateProxies} >Generate</button>
 
@@ -176,61 +176,100 @@ class Server extends Component {
 }
 
 Server.propTypes = {
-  selectedServer: PropTypes.objectOf(PropTypes.any).isRequired,
-  serverListOptions: PropTypes.shape({
-    types: PropTypes.arrayOf(PropTypes.any).isRequired,
-    sizes: PropTypes.arrayOf(PropTypes.any).isRequired,
-    locations: PropTypes.arrayOf(PropTypes.any).isRequired,
+  serverInfo: PropTypes.shape({
+    credentials: PropTypes.shape({
+      AWSAccessKey: PropTypes.string,
+      AWSSecretKey: PropTypes.string,
+    }),
+    proxyOptions: PropTypes.shape({
+      numProxies: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+      ]),
+      id: PropTypes.string,
+      ip: PropTypes.string,
+      port: PropTypes.string,
+      username: PropTypes.string,
+      password: PropTypes.string,
+    }),
+    serverOptions: PropTypes.shape({
+      type: PropTypes.shape({
+        id: PropTypes.number,
+        value: PropTypes.string,
+        label: PropTypes.string,
+        sizes: PropTypes.arrayOf(PropTypes.number),
+      }),
+      size: PropTypes.shape({
+        id: PropTypes.number,
+        value: PropTypes.string,
+        label: PropTypes.string,
+        types: PropTypes.arrayOf(PropTypes.number),
+      }),
+      location: PropTypes.shape({
+        id: PropTypes.number,
+        value: PropTypes.string,
+        label: PropTypes.string,
+      }),
+    }),
   }).isRequired,
-  serverType: PropTypes.objectOf(PropTypes.any).isRequired,
-  serverSize: PropTypes.objectOf(PropTypes.any).isRequired,
-  serverLocation: PropTypes.objectOf(PropTypes.any).isRequired,
-  onCredentialsChange: PropTypes.func.isRequired,
-  onServerTypeChoiceChange: PropTypes.func.isRequired,
-  onServerSizeChoiceChange: PropTypes.func.isRequired,
-  onServerLocationChoiceChange: PropTypes.func.isRequired,
+  serverListOptions: PropTypes.shape({
+    types: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.number,
+      value: PropTypes.string,
+      label: PropTypes.string,
+      sizes: PropTypes.arrayOf(PropTypes.number),
+    })),
+    sizes: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.number,
+      value: PropTypes.string,
+      label: PropTypes.string,
+      types: PropTypes.arrayOf(PropTypes.number),
+    })),
+    locations: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.id,
+      value: PropTypes.string,
+      label: PropTypes.label,
+    })),
+  }).isRequired,
+  serverType: PropTypes.shape({
+    id: PropTypes.number,
+    value: PropTypes.string,
+    label: PropTypes.string,
+    sizes: PropTypes.arrayOf(PropTypes.number),
+  }).isRequired,
+  serverSize: PropTypes.shape({
+    id: PropTypes.number,
+    value: PropTypes.string,
+    label: PropTypes.string,
+    types: PropTypes.arrayOf(PropTypes.number),
+  }).isRequired,
+  serverLocation: PropTypes.shape({
+    id: PropTypes.number,
+    value: PropTypes.string,
+    label: PropTypes.string,
+  }).isRequired,
   onSaveServerOptions: PropTypes.func.isRequired,
   onDestroyServer: PropTypes.func.isRequired,
-  onNumProxiesChange: PropTypes.func.isRequired,
-  onProxyUsernameChange: PropTypes.func.isRequired,
-  onProxyPasswordChange: PropTypes.func.isRequired,
+  onEditServerInfo: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
-  selectedServer: state.selectedServer,
-  serverType: state.selectedServer.server.type,
-  serverSize: state.selectedServer.server.size,
-  serverLocation: state.selectedServer.server.location,
+  serverInfo: state.serverInfo,
+  serverType: state.serverInfo.serverOptions.type,
+  serverSize: state.serverInfo.serverOptions.size,
+  serverLocation: state.serverInfo.serverOptions.location,
   serverListOptions: state.serverListOptions,
 });
 
 const mapDispatchToProps = dispatch => ({
-  onCredentialsChange: (field, value) => {
-    dispatch(serverActions.edit(null, field, value));
-  },
-  onServerTypeChoiceChange: (type) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_TYPE, type));
-  },
-  onServerSizeChoiceChange: (size) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_SIZE, size));
-  },
-  onServerLocationChoiceChange: (location) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_LOCATION, location));
-  },
   onSaveServerOptions: (newServer) => {
-    dispatch(serverActions.add(newServer));
+    console.log('TODO: onSaveServerOptions!');
   },
   onDestroyServer: (server) => {
-    dispatch(serverActions.remove(server));
+    console.log('TODO: onDestroyServer!');
   },
-  onNumProxiesChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_NUMBER, event.target.value));
-  },
-  onProxyUsernameChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_USERNAME, event.target.value));
-  },
-  onProxyPasswordChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_PASSWORD, event.target.value));
+  onEditServerInfo: (field, value) => {
+    dispatch(serverActions.edit(null, field, value));
   },
 });
 
