@@ -36,7 +36,7 @@ class Server extends Component {
     this.loginAWS = this.loginAWS.bind(this);
     this.destroyProxies = this.destroyProxies.bind(this);
     this.generateProxies = this.generateProxies.bind(this);
-    this.destroyServer = this.destroyProxies.bind(this);
+    this.destroyServer = this.destroyServer.bind(this);
     this.createServer = this.createServer.bind(this);
     this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(this);
   }
@@ -58,13 +58,15 @@ class Server extends Component {
 
   destroyServer(e) {
     e.preventDefault();
-    console.log(this.props);
-    this.props.onDestroyServer(null);
+    this.props.onDestroyServer(this.props.serverInfo.coreServer.path);
   }
 
   createServer(e) {
     e.preventDefault();
-    this.props.onSaveServerOptions(this.props.serverInfo);
+    this.props.onCreateServer(
+      this.props.serverInfo.serverOptions,
+      this.props.serverInfo.credentials,
+    );
   }
 
   createServerInfoChangeHandler(field) {
@@ -182,7 +184,7 @@ Server.propTypes = {
   serverType: defns.serverType.isRequired,
   serverSize: defns.serverSize.isRequired,
   serverLocation: defns.serverLocation.isRequired,
-  onSaveServerOptions: PropTypes.func.isRequired,
+  onCreateServer: PropTypes.func.isRequired,
   onDestroyServer: PropTypes.func.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
 };
@@ -196,11 +198,11 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSaveServerOptions: (newServer) => {
-    console.log('TODO: onSaveServerOptions!');
+  onCreateServer: (serverOptions, awsCredentials) => {
+    dispatch(serverActions.create(serverOptions, awsCredentials));
   },
-  onDestroyServer: (server) => {
-    console.log('TODO: onDestroyServer!');
+  onDestroyServer: (path) => {
+    dispatch(serverActions.destroy(path));
   },
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));

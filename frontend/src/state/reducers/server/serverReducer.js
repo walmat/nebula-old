@@ -98,6 +98,17 @@ export function serverReducer(state = initialServerState, action) {
         nextState[mapServerFieldToKey[action.field]],
         change,
       );
+  } else if (action.type === SERVER_ACTIONS.CREATE) {
+    // Use the info given in the action as the core server info
+    nextState.coreServer = action.serverInfo;
+  } else if (action.type === SERVER_ACTIONS.DESTROY) {
+    // Check if the path we want to destroy is the same as the current on, then
+    // destroy if necessary
+    if (state.coreServer.path === action.path) {
+      nextState.coreServer = null;
+    }
+  } else if (action.type === SERVER_ACTIONS.ERROR) {
+    console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
   }
 
   return nextState;

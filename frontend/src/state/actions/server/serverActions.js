@@ -3,12 +3,62 @@ import makeActionCreator from '../actionCreator';
 // Top level Actions
 export const SERVER_ACTIONS = {
   EDIT: 'EDIT_SERVER_OPTIONS',
+  CREATE: 'CREATE_SERVER',
+  ERROR: 'HANDLE_ERROR',
+  DESTROY: 'DESTROY_SERVER',
 };
 
+// Private API Requests
+const _createServerRequest = async (serverOptions, awsCredentials) =>
+  // TODO: Replace this with an actual API call
+  new Promise((resolve, reject) => {
+    if (serverOptions && awsCredentials) {
+      resolve({
+        path: 'temppath',
+        serverOptions,
+        awsCredentials,
+      });
+    } else {
+      reject(new Error('parameters should not be null!'));
+    }
+  });
+
+const _destroyServerRequest = async serverPath =>
+  // TODO: Replace this with an actual API call
+  new Promise((resolve, reject) => {
+    if (serverPath != null) {
+      resolve(serverPath);
+    } else {
+      reject(new Error('parameters should not be null!'));
+    }
+  });
+
+// Private Actions
+const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
+const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
+
+// Public Actions
+const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error');
 const editServer = makeActionCreator(SERVER_ACTIONS.EDIT, 'id', 'field', 'value');
+
+// Public Thunks
+const createServer = (serverOptions, awsCredentials) =>
+  dispatch => _createServerRequest(serverOptions, awsCredentials).then(
+    info => dispatch(_createServer(info)),
+    error => dispatch(handleError(SERVER_ACTIONS.CREATE, error)),
+  );
+
+const destroyServer = serverPath =>
+  dispatch => _destroyServerRequest(serverPath).then(
+    path => dispatch(_destroyServer(path)),
+    error => dispatch(handleError(SERVER_ACTIONS.DESTROY, error)),
+  );
 
 export const serverActions = {
   edit: editServer,
+  create: createServer,
+  destroy: destroyServer,
+  error: handleError,
 };
 
 // Field Edits
