@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import { SERVER_FIELDS, serverActions } from '../state/actions';
+import defns from '../utils/definitions/serverDefinitions';
 
 import '../app.css';
 import './server.css';
@@ -176,78 +177,11 @@ class Server extends Component {
 }
 
 Server.propTypes = {
-  serverInfo: PropTypes.shape({
-    credentials: PropTypes.shape({
-      AWSAccessKey: PropTypes.string,
-      AWSSecretKey: PropTypes.string,
-    }),
-    proxyOptions: PropTypes.shape({
-      numProxies: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-      ]),
-      id: PropTypes.string,
-      ip: PropTypes.string,
-      port: PropTypes.string,
-      username: PropTypes.string,
-      password: PropTypes.string,
-    }),
-    serverOptions: PropTypes.shape({
-      type: PropTypes.shape({
-        id: PropTypes.number,
-        value: PropTypes.string,
-        label: PropTypes.string,
-        sizes: PropTypes.arrayOf(PropTypes.number),
-      }),
-      size: PropTypes.shape({
-        id: PropTypes.number,
-        value: PropTypes.string,
-        label: PropTypes.string,
-        types: PropTypes.arrayOf(PropTypes.number),
-      }),
-      location: PropTypes.shape({
-        id: PropTypes.number,
-        value: PropTypes.string,
-        label: PropTypes.string,
-      }),
-    }),
-  }).isRequired,
-  serverListOptions: PropTypes.shape({
-    types: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.number,
-      value: PropTypes.string,
-      label: PropTypes.string,
-      sizes: PropTypes.arrayOf(PropTypes.number),
-    })),
-    sizes: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.number,
-      value: PropTypes.string,
-      label: PropTypes.string,
-      types: PropTypes.arrayOf(PropTypes.number),
-    })),
-    locations: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.id,
-      value: PropTypes.string,
-      label: PropTypes.label,
-    })),
-  }).isRequired,
-  serverType: PropTypes.shape({
-    id: PropTypes.number,
-    value: PropTypes.string,
-    label: PropTypes.string,
-    sizes: PropTypes.arrayOf(PropTypes.number),
-  }).isRequired,
-  serverSize: PropTypes.shape({
-    id: PropTypes.number,
-    value: PropTypes.string,
-    label: PropTypes.string,
-    types: PropTypes.arrayOf(PropTypes.number),
-  }).isRequired,
-  serverLocation: PropTypes.shape({
-    id: PropTypes.number,
-    value: PropTypes.string,
-    label: PropTypes.string,
-  }).isRequired,
+  serverInfo: defns.serverInfo.isRequired,
+  serverListOptions: defns.serverListOptions.isRequired,
+  serverType: defns.serverType.isRequired,
+  serverSize: defns.serverSize.isRequired,
+  serverLocation: defns.serverLocation.isRequired,
   onSaveServerOptions: PropTypes.func.isRequired,
   onDestroyServer: PropTypes.func.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
