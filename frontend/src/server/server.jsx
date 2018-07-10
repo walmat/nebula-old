@@ -48,12 +48,12 @@ class Server extends Component {
 
   destroyProxies(e) {
     e.preventDefault();
-    console.log(this.props);
+    this.props.onDestroyProxies();
   }
 
   generateProxies(e) {
     e.preventDefault();
-    console.log(this.props);
+    this.props.onGenerateProxies(this.props.serverInfo.proxyOptions);
   }
 
   destroyServer(e) {
@@ -185,8 +185,10 @@ Server.propTypes = {
   serverSize: defns.serverSize.isRequired,
   serverLocation: defns.serverLocation.isRequired,
   onCreateServer: PropTypes.func.isRequired,
+  onDestroyProxies: PropTypes.func.isRequired,
   onDestroyServer: PropTypes.func.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
+  onGenerateProxies: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
@@ -201,11 +203,17 @@ const mapDispatchToProps = dispatch => ({
   onCreateServer: (serverOptions, awsCredentials) => {
     dispatch(serverActions.create(serverOptions, awsCredentials));
   },
+  onDestroyProxies: () => {
+    dispatch(serverActions.destroyProxies());
+  },
   onDestroyServer: (path) => {
     dispatch(serverActions.destroy(path));
   },
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
+  },
+  onGenerateProxies: (options) => {
+    dispatch(serverActions.generateProxies(options));
   },
 });
 

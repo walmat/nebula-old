@@ -11,9 +11,8 @@ export const initialServerState = {
   },
   proxyOptions: {
     numProxies: 0,
-    id: null,
     ip: '',
-    port: '',
+    port: 0,
     username: '',
     password: '',
   },
@@ -58,8 +57,9 @@ export function serverReducer(state = initialServerState, action) {
         };
         break;
       case SERVER_FIELDS.EDIT_PROXY_NUMBER:
+        const intValue = parseInt(action.value, 10);
         change = {
-          numProxies: action.value,
+          numProxies: Number.isNaN(intValue) ? '' : intValue,
         };
         break;
       case SERVER_FIELDS.EDIT_PROXY_USERNAME:
@@ -109,6 +109,10 @@ export function serverReducer(state = initialServerState, action) {
     }
   } else if (action.type === SERVER_ACTIONS.ERROR) {
     console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
+  } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
+    nextState.proxies = action.proxies;
+  } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
+    nextState.proxies = null;
   }
 
   return nextState;

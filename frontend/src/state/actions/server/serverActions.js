@@ -6,6 +6,8 @@ export const SERVER_ACTIONS = {
   CREATE: 'CREATE_SERVER',
   ERROR: 'HANDLE_ERROR',
   DESTROY: 'DESTROY_SERVER',
+  GEN_PROXIES: 'GENERATE_PROXIES',
+  DESTROY_PROXIES: 'DESTROY_PROXIES',
 };
 
 // Private API Requests
@@ -33,9 +35,36 @@ const _destroyServerRequest = async serverPath =>
     }
   });
 
+const _generateProxiesRequest = async proxyOptions =>
+  // TOOD: Replace this with an actual API call
+  new Promise((resolve, reject) => {
+    if (proxyOptions != null) {
+      // convert proxies;
+      const proxies = [];
+      const { numProxies, username, password } = proxyOptions;
+      for (let i = 0; i < numProxies; i += 1) {
+        proxies.push({
+          ip: 'localhost',
+          port: (25000 + i),
+          username,
+          password,
+        });
+      }
+      resolve(proxies);
+    } else {
+      reject(new Error('parameters show not be null!'));
+    }
+  });
+
+const _destroyProxiesRequest = async () =>
+  // TODO: Replace this with an actual API call
+  Promise.resolve();
+
 // Private Actions
 const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
+const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
+const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
 
 // Public Actions
 const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error');
@@ -54,11 +83,25 @@ const destroyServer = serverPath =>
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY, error)),
   );
 
+const generateProxies = proxyOptions =>
+  dispatch => _generateProxiesRequest(proxyOptions).then(
+    proxies => dispatch(_generateProxies(proxies)),
+    error => dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error)),
+  );
+
+const destroyProxies = () =>
+  dispatch => _destroyProxiesRequest().then(
+    () => dispatch(_destroyProxies()),
+    error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error)),
+  );
+
 export const serverActions = {
   edit: editServer,
   create: createServer,
   destroy: destroyServer,
   error: handleError,
+  generateProxies,
+  destroyProxies,
 };
 
 // Field Edits

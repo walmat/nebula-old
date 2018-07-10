@@ -5,7 +5,6 @@ const proxyOptions = PropTypes.shape({
     PropTypes.string,
     PropTypes.number,
   ]),
-  id: PropTypes.string,
   ip: PropTypes.string,
   port: PropTypes.oneOfType([
     PropTypes.string,
