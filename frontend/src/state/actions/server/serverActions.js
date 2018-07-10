@@ -8,6 +8,7 @@ export const SERVER_ACTIONS = {
   DESTROY: 'DESTROY_SERVER',
   GEN_PROXIES: 'GENERATE_PROXIES',
   DESTROY_PROXIES: 'DESTROY_PROXIES',
+  VALIDATE_AWS: 'VALIDATE_AWS_CREDENTIALS',
 };
 
 // Private API Requests
@@ -60,11 +61,24 @@ const _destroyProxiesRequest = async () =>
   // TODO: Replace this with an actual API call
   Promise.resolve();
 
+const _validateAwsRequest = async awsCredentials =>
+  // TODO: Replace this with an actual API call
+  new Promise((resolve, reject) => {
+    const aKey = awsCredentials.AWSAccessKey;
+    const sKey = awsCredentials.AWSSecretKey;
+    if (aKey && aKey !== '' && sKey && sKey !== '') {
+      resolve('access_token');
+    } else {
+      reject(new Error('Keys should be valid!'));
+    }
+  });
+
 // Private Actions
 const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
+const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
 
 // Public Actions
 const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error');
@@ -95,6 +109,12 @@ const destroyProxies = () =>
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error)),
   );
 
+const validateAws = awsCredentials =>
+  dispatch => _validateAwsRequest(awsCredentials).then(
+    token => dispatch(_validateAws(token)),
+    error => dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error)),
+  );
+
 export const serverActions = {
   edit: editServer,
   create: createServer,
@@ -102,6 +122,7 @@ export const serverActions = {
   error: handleError,
   generateProxies,
   destroyProxies,
+  validateAws,
 };
 
 // Field Edits

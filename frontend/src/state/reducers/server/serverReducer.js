@@ -8,6 +8,7 @@ export const initialServerState = {
   credentials: {
     AWSAccessKey: '',
     AWSSecretKey: '',
+    accessToken: null,
   },
   proxyOptions: {
     numProxies: 0,
@@ -104,7 +105,7 @@ export function serverReducer(state = initialServerState, action) {
   } else if (action.type === SERVER_ACTIONS.DESTROY) {
     // Check if the path we want to destroy is the same as the current on, then
     // destroy if necessary
-    if (state.coreServer.path === action.path) {
+    if (state.coreServer.path === action.serverPath) {
       nextState.coreServer = null;
     }
   } else if (action.type === SERVER_ACTIONS.ERROR) {
@@ -113,6 +114,8 @@ export function serverReducer(state = initialServerState, action) {
     nextState.proxies = action.proxies;
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
     nextState.proxies = null;
+  } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
+    nextState.credentials.accessToken = action.token;
   }
 
   return nextState;
