@@ -12,8 +12,6 @@ export const initialServerState = {
   },
   proxyOptions: {
     numProxies: 0,
-    ip: '',
-    port: 0,
     username: '',
     password: '',
   },

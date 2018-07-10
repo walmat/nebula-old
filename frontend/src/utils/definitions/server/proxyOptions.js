@@ -5,11 +5,6 @@ const proxyOptions = PropTypes.shape({
     PropTypes.string,
     PropTypes.number,
   ]),
-  ip: PropTypes.string,
-  port: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number,
-  ]),
   username: PropTypes.string,
   password: PropTypes.string,
 });
