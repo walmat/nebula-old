@@ -33,12 +33,23 @@ class Server extends Component {
 
   constructor(props) {
     super(props);
+    this.logoutAws = this.logoutAws.bind(this);
     this.validateAws = this.validateAws.bind(this);
     this.destroyProxies = this.destroyProxies.bind(this);
     this.generateProxies = this.generateProxies.bind(this);
     this.destroyServer = this.destroyServer.bind(this);
     this.createServer = this.createServer.bind(this);
     this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(this);
+  }
+
+  logoutAws(e) {
+    e.preventDefault();
+    const message = 'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
+    window.Bridge.confirmDialog(message).then((logout) => {
+      if (logout) {
+        this.props.onLogoutAws(this.props.serverInfo.coreServer.path);
+      }
+    });
   }
 
   validateAws(e) {
@@ -140,6 +151,7 @@ class Server extends Component {
   }
 
   render() {
+    const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
     return (
       <div className="container">
         <h1 className="text-header" id="server-header">Server</h1>
@@ -150,7 +162,7 @@ class Server extends Component {
         <input id="access-key" type="text" placeholder="Access Key" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)} value={this.props.serverInfo.credentials.AWSAccessKey} required />
         <p id="secret-key-label">AWS Secret Key</p>
         <input id="secret-key" type="password" placeholder="xxxxxxx" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)} value={this.props.serverInfo.credentials.AWSSecretKey} required />
-        <button id="submit-aws-login" onClick={this.validateAws} >Submit</button>
+        <button id="submit-aws-login" onClick={loggedInAws ? this.logoutAws : this.validateAws}>{loggedInAws ? 'Log out' : 'Submit'}</button>
 
         {/* PROXIES */}
         <p className="body-text" id="proxies-label">Proxies</p>
@@ -161,8 +173,8 @@ class Server extends Component {
         <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)} value={this.props.serverInfo.proxyOptions.username} required />
         <p id="password-proxies-label">Password</p>
         <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)} value={this.props.serverInfo.proxyOptions.password} required />
-        <button disabled={this.props.serverInfo.credentials.accessToken == null} id="destroy-proxies" onClick={this.destroyProxies} >Destroy All</button>
-        <button disabled={this.props.serverInfo.credentials.accessToken == null} id="generate-proxies" onClick={this.generateProxies} >Generate</button>
+        <button disabled={!loggedInAws} id="destroy-proxies" onClick={this.destroyProxies} >Destroy All</button>
+        <button disabled={!loggedInAws} id="generate-proxies" onClick={this.generateProxies} >Generate</button>
 
         {/* CONNECT */}
         <p className="body-text" id="server-label">Connect</p>
@@ -171,8 +183,8 @@ class Server extends Component {
         {this.renderServerSizeComponent()}
         {this.renderServerLocationComponent()}
         <img src={DDD} alt="dropdown button" id="location-server-button" />
-        <button disabled={this.props.serverInfo.credentials.accessToken == null} id="destroy-server" onClick={this.destroyServer}>Destroy</button>
-        <button disabled={this.props.serverInfo.credentials.accessToken == null} id="create-server" onClick={this.createServer}>Create</button>
+        <button disabled={!loggedInAws} id="destroy-server" onClick={this.destroyServer}>Destroy</button>
+        <button disabled={!loggedInAws} id="create-server" onClick={this.createServer}>Create</button>
       </div>
     );
   }
@@ -190,6 +202,7 @@ Server.propTypes = {
   onEditServerInfo: PropTypes.func.isRequired,
   onGenerateProxies: PropTypes.func.isRequired,
   onValidateAws: PropTypes.func.isRequired,
+  onLogoutAws: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
@@ -218,6 +231,9 @@ const mapDispatchToProps = dispatch => ({
   },
   onValidateAws: (credentials) => {
     dispatch(serverActions.validateAws(credentials));
+  },
+  onLogoutAws: (path) => {
+    dispatch(serverActions.logoutAws(path));
   },
 });
 

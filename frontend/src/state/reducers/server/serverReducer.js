@@ -116,6 +116,8 @@ export function serverReducer(state = initialServerState, action) {
     nextState.proxies = null;
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     nextState.credentials.accessToken = action.token;
+  } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
+    nextState.credentials = initialServerState.credentials;
   }
 
   return nextState;

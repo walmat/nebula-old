@@ -9,6 +9,7 @@ export const SERVER_ACTIONS = {
   GEN_PROXIES: 'GENERATE_PROXIES',
   DESTROY_PROXIES: 'DESTROY_PROXIES',
   VALIDATE_AWS: 'VALIDATE_AWS_CREDENTIALS',
+  LOGOUT_AWS: 'LOGOUT_AWS',
 };
 
 // Private API Requests
@@ -28,13 +29,8 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
 const _destroyServerRequest = async serverPath =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve, reject) => {
-    if (serverPath != null) {
-      resolve(serverPath);
-    } else {
-      reject(new Error('parameters should not be null!'));
-    }
-  });
+  Promise.resolve(serverPath);
+
 
 const _generateProxiesRequest = async proxyOptions =>
   // TOOD: Replace this with an actual API call
@@ -79,6 +75,7 @@ const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
+const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS);
 
 // Public Actions
 const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error');
@@ -115,6 +112,12 @@ const validateAws = awsCredentials =>
     error => dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error)),
   );
 
+const logoutAws = path =>
+  dispatch => dispatch(destroyProxies())
+    .then(() => dispatch(destroyServer(path)))
+    .then(() => dispatch(_logoutAws()))
+    .catch(error => dispatch(handleError(SERVER_ACTIONS.LOGOUT_AWS, error)));
+
 export const serverActions = {
   edit: editServer,
   create: createServer,
@@ -123,6 +126,7 @@ export const serverActions = {
   generateProxies,
   destroyProxies,
   validateAws,
+  logoutAws,
 };
 
 // Field Edits
