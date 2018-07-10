@@ -1,4 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux';
+import thunk from 'redux-thunk';
 import topLevelReducer, { initialState } from './reducers';
 import profileAttributeValidationMiddleware from './middleware/profiles/profileAttributeValidationMiddleware';
 import profileFormValidationMiddleware from './middleware/profiles/profileFormValidationMiddleware';
@@ -14,6 +15,7 @@ export default function configureStore() {
       profileAttributeValidationMiddleware,
       profileFormValidationMiddleware,
       profileApiMiddleware,
+      thunk,
     )),
   );
 }

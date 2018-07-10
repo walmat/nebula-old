@@ -23,18 +23,18 @@
     border-radius: 3px;
 }
 
-#username-login-label {
+#access-key-label {
     font-family: AvenirNext-Medium;
     font-size: 9px;
     margin: 0;
     position: absolute;
     top: 134px;
     left: 153px;
-    width: 43px;
+    width: 80px;
     height: 12px;
 }
 
-#username-login {
+#access-key {
     position: absolute;
     top:150px;
     left:153px;
@@ -43,18 +43,18 @@
     border: 1px solid #F0405E;
 }
 
-#password-login-label {
+#secret-key-label {
     font-family: AvenirNext-Medium;
     font-size: 9px;
     margin: 0;
     position: absolute;
     top: 190px;
     left: 153px;
-    width: 40px;
+    width: 80px;
     height: 12px;
 }
 
-#password-login {
+#secret-key {
     position: absolute;
     top:205px;
     left:153px;

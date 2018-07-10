@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import { SERVER_FIELDS, serverActions } from '../state/actions';
+import defns from '../utils/definitions/serverDefinitions';
 
 import '../app.css';
 import './server.css';
@@ -12,149 +13,227 @@ import DDD from '../_assets/dropdown-down.svg';
 // import DDU from '../_assets/dropdown-up.svg';
 
 class Server extends Component {
+  static buildServerTypeChoices(options, onFilter) {
+    return () => {
+      if (!options) {
+        return options;
+      }
+      const filtered = onFilter ? options.filter(onFilter) : options;
+      return filtered.map(o =>
+        (<option key={o.id} value={o.id}>{o.label}</option>));
+    };
+  }
+
+  static changeServerChoice(options, onChange) {
+    return (event) => {
+      const change = options.find(o => `${o.id}` === event.target.value);
+      onChange(change);
+    };
+  }
+
   constructor(props) {
     super(props);
-    this.state = {};
-    this.buildServerChoices = this.buildServerChoices.bind(this);
-    this.buildServerSizeChoices = this.buildServerSizeChoices.bind(this);
-    this.buildServerLocationChoices = this.buildServerLocationChoices.bind(this);
+    this.logoutAws = this.logoutAws.bind(this);
+    this.validateAws = this.validateAws.bind(this);
+    this.destroyProxies = this.destroyProxies.bind(this);
+    this.generateProxies = this.generateProxies.bind(this);
+    this.destroyServer = this.destroyServer.bind(this);
     this.createServer = this.createServer.bind(this);
+    this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(this);
   }
 
-  buildServerChoices() {
-    const { servers } = this.props;
-    return servers && servers.map(server =>
-      (<option key={server.type}>{server.serverName}</option>));
+  logoutAws(e) {
+    e.preventDefault();
+    const message = 'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
+    window.Bridge.confirmDialog(message).then((logout) => {
+      if (logout) {
+        this.props.onLogoutAws(this.props.serverInfo.coreServer.path);
+      }
+    });
   }
 
-  buildServerSizeChoices() {
-    const { servers } = this.props;
-    return servers && servers.map(server =>
-      (<option key={server.type}>{server.serverSize}</option>));
+  validateAws(e) {
+    e.preventDefault();
+    this.props.onValidateAws(this.props.serverInfo.credentials);
   }
 
-  buildServerLocationChoices() {
-    const { servers } = this.props;
-    return servers && servers.map(server =>
-      (<option key={server.type}>{server.serverLocation}</option>));
+  destroyProxies(e) {
+    e.preventDefault();
+    this.props.onDestroyProxies();
   }
 
-  // loginAWS = (user, pass) => {
-  // }
+  generateProxies(e) {
+    e.preventDefault();
+    this.props.onGenerateProxies(this.props.serverInfo.proxyOptions);
+  }
 
-  // destroyProxies = () => {
-  // }
+  destroyServer(e) {
+    e.preventDefault();
+    this.props.onDestroyServer(this.props.serverInfo.coreServer.path);
+  }
 
-  // generateProxies = (number) => {
-  // }
+  createServer(e) {
+    e.preventDefault();
+    this.props.onCreateServer(
+      this.props.serverInfo.serverOptions,
+      this.props.serverInfo.credentials,
+    );
+  }
 
-  // destroyServer = () => {
-  // }
+  createServerInfoChangeHandler(field) {
+    return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
+  }
 
-  createServer() {
-    this.props.onSaveServerOptions(this.props.selectedServer);
+  renderServerTypeComponent() {
+    return Server.renderServerOptionComponent(
+      'type',
+      'Type',
+      'Choose Server',
+      this.props.serverType.id,
+      false,
+      Server.changeServerChoice(
+        this.props.serverListOptions.types,
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_TYPE),
+      ),
+      Server.buildServerTypeChoices(this.props.serverListOptions.types),
+    );
+  }
+
+  renderServerSizeComponent() {
+    return Server.renderServerOptionComponent(
+      'size',
+      'Size',
+      'Choose Size',
+      this.props.serverSize.id,
+      !this.props.serverType.id,
+      Server.changeServerChoice(
+        this.props.serverListOptions.sizes,
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE),
+      ),
+      Server.buildServerTypeChoices(
+        this.props.serverListOptions.sizes,
+        (s => (this.props.serverType.id
+          ? s.types.some(t => t === this.props.serverType.id)
+          : true)),
+      ),
+    );
+  }
+
+  renderServerLocationComponent() {
+    return Server.renderServerOptionComponent(
+      'location',
+      'Location',
+      'Choose Location',
+      this.props.serverLocation.id,
+      false,
+      Server.changeServerChoice(
+        this.props.serverListOptions.locations,
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_LOCATION),
+      ),
+      Server.buildServerTypeChoices(this.props.serverListOptions.locations),
+    );
+  }
+
+  static renderServerOptionComponent(
+    type, label, defaultOption, value,
+    disabled, onChange, optionGenerator,
+  ) {
+    return (
+      <div>
+        <p id={`${type}-server-label`}>{label}</p>
+        <select id={`${type}-server`} onChange={onChange} value={value} disabled={disabled} required>
+          <option value="" hidden>{defaultOption}</option>
+          {optionGenerator()}
+        </select>
+        <img src={DDD} alt="dropdown button" id={`${type}-server-button`} />
+      </div>
+    );
   }
 
   render() {
+    const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
     return (
       <div className="container">
         <h1 className="text-header" id="server-header">Server</h1>
         {/* LOGIN */}
         <p className="body-text" id="login-label">Login</p>
         <div id="login-box" />
-        <p id="username-login-label">Username</p>
-        <input id="username-login" type="text" placeholder="John Smith" required />
-        <p id="password-login-label">Password</p>
-        <input id="password-login" type="password" placeholder="xxxxxxx" required />
-        <button id="submit-aws-login" onClick={this.loginAWS} >Submit</button>
+        <p id="access-key-label">AWS Access Key</p>
+        <input id="access-key" type="text" placeholder="Access Key" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)} value={this.props.serverInfo.credentials.AWSAccessKey} required />
+        <p id="secret-key-label">AWS Secret Key</p>
+        <input id="secret-key" type="password" placeholder="xxxxxxx" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)} value={this.props.serverInfo.credentials.AWSSecretKey} required />
+        <button id="submit-aws-login" onClick={loggedInAws ? this.logoutAws : this.validateAws}>{loggedInAws ? 'Log out' : 'Submit'}</button>
 
         {/* PROXIES */}
         <p className="body-text" id="proxies-label">Proxies</p>
         <div id="proxies-box" />
         <p id="number-label">Number</p>
-        <input id="number" type="text" placeholder="00" onChange={this.props.onNumProxiesChange} required />
+        <input id="number" type="text" placeholder="00" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)} value={this.props.serverInfo.proxyOptions.numProxies} required />
         <p id="username-proxies-label">Username</p>
-        <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.props.onProxyUsernameChange} required />
+        <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)} value={this.props.serverInfo.proxyOptions.username} required />
         <p id="password-proxies-label">Password</p>
-        <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.props.onProxyPasswordChange} required />
-        <button id="destroy-proxies" onClick={this.destroyProxies} >Destroy All</button>
-        <button id="generate-proxies" onClick={this.generateProxies} >Generate</button>
+        <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)} value={this.props.serverInfo.proxyOptions.password} required />
+        <button disabled={!loggedInAws} id="destroy-proxies" onClick={this.destroyProxies} >Destroy All</button>
+        <button disabled={!loggedInAws} id="generate-proxies" onClick={this.generateProxies} >Generate</button>
 
         {/* CONNECT */}
         <p className="body-text" id="server-label">Connect</p>
         <div id="server-box" />
-        <p id="type-server-label">Type</p>
-        <select id="type-server" onChange={this.props.onServerChoiceChange} value={this.props.selectedServer.serverName || ''} required>
-          <option value="" hidden>Choose Server</option>
-          {this.buildServerChoices()}
-        </select>
-        <img src={DDD} alt="dropdown button" id="type-server-button" />
-        <p id="size-server-label">Size</p>
-        <select id="size-server" onChange={this.props.onServerSizeChoiceChange} value={this.props.selectedServer.serverSize || ''} disabled={!!this.props.selectedServer.serverName} required>
-          <option value="" hidden>Choose Size</option>
-          {this.buildServerSizeChoices()}
-        </select>
-        <img src={DDD} alt="dropdown button" id="size-server-button" />
-        <p id="location-server-label">Location</p>
-        <select id="location-server" onChange={this.props.onServerLocationChoiceChange} value={this.props.selectedServer.serverLocation || ''} disabled={!!this.props.selectedServer.serverSize} required>
-          <option value="" hidden>Choose Location</option>
-          {this.buildServerLocationChoices()}
-        </select>
+        {this.renderServerTypeComponent()}
+        {this.renderServerSizeComponent()}
+        {this.renderServerLocationComponent()}
         <img src={DDD} alt="dropdown button" id="location-server-button" />
-        <button id="destroy-server" onClick={this.destroyServer} >Destroy</button>
-        <button id="create-server" onClick={this.createServer} >Create</button>
+        <button disabled={!loggedInAws} id="destroy-server" onClick={this.destroyServer}>Destroy</button>
+        <button disabled={!loggedInAws} id="create-server" onClick={this.createServer}>Create</button>
       </div>
     );
   }
 }
 
 Server.propTypes = {
-  selectedServer: PropTypes.objectOf(PropTypes.any).isRequired,
-  serverName: PropTypes.string.isRequired,
-  serverSize: PropTypes.string.isRequired,
-  serverLocation: PropTypes.string.isRequired,
-  servers: PropTypes.arrayOf(PropTypes.any).isRequired,
-  onServerChoiceChange: PropTypes.func.isRequired,
-  onServerSizeChoiceChange: PropTypes.func.isRequired,
-  onServerLocationChoiceChange: PropTypes.func.isRequired,
-  onSaveServerOptions: PropTypes.func.isRequired,
-  // onDestroyServer: PropTypes.func.isRequired,
-  onNumProxiesChange: PropTypes.func.isRequired,
-  onProxyUsernameChange: PropTypes.func.isRequired,
-  onProxyPasswordChange: PropTypes.func.isRequired,
+  serverInfo: defns.serverInfo.isRequired,
+  serverListOptions: defns.serverListOptions.isRequired,
+  serverType: defns.serverType.isRequired,
+  serverSize: defns.serverSize.isRequired,
+  serverLocation: defns.serverLocation.isRequired,
+  onCreateServer: PropTypes.func.isRequired,
+  onDestroyProxies: PropTypes.func.isRequired,
+  onDestroyServer: PropTypes.func.isRequired,
+  onEditServerInfo: PropTypes.func.isRequired,
+  onGenerateProxies: PropTypes.func.isRequired,
+  onValidateAws: PropTypes.func.isRequired,
+  onLogoutAws: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
-  selectedServer: state.selectedServer,
-  serverName: state.serverName,
-  serverSize: state.serverSize,
-  serverLocation: state.serverLocation,
+  serverInfo: state.serverInfo,
+  serverType: state.serverInfo.serverOptions.type,
+  serverSize: state.serverInfo.serverOptions.size,
+  serverLocation: state.serverInfo.serverOptions.location,
+  serverListOptions: state.serverListOptions,
 });
 
 const mapDispatchToProps = dispatch => ({
-  onServerChoiceChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_CHOICE, event.target.value));
+  onCreateServer: (serverOptions, awsCredentials) => {
+    dispatch(serverActions.create(serverOptions, awsCredentials));
   },
-  onServerSizeChoiceChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_SIZE, event.target.value));
+  onDestroyProxies: () => {
+    dispatch(serverActions.destroyProxies());
   },
-  onServerLocationChoiceChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_SERVER_LOCATION, event.target.value));
+  onDestroyServer: (path) => {
+    dispatch(serverActions.destroy(path));
   },
-  onSaveServerOptions: (newServer) => {
-    dispatch(serverActions.add(newServer));
+  onEditServerInfo: (field, value) => {
+    dispatch(serverActions.edit(null, field, value));
   },
-  onDestroyServer: (server) => {
-    dispatch(serverActions.remove(server));
+  onGenerateProxies: (options) => {
+    dispatch(serverActions.generateProxies(options));
   },
-  onNumProxiesChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_NUMBER, event.target.value));
+  onValidateAws: (credentials) => {
+    dispatch(serverActions.validateAws(credentials));
   },
-  onProxyUsernameChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_USERNAME, event.target.value));
-  },
-  onProxyPasswordChange: (event) => {
-    dispatch(serverActions.edit(null, SERVER_FIELDS.EDIT_PROXY_PASSWORD, event.target.value));
+  onLogoutAws: (path) => {
+    dispatch(serverActions.logoutAws(path));
   },
 });
 
