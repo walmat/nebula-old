@@ -22,7 +22,7 @@ class ViewTask extends Component {
         <tr key={this.props.tasks[i].id} className="tasks_row">
           <td className="tasks_edit"><img src={edit} alt="edit" /></td>
           <td className="tasks_id">{this.props.tasks[i].id}</td>
-          <td className="tasks_sku">{this.props.tasks[i].sku}</td>
+          <td className="tasks_sku">SKU {this.props.tasks[i].sku}</td>
           <td className="tasks_profile">{this.props.tasks[i].profile.profileName}</td>
           <td className="tasks_sizes">{this.props.tasks[i].sizes}</td>
           <td className="tasks_pairs">{this.props.tasks[i].pairs}</td>

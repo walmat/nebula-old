@@ -170,10 +170,6 @@
         overflow: scroll;
     }
 
-    #view-tasks-table {
-        width:100%;
-    }
-
     .tasks_row {
         width:100%;
         height: 30px;
@@ -198,56 +194,59 @@
     .tasks_sku {
         position: relative;
         text-transform: uppercase;
-        left: 55px;
+        left: 54px;
         vertical-align:middle;
     }
 
     .tasks_profile {
         position: relative;
         text-transform: uppercase;
-        left: 210px;
+        left: 185px;
         vertical-align:middle;
     }
 
     .tasks_sizes {
         position: relative;
-        left: 440px;
+        left: 415px;
     }
 
     .tasks_pairs {
         position: relative;
-        left: 475px;
+        left: 455px;
         vertical-align:middle;
     }
 
     .tasks_start {
-        left: 502px;
+        left: 486px;
         position: relative;
         vertical-align:middle;
     }
 
     .tasks_start > img {
         cursor: pointer;
+        vertical-align:middle;
     }
 
     .tasks_stop {
-        left: 507px;
+        left: 490px;
         position: relative;
         vertical-align:middle;
     }
 
     .tasks_stop > img {
         cursor: pointer;
+        vertical-align:middle;
     }
 
     .tasks_destroy {
-        left: 512px;
+        left: 494px;
         position: relative;
         vertical-align:middle;
     }
 
     .tasks_destroy > img {
         cursor: pointer;
+        vertical-align:middle;
     }
 
     #view-num {
