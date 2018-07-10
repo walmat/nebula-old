@@ -179,7 +179,8 @@
     }
 
     .tasks_edit {
-        left: 5px;
+        position: relative;
+        left: 12px;
         vertical-align:middle;
     }
 
@@ -188,43 +189,41 @@
     }
 
     .tasks_id {
-        left: 33px;
-        width: 25px;
-        height: 25px;
+        position: relative;
+        left: 21px;
         vertical-align:middle;
     }
 
     .tasks_sku {
+        position: relative;
         text-transform: uppercase;
-        left: 78px;
-        width: 100px;
-        height: 25px;
+        left: 55px;
         vertical-align:middle;
     }
 
     .tasks_profile {
+        position: relative;
         text-transform: uppercase;
-        left: 284px;
+        left: 210px;
         width: 70px;
         height: 25px;
         vertical-align:middle;
     }
 
     .tasks_sizes {
-        left: 554px;
-        width: 70px;
-        height: 25px;
+        position: relative;
+        left: 405px;
     }
 
     .tasks_pairs {
-        left: 615px;
-        width: 70px;
-        height: 25px;
+        position: relative;
+        left: 444px;
         vertical-align:middle;
     }
 
     .tasks_start {
-        left: 662px;
+        left: 480px;
+        position: relative;
         vertical-align:middle;
     }
 
@@ -233,7 +232,8 @@
     }
 
     .tasks_stop {
-        left: 681px;
+        left: 485px;
+        position: relative;
         vertical-align:middle;
     }
 
@@ -242,7 +242,8 @@
     }
 
     .tasks_destroy {
-        left: 700px;
+        left: 490px;
+        position: relative;
         vertical-align:middle;
     }
 
