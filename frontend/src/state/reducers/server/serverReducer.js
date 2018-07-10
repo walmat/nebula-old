@@ -22,6 +22,12 @@ export const initialServerState = {
     size: {},
     location: {},
   },
+  proxies: [],
+  coreServer: {
+    path: null,
+    serverOptions: null,
+    awsCredentials: null,
+  },
 };
 
 export function serverReducer(state = initialServerState, action) {
