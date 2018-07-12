@@ -78,15 +78,21 @@ class Profiles extends Component {
     // Check if current profile has an editId associated with it
     if (this.props.currentProfile.editId !== undefined) {
       // make sure the profile id exists in profiles before call in the load
-      if (this.props.profiles.some(p => p.id === this.props.currentProfile.editId)) {
-        // The current profile has the same id as a profile
-        // in the profiles list, update that profile
-        this.props.onUpdateProfile(this.props.currentProfile);
-      } else {
-        // The current profile has an edit id, but it doesn't match
-        // any on the profiles list, add this as a new profile.
-        this.props.onAddNewProfile(this.props.currentProfile);
-      }
+      this.props.profiles.some(p => {
+        // if profile being edited matches the current profile loaded
+        if (p.id === this.props.currentProfile.editId) {
+          // check to see if they changed the profileName and save it as a new profile
+          if (p.profileName !== this.props.currentProfile.profileName) {
+            this.props.onAddNewProfile(this.props.currentProfile);
+          } else {
+            // otherwise update the current profile
+            this.props.onUpdateProfile(this.props.currentProfile);
+          }
+        } else {
+          // if no profile is found with that given editId, must be a new one
+          this.props.onAddNewProfile(this.props.currentProfile);
+        }
+      });
     } else {
       // No edit id tag exists, add this as a new profile.
       this.props.onAddNewProfile(this.props.currentProfile);
@@ -122,13 +128,13 @@ class Profiles extends Component {
             <option value="" hidden>Choose Profile to Load</option>
             {this.buildProfileOptions()}
           </select>
-            <img
-                src={currentProfile ? DDD : DDU}
-                alt="dropdown arrow"
-                id="profile-select-arrow"
-                draggable="false"
-            />
-            <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
+          <img
+            src={currentProfile ? DDD : DDU}
+            alt="dropdown arrow"
+            id="profile-select-arrow"
+            draggable="false"
+          />
+          <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
 
           {/* SHIPPING INFORMATION */}
           <div className="flex-col">
