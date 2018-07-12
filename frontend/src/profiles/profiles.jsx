@@ -75,6 +75,14 @@ class Profiles extends Component {
     // saves input data to user's profiles
     e.preventDefault();
 
+    // first off, check to see if the profileName is taken..
+    if (this.props.profiles.some(p => {
+      // update that profile instead
+      if (p.profileName === this.props.currentProfile.profileName) {
+        this.props.onUpdateProfile(p);
+      }
+    }));
+
     // Check if current profile has an editId associated with it
     if (this.props.currentProfile.editId !== undefined) {
       // make sure the profile id exists in profiles before call in the load
