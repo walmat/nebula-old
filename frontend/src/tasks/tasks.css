@@ -187,8 +187,8 @@
 
     .tasks_edit {
         position: relative;
-        padding-left: 5px;
-        width: 28px;
+        padding-left: 8px;
+        width: 25px;
     }
 
     .tasks_edit > img {
@@ -199,20 +199,20 @@
     .tasks_id {
         position: relative;
         vertical-align:middle;
-        width:43px;
+        width:42px;
     }
 
     .tasks_sku {
         position: relative;
         text-transform: uppercase;
-        width: 202px;
+        width: 204px;
         vertical-align:middle;
     }
 
     .tasks_profile {
         position: relative;
         text-transform: uppercase;
-        width: 265px;
+        width: 268px;
         vertical-align:middle;
     }
 
@@ -224,7 +224,7 @@
     .tasks_pairs {
         position: relative;
         vertical-align:middle;
-        width: 42px;
+        width: 40px;
     }
 
     .tasks_start {
