@@ -167,7 +167,11 @@
         height: 272px;
         border: none;
         border-radius: 3px;
-        overflow: scroll;
+        overflow-y: scroll;
+    }
+
+    ::-webkit-scrollbar {
+        display: none;
     }
 
     .tasks_row {
@@ -189,37 +193,37 @@
         position: relative;
         left: 21px;
         vertical-align:middle;
+        width:62px;
     }
 
     .tasks_sku {
         position: relative;
         text-transform: uppercase;
-        left: 54px;
+        width: 202px;
         vertical-align:middle;
     }
 
     .tasks_profile {
         position: relative;
         text-transform: uppercase;
-        left: 185px;
+        width: 265px;
         vertical-align:middle;
     }
 
     .tasks_sizes {
         position: relative;
-        left: 415px;
+        width: 58px;
     }
 
     .tasks_pairs {
         position: relative;
-        left: 455px;
         vertical-align:middle;
+        width: 42px;
     }
 
     .tasks_start {
-        left: 486px;
         position: relative;
-        vertical-align:middle;
+        padding-bottom: 3px;
     }
 
     .tasks_start > img {
@@ -228,9 +232,9 @@
     }
 
     .tasks_stop {
-        left: 490px;
         position: relative;
-        vertical-align:middle;
+        padding-bottom: 3px;
+
     }
 
     .tasks_stop > img {
@@ -239,9 +243,8 @@
     }
 
     .tasks_destroy {
-        left: 494px;
         position: relative;
-        vertical-align:middle;
+        padding-bottom: 3px;
     }
 
     .tasks_destroy > img {
