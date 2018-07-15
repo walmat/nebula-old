@@ -3,6 +3,7 @@ function makeActionCreator(type, ...argNames) {
     const action = {
       type,
     };
+
     argNames.forEach((arg, index) => {
       action[argNames[index]] = args[index];
     });

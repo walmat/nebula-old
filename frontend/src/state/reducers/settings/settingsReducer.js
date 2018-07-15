@@ -20,6 +20,7 @@ export function settingsReducer(state = initialSettingsState, action) {
         change = {};
     }
   }
+
   change.errors = action.errors;
 
   return Object.assign({}, state, change);

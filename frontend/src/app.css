@@ -26,9 +26,21 @@ input, a, h1, h2, h3, h4, h5, h6, p, link {
   letter-spacing: 0;
 }
 
+td {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #161318;
+  letter-spacing: 0;
+}
+
 select {
   -webkit-appearance:none; /* Safari and Chrome */
+  -moz-appearance: none;
   appearance:none;
+}
+
+select *.opt {
+  background: #161318 !important;
 }
 
 #app, #container-wrapper {

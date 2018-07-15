@@ -1,5 +1,6 @@
 const windowManager = require('electron-window-manager');
 const express = require('express');
+
 /**
  * Get eletron dependencies:
  * app - module to control application life.
@@ -11,6 +12,7 @@ const electron = require('electron');
 const {
   app,
   ipcMain,
+  ipcRenderer,
   session,
   Menu,
 } = electron;
@@ -21,7 +23,7 @@ const moment = require('moment');
 // Install Dev tools extensions
 const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
 
-let installExtensions = async () => {
+const installExtensions = async () => {
   const devExts = [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS];
 
   await Promise.all(devExts.map(ext => installExtension(ext)
@@ -112,6 +114,12 @@ function startMainWindow() {
       },
       accelerator: 'CmdOrCtrl+Q',
     }],
+  },
+  {
+    label: 'Edit',
+    submenu: [{ role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectall' }],
   }];
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
@@ -148,7 +156,6 @@ ipcMain.on('harvest', (event, token) => {
     host: 'http://checkout.shopify.com',
     sitekey: '6LfuO18UAAAAAClMxiQUvYyeGTn3xP5kZE0TFFHs',
   });
-  console.log(captchas);
 });
 
 ipcMain.on('window-event', (event, arg) => {

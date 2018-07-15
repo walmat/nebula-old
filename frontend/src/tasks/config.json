@@ -1,7 +1,7 @@
 {
   "sku": "AC7033",
-  "profiles": {
-    "1": {
+  "profiles": [
+    {
       "billing": {
         "firstName": "",
         "lastName": "",
@@ -33,7 +33,7 @@
         "cvv": ""
       }
     }
-  },
+  ],
   "sizes": {
     "1": 5.5,
     "2": 7,
