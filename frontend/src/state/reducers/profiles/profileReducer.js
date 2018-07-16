@@ -3,7 +3,7 @@ import { locationReducer, initialLocationState } from './locationReducer';
 import { paymentReducer, initialPaymentState } from './paymentReducer';
 
 export const initialProfileState = {
-  id: '',
+  id: null,
   profileName: '',
   errors: {
     profileName: null,
