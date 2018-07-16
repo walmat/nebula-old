@@ -29,6 +29,7 @@ class CreateTask extends Component {
 
   async saveTask(e) {
     e.preventDefault();
+    console.log(this.props.value);
     this.props.onAddNewTask(this.props.value);
   }
 
@@ -68,7 +69,7 @@ class CreateTask extends Component {
         </select>
         <img src={DDD} alt="dropdown" id="dropdown-size-arrow" draggable="false" />
         <p id="pairs-label"># Pairs</p>
-        <input id="pairs" type="text" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} value={this.props.value.pairs} required />
+        <input id="pairs" type="number" min="1" max="10" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} value={this.props.value.pairs} required />
         <button
           id="submit-tasks"
           tabIndex={0}

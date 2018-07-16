@@ -164,7 +164,7 @@
         top: 415px;
         left: 141px;
         width: 741px;
-        height: 272px;
+        height: 270px;
         border: none;
         border-radius: 3px;
         overflow-y: scroll;
@@ -234,7 +234,7 @@
 
     .tasks_sizes {
         position: relative;
-        width: 58px;
+        width: 54px;
         border-bottom: #dfdfdf solid 1px;
 
     }
@@ -242,7 +242,7 @@
     .tasks_pairs {
         position: relative;
         vertical-align:middle;
-        width: 45px;
+        width: 50px;
         border-bottom: #dfdfdf solid 1px;
 
     }
