@@ -14,6 +14,8 @@ import '../app.css';
 import './tasks.css';
 import { taskActions } from '../state/actions';
 
+import defns from '../utils/definitions/taskDefinitions';
+
 // const config = require('./config.json'); // TODO *** temp data structure
 // const core = require('core');
 // const Pool = require('threads').Pool;
@@ -124,8 +126,8 @@ class Tasks extends Component {
 }
 
 Tasks.propTypes = {
-  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
-  newTask: PropTypes.objectOf(PropTypes.any).isRequired,
+  tasks: defns.taskList.isRequired,
+  newTask: defns.task.isRequired,
   // selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
   // onAddNewTask: PropTypes.func.isRequired,
   // onLoadTask: PropTypes.func.isRequired,
@@ -155,7 +157,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.remove(task));
   },
   onChangeField: (change, field, event) => {
-    dispatch(taskActions.edit(null, field, event.target.value))
+    dispatch(taskActions.edit(null, field, event.target.value));
   },
 });
 

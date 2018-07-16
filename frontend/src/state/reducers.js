@@ -4,7 +4,7 @@
  */
 // import { combineReducers } from 'redux';
 import { taskReducer, newTaskReducer, initialTaskState } from './reducers/tasks/taskReducer';
-import {initialTaskListState, taskListReducer} from './reducers/tasks/taskListReducer';
+import { initialTaskListState, taskListReducer } from './reducers/tasks/taskListReducer';
 import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/profileReducer';
 import { profileListReducer, initialProfileListState } from './reducers/profiles/profileListReducer';
 import { serverReducer, initialServerState } from './reducers/server/serverReducer';
