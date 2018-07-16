@@ -4,7 +4,10 @@ import {
 } from '../../actions';
 
 export const initialSettingsState = {
-  proxies: {},
+  proxies: [],
+  errors: {
+    proxies: [],
+  },
 };
 
 export function settingsReducer(state = initialSettingsState, action) {

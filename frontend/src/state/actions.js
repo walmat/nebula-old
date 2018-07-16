@@ -31,6 +31,7 @@ export const {
 
 export const {
   settingsActions,
+  mapSettingsFieldToKey,
   SETTINGS_ACTIONS,
   SETTINGS_FIELDS,
 } = settings;
