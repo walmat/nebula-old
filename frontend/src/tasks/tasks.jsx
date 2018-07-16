@@ -19,17 +19,6 @@ import { taskActions } from '../state/actions';
 // const Pool = require('threads').Pool;
 
 class Tasks extends Component {
-  /**
-   * if user clicks the large `right arrow` button, run all the tasks
-   */
-  static async startAllTasks() {
-    // const pool = new Pool(); //ceate a new thread pool
-    // TODO – create thread for each task and "run" it
-  }
-
-  static async stopAllTasks() {
-    // if user clicks the large `x` button, stop all tasks
-  }
 
   componentDidUpdate() {
     console.log('UPDATE');
@@ -42,6 +31,18 @@ class Tasks extends Component {
     const selectedTask = tasks.find(t => t.id === taskId);
 
     this.props.onSelectTask(selectedTask);
+  }
+
+  startAllTasks() {
+    for (let i = 0; i < this.props.tasks.length; i++) {
+      this.props.onStartTask(this.props.tasks[i]);
+    }
+  }
+
+  stopAllTasks() {
+    for (let i = 0; i < this.props.tasks.length; i++) {
+      this.props.onStopTask(this.props.tasks[i]);
+    }
   }
 
   destroyAllTasks() {
@@ -85,7 +86,7 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.startAllTasks}
+            onClick={() => { this.startAllTasks(); }}
           >
             <img src={startAll} alt="start all tasks" id="start-all" draggable="false" />
           </div>
@@ -93,7 +94,7 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.stopAllTasks}
+            onClick={() => { this.stopAllTasks(); }}
           >
             <img src={stopAll} alt="stop all tasks" id="stop-all" draggable="false" />
           </div>
@@ -120,6 +121,8 @@ Tasks.propTypes = {
   onSelectTask: PropTypes.func.isRequired,
   // onUpdateTask: PropTypes.func.isRequired,
   onRemoveTask: PropTypes.func.isRequired,
+  onStartTask: PropTypes.func.isRequired,
+  onStopTask: PropTypes.func.isRequired,
   // onChangeField: PropTypes.func.isRequired
 };
 
@@ -141,6 +144,12 @@ const mapDispatchToProps = dispatch => ({
   },
   onRemoveTask: (task) => {
     dispatch(taskActions.remove(task.id));
+  },
+  onStartTask: (task) => {
+    dispatch(taskActions.start(task.id));
+  },
+  onStopTask: (task) => {
+    dispatch(taskActions.stop(task.id));
   },
   onChangeField: (change, field, event) => {
     dispatch(taskActions.edit(null, field, event.target.value));

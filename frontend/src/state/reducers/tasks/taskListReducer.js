@@ -50,9 +50,9 @@ export function taskListReducer(state = initialTaskListState, action) {
       nextState = nextState.filter(t => t.id !== action.id);
 
       // adjust the id of each following task to shift down one when a task is deleted
-      for (let i = action.id - 1; i < nextState.length; i++) {
-        nextState[i].id--;
-      }
+      // for (let i = action.id - 1; i < nextState.length; i++) {
+      //   nextState[i].id--;
+      // }
 
       break;
     }
