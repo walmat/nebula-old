@@ -51,9 +51,37 @@ class Settings extends Component {
     }
   }
 
-  static async saveProxies(e) {
+  constructor(props) {
+    super(props);
+    this.editProxies = this.editProxies.bind(this);
+    this.displayProxies = this.displayProxies.bind(this);
+    this.saveProxies = this.saveProxies.bind(this);
+  }
+
+  editProxies(e) {
+    console.log(e.target.value);
     e.preventDefault();
-    this.props.saveProxies(this.props.value);
+    const proxiesStr = e.target.value.trim();
+    const proxies = proxiesStr.split('\n').map(proxyLine => proxyLine.padEnd(10, ' ').substring(proxyLine.indexOf('|') + 1).trim());
+    // add an empty proxy to force a newline on rerender...
+    if (e.target.value.endsWith('\n')) {
+      proxies.push('');
+    }
+    const testStr = e.target.value.substring(e.target.value.lastIndexOf('|') + 1);
+    if (testStr.trim() === '') {
+      proxies.pop();
+    }
+    this.props.onEditProxies(proxies);
+  }
+
+  displayProxies() {
+    const { proxies } = this.props;
+    return proxies.reduce((accum, proxy, idx) => `${accum}${accum === '' ? '' : '\n'}${idx + 1}| ${proxy}`, '');
+  }
+
+  saveProxies(e) {
+    e.preventDefault();
+    this.props.onSaveProxies(this.props.proxies);
   }
 
   render() {
@@ -63,12 +91,12 @@ class Settings extends Component {
         {/* LOGIN */}
         <p className="body-text" id="proxy-list-label">Proxy List</p>
         <div id="proxy-list-box" />
-        <textarea id="proxy-list-text" />
+        <textarea id="proxy-list-text" value={this.displayProxies()} onChange={this.editProxies} />
         <div
           role="button"
           tabIndex={0}
           onKeyPress={() => {}}
-          onClick={this.props.saveProxies}
+          onClick={this.saveProxies}
         >
           <img src={save} alt="save proxy" id="proxy-list-save" draggable="false" />
         </div>
@@ -81,18 +109,21 @@ class Settings extends Component {
 }
 
 Settings.propTypes = {
-  // currentSettings: PropTypes.objectOf(PropTypes.any).isRequired,
-  saveProxies: PropTypes.func.isRequired,
-  value: PropTypes.isRequired,
+  onEditProxies: PropTypes.func.isRequired,
+  onSaveProxies: PropTypes.func.isRequired,
+  proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 const mapStateToProps = state => ({
-  proxies: state.proxies,
+  proxies: state.settings.proxies,
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSaveProxies: (data) => {
-    dispatch(settingsActions.add(data, SETTINGS_FIELDS.EDIT_PROXIES));
+  onEditProxies: (data) => {
+    dispatch(settingsActions.edit(SETTINGS_FIELDS.EDIT_PROXIES, data));
+  },
+  onSaveProxies: (proxies) => {
+    console.log('TODO: save proxies');
   },
 });
 
