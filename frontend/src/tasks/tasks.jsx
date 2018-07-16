@@ -31,10 +31,6 @@ class Tasks extends Component {
     // if user clicks the large `x` button, stop all tasks
   }
 
-  static async destroyAllTasks() {
-    // if user clicks the large `garbage can` button, erase all tasks
-  }
-
   componentDidUpdate() {
     console.log('UPDATE');
   }
@@ -46,6 +42,13 @@ class Tasks extends Component {
     const selectedTask = tasks.find(t => t.id === taskId);
 
     this.props.onSelectTask(selectedTask);
+  }
+
+  destroyAllTasks() {
+    // if user clicks the large `garbage can` button, erase all tasks
+    for (let i = 0; i < this.props.tasks.length; i += 1) {
+      this.props.onRemoveTask(this.props.tasks[i]);
+    }
   }
 
   render() {
@@ -98,7 +101,7 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.destroyAllTasks}
+            onClick={() => { this.destroyAllTasks(); }}
           >
             <img src={destroyAll} alt="destroy all tasks" id="destroy-all" draggable="false" />
           </div>
@@ -116,7 +119,7 @@ Tasks.propTypes = {
   // onLoadTask: PropTypes.func.isRequired,
   onSelectTask: PropTypes.func.isRequired,
   // onUpdateTask: PropTypes.func.isRequired,
-  // onRemoveTask: PropTypes.func.isRequired,
+  onRemoveTask: PropTypes.func.isRequired,
   // onChangeField: PropTypes.func.isRequired
 };
 
@@ -137,7 +140,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.update(task.editId, task));
   },
   onRemoveTask: (task) => {
-    dispatch(taskActions.remove(task));
+    dispatch(taskActions.remove(task.id));
   },
   onChangeField: (change, field, event) => {
     dispatch(taskActions.edit(null, field, event.target.value));

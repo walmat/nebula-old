@@ -15,6 +15,12 @@ export function taskListReducer(state = initialTaskListState, action) {
         console.log(action.response);
         break;
       }
+
+      // if the tasksList is empty, reset the numbering
+      if (nextState.length === 0) {
+        num = 1;
+      }
+
       // perform a deep copy of given profile
       const newTask = JSON.parse(JSON.stringify(action.task));
 
@@ -42,6 +48,12 @@ export function taskListReducer(state = initialTaskListState, action) {
 
       // filter out given id
       nextState = nextState.filter(t => t.id !== action.id);
+
+      // adjust the id of each following task to shift down one when a task is deleted
+      for (let i = action.id - 1; i < nextState.length; i++) {
+        nextState[i].id--;
+      }
+
       break;
     }
     case TASK_ACTIONS.EDIT: {
@@ -62,6 +74,17 @@ export function taskListReducer(state = initialTaskListState, action) {
       // Reduce the found task using our task reducer
       nextState[idx] = taskReducer(found, action);
       break;
+    }
+    case TASK_ACTIONS.START: {
+      if (action.id === null) {
+        break;
+      }
+
+      const found = nextState.find(t => t.id === action.id);
+      if (found === undefined) {
+        break;
+      }
+
     }
     default:
       break;
