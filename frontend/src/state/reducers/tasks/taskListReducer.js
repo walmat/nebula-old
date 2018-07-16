@@ -57,10 +57,9 @@ export function taskListReducer(state = initialTaskListState, action) {
 
       // adjust the id of each following task to shift down one when a task is deleted
       for (let i = action.id - 1; i < nextState.length; i++) {
-        nextState[i].id--;
+        num = nextState[i].id--;
+        
       }
-      num = nextState[nextState.length - 1].id;
-
       break;
     }
     case TASK_ACTIONS.EDIT: {
@@ -93,13 +92,15 @@ export function taskListReducer(state = initialTaskListState, action) {
       }
       const idx = nextState.indexOf(found);
 
-      console.log(nextState[idx].status);
+      // console.log(nextState[idx].status);
 
+      // do nothing if the task is already running..
       if (nextState[idx].status === 'running') {
         break;
       } else {
         // change task state status
         nextState[idx].status = 'running';
+        // todo >> bunch of fun stuff here
       }
       break;
     }
@@ -114,13 +115,15 @@ export function taskListReducer(state = initialTaskListState, action) {
       }
       const idx = nextState.indexOf(found);
 
-      console.log(nextState[idx].status);
+      // console.log(nextState[idx].status);
 
+      // do nothing if the status is already stopped or idle
       if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
         break;
       } else {
         // change task state status
         nextState[idx].status = 'stopped';
+        // todo >> bunch of fun stuff here
       }
       break;
     }

@@ -3,8 +3,9 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import start from '../_assets/run.svg';
-import line from '../_assets/horizontal-line.svg';
+import startDim from '../_assets/run_dim.svg';
 import stop from '../_assets/stop.svg';
+import stopDim from '../_assets/stop_dim.svg';
 import destroy from '../_assets/destroy.svg';
 import edit from '../_assets/edit_icon.svg';
 import { taskActions } from '../state/actions';
@@ -49,8 +50,8 @@ class ViewTask extends Component {
           <td className="tasks_profile">{this.props.tasks[i].profile.profileName}</td>
           <td className="tasks_sizes">{this.props.tasks[i].sizes}</td>
           <td className="tasks_pairs">{this.props.tasks[i].pairs < 10 ? "0"+this.props.tasks[i].pairs : this.props.tasks[i].pairs}</td>
-          <td className="tasks_start"><img src={start} onClick={() => {this.startTask(this.props.tasks[i])}} alt="start"  draggable="false"/></td>
-          <td className="tasks_stop"><img src={stop} onClick={() => {this.stopTask(this.props.tasks[i])}} alt="stop" draggable="false"/></td>
+          <td className="tasks_start"><img src={this.props.tasks[i].status === 'running' ? startDim : start} onClick={() => {this.startTask(this.props.tasks[i])}} alt="start"  draggable="false"/></td>
+          <td className="tasks_stop"><img src={this.props.tasks[i].status === 'running' ? stop : stopDim} onClick={() => {this.stopTask(this.props.tasks[i])}} alt="stop" draggable="false"/></td>
           <td className="tasks_destroy"><img src={destroy} onClick={() => {this.destroyTask(this.props.tasks[i])}} alt="destroy" draggable="false"/></td>
           <td className="extend" />
         </tr>
