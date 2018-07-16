@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
+import defns from '../utils/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
 
 import info from '../_assets/info.svg';
@@ -31,9 +32,9 @@ class PaymentFields extends Component {
 }
 
 PaymentFields.propTypes = {
-  errors: PropTypes.objectOf(PropTypes.any).isRequired,
+  errors: defns.paymentState.errors.isRequired,
   onChange: PropTypes.func.isRequired,
-  value: PropTypes.objectOf(PropTypes.any).isRequired,
+  value: defns.paymentState.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({

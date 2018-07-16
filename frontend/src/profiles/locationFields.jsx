@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
+import defns from '../utils/definitions/profileDefinitions';
 import getAllCountries from '../getAllCountries';
 import getAllStates from '../getAllStates';
 import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/actions';
@@ -73,11 +74,11 @@ class LocationFields extends Component {
 }
 
 LocationFields.propTypes = {
-  errors: PropTypes.objectOf(PropTypes.any).isRequired,
+  errors: defns.locationState.errors.isRequired,
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
   id: PropTypes.string.isRequired,
-  value: PropTypes.objectOf(PropTypes.any).isRequired,
+  value: defns.locationState.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -93,7 +94,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       ownProps.profileToEdit.id,
       ownProps.fieldToEdit,
       changes.value,
-      changes.field
+      changes.field,
     ));
   },
 });

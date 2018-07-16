@@ -6,6 +6,7 @@ import EnsureAuthorization from '../EnsureAuthorization';
 import PaymentFields from './paymentFields';
 import LocationFields from './locationFields';
 import validationStatus from '../utils/validationStatus';
+import defns from '../utils/definitions/profileDefinitions';
 import './profiles.css';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
@@ -122,13 +123,13 @@ class Profiles extends Component {
             <option value="" hidden>Choose Profile to Load</option>
             {this.buildProfileOptions()}
           </select>
-            <img
-                src={currentProfile ? DDD : DDU}
-                alt="dropdown arrow"
-                id="profile-select-arrow"
-                draggable="false"
-            />
-            <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
+          <img
+            src={currentProfile ? DDD : DDU}
+            alt="dropdown arrow"
+            id="profile-select-arrow"
+            draggable="false"
+          />
+          <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
 
           {/* SHIPPING INFORMATION */}
           <div className="flex-col">
@@ -141,7 +142,8 @@ class Profiles extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.props.onClickBillingMatchesShipping}>
+            onClick={this.props.onClickBillingMatchesShipping}
+          >
             <img
               src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
               alt="billing matches shipping checkbox"
@@ -189,16 +191,16 @@ class Profiles extends Component {
 }
 
 Profiles.propTypes = {
-  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
-  currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
-  selectedProfile: PropTypes.objectOf(PropTypes.any).isRequired,
+  profiles: defns.profileList.isRequired,
+  currentProfile: defns.profile.isRequired,
+  selectedProfile: defns.profile.isRequired,
   onClickBillingMatchesShipping: PropTypes.func.isRequired,
   onProfileNameChange: PropTypes.func.isRequired,
   onAddNewProfile: PropTypes.func.isRequired,
   onLoadProfile: PropTypes.func.isRequired,
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
-  onUpdateProfile: PropTypes.func.isRequired
+  onUpdateProfile: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
