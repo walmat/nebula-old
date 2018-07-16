@@ -10,27 +10,25 @@ import edit from '../_assets/edit_icon.svg';
 
 class ViewTask extends Component {
 
-  constructor(props) {
-    super(props);
-    this.createTable = this.createTable.bind(this);
-    this.editTask = this.editTask.bind(this);
-    this.startTask = this.startTask.bind(this);
-  }
-
-  startTask(task) {
-    console.log('starting task: ', task.id);
-  }
-
-  editTask(task) {
+  static editTask(task) {
     console.log('editing task: ', task.id);
   }
 
-  stopTask(task) {
+  static startTask(task) {
+    console.log('starting task: ', task.id);
+  }
+
+  static stopTask(task) {
     console.log('stopping task: ', task.id);
   }
 
-  destroyTask(task) {
+  static destroyTask(task) {
     console.log('destroying task: ', task.id);
+  }
+
+  constructor(props) {
+    super(props);
+    this.createTable = this.createTable.bind(this);
   }
 
   createTable() {
@@ -38,17 +36,17 @@ class ViewTask extends Component {
 
     for (let i = 0; i < this.props.tasks.length; i += 1) {
       table.push((
-        <tr key={this.props.tasks[i].id} className="tasks_row">
+        <tr key={this.props.tasks[i].id} id={this.props.tasks[i].id} className="tasks_row">
           <td className="blank" />
-          <td className="tasks_edit"><img src={edit} onClick={() => {this.editTask(this.props.tasks[i])}} alt="edit" /></td>
-          <td className="tasks_id">{this.props.tasks[i].id}</td>
+          <td className="tasks_edit"><img src={edit} onClick={() => {ViewTask.editTask(this.props.tasks[i])}} alt="edit" draggable="false"/></td>
+          <td className="tasks_id">{this.props.tasks[i].id < 10 ? "0"+this.props.tasks[i].id : this.props.tasks[i].id}</td>
           <td className="tasks_sku">SKU {this.props.tasks[i].sku}</td>
           <td className="tasks_profile">{this.props.tasks[i].profile.profileName}</td>
           <td className="tasks_sizes">{this.props.tasks[i].sizes}</td>
-          <td className="tasks_pairs">{this.props.tasks[i].pairs}</td>
-          <td className="tasks_start"><img src={start} onClick={() => {this.startTask(this.props.tasks[i])}} alt="start" /></td>
-          <td className="tasks_stop"><img src={stop} onClick={() => {this.stopTask(this.props.tasks[i])}} alt="stop" /></td>
-          <td className="tasks_destroy"><img src={destroy} onClick={() => {this.destroyTask(this.props.tasks[i])}} alt="destroy" /></td>
+          <td className="tasks_pairs">{this.props.tasks[i].pairs < 10 ? "0"+this.props.tasks[i].pairs : this.props.tasks[i].pairs}</td>
+          <td className="tasks_start"><img src={start} onClick={() => {ViewTask.startTask(this.props.tasks[i])}} alt="start"  draggable="false"/></td>
+          <td className="tasks_stop"><img src={stop} onClick={() => {ViewTask.stopTask(this.props.tasks[i])}} alt="stop" draggable="false"/></td>
+          <td className="tasks_destroy"><img src={destroy} onClick={() => {ViewTask.destroyTask(this.props.tasks[i])}} alt="destroy" draggable="false"/></td>
           <td className="extend" />
         </tr>
       ));

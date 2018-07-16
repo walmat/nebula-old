@@ -8,7 +8,7 @@ export const initialTaskState = {
   sku: '',
   profile: {},
   sizes: '',
-  pairs: '',
+  pairs: '1',
   errors: {
     sku: null,
     profile: null,
