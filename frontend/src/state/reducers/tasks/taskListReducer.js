@@ -46,13 +46,20 @@ export function taskListReducer(state = initialTaskListState, action) {
         break;
       }
 
+      // this we'll use to remove all tasks
+      if (action.id === null) {
+        nextState = [];
+        break;
+      }
+
       // filter out given id
       nextState = nextState.filter(t => t.id !== action.id);
 
       // adjust the id of each following task to shift down one when a task is deleted
-      // for (let i = action.id - 1; i < nextState.length; i++) {
-      //   nextState[i].id--;
-      // }
+      for (let i = action.id - 1; i < nextState.length; i++) {
+        nextState[i].id--;
+      }
+      num = nextState[nextState.length - 1].id;
 
       break;
     }

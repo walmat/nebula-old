@@ -142,8 +142,8 @@ const mapDispatchToProps = dispatch => ({
   onUpdateTask: (task) => {
     dispatch(taskActions.update(task.editId, task));
   },
-  onRemoveTask: (task) => {
-    dispatch(taskActions.remove(task.id));
+  onRemoveTask: () => {
+    dispatch(taskActions.remove(null));
   },
   onStartTask: (task) => {
     dispatch(taskActions.start(task.id));
