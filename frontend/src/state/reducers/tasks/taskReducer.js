@@ -8,12 +8,14 @@ export const initialTaskState = {
   sku: '',
   profile: {},
   sizes: '',
-  pairs: '',
+  pairs: '1',
+  status: 'idle',
   errors: {
     sku: null,
     profile: null,
     sizes: null,
     pairs: null,
+    status: null,
   },
 };
 

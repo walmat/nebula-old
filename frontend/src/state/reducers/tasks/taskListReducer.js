@@ -2,7 +2,7 @@ import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
 
 export const initialTaskListState = [];
-export var num = 1;
+export let num = 1;
 
 export function taskListReducer(state = initialTaskListState, action) {
   let nextState = JSON.parse(JSON.stringify(state));
@@ -15,6 +15,12 @@ export function taskListReducer(state = initialTaskListState, action) {
         console.log(action.response);
         break;
       }
+
+      // if the tasksList is empty, reset the numbering
+      if (nextState.length === 0) {
+        num = 1;
+      }
+
       // perform a deep copy of given profile
       const newTask = JSON.parse(JSON.stringify(action.task));
 
@@ -40,8 +46,19 @@ export function taskListReducer(state = initialTaskListState, action) {
         break;
       }
 
+      // this we'll use to remove all tasks
+      if (action.id === null) {
+        nextState = [];
+        break;
+      }
+
       // filter out given id
       nextState = nextState.filter(t => t.id !== action.id);
+
+      // adjust the id of each following task to shift down one when a task is deleted
+      for (let i = action.id - 1; i < nextState.length; i++) {
+        num = nextState[i].id--;
+      }
       break;
     }
     case TASK_ACTIONS.EDIT: {
@@ -61,6 +78,52 @@ export function taskListReducer(state = initialTaskListState, action) {
 
       // Reduce the found task using our task reducer
       nextState[idx] = taskReducer(found, action);
+      break;
+    }
+    case TASK_ACTIONS.START: {
+      if (action.id === null) {
+        break;
+      }
+
+      const found = nextState.find(t => t.id === action.id);
+      if (found === undefined) {
+        break;
+      }
+      const idx = nextState.indexOf(found);
+
+      // console.log(nextState[idx].status);
+
+      // do nothing if the task is already running..
+      if (nextState[idx].status === 'running') {
+        break;
+      } else {
+        // change task state status
+        nextState[idx].status = 'running';
+        // todo >> bunch of fun stuff here
+      }
+      break;
+    }
+    case TASK_ACTIONS.STOP: {
+      if (action.id === null) {
+        break;
+      }
+
+      const found = nextState.find(t => t.id === action.id);
+      if (found === undefined) {
+        break;
+      }
+      const idx = nextState.indexOf(found);
+
+      // console.log(nextState[idx].status);
+
+      // do nothing if the status is already stopped or idle
+      if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
+        break;
+      } else {
+        // change task state status
+        nextState[idx].status = 'stopped';
+        // todo >> bunch of fun stuff here
+      }
       break;
     }
     default:

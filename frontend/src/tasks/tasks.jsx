@@ -21,40 +21,9 @@ import defns from '../utils/definitions/taskDefinitions';
 // const Pool = require('threads').Pool;
 
 class Tasks extends Component {
-  /**
-   * if user clicks the large `right arrow` button, run all the tasks
-   */
-  static async startAllTasks() {
-    // const pool = new Pool(); //ceate a new thread pool
-    // TODO – create thread for each task and "run" it
-  }
-
-  static async stopAllTasks() {
-    // if user clicks the large `x` button, stop all tasks
-  }
-
-  static async destroyAllTasks() {
-    // if user clicks the large `garbage can` button, erase all tasks
-  }
-
-  static async runTask() {
-    // if user clicks the play button, start the task
-  }
-
-  static async stopTask() {
-    // if user clicks pause button, stop the task
-  }
-
-  static async destroyTask() {
-    // if user clicks the `garbage can` button, erase the task from tasks
-  }
-
-  static async buildTasks() {
-    // build "view tasks" table
-  }
-  componentDidUpdate() {
-    console.log('UPDATE');
-  }
+  // componentDidUpdate() {
+  //   console.log('UPDATE');
+  // }
 
   /* changes when the edit button for each task is clicked */
   async onTaskChange(event) {
@@ -63,6 +32,25 @@ class Tasks extends Component {
     const selectedTask = tasks.find(t => t.id === taskId);
 
     this.props.onSelectTask(selectedTask);
+  }
+
+  startAllTasks() {
+    for (let i = 0; i < this.props.tasks.length; i += 1) {
+      this.props.onStartTask(this.props.tasks[i]);
+    }
+  }
+
+  stopAllTasks() {
+    for (let i = 0; i < this.props.tasks.length; i += 1) {
+      this.props.onStopTask(this.props.tasks[i]);
+    }
+  }
+
+  destroyAllTasks() {
+    // if user clicks the large `garbage can` button, erase all tasks
+    for (let i = 0; i < this.props.tasks.length; i += 1) {
+      this.props.onRemoveTask(this.props.tasks[i]);
+    }
   }
 
   render() {
@@ -99,7 +87,7 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.startAllTasks}
+            onClick={() => { this.startAllTasks(); }}
           >
             <img src={startAll} alt="start all tasks" id="start-all" draggable="false" />
           </div>
@@ -107,7 +95,7 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.stopAllTasks}
+            onClick={() => { this.stopAllTasks(); }}
           >
             <img src={stopAll} alt="stop all tasks" id="stop-all" draggable="false" />
           </div>
@@ -115,7 +103,7 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.destroyAllTasks}
+            onClick={() => { this.destroyAllTasks(); }}
           >
             <img src={destroyAll} alt="destroy all tasks" id="destroy-all" draggable="false" />
           </div>
@@ -133,7 +121,9 @@ Tasks.propTypes = {
   // onLoadTask: PropTypes.func.isRequired,
   onSelectTask: PropTypes.func.isRequired,
   // onUpdateTask: PropTypes.func.isRequired,
-  // onRemoveTask: PropTypes.func.isRequired,
+  onRemoveTask: PropTypes.func.isRequired,
+  onStartTask: PropTypes.func.isRequired,
+  onStopTask: PropTypes.func.isRequired,
   // onChangeField: PropTypes.func.isRequired
 };
 
@@ -153,8 +143,14 @@ const mapDispatchToProps = dispatch => ({
   onUpdateTask: (task) => {
     dispatch(taskActions.update(task.editId, task));
   },
-  onRemoveTask: (task) => {
-    dispatch(taskActions.remove(task));
+  onRemoveTask: () => {
+    dispatch(taskActions.remove(null));
+  },
+  onStartTask: (task) => {
+    dispatch(taskActions.start(task.id));
+  },
+  onStopTask: (task) => {
+    dispatch(taskActions.stop(task.id));
   },
   onChangeField: (change, field, event) => {
     dispatch(taskActions.edit(null, field, event.target.value));
