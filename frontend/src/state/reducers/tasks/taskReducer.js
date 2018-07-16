@@ -25,25 +25,25 @@ export function taskReducer(state = initialTaskState, action) {
       case TASK_FIELDS.EDIT_SKU:
         change = {
           sku: action.value,
-          errors: Object.assign({}, state.errors, action.errors)
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       case TASK_FIELDS.EDIT_PROFILE:
         change = {
           profile: action.value,
-          errors: Object.assign({}, state.errors, action.errors)
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       case TASK_FIELDS.EDIT_SIZES:
         change = {
           sizes: action.value,
-          errors: Object.assign({}, state.errors, action.errors)
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       case TASK_FIELDS.EDIT_PAIRS:
         change = {
           pairs: action.value,
-          errors: Object.assign({}, state.errors, action.errors)
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       default:
