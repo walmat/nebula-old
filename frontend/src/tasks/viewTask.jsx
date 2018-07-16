@@ -7,23 +7,29 @@ import line from '../_assets/horizontal-line.svg';
 import stop from '../_assets/stop.svg';
 import destroy from '../_assets/destroy.svg';
 import edit from '../_assets/edit_icon.svg';
+import { taskActions } from '../state/actions';
 
 class ViewTask extends Component {
 
   static editTask(task) {
     console.log('editing task: ', task.id);
+    console.log(this.props);
+    this.props.onEditTask(task);
   }
 
   static startTask(task) {
     console.log('starting task: ', task.id);
+    this.props.onStartTask(task);
   }
 
   static stopTask(task) {
     console.log('stopping task: ', task.id);
+    this.props.onStopTask(task);
   }
 
   static destroyTask(task) {
     console.log('destroying task: ', task.id);
+    this.props.onDestroyTask(task);
   }
 
   constructor(props) {
@@ -68,11 +74,26 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-
+  onEditTask: (task) => {
+    dispatch(taskActions.edit(task));
+  },
+  onStartTask: (task) => {
+    dispatch(taskActions.start(task));
+  },
+  onStopTask: (task) => {
+    dispatch(taskActions.stop(task));
+  },
+  onDestroyTask: (task) => {
+    dispatch(taskActions.destroy(task));
+  },
 });
 
 ViewTask.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
+  onEditTask: PropTypes.func.isRequired,
+  onStartTask: PropTypes.func.isRequired,
+  onStopTask: PropTypes.func.isRequired,
+  onDestroyTask: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ViewTask);

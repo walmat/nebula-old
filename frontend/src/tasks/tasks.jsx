@@ -35,21 +35,6 @@ class Tasks extends Component {
     // if user clicks the large `garbage can` button, erase all tasks
   }
 
-  static async runTask() {
-    // if user clicks the play button, start the task
-  }
-
-  static async stopTask() {
-    // if user clicks pause button, stop the task
-  }
-
-  static async destroyTask() {
-    // if user clicks the `garbage can` button, erase the task from tasks
-  }
-
-  static async buildTasks() {
-    // build "view tasks" table
-  }
   componentDidUpdate() {
     console.log('UPDATE');
   }
@@ -155,7 +140,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.remove(task));
   },
   onChangeField: (change, field, event) => {
-    dispatch(taskActions.edit(null, field, event.target.value))
+    dispatch(taskActions.edit(null, field, event.target.value));
   },
 });
 
