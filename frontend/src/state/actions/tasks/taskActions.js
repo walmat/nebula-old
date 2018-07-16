@@ -9,7 +9,6 @@ export const TASK_ACTIONS = {
   UPDATE: 'UPDATE_TASK',
   START: 'START_TASK',
   STOP: 'STOP_TASK',
-  DESTROY: 'DESTROY_TASK',
 };
 
 export const addTask = makeActionCreator(TASK_ACTIONS.ADD, 'task');
@@ -20,7 +19,6 @@ export const updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'id', 'task');
 export const loadTask = makeActionCreator(TASK_ACTIONS.LOAD, 'task');
 export const startTask = makeActionCreator(TASK_ACTIONS.START, 'task');
 export const stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'task');
-export const destroyTask = makeActionCreator(TASK_ACTIONS.DESTROY, 'task');
 
 // Field Edits
 export const TASK_FIELDS = {
@@ -39,5 +37,4 @@ export const taskActions = {
   update: updateTask,
   start: startTask,
   stop: stopTask,
-  destroy: destroyTask
 };

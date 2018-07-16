@@ -11,29 +11,29 @@ import { taskActions } from '../state/actions';
 
 class ViewTask extends Component {
 
-  static editTask(task) {
-    console.log('editing task: ', task.id);
-    this.props.onEditTask(task);
+  constructor(props) {
+    super(props);
+    this.createTable = this.createTable.bind(this);
   }
 
-  static startTask(task) {
+  editTask(task) {
+    console.log('editing task: ', task.id);
+    // this.props.onEditTask(task);
+  }
+
+  startTask(task) {
     console.log('starting task: ', task.id);
     this.props.onStartTask(task);
   }
 
-  static stopTask(task) {
+  stopTask(task) {
     console.log('stopping task: ', task.id);
     this.props.onStopTask(task);
   }
 
-  static destroyTask(task) {
+  destroyTask(task) {
     console.log('destroying task: ', task.id);
     this.props.onDestroyTask(task);
-  }
-
-  constructor(props) {
-    super(props);
-    this.createTable = this.createTable.bind(this);
   }
 
   createTable() {
@@ -43,15 +43,15 @@ class ViewTask extends Component {
       table.push((
         <tr key={this.props.tasks[i].id} id={this.props.tasks[i].id} className="tasks_row">
           <td className="blank" />
-          <td className="tasks_edit"><img src={edit} onClick={() => {ViewTask.editTask(this.props.tasks[i])}} alt="edit" draggable="false"/></td>
+          <td className="tasks_edit"><img src={edit} onClick={() => {this.editTask(this.props.tasks[i])}} alt="edit" draggable="false"/></td>
           <td className="tasks_id">{this.props.tasks[i].id < 10 ? "0"+this.props.tasks[i].id : this.props.tasks[i].id}</td>
           <td className="tasks_sku">SKU {this.props.tasks[i].sku}</td>
           <td className="tasks_profile">{this.props.tasks[i].profile.profileName}</td>
           <td className="tasks_sizes">{this.props.tasks[i].sizes}</td>
           <td className="tasks_pairs">{this.props.tasks[i].pairs < 10 ? "0"+this.props.tasks[i].pairs : this.props.tasks[i].pairs}</td>
-          <td className="tasks_start"><img src={start} onClick={() => {ViewTask.startTask(this.props.tasks[i])}} alt="start"  draggable="false"/></td>
-          <td className="tasks_stop"><img src={stop} onClick={() => {ViewTask.stopTask(this.props.tasks[i])}} alt="stop" draggable="false"/></td>
-          <td className="tasks_destroy"><img src={destroy} onClick={() => {ViewTask.destroyTask(this.props.tasks[i])}} alt="destroy" draggable="false"/></td>
+          <td className="tasks_start"><img src={start} onClick={() => {this.startTask(this.props.tasks[i])}} alt="start"  draggable="false"/></td>
+          <td className="tasks_stop"><img src={stop} onClick={() => {this.stopTask(this.props.tasks[i])}} alt="stop" draggable="false"/></td>
+          <td className="tasks_destroy"><img src={destroy} onClick={() => {this.destroyTask(this.props.tasks[i])}} alt="destroy" draggable="false"/></td>
           <td className="extend" />
         </tr>
       ));
@@ -73,6 +73,9 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onChange: (task, changes) => {
+    dispatch(taskActions.edit(task.id, changes.field, changes.value));
+  },
   onEditTask: (task) => {
     dispatch(taskActions.edit(task));
   },
@@ -83,7 +86,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.stop(task));
   },
   onDestroyTask: (task) => {
-    dispatch(taskActions.destroy(task));
+    dispatch(taskActions.remove(task.id));
   },
 });
 

@@ -2,7 +2,7 @@ import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
 
 export const initialTaskListState = [];
-export var num = 1;
+export let num = 1;
 
 export function taskListReducer(state = initialTaskListState, action) {
   let nextState = JSON.parse(JSON.stringify(state));
