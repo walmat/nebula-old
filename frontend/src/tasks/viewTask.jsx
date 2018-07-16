@@ -13,7 +13,6 @@ class ViewTask extends Component {
 
   static editTask(task) {
     console.log('editing task: ', task.id);
-    console.log(this.props);
     this.props.onEditTask(task);
   }
 
