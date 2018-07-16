@@ -74,7 +74,7 @@ class LocationFields extends Component {
 }
 
 LocationFields.propTypes = {
-  errors: defns.locationState.errors.isRequired,
+  errors: defns.locationStateErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
   id: PropTypes.string.isRequired,

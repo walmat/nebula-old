@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 
+import locationStateErrors from './locationStateErrors';
+
 const locationState = PropTypes.shape({
   firstName: PropTypes.string,
   lastName: PropTypes.string,
@@ -10,17 +12,7 @@ const locationState = PropTypes.shape({
   state: PropTypes.string,
   zipCode: PropTypes.string,
   phone: PropTypes.string,
-  errors: PropTypes.shape({
-    firstName: PropTypes.bool,
-    lastName: PropTypes.bool,
-    address: PropTypes.bool,
-    apt: PropTypes.bool,
-    city: PropTypes.bool,
-    country: PropTypes.bool,
-    state: PropTypes.bool,
-    zipCode: PropTypes.bool,
-    phone: PropTypes.bool,
-  }),
+  errors: locationStateErrors,
 });
 
 export default locationState;

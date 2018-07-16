@@ -87,7 +87,7 @@ class CreateTask extends Component {
 }
 
 CreateTask.propTypes = {
-  errors: tDefns.task.errors.isRequired,
+  errors: tDefns.taskErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   value: tDefns.task.isRequired,

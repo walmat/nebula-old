@@ -1,16 +1,13 @@
 import PropTypes from 'prop-types';
 
+import paymentStateErrors from './paymentStateErrors';
+
 const paymentState = PropTypes.shape({
   email: PropTypes.string,
   cardNumber: PropTypes.string,
   exp: PropTypes.string,
   cvv: PropTypes.string,
-  errors: PropTypes.shape({
-    email: PropTypes.bool,
-    cardNumber: PropTypes.bool,
-    exp: PropTypes.bool,
-    cvv: PropTypes.bool,
-  }),
+  errors: paymentStateErrors,
 });
 
 export default paymentState;

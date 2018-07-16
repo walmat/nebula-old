@@ -32,7 +32,7 @@ class PaymentFields extends Component {
 }
 
 PaymentFields.propTypes = {
-  errors: defns.paymentState.errors.isRequired,
+  errors: defns.paymentStateErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   value: defns.paymentState.isRequired,
 };

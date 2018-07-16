@@ -4,7 +4,10 @@ import locationState from './locationState';
 import paymentState from './paymentState';
 
 const profile = PropTypes.shape({
-  id: PropTypes.string,
+  id: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.string,
+  ]),
   profileName: PropTypes.string,
   errors: PropTypes.shape({
     profileName: PropTypes.bool,
