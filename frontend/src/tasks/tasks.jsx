@@ -19,10 +19,9 @@ import { taskActions } from '../state/actions';
 // const Pool = require('threads').Pool;
 
 class Tasks extends Component {
-
-  componentDidUpdate() {
-    console.log('UPDATE');
-  }
+  // componentDidUpdate() {
+  //   console.log('UPDATE');
+  // }
 
   /* changes when the edit button for each task is clicked */
   async onTaskChange(event) {
@@ -34,13 +33,13 @@ class Tasks extends Component {
   }
 
   startAllTasks() {
-    for (let i = 0; i < this.props.tasks.length; i++) {
+    for (let i = 0; i < this.props.tasks.length; i += 1) {
       this.props.onStartTask(this.props.tasks[i]);
     }
   }
 
   stopAllTasks() {
-    for (let i = 0; i < this.props.tasks.length; i++) {
+    for (let i = 0; i < this.props.tasks.length; i += 1) {
       this.props.onStopTask(this.props.tasks[i]);
     }
   }
