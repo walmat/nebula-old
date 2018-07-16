@@ -80,10 +80,10 @@ const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.edit(task));
   },
   onStartTask: (task) => {
-    dispatch(taskActions.start(task));
+    dispatch(taskActions.start(task.id));
   },
   onStopTask: (task) => {
-    dispatch(taskActions.stop(task));
+    dispatch(taskActions.stop(task.id));
   },
   onDestroyTask: (task) => {
     dispatch(taskActions.remove(task.id));

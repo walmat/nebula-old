@@ -17,8 +17,8 @@ export const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'val
 export const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
 export const updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'id', 'task');
 export const loadTask = makeActionCreator(TASK_ACTIONS.LOAD, 'task');
-export const startTask = makeActionCreator(TASK_ACTIONS.START, 'task');
-export const stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'task');
+export const startTask = makeActionCreator(TASK_ACTIONS.START, 'id');
+export const stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'id');
 
 // Field Edits
 export const TASK_FIELDS = {

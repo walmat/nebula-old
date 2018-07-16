@@ -84,7 +84,38 @@ export function taskListReducer(state = initialTaskListState, action) {
       if (found === undefined) {
         break;
       }
+      const idx = nextState.indexOf(found);
 
+      console.log(nextState[idx].status);
+
+      if (nextState[idx].status === 'running') {
+        break;
+      } else {
+        // change task state status
+        nextState[idx].status = 'running';
+      }
+      break;
+    }
+    case TASK_ACTIONS.STOP: {
+      if (action.id === null) {
+        break;
+      }
+
+      const found = nextState.find(t => t.id === action.id);
+      if (found === undefined) {
+        break;
+      }
+      const idx = nextState.indexOf(found);
+
+      console.log(nextState[idx].status);
+
+      if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
+        break;
+      } else {
+        // change task state status
+        nextState[idx].status = 'stopped';
+      }
+      break;
     }
     default:
       break;
