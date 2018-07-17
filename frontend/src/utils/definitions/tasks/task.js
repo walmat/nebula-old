@@ -10,6 +10,7 @@ const task = PropTypes.shape({
   ]),
   sku: PropTypes.string,
   profile,
+  status: PropTypes.string,
   sizes: PropTypes.string,
   pairs: PropTypes.string,
   errors: taskErrors,
