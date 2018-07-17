@@ -56,6 +56,11 @@ class Settings extends Component {
     this.editProxies = this.editProxies.bind(this);
     this.displayProxies = this.displayProxies.bind(this);
     this.saveProxies = this.saveProxies.bind(this);
+    this.proxyChangeHandler = this.proxyChangeHandler.bind(this);
+    this.proxyKeyDownHandler = this.proxyKeyDownHandler.bind(this);
+
+    // TEMPORARY
+    this.useTextArea = true;
   }
 
   editProxies(e) {
@@ -97,6 +102,66 @@ class Settings extends Component {
     this.props.onSaveProxies(this.props.proxies);
   }
 
+  proxyChangeHandler(idx) {
+    return (e) => {
+      const { proxies } = this.props;
+      const proxyListStr = e.target.value;
+      const proxyList = proxyListStr.trim().split(' ');
+      if (proxies.length === 0) {
+        console.log(proxyListStr);
+        this.props.onEditProxies(proxyList);
+      } else {
+        console.log(proxyListStr);
+        proxies.splice(idx, 1, proxyList);
+        console.log('edit proxies');
+        console.log(proxies);
+        this.props.onEditProxies(proxies);
+      }
+    };
+  }
+
+  proxyKeyDownHandler(idx) {
+    return (e) => {
+      const { proxies } = this.props;
+      if (e.key === 'Enter' || e.which === 13) {
+        if (proxies.length !== 0) {
+          proxies.splice(idx + 1, 0, '');
+          this.props.onEditProxies(proxies);
+        }
+        return false;
+      } else if (e.key === 'Backspace' || e.which === 8) {
+        if (e.target.value !== '') {
+          return true;
+        }
+        proxies.splice(idx, 1);
+        this.props.onEditProxies(proxies);
+        return false;
+      }
+      return true;
+    };
+  }
+
+  renderProxies() {
+    if (this.props.proxies.length === 0) {
+      return (<input className="proxy-list-input" tabIndex={0} onChange={this.proxyChangeHandler(0)} onKeyDown={this.proxyKeyDownHandler(0)} key={0} value="" />);
+    }
+    return this.props.proxies.map((proxy, idx) =>
+      (<input className="proxy-list-input" tabIndex={0} onChange={this.proxyChangeHandler(idx)} onKeyDown={this.proxyKeyDownHandler(idx)} key={idx} value={proxy} />));
+  }
+
+  renderProxyList() {
+    if (this.useTextArea) {
+      return (
+        <textarea id="proxy-list-text" value={this.displayProxies()} onChange={this.editProxies} />
+      );
+    }
+    return (
+      <div id="proxy-list-text">
+        {this.renderProxies()}
+      </div>
+    );
+  }
+
   render() {
     return (
       <div className="container">
@@ -104,7 +169,7 @@ class Settings extends Component {
         {/* LOGIN */}
         <p className="body-text" id="proxy-list-label">Proxy List</p>
         <div id="proxy-list-box" />
-        <textarea id="proxy-list-text" value={this.displayProxies()} onChange={this.editProxies} />
+        {this.renderProxyList()}
         <div
           role="button"
           tabIndex={0}
