@@ -59,24 +59,37 @@ class Settings extends Component {
   }
 
   editProxies(e) {
-    console.log(e.target.value);
     e.preventDefault();
-    const proxiesStr = e.target.value.trim();
-    const proxies = proxiesStr.split('\n').map(proxyLine => proxyLine.padEnd(10, ' ').substring(proxyLine.indexOf('|') + 1).trim());
+    const proxyListStr = e.target.value;
+    const proxiesStr = proxyListStr.trim();
+    const proxies = proxiesStr.split('\n').map((proxyLine) => {
+      const firstColon = proxyLine.indexOf(':');
+      // Check if first ":" is in the first 7 characters
+      // This is used to check if we are correctly removing the index portion "x: "
+      // rather than the first colon of the ipaddress, "0.0.0.0:" being the minimum
+      // length for the ip address (which puts the colon at index 7).
+      if (firstColon < 7) {
+        return proxyLine.padEnd(7, ' ').substring(firstColon + 1).trim();
+      }
+      return proxyLine.trim();
+    });
     // add an empty proxy to force a newline on rerender...
-    if (e.target.value.endsWith('\n')) {
+    if (proxyListStr.endsWith('\n')) {
       proxies.push('');
     }
-    const testStr = e.target.value.substring(e.target.value.lastIndexOf('|') + 1);
-    if (testStr.trim() === '') {
+    let testStr = proxyListStr.trim();
+    testStr = testStr.substring(testStr.lastIndexOf('\n') + 1);
+    const colon = testStr.indexOf(':');
+    if (colon > 0 &&
+        colon === testStr.lastIndexOf(':') &&
+        testStr.substring(colon + 1).trim() === '') {
       proxies.pop();
     }
     this.props.onEditProxies(proxies);
   }
 
   displayProxies() {
-    const { proxies } = this.props;
-    return proxies.reduce((accum, proxy, idx) => `${accum}${accum === '' ? '' : '\n'}${idx + 1}| ${proxy}`, '');
+    return this.props.proxies.reduce((accum, proxy, idx) => `${accum}${accum === '' ? '' : '\n'}${idx + 1}: ${proxy}`, '');
   }
 
   saveProxies(e) {
