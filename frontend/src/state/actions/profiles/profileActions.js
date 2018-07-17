@@ -76,7 +76,7 @@ const _updateProfileRequest = async (id, profile) =>
   new Promise((resolve) => {
     setTimeout(() => {
       const copy = JSON.parse(JSON.stringify(profile));
-      resolve(profile);
+      resolve(copy);
     }, 1000);
   });
 
