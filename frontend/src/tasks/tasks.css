@@ -401,6 +401,75 @@
         width:739px;
     }
 
+    #edit-box {
+        position: relative;
+        width: 720px;
+        height: 102px;
+        border: #B8D9D2 solid 1px;
+        border-radius: 3px;
+    }
+
+    .edit-billing {
+        width: 200px;
+    }
+
+    .edit-sizes {
+        width: 200px;
+    }
+
+    .edit-pairs {
+        width: 200px;
+    }
+
+    #edit-billing-label {
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+    }
+
+    #edit-sizes-label {
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+    }
+
+    #edit-billing-profiles {
+        position: relative;
+        width: 125px;
+        height: 25px;
+        border: #F0405E solid 1px;
+        border-radius: 3px;
+    }
+
+    #edit-pairs-input {
+        position: relative;
+        vertical-align:middle;
+        width: 50px;
+        height: 25px;
+        border: #F0405E solid 1px;
+        border-radius: 3px;
+    }
+
+    .edit-billing {
+        position: relative;
+        width: 135px;
+    }
+
+    #submit-edit-tasks {
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        background: #F0405E;
+        border: none;
+        border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #EFEFEF;
+        letter-spacing: 0;
+    }
+
     #start-all {
         position: absolute;
         top: 385px;

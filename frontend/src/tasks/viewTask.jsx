@@ -39,7 +39,7 @@ class ViewTask extends Component {
   render() {
     return (
       <table>
-        <tbody>{this.createTable()}</tbody>
+        {this.createTable()}
       </table>
     );
   }

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import getAllSizes from './getSizes';
 
 import start from '../_assets/run.svg';
 import startDim from '../_assets/run_dim.svg';
@@ -12,9 +13,10 @@ import { taskActions } from '../state/actions';
 
 class TaskRow extends Component {
 
-  editTask(task) {
-    console.log('editing task: ', task.id);
-    this.props.onEditTask(task);
+  static buildSizeOptions() {
+    const sizes = getAllSizes();
+    return sizes.map(size =>
+      (<option key={size.name} value={size.name}>{size.name}</option>));
   }
 
   selectTask(task) {
@@ -37,9 +39,54 @@ class TaskRow extends Component {
     this.props.onDestroyTask(task);
   }
 
+  buildProfileOptions() {
+    const p = this.props.profiles;
+    return p.map(profile => (<option key={profile.id} className="opt" value={profile.id}>{profile.profileName}</option>));
+  }
+
   renderEditMenu() {
     if (this.props.isEditing) {
-      return (<div><p>test</p></div>);
+      return (
+        <tr id="edit-box">
+          <td className="blank" />
+          <td className="edit-billing">
+            <tr id="edit-billing-label">Billing Profiles</tr>
+            <tr>
+              <select id="edit-billing-profiles">
+                <option value="" selected disabled hidden>Choose Profile</option>
+                {this.buildProfileOptions()}
+              </select>
+            </tr>
+          </td>
+          <td className="edit-sizes">
+            <tr id="edit-sizes-label">Sizes</tr>
+            <tr>
+              <select id="edit-billing-profiles">
+                <option value="" selected disabled hidden>Choose Sizes</option>
+                {TaskRow.buildSizeOptions()}
+              </select>
+            </tr>
+          </td>
+          <td className="edit-pairs">
+            <tr id="edit-sizes-label"># Pairs</tr>
+            <tr>
+              <input id="edit-pairs-input" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" required />
+            </tr>
+          </td>
+          <td className="edit-pairs">
+            <tr>
+              <button
+                id="submit-edit-tasks"
+                tabIndex={0}
+                onKeyPress={() => {}}
+                onClick={this.saveTask}
+              >
+                Submit
+              </button>
+            </tr>
+          </td>
+        </tr>
+      );
     }
     return null;
   }
@@ -47,21 +94,23 @@ class TaskRow extends Component {
   render() {
     const { errors } = this.props;
     return (
-      <tr key={this.props.value.id} id={this.props.value.id} className="tasks_row">
-        <td className="blank" />
-        <td className="tasks_edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></td>
-        <td className="tasks_id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</td>
-        <td className="tasks_sku">SKU {this.props.value.sku}</td>
-        <td className="tasks_sites">01</td>
-        <td className="tasks_profile">{this.props.value.profile.profileName}</td>
-        <td className="tasks_sizes">{this.props.value.sizes}</td>
-        <td className="tasks_pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</td>
-        <td className="tasks_start"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></td>
-        <td className="tasks_stop"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></td>
-        <td className="tasks_destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></td>
-        <td className="extend" />
-      </tr>
-      {this.renderEditMenu()}
+      <tbody>
+        <tr key={this.props.value.id} id={this.props.value.id} className="tasks_row">
+          <td className="blank" />
+          <td className="tasks_edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></td>
+          <td className="tasks_id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</td>
+          <td className="tasks_sku">SKU {this.props.value.sku}</td>
+          <td className="tasks_sites">01</td>
+          <td className="tasks_profile">{this.props.value.profile.profileName}</td>
+          <td className="tasks_sizes">{this.props.value.sizes}</td>
+          <td className="tasks_pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</td>
+          <td className="tasks_start"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></td>
+          <td className="tasks_stop"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></td>
+          <td className="tasks_destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></td>
+          <td className="extend" />
+        </tr>
+        {this.renderEditMenu()}
+      </tbody>
     );
   }
 }
@@ -69,6 +118,7 @@ class TaskRow extends Component {
 TaskRow.propTypes = {
   errors: PropTypes.objectOf(PropTypes.any).isRequired,
   isEditing: PropTypes.bool.isRequired,
+  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   // onChange: PropTypes.func.isRequired,
   value: PropTypes.objectOf(PropTypes.any).isRequired,
   onSelectTask: PropTypes.func.isRequired,
@@ -76,6 +126,7 @@ TaskRow.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => ({
+  profiles: state.profiles,
   errors: ownProps.task.errors,
   value: ownProps.task,
   selectedTask: state.selectedTask,
