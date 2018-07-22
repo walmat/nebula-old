@@ -70,8 +70,9 @@ class Tasks extends Component {
           <div id="view-box" />
           <p id="view-num">#</p>
           <p id="view-product">Product</p>
+          <p id="view-sites">Sites</p>
           <p id="view-size">Size</p>
-          <p id="view-billings">Billings</p>
+          <p id="view-billings">Billing Profile</p>
           <p id="view-pairs"># Pairs</p>
           <p id="view-actions">Actions</p>
           <hr id="view-line" />

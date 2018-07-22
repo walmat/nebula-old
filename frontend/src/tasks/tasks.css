@@ -212,15 +212,24 @@
         vertical-align:middle;
         width:42px;
         border-bottom: #dfdfdf solid 1px;
+        text-overflow: ellipsis;
     }
 
     .tasks_sku {
         position: relative;
         text-transform: uppercase;
-        width: 204px;
+        width: 129px;
         vertical-align:middle;
         border-bottom: #dfdfdf solid 1px;
+        text-overflow: ellipsis;
+    }
 
+    .tasks_sites {
+        position: relative;
+        width: 73px;
+        vertical-align: middle;
+        border-bottom: #dfdfdf solid 1px;
+        text-overflow: ellipsis;
     }
 
     .tasks_profile {
@@ -229,14 +238,18 @@
         width: 268px;
         vertical-align:middle;
         border-bottom: #dfdfdf solid 1px;
+        text-overflow: ellipsis;
+    }
 
+    .tasks_profile > p {
+        text-overflow: ellipsis;
     }
 
     .tasks_sizes {
         position: relative;
         width: 54px;
         border-bottom: #dfdfdf solid 1px;
-
+        text-overflow: ellipsis;
     }
 
     .tasks_pairs {
@@ -314,6 +327,19 @@
         height: 16px;
     }
 
+    #view-sites {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 0;
+        position: absolute;
+        top: 392px;
+        left: 350px;
+        width: 43px;
+        height: 16px;
+    }
+
     #view-billings {
         font-family: AvenirNext-Medium;
         font-size: 12px;
@@ -323,7 +349,7 @@
         position: absolute;
         top: 392px;
         left: 425px;
-        width: 35px;
+        width: 100px;
         height: 16px;
     }
 

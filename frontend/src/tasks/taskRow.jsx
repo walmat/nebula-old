@@ -45,6 +45,7 @@ class TaskRow extends Component {
         <td className="tasks_edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></td>
         <td className="tasks_id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</td>
         <td className="tasks_sku">SKU {this.props.value.sku}</td>
+        <td className="tasks_sites">01</td>
         <td className="tasks_profile">{this.props.value.profile.profileName}</td>
         <td className="tasks_sizes">{this.props.value.sizes}</td>
         <td className="tasks_pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</td>
@@ -59,13 +60,16 @@ class TaskRow extends Component {
 
 TaskRow.propTypes = {
   errors: PropTypes.objectOf(PropTypes.any).isRequired,
-  onChange: PropTypes.func.isRequired,
+  // onChange: PropTypes.func.isRequired,
   value: PropTypes.objectOf(PropTypes.any).isRequired,
+  onSelectTask: PropTypes.func.isRequired,
+  onEditTask: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({
   errors: ownProps.task.errors,
   value: ownProps.task,
+  selectedTask: state.selectedTask,
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({

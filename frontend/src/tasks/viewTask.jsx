@@ -2,29 +2,12 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import TaskRow from './taskRow';
-
-import start from '../_assets/run.svg';
-import startDim from '../_assets/run_dim.svg';
-import stop from '../_assets/stop.svg';
-import stopDim from '../_assets/stop_dim.svg';
-import destroy from '../_assets/destroy.svg';
-import edit from '../_assets/edit_icon.svg';
 import { taskActions } from '../state/actions';
 
 class ViewTask extends Component {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
-  }
-
-  editTask(task) {
-    console.log('editing task: ', task.id);
-    this.props.onEditTask(task);
-  }
-
-  selectTask(task) {
-    console.log('selected task: ', task.id);
-    this.props.onSelectTask(task);
   }
 
   startTask(task) {
@@ -64,18 +47,11 @@ class ViewTask extends Component {
 
 const mapStateToProps = state => ({
   tasks: state.tasks,
-  selectedTask: state.selectedTask,
 });
 
 const mapDispatchToProps = dispatch => ({
   onChange: (task, changes) => {
     dispatch(taskActions.edit(task.id, changes.field, changes.value));
-  },
-  onEditTask: (task, changes) => {
-    dispatch(taskActions.edit(task.id, changes.field, changes.value));
-  },
-  onSelectTask: (task) => {
-    dispatch(taskActions.select(task));
   },
   onUpdateTask: (task) => {
     dispatch(taskActions.update(task.id, task));
@@ -93,8 +69,6 @@ const mapDispatchToProps = dispatch => ({
 
 ViewTask.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
-  onEditTask: PropTypes.func.isRequired,
-  onSelectTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,
