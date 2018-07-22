@@ -73,7 +73,7 @@ class TaskRow extends Component {
               <input id="edit-pairs-input" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" required />
             </tr>
           </td>
-          <td className="edit-pairs">
+          <td className="edit-submit">
             <tr>
               <button
                 id="submit-edit-tasks"
@@ -82,6 +82,18 @@ class TaskRow extends Component {
                 onClick={this.saveTask}
               >
                 Submit
+              </button>
+            </tr>
+          </td>
+          <td className="edit-cancel">
+            <tr>
+              <button
+                id="cancel-edit-tasks"
+                tabIndex={0}
+                onKeyPress={() => {}}
+                onClick={this.cancelEdit}
+              >
+                Cancel
               </button>
             </tr>
           </td>
