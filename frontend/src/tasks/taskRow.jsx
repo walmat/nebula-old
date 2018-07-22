@@ -37,6 +37,13 @@ class TaskRow extends Component {
     this.props.onDestroyTask(task);
   }
 
+  renderEditMenu() {
+    if (this.props.isEditing) {
+      return (<div><p>test</p></div>);
+    }
+    return null;
+  }
+
   render() {
     const { errors } = this.props;
     return (
@@ -54,12 +61,14 @@ class TaskRow extends Component {
         <td className="tasks_destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></td>
         <td className="extend" />
       </tr>
+      {this.renderEditMenu()}
     );
   }
 }
 
 TaskRow.propTypes = {
   errors: PropTypes.objectOf(PropTypes.any).isRequired,
+  isEditing: PropTypes.bool.isRequired,
   // onChange: PropTypes.func.isRequired,
   value: PropTypes.objectOf(PropTypes.any).isRequired,
   onSelectTask: PropTypes.func.isRequired,
@@ -70,6 +79,7 @@ const mapStateToProps = (state, ownProps) => ({
   errors: ownProps.task.errors,
   value: ownProps.task,
   selectedTask: state.selectedTask,
+  isEditing: ownProps.task.id === state.selectedTask.id,
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
