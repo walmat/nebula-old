@@ -21,6 +21,11 @@ class ViewTask extends Component {
     this.props.onEditTask(task);
   }
 
+  selectTask(task) {
+    console.log('selected task: ', task.id);
+    this.props.onSelectTask(task);
+  }
+
   startTask(task) {
     console.log('starting task: ', task.id);
     this.props.onStartTask(task);
@@ -43,14 +48,14 @@ class ViewTask extends Component {
       table.push((
         <tr key={this.props.tasks[i].id} id={this.props.tasks[i].id} className="tasks_row">
           <td className="blank" />
-          <td className="tasks_edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.editTask(this.props.tasks[i]); }} alt="edit" draggable="false" /></td>
+          <td className="tasks_edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.tasks[i]); }} alt="edit" draggable="false" className={this.props.tasks[i].status === 'editing' ? 'active' : ''} /></td>
           <td className="tasks_id">{this.props.tasks[i].id < 10 ? `0${this.props.tasks[i].id}` : this.props.tasks[i].id}</td>
           <td className="tasks_sku">SKU {this.props.tasks[i].sku}</td>
           <td className="tasks_profile">{this.props.tasks[i].profile.profileName}</td>
           <td className="tasks_sizes">{this.props.tasks[i].sizes}</td>
           <td className="tasks_pairs">{this.props.tasks[i].pairs < 10 ? `0${this.props.tasks[i].pairs}` : this.props.tasks[i].pairs}</td>
-          <td className="tasks_start"><img src={this.props.tasks[i].status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.tasks[i]); }} alt="start" draggable="false" /></td>
-          <td className="tasks_stop"><img src={this.props.tasks[i].status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.tasks[i]); }} alt="stop" draggable="false" /></td>
+          <td className="tasks_start"><img src={this.props.tasks[i].status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.tasks[i]); }} alt="start" draggable="false" className={this.props.tasks[i].status === 'running' ? 'active' : ''} /></td>
+          <td className="tasks_stop"><img src={this.props.tasks[i].status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.tasks[i]); }} alt="stop" draggable="false" className={this.props.tasks[i].status === 'stopped' ? 'active' : ''} /></td>
           <td className="tasks_destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.tasks[i]); }} alt="destroy" draggable="false" /></td>
           <td className="extend" />
         </tr>
@@ -70,14 +75,21 @@ class ViewTask extends Component {
 
 const mapStateToProps = state => ({
   tasks: state.tasks,
+  selectedTask: state.selectedTask,
 });
 
 const mapDispatchToProps = dispatch => ({
   onChange: (task, changes) => {
     dispatch(taskActions.edit(task.id, changes.field, changes.value));
   },
-  onEditTask: (task) => {
-    dispatch(taskActions.edit(task));
+  onEditTask: (task, changes) => {
+    dispatch(taskActions.edit(task.id, changes.field, changes.value));
+  },
+  onSelectTask: (task) => {
+    dispatch(taskActions.select(task));
+  },
+  onUpdateTask: (task) => {
+    dispatch(taskActions.update(task.id, task));
   },
   onStartTask: (task) => {
     dispatch(taskActions.start(task.id));
@@ -93,6 +105,7 @@ const mapDispatchToProps = dispatch => ({
 ViewTask.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   onEditTask: PropTypes.func.isRequired,
+  onSelectTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,

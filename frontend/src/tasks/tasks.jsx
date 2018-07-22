@@ -14,10 +14,6 @@ import '../app.css';
 import './tasks.css';
 import { taskActions } from '../state/actions';
 
-// const config = require('./config.json'); // TODO *** temp data structure
-// const core = require('core');
-// const Pool = require('threads').Pool;
-
 class Tasks extends Component {
   // componentDidUpdate() {
   //   console.log('UPDATE');
@@ -67,6 +63,7 @@ class Tasks extends Component {
           <p id="log-site">Site</p>
           <p id="log-output">Output</p>
           <hr id="log-line" />
+          <div id="log-scroll-box" />
 
           {/* VIEW TASK */}
           <p className="body-text" id="view-label">View</p>
@@ -114,15 +111,10 @@ class Tasks extends Component {
 Tasks.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   newTask: PropTypes.objectOf(PropTypes.any).isRequired,
-  // selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
-  // onAddNewTask: PropTypes.func.isRequired,
-  // onLoadTask: PropTypes.func.isRequired,
   onSelectTask: PropTypes.func.isRequired,
-  // onUpdateTask: PropTypes.func.isRequired,
   onRemoveTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
-  // onChangeField: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
