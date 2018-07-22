@@ -410,15 +410,15 @@
     }
 
     .edit-billing {
-        width: 200px;
+        padding-left: 44px;
     }
 
     .edit-sizes {
-        width: 200px;
+        padding-left: 25px;
     }
 
     .edit-pairs {
-        width: 200px;
+        padding-left: 25px;
     }
 
     #edit-billing-label {
@@ -426,6 +426,10 @@
         font-size: 9px;
         color: #161318;
         letter-spacing: 0;
+    }
+
+    .init-blank {
+        width: 50px;
     }
 
     #edit-sizes-label {
@@ -437,7 +441,15 @@
 
     #edit-billing-profiles {
         position: relative;
-        width: 125px;
+        width: 355px;
+        height: 25px;
+        border: #F0405E solid 1px;
+        border-radius: 3px;
+    }
+
+    #edit-billing-sizes {
+        position: relative;
+        width: 168px;
         height: 25px;
         border: #F0405E solid 1px;
         border-radius: 3px;
@@ -446,7 +458,7 @@
     #edit-pairs-input {
         position: relative;
         vertical-align:middle;
-        width: 50px;
+        width: 78px;
         height: 25px;
         border: #F0405E solid 1px;
         border-radius: 3px;

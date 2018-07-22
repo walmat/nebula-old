@@ -47,56 +47,58 @@ class TaskRow extends Component {
   renderEditMenu() {
     if (this.props.isEditing) {
       return (
-        <tr id="edit-box">
+        <tr>
           <td className="blank" />
-          <td className="edit-billing">
-            <tr id="edit-billing-label">Billing Profiles</tr>
-            <tr>
-              <select id="edit-billing-profiles">
-                <option value="" selected disabled hidden>Choose Profile</option>
-                {this.buildProfileOptions()}
-              </select>
-            </tr>
-          </td>
-          <td className="edit-sizes">
-            <tr id="edit-sizes-label">Sizes</tr>
-            <tr>
-              <select id="edit-billing-profiles">
-                <option value="" selected disabled hidden>Choose Sizes</option>
-                {TaskRow.buildSizeOptions()}
-              </select>
-            </tr>
-          </td>
-          <td className="edit-pairs">
-            <tr id="edit-sizes-label"># Pairs</tr>
-            <tr>
-              <input id="edit-pairs-input" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" required />
-            </tr>
-          </td>
-          <td className="edit-submit">
-            <tr>
-              <button
-                id="submit-edit-tasks"
-                tabIndex={0}
-                onKeyPress={() => {}}
-                onClick={this.saveTask}
-              >
-                Submit
-              </button>
-            </tr>
-          </td>
-          <td className="edit-cancel">
-            <tr>
-              <button
-                id="cancel-edit-tasks"
-                tabIndex={0}
-                onKeyPress={() => {}}
-                onClick={this.cancelEdit}
-              >
-                Cancel
-              </button>
-            </tr>
-          </td>
+          <tr id="edit-box">
+            <td className="edit-billing">
+              <tr id="edit-billing-label">Billing Profiles</tr>
+              <tr>
+                <select id="edit-billing-profiles">
+                  <option value="" selected disabled hidden>Choose Profile</option>
+                  {this.buildProfileOptions()}
+                </select>
+              </tr>
+            </td>
+            <td className="edit-sizes">
+              <tr id="edit-sizes-label">Sizes</tr>
+              <tr>
+                <select id="edit-billing-sizes">
+                  <option value="" selected disabled hidden>Choose Sizes</option>
+                  {TaskRow.buildSizeOptions()}
+                </select>
+              </tr>
+            </td>
+            <td className="edit-pairs">
+              <tr id="edit-sizes-label"># Pairs</tr>
+              <tr>
+                <input id="edit-pairs-input" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" required />
+              </tr>
+            </td>
+            <td className="edit-submit">
+              <tr>
+                <button
+                  id="submit-edit-tasks"
+                  tabIndex={0}
+                  onKeyPress={() => {}}
+                  onClick={this.saveTask}
+                >
+                  Submit
+                </button>
+              </tr>
+            </td>
+            <td className="edit-cancel">
+              <tr>
+                <button
+                  id="cancel-edit-tasks"
+                  tabIndex={0}
+                  onKeyPress={() => {}}
+                  onClick={this.cancelEdit}
+                >
+                  Cancel
+                </button>
+              </tr>
+            </td>
+          </tr>
         </tr>
       );
     }
