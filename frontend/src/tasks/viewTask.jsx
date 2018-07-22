@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import TaskRow from './taskRow';
 
 import start from '../_assets/run.svg';
 import startDim from '../_assets/run_dim.svg';
@@ -46,19 +47,7 @@ class ViewTask extends Component {
 
     for (let i = 0; i < this.props.tasks.length; i += 1) {
       table.push((
-        <tr key={this.props.tasks[i].id} id={this.props.tasks[i].id} className="tasks_row">
-          <td className="blank" />
-          <td className="tasks_edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.tasks[i]); }} alt="edit" draggable="false" className={this.props.tasks[i].status === 'editing' ? 'active' : ''} /></td>
-          <td className="tasks_id">{this.props.tasks[i].id < 10 ? `0${this.props.tasks[i].id}` : this.props.tasks[i].id}</td>
-          <td className="tasks_sku">SKU {this.props.tasks[i].sku}</td>
-          <td className="tasks_profile">{this.props.tasks[i].profile.profileName}</td>
-          <td className="tasks_sizes">{this.props.tasks[i].sizes}</td>
-          <td className="tasks_pairs">{this.props.tasks[i].pairs < 10 ? `0${this.props.tasks[i].pairs}` : this.props.tasks[i].pairs}</td>
-          <td className="tasks_start"><img src={this.props.tasks[i].status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.tasks[i]); }} alt="start" draggable="false" className={this.props.tasks[i].status === 'running' ? 'active' : ''} /></td>
-          <td className="tasks_stop"><img src={this.props.tasks[i].status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.tasks[i]); }} alt="stop" draggable="false" className={this.props.tasks[i].status === 'stopped' ? 'active' : ''} /></td>
-          <td className="tasks_destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.tasks[i]); }} alt="destroy" draggable="false" /></td>
-          <td className="extend" />
-        </tr>
+        <TaskRow task={this.props.tasks[i]} />
       ));
     }
     return table;
