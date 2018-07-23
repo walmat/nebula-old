@@ -28,6 +28,10 @@
     overflow-y: scroll;
 }
 
+.invalidProxy {
+    color: red;
+}
+
 .proxy-list-input {
     border-width: 1px;
     border-radius: 1px;
