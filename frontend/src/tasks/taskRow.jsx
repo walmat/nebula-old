@@ -20,8 +20,14 @@ class TaskRow extends Component {
   }
 
   selectTask(task) {
-    console.log('selected task: ', task.id);
-    this.props.onSelectTask(task);
+    console.log('selected task: ', this.props.selectedTask.id);
+    console.log('passed in: ', task.id);
+    if (this.props.selectedTask.id !== task.id) {
+      this.props.onSelectTask(task);
+    } else {
+      // deselect current task (or toggle it)
+      this.props.onSelectTask(null);
+    }
   }
 
   startTask(task) {
@@ -47,58 +53,45 @@ class TaskRow extends Component {
   renderEditMenu() {
     if (this.props.isEditing) {
       return (
-        <tr>
+        <tr key={`${this.props.value.id}-edit`}>
           <td className="blank" />
-          <tr id="edit-box">
+          <div id="edit-box">
             <td className="edit-billing">
-              <tr id="edit-billing-label">Billing Profiles</tr>
-              <tr>
+              <p id="edit-billing-label">Billing Profiles</p>
+              <div>
                 <select id="edit-billing-profiles">
                   <option value="" selected disabled hidden>Choose Profile</option>
                   {this.buildProfileOptions()}
                 </select>
-              </tr>
+              </div>
             </td>
             <td className="edit-sizes">
-              <tr id="edit-sizes-label">Sizes</tr>
-              <tr>
+              <p id="edit-sizes-label">Sizes</p>
+              <div>
                 <select id="edit-billing-sizes">
                   <option value="" selected disabled hidden>Choose Sizes</option>
                   {TaskRow.buildSizeOptions()}
                 </select>
-              </tr>
+              </div>
             </td>
             <td className="edit-pairs">
-              <tr id="edit-sizes-label"># Pairs</tr>
-              <tr>
+              <p id="edit-sizes-label"># Pairs</p>
+              <div>
                 <input id="edit-pairs-input" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" required />
-              </tr>
-            </td>
-            <td className="edit-submit">
-              <tr>
+              </div>
+              <div id="submit-edit">
                 <button
                   id="submit-edit-tasks"
                   tabIndex={0}
                   onKeyPress={() => {}}
                   onClick={this.saveTask}
                 >
-                  Submit
+                  Save
                 </button>
-              </tr>
+              </div>
             </td>
-            <td className="edit-cancel">
-              <tr>
-                <button
-                  id="cancel-edit-tasks"
-                  tabIndex={0}
-                  onKeyPress={() => {}}
-                  onClick={this.cancelEdit}
-                >
-                  Cancel
-                </button>
-              </tr>
-            </td>
-          </tr>
+            <td className="extend" />
+          </div>
         </tr>
       );
     }
@@ -132,11 +125,12 @@ class TaskRow extends Component {
 TaskRow.propTypes = {
   errors: PropTypes.objectOf(PropTypes.any).isRequired,
   isEditing: PropTypes.bool.isRequired,
+  selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   // onChange: PropTypes.func.isRequired,
   value: PropTypes.objectOf(PropTypes.any).isRequired,
   onSelectTask: PropTypes.func.isRequired,
-  onEditTask: PropTypes.func.isRequired,
+  // onEditTask: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({

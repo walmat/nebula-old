@@ -85,6 +85,10 @@ export function newTaskReducer(state = initialTaskState, action) {
 export function selectedTaskReducer(state = initialTaskState, action) {
   switch (action.type) {
     case TASK_ACTIONS.SELECT: {
+      // if the user is toggling
+      if (action.task === null) {
+        return Object.assign({}, []);
+      }
       // Set the next state to the selected profile
       return Object.assign({}, action.task);
     }
