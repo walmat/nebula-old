@@ -185,7 +185,7 @@
 
     .extend {
         position: relative;
-        width: 12px;
+        padding-right: 4px;
         border-bottom: #dfdfdf solid 1px;
     }
 
