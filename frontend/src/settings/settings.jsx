@@ -70,14 +70,6 @@ class Settings extends Component {
         <p className="body-text" id="proxy-list-label">Proxy List</p>
         <div id="proxy-list-box" />
         <ProxyList id="proxy-list-text" />
-        <div
-          role="button"
-          tabIndex={0}
-          onKeyPress={() => {}}
-          onClick={this.saveProxies}
-        >
-          <img src={save} alt="save proxy" id="proxy-list-save" draggable="false" />
-        </div>
         <button id="proxy-button-youtube" onClick={Settings.launchYoutube} >YouTube</button>
         <button id="proxy-button-captcha" onClick={Settings.harvester} >Captcha</button>
         <button id="proxy-button-close-session" onClick={Settings.closeSession} >End Session</button>

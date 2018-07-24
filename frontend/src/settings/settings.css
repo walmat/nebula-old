@@ -28,6 +28,10 @@
     overflow-y: scroll;
 }
 
+[contenteditable]:focus {
+    outline: 0px solid transparent;
+}
+
 .invalidProxy {
     color: red;
 }
