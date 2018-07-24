@@ -1,17 +1,9 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
-
-
-import save from '../_assets/save.svg';
-// import checkboxChecked from '../_assets/Check_icons-01.svg';
-// import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 import '../app.css';
 import './settings.css';
 import ProxyList from './proxyList';
-import defns from '../utils/definitions/settingsDefinitions';
 
 class Settings extends Component {
   /*
@@ -52,16 +44,6 @@ class Settings extends Component {
     }
   }
 
-  constructor(props) {
-    super(props);
-    this.saveProxies = this.saveProxies.bind(this);
-  }
-
-  saveProxies(e) {
-    e.preventDefault();
-    this.props.onSaveProxies(this.props.proxies);
-  }
-
   render() {
     return (
       <div className="container">
@@ -78,19 +60,4 @@ class Settings extends Component {
   }
 }
 
-Settings.propTypes = {
-  proxies: defns.proxies.isRequired,
-  onSaveProxies: PropTypes.func.isRequired,
-};
-
-const mapStateToProps = state => ({
-  proxies: state.settings.proxies,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onSaveProxies: (proxies) => {
-    console.log('TODO: If necessary save proxies?');
-  },
-});
-
-export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Settings));
+export default EnsureAuthorization(Settings);
