@@ -1,9 +1,9 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
+import persistState from 'redux-localstorage';
 import topLevelReducer, { initialState } from './reducers';
 import profileAttributeValidationMiddleware from './middleware/profiles/profileAttributeValidationMiddleware';
 import profileFormValidationMiddleware from './middleware/profiles/profileFormValidationMiddleware';
-import profileApiMiddleware from './middleware/profiles/profileFormApiMiddleware';
 import settingsAttributeValidationMiddleware from './middleware/settings/settingsAttributeValidationMiddleware';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
@@ -15,9 +15,8 @@ export default function configureStore() {
     composeEnhancers(applyMiddleware(
       profileAttributeValidationMiddleware,
       profileFormValidationMiddleware,
-      profileApiMiddleware,
       settingsAttributeValidationMiddleware,
       thunk,
-    )),
+    ), persistState()),
   );
 }

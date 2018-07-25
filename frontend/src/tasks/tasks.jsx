@@ -14,14 +14,16 @@ import '../app.css';
 import './tasks.css';
 import { taskActions } from '../state/actions';
 
-// const config = require('./config.json'); // TODO *** temp data structure
-// const core = require('core');
-// const Pool = require('threads').Pool;
+import defns from '../utils/definitions/taskDefinitions';
 
 class Tasks extends Component {
-  // componentDidUpdate() {
-  //   console.log('UPDATE');
-  // }
+  /**
+   * if user clicks the large `right arrow` button, run all the tasks
+   */
+  static async startAllTasks() {
+    // const pool = new Pool(); //ceate a new thread pool
+    // TODO – create thread for each task and run it
+  }
 
   /* changes when the edit button for each task is clicked */
   async onTaskChange(event) {
@@ -50,6 +52,12 @@ class Tasks extends Component {
       this.props.onRemoveTask(this.props.tasks[i]);
     }
   }
+
+  /* MORE HELPERS HERE IF NEED */
+
+  // async toggleSVG(state) {
+  // //based on the state of the <select> tags, change the src of the img
+  // }
 
   render() {
     const { newTask } = this.props;
@@ -112,8 +120,8 @@ class Tasks extends Component {
 }
 
 Tasks.propTypes = {
-  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
-  newTask: PropTypes.objectOf(PropTypes.any).isRequired,
+  tasks: defns.taskList.isRequired,
+  newTask: defns.task.isRequired,
   // selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
   // onAddNewTask: PropTypes.func.isRequired,
   // onLoadTask: PropTypes.func.isRequired,

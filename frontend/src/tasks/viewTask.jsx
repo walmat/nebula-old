@@ -10,10 +10,16 @@ import destroy from '../_assets/destroy.svg';
 import edit from '../_assets/edit_icon.svg';
 import { taskActions } from '../state/actions';
 
+import defns from '../utils/definitions/taskDefinitions';
+
 class ViewTask extends Component {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
+    this.editTask = this.editTask.bind(this);
+    this.startTask = this.startTask.bind(this);
+    this.stopTask = this.stopTask.bind(this);
+    this.destroyTask = this.destroyTask.bind(this);
   }
 
   editTask(task) {
@@ -40,18 +46,35 @@ class ViewTask extends Component {
     const table = [];
 
     for (let i = 0; i < this.props.tasks.length; i += 1) {
+      const task = this.props.tasks[i];
       table.push((
-        <tr key={this.props.tasks[i].id} id={this.props.tasks[i].id} className="tasks_row">
+        <tr key={task.id} id={task.id} className="tasks_row">
           <td className="blank" />
-          <td className="tasks_edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.editTask(this.props.tasks[i]); }} alt="edit" draggable="false" /></td>
-          <td className="tasks_id">{this.props.tasks[i].id < 10 ? `0${this.props.tasks[i].id}` : this.props.tasks[i].id}</td>
-          <td className="tasks_sku">SKU {this.props.tasks[i].sku}</td>
-          <td className="tasks_profile">{this.props.tasks[i].profile.profileName}</td>
-          <td className="tasks_sizes">{this.props.tasks[i].sizes}</td>
-          <td className="tasks_pairs">{this.props.tasks[i].pairs < 10 ? `0${this.props.tasks[i].pairs}` : this.props.tasks[i].pairs}</td>
-          <td className="tasks_start"><img src={this.props.tasks[i].status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.tasks[i]); }} alt="start" draggable="false" /></td>
-          <td className="tasks_stop"><img src={this.props.tasks[i].status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.tasks[i]); }} alt="stop" draggable="false" /></td>
-          <td className="tasks_destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.tasks[i]); }} alt="destroy" draggable="false" /></td>
+          <td className="tasks_edit">
+            <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.editTask(task)}>
+              <img src={edit} alt="edit" draggable="false" />
+            </div>
+          </td>
+          <td className="tasks_id">{task.id < 10 ? `0${task.id}` : task.id}</td>
+          <td className="tasks_sku">SKU {task.sku}</td>
+          <td className="tasks_profile">{task.profile.profileName}</td>
+          <td className="tasks_sizes">{task.sizes}</td>
+          <td className="tasks_pairs">{task.pairs}</td>
+          <td className="tasks_start">
+            <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.startTask(task)}>
+              <img src={task.status === 'running' ? startDim : start} alt="start" draggable="false" />
+            </div>
+          </td>
+          <td className="tasks_stop">
+            <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.stopTask(task)}>
+              <img src={task.status === 'running' ? stop : stopDim} alt="stop" draggable="false" />
+            </div>
+          </td>
+          <td className="tasks_destroy">
+            <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.destroyTask(task)}>
+              <img src={destroy} alt="destroy" draggable="false" />
+            </div>
+          </td>
           <td className="extend" />
         </tr>
       ));
@@ -91,7 +114,7 @@ const mapDispatchToProps = dispatch => ({
 });
 
 ViewTask.propTypes = {
-  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
+  tasks: defns.taskList.isRequired,
   onEditTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
