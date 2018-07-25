@@ -51,7 +51,6 @@ class CreateTask extends Component {
   }
 
   render() {
-    const { errors } = this.props;
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>

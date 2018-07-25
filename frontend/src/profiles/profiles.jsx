@@ -48,10 +48,6 @@ class Profiles extends Component {
     // this.setState({profiles});
   }
 
-  componentDidUpdate() {
-    console.log('UPDATE');
-  }
-
   onProfileChange(event) {
     const profileName = event.target.value;
     const { profiles } = this.props;
@@ -80,13 +76,13 @@ class Profiles extends Component {
       // make sure the profile id exists in profiles before call in the load
       if (this.props.profiles.some(p => p.id === this.props.currentProfile.editId)) {
         // first off, check to see if the profileName is taken..
-        const profileExists = this.props.profiles.find(p => {
-          return p.profileName === this.props.currentProfile.profileName
-        });
+        const profileExists = this.props.profiles.find(p =>
+          p.profileName === this.props.currentProfile.profileName);
 
         if (profileExists) {
-          
-          this.props.currentProfile.editId = profileExists.id;
+          const { id } = profileExists;
+          this.props.currentProfile.editId = id;
+          this.props.currentProfile.id = id;
           this.props.onUpdateProfile(this.props.currentProfile);
         } else {
           // The current profile has the same id as a profile
