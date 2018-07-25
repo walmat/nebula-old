@@ -1,16 +1,9 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
-
-
-import save from '../_assets/save.svg';
-// import checkboxChecked from '../_assets/Check_icons-01.svg';
-// import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 import '../app.css';
 import './settings.css';
-import { SETTINGS_FIELDS, settingsActions } from '../state/actions';
+import ProxyList from './proxyList';
 
 class Settings extends Component {
   /*
@@ -51,11 +44,6 @@ class Settings extends Component {
     }
   }
 
-  static async saveProxies(e) {
-    e.preventDefault();
-    this.props.saveProxies(this.props.value);
-  }
-
   render() {
     return (
       <div className="container">
@@ -63,15 +51,7 @@ class Settings extends Component {
         {/* LOGIN */}
         <p className="body-text" id="proxy-list-label">Proxy List</p>
         <div id="proxy-list-box" />
-        <textarea id="proxy-list-text" />
-        <div
-          role="button"
-          tabIndex={0}
-          onKeyPress={() => {}}
-          onClick={this.props.saveProxies}
-        >
-          <img src={save} alt="save proxy" id="proxy-list-save" draggable="false" />
-        </div>
+        <ProxyList id="proxy-list-text" />
         <button id="proxy-button-youtube" onClick={Settings.launchYoutube} >YouTube</button>
         <button id="proxy-button-captcha" onClick={Settings.harvester} >Captcha</button>
         <button id="proxy-button-close-session" onClick={Settings.closeSession} >End Session</button>
@@ -80,20 +60,4 @@ class Settings extends Component {
   }
 }
 
-Settings.propTypes = {
-  // currentSettings: PropTypes.objectOf(PropTypes.any).isRequired,
-  saveProxies: PropTypes.func.isRequired,
-  value: PropTypes.isRequired,
-};
-
-const mapStateToProps = state => ({
-  proxies: state.proxies,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onSaveProxies: (data) => {
-    dispatch(settingsActions.add(data, SETTINGS_FIELDS.EDIT_PROXIES));
-  },
-});
-
-export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Settings));
+export default EnsureAuthorization(Settings);

@@ -4,6 +4,7 @@ import persistState from 'redux-localstorage';
 import topLevelReducer, { initialState } from './reducers';
 import profileAttributeValidationMiddleware from './middleware/profiles/profileAttributeValidationMiddleware';
 import profileFormValidationMiddleware from './middleware/profiles/profileFormValidationMiddleware';
+import settingsAttributeValidationMiddleware from './middleware/settings/settingsAttributeValidationMiddleware';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -14,6 +15,7 @@ export default function configureStore() {
     composeEnhancers(applyMiddleware(
       profileAttributeValidationMiddleware,
       profileFormValidationMiddleware,
+      settingsAttributeValidationMiddleware,
       thunk,
     ), persistState()),
   );
