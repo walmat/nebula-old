@@ -21,8 +21,8 @@ class ProxyList extends Component {
 
     // Set initial state
     this.state = {
-      proxies: [],
-      editing: true,
+      proxies: props.proxies || [],
+      editing: false,
       reduxUpdate: false,
     };
   }
