@@ -2,7 +2,7 @@ import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
 
 export const initialTaskListState = [];
-export let num = 1;
+let num = 1;
 
 export function taskListReducer(state = initialTaskListState, action) {
   let nextState = JSON.parse(JSON.stringify(state));
@@ -22,7 +22,7 @@ export function taskListReducer(state = initialTaskListState, action) {
       }
 
       // perform a deep copy of given profile
-      const newTask = JSON.parse(JSON.stringify(action.task));
+      const newTask = JSON.parse(JSON.stringify(action.response.task));
 
       // assign new id
       let newId = num;
@@ -30,7 +30,8 @@ export function taskListReducer(state = initialTaskListState, action) {
       // check if generate id already exists
       const idCheck = t => t.id === newId;
       while (nextState.some(idCheck)) {
-        newId = num++;
+        num += 1;
+        newId = num;
       }
 
       // add new task
@@ -47,17 +48,18 @@ export function taskListReducer(state = initialTaskListState, action) {
       }
 
       // this we'll use to remove all tasks
-      if (action.id === null) {
+      if (action.response.id === null) {
         nextState = [];
         break;
       }
 
       // filter out given id
-      nextState = nextState.filter(t => t.id !== action.id);
+      nextState = nextState.filter(t => t.id !== action.response.id);
 
       // adjust the id of each following task to shift down one when a task is deleted
-      for (let i = action.id - 1; i < nextState.length; i++) {
-        num = nextState[i].id--;
+      for (let i = action.response.id - 1; i < nextState.length; i += 1) {
+        num = nextState[i].id;
+        nextState[i].id -= 1;
       }
       break;
     }
@@ -81,11 +83,11 @@ export function taskListReducer(state = initialTaskListState, action) {
       break;
     }
     case TASK_ACTIONS.START: {
-      if (action.id === null) {
+      if (action.response.id === null) {
         break;
       }
 
-      const found = nextState.find(t => t.id === action.id);
+      const found = nextState.find(t => t.id === action.response.id);
       if (found === undefined) {
         break;
       }
@@ -104,11 +106,11 @@ export function taskListReducer(state = initialTaskListState, action) {
       break;
     }
     case TASK_ACTIONS.STOP: {
-      if (action.id === null) {
+      if (action.response.id === null) {
         break;
       }
 
-      const found = nextState.find(t => t.id === action.id);
+      const found = nextState.find(t => t.id === action.response.id);
       if (found === undefined) {
         break;
       }
@@ -124,6 +126,10 @@ export function taskListReducer(state = initialTaskListState, action) {
         nextState[idx].status = 'stopped';
         // todo >> bunch of fun stuff here
       }
+      break;
+    }
+    case TASK_ACTIONS.ERROR: {
+      console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
       break;
     }
     default:

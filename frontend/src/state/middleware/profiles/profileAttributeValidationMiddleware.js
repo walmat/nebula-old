@@ -17,7 +17,7 @@ const profileAttributeValidationMiddleware = store => next => (action) => {
   // Choose the correct profile to validate
   let profile = state.currentProfile;
   if (action.id != null) {
-    profile = store.profiles.find(p => p.id === action.id);
+    profile = state.profiles.find(p => p.id === action.id);
     if (profile === undefined) {
       // No profile found, continue with next middleware/reducer
       return next(action);
