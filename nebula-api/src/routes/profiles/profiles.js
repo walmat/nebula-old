@@ -4,8 +4,6 @@ const authenticate = require('../../middleware/authenticate');
 
 let AWS = require('aws-sdk');
 
-var AWS = require("aws-sdk");
-
 AWS.config = {
     region: "us-west-2",
     endpoint: "http://localhost:8000",

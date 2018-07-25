@@ -14,8 +14,6 @@ import '../app.css';
 import './tasks.css';
 import { taskActions } from '../state/actions';
 
-const Pool = require('threads').Pool;
-
 class Tasks extends Component {
   /**
    * if user clicks the large `right arrow` button, run all the tasks
@@ -52,23 +50,6 @@ class Tasks extends Component {
       this.props.onRemoveTask(this.props.tasks[i]);
     }
   }
-
-  async runTask() {
-      let task = {
-          "sku": "ac7033",
-          "profiles": {
-              "billing": {},
-              "shipping": {},
-              "payment": {}
-          },
-          "sizes": [8.5, 9],
-          "pairs": 1
-      }
-
-      fetch('https://localhost:8080/core', {
-          
-      })
-  };
 
   /* MORE HELPERS HERE IF NEED */
 
