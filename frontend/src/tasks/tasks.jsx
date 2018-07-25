@@ -14,6 +14,8 @@ import '../app.css';
 import './tasks.css';
 import { taskActions } from '../state/actions';
 
+import defns from '../utils/definitions/taskDefinitions';
+
 class Tasks extends Component {
   /**
    * if user clicks the large `right arrow` button, run all the tasks
@@ -118,8 +120,8 @@ class Tasks extends Component {
 }
 
 Tasks.propTypes = {
-  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
-  newTask: PropTypes.objectOf(PropTypes.any).isRequired,
+  tasks: defns.taskList.isRequired,
+  newTask: defns.task.isRequired,
   // selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
   // onAddNewTask: PropTypes.func.isRequired,
   // onLoadTask: PropTypes.func.isRequired,

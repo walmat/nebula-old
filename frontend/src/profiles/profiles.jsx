@@ -6,6 +6,7 @@ import EnsureAuthorization from '../EnsureAuthorization';
 import PaymentFields from './paymentFields';
 import LocationFields from './locationFields';
 import validationStatus from '../utils/validationStatus';
+import defns from '../utils/definitions/profileDefinitions';
 import './profiles.css';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
@@ -47,10 +48,6 @@ class Profiles extends Component {
     // this.setState({profiles});
   }
 
-  componentDidUpdate() {
-    console.log('UPDATE');
-  }
-
   onProfileChange(event) {
     const profileName = event.target.value;
     const { profiles } = this.props;
@@ -79,13 +76,13 @@ class Profiles extends Component {
       // make sure the profile id exists in profiles before call in the load
       if (this.props.profiles.some(p => p.id === this.props.currentProfile.editId)) {
         // first off, check to see if the profileName is taken..
-        const profileExists = this.props.profiles.find(p => {
-          return p.profileName === this.props.currentProfile.profileName
-        });
+        const profileExists = this.props.profiles.find(p =>
+          p.profileName === this.props.currentProfile.profileName);
 
         if (profileExists) {
-          
-          this.props.currentProfile.editId = profileExists.id;
+          const { id } = profileExists;
+          this.props.currentProfile.editId = id;
+          this.props.currentProfile.id = id;
           this.props.onUpdateProfile(this.props.currentProfile);
         } else {
           // The current profile has the same id as a profile
@@ -151,7 +148,8 @@ class Profiles extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={this.props.onClickBillingMatchesShipping}>
+            onClick={this.props.onClickBillingMatchesShipping}
+          >
             <img
               src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
               alt="billing matches shipping checkbox"
@@ -199,16 +197,16 @@ class Profiles extends Component {
 }
 
 Profiles.propTypes = {
-  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
-  currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
-  selectedProfile: PropTypes.objectOf(PropTypes.any).isRequired,
+  profiles: defns.profileList.isRequired,
+  currentProfile: defns.profile.isRequired,
+  selectedProfile: defns.profile.isRequired,
   onClickBillingMatchesShipping: PropTypes.func.isRequired,
   onProfileNameChange: PropTypes.func.isRequired,
   onAddNewProfile: PropTypes.func.isRequired,
   onLoadProfile: PropTypes.func.isRequired,
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
-  onUpdateProfile: PropTypes.func.isRequired
+  onUpdateProfile: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
