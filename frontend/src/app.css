@@ -1,36 +1,36 @@
 @font-face {
   font-family: 'AvenirNext-Regular';
-  src: local('AvenirNext-Regular') url('./_assets/fonts/AvenirNext-Regular-08.ttf') format('ttf');
+  src: local('AvenirNext-Regular') url(./_assets/fonts/AvenirNext-Regular-08.ttf) format('ttf');
 }
 
 @font-face {
   font-family: 'AvenirNext-Medium';
-  src: local('AvenirNextMedium') url('./_assets/fonts/AvenirNext-Medium-06.ttf') format('ttf');
+  src: local('AvenirNextMedium') url(./_assets/fonts/AvenirNext-Medium-06.ttf) format('ttf');
 }
 
 @font-face {
   font-family: 'AvenirNext-UltraLight';
-  src: local('AvenirNext-UltraLight') url('./_assets/fonts/AvenirNext-UltraLight-11.ttf') format('ttf');
+  src: local('AvenirNext-UltraLight') url(./_assets/fonts/AvenirNext-UltraLight-11.ttf) format('ttf');
 }
 
 @font-face {
   font-family: 'AvenirNext-Bold';
-  src: local('AvenirNext-Bold') url('./_assets/fonts/AvenirNext-Bold-01.ttf') format('ttf');
+  src: local('AvenirNext-Bold') url(./_assets/fonts/AvenirNext-Bold-01.ttf) format('ttf');
 }
 
 @font-face {
   font-family: 'AvenirNext-DemiBold';
-  src: local('AvenirNext-DemiBold') url('./_assets/fonts/AvenirNext-DemiBold-03.ttf') format('ttf');
+  src: local('AvenirNext-DemiBold') url(./_assets/fonts/AvenirNext-DemiBold-03.ttf) format('ttf');
 }
 
 @font-face {
   font-family: 'AvenirNext-Heavy';
-  src: local('AvenirNext-Heavy') url('./_assets/fonts/AvenirNext-Heavy-09.ttf') format('ttf');
+  src: local('AvenirNext-Heavy') url(./_assets/fonts/AvenirNext-Heavy-09.ttf) format('ttf');
 }
 
 @font-face {
   font-family: 'AvenirNext-Italic';
-  src: local('AvenirNext-Italic') url('./_assets/fonts/AvenirNext-Italic-05.ttf') format('ttf');
+  src: local('AvenirNext-Italic') url(./_assets/fonts/AvenirNext-Italic-05.ttf) format('ttf');
 }
 
 * {
