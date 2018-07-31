@@ -144,6 +144,12 @@ export function selectedProfileReducer(state = initialProfileState, action) {
 
       break;
     }
+    case PROFILE_ACTIONS.UPDATE: {
+      if (action.id === state.id) {
+        return Object.assign({}, action.profile);
+      }
+      break;
+    }
     default:
       break;
   }
