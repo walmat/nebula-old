@@ -174,38 +174,44 @@
         display: none;
     }
 
-    .tasks_table {
+    .tasks-table {
         display: table;
         border-collapse: collapse;
         border-spacing: 0 10px;
         width: 100%
     }
 
-    .blank {
+    .tasks-table .blank {
         padding-left: 10px;
     }
 
-    .extend {
+    .tasks-table .extend {
         padding-right: 4px;
         border-bottom: #dfdfdf solid 1px;
     }
 
-    .tasks_row_container {
-        width:100%;
+    .tasks-table .tasks-row-container {
+        width: 100%;
     }
 
-    .tasks_row {
-        display: table-row;
+    .tasks-table .tasks-row-container .tasks-row {
+        display: flex;
         width:100%;
         height: 30px;
     }
 
-    .pad_left {
+    .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
+        display: flex;
+        width:100%;
+        height: 102px;
+    }
+
+    .tasks-table .tasks-row-container .tasks-row .pad-left {
         padding-left: 10px;
         padding-bottom: 0;
     }
 
-    .tasks_edit {
+    .tasks-table .tasks-row-container .tasks-edit {
         display: table-cell;
         max-width: 25px;
         width: 25px;
@@ -213,12 +219,12 @@
         border-bottom: #dfdfdf solid 1px;
     }
 
-    .tasks_edit > img {
+    .tasks-table .tasks-row-container .tasks-edit > img {
         cursor:pointer;
         vertical-align:middle;
     }
 
-    .tasks_id {
+    .tasks-table .tasks-row-container .tasks-id {
         display: table-cell;
         vertical-align:middle;
         width:42px;
@@ -227,7 +233,7 @@
         text-overflow: ellipsis;
     }
 
-    .tasks_sku {
+    .tasks-table .tasks-row-container .tasks-sku {
         display: table-cell;
         text-transform: uppercase;
         width: 129px;
@@ -237,7 +243,7 @@
         text-overflow: ellipsis;
     }
 
-    .tasks_sites {
+    .tasks-table .tasks-row-container .tasks-sites {
         display: table-cell;
         width: 73px;
         max-width: 73px;
@@ -246,7 +252,7 @@
         text-overflow: ellipsis;
     }
 
-    .tasks_profile {
+    .tasks-table .tasks-row-container .tasks-profile {
         display: table-cell;
         text-transform: uppercase;
         width: 268px;
@@ -256,11 +262,11 @@
         text-overflow: ellipsis;
     }
 
-    .tasks_profile > p {
+    .tasks-table .tasks-row-container .tasks-profile > p {
         text-overflow: ellipsis;
     }
 
-    .tasks_sizes {
+    .tasks-table .tasks-row-container .tasks-sizes {
         display: table-cell;
         width: 54px;
         max-width: 54px;
@@ -269,7 +275,7 @@
         text-overflow: ellipsis;
     }
 
-    .tasks_pairs {
+    .tasks-table .tasks-row-container .tasks-pairs {
         display: table-cell;
         vertical-align:middle;
         width: 50px;
@@ -277,7 +283,7 @@
         border-bottom: #dfdfdf solid 1px;
     }
 
-    .tasks_start {
+    .tasks-table .tasks-row-container .tasks-start {
         display: table-cell;
         padding-bottom: 3px;
         width:16px;
@@ -290,12 +296,12 @@
         opacity: 0.5;
     }
 
-    .tasks_start > img {
+    .tasks-table .tasks-row-container .tasks-start > img {
         cursor: pointer;
         vertical-align:middle;
     }
 
-    .tasks_stop {
+    .tasks-table .tasks-row-container .tasks-stop {
         display: table-cell;
         padding-bottom: 3px;
         width:16px;
@@ -305,12 +311,12 @@
 
     }
 
-    .tasks_stop > img {
+    .tasks-table .tasks-row-container .tasks-stop > img {
         cursor: pointer;
         vertical-align:middle;
     }
 
-    .tasks_destroy {
+    .tasks-table .tasks-row-container .tasks-destroy {
         display: table-cell;
         padding-bottom: 3px;
         max-width: 20px;
@@ -320,7 +326,7 @@
 
     }
 
-    .tasks_destroy > img {
+    .tasks-table .tasks-row-container .tasks-destroy > img {
         cursor: pointer;
         vertical-align:middle;
     }
@@ -440,17 +446,7 @@
         vertical-align: middle;
     }
 
-    .edit-sizes {
-        padding-left: 25px;
-        vertical-align: middle;
-    }
-
-    .edit-pairs {
-        padding-left: 25px;
-        vertical-align: middle;
-    }
-
-    #edit-billing-label {
+    .edit-billing .edit-billing__label {
         margin: 0;
         font-family: AvenirNext-Medium;
         font-size: 9px;
@@ -458,20 +454,7 @@
         letter-spacing: 0;
     }
 
-    .init-blank {
-        width: 50px;
-    }
-
-
-    #edit-sizes-label {
-        margin: 0;
-        font-family: AvenirNext-Medium;
-        font-size: 9px;
-        color: #161318;
-        letter-spacing: 0;
-    }
-
-    #edit-billing-profiles {
+    .edit-billing .edit-billing__select {
         position: relative;
         width: 355px;
         height: 25px;
@@ -479,7 +462,20 @@
         border-radius: 3px;
     }
 
-    #edit-billing-sizes {
+    .edit-sizes {
+        padding-left: 25px;
+        vertical-align: middle;
+    }
+
+    .edit-sizes .edit-sizes__label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+    }
+
+    .edit-sizes .edit-sizes__select {
         position: relative;
         width: 168px;
         height: 25px;
@@ -487,7 +483,20 @@
         border-radius: 3px;
     }
 
-    #edit-pairs-input {
+    .edit-pairs {
+        padding-left: 25px;
+        vertical-align: middle;
+    }
+
+    .edit-pairs .edit-pairs__label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+    }
+
+    .edit-pairs .edit-pairs__input {
         position: relative;
         vertical-align:middle;
         width: 78px;
@@ -496,17 +505,16 @@
         border-radius: 3px;
     }
 
-    #submit-edit {
+    .init-blank {
+        width: 50px;
+    }
+
+    .submit-edit {
         margin-top: 15px;
         margin-left: -5px;
     }
 
-    #cancel-edit {
-        margin-top: 15px;
-        margin-left: -5px;
-    }
-
-    #submit-edit-tasks {
+    .submit-edit__button {
         width: 83px;
         height: 29px;
         cursor: pointer;
@@ -519,7 +527,12 @@
         letter-spacing: 0;
     }
 
-    #cancel-edit-tasks {
+    .cancel-edit {
+        margin-top: 15px;
+        margin-left: -5px;
+    }
+
+    .cancel-edit__button {
         width: 83px;
         height: 29px;
         cursor: pointer;

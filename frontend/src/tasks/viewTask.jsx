@@ -38,7 +38,7 @@ class ViewTask extends Component {
 
   render() {
     return (
-      <div className="tasks_table">
+      <div className="tasks-table">
         {this.createTable()}
       </div>
     );
