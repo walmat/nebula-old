@@ -2,8 +2,6 @@ const validateProfile = require('./validateProfile');
 const AWS = require('aws-sdk');
 const authenticate = require('../../middleware/authenticate');
 
-let AWS = require('aws-sdk');
-
 AWS.config = {
     region: "us-west-2",
     endpoint: "http://localhost:8000",
@@ -27,7 +25,7 @@ function emptyStringsToNull(profile) {
 }
 
 module.exports = async function(app) {
-    app.get('/profiles', authenticate, async function(req, res) {
+    app.get('/profiles', async function(req, res) {
         try {
             let params = {
                 TableName : 'Profiles',
@@ -54,7 +52,7 @@ module.exports = async function(app) {
 
     });
 
-    app.post('/profiles', authenticate, async function(user, req, res) {
+    app.post('/profiles', async function(user, req, res) {
         try {
             let profileData = req.body;
             console.log(profileData);

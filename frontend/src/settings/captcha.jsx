@@ -15,6 +15,15 @@ class Harvester extends Component {
         }
     }
 
+    async componentDidMount() {
+        try {
+
+        } catch(err) {
+            console.log(err);
+            this.setState({error: true});
+        }
+    }
+
     render() {
         return (
             <div className="container">

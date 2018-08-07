@@ -38,11 +38,35 @@ export const PROFILE_ACTIONS = {
 // }
 const _addProfileRequest = async profile =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
-    setTimeout(() => {
-      const copy = JSON.parse(JSON.stringify(profile));
-      resolve(copy);
-    }, 1000);
+  new Promise(async (resolve) => {
+    // setTimeout(() => {
+    //   const copy = JSON.parse(JSON.stringify(profile));
+    //   resolve(copy);
+    // }, 1000);
+    try {
+      const response = await fetch(
+        '/profiles',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+          body: JSON.stringify(profile),
+        },
+      );
+
+      const result = await response.json();
+
+      resolve(result);
+      console.log(result);
+      if (!result.ok) {
+        // TODO: Deal with this
+      }
+    } catch (err) {
+      console.log(err);
+    }
   });
 
 // TODO this is only temporary until we get registration key stuff implemented
