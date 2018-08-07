@@ -45,7 +45,7 @@ const _addProfileRequest = async profile =>
     // }, 1000);
     try {
       const response = await fetch(
-        '/profiles',
+        'profiles',
         {
           method: 'POST',
           headers: {
