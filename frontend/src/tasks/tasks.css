@@ -178,7 +178,7 @@
         display: table;
         border-collapse: collapse;
         border-spacing: 0 10px;
-        width: 100%
+        width: 100%;
     }
 
     .tasks-table .blank {
@@ -187,7 +187,6 @@
 
     .tasks-table .extend {
         padding-right: 4px;
-        border-bottom: #dfdfdf solid 1px;
     }
 
     .tasks-table .tasks-row-container {
@@ -196,100 +195,88 @@
 
     .tasks-table .tasks-row-container .tasks-row {
         display: flex;
-        width:100%;
         height: 30px;
+        border-bottom: #dfdfdf solid 1px;
+        margin: 0 5px;
+        align-items: center;
     }
 
     .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
-        display: flex;
-        width:100%;
-        height: 102px;
+        padding: 10px 0;
+        height: 80px;
+        align-items: flex-start;
+        border: #b8d9d2 solid 1px;
+        margin: 0 10px;
     }
 
     .tasks-table .tasks-row-container .tasks-row .pad-left {
-        padding-left: 10px;
+        padding-left: 5px;
         padding-bottom: 0;
     }
 
-    .tasks-table .tasks-row-container .tasks-edit {
-        display: table-cell;
+    .tasks-table .tasks-row-container .tasks-row .tasks-edit {
         max-width: 25px;
         width: 25px;
         vertical-align: middle;
-        border-bottom: #dfdfdf solid 1px;
     }
 
-    .tasks-table .tasks-row-container .tasks-edit > img {
+    .tasks-table .tasks-row-container .tasks-row .tasks-edit > img {
         cursor:pointer;
         vertical-align:middle;
     }
 
-    .tasks-table .tasks-row-container .tasks-id {
-        display: table-cell;
+    .tasks-table .tasks-row-container .tasks-row .tasks-id {
         vertical-align:middle;
         width:42px;
         max-width: 42px;
-        border-bottom: #dfdfdf solid 1px;
         text-overflow: ellipsis;
     }
 
-    .tasks-table .tasks-row-container .tasks-sku {
-        display: table-cell;
+    .tasks-table .tasks-row-container .tasks-row .tasks-sku {
         text-transform: uppercase;
         width: 129px;
         max-width: 129px;
         vertical-align:middle;
-        border-bottom: #dfdfdf solid 1px;
         text-overflow: ellipsis;
     }
 
-    .tasks-table .tasks-row-container .tasks-sites {
-        display: table-cell;
+    .tasks-table .tasks-row-container .tasks-row .tasks-sites {
         width: 73px;
         max-width: 73px;
         vertical-align: middle;
-        border-bottom: #dfdfdf solid 1px;
         text-overflow: ellipsis;
     }
 
-    .tasks-table .tasks-row-container .tasks-profile {
-        display: table-cell;
+    .tasks-table .tasks-row-container .tasks-row .tasks-profile {
         text-transform: uppercase;
         width: 268px;
         max-width: 268px;
         vertical-align:middle;
-        border-bottom: #dfdfdf solid 1px;
         text-overflow: ellipsis;
     }
 
-    .tasks-table .tasks-row-container .tasks-profile > p {
+    .tasks-table .tasks-row-container .tasks-row .tasks-profile > p {
         text-overflow: ellipsis;
     }
 
-    .tasks-table .tasks-row-container .tasks-sizes {
-        display: table-cell;
+    .tasks-table .tasks-row-container .tasks-row .tasks-sizes {
         width: 54px;
         max-width: 54px;
         vertical-align: middle;
-        border-bottom: #dfdfdf solid 1px;
         text-overflow: ellipsis;
     }
 
-    .tasks-table .tasks-row-container .tasks-pairs {
-        display: table-cell;
+    .tasks-table .tasks-row-container .tasks-row .tasks-pairs {
         vertical-align:middle;
         width: 50px;
         max-width: 50px;
-        border-bottom: #dfdfdf solid 1px;
     }
 
-    .tasks-table .tasks-row-container .tasks-start {
-        display: table-cell;
+    .tasks-table .tasks-row-container .tasks-row .tasks-start {
         padding-bottom: 3px;
         width:16px;
         vertical-align: middle;
         max-width: 16px;
-        border-bottom: #dfdfdf solid 1px;
     }
 
     .active {
@@ -302,13 +289,10 @@
     }
 
     .tasks-table .tasks-row-container .tasks-stop {
-        display: table-cell;
         padding-bottom: 3px;
         width:16px;
         max-width: 16px;
         vertical-align: middle;
-        border-bottom: #dfdfdf solid 1px;
-
     }
 
     .tasks-table .tasks-row-container .tasks-stop > img {
@@ -317,13 +301,10 @@
     }
 
     .tasks-table .tasks-row-container .tasks-destroy {
-        display: table-cell;
         padding-bottom: 3px;
         max-width: 20px;
         width:20px;
         vertical-align: middle;
-        border-bottom: #dfdfdf solid 1px;
-
     }
 
     .tasks-table .tasks-row-container .tasks-destroy > img {
@@ -441,7 +422,7 @@
     }
 
     .edit-billing {
-        width: 135px;
+        width: 355px;
         padding-left: 44px;
         vertical-align: middle;
     }
@@ -455,7 +436,6 @@
     }
 
     .edit-billing .edit-billing__select {
-        position: relative;
         width: 355px;
         height: 25px;
         border: #F0405E solid 1px;
@@ -463,6 +443,7 @@
     }
 
     .edit-sizes {
+        width: 168px;
         padding-left: 25px;
         vertical-align: middle;
     }
@@ -476,7 +457,6 @@
     }
 
     .edit-sizes .edit-sizes__select {
-        position: relative;
         width: 168px;
         height: 25px;
         border: #F0405E solid 1px;
@@ -484,6 +464,7 @@
     }
 
     .edit-pairs {
+        width: 83px;
         padding-left: 25px;
         vertical-align: middle;
     }
@@ -497,7 +478,6 @@
     }
 
     .edit-pairs .edit-pairs__input {
-        position: relative;
         vertical-align:middle;
         width: 78px;
         height: 25px;

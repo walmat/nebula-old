@@ -55,7 +55,7 @@ class TaskRow extends Component {
       return (
         <div key={`${this.props.value.id}-edit`} className="tasks-row tasks-row--edit">
           {/*<div id="edit-box"> */}
-          <div className="edit-billing pad-left">
+          <div className="edit-billing">
             <p className="edit-billing__label">Billing Profiles</p>
             <select className="edit-billing__select">
               <option value="" selected disabled hidden>Choose Profile</option>
@@ -69,7 +69,7 @@ class TaskRow extends Component {
               {TaskRow.buildSizeOptions()}
             </select>
           </div>
-          <div className="edit-pairs">
+          <div className="edit-pairs extend">
             <p className="edit-pairs__label"># Pairs</p>
             <input className="edit-pairs__input" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" required />
             <div className="submit-edit">
@@ -83,7 +83,6 @@ class TaskRow extends Component {
               </button>
             </div>
           </div>
-          <div className="extend" />
           {/* </div> */}
         </div>
       );
