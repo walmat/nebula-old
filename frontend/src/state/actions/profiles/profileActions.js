@@ -43,9 +43,10 @@ const _addProfileRequest = async profile =>
     //   const copy = JSON.parse(JSON.stringify(profile));
     //   resolve(copy);
     // }, 1000);
+    console.log('trying for request');
     try {
       const response = await fetch(
-        'profiles',
+        'http://localhost:8080/profiles',
         {
           method: 'POST',
           headers: {
@@ -56,6 +57,8 @@ const _addProfileRequest = async profile =>
           body: JSON.stringify(profile),
         },
       );
+
+      console.log('awaited response');
 
       const result = await response.json();
 
