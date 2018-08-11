@@ -26,13 +26,7 @@ class ViewTask extends Component {
   }
 
   createTable() {
-    const table = [];
-
-    for (let i = 0; i < this.props.tasks.length; i += 1) {
-      table.push((
-        <TaskRow task={this.props.tasks[i]} />
-      ));
-    }
+    const table = this.props.tasks.map(task => (<TaskRow key={task.id} task={task} />));
     return table;
   }
 
