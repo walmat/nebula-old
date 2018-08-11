@@ -12,6 +12,7 @@ import destroyAll from '../_assets/destroy-all.svg';
 
 import '../app.css';
 import './tasks.css';
+import './tasksTable.css';
 import { taskActions } from '../state/actions';
 
 class Tasks extends Component {
