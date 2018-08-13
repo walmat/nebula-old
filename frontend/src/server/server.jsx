@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
+import ServerLog from './serverLog';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import defns from '../utils/definitions/serverDefinitions';
 
@@ -185,22 +186,14 @@ class Server extends Component {
         <img src={DDD} alt="dropdown button" id="location-server-button" />
         {/* <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServer}>Destroy</button> */}
         <button disabled={!loggedInAws} id="create-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.createServer}>Create</button>
-
-        <p className="body-text" id="server-log-label">Log</p>
-        <div id="server-log-box" />
-        <p className="server-log-header" id="server-type-header">Type</p>
-        <p className="server-log-header" id="server-size-header">Size</p>
-        <p className="server-log-header" id="server-location-header">Location</p>
-        <p className="server-log-header" id="server-charges-header">Estimated Charges</p>
-        <p className="server-log-header" id="server-status-header">Status</p>
-        <p className="server-log-header" id="server-actions-header">Actions</p>
-        <hr id="server-log-line" />
+        <ServerLog />
       </div>
     );
   }
 }
 
 Server.propTypes = {
+  servers: PropTypes.objectOf(PropTypes.any).isRequired,
   serverInfo: defns.serverInfo.isRequired,
   serverListOptions: defns.serverListOptions.isRequired,
   serverType: defns.serverType.isRequired,

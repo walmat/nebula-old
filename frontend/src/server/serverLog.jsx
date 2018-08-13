@@ -1,0 +1,112 @@
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+
+import start from '../_assets/run.svg';
+import startDim from '../_assets/run_dim.svg';
+import stop from '../_assets/stop.svg';
+import stopDim from '../_assets/stop_dim.svg';
+import destroy from '../_assets/destroy.svg';
+import { serverActions } from '../state/actions/server/serverActions';
+import './server';
+
+class ServerLog extends Component {
+  constructor(props) {
+    super(props);
+    this.createTable = this.createTable.bind(this);
+    this.connect = this.connect.bind(this);
+    this.destroy = this.destroy.bind(this);
+    this.stop = this.stop.bind(this);
+  }
+
+  connect(opts) {
+    console.log('starting server: ', opts.id);
+    this.props.onConnect(opts);
+  }
+
+  stop(opts) {
+    console.log('stopping task: ', opts.id);
+    this.props.onStop(opts);
+  }
+
+  destroy(opts) {
+    console.log('destroying task: ', opts.id);
+    this.props.onDestroy(opts);
+  }
+
+  createTable() {
+    const table = [];
+
+    for (let i = 0; i < this.props.servers.length; i += 1) {
+      const server = this.props.servers[i];
+      table.push((
+        <tr key={server.id} id={server.id} className="server_row">
+          <td className="blank" />
+          <td id="server-log-type">
+            <p>{server.type}</p>
+          </td>
+          <td id="server-log-size">
+            <p>{server.size}</p>
+          </td>
+          <td id="server-log-location">
+            <p>{server.location}</p>
+          </td>
+          <td id="server-log-charges">
+            <p>{server.charges}</p>
+          </td>
+          <td id="server-log-status">
+            <p>{server.status}</p>
+          </td>
+          <td id="server-log-actions">
+            <img src={this.server.status === 'connected' ? stop : start} alt={this.server.status === 'connected' ? 'stop' : 'start'} />
+          </td>
+        </tr>
+      ));
+    }
+    return table;
+  }
+
+  render() {
+    return (
+      <div>
+        <p className="body-text" id="server-log-label">Log</p>
+        <div id="server-log-box" />
+        <p className="server-log-header" id="server-type-header">Type</p>
+        <p className="server-log-header" id="server-size-header">Size</p>
+        <p className="server-log-header" id="server-location-header">Location</p>
+        <p className="server-log-header" id="server-charges-header">Estimated Charges</p>
+        <p className="server-log-header" id="server-status-header">Status</p>
+        <p className="server-log-header" id="server-actions-header">Actions</p>
+        <hr id="server-log-line" />
+        <table>
+          <tbody>{this.createTable()}</tbody>
+        </table>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = state => ({
+  servers: state.servers,
+});
+
+const mapDispatchToProps = dispatch => ({
+  onConnect: (opts) => {
+    dispatch(serverActions.start(opts.id));
+  },
+  onStop: (opts) => {
+    dispatch(serverActions.stop(opts.id));
+  },
+  onDestroy: (opts) => {
+    dispatch(serverActions.remove(opts.id));
+  },
+});
+
+ServerLog.propTypes = {
+  servers: PropTypes.objectOf(PropTypes.any).isRequired,
+  onConnect: PropTypes.func.isRequired,
+  onStop: PropTypes.func.isRequired,
+  onDestroy: PropTypes.func.isRequired,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ServerLog);

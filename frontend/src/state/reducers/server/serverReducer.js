@@ -28,6 +28,10 @@ export const initialServerState = {
   },
 };
 
+export const initialServerListState = {
+  servers: [],
+};
+
 export function serverReducer(state = initialServerState, action) {
   // initialize change object
   let change = {};
