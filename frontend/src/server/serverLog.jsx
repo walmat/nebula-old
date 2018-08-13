@@ -20,17 +20,19 @@ class ServerLog extends Component {
   }
 
   connect(opts) {
-    console.log('starting server: ', opts.id);
-    this.props.onConnect(opts);
+    console.log('starting server: ', opts);
+    opts.status = 'connected';
+    
+    // this.props.onConnect(opts);
   }
 
   stop(opts) {
-    console.log('stopping task: ', opts.id);
+    console.log('stopping server: ', opts);
     this.props.onStop(opts);
   }
 
   destroy(opts) {
-    console.log('destroying task: ', opts.id);
+    console.log('destroying server: ', opts);
     this.props.onDestroy(opts);
   }
 
@@ -59,7 +61,11 @@ class ServerLog extends Component {
             <p>{server.status}</p>
           </td>
           <td className="server-log-actions">
-            <img src={server.status === 'connected' ? stop : start} alt={server.status === 'connected' ? 'stop' : 'start'} />
+            <img
+              src={server.status === 'connected' ? stop : start}
+              alt={server.status === 'connected' ? 'stop' : 'start'}
+              onClick={() => { this.connect(server); }}
+            />
           </td>
           <td className="blank" />
         </tr>
