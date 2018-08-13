@@ -173,8 +173,8 @@ class Server extends Component {
         <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)} value={this.props.serverInfo.proxyOptions.username} required />
         <p id="password-proxies-label">Password</p>
         <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)} value={this.props.serverInfo.proxyOptions.password} required />
-        <button disabled={!loggedInAws} id="destroy-proxies" onClick={this.destroyProxies} >Destroy All</button>
-        <button disabled={!loggedInAws} id="generate-proxies" onClick={this.generateProxies} >Generate</button>
+        {/* <button disabled={!loggedInAws} id="destroy-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyProxies} >Destroy All</button> */}
+        <button disabled={!loggedInAws} id="generate-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.generateProxies} >Generate</button>
 
         {/* CONNECT */}
         <p className="body-text" id="server-label">Connect</p>
@@ -183,8 +183,18 @@ class Server extends Component {
         {this.renderServerSizeComponent()}
         {this.renderServerLocationComponent()}
         <img src={DDD} alt="dropdown button" id="location-server-button" />
-        <button disabled={!loggedInAws} id="destroy-server" onClick={this.destroyServer}>Destroy</button>
-        <button disabled={!loggedInAws} id="create-server" onClick={this.createServer}>Create</button>
+        {/* <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServer}>Destroy</button> */}
+        <button disabled={!loggedInAws} id="create-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.createServer}>Create</button>
+
+        <p className="body-text" id="server-log-label">Log</p>
+        <div id="server-log-box" />
+        <p className="server-log-header" id="server-type-header">Type</p>
+        <p className="server-log-header" id="server-size-header">Size</p>
+        <p className="server-log-header" id="server-location-header">Location</p>
+        <p className="server-log-header" id="server-charges-header">Estimated Charges</p>
+        <p className="server-log-header" id="server-status-header">Status</p>
+        <p className="server-log-header" id="server-actions-header">Actions</p>
+        <hr id="server-log-line" />
       </div>
     );
   }

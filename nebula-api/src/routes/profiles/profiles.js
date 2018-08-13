@@ -52,7 +52,7 @@ module.exports = async function(app) {
 
     });
 
-    app.post('/profiles', async function(user, req, res) {
+    app.post('/profiles', async function(req, res) {
         try {
             let profileData = req.body;
             console.log(profileData);
@@ -70,14 +70,14 @@ module.exports = async function(app) {
 
             profileData = validation.success;
             profileData = emptyStringsToNull(profileData);
-            profileData.discordId = user.discordId;
+            profileData.discordId = req.discordId;
             console.log(profileData);
 
             let params = {
                 TableName: 'Profiles',
                 Item: profileData
             }
-            await docClient.put(user, params).promise();
+            // await docClient.put(user, params).promise();
             console.log('Successfully saved item');
             res.status(200).json({
                 result: profileData

@@ -49,7 +49,7 @@ const _generateProxiesRequest = async proxyOptions =>
       }
       resolve(proxies);
     } else {
-      reject(new Error('parameters show not be null!'));
+      reject(new Error('parameters should not be null!'));
     }
   });
 
