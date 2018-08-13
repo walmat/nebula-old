@@ -28,9 +28,99 @@ export const initialServerState = {
   },
 };
 
-export const initialServerListState = {
-  servers: [],
-};
+export const initialServerListState = [
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+  {
+    type: 'test',
+    size: 'large',
+    location: 'N. Virginia',
+    charges: '$0.12',
+    status: 'running',
+  },
+];
 
 export function serverReducer(state = initialServerState, action) {
   // initialize change object

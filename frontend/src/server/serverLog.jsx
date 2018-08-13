@@ -36,30 +36,32 @@ class ServerLog extends Component {
 
   createTable() {
     const table = [];
+    console.log(this.props.servers);
 
     for (let i = 0; i < this.props.servers.length; i += 1) {
       const server = this.props.servers[i];
       table.push((
         <tr key={server.id} id={server.id} className="server_row">
           <td className="blank" />
-          <td id="server-log-type">
+          <td className="server-log-type">
             <p>{server.type}</p>
           </td>
-          <td id="server-log-size">
+          <td className="server-log-size">
             <p>{server.size}</p>
           </td>
-          <td id="server-log-location">
+          <td className="server-log-location">
             <p>{server.location}</p>
           </td>
-          <td id="server-log-charges">
+          <td className="server-log-charges">
             <p>{server.charges}</p>
           </td>
-          <td id="server-log-status">
+          <td className="server-log-status">
             <p>{server.status}</p>
           </td>
-          <td id="server-log-actions">
-            <img src={this.server.status === 'connected' ? stop : start} alt={this.server.status === 'connected' ? 'stop' : 'start'} />
+          <td className="server-log-actions">
+            <img src={server.status === 'connected' ? stop : start} alt={server.status === 'connected' ? 'stop' : 'start'} />
           </td>
+          <td className="blank" />
         </tr>
       ));
     }
@@ -68,20 +70,9 @@ class ServerLog extends Component {
 
   render() {
     return (
-      <div>
-        <p className="body-text" id="server-log-label">Log</p>
-        <div id="server-log-box" />
-        <p className="server-log-header" id="server-type-header">Type</p>
-        <p className="server-log-header" id="server-size-header">Size</p>
-        <p className="server-log-header" id="server-location-header">Location</p>
-        <p className="server-log-header" id="server-charges-header">Estimated Charges</p>
-        <p className="server-log-header" id="server-status-header">Status</p>
-        <p className="server-log-header" id="server-actions-header">Actions</p>
-        <hr id="server-log-line" />
-        <table>
-          <tbody>{this.createTable()}</tbody>
-        </table>
-      </div>
+      <table>
+        <tbody>{this.createTable()}</tbody>
+      </table>
     );
   }
 }
