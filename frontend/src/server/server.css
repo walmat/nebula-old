@@ -482,12 +482,17 @@ table {
 
 .server-log-status {
     position: relative;
-    width: 100px;
+    width: 120px;
     border-bottom: #dfdfdf solid 1px;
 
 }
 
-.server-log-actions {
+.server-log-action {
     position: relative;
     border-bottom: #dfdfdf solid 1px;
+}
+
+.server-log-action > img {
+    cursor: pointer;
+    vertical-align:middle;
 }

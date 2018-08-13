@@ -255,7 +255,7 @@
 
     }
 
-    .tasks_start > img {
+    .tasks_start > div > img {
         cursor: pointer;
         vertical-align:middle;
     }
@@ -268,7 +268,7 @@
 
     }
 
-    .tasks_stop > img {
+    .tasks_stop > div > img {
         cursor: pointer;
         vertical-align:middle;
     }
@@ -281,9 +281,9 @@
 
     }
 
-    .tasks_destroy > img {
+    .tasks_destroy > div > img {
         cursor: pointer;
-        vertical-align:middle;
+        vertical-align: middle;
     }
 
     #view-num {

@@ -21,9 +21,7 @@ class ServerLog extends Component {
 
   connect(opts) {
     console.log('starting server: ', opts);
-    opts.status = 'connected';
-    
-    // this.props.onConnect(opts);
+    this.props.onConnect(opts);
   }
 
   stop(opts) {
@@ -43,7 +41,7 @@ class ServerLog extends Component {
     for (let i = 0; i < this.props.servers.length; i += 1) {
       const server = this.props.servers[i];
       table.push((
-        <tr key={server.id} id={server.id} className="server_row">
+        <tr key={server.type} id={server.type} className="server_row">
           <td className="blank" />
           <td className="server-log-type">
             <p>{server.type}</p>
@@ -60,11 +58,12 @@ class ServerLog extends Component {
           <td className="server-log-status">
             <p>{server.status}</p>
           </td>
-          <td className="server-log-actions">
+          <td className="server-log-action">
             <img
               src={server.status === 'connected' ? stop : start}
               alt={server.status === 'connected' ? 'stop' : 'start'}
               onClick={() => { this.connect(server); }}
+              onKeyPress={() => {}}
             />
           </td>
           <td className="blank" />

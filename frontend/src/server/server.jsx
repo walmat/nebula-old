@@ -195,7 +195,7 @@ class Server extends Component {
         <p className="server-log-header" id="server-location-header">Location</p>
         <p className="server-log-header" id="server-charges-header">Estimated Charges</p>
         <p className="server-log-header" id="server-status-header">Status</p>
-        <p className="server-log-header" id="server-actions-header">Actions</p>
+        <p className="server-log-header" id="server-actions-header">Action</p>
         <hr id="server-log-line" />
         <div id="server-scroll-box">
           <ServerLog />

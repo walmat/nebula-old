@@ -52,7 +52,7 @@ class ViewTask extends Component {
           <td className="blank" />
           <td className="tasks_edit">
             <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.editTask(task)}>
-              <img src={edit} alt="edit" draggable="false" />
+              <img src={edit} alt="edit" draggable="false" style={task.status === 'running' ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} title={task.status === 'editing' ? '' : 'edit'} />
             </div>
           </td>
           <td className="tasks_id">{task.id < 10 ? `0${task.id}` : task.id}</td>
@@ -62,17 +62,17 @@ class ViewTask extends Component {
           <td className="tasks_pairs">{task.pairs}</td>
           <td className="tasks_start">
             <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.startTask(task)}>
-              <img src={task.status === 'running' ? startDim : start} alt="start" draggable="false" />
+              <img src={task.status === 'running' ? startDim : start} alt="start" draggable="false" style={task.status === 'running' ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} title={task.status !== 'running' ? 'start' : ''} />
             </div>
           </td>
           <td className="tasks_stop">
-            <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.stopTask(task)}>
-              <img src={task.status === 'running' ? stop : stopDim} alt="stop" draggable="false" />
+            <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.stopTask(task)} disabled={task.status !== 'running'}>
+              <img src={task.status === 'running' ? stop : stopDim} alt="stop" draggable="false" style={task.status !== 'running' ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} title={task.status === 'running' ? 'stop' : ''} />
             </div>
           </td>
           <td className="tasks_destroy">
             <div role="button" tabIndex={0} onKeyPress={() => {}} onClick={() => this.destroyTask(task)}>
-              <img src={destroy} alt="destroy" draggable="false" />
+              <img src={destroy} alt="destroy" draggable="false" title="destroy" />
             </div>
           </td>
           <td className="extend" />
