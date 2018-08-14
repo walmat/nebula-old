@@ -34,6 +34,7 @@
   height: 80px;
   align-items: flex-start;
   border: #b8d9d2 solid 1px;
+  border-radius: 3px;
   margin: 0 10px;
 }
 .tasks-table .tasks-row-container .tasks-row .pad-left {
