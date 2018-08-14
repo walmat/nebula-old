@@ -1,3 +1,7 @@
+input::placeholder, input {
+    text-transform: none;
+}
+
 #proxy-list-label {
     margin: 0;
     position: absolute;
@@ -96,4 +100,48 @@
     font-size: 12px;
     color: #EFEFEF;
     letter-spacing: 0;
+}
+
+#discord-label {
+    position: absolute;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    letter-spacing: 0;
+    margin: 0;
+    top: 124px;
+    left: 525px;
+    width: 51px;
+    height: 12px;
+}
+
+#slack-label {
+    position: absolute;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    letter-spacing: 0;
+    top: 194px;
+    left: 525px;
+    width: 51px;
+    height: 12px;
+    margin: 0;
+}
+
+#discord-input {
+    position: absolute;
+    top: 143px;
+    left: 525px;
+    width: 249px;
+    height: 29px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+}
+
+#slack-input {
+    position: absolute;
+    top: 213px;
+    left: 525px;
+    width: 249px;
+    height: 29px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
 }

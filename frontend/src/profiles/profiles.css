@@ -7,6 +7,10 @@ input::placeholder, select {
     letter-spacing: 0;
 }
 
+input, select {
+    text-transform: none;
+}
+
 .text-header {
     margin:0;
     font-family: AvenirNext-DemiBold;

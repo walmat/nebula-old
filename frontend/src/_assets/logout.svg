@@ -1,18 +1,11 @@
-
-<svg width="17px" height="13px" viewBox="0 0 17 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+<svg width="113px" height="113px" viewBox="0 0 113 113" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
     <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M11,4 L11,2 L17,6.5 L11,11 L11,9 L5,9 L5,4 L11,4 Z" id="path-1"></path>
-    </defs>
-    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Artboard" transform="translate(-48.000000, -695.000000)">
-            <g id="Group" transform="translate(48.000000, 695.000000)">
-                <rect id="Rectangle-2" stroke="#F0405E" x="0.5" y="0.5" width="12" height="12"></rect>
-                <g id="Combined-Shape">
-                    <use fill="#F0405E" fill-rule="evenodd" xlink:href="#path-1"></use>
-                    <path stroke="#F4F4F4" stroke-width="0.75" d="M5.375,4.375 L5.375,8.625 L11.375,8.625 L11.375,10.25 L16.375,6.5 L11.375,2.75 L11.375,4.375 L5.375,4.375 Z"></path>
-                </g>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+        <g id="Start-All-Icon" transform="translate(-77.000000, -73.000000)" fill="#EFEFEF" stroke="#EFEFEF" stroke-width="4">
+            <g id="Resume-Task-Icon" transform="translate(79.687500, 75.703125)">
+                <path d="M53.7890625,23.90625 L53.7890625,0 L107.578125,53.7890625 L53.7890625,107.578125 L53.7890625,83.671875 L0,83.671875 L0,23.90625 L53.7890625,23.90625 Z" id="Combined-Shape"></path>
             </g>
         </g>
     </g>

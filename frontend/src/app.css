@@ -101,6 +101,48 @@ select *.opt {
   -webkit-app-region: drag;
 }
 
+.close-area-1 {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  width: 25px;
+  height: 25px;
+  background: #46ADB4;
+  border-bottom-left-radius: 5px;
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.active {
+  opacity: 0.5;
+}
+
+.close-area-1:hover, .close-area-2:hover {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.close-area-2 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 25px;
+  height: 25px;
+  background: #EF415E;
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.close-area:hover {
+  /* background: #F0405E; */
+  cursor: pointer;
+  opacity: 1;
+}
+
 input:focus,
 select:focus,
 textarea:focus,

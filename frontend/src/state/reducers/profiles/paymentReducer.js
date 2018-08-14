@@ -22,7 +22,12 @@ export const paymentReducer = (state = initialPaymentState, action) => {
     case PAYMENT_FIELDS.CARD_NUMBER:
       change = { cardNumber: action.value }; break;
     case PAYMENT_FIELDS.EXP:
-      change = { exp: action.value }; break;
+      if (action.value > 1 && action.value.length === 1) {
+        change = { exp: "0" + action.value };
+      } else {
+        change = { exp: action.value };
+      }
+      break;
     case PAYMENT_FIELDS.CVV:
       change = { cvv: action.value }; break;
     default:

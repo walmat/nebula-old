@@ -3,7 +3,6 @@ const { ipcRenderer, webFrame } = require('electron');
 
 // disable zoom
 webFrame.setVisualZoomLevelLimits(1, 1);
-// webFrame.setZoomLevelLimits(1, 1);
 webFrame.setLayoutZoomLevelLimits(0, 0);
 
 // Wrap ipcRenderer call
@@ -14,6 +13,10 @@ const _sendEvent = (channel, msg) => {
 // Send a quit window event
 const _quit = () => {
   _sendEvent('window-event', 'quit');
+};
+
+const _close = () => {
+  _sendEvent('window-event', 'close');
 };
 
 // Send a launchYoutube window event
@@ -53,6 +56,7 @@ process.once('loaded', () => {
   /* BRIDGED EVENTS */
   window.Bridge.launchYoutube = _launchYoutube;
   window.Bridge.launchHarvester = _launchHarvester;
+  window.Bridge.close = _close;
   window.Bridge.refresh = _refresh;
   window.Bridge.harvest = _harvest;
   window.Bridge.endSession = _endSession;

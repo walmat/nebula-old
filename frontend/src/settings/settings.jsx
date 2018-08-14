@@ -55,6 +55,12 @@ class Settings extends Component {
         <button id="proxy-button-youtube" onClick={Settings.launchYoutube} >YouTube</button>
         <button id="proxy-button-captcha" onClick={Settings.harvester} >Captcha</button>
         <button id="proxy-button-close-session" onClick={Settings.closeSession} >End Session</button>
+
+        {/* EXTRAS */}
+        <p id="discord-label">Discord URL</p>
+        <input id="discord-input" placeholder="https://discordapp.com/api/webhooks/..." />
+        <p id="slack-label">Slack URL</p>
+        <input id="slack-input" placeholder="https://hooks.slack.com/services/..." />
       </div>
     );
   }
