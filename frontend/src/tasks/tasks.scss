@@ -8,6 +8,16 @@
     text-overflow: ellipsis;
 }
 
+.tasks-table-container {
+    display: block;
+    width: 741px;
+    height: 300px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+    overflow: scroll;
+    margin: 0 -15px;
+}
+
 .tasks-table {
     display: table;
     border-collapse: collapse;
@@ -107,3 +117,46 @@
     }
 }
 
+.bulk-action-sidebar {
+    &__button {
+        cursor: pointer;
+    }
+}
+
+.container {
+    margin: 0 15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    align-items: stretch;
+    margin: 0 -15px;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    align-items: stretch;
+    margin: 0 15px;
+}
+
+/* TEmporary */
+.temp-create-box {
+    width: 277px;
+    height: 226px;
+    background-color: red;
+}
+
+.temp-log-box {
+    width: 504px;
+    height: 300px;
+    background-color: green;
+}

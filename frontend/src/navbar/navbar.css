@@ -67,6 +67,16 @@
     cursor: pointer;
 }
 
+/* TEMPORARY */
+#icon-tasks1 {
+    position: absolute;
+    top:520px;
+    left:29px;
+    width:61px;
+    height:49px;
+    cursor: pointer;
+}
+
 #icon-information {
     position:absolute;
     top:692px;
