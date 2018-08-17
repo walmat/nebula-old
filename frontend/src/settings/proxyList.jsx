@@ -18,6 +18,7 @@ class ProxyList extends Component {
     this.handleUpdate = this.handleUpdate.bind(this);
     this.focus = this.focus.bind(this);
     this.blur = this.blur.bind(this);
+    this.paste = this.paste.bind(this);
 
     // Set initial state
     this.state = {
@@ -43,7 +44,8 @@ class ProxyList extends Component {
   blur(e) {
     // Check if we need to call a redux update
     if (this.state.reduxUpdate) {
-      this.props.onUpdateProxies(this.state.proxies);
+      console.log(this.state.proxies);
+      this.props.onUpdateProxies(this.state.proxies.map(proxy => proxy.replace('\n', '')));
     }
     // Force an editing transition to color invalid proxies
     this.setState({
@@ -59,7 +61,23 @@ class ProxyList extends Component {
     });
   }
 
+  paste(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const data = (e.clipboardData || window.clipboardData);
+    const text = ProxyList.sanitize(data.getData('text'));
+
+    if (document.queryCommandSupported('insertText')) {
+      document.execCommand('insertText', false, text);
+    } else {
+      document.execCommand('paste', false, text);
+    }
+
+    this.handleUpdate(null);
+  }
+
   handleUpdate(e) {
+    console.log('handleUpdate');
     // If we don't have the dom node, there's nothing to do here.
     if (!this.domNode) return;
 
@@ -107,6 +125,7 @@ class ProxyList extends Component {
         onInput: this.handleUpdate,
         onFocus: this.focus,
         onBlur: this.blur,
+        onPaste: this.paste,
         dangerouslySetInnerHTML: { __html: this.renderProxies() },
         contentEditable: true,
       },
