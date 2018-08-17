@@ -58,7 +58,7 @@ html, body {
   overflow: hidden;
 }
 
-input, a, h1, h2, h3, h4, h5, h6, p, link {
+input, a, h1, h2, h3, h4, h5, h6, p, link, Select {
   font-family: AvenirNext-Medium;
   font-size: 9px;
   color: #161318;
@@ -76,10 +76,6 @@ select {
   -webkit-appearance:none; /* Safari and Chrome */
   -moz-appearance: none;
   appearance:none;
-}
-
-select *.opt {
-  background: #161318 !important;
 }
 
 #app, #container-wrapper {

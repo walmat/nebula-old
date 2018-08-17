@@ -13,38 +13,33 @@ import './tasks.css';
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
+// change this based on whether it's open or not {{toggle between DDU & DDD}}
 const DropdownIndicator = (props) => {
   return components.DropdownIndicator && (
     <components.DropdownIndicator {...props}>
-      <img src={DDD} alt="" />
+      <img src={props.isOpen ? DDU : DDD} alt="" />
     </components.DropdownIndicator>
   );
 };
 
-const baseStyles = {
-  option: (base, state) => ({
-    ...base,
-    background: '#f4f4f4',
-    padding: 7.5,
-  }),
-  control: () => ({
-    height: 29,
-    width: 252,
-  }),
-  singleValue: (base, state) => {
-    const opacity = state.isDisabled ? 0.5 : 1;
-    const transition = 'opacity 300ms';
-
-    return { ...base, opacity, transition };
-  }
-}
+const colourStyles = {
+  control: styles => ({ ...styles, backgroundColor: '#f4f4f4' }),
+  option: (styles, { isDisabled, isFocused, isSelected }) => {
+    const color = '#f4f4f4';
+    return {
+      ...styles,
+      backgroundColor: '#fff',
+      cursor: isDisabled ? 'not-allowed' : 'default',
+    };
+  },
+  // input: styles => ({ ...styles, ...dot() }),
+  // placeholder: styles => ({ ...styles, ...dot() }),
+  // singleValue: (styles, { data }) => ({ ...styles, ...dot(data.color) }),
+};
 
 class CreateTask extends Component {
   static buildSizeOptions() {
     return getAllSizes();
-    // const sizes = getAllSizes();
-    // return sizes.map(size =>
-    //   (<option key={size.name} value={size.name}>{size.name}</option>));
   }
 
   static openSelect(which) {
@@ -107,7 +102,7 @@ class CreateTask extends Component {
           defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
           id="profiles"
-          // styles={baseStyles}
+          styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
           value={this.props.value.profile.id || ''}
           options={this.buildProfileOptions()}
@@ -118,7 +113,7 @@ class CreateTask extends Component {
           defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
           id="size"
-          // styles={baseStyles}
+          styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
           // value={this.props.value.sizes}
           options={CreateTask.buildSizeOptions()}

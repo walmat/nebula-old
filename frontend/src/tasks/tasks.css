@@ -36,6 +36,11 @@
         width: 252px;
         height: 29px;
         border: 1px solid #F0405E;
+        border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
     }
 
     #dropdown-profiles-arrow {
@@ -67,6 +72,11 @@
         width: 113px;
         height: 29px;
         border: 1px solid #F0405E;
+        border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
     }
 
     #dropdown-size-arrow {
