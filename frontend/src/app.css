@@ -115,15 +115,6 @@ select *.opt {
   cursor: pointer;
 }
 
-.active {
-  opacity: 0.5;
-}
-
-.close-area-1:hover, .close-area-2:hover {
-  opacity: 0.5;
-  cursor: pointer;
-}
-
 .close-area-2 {
   position: absolute;
   top: 0;
@@ -137,10 +128,17 @@ select *.opt {
   cursor: pointer;
 }
 
-.close-area:hover {
-  /* background: #F0405E; */
+.close-area-1 > img, .close-area-2 > img {
   cursor: pointer;
-  opacity: 1;
+}
+
+.active {
+  opacity: 0.5;
+}
+
+.close-area-1:hover, .close-area-2:hover {
+  opacity: 0.5;
+  cursor: pointer;
 }
 
 input:focus,

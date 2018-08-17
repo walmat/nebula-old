@@ -36,7 +36,6 @@ class Navbar extends PureComponent {
             className={this.props.history.location.pathname === '/' || this.props.history.location.pathname === '/tasks' ? 'active' : null}
             onClick={() => {
               this.props.history.push('/');
-              // this.updateIcons();
             }}
           >
             <img src={tasks} className="main-icons" id="icon-tasks" alt="tasks" draggable="false" />
@@ -49,7 +48,6 @@ class Navbar extends PureComponent {
             className={this.props.history.location.pathname === '/profiles' ? 'active' : null}
             onClick={() => {
               this.props.history.push('/profiles');
-              // this.updateIcons();
             }}
           >
             <img src={profiles} className="main-icons" id="icon-profiles" alt="profiles" draggable="false" />
@@ -62,7 +60,6 @@ class Navbar extends PureComponent {
             className={this.props.history.location.pathname === '/server' ? 'active' : null}
             onClick={() => {
               this.props.history.push('/server');
-              // this.updateIcons();
             }}
           >
             <img src={server} className="main-icons" id="icon-server" alt="server" draggable="false" />
@@ -75,7 +72,6 @@ class Navbar extends PureComponent {
             className={this.props.history.location.pathname === '/settings' ? 'active' : null}
             onClick={() => {
               this.props.history.push('/settings');
-              // this.updateIcons();
             }}
           >
             <img src={settings} className="main-icons" id="icon-settings" alt="settings" draggable="false" />

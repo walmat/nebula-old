@@ -17,6 +17,6 @@ export default function configureStore() {
       profileFormValidationMiddleware,
       settingsAttributeValidationMiddleware,
       thunk,
-    )),
+    ), persistState()),
   );
 }

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Select, { components } from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
@@ -6,16 +7,50 @@ import { TASK_FIELDS, taskActions } from '../state/actions';
 import getAllSizes from './getSizes';
 
 import DDD from '../_assets/dropdown-down.svg';
+import DDU from '../_assets/dropdown-up.svg';
 import './tasks.css';
 
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
+const DropdownIndicator = (props) => {
+  return components.DropdownIndicator && (
+    <components.DropdownIndicator {...props}>
+      <img src={DDD} alt="" />
+    </components.DropdownIndicator>
+  );
+};
+
+const baseStyles = {
+  option: (base, state) => ({
+    ...base,
+    background: '#f4f4f4',
+    padding: 7.5,
+  }),
+  control: () => ({
+    height: 29,
+    width: 252,
+  }),
+  singleValue: (base, state) => {
+    const opacity = state.isDisabled ? 0.5 : 1;
+    const transition = 'opacity 300ms';
+
+    return { ...base, opacity, transition };
+  }
+}
+
 class CreateTask extends Component {
   static buildSizeOptions() {
-    const sizes = getAllSizes();
-    return sizes.map(size =>
-      (<option key={size.name} value={size.name}>{size.name}</option>));
+    return getAllSizes();
+    // const sizes = getAllSizes();
+    // return sizes.map(size =>
+    //   (<option key={size.name} value={size.name}>{size.name}</option>));
+  }
+
+  static openSelect(which) {
+    const el = document.getElementById(which);
+    console.log(el);
+    el.size = 4;
   }
 
   constructor(props) {
@@ -27,7 +62,16 @@ class CreateTask extends Component {
 
   buildProfileOptions() {
     const p = this.props.profiles;
-    return p.map(profile => (<option key={profile.id} className="opt" value={profile.id}>{profile.profileName}</option>));
+    console.log(p);
+    const x = [];
+    p.forEach(profile => {
+      x.push({ value: profile.id, label: profile.profileName })
+    });
+
+    console.log(x);
+    return x;
+
+    // return p.map(profile => (<option key={profile.id} className="opt" value={profile.id}>{profile.profileName}</option>));
   }
 
   async saveTask(e) {
@@ -58,18 +102,27 @@ class CreateTask extends Component {
         <p id="sku-label">Input SKU</p>
         <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <select id="profiles" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)} value={this.props.value.profile.id || ''} required>
-          <option value="" selected disabled hidden>Choose Profiles</option>
-          {this.buildProfileOptions()}
-        </select>
-        <div id="dropdown-profiles-box" />
-        <img src={DDD} alt="dropdown" id="dropdown-profiles-arrow" draggable="false" />
+        <Select
+          required
+          defaultValue="Choose a profile"
+          components={{ DropdownIndicator }}
+          id="profiles"
+          // styles={baseStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+          value={this.props.value.profile.id || ''}
+          options={this.buildProfileOptions()}
+        />
         <p id="size-label">Sizes</p>
-        <select id="size" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} value={this.props.value.sizes} required>
-          <option value="" selected disabled hidden>Choose Size</option>
-          {CreateTask.buildSizeOptions()}
-        </select>
-        <img src={DDD} alt="dropdown" id="dropdown-size-arrow" draggable="false" />
+        <Select
+          required
+          defaultValue="Choose a profile"
+          components={{ DropdownIndicator }}
+          id="size"
+          // styles={baseStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
+          // value={this.props.value.sizes}
+          options={CreateTask.buildSizeOptions()}
+        />
         <p id="pairs-label"># Pairs</p>
         <input id="pairs" type="number" min="1" max="10" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} value={this.props.value.pairs} required />
         <button
