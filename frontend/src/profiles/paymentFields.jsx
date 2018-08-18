@@ -12,21 +12,18 @@ import './profiles.css';
 
 class PaymentFields extends Component {
   static limit(val, max) {
-    let ret;
     if (val.length === 1 && val[0] > max[0]) {
-      ret = `0${val}`;
+      val = `0${val}`;
     }
 
     if (val.length === 2) {
       if (Number(val) === 0) {
-        ret = '01';
-        // val = '01';
+        val = '01';
       } else if (val > max) { // this can happen when user paste number
-        ret = max;
-        // val = max;
+        val = max;
       }
     }
-    return ret;
+    return val;
   }
 
   static cardExpiry(val) {
@@ -48,7 +45,7 @@ class PaymentFields extends Component {
       <div className="flex-col">
         <p className="body-text" id="payment-label">Payment</p>
         <input required id="email" placeholder="Email Address" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)} value={this.props.value.email} style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])} />
-        <NumberFormat format="#### #### #### ####" placeholder="XXXX-XXXX-XXXX-XXXX" id="card-number" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)} value={this.props.value.cardNumber} style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])} />
+        <NumberFormat format="#### #### #### ####" placeholder="XXXX XXXX XXXX XXXX" id="card-number" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)} value={this.props.value.cardNumber} style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])} />
         <NumberFormat id="expiration" placeholder="MM/YY" format={PaymentFields.cardExpiry} onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)} value={this.props.value.exp} style={validationStatus(errors[PAYMENT_FIELDS.EXP])} />
         {/* <input required id="expiration" placeholder="Expiration" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)} value={this.props.value.exp} style={validationStatus(errors[PAYMENT_FIELDS.EXP])} /> */}
         <input required id="cvv" placeholder="CVV" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)} value={this.props.value.cvv} style={validationStatus(errors[PAYMENT_FIELDS.CVV])} />

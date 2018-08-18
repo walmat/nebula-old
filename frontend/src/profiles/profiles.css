@@ -81,13 +81,17 @@ input, select {
 }
 
 #profile-load {
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
     border-radius: 3px;
     position: absolute;
     top: 150px;
     left: 153px;
     width: 252px;
     height: 29px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #profile-select-arrow {
@@ -200,8 +204,12 @@ input, select {
     left: 295px;
     width: 94px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
     border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #shipping-zip-code {
@@ -220,8 +228,12 @@ input, select {
     left: 224px;
     width: 165px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
     border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #shipping-phone {
@@ -312,8 +324,12 @@ input, select {
     left: 571px;
     width: 94px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
     border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #billing-zip-code {
@@ -332,8 +348,12 @@ input, select {
     left: 502px;
     width: 165px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
     border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #billing-phone {

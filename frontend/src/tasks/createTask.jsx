@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Select, { components } from 'react-select';
-import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 

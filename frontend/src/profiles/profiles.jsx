@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Select, { components } from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
@@ -17,6 +18,50 @@ import DDU from '../_assets/dropdown-up.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
 
+// change this based on whether it's open or not {{toggle between DDU & DDD}}
+const DropdownIndicator = (props) => {
+  return components.DropdownIndicator && (
+    <components.DropdownIndicator {...props}>
+      <img src={props.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
+    </components.DropdownIndicator>
+  );
+};
+
+const colourStyles = {
+  control: styles => ({
+    ...styles,
+    backgroundColor: '#f4f4f4',
+    height: '29px',
+    minHeight: '29px',
+    border: '1px solid #F0405E',
+    borderRadius: '3px',
+    outline: 'none',
+    cursor: 'pointer',
+    boxShadow: 'none',
+  }),
+  option: (styles, { isDisabled, isFocused, isSelected }) => {
+    return {
+      ...styles,
+      backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
+      color: '#161318',
+      cursor: isDisabled ? 'not-allowed' : 'pointer',
+      outline: 'none',
+      boxShadow: 'none',
+    };
+  },
+  // fix this? doesn't work for some reason..
+  DropdownIndicator: (styles, { menuIsOpen }) => {
+    return {
+      ...styles,
+      marginRight: '-5px',
+      src: menuIsOpen ? DDU : DDD,
+    };
+  },
+  // input: styles => ({ ...styles, ...dot() }),
+  // placeholder: styles => ({ ...styles, ...dot() }),
+  // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
+};
+
 class Profiles extends Component {
   constructor(props) {
     super(props);
@@ -28,9 +73,9 @@ class Profiles extends Component {
   }
 
   onProfileChange(event) {
-    const profileName = event.target.value;
+    const id = event.value;
     const { profiles } = this.props;
-    const selectedProfile = profiles.find(p => p.profileName === profileName);
+    const selectedProfile = profiles.find(p => p.id === id);
 
     this.props.onSelectProfile(selectedProfile);
   }
@@ -88,8 +133,11 @@ class Profiles extends Component {
 
   buildProfileOptions() {
     const { profiles } = this.props;
-    return profiles && profiles.map(profile =>
-      (<option key={profile.id} > {profile.profileName} </option>));
+    const opts = [];
+    profiles.forEach(profile => {
+      opts.push({ value: profile.id, label: profile.profileName })
+    });
+    return opts;
   }
 
   render() {
@@ -104,15 +152,15 @@ class Profiles extends Component {
           <p className="body-text" id="load-profile-label">Load Profile</p>
           <div id="load-profile-box" />
           <p id="profile-name-label">Profile Name</p>
-          <select id="profile-load" onChange={this.onProfileChange} value={this.props.selectedProfile.profileName || ''}>
-            <option value="" hidden>Choose Profile to Load</option>
-            {this.buildProfileOptions()}
-          </select>
-          <img
-            src={currentProfile ? DDD : DDU}
-            alt="dropdown arrow"
-            id="profile-select-arrow"
-            draggable="false"
+          <Select
+            required
+            defaultValue="Choose Profile to Load"
+            components={{ DropdownIndicator }}
+            id="profile-load"
+            styles={colourStyles}
+            onChange={this.onProfileChange}
+            value={this.props.selectedProfile.profileName}
+            options={this.buildProfileOptions()}
           />
           <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
 

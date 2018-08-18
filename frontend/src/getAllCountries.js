@@ -1,11 +1,12 @@
 const countries = [
-  { code: 'US', name: 'United States' },
-  { code: 'UK', name: 'United Kingdom' },
-  { code: 'DE', name: 'Germany' },
+  { value: 'US', label: 'United States' },
+  { value: 'UK', label: 'United Kingdom' },
+  { value: 'DE', label: 'Germany' },
 ];
 
 export default function getAllCountries() {
-  return JSON.parse(JSON.stringify(countries));
+  return countries;
+  // return JSON.parse(JSON.stringify(countries));
 }
 
 export function getCountry(countryCode) {
