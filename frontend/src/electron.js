@@ -161,7 +161,6 @@ ipcMain.on('harvest', (event, token) => {
 });
 
 ipcMain.on('window-event', (event, arg) => {
-
   switch (arg) {
     case 'launchYoutube': {
       // open youtube url using youtube window template

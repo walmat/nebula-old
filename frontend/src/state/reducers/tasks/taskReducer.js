@@ -22,6 +22,8 @@ export const initialTaskState = {
 export function taskReducer(state = initialTaskState, action) {
   let change = {};
 
+  console.log(action.field, action);
+
   if (action.type === TASK_ACTIONS.EDIT) {
     switch (action.field) {
       case TASK_FIELDS.EDIT_SKU:

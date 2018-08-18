@@ -17,7 +17,7 @@ import tDefns from '../utils/definitions/taskDefinitions';
 const DropdownIndicator = (props) => {
   return components.DropdownIndicator && (
     <components.DropdownIndicator {...props}>
-      <img src={props.isOpen ? DDU : DDD} alt="" />
+      <img src={props.menuIsOpen ? DDU : DDD} alt="" />
     </components.DropdownIndicator>
   );
 };
@@ -25,7 +25,6 @@ const DropdownIndicator = (props) => {
 const colourStyles = {
   control: styles => ({ ...styles, backgroundColor: '#f4f4f4' }),
   option: (styles, { isDisabled, isFocused, isSelected }) => {
-    const color = '#f4f4f4';
     return {
       ...styles,
       backgroundColor: '#fff',
@@ -34,7 +33,7 @@ const colourStyles = {
   },
   // input: styles => ({ ...styles, ...dot() }),
   // placeholder: styles => ({ ...styles, ...dot() }),
-  // singleValue: (styles, { data }) => ({ ...styles, ...dot(data.color) }),
+  // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
 };
 
 class CreateTask extends Component {
@@ -53,25 +52,23 @@ class CreateTask extends Component {
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.saveTask = this.saveTask.bind(this);
+    this.state = {
+      menuIsOpen: false,
+    };
   }
 
   buildProfileOptions() {
     const p = this.props.profiles;
-    console.log(p);
-    const x = [];
+    const opts = [];
     p.forEach(profile => {
-      x.push({ value: profile.id, label: profile.profileName })
+      opts.push({ value: profile.id, label: profile.profileName })
     });
-
-    console.log(x);
-    return x;
-
+    return opts;
     // return p.map(profile => (<option key={profile.id} className="opt" value={profile.id}>{profile.profileName}</option>));
   }
 
   async saveTask(e) {
     e.preventDefault();
-    console.log(this.props.value);
     this.props.onAddNewTask(this.props.value);
   }
 
@@ -79,17 +76,18 @@ class CreateTask extends Component {
     switch (field) {
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
-          const change = this.props.profiles.find(p => `${p.id}` === event.target.value);
+          const change = this.props.profiles.find(p => p.id === event.value);
           this.props.onChange({ field, value: change });
         };
       default:
         return (event) => {
-          this.props.onChange({ field, value: event.target.value });
+          this.props.onChange({ field, value: event[0].value });
         };
     }
   }
 
   render() {
+
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>
@@ -104,18 +102,19 @@ class CreateTask extends Component {
           id="profiles"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.value.profile.id || ''}
+          value={this.props.value.value}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
         <Select
           required
+          isMulti
           defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          // value={this.props.value.sizes}
+          value={this.props.value.sizes}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>
@@ -150,6 +149,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   onChange: (changes) => {
+    console.log(changes);
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
   onAddNewTask: (newTask) => {
