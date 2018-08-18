@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Select, { components } from 'react-select';
+import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
@@ -17,7 +18,7 @@ import tDefns from '../utils/definitions/taskDefinitions';
 const DropdownIndicator = (props) => {
   return components.DropdownIndicator && (
     <components.DropdownIndicator {...props}>
-      <img src={props.menuIsOpen ? DDU : DDD} alt="" />
+      <img src={props.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
     </components.DropdownIndicator>
   );
 };
@@ -44,6 +45,7 @@ const colourStyles = {
       boxShadow: 'none',
     };
   },
+  // fix this? doesn't work for some reason..
   DropdownIndicator: (styles, { menuIsOpen }) => {
     return {
       ...styles,
@@ -147,6 +149,7 @@ class CreateTask extends Component {
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>
+        {/* <NumberFormat value={this.props.value.pairs} id="pairs" displayType={'text'} onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} /> */}
         <input id="pairs" type="number" min="1" max="10" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} value={this.props.value.pairs} required />
         <button
           id="submit-tasks"
