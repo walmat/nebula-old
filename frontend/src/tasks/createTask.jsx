@@ -79,9 +79,18 @@ class CreateTask extends Component {
           const change = this.props.profiles.find(p => p.id === event.value);
           this.props.onChange({ field, value: change });
         };
+      case TASK_FIELDS.EDIT_SIZES:
+      return (event) => {
+        // change this to fit an array later
+        this.props.onChange({ field, value: event[0].value });
+      };
+      case TASK_FIELDS.EDIT_SKU:
+        return (event) => {
+          this.props.onChange({ field, value: event.target.value });
+        }
       default:
         return (event) => {
-          this.props.onChange({ field, value: event[0].value });
+          this.props.onChange({ field, value: event.value });
         };
     }
   }
@@ -149,7 +158,6 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   onChange: (changes) => {
-    console.log(changes);
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
   onAddNewTask: (newTask) => {
