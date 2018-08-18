@@ -21,21 +21,24 @@ const DropdownIndicator = (props) => {
 };
 
 const colourStyles = {
-  control: styles => ({
-    ...styles,
-    backgroundColor: '#f4f4f4',
-    height: '29px',
-    minHeight: '29px',
-    border: '1px solid #F0405E',
-    borderRadius: '3px',
-    outline: 'none',
-    cursor: 'pointer',
-    boxShadow: 'none',
-  }),
+  control: (styles, { isDisabled, isFocused, isSelected }) => {
+    return {
+      ...styles,
+      backgroundColor: '#f4f4f4',
+      height: '29px',
+      minHeight: '29px',
+      border: '1px solid #F0405E',
+      borderRadius: '3px',
+      outline: 'none',
+      cursor: 'pointer',
+      boxShadow: 'none',
+    };
+  },
   option: (styles, { isDisabled, isFocused, isSelected }) => {
     return {
       ...styles,
       backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
+      maxHeight: '200px',
       color: '#161318',
       cursor: isDisabled ? 'not-allowed' : 'pointer',
       outline: 'none',
@@ -50,9 +53,6 @@ const colourStyles = {
       src: menuIsOpen ? DDU : DDD,
     };
   },
-  // input: styles => ({ ...styles, ...dot() }),
-  // placeholder: styles => ({ ...styles, ...dot() }),
-  // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
 };
 
 const errorStyle = {
@@ -110,13 +110,9 @@ class LocationFields extends Component {
           styles={colourStyles}
           options={LocationFields.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
-          value={this.props.value.state}
+          value={this.props.value.value}
           style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])} disabled={this.isStatesDisabled()}
         />
-        {/* <select id={`${this.props.id}-state`} required onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)} value={this.props.value.state} style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])} disabled={this.isStatesDisabled()}>
-          <option value="" selected disabled hidden>Choose State</option>
-          {LocationFields.buildStateOptions()}
-        </select> */}
         <input id={`${this.props.id}-zip-code`} required placeholder="Zip Code" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)} value={this.props.value.zipCode} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])} disabled={disabled} />
         <Select
           required
@@ -126,7 +122,7 @@ class LocationFields extends Component {
           styles={colourStyles}
           options={LocationFields.buildCountryOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
-          value={this.props.value.country}
+          value={this.props.value.value}
           style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])}
           disabled={disabled}
         />

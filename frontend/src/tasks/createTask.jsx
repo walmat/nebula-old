@@ -73,9 +73,6 @@ class CreateTask extends Component {
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.saveTask = this.saveTask.bind(this);
-    this.state = {
-      menuIsOpen: false,
-    };
   }
 
   buildProfileOptions() {
