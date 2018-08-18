@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Select, { components } from 'react-select';
+import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
@@ -68,6 +69,10 @@ class CreateTask extends Component {
     el.size = 4;
   }
 
+  static formatPairs(val) {
+    return val <= 5 ? val : null;
+  }
+
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
@@ -100,7 +105,7 @@ class CreateTask extends Component {
       case TASK_FIELDS.EDIT_SIZES:
       return (event) => {
         // change this to fit an array later
-        this.props.onChange({ field, value: event[0].value });
+        this.props.onChange({ field, value: event.value });
       };
       case TASK_FIELDS.EDIT_SKU:
         return (event) => {
@@ -145,8 +150,7 @@ class CreateTask extends Component {
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>
-        {/* <NumberFormat value={this.props.value.pairs} id="pairs" displayType={'text'} onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} /> */}
-        <input id="pairs" type="number" min="1" max="10" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} value={this.props.value.pairs} required />
+        <NumberFormat format={CreateTask.formatPairs} placeholder="1" value={this.props.value.pairs} id="pairs" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} />
         <button
           id="submit-tasks"
           tabIndex={0}

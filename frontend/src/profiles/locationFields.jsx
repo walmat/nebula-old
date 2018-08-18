@@ -126,9 +126,6 @@ class LocationFields extends Component {
           style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])}
           disabled={disabled}
         />
-        {/* <select id={`${this.props.id}-country`} required onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)} value={this.props.value.country} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])} disabled={disabled}>
-          {LocationFields.buildCountryOptions()}
-        </select> */}
         <input id={`${this.props.id}-phone`} required placeholder="Phone" onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)} value={this.props.value.phone} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])} disabled={disabled} />
       </div>
     );
