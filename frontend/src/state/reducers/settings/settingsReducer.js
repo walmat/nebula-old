@@ -17,14 +17,13 @@ export function settingsReducer(state = initialSettingsState, action) {
       case SETTINGS_FIELDS.EDIT_PROXIES:
         change = {
           proxies: action.value,
+          errors: action.errors,
         };
         break;
       default:
         change = {};
     }
   }
-
-  change.errors = action.errors;
 
   return Object.assign({}, state, change);
 }

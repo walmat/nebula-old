@@ -44,7 +44,6 @@ class ProxyList extends Component {
   blur(e) {
     // Check if we need to call a redux update
     if (this.state.reduxUpdate) {
-      console.log(this.state.proxies);
       this.props.onUpdateProxies(this.state.proxies.map(proxy => proxy.replace('\n', '')));
     }
     // Force an editing transition to color invalid proxies
@@ -62,22 +61,26 @@ class ProxyList extends Component {
   }
 
   paste(e) {
+    // Prevent default and event propagation
     e.preventDefault();
     e.stopPropagation();
+
+    // Get the clipboard data and sanitize the text
     const data = (e.clipboardData || window.clipboardData);
     const text = ProxyList.sanitize(data.getData('text'));
 
+    // Perform the insert using the plain text to mimic the paste
     if (document.queryCommandSupported('insertText')) {
       document.execCommand('insertText', false, text);
     } else {
       document.execCommand('paste', false, text);
     }
 
+    // Force an update
     this.handleUpdate(null);
   }
 
   handleUpdate(e) {
-    console.log('handleUpdate');
     // If we don't have the dom node, there's nothing to do here.
     if (!this.domNode) return;
 
