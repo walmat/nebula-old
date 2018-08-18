@@ -176,6 +176,7 @@ class Server extends Component {
         <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)} value={this.props.serverInfo.proxyOptions.password} required />
         {/* <button disabled={!loggedInAws} id="destroy-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyProxies} >Destroy All</button> */}
         <button disabled={!loggedInAws} id="generate-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.generateProxies} >Generate</button>
+        <button disabled={!loggedInAws} id="destroy-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyProxies} >Destroy All</button>
 
         {/* CONNECT */}
         <p className="body-text" id="server-label">Connect</p>
@@ -186,6 +187,7 @@ class Server extends Component {
         <img src={DDD} alt="dropdown button" id="location-server-button" />
         {/* <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServer}>Destroy</button> */}
         <button disabled={!loggedInAws} id="create-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.createServer}>Create</button>
+        <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServer} >Destroy All</button>
 
         {/* SERVER LOG */}
         <p className="body-text" id="server-log-label">Log</p>
