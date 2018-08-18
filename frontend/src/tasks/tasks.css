@@ -6,6 +6,8 @@
         left: 140px;
     }
 
+    .Select-input * { outline: 0; }
+
     #sku-label {
         margin: 0;
         font-family: AvenirNext-Medium;
@@ -35,21 +37,10 @@
         left:153px;
         width: 252px;
         height: 29px;
-        border: 1px solid #F0405E;
-        border-radius: 3px;
         font-family: AvenirNext-Medium;
         font-size: 9px;
         color: #161318;
         letter-spacing: 0;
-    }
-
-    #dropdown-profiles-arrow {
-        position: absolute;
-        top:209px;
-        left:379px;
-        width: 21px;
-        height: 21px;
-        cursor: pointer;
     }
 
     #profiles-label {
@@ -69,23 +60,14 @@
         position: absolute;
         top:261px;
         left:153px;
-        width: 113px;
+        width: 185px;
         height: 29px;
-        border: 1px solid #F0405E;
+        /* border: 1px solid #F0405E; */
         border-radius: 3px;
         font-family: AvenirNext-Medium;
         font-size: 9px;
         color: #161318;
         letter-spacing: 0;
-    }
-
-    #dropdown-size-arrow {
-        position: absolute;
-        top:265px;
-        left:240px;
-        width: 21px;
-        height: 21px;
-        cursor: pointer;
     }
 
     #size-label {
@@ -109,7 +91,7 @@
         letter-spacing: 0;
         position: absolute;
         top:246px;
-        left:285px;
+        left:352px;
         width: 27px;
         height: 12px;
     }
@@ -117,7 +99,7 @@
     #pairs {
         position: absolute;
         top:261px;
-        left:285px;
+        left:352px;
         width: 53px;
         height: 29px;
         border: 1px solid #F0405E;

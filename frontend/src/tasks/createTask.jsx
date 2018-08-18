@@ -23,12 +23,32 @@ const DropdownIndicator = (props) => {
 };
 
 const colourStyles = {
-  control: styles => ({ ...styles, backgroundColor: '#f4f4f4' }),
+  control: styles => ({
+    ...styles,
+    backgroundColor: '#f4f4f4',
+    height: '29px',
+    minHeight: '29px',
+    border: '1px solid #F0405E',
+    borderRadius: '3px',
+    outline: 'none',
+    cursor: 'pointer',
+    boxShadow: 'none',
+  }),
   option: (styles, { isDisabled, isFocused, isSelected }) => {
     return {
       ...styles,
-      backgroundColor: '#fff',
-      cursor: isDisabled ? 'not-allowed' : 'default',
+      backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
+      color: '#161318',
+      cursor: isDisabled ? 'not-allowed' : 'pointer',
+      outline: 'none',
+      boxShadow: 'none',
+    };
+  },
+  DropdownIndicator: (styles, { menuIsOpen }) => {
+    return {
+      ...styles,
+      marginRight: '-5px',
+      src: menuIsOpen ? DDU : DDD,
     };
   },
   // input: styles => ({ ...styles, ...dot() }),
