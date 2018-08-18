@@ -53,7 +53,7 @@ const colourStyles = {
       src: menuIsOpen ? DDU : DDD,
     };
   },
-  // input: styles => ({ ...styles, ...dot() }),
+  input: styles => ({ ...styles, padding: 0 }),
   // placeholder: styles => ({ ...styles, ...dot() }),
   // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
 };
@@ -87,7 +87,6 @@ class CreateTask extends Component {
       opts.push({ value: profile.id, label: profile.profileName })
     });
     return opts;
-    // return p.map(profile => (<option key={profile.id} className="opt" value={profile.id}>{profile.profileName}</option>));
   }
 
   async saveTask(e) {
@@ -103,14 +102,14 @@ class CreateTask extends Component {
           this.props.onChange({ field, value: change });
         };
       case TASK_FIELDS.EDIT_SIZES:
-      return (event) => {
-        // change this to fit an array later
-        this.props.onChange({ field, value: event.value });
-      };
+        return (event) => {
+          const values = event.map(s => s.value);
+          this.props.onChange({ field, value: values });
+        };
       case TASK_FIELDS.EDIT_SKU:
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
-        }
+        };
       default:
         return (event) => {
           this.props.onChange({ field, value: event.value });
@@ -119,7 +118,6 @@ class CreateTask extends Component {
   }
 
   render() {
-
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>
@@ -141,6 +139,7 @@ class CreateTask extends Component {
         <Select
           required
           isMulti
+          isClearable={false}
           defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
           id="size"

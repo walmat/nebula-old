@@ -11,7 +11,7 @@ const task = PropTypes.shape({
   sku: PropTypes.string,
   profile,
   status: PropTypes.string,
-  sizes: PropTypes.string,
+  sizes: PropTypes.arrayOf(PropTypes.string),
   pairs: PropTypes.string,
   errors: taskErrors,
 });
