@@ -53,42 +53,83 @@ class Tasks1 extends Component {
     return (
       <div className="container">
         <div className="row">
-          <div className="col">
-            <div className="row">
-              <h1 className="text-header">Tasks</h1>
+          <div className="col col--start">
+            <div className="row row--start">
+              <div className="col col--no-gutter-left">
+                <h1 className="text-header">Tasks</h1>
+              </div>
             </div>
             <div className="row">
               <div className="col">
-                <div className="row">
-                  <p className="body-text">Create</p>
+                <div className="row row--start">
+                  <div className="col col--no-gutter-left">
+                    <p className="body-text section-header">Create</p>
+                  </div>
                 </div>
                 <div className="row">
-                  <div className="temp-create-box" />
+                  <div className="col col--no-gutter-left">
+                    <div className="temp-create-box" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col">
-            <div className="row">
-              <p className="body-text">Log</p>
+          <div className="col col--start">
+            <div className="row row--start">
+              <div className="col">
+                <p className="body-text section-header section-header--no-top">Log</p>
+              </div>
             </div>
             <div className="row">
-              <div className="temp-log-box" />
+              <div className="col">
+                <div className="temp-log-box" />
+              </div>
             </div>
           </div>
         </div>
-        <div className="row">
-          <div className="col">
-            <div className="row">
-              <p className="body-text">View</p>
+        <div className="row row--start row--expand temp-table-row">
+          <div className="col col--start">
+            <div className="row row--start">
+              <p className="body-text section-header">View</p>
             </div>
-            <div className="row">
-              <div className="col">
-                <div className="tasks-table-container">
-                  <ViewTask />
+            <div className="row row--expand">
+              <div className="col col--start tasks-table-container">
+                <div className="row tasks-table__header">
+                  { /* <div className="col tasks-table__header__edit" /> */}
+                  <div className="col tasks-table__header__id">
+                    <p>#</p>
+                  </div>
+                  <div className="col tasks-table__header__sku">
+                    <p>Product</p>
+                  </div>
+                  <div className="col tasks-table__header__sites">
+                    <p>Sites</p>
+                  </div>
+                  <div className="col tasks-table__header__profile">
+                    <p>Billing Profile</p>
+                  </div>
+                  <div className="col tasks-table__header__sizes">
+                    <p>Sizes</p>
+                  </div>
+                  <div className="col tasks-table__header__pairs">
+                    <p># Pairs</p>
+                  </div>
+                  <div className="col tasks-table__header__actions">
+                    <p>Actions</p>
+                  </div>
+                </div>
+                <div className="row row--start">
+                  <div className="col">
+                    <hr className="view-line" />
+                  </div>
+                </div>
+                <div className="row row--start">
+                  <div className="col">
+                    <ViewTask />
+                  </div>
                 </div>
               </div>
-              <div className="col bulk-action-sidebar">
+              <div className="col col--start bulk-action-sidebar">
                 <div className="row">
                   <div
                     className="bulk-action-sidebar__button"
