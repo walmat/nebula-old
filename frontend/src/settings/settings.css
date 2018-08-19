@@ -18,6 +18,11 @@
 
 #proxy-list-text {
     position:absolute;
+    font-family: AvenirNext-Medium;
+    text-transform: capitalize;
+    font-size: 9px;
+    color: #6D6E70;
+    letter-spacing: 0;
     top:135px;
     left:151px;
     width:330px;
@@ -25,6 +30,17 @@
     background: #f4f4f4;
     border-radius: 3px;
     border: none;
+    overflow-y: scroll;
+}
+
+.invalidProxy {
+    color: red;
+}
+
+.proxy-list-input {
+    border-width: 1px;
+    border-radius: 1px;
+    width: 330px;
 }
 
 #proxy-list-save {

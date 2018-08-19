@@ -15,8 +15,9 @@ import './tasks.scss';
 import './tasksTable.css';
 import { taskActions } from '../state/actions';
 
+import defns from '../utils/definitions/taskDefinitions';
+
 class Tasks extends Component {
-  
   async onTaskChange(event) {
     const taskId = event.target.value;
     const { tasks } = this.props;
@@ -43,6 +44,12 @@ class Tasks extends Component {
       this.props.onRemoveTask(this.props.tasks[i]);
     }
   }
+
+  /* MORE HELPERS HERE IF NEED */
+
+  // async toggleSVG(state) {
+  // //based on the state of the <select> tags, change the src of the img
+  // }
 
   render() {
     const { newTask } = this.props;

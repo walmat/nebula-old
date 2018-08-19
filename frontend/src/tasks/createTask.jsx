@@ -8,6 +8,9 @@ import getAllSizes from './getSizes';
 import DDD from '../_assets/dropdown-down.svg';
 import './tasks.css';
 
+import pDefns from '../utils/definitions/profileDefinitions';
+import tDefns from '../utils/definitions/taskDefinitions';
+
 class CreateTask extends Component {
   static buildSizeOptions() {
     const sizes = getAllSizes();
@@ -48,7 +51,6 @@ class CreateTask extends Component {
   }
 
   render() {
-    const { errors } = this.props;
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>
@@ -84,10 +86,10 @@ class CreateTask extends Component {
 }
 
 CreateTask.propTypes = {
-  errors: PropTypes.objectOf(PropTypes.any).isRequired,
+  errors: tDefns.taskErrors.isRequired,
   onChange: PropTypes.func.isRequired,
-  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
-  value: PropTypes.objectOf(PropTypes.any).isRequired,
+  profiles: pDefns.profileList.isRequired,
+  value: tDefns.task.isRequired,
   onAddNewTask: PropTypes.func.isRequired,
 };
 

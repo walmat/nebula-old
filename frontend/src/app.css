@@ -1,3 +1,38 @@
+@font-face {
+  font-family: AvenirNext-Regular;
+  src:url(./_assets/fonts/AvenirNext-Regular-08.ttf);
+}
+
+@font-face {
+  font-family: AvenirNext-Medium;
+  src:url(./_assets/fonts/AvenirNext-Medium-06.ttf);
+}
+
+@font-face {
+  font-family: AvenirNext-UltraLight;
+  src:url(./_assets/fonts/AvenirNext-UltraLight-11.ttf);
+}
+
+@font-face {
+  font-family: AvenirNext-Bold;
+  src:url(./_assets/fonts/AvenirNext-Bold-01.ttf);
+}
+
+@font-face {
+  font-family: AvenirNext-DemiBold;
+  src: url(./_assets/fonts/AvenirNext-DemiBold-03.ttf);
+}
+
+@font-face {
+  font-family: AvenirNext-Heavy;
+  src:url(./_assets/fonts/AvenirNext-Heavy-09.ttf);
+}
+
+@font-face {
+  font-family: AvenirNext-Italic;
+  src:url(./_assets/fonts/AvenirNext-Italic-05.ttf);
+}
+
 * {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -8,10 +43,14 @@
   cursor: default;
 }
 
+*:focus {
+  outline: 0px solid transparent;
+}
+
 html, body {
   width: 100%;
   height: 100%;
-  font-family: "Avenir Next", sans-serif;
+  font-family: AvenirNext-Regular;
   font-size: 100%;
   padding:0;
   margin:0;

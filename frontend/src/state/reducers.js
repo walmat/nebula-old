@@ -23,6 +23,7 @@ export const initialState = {
   newTask: initialTaskState,
   selectedTask: initialTaskState,
   proxies: initialSettingsState,
+  settings: initialSettingsState,
   serverInfo: initialServerState,
   serverListOptions,
 };
@@ -35,7 +36,7 @@ const topLevelReducer = (state = initialState, action) => {
     profiles: profileListReducer(state.profiles, action),
     currentProfile: currentProfileReducer(state.currentProfile, action),
     selectedProfile: selectedProfileReducer(state.selectedProfile, action),
-    proxies: settingsReducer(state.proxies, action),
+    settings: settingsReducer(state.settings, action),
     serverInfo: serverReducer(state.serverInfo, action),
   };
 

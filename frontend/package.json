@@ -14,7 +14,6 @@
     "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
     "electron-dev-windows": "set ELECTRON_START_URL=http://localhost:3000 && electron .",
     "lint": "./node_modules/.bin/eslint src/",
-    "homepage": "./",
     "sass": "./tool/compile_css.sh"
   },
   "dependencies": {
@@ -26,7 +25,7 @@
     "jquery": "^3.3.1",
     "jsonfile": "^4.0.0",
     "moment": "^2.22.2",
-    "npm": "^6.0.6",
+    "npm": "^6.2.0",
     "prop-types": "^15.6.1",
     "query-string": "^6.1.0",
     "react": "^16.3.0",
@@ -37,6 +36,7 @@
     "redux": "^4.0.0",
     "redux-localstorage": "^0.4.1",
     "redux-thunk": "^2.3.0",
+    "sanitize-html": "^1.18.2",
     "uuid": "^3.2.1"
   },
   "devDependencies": {

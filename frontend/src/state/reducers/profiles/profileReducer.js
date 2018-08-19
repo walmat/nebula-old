@@ -3,7 +3,7 @@ import { locationReducer, initialLocationState } from './locationReducer';
 import { paymentReducer, initialPaymentState } from './paymentReducer';
 
 export const initialProfileState = {
-  id: '',
+  id: null,
   profileName: '',
   errors: {
     profileName: null,
@@ -142,6 +142,12 @@ export function selectedProfileReducer(state = initialProfileState, action) {
         return Object.assign({}, initialProfileState);
       }
 
+      break;
+    }
+    case PROFILE_ACTIONS.UPDATE: {
+      if (action.id === state.id) {
+        return Object.assign({}, action.profile);
+      }
       break;
     }
     default:

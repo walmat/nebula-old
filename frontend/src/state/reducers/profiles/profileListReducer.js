@@ -101,6 +101,10 @@ export function profileListReducer(state = initialProfileListState, action) {
       nextState[idx] = Object.assign({}, action.profile, { id: action.id });
       break;
     }
+    case PROFILE_ACTIONS.ERROR: {
+      console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
+      break;
+    }
     default:
       break;
   }
