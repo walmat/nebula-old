@@ -28,6 +28,8 @@ export const initialServerState = {
   },
 };
 
+export const initialServerListState = [];
+
 export function serverReducer(state = initialServerState, action) {
   // initialize change object
   let change = {};
@@ -84,6 +86,8 @@ export function serverReducer(state = initialServerState, action) {
       default:
         return nextState;
     }
+
+    console.log(action, change);
     // Update the correct errors map
     change.errors = Object.assign(
       {},

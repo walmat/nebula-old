@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
@@ -7,13 +8,12 @@ import PaymentFields from './paymentFields';
 import LocationFields from './locationFields';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import './profiles.css';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
 
 // images
-import DDD from '../_assets/dropdown-down.svg';
-import DDU from '../_assets/dropdown-up.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
 
@@ -28,9 +28,9 @@ class Profiles extends Component {
   }
 
   onProfileChange(event) {
-    const profileName = event.target.value;
+    const id = event.value;
     const { profiles } = this.props;
-    const selectedProfile = profiles.find(p => p.profileName === profileName);
+    const selectedProfile = profiles.find(p => p.id === id);
 
     this.props.onSelectProfile(selectedProfile);
   }
@@ -88,8 +88,11 @@ class Profiles extends Component {
 
   buildProfileOptions() {
     const { profiles } = this.props;
-    return profiles && profiles.map(profile =>
-      (<option key={profile.id} > {profile.profileName} </option>));
+    const opts = [];
+    profiles.forEach(profile => {
+      opts.push({ value: profile.id, label: profile.profileName })
+    });
+    return opts;
   }
 
   render() {
@@ -104,15 +107,15 @@ class Profiles extends Component {
           <p className="body-text" id="load-profile-label">Load Profile</p>
           <div id="load-profile-box" />
           <p id="profile-name-label">Profile Name</p>
-          <select id="profile-load" onChange={this.onProfileChange} value={this.props.selectedProfile.profileName || ''}>
-            <option value="" hidden>Choose Profile to Load</option>
-            {this.buildProfileOptions()}
-          </select>
-          <img
-            src={currentProfile ? DDD : DDU}
-            alt="dropdown arrow"
-            id="profile-select-arrow"
-            draggable="false"
+          <Select
+            required
+            defaultValue="Choose Profile to Load"
+            components={{ DropdownIndicator }}
+            id="profile-load"
+            styles={colourStyles}
+            onChange={this.onProfileChange}
+            value={this.props.selectedProfile.value}
+            options={this.buildProfileOptions()}
           />
           <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
 

@@ -1,3 +1,7 @@
+::-webkit-scrollbar {
+    display: none;
+}
+
 #server-header {
     position: absolute;
     top: 26px;
@@ -235,7 +239,11 @@
     left:718px;
     width: 233px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #size-server-label {
@@ -264,7 +272,11 @@
     left:718px;
     width: 233px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #location-server-label {
@@ -293,7 +305,11 @@
     left:718px;
     width: 233px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #destroy-server {
@@ -326,4 +342,169 @@
     font-size: 12px;
     color: #EFEFEF;
     letter-spacing: 0;
+}
+
+#server-log-label {
+    position: absolute;
+    top: 335px;
+    left: 140px;
+    width: 21px;
+    height: 16px;
+    margin: 0;
+}
+
+#server-scroll-box {
+    position: absolute;
+    top: 386px;
+    left: 141px;
+    width: 823px;
+    height: 305.5px;
+    border: none;
+    border-radius: 3px;
+    overflow-y: scroll;
+}
+
+#server-log-box {
+    position: absolute;
+    top: 358px;
+    left: 140px;
+    width: 823px;
+    height: 333px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+}
+
+.server-log-header {
+    position: absolute;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #161318;
+    letter-spacing: 0;
+}
+
+#server-type-header {
+    top: 365px;
+    left: 161px;
+    width: 28px;
+    height: 16px;
+    margin: 0;
+}
+
+#server-size-header {
+    top: 365px;
+    left: 355px;
+    width: 39px;
+    height: 16px;
+    margin: 0;
+}
+
+#server-location-header {
+    top: 365px;
+    left: 485px;
+    width: 47px;
+    height: 16px;
+    margin: 0;  
+}
+
+#server-charges-header {
+    top: 365px;
+    left: 615px;
+    width: 105px;
+    height: 16px;
+    margin: 0;
+}
+
+#server-status-header {
+    top: 365px;
+    left: 779px;
+    width: 34px;
+    height: 16px;
+    margin: 0;
+}
+
+#server-actions-header {
+    top: 365px;
+    left: 889px;
+    width: 34px;
+    height: 16px;
+    margin: 0;
+}
+
+#server-log-line {
+    margin: 0;
+    border: 1px solid #EDBCC6;
+    position: absolute;
+    top:385.5px;
+    left:141.3px;
+    width:821px;
+}
+
+#server-log-table {
+    margin: 0;
+    position: absolute;
+    top: 388px;
+    left: 140.5px;
+    width: 823px;
+    height: 304px;
+    overflow: scroll
+}
+
+.blank {
+    position: relative;
+    width: 5px;
+    border-bottom: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0 20px;
+    width: 100%;
+}
+
+.server_row {
+    width: 100%;
+    height: 30px !important;
+}
+
+.server-log-type {
+    position: relative;
+    padding-left: 15px;
+    width: 190px;
+    border-bottom: #dfdfdf solid 1px;
+}
+
+.server-log-size {
+    position: relative;
+    width: 128px;
+    border-bottom: #dfdfdf solid 1px;
+}
+
+.server-log-location {
+    position: relative;
+    width: 165px;
+    border-bottom: #dfdfdf solid 1px;
+}
+
+.server-log-charges {
+    position: relative;
+    width: 126px;
+    border-bottom: #dfdfdf solid 1px;
+
+}
+
+.server-log-status {
+    position: relative;
+    width: 120px;
+    border-bottom: #dfdfdf solid 1px;
+
+}
+
+.server-log-action {
+    position: relative;
+    border-bottom: #dfdfdf solid 1px;
+}
+
+.server-log-action > img {
+    cursor: pointer;
+    vertical-align:middle;
 }

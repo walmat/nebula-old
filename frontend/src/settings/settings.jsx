@@ -1,9 +1,14 @@
 import React, { Component } from 'react';
+import Select from 'react-select';
+import { connect } from 'react-redux';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import '../app.css';
 import './settings.css';
 import ProxyList from './proxyList';
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import defns from '../utils/definitions/settingsDefinitions';
+import getAllSizes from '../getSizes';
 
 class Settings extends Component {
   /*
@@ -44,6 +49,19 @@ class Settings extends Component {
     }
   }
 
+  static buildSizeOptions() {
+    return getAllSizes();
+  }
+
+  buildProfileOptions() {
+    const { profiles } = this.props;
+    const opts = [];
+    profiles.forEach(profile => {
+      opts.push({ value: profile.id, label: profile.profileName })
+    });
+    return opts;
+  }
+
   render() {
     return (
       <div className="container">
@@ -55,9 +73,72 @@ class Settings extends Component {
         <button id="proxy-button-youtube" onClick={Settings.launchYoutube} >YouTube</button>
         <button id="proxy-button-captcha" onClick={Settings.harvester} >Captcha</button>
         <button id="proxy-button-close-session" onClick={Settings.closeSession} >End Session</button>
+
+        {/* EXTRAS */}
+        <p id="discord-label">Discord URL</p>
+        <input id="discord-input" placeholder="https://discordapp.com/api/webhooks/..." />
+        <p id="slack-label">Slack URL</p>
+        <input id="slack-input" placeholder="https://hooks.slack.com/services/..." />
+
+        {/* DEFAULTS */}
+        <p className="body-text" id="defaults-label">Defaults</p>
+        <div id="defaults-box" />
+        <p id="default-profile-label">Profile</p>
+        <Select
+          required
+          defaultValue="Choose Profile"
+          components={{ DropdownIndicator }}
+          id="default-profile"
+          styles={colourStyles}
+          onChange={this.onProfileChange}
+          value={this.props.selectedProfile.value}
+          options={this.buildProfileOptions()}
+        />
+
+        <p id="default-sizes-label">Sizes</p>
+        <Select
+          required
+          defaultValue="Choose Sizes"
+          components={{ DropdownIndicator }}
+          id="default-sizes"
+          styles={colourStyles}
+          onChange={this.onProfileChange}
+          value={this.props.selectedProfile.value}
+          options={Settings.buildSizeOptions()}
+        />
+        <button
+          id="save-defaults"
+          tabIndex={0}
+          onKeyPress={() => {}}
+          onClick={this.saveDefaults}
+        >
+        Save
+        </button>
+
+        <button
+          id="clear-defaults"
+          tabIndex={0}
+          onKeyPress={() => {}}
+          onClick={this.saveDefaults}
+        >
+        Clear
+        </button>
       </div>
     );
   }
 }
 
-export default EnsureAuthorization(Settings);
+Settings.propTypes = {
+  profiles: defns.profileList.isRequired,
+  defaultProfile: defns.profile.isRequired,
+};
+
+const mapStateToProps = state => ({
+  profiles: state.profiles,
+  selectedProfile: state.selectedProfile,
+});
+
+const mapDispatchToProps = dispatch => ({
+});
+
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Settings));

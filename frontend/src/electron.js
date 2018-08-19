@@ -52,6 +52,7 @@ function startMainWindow() {
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
+      webSecurity: 'false',
     },
   });
 
@@ -86,6 +87,7 @@ function startMainWindow() {
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
+      webSecurity: 'false',
     },
     onLoadFailure: (window) => {
       console.log('window load failure');
@@ -205,6 +207,11 @@ ipcMain.on('window-event', (event, arg) => {
       break;
     }
     case 'quit': {
+      app.quit();
+      break;
+    }
+
+    case 'close': {
       app.quit();
       break;
     }

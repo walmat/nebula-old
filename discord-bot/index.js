@@ -1,7 +1,6 @@
 const { prefixes, token } = require('./config.json');
 const Discord = require('discord.js');
 
-const link_builder = require('./link-builder');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const fetch = require('node-fetch');
@@ -52,12 +51,14 @@ async function bindUser(message) {
             })
         });
 
+    console.log(result);
+
     if (result.status === 200) {
         message.channel.send(`${registrationKey} is now binded with your account`);
     } else {
         message.channel.send(`${registrationKey} is an invalid key`);
                             // So we get our messages, and delete them. Simple enough, right?
-        const fetched = await message.channel.fetchMessages({count: deleteCount});
+        const fetched = await message.channel.fetchMessages({count: 1});
         message.channel.bulkDelete(fetched)
             .catch(error => message.reply(`Couldn't delete messages because of: ${error}`));
 

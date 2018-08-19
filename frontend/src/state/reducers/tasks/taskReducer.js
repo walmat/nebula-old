@@ -7,7 +7,7 @@ export const initialTaskState = {
   id: '',
   sku: '',
   profile: {},
-  sizes: '',
+  sizes: [],
   pairs: '1',
   sites: {},
   status: 'idle',

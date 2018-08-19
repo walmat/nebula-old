@@ -58,7 +58,7 @@ html, body {
   overflow: hidden;
 }
 
-input, a, h1, h2, h3, h4, h5, h6, p, link {
+input, a, h1, h2, h3, h4, h5, h6, p, link, Select {
   font-family: AvenirNext-Medium;
   font-size: 9px;
   color: #161318;
@@ -78,10 +78,6 @@ select {
   appearance:none;
 }
 
-select *.opt {
-  background: #161318 !important;
-}
-
 #app, #container-wrapper {
   overflow: hidden;
   height:inherit !important;
@@ -99,6 +95,46 @@ select *.opt {
   color: transparent;
   -webkit-user-select: none;
   -webkit-app-region: drag;
+}
+
+.close-area-1 {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  width: 25px;
+  height: 25px;
+  background: #46ADB4;
+  border-bottom-left-radius: 5px;
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.close-area-2 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 25px;
+  height: 25px;
+  background: #EF415E;
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.close-area-1 > img, .close-area-2 > img {
+  cursor: pointer;
+}
+
+.active > svg {
+  opacity: 0.5;
+}
+
+.close-area-1:hover, .close-area-2:hover {
+  opacity: 0.8333;
+  cursor: pointer;
 }
 
 input:focus,
@@ -190,5 +226,9 @@ input:focus {
   left: 140px;
   width: 118px;
   height: 66px;
+}
+
+button:enabled:hover {
+  opacity: 0.8333;
 }
 /* END GENERIC CLASSES*/

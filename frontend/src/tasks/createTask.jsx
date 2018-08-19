@@ -1,21 +1,34 @@
 import React, { Component } from 'react';
+import Select, { components } from 'react-select';
+import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, taskActions } from '../state/actions';
-import getAllSizes from './getSizes';
+import getAllSizes from '../getSizes';
 
 import DDD from '../_assets/dropdown-down.svg';
+import DDU from '../_assets/dropdown-up.svg';
 import './tasks.css';
 
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+
 class CreateTask extends Component {
   static buildSizeOptions() {
-    const sizes = getAllSizes();
-    return sizes.map(size =>
-      (<option key={size.name} value={size.name}>{size.name}</option>));
+    return getAllSizes();
+  }
+
+  static openSelect(which) {
+    const el = document.getElementById(which);
+    console.log(el);
+    el.size = 4;
+  }
+
+  static formatPairs(val) {
+    return val <= 5 && val > 0 ? val : null;
   }
 
   constructor(props) {
@@ -27,12 +40,15 @@ class CreateTask extends Component {
 
   buildProfileOptions() {
     const p = this.props.profiles;
-    return p.map(profile => (<option key={profile.id} className="opt" value={profile.id}>{profile.profileName}</option>));
+    const opts = [];
+    p.forEach(profile => {
+      opts.push({ value: profile.id, label: profile.profileName })
+    });
+    return opts;
   }
 
   async saveTask(e) {
     e.preventDefault();
-    console.log(this.props.value);
     this.props.onAddNewTask(this.props.value);
   }
 
@@ -40,12 +56,21 @@ class CreateTask extends Component {
     switch (field) {
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
-          const change = this.props.profiles.find(p => `${p.id}` === event.target.value);
+          const change = this.props.profiles.find(p => p.id === event.value);
           this.props.onChange({ field, value: change });
+        };
+      case TASK_FIELDS.EDIT_SIZES:
+        return (event) => {
+          const values = event.map(s => s.value);
+          this.props.onChange({ field, value: values });
+        };
+      case TASK_FIELDS.EDIT_SKU:
+        return (event) => {
+          this.props.onChange({ field, value: event.target.value });
         };
       default:
         return (event) => {
-          this.props.onChange({ field, value: event.target.value });
+          this.props.onChange({ field, value: event.value });
         };
     }
   }
@@ -58,20 +83,32 @@ class CreateTask extends Component {
         <p id="sku-label">Input SKU</p>
         <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <select id="profiles" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)} value={this.props.value.profile.id || ''} required>
-          <option value="" selected disabled hidden>Choose Profiles</option>
-          {this.buildProfileOptions()}
-        </select>
-        <div id="dropdown-profiles-box" />
-        <img src={DDD} alt="dropdown" id="dropdown-profiles-arrow" draggable="false" />
+        <Select
+          required
+          defaultValue="Choose a profile"
+          components={{ DropdownIndicator }}
+          id="profiles"
+          
+          styles={colourStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+          value={this.props.value.value}
+          options={this.buildProfileOptions()}
+        />
         <p id="size-label">Sizes</p>
-        <select id="size" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)} value={this.props.value.sizes} required>
-          <option value="" selected disabled hidden>Choose Size</option>
-          {CreateTask.buildSizeOptions()}
-        </select>
-        <img src={DDD} alt="dropdown" id="dropdown-size-arrow" draggable="false" />
+        <Select
+          required
+          isMulti
+          isClearable={false}
+          defaultValue="Choose a profile"
+          components={{ DropdownIndicator }}
+          id="size"
+          styles={colourStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
+          value={this.props.value.value}
+          options={CreateTask.buildSizeOptions()}
+        />
         <p id="pairs-label"># Pairs</p>
-        <input id="pairs" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} value={this.props.value.pairs} required />
+        <NumberFormat format={CreateTask.formatPairs} placeholder="1" value={this.props.value.pairs} id="pairs" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} />
         <button
           id="submit-tasks"
           tabIndex={0}

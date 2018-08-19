@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
+import { captchaActions, HARVESTER_FIELDS } from '../state/actions';
+
+import './captcha.css';
 import '../app.css';
 
 class Harvester extends Component {
@@ -15,10 +18,19 @@ class Harvester extends Component {
     }
   }
 
+  async componentDidMount() {
+    try {
+      console.log();
+    } catch (err) {
+      console.log(err);
+    //   this.setState({error: true});
+    }
+  }
+
   render() {
     return (
       <div className="container">
-        <form action="/submit" method="post">
+        <form action="/submit" method="post" style={{ marginTop: '50%' }}>
           <div
             className="g-recaptcha"
             data-sitekey={sitekey}

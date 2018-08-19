@@ -15,6 +15,10 @@ const _quit = () => {
   _sendEvent('window-event', 'quit');
 };
 
+const _close = () => {
+  _sendEvent('window-event', 'close');
+};
+
 // Send a launchYoutube window event
 const _launchYoutube = () => {
   _sendEvent('window-event', 'launchYoutube');
@@ -52,6 +56,7 @@ process.once('loaded', () => {
   /* BRIDGED EVENTS */
   window.Bridge.launchYoutube = _launchYoutube;
   window.Bridge.launchHarvester = _launchHarvester;
+  window.Bridge.close = _close;
   window.Bridge.refresh = _refresh;
   window.Bridge.harvest = _harvest;
   window.Bridge.endSession = _endSession;

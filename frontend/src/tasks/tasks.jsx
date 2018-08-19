@@ -114,8 +114,8 @@ class Tasks extends Component {
 }
 
 Tasks.propTypes = {
-  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
-  newTask: PropTypes.objectOf(PropTypes.any).isRequired,
+  tasks: defns.taskList.isRequired,
+  newTask: defns.task.isRequired,
   onSelectTask: PropTypes.func.isRequired,
   onRemoveTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,

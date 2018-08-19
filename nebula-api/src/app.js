@@ -2,35 +2,20 @@
 const dotenv = require('dotenv');
 dotenv.load();
 
+const cors = require('cors');
+
 const express = require('express'),
     app     = express(),
     port    = parseInt(process.env.PORT, 10) || 8080;
 
+app.use(cors());
 app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.urlencoded({extended: true})); // to support URL-encoded bodies
 
-app.use((req, res, next) => {
-    const origin = req.get('origin');
-
-    console.log(origin);
-
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Credentials', true);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, x-access-token');
-
-    // intercept OPTIONS method
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(204);
-    } else {
-        next();
-    }
-});
-
 /*SETUP ROUTES*/
 let tasks = require('./routes/tasks/tasks');
-let shopify = require('./routes/core/shopify/main');
-let harvester = require('./routes/core/shopify/harvester');
+// let shopify = require('./routes/core/shopify/main');
+// let harvester = require('./routes/core/shopify/harvester');
 let profiles = require('./routes/profiles/profiles');
 let server = require('./routes/server/server');
 let settings = require('./routes/settings/settings');
@@ -44,20 +29,5 @@ server(app); settings(app);
 createUser(app); getUser(app);
 auth(app);
 
-app.listen(port);
+app.listen(port, () => console.log(`Nebula API started on port ${port}`));
 
-console.log(`Nebula API server started on port ${port}`);
-//
-//
-// // captcha server
-// let captcha = express();
-// let captchaPort = parseInt(process.env.PORT, 10) || 6000;
-//
-// captcha.use(express.json());       // to support JSON-encoded bodies
-// captcha.use(express.urlencoded({extended: true})); // to support URL-encoded bodies
-//
-// harvester(captcha);
-//
-// captcha.listen(captchaPort);
-//
-// console.log(`Captcha server started on port ${captchaPort}`);
