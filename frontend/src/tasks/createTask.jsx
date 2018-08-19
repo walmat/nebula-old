@@ -53,7 +53,7 @@ const colourStyles = {
       src: menuIsOpen ? DDU : DDD,
     };
   },
-  input: styles => ({ ...styles, padding: 0 }),
+  input: styles => ({ ...styles, autoSize: 'false' }),
   // placeholder: styles => ({ ...styles, ...dot() }),
   // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
 };
@@ -78,6 +78,9 @@ class CreateTask extends Component {
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.saveTask = this.saveTask.bind(this);
+    this.state = {
+      maxReached: false,
+    }
   }
 
   buildProfileOptions() {
@@ -130,6 +133,7 @@ class CreateTask extends Component {
           defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
           id="profiles"
+          
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
           value={this.props.value.value}
