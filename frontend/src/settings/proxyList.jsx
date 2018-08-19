@@ -44,7 +44,7 @@ class ProxyList extends Component {
   blur(e) {
     // Check if we need to call a redux update
     if (this.state.reduxUpdate) {
-      this.props.onUpdateProxies(this.state.proxies.map(proxy => proxy.replace('\n', '')));
+      this.props.onUpdateProxies(this.state.proxies.map(proxy => proxy.trim()));
     }
     // Force an editing transition to color invalid proxies
     this.setState({
@@ -88,7 +88,7 @@ class ProxyList extends Component {
     // Get the new proxies from the domNodes innerText,
     //   then mapping it to sanitized input, then removing empty lines
     const newProxies = this.domNode.innerText.trim().split('\n')
-      .map(proxy => ProxyList.sanitize(proxy))
+      .map(proxy => ProxyList.sanitize(proxy.trim()))
       .filter(proxy => proxy.length > 0);
 
     // Update the component state with newProxies and set the reduxUpdate flag

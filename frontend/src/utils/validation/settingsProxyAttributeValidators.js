@@ -7,7 +7,6 @@ function validateProxies(proxies) {
   proxies.forEach((proxy, idx) => {
     const matchDefault = regexes.settingsProxyDefault.test(proxy);
     const matchUserPass = regexes.settingsProxyUserPass.test(proxy);
-    // console.log(`${proxy} => ${matchUserPass} || ${matchDefault}`);
     if (!matchDefault && !matchUserPass) {
       errorMap.push(idx);
     }
