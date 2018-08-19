@@ -32,22 +32,6 @@ class Profiles extends Component {
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
   }
 
-  async componentDidMount() {
-    // this.props.history.push('/login');
-    // THIS WILL BE HANDLED IN A MIDDLEWARE
-    /* FETCH THE PROFILES FROM THE API */
-    // let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
-    //     {
-    //         method: "GET",
-    //         headers: {
-    //             'Accept': 'application/json',
-    //             'Content-Type': 'application/json'
-    //         }
-    //     });
-    // let profiles = (await result.json()).profiles;
-    // this.setState({profiles});
-  }
-
   onProfileChange(event) {
     const profileName = event.target.value;
     const { profiles } = this.props;

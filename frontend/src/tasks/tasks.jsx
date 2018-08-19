@@ -11,21 +11,13 @@ import stopAll from '../_assets/stop-all.svg';
 import destroyAll from '../_assets/destroy-all.svg';
 
 import '../app.css';
-import './tasks.css';
+import './tasks.scss';
+import './tasksTable.css';
 import { taskActions } from '../state/actions';
 
 import defns from '../utils/definitions/taskDefinitions';
 
 class Tasks extends Component {
-  /**
-   * if user clicks the large `right arrow` button, run all the tasks
-   */
-  static async startAllTasks() {
-    // const pool = new Pool(); //ceate a new thread pool
-    // TODO – create thread for each task and run it
-  }
-
-  /* changes when the edit button for each task is clicked */
   async onTaskChange(event) {
     const taskId = event.target.value;
     const { tasks } = this.props;
@@ -75,14 +67,16 @@ class Tasks extends Component {
           <p id="log-site">Site</p>
           <p id="log-output">Output</p>
           <hr id="log-line" />
+          <div id="log-scroll-box" />
 
           {/* VIEW TASK */}
           <p className="body-text" id="view-label">View</p>
           <div id="view-box" />
           <p id="view-num">#</p>
           <p id="view-product">Product</p>
+          <p id="view-sites">Sites</p>
           <p id="view-size">Size</p>
-          <p id="view-billings">Billings</p>
+          <p id="view-billings">Billing Profile</p>
           <p id="view-pairs"># Pairs</p>
           <p id="view-actions">Actions</p>
           <hr id="view-line" />
@@ -120,17 +114,12 @@ class Tasks extends Component {
 }
 
 Tasks.propTypes = {
-  tasks: defns.taskList.isRequired,
-  newTask: defns.task.isRequired,
-  // selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
-  // onAddNewTask: PropTypes.func.isRequired,
-  // onLoadTask: PropTypes.func.isRequired,
+  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
+  newTask: PropTypes.objectOf(PropTypes.any).isRequired,
   onSelectTask: PropTypes.func.isRequired,
-  // onUpdateTask: PropTypes.func.isRequired,
   onRemoveTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
-  // onChangeField: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
