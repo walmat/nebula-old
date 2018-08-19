@@ -36,8 +36,6 @@ class ServerLog extends Component {
 
   createTable() {
     const table = [];
-    console.log(this.props.servers);
-
     for (let i = 0; i < this.props.servers.length; i += 1) {
       const server = this.props.servers[i];
       table.push((

@@ -122,15 +122,10 @@ class Tasks extends Component {
 Tasks.propTypes = {
   tasks: defns.taskList.isRequired,
   newTask: defns.task.isRequired,
-  // selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
-  // onAddNewTask: PropTypes.func.isRequired,
-  // onLoadTask: PropTypes.func.isRequired,
   onSelectTask: PropTypes.func.isRequired,
-  // onUpdateTask: PropTypes.func.isRequired,
   onRemoveTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
-  // onChangeField: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({

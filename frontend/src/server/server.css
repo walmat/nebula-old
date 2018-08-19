@@ -239,7 +239,11 @@
     left:718px;
     width: 233px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #size-server-label {
@@ -268,7 +272,11 @@
     left:718px;
     width: 233px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #location-server-label {
@@ -297,7 +305,11 @@
     left:718px;
     width: 233px;
     height: 29px;
-    border: 1px solid #F0405E;
+    /* border: 1px solid #F0405E; */
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
 }
 
 #destroy-server {
