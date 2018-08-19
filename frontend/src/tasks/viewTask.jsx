@@ -10,7 +10,6 @@ class ViewTask extends Component {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
-    this.editTask = this.editTask.bind(this);
     this.startTask = this.startTask.bind(this);
     this.stopTask = this.stopTask.bind(this);
     this.destroyTask = this.destroyTask.bind(this);
@@ -69,7 +68,6 @@ const mapDispatchToProps = dispatch => ({
 
 ViewTask.propTypes = {
   tasks: defns.taskList.isRequired,
-  onEditTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,

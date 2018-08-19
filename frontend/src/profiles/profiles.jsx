@@ -16,11 +16,6 @@ import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
-// import DDU from '../_assets/dropdown-up.svg';
-
-// TODO Need way to display that the server 'blew up'
-// TODO Reload profiles when new profile saved
-// TODO Loading when getting profiles
 
 class Profiles extends Component {
   constructor(props) {

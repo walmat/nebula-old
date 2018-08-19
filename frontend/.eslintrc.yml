@@ -7,4 +7,5 @@ rules:
   no-underscore-dangle: 0
   no-unused-vars: 0
   no-case-declarations: 0
+  linebreak-style: 0
   
