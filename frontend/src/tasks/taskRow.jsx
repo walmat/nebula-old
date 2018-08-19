@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import getAllSizes from './getSizes';
+import getAllSizes from '../getSizes';
 
 import start from '../_assets/run.svg';
 import startDim from '../_assets/run_dim.svg';
