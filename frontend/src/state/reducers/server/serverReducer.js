@@ -86,6 +86,8 @@ export function serverReducer(state = initialServerState, action) {
       default:
         return nextState;
     }
+
+    console.log(action, change);
     // Update the correct errors map
     change.errors = Object.assign(
       {},
