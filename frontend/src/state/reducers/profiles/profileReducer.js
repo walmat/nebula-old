@@ -69,6 +69,7 @@ export function profileReducer(state = initialProfileState, action) {
 }
 
 export function currentProfileReducer(state = initialProfileState, action) {
+
   switch (action.type) {
     case PROFILE_ACTIONS.EDIT: {
       // only modify the current profile if the action id is null
@@ -114,7 +115,6 @@ export function currentProfileReducer(state = initialProfileState, action) {
         // Return initial state
         return Object.assign({}, initialProfileState);
       }
-
       break;
     }
     default:

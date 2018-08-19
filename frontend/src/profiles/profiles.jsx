@@ -16,11 +16,6 @@ import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
-// import DDU from '../_assets/dropdown-up.svg';
-
-// TODO Need way to display that the server 'blew up'
-// TODO Reload profiles when new profile saved
-// TODO Loading when getting profiles
 
 class Profiles extends Component {
   constructor(props) {
@@ -30,22 +25,6 @@ class Profiles extends Component {
     this.deleteProfile = this.deleteProfile.bind(this);
     this.loadProfile = this.loadProfile.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
-  }
-
-  async componentDidMount() {
-    // this.props.history.push('/login');
-    // THIS WILL BE HANDLED IN A MIDDLEWARE
-    /* FETCH THE PROFILES FROM THE API */
-    // let result = await fetch(`http://localhost:8080/profiles/${process.env.REACT_APP_REGISTRATION_KEY}`,
-    //     {
-    //         method: "GET",
-    //         headers: {
-    //             'Accept': 'application/json',
-    //             'Content-Type': 'application/json'
-    //         }
-    //     });
-    // let profiles = (await result.json()).profiles;
-    // this.setState({profiles});
   }
 
   onProfileChange(event) {
