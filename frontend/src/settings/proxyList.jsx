@@ -18,6 +18,7 @@ class ProxyList extends Component {
     this.handleUpdate = this.handleUpdate.bind(this);
     this.focus = this.focus.bind(this);
     this.blur = this.blur.bind(this);
+    this.paste = this.paste.bind(this);
 
     // Set initial state
     this.state = {
@@ -43,7 +44,7 @@ class ProxyList extends Component {
   blur(e) {
     // Check if we need to call a redux update
     if (this.state.reduxUpdate) {
-      this.props.onUpdateProxies(this.state.proxies);
+      this.props.onUpdateProxies(this.state.proxies.map(proxy => proxy.trim()));
     }
     // Force an editing transition to color invalid proxies
     this.setState({
@@ -59,6 +60,26 @@ class ProxyList extends Component {
     });
   }
 
+  paste(e) {
+    // Prevent default and event propagation
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Get the clipboard data and sanitize the text
+    const data = (e.clipboardData || window.clipboardData);
+    const text = ProxyList.sanitize(data.getData('text'));
+
+    // Perform the insert using the plain text to mimic the paste
+    if (document.queryCommandSupported('insertText')) {
+      document.execCommand('insertText', false, text);
+    } else {
+      document.execCommand('paste', false, text);
+    }
+
+    // Force an update
+    this.handleUpdate(null);
+  }
+
   handleUpdate(e) {
     // If we don't have the dom node, there's nothing to do here.
     if (!this.domNode) return;
@@ -67,7 +88,7 @@ class ProxyList extends Component {
     // Get the new proxies from the domNodes innerText,
     //   then mapping it to sanitized input, then removing empty lines
     const newProxies = this.domNode.innerText.trim().split('\n')
-      .map(proxy => ProxyList.sanitize(proxy))
+      .map(proxy => ProxyList.sanitize(proxy.trim()))
       .filter(proxy => proxy.length > 0);
 
     // Update the component state with newProxies and set the reduxUpdate flag
@@ -107,6 +128,7 @@ class ProxyList extends Component {
         onInput: this.handleUpdate,
         onFocus: this.focus,
         onBlur: this.blur,
+        onPaste: this.paste,
         dangerouslySetInnerHTML: { __html: this.renderProxies() },
         contentEditable: true,
       },

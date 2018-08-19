@@ -5,8 +5,9 @@ import regexes from '../validation';
 function validateProxies(proxies) {
   const errorMap = [];
   proxies.forEach((proxy, idx) => {
-    if (!regexes.settingsProxyDefault.test(proxy) &&
-        !regexes.settingsProxyUserPass.test(proxy)) {
+    const matchDefault = regexes.settingsProxyDefault.test(proxy);
+    const matchUserPass = regexes.settingsProxyUserPass.test(proxy);
+    if (!matchDefault && !matchUserPass) {
       errorMap.push(idx);
     }
   });
