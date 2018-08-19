@@ -209,6 +209,7 @@ ipcMain.on('window-event', (event, arg) => {
       break;
     }
     default:
+      console.log(event, arg);
       break;
   }
 });
