@@ -1,61 +1,14 @@
 import React, { Component } from 'react';
-import Select, { components } from 'react-select';
+import Select from 'react-select';
 import { connect } from 'react-redux';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import '../app.css';
 import './settings.css';
 import ProxyList from './proxyList';
-import DDD from '../_assets/dropdown-down.svg';
-import DDU from '../_assets/dropdown-up.svg';
-
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import defns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../getSizes';
-
-// change this based on whether it's open or not {{toggle between DDU & DDD}}
-const DropdownIndicator = (props) => {
-  return components.DropdownIndicator && (
-    <components.DropdownIndicator {...props}>
-      <img src={props.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
-    </components.DropdownIndicator>
-  );
-};
-
-const colourStyles = {
-  control: styles => ({
-    ...styles,
-    backgroundColor: '#f4f4f4',
-    height: '29px',
-    minHeight: '29px',
-    border: '1px solid #F0405E',
-    borderRadius: '3px',
-    outline: 'none',
-    cursor: 'pointer',
-    boxShadow: 'none',
-  }),
-  option: (styles, { isDisabled, isFocused, isSelected }) => {
-    return {
-      ...styles,
-      backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
-      color: '#161318',
-      cursor: isDisabled ? 'not-allowed' : 'pointer',
-      outline: 'none',
-      boxShadow: 'none',
-    };
-  },
-  // fix this? doesn't work for some reason..
-  DropdownIndicator: (styles, { menuIsOpen }) => {
-    return {
-      ...styles,
-      marginRight: '-5px',
-      src: menuIsOpen ? DDU : DDD,
-    };
-  },
-  // input: styles => ({ ...styles, ...dot() }),
-  // placeholder: styles => ({ ...styles, ...dot() }),
-  // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
-};
-
 
 class Settings extends Component {
   /*

@@ -14,49 +14,7 @@ import './tasks.css';
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
-// change this based on whether it's open or not {{toggle between DDU & DDD}}
-const DropdownIndicator = (props) => {
-  return components.DropdownIndicator && (
-    <components.DropdownIndicator {...props}>
-      <img src={props.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
-    </components.DropdownIndicator>
-  );
-};
-
-const colourStyles = {
-  control: styles => ({
-    ...styles,
-    backgroundColor: '#f4f4f4',
-    height: '29px',
-    minHeight: '29px',
-    border: '1px solid #F0405E',
-    borderRadius: '3px',
-    outline: 'none',
-    cursor: 'pointer',
-    boxShadow: 'none',
-  }),
-  option: (styles, { isDisabled, isFocused, isSelected }) => {
-    return {
-      ...styles,
-      backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
-      color: '#161318',
-      cursor: isDisabled ? 'not-allowed' : 'pointer',
-      outline: 'none',
-      boxShadow: 'none',
-    };
-  },
-  // fix this? doesn't work for some reason..
-  DropdownIndicator: (styles, { menuIsOpen }) => {
-    return {
-      ...styles,
-      marginRight: '-5px',
-      src: menuIsOpen ? DDU : DDD,
-    };
-  },
-  input: styles => ({ ...styles, autoSize: 'false' }),
-  // placeholder: styles => ({ ...styles, ...dot() }),
-  // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
-};
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 class CreateTask extends Component {
   static buildSizeOptions() {
