@@ -14,7 +14,8 @@
     "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
     "electron-dev-windows": "set ELECTRON_START_URL=http://localhost:3000 && electron .",
     "lint": "./node_modules/.bin/eslint src/",
-    "homepage": "./"
+    "homepage": "./",
+    "sass": "./tool/compile_css.sh"
   },
   "dependencies": {
     "bodymovin": "^4.13.0",
@@ -45,6 +46,7 @@
     "eslint-config-airbnb": "^16.1.0",
     "eslint-plugin-import": "^2.12.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
-    "eslint-plugin-react": "^7.8.2"
+    "eslint-plugin-react": "^7.8.2",
+    "sass": "^1.12.0"
   }
 }

@@ -174,6 +174,7 @@
         display: none;
     }
 
+<<<<<<< HEAD
     table {
         border-collapse: collapse;
         border-spacing: 0 10px;
@@ -273,41 +274,10 @@
         border-bottom: #dfdfdf solid 1px;
     }
 
+=======
+>>>>>>> 939e6a75179c6fdf56437eae30a7859e55d60283
     .active {
         opacity: 0.5;
-    }
-
-    .tasks_start > img {
-        cursor: pointer;
-        vertical-align:middle;
-    }
-
-    .tasks_stop {
-        position: relative;
-        padding-bottom: 3px;
-        width:16px;
-        max-width: 16px;
-        border-bottom: #dfdfdf solid 1px;
-
-    }
-
-    .tasks_stop > img {
-        cursor: pointer;
-        vertical-align:middle;
-    }
-
-    .tasks_destroy {
-        position: relative;
-        padding-bottom: 3px;
-        max-width: 20px;
-        width:20px;
-        border-bottom: #dfdfdf solid 1px;
-
-    }
-
-    .tasks_destroy > img {
-        cursor: pointer;
-        vertical-align:middle;
     }
 
     #view-num {
@@ -420,18 +390,12 @@
     }
 
     .edit-billing {
+        width: 355px;
         padding-left: 44px;
+        vertical-align: middle;
     }
 
-    .edit-sizes {
-        padding-left: 25px;
-    }
-
-    .edit-pairs {
-        padding-left: 25px;
-    }
-
-    #edit-billing-label {
+    .edit-billing .edit-billing__label {
         margin: 0;
         font-family: AvenirNext-Medium;
         font-size: 9px;
@@ -439,37 +403,49 @@
         letter-spacing: 0;
     }
 
-    .init-blank {
-        width: 50px;
-    }
-
-
-    #edit-sizes-label {
-        margin: 0;
-        font-family: AvenirNext-Medium;
-        font-size: 9px;
-        color: #161318;
-        letter-spacing: 0;
-    }
-
-    #edit-billing-profiles {
-        position: relative;
+    .edit-billing .edit-billing__select {
         width: 355px;
         height: 25px;
         border: #F0405E solid 1px;
         border-radius: 3px;
     }
 
-    #edit-billing-sizes {
-        position: relative;
+    .edit-sizes {
+        width: 168px;
+        padding-left: 25px;
+        vertical-align: middle;
+    }
+
+    .edit-sizes .edit-sizes__label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+    }
+
+    .edit-sizes .edit-sizes__select {
         width: 168px;
         height: 25px;
         border: #F0405E solid 1px;
         border-radius: 3px;
     }
 
-    #edit-pairs-input {
-        position: relative;
+    .edit-pairs {
+        width: 83px;
+        padding-left: 25px;
+        vertical-align: middle;
+    }
+
+    .edit-pairs .edit-pairs__label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+    }
+
+    .edit-pairs .edit-pairs__input {
         vertical-align:middle;
         width: 78px;
         height: 25px;
@@ -477,22 +453,16 @@
         border-radius: 3px;
     }
 
-    .edit-billing {
-        position: relative;
-        width: 135px;
+    .init-blank {
+        width: 50px;
     }
 
-    #submit-edit {
+    .submit-edit {
         margin-top: 15px;
         margin-left: -5px;
     }
 
-    #cancel-edit {
-        margin-top: 15px;
-        margin-left: -5px;
-    }
-
-    #submit-edit-tasks {
+    .submit-edit__button {
         width: 83px;
         height: 29px;
         cursor: pointer;
@@ -505,7 +475,12 @@
         letter-spacing: 0;
     }
 
-    #cancel-edit-tasks {
+    .cancel-edit {
+        margin-top: 15px;
+        margin-left: -5px;
+    }
+
+    .cancel-edit__button {
         width: 83px;
         height: 29px;
         cursor: pointer;

@@ -11,15 +11,12 @@ import stopAll from '../_assets/stop-all.svg';
 import destroyAll from '../_assets/destroy-all.svg';
 
 import '../app.css';
-import './tasks.css';
+import './tasks.scss';
+import './tasksTable.css';
 import { taskActions } from '../state/actions';
 
 class Tasks extends Component {
-  // componentDidUpdate() {
-  //   console.log('UPDATE');
-  // }
-
-  /* changes when the edit button for each task is clicked */
+  
   async onTaskChange(event) {
     const taskId = event.target.value;
     const { tasks } = this.props;
