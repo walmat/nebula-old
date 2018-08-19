@@ -7,8 +7,6 @@ import PropTypes from 'prop-types';
 import { TASK_FIELDS, taskActions } from '../state/actions';
 import getAllSizes from '../getSizes';
 
-import DDD from '../_assets/dropdown-down.svg';
-import DDU from '../_assets/dropdown-up.svg';
 import './tasks.css';
 
 import pDefns from '../utils/definitions/profileDefinitions';

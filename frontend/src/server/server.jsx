@@ -7,56 +7,10 @@ import EnsureAuthorization from '../EnsureAuthorization';
 import ServerLog from './serverLog';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import defns from '../utils/definitions/serverDefinitions';
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 import '../app.css';
 import './server.css';
-
-import DDD from '../_assets/dropdown-down.svg';
-import DDU from '../_assets/dropdown-up.svg';
-
-// change this based on whether it's open or not {{toggle between DDU & DDD}}
-const DropdownIndicator = (props) => {
-  return components.DropdownIndicator && (
-    <components.DropdownIndicator {...props}>
-      <img src={props.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
-    </components.DropdownIndicator>
-  );
-};
-
-const colourStyles = {
-  control: styles => ({
-    ...styles,
-    backgroundColor: '#f4f4f4',
-    height: '29px',
-    minHeight: '29px',
-    border: '1px solid #F0405E',
-    borderRadius: '3px',
-    outline: 'none',
-    cursor: 'pointer',
-    boxShadow: 'none',
-  }),
-  option: (styles, { isDisabled, isFocused, isSelected }) => {
-    return {
-      ...styles,
-      backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
-      color: '#161318',
-      cursor: isDisabled ? 'not-allowed' : 'pointer',
-      outline: 'none',
-      boxShadow: 'none',
-    };
-  },
-  // fix this? doesn't work for some reason..
-  DropdownIndicator: (styles, { menuIsOpen }) => {
-    return {
-      ...styles,
-      marginRight: '-5px',
-      src: menuIsOpen ? DDU : DDD,
-    };
-  },
-  // input: styles => ({ ...styles, ...dot() }),
-  // placeholder: styles => ({ ...styles, ...dot() }),
-  // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
-};
 
 class Server extends Component {
   static buildServerTypeChoices(options, onFilter) {
@@ -225,7 +179,6 @@ class Server extends Component {
         <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)} value={this.props.serverInfo.proxyOptions.username} required />
         <p id="password-proxies-label">Password</p>
         <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)} value={this.props.serverInfo.proxyOptions.password} required />
-        {/* <button disabled={!loggedInAws} id="destroy-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyProxies} >Destroy All</button> */}
         <button disabled={!loggedInAws} id="generate-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.generateProxies} >Generate</button>
         <button disabled={!loggedInAws} id="destroy-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyProxies} >Destroy All</button>
 
@@ -235,7 +188,6 @@ class Server extends Component {
         {this.renderServerTypeComponent()}
         {this.renderServerSizeComponent()}
         {this.renderServerLocationComponent()}
-        {/* <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServer}>Destroy</button> */}
         <button disabled={!loggedInAws} id="create-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.createServer}>Create</button>
         <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServer} >Destroy All</button>
 

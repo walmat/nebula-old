@@ -47,7 +47,6 @@ class PaymentFields extends Component {
         <input required id="email" placeholder="Email Address" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)} value={this.props.value.email} style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])} />
         <NumberFormat format="#### #### #### ####" placeholder="XXXX XXXX XXXX XXXX" id="card-number" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)} value={this.props.value.cardNumber} style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])} />
         <NumberFormat id="expiration" placeholder="MM/YY" format={PaymentFields.cardExpiry} onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)} value={this.props.value.exp} style={validationStatus(errors[PAYMENT_FIELDS.EXP])} />
-        {/* <input required id="expiration" placeholder="Expiration" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)} value={this.props.value.exp} style={validationStatus(errors[PAYMENT_FIELDS.EXP])} /> */}
         <input required id="cvv" placeholder="CVV" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)} value={this.props.value.cvv} style={validationStatus(errors[PAYMENT_FIELDS.CVV])} />
         <img src={info} alt="payment info" id="payment-info-btn" />
       </div>

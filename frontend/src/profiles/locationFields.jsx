@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Select, { components } from 'react-select';
+import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
@@ -8,52 +8,8 @@ import getAllCountries from '../getAllCountries';
 import getAllStates from '../getAllStates';
 import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/actions';
 import './profiles.css';
-import DDD from '../_assets/dropdown-down.svg';
-import DDU from '../_assets/dropdown-up.svg';
 
-// change this based on whether it's open or not {{toggle between DDU & DDD}}
-const DropdownIndicator = (props) => {
-  return components.DropdownIndicator && (
-    <components.DropdownIndicator {...props}>
-      <img src={props.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
-    </components.DropdownIndicator>
-  );
-};
-
-const colourStyles = {
-  control: (styles, { isDisabled, isFocused, isSelected }) => {
-    return {
-      ...styles,
-      backgroundColor: '#f4f4f4',
-      height: '29px',
-      minHeight: '29px',
-      border: '1px solid #F0405E',
-      borderRadius: '3px',
-      outline: 'none',
-      cursor: 'pointer',
-      boxShadow: 'none',
-    };
-  },
-  option: (styles, { isDisabled, isFocused, isSelected }) => {
-    return {
-      ...styles,
-      backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
-      maxHeight: '200px',
-      color: '#161318',
-      cursor: isDisabled ? 'not-allowed' : 'pointer',
-      outline: 'none',
-      boxShadow: 'none',
-    };
-  },
-  // fix this? doesn't work for some reason..
-  DropdownIndicator: (styles, { menuIsOpen }) => {
-    return {
-      ...styles,
-      marginRight: '-5px',
-      src: menuIsOpen ? DDU : DDD,
-    };
-  },
-};
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 const errorStyle = {
   borderColor: 'red',
