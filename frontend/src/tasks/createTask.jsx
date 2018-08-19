@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, taskActions } from '../state/actions';
-import getAllSizes from './getSizes';
+import getAllSizes from '../getSizes';
 
 import DDD from '../_assets/dropdown-down.svg';
 import DDU from '../_assets/dropdown-up.svg';
@@ -70,7 +70,7 @@ class CreateTask extends Component {
   }
 
   static formatPairs(val) {
-    return val <= 5 ? val : null;
+    return val <= 5 && val > 0 ? val : null;
   }
 
   constructor(props) {
@@ -78,9 +78,6 @@ class CreateTask extends Component {
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.saveTask = this.saveTask.bind(this);
-    this.state = {
-      maxReached: false,
-    }
   }
 
   buildProfileOptions() {

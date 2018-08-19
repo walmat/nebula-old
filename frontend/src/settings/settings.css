@@ -109,7 +109,7 @@ input::placeholder, input {
     letter-spacing: 0;
     margin: 0;
     top: 124px;
-    left: 525px;
+    left: 522px;
     width: 51px;
     height: 12px;
 }
@@ -120,7 +120,7 @@ input::placeholder, input {
     font-size: 9px;
     letter-spacing: 0;
     top: 194px;
-    left: 525px;
+    left: 522px;
     width: 51px;
     height: 12px;
     margin: 0;
@@ -129,8 +129,8 @@ input::placeholder, input {
 #discord-input {
     position: absolute;
     top: 143px;
-    left: 525px;
-    width: 249px;
+    left: 522px;
+    width: 422px;
     height: 29px;
     border: 1px solid #F0405E;
     border-radius: 3px;
@@ -139,9 +139,101 @@ input::placeholder, input {
 #slack-input {
     position: absolute;
     top: 213px;
-    left: 525px;
-    width: 249px;
+    left: 522px;
+    width: 422px;
     height: 29px;
     border: 1px solid #F0405E;
     border-radius: 3px;
+}
+
+#defaults-label {
+    margin: 0;
+    position: absolute;
+    top: 265px;
+    left: 522px;
+}
+
+#defaults-box {
+    position: absolute;
+    top: 288px;
+    left: 522px;
+    width: 422px;
+    height: 108px;
+    border: 1px solid #F0405E;
+    padding-bottom: 3px;
+    border-radius: 3px;
+}
+
+#default-profile-label {
+    position: absolute;
+    top: 298px;
+    margin: 0;
+    left: 535px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    letter-spacing: 0;
+}
+
+#default-profile {
+    position: absolute;
+    top: 314px;
+    left: 535px;
+    width: 200px;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    letter-spacing: 0;
+}
+
+#default-sizes-label {
+    position: absolute;
+    top: 298px;
+    margin: 0;
+    left: 749px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    letter-spacing: 0;
+}
+
+#default-sizes {
+    position: absolute;
+    top: 314px;
+    left: 749px;
+    width: 185px;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    letter-spacing: 0;
+}
+
+#save-defaults {
+    position: absolute;
+    top: 358px;
+    left: 851px;
+    width: 83px;
+    height: 29px;
+    cursor: pointer;
+    background: #F0405E;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+}
+
+#clear-defaults {
+    position: absolute;
+    top: 358px;;
+    left: 752px;
+    width: 83px;
+    height: 29px;
+    cursor: pointer;
+    background: #46ADB4;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
 }

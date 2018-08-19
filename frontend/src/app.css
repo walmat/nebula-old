@@ -128,12 +128,12 @@ select {
   cursor: pointer;
 }
 
-.active {
+.active > svg {
   opacity: 0.5;
 }
 
 .close-area-1:hover, .close-area-2:hover {
-  opacity: 0.5;
+  opacity: 0.8333;
   cursor: pointer;
 }
 
@@ -226,5 +226,9 @@ input:focus {
   left: 140px;
   width: 118px;
   height: 66px;
+}
+
+button:enabled:hover {
+  opacity: 0.8333;
 }
 /* END GENERIC CLASSES*/

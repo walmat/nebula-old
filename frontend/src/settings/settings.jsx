@@ -1,9 +1,61 @@
 import React, { Component } from 'react';
+import Select, { components } from 'react-select';
+import { connect } from 'react-redux';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import '../app.css';
 import './settings.css';
 import ProxyList from './proxyList';
+import DDD from '../_assets/dropdown-down.svg';
+import DDU from '../_assets/dropdown-up.svg';
+
+import defns from '../utils/definitions/settingsDefinitions';
+import getAllSizes from '../getSizes';
+
+// change this based on whether it's open or not {{toggle between DDU & DDD}}
+const DropdownIndicator = (props) => {
+  return components.DropdownIndicator && (
+    <components.DropdownIndicator {...props}>
+      <img src={props.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
+    </components.DropdownIndicator>
+  );
+};
+
+const colourStyles = {
+  control: styles => ({
+    ...styles,
+    backgroundColor: '#f4f4f4',
+    height: '29px',
+    minHeight: '29px',
+    border: '1px solid #F0405E',
+    borderRadius: '3px',
+    outline: 'none',
+    cursor: 'pointer',
+    boxShadow: 'none',
+  }),
+  option: (styles, { isDisabled, isFocused, isSelected }) => {
+    return {
+      ...styles,
+      backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
+      color: '#161318',
+      cursor: isDisabled ? 'not-allowed' : 'pointer',
+      outline: 'none',
+      boxShadow: 'none',
+    };
+  },
+  // fix this? doesn't work for some reason..
+  DropdownIndicator: (styles, { menuIsOpen }) => {
+    return {
+      ...styles,
+      marginRight: '-5px',
+      src: menuIsOpen ? DDU : DDD,
+    };
+  },
+  // input: styles => ({ ...styles, ...dot() }),
+  // placeholder: styles => ({ ...styles, ...dot() }),
+  // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),
+};
+
 
 class Settings extends Component {
   /*
@@ -44,6 +96,19 @@ class Settings extends Component {
     }
   }
 
+  static buildSizeOptions() {
+    return getAllSizes();
+  }
+
+  buildProfileOptions() {
+    const { profiles } = this.props;
+    const opts = [];
+    profiles.forEach(profile => {
+      opts.push({ value: profile.id, label: profile.profileName })
+    });
+    return opts;
+  }
+
   render() {
     return (
       <div className="container">
@@ -61,9 +126,66 @@ class Settings extends Component {
         <input id="discord-input" placeholder="https://discordapp.com/api/webhooks/..." />
         <p id="slack-label">Slack URL</p>
         <input id="slack-input" placeholder="https://hooks.slack.com/services/..." />
+
+        {/* DEFAULTS */}
+        <p className="body-text" id="defaults-label">Defaults</p>
+        <div id="defaults-box" />
+        <p id="default-profile-label">Profile</p>
+        <Select
+          required
+          defaultValue="Choose Profile"
+          components={{ DropdownIndicator }}
+          id="default-profile"
+          styles={colourStyles}
+          onChange={this.onProfileChange}
+          value={this.props.selectedProfile.value}
+          options={this.buildProfileOptions()}
+        />
+
+        <p id="default-sizes-label">Sizes</p>
+        <Select
+          required
+          defaultValue="Choose Sizes"
+          components={{ DropdownIndicator }}
+          id="default-sizes"
+          styles={colourStyles}
+          onChange={this.onProfileChange}
+          value={this.props.selectedProfile.value}
+          options={Settings.buildSizeOptions()}
+        />
+        <button
+          id="save-defaults"
+          tabIndex={0}
+          onKeyPress={() => {}}
+          onClick={this.saveDefaults}
+        >
+        Save
+        </button>
+
+        <button
+          id="clear-defaults"
+          tabIndex={0}
+          onKeyPress={() => {}}
+          onClick={this.saveDefaults}
+        >
+        Clear
+        </button>
       </div>
     );
   }
 }
 
-export default EnsureAuthorization(Settings);
+Settings.propTypes = {
+  profiles: defns.profileList.isRequired,
+  defaultProfile: defns.profile.isRequired,
+};
+
+const mapStateToProps = state => ({
+  profiles: state.profiles,
+  selectedProfile: state.selectedProfile,
+});
+
+const mapDispatchToProps = dispatch => ({
+});
+
+export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Settings));
