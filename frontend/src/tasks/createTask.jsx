@@ -18,13 +18,7 @@ class CreateTask extends Component {
   static buildSizeOptions() {
     return getAllSizes();
   }
-
-  static openSelect(which) {
-    const el = document.getElementById(which);
-    console.log(el);
-    el.size = 4;
-  }
-
+  
   static formatPairs(val) {
     return val <= 5 && val > 0 ? val : null;
   }
@@ -38,11 +32,7 @@ class CreateTask extends Component {
 
   buildProfileOptions() {
     const p = this.props.profiles;
-    const opts = [];
-    p.forEach(profile => {
-      opts.push({ value: profile.id, label: profile.profileName })
-    });
-    return opts;
+    return p.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
   async saveTask(e) {
@@ -89,7 +79,7 @@ class CreateTask extends Component {
           classNamePrefix="select"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.value.value}
+          value={this.props.value.profile.profileName}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
@@ -104,7 +94,7 @@ class CreateTask extends Component {
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={this.props.value.value}
+          value={this.props.value.sizes}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>

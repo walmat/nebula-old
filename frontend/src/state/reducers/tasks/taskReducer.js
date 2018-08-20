@@ -23,7 +23,7 @@ export const initialTaskState = {
 export function taskReducer(state = initialTaskState, action) {
   let change = {};
 
-  console.log(action.field, action);
+  console.log(action.field, action.value);
 
   if (action.type === TASK_ACTIONS.EDIT) {
     switch (action.field) {

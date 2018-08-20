@@ -459,9 +459,3 @@ input, select {
     height: 29px;
     cursor: pointer;
 }
-
-.Select-state > * {
-    height: 100px;
-    max-height: 200px;
-    overflow-y: scroll;
-}
