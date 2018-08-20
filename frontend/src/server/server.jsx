@@ -146,6 +146,7 @@ class Server extends Component {
           defaultValue={defaultOption}
           components={{ DropdownIndicator }}
           id={`${type}-server`}
+          classNamePrefix="select"
           styles={colourStyles}
           onChange={onChange}
           disabled={disabled}

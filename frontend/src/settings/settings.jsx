@@ -89,6 +89,7 @@ class Settings extends Component {
           defaultValue="Choose Profile"
           components={{ DropdownIndicator }}
           id="default-profile"
+          classNamePrefix="select"
           styles={colourStyles}
           onChange={this.onProfileChange}
           value={this.props.selectedProfile.value}
@@ -101,6 +102,7 @@ class Settings extends Component {
           defaultValue="Choose Sizes"
           components={{ DropdownIndicator }}
           id="default-sizes"
+          classNamePrefix="select"
           styles={colourStyles}
           onChange={this.onProfileChange}
           value={this.props.selectedProfile.value}

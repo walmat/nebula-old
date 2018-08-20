@@ -112,6 +112,7 @@ class Profiles extends Component {
             defaultValue="Choose Profile to Load"
             components={{ DropdownIndicator }}
             id="profile-load"
+            classNamePrefix="select"
             styles={colourStyles}
             onChange={this.onProfileChange}
             value={this.props.selectedProfile.value}

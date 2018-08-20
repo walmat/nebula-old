@@ -7,16 +7,13 @@ input::placeholder, select {
     letter-spacing: 0;
 }
 
-.Select-menu-outer {
-    max-height: 200px;
-    }
-    
-    .Select-menu {
-    max-height: 200px;
-    }
-
 input, select {
     text-transform: none;
+}
+
+.select__control:hover {
+    border-color: #F0405E !important;
+    cursor: pointer;
 }
 
 .text-header {
@@ -461,4 +458,10 @@ input, select {
     width: 98px;
     height: 29px;
     cursor: pointer;
+}
+
+.Select-state > * {
+    height: 100px;
+    max-height: 200px;
+    overflow-y: scroll;
 }

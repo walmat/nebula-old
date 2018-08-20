@@ -64,10 +64,12 @@ class LocationFields extends Component {
           components={{ DropdownIndicator }}
           id={`${this.props.id}-state`}
           styles={colourStyles}
+          classNamePrefix="select"
           options={LocationFields.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
           value={this.props.value.value}
-          style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])} disabled={this.isStatesDisabled()}
+          style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])}
+          disabled={this.isStatesDisabled()}
         />
         <input id={`${this.props.id}-zip-code`} required placeholder="Zip Code" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)} value={this.props.value.zipCode} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])} disabled={disabled} />
         <Select
@@ -76,6 +78,7 @@ class LocationFields extends Component {
           components={{ DropdownIndicator }}
           id={`${this.props.id}-country`}
           styles={colourStyles}
+          classNamePrefix="select"
           options={LocationFields.buildCountryOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
           value={this.props.value.value}

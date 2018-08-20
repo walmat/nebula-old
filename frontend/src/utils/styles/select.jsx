@@ -12,21 +12,23 @@ export const DropdownIndicator = (props) => {
 };
 
 export const colourStyles = {
-  control: styles => ({
-    ...styles,
-    backgroundColor: '#f4f4f4',
-    height: '29px',
-    minHeight: '29px',
-    border: '1px solid #F0405E',
-    borderRadius: '3px',
-    outline: 'none',
-    cursor: 'pointer',
-    boxShadow: 'none',
-  }),
+  control: (styles, { isDisabled, isFocused, isSelected }) => {
+    return {
+      ...styles,
+      border: '1px solid #F0405E',
+      backgroundColor: '#f4f4f4',
+      height: '29px',
+      minHeight: '29px',
+      borderRadius: '3px',
+      outline: 'none',
+      cursor: 'pointer',
+      boxShadow: 'none',
+    };
+  },
   option: (styles, { isDisabled, isFocused, isSelected }) => {
     return {
       ...styles,
-      backgroundColor: isFocused ? '#f4f4f4' : isDisabled ? '#ccc' : isSelected ? '#ccc' : '#fff',
+      backgroundColor: isFocused ? '#EDBCC6' : isDisabled ? '#ccc' : isSelected ? '#EDBCC6' : '#fff',
       color: '#161318',
       cursor: isDisabled ? 'not-allowed' : 'pointer',
       outline: 'none',

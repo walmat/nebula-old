@@ -183,6 +183,11 @@ input::placeholder, input {
     font-family: AvenirNext-Medium;
     font-size: 9px;
     letter-spacing: 0;
+    cursor: pointer;
+}
+
+.select__control, .select__value-container, .select__indicators {
+    cursor: pointer;
 }
 
 #default-sizes-label {

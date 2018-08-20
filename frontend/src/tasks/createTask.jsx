@@ -86,7 +86,7 @@ class CreateTask extends Component {
           defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
           id="profiles"
-          
+          classNamePrefix="select"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
           value={this.props.value.value}
@@ -96,6 +96,8 @@ class CreateTask extends Component {
         <Select
           required
           isMulti
+          className="Select-control"
+          classNamePrefix="select"
           isClearable={false}
           defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
