@@ -35,6 +35,37 @@ export const colourStyles = {
       boxShadow: 'none',
     };
   },
+  multiValue: (styles) => {
+    return {
+      ...styles,
+      backgroundColor: '#46ADB4',
+      cursor: 'pointer',
+      ':hover': {
+        backgroundColor: '#B8D9D2',
+        cursor: 'pointer',
+      },
+    };
+  },
+  multiValueLabel: (styles, { data }) => ({
+    ...styles,
+    cursor: 'pointer',
+    paddingRight: '5px',
+    paddingLeft: '5px',
+    ':hover': {
+      cursor: 'pointer',
+    },
+  }),
+  multiValueRemove: (styles, { data }) => ({
+    ...styles,
+    cursor: 'pointer',
+    marginTop: '-1px',
+    ':hover': {
+      backgroundColor: '#46ADB4',
+      marginTop: '1px',
+      color: '#f4f4f4',
+      cursor: 'pointer',
+    },
+  }),
   // input: styles => ({ ...styles, ...dot() }),
   // placeholder: styles => ({ ...styles, ...dot() }),
   // singleValue: (styles, { data }) => ({ ...styles, ...dot('#f4f4f4') }),

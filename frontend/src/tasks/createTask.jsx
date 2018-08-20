@@ -37,7 +37,7 @@ class CreateTask extends Component {
 
   async saveTask(e) {
     e.preventDefault();
-    this.props.onAddNewTask(this.props.value);
+    this.props.onAddNewTask(this.props.val);
   }
 
   createOnChangeHandler(field) {
@@ -69,7 +69,7 @@ class CreateTask extends Component {
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
         <p id="sku-label">Input SKU</p>
-        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
+        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.val.sku} required />
         <p id="profiles-label">Billing Profiles</p>
         <Select
           required
@@ -79,7 +79,7 @@ class CreateTask extends Component {
           classNamePrefix="select"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.value.profile.profileName}
+          value={this.props.val.profile.id || ''}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
@@ -94,11 +94,11 @@ class CreateTask extends Component {
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={this.props.value.sizes}
+          value={this.props.val.sizes.forEach(s => { return s })}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>
-        <NumberFormat format={CreateTask.formatPairs} placeholder="1" value={this.props.value.pairs} id="pairs" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} />
+        <NumberFormat format={CreateTask.formatPairs} placeholder="1" value={this.props.val.pairs} id="pairs" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} />
         <button
           id="submit-tasks"
           tabIndex={0}
@@ -113,17 +113,17 @@ class CreateTask extends Component {
 }
 
 CreateTask.propTypes = {
-  errors: tDefns.taskErrors.isRequired,
+  // errors: tDefns.taskErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
-  value: tDefns.task.isRequired,
+  val: tDefns.task.isRequired,
   onAddNewTask: PropTypes.func.isRequired,
 };
 
 
 const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
-  value: ownProps.taskToEdit,
+  val: ownProps.taskToEdit,
   errors: ownProps.taskToEdit.errors,
 });
 
