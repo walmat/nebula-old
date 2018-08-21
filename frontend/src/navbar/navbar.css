@@ -34,7 +34,7 @@
 #icon-tasks {
     position:absolute;
     top:175px;
-    left:29px;
+    left:32px;
     width:61px;
     height:49px;
     cursor: pointer;
@@ -52,7 +52,7 @@
 #icon-server {
     position:absolute;
     top:360px;
-    left:33px;
+    left:32px;
     width:42px;
     height:46px;
     cursor: pointer;
@@ -61,7 +61,7 @@
 #icon-settings {
     position:absolute;
     top:445px;
-    left:34px;
+    left:32px;
     width:40px;
     height:60px;
     cursor: pointer;
