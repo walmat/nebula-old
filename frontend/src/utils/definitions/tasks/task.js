@@ -12,7 +12,7 @@ const task = PropTypes.shape({
   profile,
   status: PropTypes.string,
   sizes: PropTypes.arrayOf(PropTypes.string),
-  pairs: PropTypes.string,
+  pairs: PropTypes.number,
   errors: taskErrors,
 });
 

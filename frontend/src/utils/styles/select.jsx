@@ -39,14 +39,16 @@ export const colourStyles = {
     return {
       ...styles,
       backgroundColor: '#46ADB4',
+      border: '0.5px solid #161318',
       cursor: 'pointer',
       ':hover': {
         backgroundColor: '#B8D9D2',
+        border: '0.5px solid #46ADB4',
         cursor: 'pointer',
       },
     };
   },
-  multiValueLabel: (styles, { data }) => ({
+  multiValueLabel: (styles) => ({
     ...styles,
     cursor: 'pointer',
     paddingRight: '5px',
@@ -55,7 +57,7 @@ export const colourStyles = {
       cursor: 'pointer',
     },
   }),
-  multiValueRemove: (styles, { data }) => ({
+  multiValueRemove: (styles) => ({
     ...styles,
     cursor: 'pointer',
     marginTop: '-1px',

@@ -20,6 +20,9 @@ class CreateTask extends Component {
   }
   
   static formatPairs(val) {
+    if (val.length === 0) {
+      return 1;
+    }
     return val <= 5 && val > 0 ? val : null;
   }
 
@@ -56,9 +59,17 @@ class CreateTask extends Component {
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
         };
+      case TASK_FIELDS.EDIT_PAIRS:
+        return (event) => {
+          // prevent zero input when backspacing
+          if (event.target.value === 0 || event.target.value === null || event.target.value === undefined || event.target.value === '') {
+            event.target.value = 1;
+          }
+          this.props.onChange({ field, value: event.target.value });
+        };
       default:
         return (event) => {
-          this.props.onChange({ field, value: event.value });
+          this.props.onChange({ field, value: event.target.value });
         };
     }
   }
