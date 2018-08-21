@@ -81,8 +81,25 @@ class Tasks1 extends Component {
               </div>
             </div>
             <div className="row">
-              <div className="col">
-                <div className="temp-log-box" />
+              <div className="col col--start">
+                <div className="tasks-log">
+                  <div className="row row--start row--gutter-left row--gutter-right tasks-log__header">
+                    <div className="col tasks-log__header__id">
+                      <p>#</p>
+                    </div>
+                    <div className="col tasks-log__header__site">
+                      <p>Site</p>
+                    </div>
+                    <div className="col tasks-log__header__output">
+                      <p>Output</p>
+                    </div>
+                  </div>
+                  <div className="row row--start tasks-log__view-line">
+                    <div className="col col--expand">
+                      <hr className="view-line" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -119,7 +136,7 @@ class Tasks1 extends Component {
                   </div>
                 </div>
                 <div className="row row--start">
-                  <div className="col">
+                  <div className="col col--expand">
                     <hr className="view-line" />
                   </div>
                 </div>

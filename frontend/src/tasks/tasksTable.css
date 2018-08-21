@@ -14,10 +14,22 @@
   margin: 5px 0;
 }
 
+.tasks-log__header__output, .tasks-log__header__site, .tasks-log__header__id {
+  margin: 0;
+}
+.tasks-log__header__output > p, .tasks-log__header__site > p, .tasks-log__header__id > p {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #161318;
+  letter-spacing: 0;
+  margin: 5px 0;
+}
+
 .view-line {
   margin: 0;
   border: 1px solid #EDBCC6;
-  width: 739px;
+  width: 100%;
+  flex: 1 1 100%;
 }
 
 .section-header {
@@ -126,7 +138,7 @@
 .tasks-table .tasks-row-container .tasks-row .tasks-profile {
   width: 268px;
 }
-.tasks-table .tasks-row-container .tasks-row .tasks-profile p {
+.tasks-table .tasks-row-container .tasks-row .tasks-profile > p {
   text-overflow: ellipsis;
 }
 .tasks-table .tasks-row-container .tasks-row .tasks-sizes {
@@ -193,6 +205,25 @@
   font-size: 12px;
   color: #EFEFEF;
   letter-spacing: 0;
+}
+
+.tasks-log {
+  width: 504px;
+  height: 300px;
+  border: 1px solid #F0405E;
+  border-radius: 3px;
+}
+.tasks-log__header__id {
+  width: 7px;
+}
+.tasks-log__header__site {
+  width: 21px;
+}
+.tasks-log__header__output {
+  width: 40px;
+}
+.tasks-log__view-line {
+  padding-right: 2px;
 }
 
 .bulk-action-sidebar .bulk-action-sidebar__button {
@@ -263,13 +294,6 @@
 }
 
 /* TEmporary */
-.temp-log-box {
-  width: 504px;
-  height: 300px;
-  border: 1px solid #F0405E;
-  border-radius: 3px;
-}
-
 .temp-table-row {
   height: 330px;
 }

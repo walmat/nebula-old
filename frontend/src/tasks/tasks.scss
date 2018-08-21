@@ -20,10 +20,23 @@
     }
 }
 
+%tasks-log__header__field {
+    margin: 0;
+
+    & > p {
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #161318;
+        letter-spacing: 0;
+        margin: 5px 0;
+    }
+}
+
 .view-line {
     margin: 0;
     border: 1px solid #EDBCC6;
-    width:739px;
+    width: 100%;
+    flex: 1 1 100%;
 }
 
 .section-header {
@@ -160,7 +173,7 @@
                 @extend %tasks-table__text-field;
                 width: 268px;
 
-                p {
+                & > p {
                     text-overflow: ellipsis;
                 }
             }
@@ -248,6 +261,34 @@
     }
 }
 
+.tasks-log {
+    width: 504px;
+    height: 300px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+
+    &__header {
+        &__id {
+            @extend %tasks-log__header__field;
+            width: 7px;
+        }
+
+        &__site {
+            @extend %tasks-log__header__field;
+            width: 21px;
+        }
+
+        &__output {
+            @extend %tasks-log__header__field;
+            width: 40px;
+        }
+    }
+
+    &__view-line {          // This prevents the line from extending into the border of the tasks-log
+        padding-right: 2px; // (still not sure why it's happening though!)
+    }
+}
+
 .bulk-action-sidebar {
     & &__button {
         padding-bottom: 12px;
@@ -330,13 +371,6 @@
 }
 
 /* TEmporary */
-
-.temp-log-box {
-    width: 504px;
-    height: 300px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
 
 .temp-table-row {
     height: 330px;
