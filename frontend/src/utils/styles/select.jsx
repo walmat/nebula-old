@@ -38,8 +38,8 @@ export const colourStyles = {
   multiValue: (styles) => {
     return {
       ...styles,
-      backgroundColor: '#46ADB4',
-      border: '0.5px solid #161318',
+      backgroundColor: '#B8D9D2',
+      border: '0.5px solid #46ADB4',
       cursor: 'pointer',
       ':hover': {
         backgroundColor: '#B8D9D2',
