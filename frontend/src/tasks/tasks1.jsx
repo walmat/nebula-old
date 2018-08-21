@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import ViewTask from './viewTask';
-import CreateTask from './createTask';
+import CreateTask from './createTask1';
 
 import startAll from '../_assets/start-all.svg';
 import stopAll from '../_assets/stop-all.svg';
@@ -68,7 +68,7 @@ class Tasks1 extends Component {
                 </div>
                 <div className="row">
                   <div className="col col--no-gutter-left">
-                    <div className="temp-create-box" />
+                    <CreateTask taskToEdit={newTask} />
                   </div>
                 </div>
               </div>

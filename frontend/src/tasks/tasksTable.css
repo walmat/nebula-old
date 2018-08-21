@@ -11,6 +11,7 @@
   font-size: 12px;
   color: #161318;
   letter-spacing: 0;
+  margin: 5px 0;
 }
 
 .view-line {
@@ -147,7 +148,55 @@
   width: 16px;
 }
 
-.bulk-action-sidebar__button {
+.tasks-create {
+  height: 226px;
+  width: 277px;
+  border: 1px solid #f0405e;
+  border-radius: 3px;
+}
+.tasks-create__label {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+  height: 12px;
+  margin-bottom: 3px;
+  margin-top: 11px;
+}
+.tasks-create__input {
+  width: 252px;
+  height: 29px;
+  border: 1px solid #F0405E;
+}
+.tasks-create__input--sku {
+  text-transform: uppercase;
+}
+.tasks-create__input--sizes {
+  width: 113px;
+  height: 29px;
+}
+.tasks-create__input--pairs {
+  width: 53px;
+  height: 29px;
+}
+.tasks-create__submit-row {
+  align-self: flex-end;
+}
+.tasks-create__submit {
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  background: #F0405E;
+  border: none;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #EFEFEF;
+  letter-spacing: 0;
+}
+
+.bulk-action-sidebar .bulk-action-sidebar__button {
+  padding-bottom: 12px;
   cursor: pointer;
 }
 
@@ -168,11 +217,23 @@
   justify-content: space-around;
   margin: 0 -15px;
 }
-.row.row--start {
+.row--start {
   justify-content: flex-start;
 }
-.row.row--expand {
+.row--end {
+  justify-content: flex-end;
+}
+.row--between {
+  justify-content: space-between;
+}
+.row--expand {
   flex: 1 1 auto;
+}
+.row--gutter-left {
+  margin-left: 0 !important;
+}
+.row--gutter-right {
+  margin-right: 0 !important;
 }
 
 .col {
@@ -182,27 +243,26 @@
   justify-content: space-around;
   margin: 0 15px;
 }
-.col.col--start {
+.col--start {
   justify-content: flex-start;
 }
-.col.col--expand {
+.col--end {
+  justify-content: flex-end;
+}
+.col--between {
+  justify-content: space-between;
+}
+.col--expand {
   flex: 1 1 auto;
 }
-.col.col--no-gutter-left {
-  margin: 0 15px 0 0;
+.col--no-gutter-left {
+  margin-left: 0 !important;
 }
-.col.col--no-gutter-right {
-  margin: 0 0 0 15px;
+.col--no-gutter-right {
+  margin-right: 0 !important;
 }
 
 /* TEmporary */
-.temp-create-box {
-  width: 277px;
-  height: 226px;
-  border: 1px solid #F0405E;
-  border-radius: 3px;
-}
-
 .temp-log-box {
   width: 504px;
   height: 300px;

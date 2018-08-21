@@ -16,6 +16,7 @@
         font-size: 12px;
         color: #161318;
         letter-spacing: 0;
+        margin: 5px 0;
     }
 }
 
@@ -191,8 +192,65 @@
     }
 }
 
+.tasks-create {
+    height: 226px;
+    width: 277px;
+    border: 1px solid #f0405e;
+    border-radius: 3px;
+
+    &__label {
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        height: 12px;
+        margin-bottom: 3px;
+        margin-top: 11px;
+        // width: 42px;
+        // height: 12px;
+    }
+
+    &__input {
+        width: 252px;
+        height: 29px;
+        border: 1px solid #F0405E;
+
+        &--sku {
+            text-transform: uppercase;
+        }
+
+        &--sizes {
+            width: 113px;
+            height: 29px;
+        }
+
+        &--pairs {
+            width: 53px;
+            height: 29px;
+        }
+    }
+
+    &__submit-row {
+        align-self: flex-end;
+    }
+
+    &__submit {
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        background: #F0405E;
+        border: none;
+        border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 12px;
+        color: #EFEFEF;
+        letter-spacing: 0;
+    }
+}
+
 .bulk-action-sidebar {
-    &__button {
+    & &__button {
+        padding-bottom: 12px;
         cursor: pointer;
     }
 }
@@ -214,12 +272,28 @@
     justify-content: space-around;
     margin: 0 -15px;
 
-    &.row--start {
+    &--start {
         justify-content: flex-start;
     }
 
-    &.row--expand {
+    &--end {
+        justify-content: flex-end;
+    }
+
+    &--between {
+        justify-content: space-between;
+    }
+
+    &--expand {
         flex: 1 1 auto;
+    }
+
+    &--gutter-left {
+        margin-left: 0 !important;
+    }
+
+    &--gutter-right {
+        margin-right: 0 !important;
     }
 }
 
@@ -230,30 +304,32 @@
     justify-content: space-around;
     margin: 0 15px;
 
-    &.col--start {
+    &--start {
         justify-content: flex-start;
     }
 
-    &.col--expand {
+    &--end {
+        justify-content: flex-end;
+    }
+
+    &--between {
+        justify-content: space-between;
+    }
+
+    &--expand {
         flex: 1 1 auto;
     }
 
-    &.col--no-gutter-left {
-        margin: 0 15px 0 0;
+    &--no-gutter-left {
+        margin-left: 0 !important;
     }
 
-    &.col--no-gutter-right {
-        margin: 0 0 0 15px;
+    &--no-gutter-right {
+        margin-right: 0 !important;
     }
 }
 
 /* TEmporary */
-.temp-create-box {
-    width: 277px;
-    height: 226px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
 
 .temp-log-box {
     width: 504px;
