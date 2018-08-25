@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Select, { components } from 'react-select';
+import { Creatable } from 'react-select';
 import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -40,22 +40,19 @@ class CreateTask extends Component {
 
   async saveTask(e) {
     e.preventDefault();
+    console.log(this.props.val)
     this.props.onAddNewTask(this.props.val);
   }
-
   createOnChangeHandler(field) {
     switch (field) {
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
-          console.log(field);
-          console.log(this.props.val.profile);
           const change = this.props.profiles.find(p => p.id === event.value);
           this.props.onChange({ field, value: change });
         };
       case TASK_FIELDS.EDIT_SIZES:
         return (event) => {
           const values = event.map(s => s.value);
-          console.log(values);
           this.props.onChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_SKU:
@@ -83,37 +80,37 @@ class CreateTask extends Component {
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
         <p id="sku-label">Input SKU</p>
-        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.val.sku} required />
+        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
         <p id="profiles-label">Billing Profiles</p>
-        <Select
+        <Creatable
           required
-          defaultValue="Choose a profile"
           onSelectResetsInput="true"
           components={{ DropdownIndicator }}
           id="profiles"
           classNamePrefix="select"
           styles={colourStyles}
+          placeholder="Choose Profile"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.val.profile.profileName}
+          value={this.props.value.profile.profileName.value}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
-        <Select
+        <Creatable
           required
           isMulti
           className="Select-control"
           classNamePrefix="select"
+          placeholder="Choose Profile"
           isClearable={false}
-          defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={this.props.val.sizes}
+          value={this.props.value.sizes.value}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>
-        <NumberFormat format={CreateTask.formatPairs} placeholder="1" value={this.props.val.pairs} id="pairs" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} />
+        <NumberFormat format={CreateTask.formatPairs} placeholder="1" value={this.props.value.pairs} id="pairs" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} />
         <button
           id="submit-tasks"
           tabIndex={0}
@@ -131,19 +128,20 @@ CreateTask.propTypes = {
   // errors: tDefns.taskErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
-  val: tDefns.task.isRequired,
+  value: tDefns.task.isRequired,
   onAddNewTask: PropTypes.func.isRequired,
 };
 
 
 const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
-  val: ownProps.taskToEdit,
+  value: ownProps.taskToEdit,
   errors: ownProps.taskToEdit.errors,
 });
 
 const mapDispatchToProps = dispatch => ({
   onChange: (changes) => {
+    console.log(changes);
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
   onAddNewTask: (newTask) => {

@@ -38,6 +38,7 @@ class LocationFields extends Component {
 
   createOnChangeHandler(field) {
     return (event) => {
+      console.log(this.props.value);
       this.props.onChange({
         field,
         value: event.value,
@@ -67,7 +68,7 @@ class LocationFields extends Component {
           classNamePrefix="select"
           options={LocationFields.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
-          value={this.props.value.value}
+          value={this.props.value.state.value}
           style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])}
           disabled={this.isStatesDisabled()}
         />
@@ -81,7 +82,7 @@ class LocationFields extends Component {
           classNamePrefix="select"
           options={LocationFields.buildCountryOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
-          value={this.props.value.value}
+          value={this.props.value.country.value}
           style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])}
           disabled={disabled}
         />

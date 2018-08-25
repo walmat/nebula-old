@@ -459,3 +459,8 @@ input, select {
     height: 29px;
     cursor: pointer;
 }
+
+.select__menu .select__menu-list {
+    max-height: 175px;
+    overflow-y: scroll;
+}
