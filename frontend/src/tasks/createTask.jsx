@@ -47,12 +47,15 @@ class CreateTask extends Component {
     switch (field) {
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
+          console.log(field);
+          console.log(this.props.val.profile);
           const change = this.props.profiles.find(p => p.id === event.value);
           this.props.onChange({ field, value: change });
         };
       case TASK_FIELDS.EDIT_SIZES:
         return (event) => {
           const values = event.map(s => s.value);
+          console.log(values);
           this.props.onChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_SKU:
@@ -61,10 +64,10 @@ class CreateTask extends Component {
         };
       case TASK_FIELDS.EDIT_PAIRS:
         return (event) => {
-          // prevent zero input when backspacing
-          if (event.target.value === 0 || event.target.value === null || event.target.value === undefined || event.target.value === '') {
-            event.target.value = 1;
-          }
+          // // prevent zero input when backspacing
+          // if (event.target.value === 0 || event.target.value === null || event.target.value === undefined || event.target.value === '') {
+          //   event.target.value = 1;
+          // }
           this.props.onChange({ field, value: event.target.value });
         };
       default:
@@ -85,12 +88,13 @@ class CreateTask extends Component {
         <Select
           required
           defaultValue="Choose a profile"
+          onSelectResetsInput="true"
           components={{ DropdownIndicator }}
           id="profiles"
           classNamePrefix="select"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.val.profile.id || ''}
+          value={this.props.val.profile.profileName}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
@@ -105,7 +109,7 @@ class CreateTask extends Component {
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={this.props.val.sizes.forEach(s => { return s })}
+          value={this.props.val.sizes}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>

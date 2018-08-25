@@ -36,6 +36,8 @@ const captchas = []; // TODO - change this
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
+let yt = null;
+let captcha;
 // authWindow,
 // captchaWindow;
 
@@ -52,7 +54,7 @@ function startMainWindow() {
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
-      webSecurity: 'false',
+      webSecurity: 'true',
     },
   });
 
@@ -65,12 +67,14 @@ function startMainWindow() {
     width: 450,
     maximizable: false,
     minimizable: false,
+    frame: false,
     resizable: false,
     skipTaskbar: true,
     useContentSize: true,
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
+      webSecurity: 'true',
     },
   });
 
@@ -83,11 +87,10 @@ function startMainWindow() {
     fullscreenable: false,
     movable: true,
     resizable: false,
-    icon: path.join(__dirname, '_assets/icons/png/64x64.png'),
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
-      webSecurity: 'false',
+      webSecurity: 'true',
     },
     onLoadFailure: (window) => {
       console.log('window load failure');
@@ -98,7 +101,7 @@ function startMainWindow() {
   // this will load localhost:3000 in developer environments,
   // otherwise it will load in production env
   const startUrl = process.env.ELECTRON_START_URL || url.format({
-    pathname: path.join(__dirname, '/../build/index.html'),
+    pathname: path.join(__dirname, '../build/index.html'),
     protocol: 'file:',
     slashes: true,
   });
@@ -164,7 +167,10 @@ ipcMain.on('window-event', (event, arg) => {
   switch (arg) {
     case 'launchYoutube': {
       // open youtube url using youtube window template
-      windowManager.open('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', { parent: mainWindow }, false);
+      if (yt === null) {
+        yt = windowManager.createNew('youtube', 'YouTube', 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin', 'youtube', null, false);
+        yt.open();
+      }
       break;
     }
     case 'launchHarvester': {
@@ -174,7 +180,7 @@ ipcMain.on('window-event', (event, arg) => {
       *  2. refresh the captcha page
       * */
 
-      const port = 6000;
+      const port = 3000;
 
       const expressApp = express();
       expressApp.set('port', port || port - 10);
@@ -182,7 +188,8 @@ ipcMain.on('window-event', (event, arg) => {
       expressApp.use(express.urlencoded({ extended: true }));
 
       expressApp.get('/', (req, res) => {
-        res.sendFile('./captcha.html', { root: __dirname });
+        // send the captcha harvester page to the server once setup
+        res.sendFile('', { root: __dirname });
         session.defaultSession.setProxy({ proxyRules: '' }, () => {});
       });
 

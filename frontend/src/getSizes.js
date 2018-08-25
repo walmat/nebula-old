@@ -23,6 +23,7 @@ const sizes = [
 ];
 
 const s = [
+  { value: 'Random', label: 'Random' },
   { value: '4', label: '4.0' },
   { value: '4.5', label: '4.5' },
   { value: '5', label: '5.0' },
