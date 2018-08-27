@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import '../app.css';
 import './settings.css';
 import ProxyList from './proxyList';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
-import defns from '../utils/definitions/settingsDefinitions';
+import pDefns from '../utils/definitions/profileDefinitions';
+import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../getSizes';
+import { settingsActions, SETTINGS_FIELDS } from '../state/actions';
 
 class Settings extends Component {
   /*
@@ -26,7 +29,7 @@ class Settings extends Component {
   /*
     * Launch a sub-window with built in AI for image recognition
     * and capabilities of one-click harvesting
-    */
+   n */
   static async harvester() {
     if (window.Bridge) {
       window.Bridge.launchHarvester();
@@ -62,6 +65,40 @@ class Settings extends Component {
     return opts;
   }
 
+  createOnChangeHandler(field) {
+    switch (field) {
+      case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
+      case SETTINGS_FIELDS.EDIT_DEFAULT_SIZE:
+        return (event) => {
+          this.props.onChange({
+            field,
+            value: event.value,
+          });
+        };
+      case SETTINGS_FIELDS.EDIT_DISCORD:
+      case SETTINGS_FIELDS.EDIT_SLACK:
+        return (event) => {
+          this.props.onChange({
+            field,
+            value: event.target.value,
+          });
+        };
+      // should never be called, but just in case, treat it as a normal field input
+      default:
+        return (event) => {
+          this.props.onChange({
+            field,
+            value: event.target.value,
+          });
+        };
+    }
+  }
+
+  saveDefaults(e) {
+    e.preventDefault();
+
+  }
+
   render() {
     return (
       <div className="container">
@@ -76,9 +113,17 @@ class Settings extends Component {
 
         {/* EXTRAS */}
         <p id="discord-label">Discord URL</p>
-        <input id="discord-input" placeholder="https://discordapp.com/api/webhooks/..." />
+        <input
+          id="discord-input"
+          placeholder="https://discordapp.com/api/webhooks/..."
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
+        />
         <p id="slack-label">Slack URL</p>
-        <input id="slack-input" placeholder="https://hooks.slack.com/services/..." />
+        <input
+          id="slack-input"
+          placeholder="https://hooks.slack.com/services/..."
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
+        />
 
         {/* DEFAULTS */}
         <p className="body-text" id="defaults-label">Defaults</p>
@@ -91,8 +136,8 @@ class Settings extends Component {
           id="default-profile"
           classNamePrefix="select"
           styles={colourStyles}
-          onChange={this.onProfileChange}
-          value={this.props.selectedProfile.value}
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE)}
+          value={{ value: this.props.defaultProfile.id, label: this.props.defaultProfile.profileName }}
           options={this.buildProfileOptions()}
         />
 
@@ -104,8 +149,8 @@ class Settings extends Component {
           id="default-sizes"
           classNamePrefix="select"
           styles={colourStyles}
-          onChange={this.onProfileChange}
-          value={this.props.selectedProfile.value}
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
+          value={this.props.defaultSizes.map(size => ({ value: size, label: `${size}` }))}
           options={Settings.buildSizeOptions()}
         />
         <button
@@ -131,16 +176,31 @@ class Settings extends Component {
 }
 
 Settings.propTypes = {
-  profiles: defns.profileList.isRequired,
-  defaultProfile: defns.profile.isRequired,
+  onChange: PropTypes.func.isRequired,
+  profiles: pDefns.profileList.isRequired,
+  defaultProfile: sDefns.defaultProfile.isRequired,
+  defaultSizes: sDefns.defaultSizes.isRequired,
 };
 
 const mapStateToProps = state => ({
   profiles: state.profiles,
-  selectedProfile: state.selectedProfile,
+  defaultProfile: state.settings.defaultProfile,
+  defaultSizes: state.settings.defaultSizes,
+  slack: state.settings.slack,
+  discord: state.settings.discord,
 });
 
 const mapDispatchToProps = dispatch => ({
+  onChange: (changes) => {
+    dispatch(settingsActions.edit(
+      null,
+      changes.field,
+      changes.value,
+    ));
+  },
+  onSaveDefaults: (defaults) => {
+    dispatch(settingsActions.save(defaults));
+  },
 });
 
 export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Settings));

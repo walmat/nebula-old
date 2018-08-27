@@ -10,7 +10,6 @@ import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/
 import './profiles.css';
 
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
-import { getState } from '../getAllStates';
 
 const errorStyle = {
   borderColor: 'red',

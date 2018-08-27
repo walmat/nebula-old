@@ -3,8 +3,14 @@ import {
   SETTINGS_FIELDS,
 } from '../../actions';
 
+import { initialProfileState } from '../profiles/profileReducer';
+
 export const initialSettingsState = {
   proxies: [],
+  defaultProfile: initialProfileState,
+  defaultSizes: [],
+  discord: '',
+  slack: '',
   errors: {
     proxies: [],
   },

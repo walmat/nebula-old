@@ -39,7 +39,7 @@ const topLevelReducer = (state = initialState, action) => {
     selectedProfile: selectedProfileReducer(state.selectedProfile, action),
     settings: settingsReducer(state.settings, action),
     serverInfo: serverReducer(state.serverInfo, action),
-    servers: serverReducer(state.servers, action),
+    // servers: serverReducer(state.servers, action),
   };
 
   return Object.assign({}, state, changes);
