@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Creatable } from 'react-select';
+import Select from 'react-select';
 import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -40,7 +40,6 @@ class CreateTask extends Component {
 
   saveTask(e) {
     e.preventDefault();
-    console.log(this.props.value);
     this.props.onAddNewTask(this.props.value);
   }
   createOnChangeHandler(field) {
@@ -77,24 +76,30 @@ class CreateTask extends Component {
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
         <p id="sku-label">Input SKU</p>
-        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
-        <p id="profiles-label">Billing Profiles</p>
-        <Creatable
+        <input
+          id="sku"
+          type="text"
+          placeholder="SKU 000000"
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)}
+          value={this.props.value.sku}
           required
+        />
+        <p id="profiles-label">Billing Profiles</p>
+        <Select
+          required
+          classNamePrefix="select"
+          placeholder="Choose Profile"
           components={{ DropdownIndicator }}
           id="profiles"
-          classNamePrefix="select"
           styles={colourStyles}
-          placeholder="Choose Profile"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
           value={this.props.value.profile.id}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
-        <Creatable
+        <Select
           required
           isMulti
-          className="Select-control"
           classNamePrefix="select"
           placeholder="Choose Sizes"
           isClearable={false}
@@ -106,7 +111,13 @@ class CreateTask extends Component {
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>
-        <NumberFormat format={CreateTask.formatPairs} placeholder="1" value={this.props.value.pairs} id="pairs" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} />
+        <NumberFormat
+          format={CreateTask.formatPairs}
+          placeholder="1"
+          value={this.props.value.pairs}
+          id="pairs"
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
+        />
         <button
           id="submit-tasks"
           tabIndex={0}
