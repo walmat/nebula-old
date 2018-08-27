@@ -31,6 +31,11 @@ export const colourStyles = {
     outline: 'none',
     boxShadow: 'none',
   }),
+  valueContainer: styles => ({
+    ...styles,
+    maxHeight: '29px',
+    height: '29px',
+  }),
   multiValue: styles => ({
     ...styles,
     backgroundColor: '#B8D9D2',

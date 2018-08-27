@@ -19,14 +19,13 @@ class Server extends Component {
         return options;
       }
       const filtered = onFilter ? options.filter(onFilter) : options;
-      return filtered.map(o =>
-        (<option key={o.id} value={o.id}>{o.label}</option>));
+      return filtered.map(o => ({ value: o.id, label: o.label }));
     };
   }
 
   static changeServerChoice(options, onChange) {
     return (event) => {
-      const change = options.find(o => `${o.id}` === event.target.value);
+      const change = options.find(o => `${o.id}` === event.value);
       onChange(change);
     };
   }
@@ -89,7 +88,7 @@ class Server extends Component {
       'type',
       'Type',
       'Choose Server',
-      this.props.serverType.id,
+      this.props.serverType,
       false,
       Server.changeServerChoice(
         this.props.serverListOptions.types,
@@ -104,7 +103,7 @@ class Server extends Component {
       'size',
       'Size',
       'Choose Size',
-      this.props.serverSize.id,
+      this.props.serverSize,
       !this.props.serverType.id,
       Server.changeServerChoice(
         this.props.serverListOptions.sizes,
@@ -124,7 +123,7 @@ class Server extends Component {
       'location',
       'Location',
       'Choose Location',
-      this.props.serverLocation.id,
+      this.props.serverLocation,
       false,
       Server.changeServerChoice(
         this.props.serverListOptions.locations,
@@ -138,19 +137,20 @@ class Server extends Component {
     type, label, defaultOption, value,
     disabled, onChange, optionGenerator,
   ) {
+    const currentValue = { value: value.id, label: value.label };
     return (
       <div>
         <p id={`${type}-server-label`}>{label}</p>
         <Select
           required
-          defaultValue={defaultOption}
+          placeholder={defaultOption}
           components={{ DropdownIndicator }}
           id={`${type}-server`}
           classNamePrefix="select"
           styles={colourStyles}
           onChange={onChange}
           disabled={disabled}
-          value={value}
+          value={currentValue}
           options={optionGenerator()}
         />
       </div>
