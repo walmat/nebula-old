@@ -7,7 +7,7 @@ export const SETTINGS_ACTIONS = {
 };
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
-const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'field', 'value');
+const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'field', 'profile', 'sizes');
 
 export const settingsActions = {
   edit: editSettings,
@@ -21,8 +21,10 @@ export const SETTINGS_FIELDS = {
   EDIT_SLACK: 'EDIT_SLACK',
   EDIT_DEFAULT_PROFILE: 'EDIT_DEFAULT_PROFILE',
   EDIT_DEFAULT_SIZES: 'EDIT_DEFAULT_SIZES',
+  SAVE_DEFAULTS: 'SAVE_DEFAULTS',
 };
 
+// SEE ../../middleware/settings/settingsAttributeValidationMiddleware LINE #26
 export const mapSettingsFieldToKey = {
   [SETTINGS_FIELDS.EDIT_PROXIES]: 'proxies',
   [SETTINGS_FIELDS.EDIT_DISCORD]: 'discord',

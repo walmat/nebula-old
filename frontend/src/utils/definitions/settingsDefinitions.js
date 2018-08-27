@@ -11,7 +11,7 @@ export default {
   profileList,
   proxyErrors,
   defaultProfile: profile,
-  defaultSizes: PropTypes.arrayOf({ value: PropTypes.string, label: PropTypes.string }),
+  defaultSizes: PropTypes.arrayOf(PropTypes.shape({ value: PropTypes.string, label: PropTypes.string })),
   discord: PropTypes.string,
   slack: PropTypes.string,
   errors: settingsErrors,

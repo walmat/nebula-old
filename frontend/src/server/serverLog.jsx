@@ -3,10 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import start from '../_assets/run.svg';
-import startDim from '../_assets/run_dim.svg';
 import stop from '../_assets/stop.svg';
-import stopDim from '../_assets/stop_dim.svg';
-import destroy from '../_assets/destroy.svg';
 import { serverActions } from '../state/actions/server/serverActions';
 import './server';
 
