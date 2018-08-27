@@ -226,14 +226,21 @@
     &__input {
         width: 252px;
         height: 29px;
-        border: 1px solid #F0405E;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+
+        &--bordered {
+            border: 1px solid #F0405E;
+        }
 
         &--sku {
             text-transform: uppercase;
         }
 
         &--sizes {
-            width: 113px;
+            width: 185px;
             height: 29px;
         }
 

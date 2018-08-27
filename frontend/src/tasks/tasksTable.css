@@ -178,13 +178,19 @@
 .tasks-create__input {
   width: 252px;
   height: 29px;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-create__input--bordered {
   border: 1px solid #F0405E;
 }
 .tasks-create__input--sku {
   text-transform: uppercase;
 }
 .tasks-create__input--sizes {
-  width: 113px;
+  width: 185px;
   height: 29px;
 }
 .tasks-create__input--pairs {
