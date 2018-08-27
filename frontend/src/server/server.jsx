@@ -25,7 +25,7 @@ class Server extends Component {
 
   static changeServerChoice(options, onChange) {
     return (event) => {
-      const change = options.find(o => `${o.id}` === event.value);
+      const change = options.find(o => o.id === event.value);
       onChange(change);
     };
   }
