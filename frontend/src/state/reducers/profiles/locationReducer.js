@@ -6,8 +6,8 @@ export const initialLocationState = {
   address: '',
   apt: '',
   city: '',
-  country: 'United States',
-  state: '',
+  country: {},
+  state: {},
   zipCode: '',
   phone: '',
   errors: {
