@@ -141,7 +141,7 @@ class Tasks1 extends Component {
                   </div>
                 </div>
                 <div className="row row--start">
-                  <div className="col">
+                  <div className="col col--expand">
                     <ViewTask />
                   </div>
                 </div>

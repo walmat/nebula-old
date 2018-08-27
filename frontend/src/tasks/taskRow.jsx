@@ -15,7 +15,6 @@ import edit from '../_assets/edit_icon.svg';
 import { taskActions } from '../state/actions';
 
 class TaskRow extends Component {
-
   static buildSizeOptions() {
     return getAllSizes();
   }

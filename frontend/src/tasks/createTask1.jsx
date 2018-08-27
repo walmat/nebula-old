@@ -64,7 +64,12 @@ class CreateTask extends Component {
   }
 
   render() {
-    const currentProfile = { value: this.props.task.profile.id, label: this.props.task.profile.profileName }
+    const currentProfile = { value: this.props.task.profile.id, label: this.props.task.profile.profileName };
+    console.log(this.props.task);
+    let sizes = [];
+    if (this.props.task.sizes !== '') {
+      sizes = this.props.task.sizes.map(size => ({ value: size, label: `${size}` }));
+    }
     return (
       <div className="tasks-create col col--start col--no-gutter-left col--no-gutter-right">
         <div className="row row--gutter-left row--gutter-right">
@@ -106,7 +111,7 @@ class CreateTask extends Component {
               components={{ DropdownIndicator }}
               styles={colourStyles}
               onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-              value={this.props.task.size}
+              value={sizes}
               options={CreateTask.buildSizeOptions()}
               className="tasks-create__input tasks-create__input--sizes"
             />
@@ -116,7 +121,8 @@ class CreateTask extends Component {
             <NumberFormat
               className="tasks-create__input tasks-create__input--pairs tasks-create__input--bordered"
               format={CreateTask.formatPairs}
-              placeholder="1" value={this.props.task.pairs}
+              placeholder="1"
+              value={this.props.task.pairs}
               onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
             />
           </div>
