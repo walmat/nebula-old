@@ -115,7 +115,7 @@ class Profiles extends Component {
             classNamePrefix="select"
             styles={colourStyles}
             onChange={this.onProfileChange}
-            value={this.props.selectedProfile.profileName}
+            value={{ value: this.props.selectedProfile.id, label: this.props.selectedProfile.profileName }}
             options={this.buildProfileOptions()}
           />
           <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>

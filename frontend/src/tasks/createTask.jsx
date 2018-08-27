@@ -93,7 +93,7 @@ class CreateTask extends Component {
           id="profiles"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.value.profile.id}
+          value={{ value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
@@ -107,7 +107,7 @@ class CreateTask extends Component {
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={this.props.value.sizes}
+          value={ this.props.value.sizes.map(size => ({ value: size, label: `${size}` })) }
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>

@@ -10,6 +10,7 @@ import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/
 import './profiles.css';
 
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import { getState } from '../getAllStates';
 
 const errorStyle = {
   borderColor: 'red',
@@ -37,13 +38,23 @@ class LocationFields extends Component {
   }
 
   createOnChangeHandler(field) {
-    return (event) => {
-      console.log(this.props.value);
-      this.props.onChange({
-        field,
-        value: event.value,
-      });
-    };
+    switch (field) {
+      case LOCATION_FIELDS.STATE:
+      case LOCATION_FIELDS.COUNTRY:
+        return (event) => {
+          this.props.onChange({
+            field,
+            value: event,
+          });
+        };
+      default:
+        return (event) => {
+          this.props.onChange({
+            field,
+            value: event.target.value,
+          });
+        };
+    }
   }
 
   isStatesDisabled() {
@@ -70,7 +81,7 @@ class LocationFields extends Component {
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
           value={this.props.value.state}
           style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])}
-          disabled={this.isStatesDisabled()}
+          isDisabled={this.isStatesDisabled()}
         />
         <input id={`${this.props.id}-zip-code`} required placeholder="Zip Code" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)} value={this.props.value.zipCode} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])} disabled={disabled} />
         <Select
@@ -84,7 +95,7 @@ class LocationFields extends Component {
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
           value={this.props.value.country}
           style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])}
-          disabled={disabled}
+          isDisabled={disabled}
         />
         <input id={`${this.props.id}-phone`} required placeholder="Phone" onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)} value={this.props.value.phone} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])} disabled={disabled} />
       </div>
