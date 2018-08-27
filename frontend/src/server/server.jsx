@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Select, { components } from 'react-select';
+import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';

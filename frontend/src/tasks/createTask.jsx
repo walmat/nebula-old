@@ -38,10 +38,10 @@ class CreateTask extends Component {
     return p.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
-  async saveTask(e) {
+  saveTask(e) {
     e.preventDefault();
-    console.log(this.props.val)
-    this.props.onAddNewTask(this.props.val);
+    console.log(this.props.value);
+    this.props.onAddNewTask(this.props.value);
   }
   createOnChangeHandler(field) {
     switch (field) {
@@ -61,13 +61,10 @@ class CreateTask extends Component {
         };
       case TASK_FIELDS.EDIT_PAIRS:
         return (event) => {
-          // // prevent zero input when backspacing
-          // if (event.target.value === 0 || event.target.value === null || event.target.value === undefined || event.target.value === '') {
-          //   event.target.value = 1;
-          // }
           this.props.onChange({ field, value: event.target.value });
         };
       default:
+      // should never be called, but nice to have just in case
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
         };
@@ -84,14 +81,13 @@ class CreateTask extends Component {
         <p id="profiles-label">Billing Profiles</p>
         <Creatable
           required
-          onSelectResetsInput="true"
           components={{ DropdownIndicator }}
           id="profiles"
           classNamePrefix="select"
           styles={colourStyles}
           placeholder="Choose Profile"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.value.profile.profileName.value}
+          value={this.props.value.profile.id}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
@@ -100,13 +96,13 @@ class CreateTask extends Component {
           isMulti
           className="Select-control"
           classNamePrefix="select"
-          placeholder="Choose Profile"
+          placeholder="Choose Sizes"
           isClearable={false}
           components={{ DropdownIndicator }}
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={this.props.value.sizes.value}
+          value={this.props.value.sizes}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>

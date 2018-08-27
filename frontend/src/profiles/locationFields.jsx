@@ -61,28 +61,28 @@ class LocationFields extends Component {
         <input id={`${this.props.id}-city`} required placeholder="City" onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)} value={this.props.value.city} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.CITY])} disabled={disabled} />
         <Select
           required
-          defaultValue="Choose State"
+          placeholder="State"
           components={{ DropdownIndicator }}
           id={`${this.props.id}-state`}
           styles={colourStyles}
           classNamePrefix="select"
           options={LocationFields.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
-          value={this.props.value.state.value}
+          value={this.props.value.state}
           style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])}
           disabled={this.isStatesDisabled()}
         />
         <input id={`${this.props.id}-zip-code`} required placeholder="Zip Code" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)} value={this.props.value.zipCode} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])} disabled={disabled} />
         <Select
           required
-          defaultValue="Choose Country"
+          placeholder="Country"
           components={{ DropdownIndicator }}
           id={`${this.props.id}-country`}
           styles={colourStyles}
           classNamePrefix="select"
           options={LocationFields.buildCountryOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
-          value={this.props.value.country.value}
+          value={this.props.value.country}
           style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])}
           disabled={disabled}
         />

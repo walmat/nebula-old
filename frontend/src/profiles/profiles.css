@@ -464,3 +464,11 @@ input, select {
     max-height: 175px;
     overflow-y: scroll;
 }
+
+.select__placeholder {
+    font-family: AvenirNext-Medium;
+    text-transform: capitalize;
+    font-size: 9px;
+    color: #6D6E70;
+    letter-spacing: 0
+}

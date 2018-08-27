@@ -30,7 +30,7 @@ class PaymentFields extends Component {
     const month = PaymentFields.limit(val.substring(0, 2), '12');
     const year = val.substring(2, 4);
 
-    return month + (year.length ? '/' + year : '');
+    return month + (year.length ? `/${year}` : '');
   }
 
   createOnChangeHandler(field) {

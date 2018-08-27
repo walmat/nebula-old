@@ -91,7 +91,8 @@ export function serverReducer(state = initialServerState, action) {
     // Update the correct errors map
     change.errors = Object.assign(
       {},
-      state[mapServerFieldToKey[action.field]].errors, action.errors,
+      state[mapServerFieldToKey[action.field]].errors,
+      action.errors,
     );
 
     // Edit the correct part of the next state based on the given field
