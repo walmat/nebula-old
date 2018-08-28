@@ -108,6 +108,13 @@ class Settings extends Component {
   }
 
   render() {
+    let defaultProfileValue = null;
+    if (this.props.defaultProfile.id !== null) {
+      defaultProfileValue = {
+        value: this.props.defaultProfile.id,
+        label: this.props.defaultProfile.profileName,
+      };
+    }
     return (
       <div className="container">
         <h1 className="text-header" id="task-header">Settings</h1>
@@ -147,7 +154,7 @@ class Settings extends Component {
           classNamePrefix="select"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE)}
-          value={this.props.defaultProfile.id === null ? '' : { value: this.props.defaultProfile.id, label: this.props.defaultProfile.profileName }}
+          value={defaultProfileValue}
           options={this.buildProfileOptions()}
         />
 

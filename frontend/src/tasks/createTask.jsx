@@ -71,6 +71,13 @@ class CreateTask extends Component {
   }
 
   render() {
+    let newTaskProfileValue = null;
+    if (this.props.value.profile.id !== null) {
+      newTaskProfileValue = {
+        value: this.props.value.profile.id,
+        label: this.props.value.profile.profileName,
+      };
+    }
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>
@@ -93,7 +100,7 @@ class CreateTask extends Component {
           id="profiles"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
+          value={newTaskProfileValue}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
@@ -107,7 +114,7 @@ class CreateTask extends Component {
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={ this.props.value.sizes.map(size => ({ value: size, label: `${size}` })) }
+          value={this.props.value.sizes.map(size => ({ value: size, label: `${size}` }))}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>

@@ -11,7 +11,7 @@ export const initialTaskState = {
   profile: initialProfileState,
   sizes: [],
   pairs: 1,
-  sites: {},
+  sites: [],
   status: 'idle',
   errors: {
     sku: null,

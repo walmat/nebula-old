@@ -16,9 +16,9 @@ export const initialServerState = {
     password: '',
   },
   serverOptions: {
-    type: {},
-    size: {},
-    location: {},
+    type: null,
+    size: null,
+    location: null,
   },
   proxies: [],
   coreServer: {

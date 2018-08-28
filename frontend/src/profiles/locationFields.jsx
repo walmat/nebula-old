@@ -57,7 +57,7 @@ class LocationFields extends Component {
   }
 
   isStatesDisabled() {
-    return (Object.keys(this.props.value.country).length !== 0 && this.props.value.country.label !== 'United States') || this.props.disabled;
+    return (this.props.value.country && this.props.value.country.label !== 'United States') || this.props.disabled;
   }
 
   render() {
@@ -78,7 +78,7 @@ class LocationFields extends Component {
           classNamePrefix="select"
           options={LocationFields.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
-          value={Object.keys(this.props.value.state).length === 0 ? '' : this.props.value.state}
+          value={this.props.value.state}
           style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])}
           isDisabled={this.isStatesDisabled()}
         />
@@ -92,7 +92,7 @@ class LocationFields extends Component {
           classNamePrefix="select"
           options={LocationFields.buildCountryOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
-          value={Object.keys(this.props.value.country).length === 0 ? '' : this.props.value.country}
+          value={this.props.value.country}
           style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])}
           isDisabled={disabled}
         />
