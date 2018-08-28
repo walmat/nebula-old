@@ -12,15 +12,15 @@ export const DropdownIndicator = (props) => {
 };
 
 export const colourStyles = {
-  control: styles => ({
+  control: (styles, { isDisabled, isFocused, isSelected }) => ({
     ...styles,
     border: '1px solid #F0405E',
-    backgroundColor: '#f4f4f4',
+    backgroundColor: isDisabled ? 'rgb(229, 229, 229)' : '#f4f4f4',
     height: '29px',
     minHeight: '29px',
     borderRadius: '3px',
     outline: 'none',
-    cursor: 'pointer',
+    cursor: isDisabled ? 'not-allowed' : 'pointer',
     boxShadow: 'none',
   }),
   option: (styles, { isDisabled, isFocused, isSelected }) => ({
@@ -47,12 +47,20 @@ export const colourStyles = {
       cursor: 'pointer',
     },
   }),
-  placeholder: styles => ({
+  placeholder: (styles, { isDisabled, isFocused, isSelected }) => ({
     ...styles,
     fontFamily: 'AvenirNext-Medium',
     textTransform: 'capitalize',
     fontSize: '9px',
-    color: '#6D6E70',
+    color: isDisabled ? '#6D6E70' : '#6D6E70',
+    letterSpacing: 0,
+  }),
+  singleValue: (styles, { isDisabled, isFocused, isSelected }) => ({
+    ...styles,
+    fontFamily: 'AvenirNext-Medium',
+    textTransform: 'capitalize',
+    fontSize: '9px',
+    color: '#161318',
     letterSpacing: 0,
   }),
   multiValueLabel: styles => ({
