@@ -55,9 +55,6 @@ class CreateTask extends Component {
           this.props.onChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_SKU:
-        return (event) => {
-          this.props.onChange({ field, value: event.target.value });
-        };
       case TASK_FIELDS.EDIT_PAIRS:
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
@@ -107,7 +104,7 @@ class CreateTask extends Component {
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={ this.props.value.sizes.map(size => ({ value: size, label: `${size}` })) }
+          value={this.props.value.sizes.map(size => ({ value: size, label: `${size}` }))}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>

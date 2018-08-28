@@ -6,11 +6,6 @@
         left: 140px;
     }
 
-    .select__control:hover {
-        border-color: #F0405E !important;
-        cursor: pointer;
-    }
-
     #sku-label {
         margin: 0;
         font-family: AvenirNext-Medium;

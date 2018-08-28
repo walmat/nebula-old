@@ -54,8 +54,7 @@ class TaskRow extends Component {
   }
 
   buildProfileOptions() {
-    const p = this.props.profiles;
-    return p.map(profile => ({ value: profile.id, label: profile.profileName }));
+    return this.props.profiles.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
   renderEditMenu() {
