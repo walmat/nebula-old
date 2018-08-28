@@ -61,7 +61,7 @@ export function settingsReducer(state = initialSettingsState, action) {
     switch (action.field) {
       case SETTINGS_FIELDS.SAVE_DEFAULTS:
         change = {
-          defaults: {profile: action.profile, sizes: action.sizes },
+          defaults: { profile: action.profile, sizes: action.sizes },
           errors: action.errors,
         };
         break;

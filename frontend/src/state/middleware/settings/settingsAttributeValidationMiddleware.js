@@ -15,9 +15,7 @@ const settingsAttributeValidationMiddleware = store => next => (action) => {
 
   // Copy the action object
   const newAction = JSON.parse(JSON.stringify(action));
-
-  console.log(newAction);
-
+  
   // Copy over the settings errors map
   newAction.errors = Object.assign({}, state.settings.errors);
 

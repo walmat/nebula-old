@@ -22,6 +22,10 @@ export const colourStyles = {
     outline: 'none',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
     boxShadow: 'none',
+    ':hover': {
+      borderColor: '#F0405E',
+      cursor: 'pointer',
+    },
   }),
   option: (styles, { isDisabled, isFocused, isSelected }) => ({
     ...styles,
@@ -35,6 +39,7 @@ export const colourStyles = {
     ...styles,
     maxHeight: '29px',
     height: '29px',
+    cursor: 'pointer',
   }),
   multiValue: styles => ({
     ...styles,
@@ -54,6 +59,7 @@ export const colourStyles = {
     fontSize: '9px',
     color: isDisabled ? '#6D6E70' : '#6D6E70',
     letterSpacing: 0,
+    cursor: 'pointer',
   }),
   singleValue: styles => ({
     ...styles,
@@ -62,6 +68,7 @@ export const colourStyles = {
     fontSize: '9px',
     color: '#161318',
     letterSpacing: 0,
+    cursor: 'pointer',
   }),
   multiValueLabel: styles => ({
     ...styles,
@@ -82,5 +89,15 @@ export const colourStyles = {
       color: '#f4f4f4',
       cursor: 'pointer',
     },
+  }),
+  menu: styles => ({
+    ...styles,
+    maxHeight: '175px',
+    overflowY: 'scroll',
+  }),
+  menuList: styles => ({
+    ...styles,
+    maxHeight: '175px',
+    overflowY: 'scroll',
   }),
 };

@@ -28,9 +28,9 @@ class Settings extends Component {
   }
 
   /*
-    * Launch a sub-window with built in AI for image recognition
-    * and capabilities of one-click harvesting
-   n */
+  * Launch a sub-window with built in AI for image recognition
+  * and capabilities of one-click harvesting
+  */
   static async harvester() {
     if (window.Bridge) {
       window.Bridge.launchHarvester();
@@ -76,16 +76,16 @@ class Settings extends Component {
       case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
         return (event) => {
           const change = this.props.profiles.find(p => p.id === event.value);
-          this.props.onChange({ field, value: change });
+          this.props.onSettingsChange({ field, value: change });
         };
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES:
         return (event) => {
-          this.props.onChange({ field, value: event });
+          this.props.onSettingsChange({ field, value: event });
         };
       case SETTINGS_FIELDS.EDIT_DISCORD:
       case SETTINGS_FIELDS.EDIT_SLACK:
         return (event) => {
-          this.props.onChange({
+          this.props.onSettingsChange({
             field,
             value: event.target.value,
           });
@@ -94,7 +94,7 @@ class Settings extends Component {
       default:
         return (event) => {
           console.log(event)
-          this.props.onChange({
+          this.props.onSettingsChange({
             field,
             value: event.target.value,
           });
@@ -195,7 +195,7 @@ class Settings extends Component {
 }
 
 Settings.propTypes = {
-  onChange: PropTypes.func.isRequired,
+  onSettingsChange: PropTypes.func.isRequired,
   onSaveDefaults: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   defaultProfile: sDefns.defaultProfile.isRequired,
@@ -213,8 +213,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onChange: (changes) => {
-    console.log(changes);
+  onSettingsChange: (changes) => {
     dispatch(settingsActions.edit(
       changes.field,
       changes.value,

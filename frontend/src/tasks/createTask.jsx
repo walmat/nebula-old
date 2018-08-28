@@ -55,9 +55,6 @@ class CreateTask extends Component {
           this.props.onChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_SKU:
-        return (event) => {
-          this.props.onChange({ field, value: event.target.value });
-        };
       case TASK_FIELDS.EDIT_PAIRS:
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
