@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Select, { components } from 'react-select';
+import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
@@ -19,14 +19,13 @@ class Server extends Component {
         return options;
       }
       const filtered = onFilter ? options.filter(onFilter) : options;
-      return filtered.map(o =>
-        (<option key={o.id} value={o.id}>{o.label}</option>));
+      return filtered.map(o => ({ value: o.id, label: o.label }));
     };
   }
 
   static changeServerChoice(options, onChange) {
     return (event) => {
-      const change = options.find(o => `${o.id}` === event.target.value);
+      const change = options.find(o => o.id === event.value);
       onChange(change);
     };
   }
@@ -89,7 +88,7 @@ class Server extends Component {
       'type',
       'Type',
       'Choose Server',
-      this.props.serverType.id,
+      this.props.serverType,
       false,
       Server.changeServerChoice(
         this.props.serverListOptions.types,
@@ -104,15 +103,15 @@ class Server extends Component {
       'size',
       'Size',
       'Choose Size',
-      this.props.serverSize.id,
-      !this.props.serverType.id,
+      this.props.serverSize,
+      !this.props.serverType,
       Server.changeServerChoice(
         this.props.serverListOptions.sizes,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE),
       ),
       Server.buildServerTypeChoices(
         this.props.serverListOptions.sizes,
-        (s => (this.props.serverType.id
+        (s => (this.props.serverType
           ? s.types.some(t => t === this.props.serverType.id)
           : true)),
       ),
@@ -124,7 +123,7 @@ class Server extends Component {
       'location',
       'Location',
       'Choose Location',
-      this.props.serverLocation.id,
+      this.props.serverLocation,
       false,
       Server.changeServerChoice(
         this.props.serverListOptions.locations,
@@ -143,12 +142,13 @@ class Server extends Component {
         <p id={`${type}-server-label`}>{label}</p>
         <Select
           required
-          defaultValue={defaultOption}
+          placeholder={defaultOption}
           components={{ DropdownIndicator }}
           id={`${type}-server`}
+          classNamePrefix="select"
           styles={colourStyles}
           onChange={onChange}
-          disabled={disabled}
+          isDisabled={disabled}
           value={value}
           options={optionGenerator()}
         />

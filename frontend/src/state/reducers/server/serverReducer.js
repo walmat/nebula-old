@@ -16,9 +16,9 @@ export const initialServerState = {
     password: '',
   },
   serverOptions: {
-    type: {},
-    size: {},
-    location: {},
+    type: null,
+    size: null,
+    location: null,
   },
   proxies: [],
   coreServer: {
@@ -44,7 +44,7 @@ export function serverReducer(state = initialServerState, action) {
         change = {
           type: action.value,
           // If we are selecting a different type, reset the size to force the user to reselect
-          size: type.id === action.value.id ? size : {},
+          size: type && type.id === action.value.id ? size : {},
         };
         break;
       case SERVER_FIELDS.EDIT_SERVER_SIZE:
@@ -91,7 +91,8 @@ export function serverReducer(state = initialServerState, action) {
     // Update the correct errors map
     change.errors = Object.assign(
       {},
-      state[mapServerFieldToKey[action.field]].errors, action.errors,
+      state[mapServerFieldToKey[action.field]].errors,
+      action.errors,
     );
 
     // Edit the correct part of the next state based on the given field

@@ -9,8 +9,10 @@ import profileList from './profiles/profileList';
 export default {
   proxies: PropTypes.arrayOf(proxy),
   profileList,
-  profile,
   proxyErrors,
-
+  defaultProfile: profile,
+  defaultSizes: PropTypes.arrayOf(PropTypes.shape({ value: PropTypes.string, label: PropTypes.string })),
+  discord: PropTypes.string,
+  slack: PropTypes.string,
   errors: settingsErrors,
 };

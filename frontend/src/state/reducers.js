@@ -3,8 +3,8 @@
  * files, this is just a shared import point.
  */
 // import { combineReducers } from 'redux';
-import { taskReducer, newTaskReducer, initialTaskState, selectedTaskReducer } from './reducers/tasks/taskReducer';
-import {initialTaskListState, taskListReducer} from './reducers/tasks/taskListReducer';
+import { newTaskReducer, initialTaskState, selectedTaskReducer } from './reducers/tasks/taskReducer';
+import { initialTaskListState, taskListReducer } from './reducers/tasks/taskListReducer';
 import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/profileReducer';
 import { profileListReducer, initialProfileListState } from './reducers/profiles/profileListReducer';
 import { serverReducer, initialServerState, initialServerListState } from './reducers/server/serverReducer';
@@ -39,7 +39,7 @@ const topLevelReducer = (state = initialState, action) => {
     selectedProfile: selectedProfileReducer(state.selectedProfile, action),
     settings: settingsReducer(state.settings, action),
     serverInfo: serverReducer(state.serverInfo, action),
-    servers: serverReducer(state.servers, action),
+    // servers: serverReducer(state.servers, action),
   };
 
   return Object.assign({}, state, changes);

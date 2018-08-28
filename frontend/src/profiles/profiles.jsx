@@ -97,6 +97,13 @@ class Profiles extends Component {
 
   render() {
     const { currentProfile } = this.props;
+    let selectProfileValue = null;
+    if (this.props.selectedProfile.id !== null) {
+      selectProfileValue = {
+        value: this.props.selectedProfile.id,
+        label: this.props.selectedProfile.profileName,
+      };
+    }
     return (
       <form>
         <div className="container">
@@ -109,12 +116,13 @@ class Profiles extends Component {
           <p id="profile-name-label">Profile Name</p>
           <Select
             required
-            defaultValue="Choose Profile to Load"
+            placeholder="Load Profile"
             components={{ DropdownIndicator }}
             id="profile-load"
+            classNamePrefix="select"
             styles={colourStyles}
             onChange={this.onProfileChange}
-            value={this.props.selectedProfile.value}
+            value={selectProfileValue}
             options={this.buildProfileOptions()}
           />
           <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>

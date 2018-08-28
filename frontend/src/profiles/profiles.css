@@ -7,14 +7,6 @@ input::placeholder, select {
     letter-spacing: 0;
 }
 
-.Select-menu-outer {
-    max-height: 200px;
-    }
-    
-    .Select-menu {
-    max-height: 200px;
-    }
-
 input, select {
     text-transform: none;
 }
@@ -89,7 +81,6 @@ input, select {
 }
 
 #profile-load {
-    /* border: 1px solid #F0405E; */
     border-radius: 3px;
     position: absolute;
     top: 150px;
@@ -212,7 +203,6 @@ input, select {
     left: 295px;
     width: 94px;
     height: 29px;
-    /* border: 1px solid #F0405E; */
     border-radius: 3px;
     font-family: AvenirNext-Medium;
     font-size: 9px;
@@ -236,7 +226,6 @@ input, select {
     left: 224px;
     width: 165px;
     height: 29px;
-    /* border: 1px solid #F0405E; */
     border-radius: 3px;
     font-family: AvenirNext-Medium;
     font-size: 9px;
@@ -332,7 +321,6 @@ input, select {
     left: 571px;
     width: 94px;
     height: 29px;
-    /* border: 1px solid #F0405E; */
     border-radius: 3px;
     font-family: AvenirNext-Medium;
     font-size: 9px;
@@ -356,7 +344,6 @@ input, select {
     left: 502px;
     width: 165px;
     height: 29px;
-    /* border: 1px solid #F0405E; */
     border-radius: 3px;
     font-family: AvenirNext-Medium;
     font-size: 9px;

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Select, { components } from 'react-select';
+import Select from 'react-select';
 import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -19,13 +19,10 @@ class CreateTask extends Component {
     return getAllSizes();
   }
 
-  static openSelect(which) {
-    const el = document.getElementById(which);
-    console.log(el);
-    el.size = 4;
-  }
-
   static formatPairs(val) {
+    if (val.length === 0) {
+      return 1;
+    }
     return val <= 5 && val > 0 ? val : null;
   }
 
@@ -38,18 +35,13 @@ class CreateTask extends Component {
 
   buildProfileOptions() {
     const p = this.props.profiles;
-    const opts = [];
-    p.forEach(profile => {
-      opts.push({ value: profile.id, label: profile.profileName })
-    });
-    return opts;
+    return p.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
-  async saveTask(e) {
+  saveTask(e) {
     e.preventDefault();
     this.props.onAddNewTask(this.props.value);
   }
-
   createOnChangeHandler(field) {
     switch (field) {
       case TASK_FIELDS.EDIT_PROFILE:
@@ -63,50 +55,73 @@ class CreateTask extends Component {
           this.props.onChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_SKU:
+      case TASK_FIELDS.EDIT_PAIRS:
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
         };
       default:
+      // should never be called, but nice to have just in case
         return (event) => {
-          this.props.onChange({ field, value: event.value });
+          this.props.onChange({ field, value: event.target.value });
         };
     }
   }
 
   render() {
+    let newTaskProfileValue = null;
+    if (this.props.value.profile.id !== null) {
+      newTaskProfileValue = {
+        value: this.props.value.profile.id,
+        label: this.props.value.profile.profileName,
+      };
+    }
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
         <p id="sku-label">Input SKU</p>
-        <input id="sku" type="text" placeholder="SKU 000000" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)} value={this.props.value.sku} required />
+        <input
+          id="sku"
+          type="text"
+          placeholder="SKU 000000"
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)}
+          value={this.props.value.sku}
+          required
+        />
         <p id="profiles-label">Billing Profiles</p>
         <Select
           required
-          defaultValue="Choose a profile"
+          classNamePrefix="select"
+          placeholder="Choose Profile"
           components={{ DropdownIndicator }}
           id="profiles"
-          
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={this.props.value.value}
+          value={newTaskProfileValue}
           options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
         <Select
           required
           isMulti
+          classNamePrefix="select"
+          placeholder="Choose Sizes"
           isClearable={false}
-          defaultValue="Choose a profile"
           components={{ DropdownIndicator }}
           id="size"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={this.props.value.value}
+          value={this.props.value.sizes.map(size => ({ value: size, label: `${size}` }))}
           options={CreateTask.buildSizeOptions()}
         />
         <p id="pairs-label"># Pairs</p>
-        <NumberFormat format={CreateTask.formatPairs} placeholder="1" value={this.props.value.pairs} id="pairs" onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)} />
+        <NumberFormat
+          format={CreateTask.formatPairs}
+          placeholder="1"
+          value={this.props.value.pairs}
+          id="pairs"
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
+        />
         <button
           id="submit-tasks"
           tabIndex={0}
@@ -121,7 +136,7 @@ class CreateTask extends Component {
 }
 
 CreateTask.propTypes = {
-  errors: tDefns.taskErrors.isRequired,
+  // errors: tDefns.taskErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   value: tDefns.task.isRequired,

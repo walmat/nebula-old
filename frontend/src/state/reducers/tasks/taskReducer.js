@@ -1,3 +1,5 @@
+import { initialProfileState } from '../profiles/profileReducer';
+
 import {
   TASK_ACTIONS,
   TASK_FIELDS,
@@ -6,10 +8,10 @@ import {
 export const initialTaskState = {
   id: '',
   sku: '',
-  profile: {},
+  profile: initialProfileState,
   sizes: [],
-  pairs: '1',
-  sites: {},
+  pairs: 1,
+  sites: [],
   status: 'idle',
   errors: {
     sku: null,
@@ -22,8 +24,6 @@ export const initialTaskState = {
 
 export function taskReducer(state = initialTaskState, action) {
   let change = {};
-
-  console.log(action.field, action);
 
   if (action.type === TASK_ACTIONS.EDIT) {
     switch (action.field) {
@@ -73,7 +73,6 @@ export function newTaskReducer(state = initialTaskState, action) {
       if (action.response !== undefined && action.response.error !== undefined) {
         return Object.assign({}, action.task);
       }
-
       // If adding a new task, we should reset the current task to default values
       return Object.assign({}, initialTaskState);
     }

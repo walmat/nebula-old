@@ -15,13 +15,16 @@ const settingsAttributeValidationMiddleware = store => next => (action) => {
 
   // Copy the action object
   const newAction = JSON.parse(JSON.stringify(action));
-
+  
   // Copy over the settings errors map
   newAction.errors = Object.assign({}, state.settings.errors);
 
   // Validate the field in question
-  newAction.errors[mapSettingsFieldToKey[newAction.field]] =
-    settingsAttributeValidatorMap[newAction.field](newAction.value);
+  if (newAction.field === 'EDIT_PROXIES') {
+    // TODO - remove this later when validation is finalized
+    newAction.errors[mapSettingsFieldToKey[newAction.field]] =
+      settingsAttributeValidatorMap[newAction.field](newAction.value);
+  }
 
   // Continue on to next middleware/reducer with errors map filled in
   return next(newAction);

@@ -6,8 +6,6 @@
         left: 140px;
     }
 
-    .Select-input * { outline: 0; }
-
     #sku-label {
         margin: 0;
         font-family: AvenirNext-Medium;
@@ -421,8 +419,11 @@
     .edit-billing .edit-billing__select {
         width: 355px;
         height: 25px;
-        border: #F0405E solid 1px;
         border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
     }
 
     .edit-sizes {
@@ -442,12 +443,16 @@
     .edit-sizes .edit-sizes__select {
         width: 168px;
         height: 25px;
-        border: #F0405E solid 1px;
         border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
     }
 
     .edit-pairs {
         width: 83px;
+        height: 29px;
         padding-left: 25px;
         vertical-align: middle;
     }
@@ -463,7 +468,7 @@
     .edit-pairs .edit-pairs__input {
         vertical-align:middle;
         width: 78px;
-        height: 25px;
+        height: 29px;
         border: #F0405E solid 1px;
         border-radius: 3px;
     }
@@ -473,7 +478,7 @@
     }
 
     .submit-edit {
-        margin-top: 15px;
+        margin-top: 12px;
         margin-left: -5px;
     }
 
