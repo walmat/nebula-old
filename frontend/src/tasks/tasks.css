@@ -424,8 +424,11 @@
     .edit-billing .edit-billing__select {
         width: 355px;
         height: 25px;
-        border: #F0405E solid 1px;
         border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
     }
 
     .edit-sizes {
@@ -445,8 +448,11 @@
     .edit-sizes .edit-sizes__select {
         width: 168px;
         height: 25px;
-        border: #F0405E solid 1px;
         border-radius: 3px;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
     }
 
     .edit-pairs {

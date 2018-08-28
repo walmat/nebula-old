@@ -55,7 +55,7 @@ export const colourStyles = {
     color: isDisabled ? '#6D6E70' : '#6D6E70',
     letterSpacing: 0,
   }),
-  singleValue: (styles, { isDisabled, isFocused, isSelected }) => ({
+  singleValue: styles => ({
     ...styles,
     fontFamily: 'AvenirNext-Medium',
     textTransform: 'capitalize',
