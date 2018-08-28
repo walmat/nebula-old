@@ -56,7 +56,6 @@ const states = [
 
 export default function getAllStates() {
   return states;
-  // return JSON.parse(JSON.stringify(states));
 }
 
 export function getState(statevalue) {

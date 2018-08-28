@@ -138,6 +138,7 @@ class Server extends Component {
     disabled, onChange, optionGenerator,
   ) {
     const currentValue = { value: value.id, label: value.label };
+    console.log(currentValue);
     return (
       <div>
         <p id={`${type}-server-label`}>{label}</p>
@@ -150,7 +151,7 @@ class Server extends Component {
           styles={colourStyles}
           onChange={onChange}
           disabled={disabled}
-          value={currentValue}
+          value={currentValue.value === undefined ? '' : currentValue}
           options={optionGenerator()}
         />
       </div>

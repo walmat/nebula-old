@@ -109,13 +109,13 @@ class Profiles extends Component {
           <p id="profile-name-label">Profile Name</p>
           <Select
             required
-            defaultValue="Choose Profile to Load"
+            placeholder="Load Profile"
             components={{ DropdownIndicator }}
             id="profile-load"
             classNamePrefix="select"
             styles={colourStyles}
             onChange={this.onProfileChange}
-            value={{ value: this.props.selectedProfile.id, label: this.props.selectedProfile.profileName }}
+            value={this.props.selectedProfile.id === null ? '' : { value: this.props.selectedProfile.id, label: this.props.selectedProfile.profileName }}
             options={this.buildProfileOptions()}
           />
           <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>

@@ -141,13 +141,13 @@ class Settings extends Component {
         <p id="default-profile-label">Profile</p>
         <Select
           required
-          defaultValue="Choose Profile"
+          placeholder="Choose Profile"
           components={{ DropdownIndicator }}
           id="default-profile"
           classNamePrefix="select"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE)}
-          value={{ value: this.props.defaultProfile.id, label: this.props.defaultProfile.profileName }}
+          value={this.props.defaultProfile.id === null ? '' : { value: this.props.defaultProfile.id, label: this.props.defaultProfile.profileName }}
           options={this.buildProfileOptions()}
         />
 
@@ -156,7 +156,7 @@ class Settings extends Component {
           required
           isMulti
           isClearable={false}
-          defaultValue="Choose Sizes"
+          placeholder="Choose Sizes"
           components={{ DropdownIndicator }}
           id="default-sizes"
           classNamePrefix="select"

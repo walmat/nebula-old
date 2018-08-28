@@ -49,7 +49,6 @@ export function settingsReducer(state = initialSettingsState, action) {
         };
         break;
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES:
-        console.log(action);
         change = {
           defaultSizes: action.value,
           errors: action.errors,
