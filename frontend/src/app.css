@@ -150,6 +150,7 @@
   -ms-user-select: none;
   user-select: none;
   cursor: default;
+  text-rendering: geometricPrecision;
 }
 
 *:focus {

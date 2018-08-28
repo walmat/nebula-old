@@ -18,7 +18,7 @@ class CreateTask extends Component {
   static buildSizeOptions() {
     return getAllSizes();
   }
-  
+
   static formatPairs(val) {
     if (val.length === 0) {
       return 1;
@@ -148,7 +148,6 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   onChange: (changes) => {
-    console.log(changes);
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
   onAddNewTask: (newTask) => {
