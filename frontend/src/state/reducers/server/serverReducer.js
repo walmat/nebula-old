@@ -44,7 +44,7 @@ export function serverReducer(state = initialServerState, action) {
         change = {
           type: action.value,
           // If we are selecting a different type, reset the size to force the user to reselect
-          size: type.id === action.value.id ? size : {},
+          size: type && type.id === action.value.id ? size : {},
         };
         break;
       case SERVER_FIELDS.EDIT_SERVER_SIZE:
