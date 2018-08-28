@@ -104,14 +104,14 @@ class Server extends Component {
       'Size',
       'Choose Size',
       this.props.serverSize,
-      !this.props.serverType.id,
+      !this.props.serverType,
       Server.changeServerChoice(
         this.props.serverListOptions.sizes,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE),
       ),
       Server.buildServerTypeChoices(
         this.props.serverListOptions.sizes,
-        (s => (this.props.serverType.id
+        (s => (this.props.serverType
           ? s.types.some(t => t === this.props.serverType.id)
           : true)),
       ),
