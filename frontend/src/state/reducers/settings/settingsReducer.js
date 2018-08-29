@@ -23,6 +23,7 @@ export const initialSettingsState = {
 
 export function settingsReducer(state = initialSettingsState, action) {
   let change = {};
+  console.log(action);
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
       default:
@@ -32,17 +33,17 @@ export function settingsReducer(state = initialSettingsState, action) {
         };
     }
   } else if (action.type === SETTINGS_ACTIONS.SAVE) {
-    switch (action.field) {
-      case SETTINGS_FIELDS.SAVE_DEFAULTS:
-        change = {
-          defaults: { profile: action.profile, sizes: action.sizes },
-          errors: action.errors,
-        };
-        break;
-      default:
-        change = {};
-    }
+    change = {
+      defaults: { profile: action.defaults.defaultProfile, sizes: action.defaults.defaultSizes },
+      errors: action.errors,
+    };
+  } else if (action.type === SETTINGS_ACTIONS.CLEAR) {
+    change = {
+      defaults: {},
+      defaultProfile: initialProfileState,
+      defaultSizes: [],
+      errors: action.errors,
+    };
   }
-
   return Object.assign({}, state, change);
 }

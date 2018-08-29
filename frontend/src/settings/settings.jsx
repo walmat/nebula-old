@@ -60,6 +60,7 @@ class Settings extends Component {
   constructor(props) {
     super(props);
     this.saveDefaults = this.saveDefaults.bind(this);
+    this.clearDefaults = this.clearDefaults.bind(this);
   }
 
   buildProfileOptions() {
@@ -93,7 +94,6 @@ class Settings extends Component {
       // should never be called, but just in case, treat it as a normal field input
       default:
         return (event) => {
-          console.log(event)
           this.props.onSettingsChange({
             field,
             value: event.target.value,
@@ -104,7 +104,16 @@ class Settings extends Component {
 
   saveDefaults(e) {
     e.preventDefault();
-    this.props.onSaveDefaults(SETTINGS_FIELDS.SAVE_DEFAULTS, this.props.defaultProfile, this.props.defaultSizes);
+    this.props.onSaveDefaults(
+      SETTINGS_FIELDS.SAVE_DEFAULTS,
+      this.props.defaultProfile,
+      this.props.defaultSizes,
+    );
+  }
+
+  clearDefaults(e) {
+    e.preventDefault();
+    this.props.onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
   }
 
   render() {
@@ -197,6 +206,7 @@ class Settings extends Component {
 Settings.propTypes = {
   onSettingsChange: PropTypes.func.isRequired,
   onSaveDefaults: PropTypes.func.isRequired,
+  onClearDefaults: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   defaultProfile: sDefns.defaultProfile.isRequired,
   defaultSizes: sDefns.defaultSizes.isRequired,
@@ -219,8 +229,11 @@ const mapDispatchToProps = dispatch => ({
       changes.value,
     ));
   },
-  onSaveDefaults: (defaultProfile, defaultSizes) => {
-    dispatch(settingsActions.save(defaultProfile, defaultSizes));
+  onSaveDefaults: (opt, defaultProfile, defaultSizes) => {
+    dispatch(settingsActions.save({ defaultProfile, defaultSizes }));
+  },
+  onClearDefaults: (changes) => {
+    dispatch(settingsActions.clear(changes));
   },
 });
 
