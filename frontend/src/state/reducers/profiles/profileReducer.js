@@ -1,4 +1,4 @@
-import { PROFILE_FIELDS, PROFILE_ACTIONS } from '../../actions';
+import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../actions';
 import { locationReducer, initialLocationState } from './locationReducer';
 import { paymentReducer, initialPaymentState } from './paymentReducer';
 
@@ -23,7 +23,7 @@ export function profileReducer(state = initialProfileState, action) {
           shipping: locationReducer(
             state.shipping,
             { type: action.subField, value: action.value, errors: action.errors },
-          ),
+          )
         };
         break;
       case PROFILE_FIELDS.EDIT_BILLING:
@@ -48,20 +48,12 @@ export function profileReducer(state = initialProfileState, action) {
           errors: Object.assign({}, state.errors, action.errors),
         };
         break;
-      case PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING:
-        change = {
-          billingMatchesShipping: action.value,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-        break;
-      case PROFILE_FIELDS.EDIT_NAME:
-        change = {
-          profileName: action.value,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-        break;
       default:
-        change = {};
+        change = {
+          [mapProfileFieldToKey[action.field]]: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
+        };
+        break;
     }
   }
 
