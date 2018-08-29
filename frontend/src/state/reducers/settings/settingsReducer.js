@@ -23,7 +23,6 @@ export const initialSettingsState = {
 
 export function settingsReducer(state = initialSettingsState, action) {
   let change = {};
-  console.log(action);
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
       default:
