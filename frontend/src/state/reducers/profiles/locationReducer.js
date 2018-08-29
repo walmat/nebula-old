@@ -46,6 +46,7 @@ export const locationReducer = (state = initialLocationState, action) => {
       change = { phone: action.value }; break;
     default:
       change = {};
+      break;
   }
   change.errors = action.errors;
   return Object.assign({}, state, change);

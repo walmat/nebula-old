@@ -25,6 +25,7 @@ export const {
 export const {
   serverActions,
   mapServerFieldToKey,
+  subMapToKey,
   SERVER_ACTIONS,
   SERVER_FIELDS,
 } = server;
