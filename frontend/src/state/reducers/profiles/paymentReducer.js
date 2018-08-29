@@ -1,3 +1,5 @@
+import { mapPaymentFieldToKey } from '../../actions';
+
 export const initialPaymentState = {
   email: '',
   cardNumber: '',
@@ -17,7 +19,7 @@ export const paymentReducer = (state = initialPaymentState, action) => {
   switch (action.type) {
     default: {
       change = {
-        [action.type]: action.value,
+        [mapPaymentFieldToKey[action.type]]: action.value,
       };
       break;
     }

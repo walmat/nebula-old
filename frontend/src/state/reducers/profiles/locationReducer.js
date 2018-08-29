@@ -1,3 +1,5 @@
+import { mapLocationFieldToKey } from '../../actions';
+
 export const initialLocationState = {
   firstName: '',
   lastName: '',
@@ -26,7 +28,7 @@ export const locationReducer = (state = initialLocationState, action) => {
   switch (action.type) {
     default: {
       change = {
-        [action.type]: action.value,
+        [mapLocationFieldToKey[action.type]]: action.value,
       };
       break;
     }

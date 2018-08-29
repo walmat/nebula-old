@@ -216,3 +216,23 @@ export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.EDIT_NAME]: 'profileName',
 };
+
+export const mapLocationFieldToKey = {
+  [LOCATION_FIELDS.FIRST_NAME]: 'firstName',
+  [LOCATION_FIELDS.LAST_NAME]: 'lastName',
+  [LOCATION_FIELDS.ADDRESS]: 'address',
+  [LOCATION_FIELDS.APT]: 'apt',
+  [LOCATION_FIELDS.CITY]: 'city',
+  [LOCATION_FIELDS.ZIP_CODE]: 'zipCode',
+  [LOCATION_FIELDS.PHONE_NUMBER]: 'phone',
+  [LOCATION_FIELDS.COUNTRY]: 'country',
+  [LOCATION_FIELDS.STATE]: 'state',
+};
+
+export const mapPaymentFieldToKey = {
+  [PAYMENT_FIELDS.EMAIL]: 'email',
+  [PAYMENT_FIELDS.CARD_NUMBER]: 'cardNumber',
+  [PAYMENT_FIELDS.EXP]: 'exp',
+  [PAYMENT_FIELDS.CVV]: 'cvv',
+};
+

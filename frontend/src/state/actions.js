@@ -10,6 +10,8 @@ import * as server from './actions/server/serverActions';
 export const {
   profileActions,
   mapProfileFieldToKey,
+  mapLocationFieldToKey,
+  mapPaymentFieldToKey,
   PROFILE_ACTIONS,
   PROFILE_FIELDS,
   PAYMENT_FIELDS,
