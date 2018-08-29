@@ -1,6 +1,7 @@
 import {
   SETTINGS_ACTIONS,
   SETTINGS_FIELDS,
+  mapSettingsFieldToKey,
 } from '../../actions';
 
 import { initialProfileState } from '../profiles/profileReducer';
@@ -24,38 +25,11 @@ export function settingsReducer(state = initialSettingsState, action) {
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
-      case SETTINGS_FIELDS.EDIT_PROXIES:
-        change = {
-          proxies: action.value,
-          errors: action.errors,
-        };
-        break;
-      case SETTINGS_FIELDS.EDIT_DISCORD:
-        change = {
-          discord: action.value,
-          errors: action.errors,
-        };
-        break;
-      case SETTINGS_FIELDS.EDIT_SLACK:
-        change = {
-          slack: action.value,
-          errors: action.errors,
-        };
-        break;
-      case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
-        change = {
-          defaultProfile: action.value,
-          errors: action.errors,
-        };
-        break;
-      case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES:
-        change = {
-          defaultSizes: action.value,
-          errors: action.errors,
-        };
-        break;
       default:
-        change = {};
+        change = {
+          [mapSettingsFieldToKey[action.field]]: action.value,
+          errors: action.errors,
+        };
     }
   } else if (action.type === SETTINGS_ACTIONS.SAVE) {
     switch (action.field) {

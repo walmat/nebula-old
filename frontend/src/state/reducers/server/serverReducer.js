@@ -2,6 +2,7 @@ import {
   SERVER_FIELDS,
   SERVER_ACTIONS,
   mapServerFieldToKey,
+  subMapToKey,
 } from '../../actions';
 
 export const initialServerState = {
@@ -47,47 +48,19 @@ export function serverReducer(state = initialServerState, action) {
           size: type && type.id === action.value.id ? size : {},
         };
         break;
-      case SERVER_FIELDS.EDIT_SERVER_SIZE:
-        change = {
-          size: action.value,
-        };
-        break;
-      case SERVER_FIELDS.EDIT_SERVER_LOCATION:
-        change = {
-          location: action.value,
-        };
-        break;
       case SERVER_FIELDS.EDIT_PROXY_NUMBER:
         const intValue = parseInt(action.value, 10);
         change = {
           numProxies: Number.isNaN(intValue) ? '' : intValue,
         };
         break;
-      case SERVER_FIELDS.EDIT_PROXY_USERNAME:
-        change = {
-          username: action.value,
-        };
-        break;
-      case SERVER_FIELDS.EDIT_PROXY_PASSWORD:
-        change = {
-          password: action.value,
-        };
-        break;
-      case SERVER_FIELDS.EDIT_AWS_ACCESS_KEY:
-        change = {
-          AWSAccessKey: action.value,
-        };
-        break;
-      case SERVER_FIELDS.EDIT_AWS_SECRET_KEY:
-        change = {
-          AWSSecretKey: action.value,
-        };
-        break;
       default:
-        return nextState;
+        change = {
+          [subMapToKey[action.field]]: action.value,
+        };
+        break;
     }
 
-    console.log(action, change);
     // Update the correct errors map
     change.errors = Object.assign(
       {},

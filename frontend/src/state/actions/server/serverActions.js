@@ -151,3 +151,13 @@ export const mapServerFieldToKey = {
   [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'credentials',
   [SERVER_FIELDS.EDIT_AWS_SECRET_KEY]: 'credentials',
 };
+
+export const subMapToKey = {
+  [SERVER_FIELDS.EDIT_SERVER_TYPE]: 'type',
+  [SERVER_FIELDS.EDIT_SERVER_SIZE]: 'size',
+  [SERVER_FIELDS.EDIT_SERVER_LOCATION]: 'location',
+  [SERVER_FIELDS.EDIT_PROXY_USERNAME]: 'username',
+  [SERVER_FIELDS.EDIT_PROXY_PASSWORD]: 'password',
+  [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'AWSAccessKey',
+  [SERVER_FIELDS.EDIT_AWS_SECRET_KEY]: 'AWSSecretKey',
+};

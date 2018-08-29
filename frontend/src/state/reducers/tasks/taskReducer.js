@@ -1,4 +1,7 @@
 import { initialProfileState } from '../profiles/profileReducer';
+import {
+  mapTaskFieldsToKey
+} from '../../actions';
 
 import {
   TASK_ACTIONS,
@@ -27,32 +30,13 @@ export function taskReducer(state = initialTaskState, action) {
 
   if (action.type === TASK_ACTIONS.EDIT) {
     switch (action.field) {
-      case TASK_FIELDS.EDIT_SKU:
+      // add cases if we ever need them, but they're all the same
+      default: {
         change = {
-          sku: action.value,
+          [mapTaskFieldsToKey[action.field]]: action.value,
           errors: Object.assign({}, state.errors, action.errors),
         };
-        break;
-      case TASK_FIELDS.EDIT_PROFILE:
-        change = {
-          profile: action.value,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-        break;
-      case TASK_FIELDS.EDIT_SIZES:
-        change = {
-          sizes: action.value,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-        break;
-      case TASK_FIELDS.EDIT_PAIRS:
-        change = {
-          pairs: action.value,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-        break;
-      default:
-        change = {};
+      }
     }
   }
 

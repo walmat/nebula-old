@@ -10,6 +10,8 @@ import * as server from './actions/server/serverActions';
 export const {
   profileActions,
   mapProfileFieldToKey,
+  mapLocationFieldToKey,
+  mapPaymentFieldToKey,
   PROFILE_ACTIONS,
   PROFILE_FIELDS,
   PAYMENT_FIELDS,
@@ -18,6 +20,7 @@ export const {
 
 export const {
   taskActions,
+  mapTaskFieldsToKey,
   TASK_ACTIONS,
   TASK_FIELDS,
 } = task;
@@ -25,6 +28,7 @@ export const {
 export const {
   serverActions,
   mapServerFieldToKey,
+  subMapToKey,
   SERVER_ACTIONS,
   SERVER_FIELDS,
 } = server;
