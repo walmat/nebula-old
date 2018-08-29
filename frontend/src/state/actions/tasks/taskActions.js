@@ -117,3 +117,10 @@ export const taskActions = {
   start: startTask,
   stop: stopTask,
 };
+
+export const mapTaskFieldsToKey = {
+  [TASK_FIELDS.EDIT_SKU]: 'sku',
+  [TASK_FIELDS.EDIT_PROFILE]: 'profile',
+  [TASK_FIELDS.EDIT_SIZES]: 'sizes',
+  [TASK_FIELDS.EDIT_PAIRS]: 'pairs',
+};

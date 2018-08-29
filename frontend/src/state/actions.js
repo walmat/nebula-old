@@ -18,6 +18,7 @@ export const {
 
 export const {
   taskActions,
+  mapTaskFieldsToKey,
   TASK_ACTIONS,
   TASK_FIELDS,
 } = task;
