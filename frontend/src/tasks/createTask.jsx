@@ -89,11 +89,11 @@ class CreateTask extends Component {
       <div>
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
-        <p id="product-label">Input SKU</p>
+        <p id="product-label">Product</p>
         <input
           id="product"
           type="text"
-          placeholder="SKU 000000"
+          placeholder="SKU, Keywords, Link"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)}
           value={this.props.value.sku}
           required
