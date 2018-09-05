@@ -129,9 +129,10 @@
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing__select {
   width: 355px;
-  height: 25px;
-  border: #F0405E solid 1px;
-  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes {
   vertical-align: middle;
@@ -145,9 +146,10 @@
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes__select {
   width: 168px;
-  height: 25px;
-  border: #F0405E solid 1px;
-  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs {
   vertical-align: middle;
@@ -162,12 +164,12 @@
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs__input {
   vertical-align: middle;
   width: 78px;
-  height: 25px;
+  height: 29px;
   border: #F0405E solid 1px;
   border-radius: 3px;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit__button {
   width: 83px;

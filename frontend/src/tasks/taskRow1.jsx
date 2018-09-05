@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
+import Select from 'react-select';
+import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import getAllSizes from '../getSizes';
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 import start from '../_assets/run.svg';
 import startDim from '../_assets/run_dim.svg';
@@ -13,9 +16,14 @@ import { taskActions } from '../state/actions';
 
 class TaskRow1 extends Component {
   static buildSizeOptions() {
-    const sizes = getAllSizes();
-    return sizes.map(size =>
-      (<option key={size.value} value={size.value}>{size.label}</option>));
+    return getAllSizes();
+  }
+
+  static formatPairs(val) {
+    if (val.length === 0) {
+      return 1;
+    }
+    return val <= 5 && val > 0 ? val : null;
   }
 
   selectTask(task) {
@@ -45,8 +53,7 @@ class TaskRow1 extends Component {
   }
 
   buildProfileOptions() {
-    const p = this.props.profiles;
-    return p.map(profile => (<option key={profile.id} className="opt" value={profile.id}>{profile.profileName}</option>));
+    return this.props.profiles.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
   renderEditMenu() {
@@ -57,21 +64,58 @@ class TaskRow1 extends Component {
             <div className="row">
               <div className="col billing">
                 <p className="billing__label">Billing Profiles</p>
+                { /*
                 <select className="billing__select">
                   <option value="" selected disabled hidden>Choose Profile</option>
                   {this.buildProfileOptions()}
                 </select>
+                */ }
+                <Select
+                  required
+                  classNamePrefix="select"
+                  className="billing__select"
+                  placeholder="Choose Profile"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+                  // value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
+                  options={this.buildProfileOptions()}
+                />
               </div>
               <div className="col sizes">
                 <p className="sizes__label">Sizes</p>
+                { /*
                 <select className="sizes__select">
                   <option value="" selected disabled hidden>Choose Sizes</option>
                   {TaskRow1.buildSizeOptions()}
                 </select>
+                */ }
+                <Select
+                  required
+                  isMulti
+                  isClearable={false}
+                  classNamePrefix="select"
+                  className="sizes__select"
+                  placeholder="Choose Sizes"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+                  // value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
+                  options={TaskRow1.buildSizeOptions()}
+                />
               </div>
               <div className="col pairs">
                 <p className="pairs__label"># Pairs</p>
+                { /*
                 <input className="pairs__input" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" required />
+                */ }
+                <NumberFormat
+                  format={TaskRow1.formatPairs}
+                  placeholder="1"
+                  // value={this.props.value.pairs}
+                  className="pairs__input"
+                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
+                />
               </div>
             </div>
             <div className="row">

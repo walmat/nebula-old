@@ -64,7 +64,13 @@ class CreateTask extends Component {
   }
 
   render() {
-    const currentProfile = { value: this.props.task.profile.id, label: this.props.task.profile.profileName };
+    let currentProfileValue = null;
+    if (this.props.task.profile.id) {
+      currentProfileValue = {
+        value: this.props.task.profile.id,
+        label: this.props.task.profile.profileName,
+      };
+    }
     console.log(this.props.task);
     let sizes = [];
     if (this.props.task.sizes !== '') {
@@ -94,7 +100,7 @@ class CreateTask extends Component {
               components={{ DropdownIndicator }}
               styles={colourStyles}
               onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-              value={currentProfile}
+              value={currentProfileValue}
               options={this.buildProfileOptions()}
               className="tasks-create__input"
             />

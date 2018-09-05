@@ -3,6 +3,13 @@
     vertical-align: middle;
 }
 
+@mixin tasks-select-font() {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
+}
+
 %tasks-table__text-field {
     text-transform: uppercase;
     text-overflow: ellipsis;
@@ -154,17 +161,12 @@
 
                     &__label {
                         margin: 0;
-                        font-family: AvenirNext-Medium;
-                        font-size: 9px;
-                        color: #161318;
-                        letter-spacing: 0;
+                        @include tasks-select-font();
                     }
 
                     &__select {
                         width: 355px;
-                        height: 25px;
-                        border: #F0405E solid 1px;
-                        border-radius: 3px;
+                        @include tasks-select-font();
                     }
                 }
 
@@ -173,17 +175,12 @@
 
                     &__label {
                         margin: 0;
-                        font-family: AvenirNext-Medium;
-                        font-size: 9px;
-                        color: #161318;
-                        letter-spacing: 0;
+                        @include tasks-select-font();
                     }
 
                     &__select {
                         width: 168px;
-                        height: 25px;
-                        border: #F0405E solid 1px;
-                        border-radius: 3px;
+                        @include tasks-select-font();
                     }
                 }
             
@@ -192,23 +189,20 @@
 
                     &__label {
                         margin: 0;
-                        font-family: AvenirNext-Medium;
-                        font-size: 9px;
-                        color: #161318;
-                        letter-spacing: 0;
+                        @include tasks-select-font();
                     }
 
                     &__input {
                         vertical-align:middle;
                         width: 78px;
-                        height: 25px;
+                        height: 29px;
                         border: #F0405E solid 1px;
                         border-radius: 3px;
                     }
                 }
 
                 .submit {
-                    margin-top: 15px;
+                    margin-top: 10px;
 
                     &__button {
                         width: 83px;
@@ -230,7 +224,7 @@
                 padding-bottom: 0;
             }
 
-            img { @include image() }
+            img { @include image(); }
 
             .tasks-edit {
                 width: 16px;
@@ -297,10 +291,7 @@
     border-radius: 3px;
 
     &__label {
-        font-family: AvenirNext-Medium;
-        font-size: 9px;
-        color: #161318;
-        letter-spacing: 0;
+        @include tasks-select-font();
         height: 12px;
         margin-bottom: 3px;
         margin-top: 11px;
@@ -311,10 +302,7 @@
     &__input {
         width: 252px;
         height: 29px;
-        font-family: AvenirNext-Medium;
-        font-size: 9px;
-        color: #161318;
-        letter-spacing: 0;
+        @include tasks-select-font();
 
         &--bordered {
             border: 1px solid #F0405E;
