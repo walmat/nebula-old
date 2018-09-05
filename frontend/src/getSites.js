@@ -2,7 +2,7 @@ const s = [
   { value: 'https://kith.com', label: 'Kith' },
 ];
 
-export default function getAllSizes() {
+export default function getAllSites() {
   return s;
 }
 
