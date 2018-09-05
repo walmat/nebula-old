@@ -8,14 +8,15 @@ import {
 
 export const initialTaskState = {
   id: '',
-  sku: '',
+  product: '',
   site: null,
   profile: initialProfileState,
   sizes: [],
   pairs: 1,
   status: 'idle',
   errors: {
-    sku: null,
+    product: null,
+    site: null,
     profile: null,
     sizes: null,
     pairs: null,

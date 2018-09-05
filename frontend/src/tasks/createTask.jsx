@@ -94,7 +94,7 @@ class CreateTask extends Component {
           id="product"
           type="text"
           placeholder="SKU, Keywords, Link"
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
           value={this.props.value.sku}
           required
         />
