@@ -3,6 +3,7 @@ import Select from 'react-select';
 import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 
 import { TASK_FIELDS, taskActions } from '../state/actions';
 import getAllSizes from '../getSizes';
@@ -21,7 +22,9 @@ class CreateTask extends Component {
   }
 
   static buildSiteOptions() {
-    return getAllSites();
+    const sites = getAllSites();
+    const sortedSites = _.sortBy(sites, 'label');
+    return sortedSites;
   }
 
   static formatPairs(val) {
