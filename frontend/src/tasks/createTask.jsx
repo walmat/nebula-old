@@ -3,7 +3,6 @@ import Select from 'react-select';
 import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 
 import { TASK_FIELDS, taskActions } from '../state/actions';
 import getAllSizes from '../getSizes';

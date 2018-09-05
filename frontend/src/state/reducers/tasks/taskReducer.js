@@ -2,7 +2,6 @@ import { initialProfileState } from '../profiles/profileReducer';
 
 import {
   TASK_ACTIONS,
-  TASK_FIELDS,
   mapTaskFieldsToKey,
 } from '../../actions';
 

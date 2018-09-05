@@ -168,7 +168,7 @@ html, body {
   overflow: hidden;
 }
 
-input, a, h1, h2, h3, h4, h5, h6, p, link, Select {
+*, input, a, h1, h2, h3, h4, h5, h6, p, link, Select {
   font-family: AvenirNext-Medium;
   font-size: 9px;
   color: #161318;
