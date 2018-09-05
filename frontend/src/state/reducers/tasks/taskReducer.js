@@ -1,20 +1,18 @@
 import { initialProfileState } from '../profiles/profileReducer';
-import {
-  mapTaskFieldsToKey
-} from '../../actions';
 
 import {
   TASK_ACTIONS,
   TASK_FIELDS,
+  mapTaskFieldsToKey,
 } from '../../actions';
 
 export const initialTaskState = {
   id: '',
   sku: '',
+  site: null,
   profile: initialProfileState,
   sizes: [],
   pairs: 1,
-  sites: [],
   status: 'idle',
   errors: {
     sku: null,

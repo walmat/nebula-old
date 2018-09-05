@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, taskActions } from '../state/actions';
 import getAllSizes from '../getSizes';
+import getAllSites from '../getSites';
 
 import './tasks.css';
 
@@ -17,6 +18,10 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 class CreateTask extends Component {
   static buildSizeOptions() {
     return getAllSizes();
+  }
+
+  static buildSiteOptions() {
+    return getAllSites();
   }
 
   static formatPairs(val) {
@@ -44,6 +49,10 @@ class CreateTask extends Component {
   }
   createOnChangeHandler(field) {
     switch (field) {
+      case TASK_FIELDS.EDIT_SITE:
+        return (event) => {
+          this.props.onChange({ field, value: event });
+        };
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
           const change = this.props.profiles.find(p => p.id === event.value);
@@ -79,14 +88,26 @@ class CreateTask extends Component {
       <div>
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
-        <p id="sku-label">Input SKU</p>
+        <p id="product-label">Input SKU</p>
         <input
-          id="sku"
+          id="product"
           type="text"
           placeholder="SKU 000000"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)}
           value={this.props.value.sku}
           required
+        />
+        <p id="site-label">Site</p>
+        <Select
+          required
+          classNamePrefix="select"
+          placeholder="Choose Site"
+          components={{ DropdownIndicator }}
+          id="sites"
+          styles={colourStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+          value={this.props.value.site}
+          options={CreateTask.buildSiteOptions()}
         />
         <p id="profiles-label">Billing Profiles</p>
         <Select
@@ -152,6 +173,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   onChange: (changes) => {
+    console.log(changes);
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
   onAddNewTask: (newTask) => {
