@@ -49,14 +49,18 @@
   overflow: scroll;
   margin: 0 15px 0 0 !important;
 }
+.tasks-table-container .tasks-table__wrapper {
+  min-width: 0;
+  width: 100%;
+}
 .tasks-table-container .tasks-table__header {
-  margin: 0 15px;
+  margin: 0;
 }
 .tasks-table-container .tasks-table__header .tasks-table__header__edit {
-  width: 25px;
+  width: 16px;
 }
 .tasks-table-container .tasks-table__header .tasks-table__header__id {
-  width: 42px;
+  width: 26px;
 }
 .tasks-table-container .tasks-table__header .tasks-table__header__id > p {
   text-align: center;
@@ -77,14 +81,12 @@
   width: 50px;
 }
 .tasks-table-container .tasks-table__header .tasks-table__header__actions {
-  width: 42px;
+  width: 50px;
 }
 
 .tasks-table {
-  display: table;
   border-collapse: collapse;
   border-spacing: 0 10px;
-  width: 100%;
 }
 .tasks-table .blank {
   padding-left: 10px;
@@ -97,22 +99,87 @@
   padding-bottom: 0;
 }
 .tasks-table .tasks-row-container {
-  width: 100%;
+  border-bottom: #dfdfdf solid 1px;
 }
 .tasks-table .tasks-row-container .tasks-row {
   display: flex;
   height: 30px;
-  border-bottom: #dfdfdf solid 1px;
-  margin: 0 5px;
-  align-items: center;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit-orig {
+  margin: 0 10px !important;
+  padding: 10px 0 !important;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
-  padding: 10px 0;
+  padding: 10px;
   height: 80px;
   align-items: flex-start;
   border: #b8d9d2 solid 1px;
-  margin: 0 10px;
+  margin: 0;
   border-radius: 3px !important;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing {
+  vertical-align: middle;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing__label {
+  margin: 0;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing__select {
+  width: 355px;
+  height: 25px;
+  border: #F0405E solid 1px;
+  border-radius: 3px;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes {
+  vertical-align: middle;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes__label {
+  margin: 0;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes__select {
+  width: 168px;
+  height: 25px;
+  border: #F0405E solid 1px;
+  border-radius: 3px;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs {
+  vertical-align: middle;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs__label {
+  margin: 0;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs__input {
+  vertical-align: middle;
+  width: 78px;
+  height: 25px;
+  border: #F0405E solid 1px;
+  border-radius: 3px;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit {
+  margin-top: 15px;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit__button {
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  background: #F0405E;
+  border: none;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #EFEFEF;
+  letter-spacing: 0;
 }
 .tasks-table .tasks-row-container .tasks-row .pad-left {
   padding-left: 5px;
@@ -123,10 +190,10 @@
   vertical-align: middle;
 }
 .tasks-table .tasks-row-container .tasks-row .tasks-edit {
-  width: 25px;
+  width: 16px;
 }
 .tasks-table .tasks-row-container .tasks-row .tasks-id {
-  width: 42px;
+  width: 26px;
 }
 .tasks-table .tasks-row-container .tasks-row .tasks-sku {
   width: 129px;
@@ -145,6 +212,9 @@
   width: 54px;
 }
 .tasks-table .tasks-row-container .tasks-row .tasks-pairs {
+  width: 50px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-actions {
   width: 50px;
 }
 .tasks-table .tasks-row-container .tasks-row .tasks-start {
@@ -272,6 +342,10 @@
 .row--gutter-right {
   margin-right: 0 !important;
 }
+.row--gutter {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
 
 .col {
   display: flex;
@@ -298,10 +372,18 @@
 .col--no-gutter-right {
   margin-right: 0 !important;
 }
+.col--no-gutter {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
 
 /* TEmporary */
 .temp-table-row {
   height: 330px;
+}
+
+.temp-debug {
+  background-color: gray;
 }
 
 /*# sourceMappingURL=tasksTable.css.map */

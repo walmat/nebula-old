@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
-import ViewTask from './viewTask';
+import ViewTask from './viewTask1';
 import CreateTask from './createTask1';
 
 import startAll from '../_assets/start-all.svg';
@@ -112,7 +112,7 @@ class Tasks1 extends Component {
             <div className="row row--expand">
               <div className="col col--start tasks-table-container">
                 <div className="row tasks-table__header">
-                  { /* <div className="col tasks-table__header__edit" /> */}
+                  <div className="col tasks-table__header__edit" />
                   <div className="col tasks-table__header__id">
                     <p>#</p>
                   </div>
@@ -141,7 +141,7 @@ class Tasks1 extends Component {
                   </div>
                 </div>
                 <div className="row row--start">
-                  <div className="col col--expand">
+                  <div className="col tasks-table__wrapper">
                     <ViewTask />
                   </div>
                 </div>

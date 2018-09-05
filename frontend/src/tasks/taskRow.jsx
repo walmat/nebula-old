@@ -59,7 +59,7 @@ class TaskRow extends Component {
   renderEditMenu() {
     if (this.props.isEditing) {
       return (
-        <div key={`${this.props.value.id}-edit`} className="tasks-row tasks-row--edit">
+        <div key={`${this.props.value.id}-edit`} className="tasks-row tasks-row--edit-orig tasks-row--edit">
           <div className="edit-billing">
             <p className="edit-billing__label">Billing Profiles</p>
             <Select
