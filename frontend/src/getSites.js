@@ -1,73 +1,16 @@
-/*
-https://rise45.com
-https://rockcitykicks.com
-https://rsvpgallery.com
-https://shoegallerymiami.com
-https://shop.bdgastore.com
-https://shop.exclucitylife.com
-https://shop.extrabutterny.com
-https://shop.havenshop.ca
-https://shop.justintimberlake.com
-https://shop.travisscott.com
-https://shop.undefeated.com
-https://shopnicekicks.com
-https://sneakerjunkiesusa.com
-https://sneakerpolitics.com
-https://stay-rooted.com
-https://store.unionlosangeles.com
-https://thesportsedit.com
-https://txdxe.com
-https://wishatl.com
-https://www.abovethecloudsstore.com
-https://www.addictmiami.com
-https://amongstfew.com
-https://apbstore.com
-https://bbbranded.com
-https://bbcicecream.com
-https://www.blkmkt.us
-https://bowsandarrowsberkeley.com
-https://capsuletoronto.com
-https://cityblueshop.com
-https://courtsidesneakers.com
-https://deadstock.ca
-https://dope-factory.com
-https://featuresneakerboutique.com
-https://ficegallery.com
-https://footzonenyc.com
-https://goodasgold.co.nz
-https://hanon-shop.com
-https://highsandlows.net.au
-https://hombreamsterdam.com
-https://huntinglodge.no
-https://incu.com
-https://k101store.com
-https://kongonline.co.uk
-https://lapstoneandhammer.com
-https://leaders1354.com
-https://letusprosper.com
-https://likelihood.us
-https://machusonline.com
-https://manorphx.com
-https://marathonsports.com
-https://minishopmadrid.com
-https://www.notre-shop.com
-https://oipolloi.com
-https://www.oneness287.com
-https://www.pampamlondon.com
-https://www.philipbrownemenswear.co.uk
+import _ from 'underscore';
 
-https://www.rooneyshop.com
-https://saintalfred.com
-https://sneakerworldshop.com
-https://socialstatuspgh.com
-https://solefly.com
-https://soleheaven.com
-https://solestop.com
-http://www.usgstore.com.au
+/*
 */
 
 const s = [
   { value: 'https://kith.com', label: 'Kith' },
+  { value: 'https://18montrose.com', label: '18 Montrose' },
+  { value: 'https://us.bape.com', label: 'Bape US' },
+  { value: 'https://commonwealth-ftgg.com', label: 'Common Wealth' },
+  { value: 'https://yeezysupply.com', label: 'Yeezy Supply' },
+  { value: 'https://www.funko-shop.com', label: 'Funko Shop' },
+  { value: 'https://shop-usa.palaceskateboards.com/', label: 'Palace US' },
   { value: 'https://12amrun.com', label: '12AM:Run' },
   { value: 'https://xhibition.co', label: 'Xhibition' },
   { value: 'https://worldofhombre.com', label: 'World of Hombre' },
@@ -106,11 +49,77 @@ const s = [
   { value: 'https://properlbc.com', label: 'Proper' },
   { value: 'https://renarts.com', label: 'Renarts' },
   { value: 'https://revengexstorm.com', label: 'Revenge x Storm' },
-  { value: 'https://burnrubbersneakers.com', label: 'Burn Rubber' },
+  { value: 'https://rise45.com', label: 'Rise' },
+  { value: 'https://rockcitykicks.com', label: 'Rock City Kicks' },
+  { value: 'https://rsvpgallery.com', label: 'RSVP Gallery' },
+  { value: 'https://shoegallerymiami.com', label: 'Shoe Gallery' },
+  { value: 'https://shop.bdgastore.com', label: 'Bodega' },
+  { value: 'https://shop.exclucitylife.com', label: 'Exclucity' },
+  { value: 'https://shop.extrabutterny.com', label: 'Extra Butter' },
+  { value: 'https://shop.havenshop.ca', label: 'Haven CA' },
+  { value: 'https://shop.justintimberlake.com', label: 'Justin Timberlake' },
+  { value: 'https://shop.travisscott.com', label: 'Travis Scott' },
+  { value: 'https://shop.undefeated.com', label: 'Undefeated' },
+  { value: 'https://shopnicekicks.com', label: 'Shop Nice Kicks' },
+  { value: 'https://sneakerjunkiesusa.com', label: 'Sneaker Junkies US' },
+  { value: 'https://sneakerpolitics.com', label: 'Sneaker Politics' },
+  { value: 'https://stay-rooted.com', label: 'Rooted' },
+  { value: 'https://store.unionlosangeles.com', label: 'Union LA' },
+  { value: 'https://thesportsedit.com', label: 'The Sports Edit' },
+  { value: 'https://txdxe.com', label: 'Top Dawg Entertainment' },
+  { value: 'https://wishatl.com', label: 'Wish Atlanta' },
+  { value: 'https://www.abovethecloudsstore.com', label: 'Above the Cloud' },
+  { value: 'https://www.addictmiami.com', label: 'Addict' },
+  { value: 'https://amongstfew.com', label: 'Amongst Few' },
+  { value: 'https://apbstore.com', label: 'A.P.B. Store' },
+  { value: 'https://bbbranded.com', label: 'Big Baller Brand' },
+  { value: 'https://bbcicecream.com', label: 'Billionaire Boys Club' },
+  { value: 'https://www.blkmkt.us', label: 'Black Market US' },
+  { value: 'https://bowsandarrowsberkeley.com', label: 'Bows & Arrows' },
+  { value: 'https://capsuletoronto.com', label: 'Capsule' },
+  { value: 'https://cityblueshop.com', label: 'City Blue' },
+  { value: 'https://courtsidesneakers.com', label: 'Court Side Sneakers' },
+  { value: 'https://deadstock.ca', label: 'Livestock' },
+  { value: 'https://dope-factory.com', label: 'Dope Factory' },
+  { value: 'https://featuresneakerboutique.com', label: 'Feature Boutique' },
+  { value: 'https://ficegallery.com', label: 'Fice Gallery' },
+  { value: 'https://footzonenyc.com', label: 'Foot Zone' },
+  { value: 'https://goodasgold.co.nz', label: 'Good as Gold' },
+  { value: 'https://hanon-shop.com', label: 'Hanon' },
+  { value: 'https://highsandlows.net.au', label: 'Highs & Lows AU' },
+  { value: 'https://huntinglodge.no', label: 'Hunting Lodge' },
+  { value: 'https://incu.com', label: 'Incu' },
+  { value: 'https://k101store.com', label: 'Kickz 101' },
+  { value: 'https://kongonline.co.uk', label: 'Kong' },
+  { value: 'https://lapstoneandhammer.com', label: 'Lapstone & Hammer' },
+  { value: 'https://leaders1354.com', label: 'Leaders 1354' },
+  { value: 'https://letusprosper.com', label: 'Prosper' },
+  { value: 'https://likelihood.us', label: 'Likelihood' },
+  { value: 'https://machusonline.com', label: 'Machus' },
+  { value: 'https://manorphx.com', label: 'Manor' },
+  { value: 'https://marathonsports.com', label: 'Marathon Sports' },
+  { value: 'https://minishopmadrid.com', label: 'Mini Shop Madrid' },
+  { value: 'https://www.notre-shop.com', label: 'Notre' },
+  { value: 'https://oipolloi.com', label: 'Oipolloi' },
+  { value: 'https://www.oneness287.com', label: 'Oneness' },
+  { value: 'https://www.pampamlondon.com', label: 'Pam Pam' },
+  { value: 'https://www.philipbrownemenswear.co.uk', label: 'Philip Browne' },
+  { value: 'https://www.rooneyshop.com', label: 'Rooney' },
+  { value: 'https://saintalfred.com', label: 'Saint Alfred' },
+  { value: 'https://eflash-sg.doverstreetmarket.com', label: 'DSM SG' },
+  { value: 'https://eflash-jp.doverstreetmarket.com', label: 'DSM JP' },
+  { value: 'https://eflash-us.doverstreetmarket.com', label: 'DSM US' },
+  { value: 'https://eflash.doverstreetmarket.com', label: 'DSM UK' },
+  { value: 'https://sneakerworldshop.com', label: 'Sneaker World' },
+  { value: 'https://socialstatuspgh.com', label: 'Social Status' },
+  { value: 'https://solefly.com', label: 'Solefly' },
+  { value: 'https://soleheaven.com', label: 'Sole Heaven' },
+  { value: 'https://solestop.com', label: 'Sole Stop' },
+  { value: 'http://www.usgstore.com.au', label: 'Urban Street Gear' },
 ];
 
-export default function getAllSites() {
-  return s;
+export default function getAllSitesSorted() {
+  return _.sortBy(s, 'label');
 }
 
 export function getSites(site) {

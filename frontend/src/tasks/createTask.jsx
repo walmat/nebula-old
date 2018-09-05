@@ -22,9 +22,7 @@ class CreateTask extends Component {
   }
 
   static buildSiteOptions() {
-    const sites = getAllSites();
-    const sortedSites = _.sortBy(sites, 'label');
-    return sortedSites;
+    return getAllSites();
   }
 
   static formatPairs(val) {
