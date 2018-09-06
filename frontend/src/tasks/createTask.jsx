@@ -63,7 +63,7 @@ class CreateTask extends Component {
           const values = event.map(s => s.value);
           this.props.onChange({ field, value: values });
         };
-      case TASK_FIELDS.EDIT_SKU:
+      case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
@@ -94,7 +94,7 @@ class CreateTask extends Component {
           type="text"
           placeholder="SKU, Keywords, Link"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
-          value={this.props.value.sku}
+          value={this.props.value.product}
           required
         />
         <p id="site-label">Site</p>

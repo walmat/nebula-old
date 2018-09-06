@@ -1,8 +1,5 @@
 import _ from 'underscore';
 
-/*
-*/
-
 const s = [
   { value: 'https://kith.com', label: 'Kith' },
   { value: 'https://18montrose.com', label: '18 Montrose' },

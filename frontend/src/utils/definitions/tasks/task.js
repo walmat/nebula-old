@@ -8,7 +8,7 @@ const task = PropTypes.shape({
     PropTypes.number,
     PropTypes.string,
   ]),
-  sku: PropTypes.string,
+  product: PropTypes.string,
   site: PropTypes.shape({ name: PropTypes.string, url: PropTypes.string }),
   profile,
   status: PropTypes.string,
