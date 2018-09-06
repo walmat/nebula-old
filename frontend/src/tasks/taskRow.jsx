@@ -124,7 +124,7 @@ class TaskRow extends Component {
         <div className="tasks-edit pad-left"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></div>
         <div className="tasks-id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</div>
         <div className="tasks-sku">{this.props.value.product}</div>
-        <div className="tasks-sites">{this.props.value.site.label}</div>
+        <div className="tasks-sites">{this.props.value.site.name}</div>
         <div className="tasks-profile">{this.props.value.profile.profileName}</div>
         <div className="tasks-sizes">{this.props.value.sizes}</div>
         <div className="tasks-pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</div>

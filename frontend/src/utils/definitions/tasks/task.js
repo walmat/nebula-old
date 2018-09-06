@@ -9,7 +9,11 @@ const task = PropTypes.shape({
     PropTypes.string,
   ]),
   product: PropTypes.string,
-  site: PropTypes.shape({ name: PropTypes.string, url: PropTypes.string }),
+  site: PropTypes.shape({
+    name: PropTypes.string,
+    url: PropTypes.string,
+    supported: PropTypes.bool,
+  }),
   profile,
   status: PropTypes.string,
   sizes: PropTypes.arrayOf(PropTypes.string),

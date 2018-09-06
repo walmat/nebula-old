@@ -151,6 +151,10 @@
   user-select: none;
   cursor: default;
   text-rendering: geometricPrecision;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
 }
 
 *:focus {
@@ -166,13 +170,6 @@ html, body {
   margin:0;
   background: #F5F5F5;
   overflow: hidden;
-}
-
-*, input, a, h1, h2, h3, h4, h5, h6, p, link, Select {
-  font-family: AvenirNext-Medium;
-  font-size: 9px;
-  color: #161318;
-  letter-spacing: 0;
 }
 
 td {

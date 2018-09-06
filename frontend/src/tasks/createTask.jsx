@@ -16,14 +16,6 @@ import tDefns from '../utils/definitions/taskDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 class CreateTask extends Component {
-  static buildSizeOptions() {
-    return getAllSizes();
-  }
-
-  static buildSiteOptions() {
-    return getAllSites();
-  }
-
   static formatPairs(val) {
     if (val.length === 0) {
       return 1;
@@ -51,7 +43,8 @@ class CreateTask extends Component {
     switch (field) {
       case TASK_FIELDS.EDIT_SITE:
         return (event) => {
-          this.props.onChange({ field, value: event });
+          const site = { name: event.label, url: event.value };
+          this.props.onChange({ field, value: site });
         };
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
@@ -84,6 +77,13 @@ class CreateTask extends Component {
         label: this.props.value.profile.profileName,
       };
     }
+    let newTaskSiteValue = null;
+    if (this.props.value.site !== null) {
+      newTaskSiteValue = {
+        value: this.props.value.site.url,
+        label: this.props.value.site.name,
+      };
+    }
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>
@@ -106,8 +106,8 @@ class CreateTask extends Component {
           id="sites"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
-          value={this.props.value.site}
-          options={CreateTask.buildSiteOptions()}
+          value={newTaskSiteValue}
+          options={getAllSites()}
         />
         <p id="profiles-label">Billing Profiles</p>
         <Select
@@ -133,7 +133,7 @@ class CreateTask extends Component {
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
           value={this.props.value.sizes.map(size => ({ value: size, label: `${size}` }))}
-          options={CreateTask.buildSizeOptions()}
+          options={getAllSizes()}
         />
         <p id="pairs-label"># Pairs</p>
         <NumberFormat
@@ -173,7 +173,6 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   onChange: (changes) => {
-    console.log(changes);
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
   onAddNewTask: (newTask) => {
