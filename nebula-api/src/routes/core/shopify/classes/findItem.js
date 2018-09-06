@@ -1,4 +1,3 @@
-const fs = require('fs');
 const _ = require('underscore');
 const parseString = require('xml2js').parseString;
 
@@ -54,12 +53,9 @@ function findItem(config, proxy, cb) {
                             let chk_words = matchString[0]['image:title'].toString().split(' ').splice('-');
 
                             config.pos_keywords.forEach(word => {
-                                chk_words.forEach(chk => {
-                                    if (chk.toLowerCase().indexOf(word.toLowerCase()) > -1) { //match detected
-                                        //TODO - remove duplicate entries of words so matchCount doesn't increase for the same word
-                                        matchCount++;
-                                    }
-                                });
+                                if (chk_words.map(chk => chk.toLowerCase()).includes(word.toLowerCase())) {
+                                    matchCount++;
+                                }
                             });
 
                             if (matchCount === config.pos_keywords.length) {
@@ -72,7 +68,7 @@ function findItem(config, proxy, cb) {
                         console.log(item['image:image'][0]['image:title']);
                     });
                     console.log('length: ' + foundItems.length);
-
+                    return cb(null, null, foundItems);
                 });
             }
         );
@@ -212,3 +208,11 @@ function selectStyle(config, res, onSuccess) {
 }
 
 module.exports.selectStyle = selectStyle;
+
+findItem({base_url: 'https://www.yeezysupply.com/sitemap_products_1.xml', pos_keywords: ['black']}, null, function(err, delay, res) {
+    if (err) {
+        console.log('error: ' + err);
+    } else {
+        console.log(res);
+    }
+})

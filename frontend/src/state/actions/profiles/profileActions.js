@@ -42,7 +42,7 @@ const _addProfileRequest = async profile =>
     setTimeout(() => {
       const copy = JSON.parse(JSON.stringify(profile));
       resolve(copy);
-    }, 1000);
+    }, 0);
     // console.log('trying for request');
     // try {
     //   const response = await fetch(

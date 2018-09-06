@@ -20,15 +20,15 @@ const _addTaskRequest = async task =>
     setTimeout(() => {
       const copy = JSON.parse(JSON.stringify(task));
       resolve({ task: copy });
-    }, 1000);
+    }, 0);
   });
 
-const _removeTaskRequest = async id =>
+const _destroyTaskRequest = async id =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
     setTimeout(() => {
       resolve({ id });
-    }, 1000);
+    }, 0);
   });
 
 const _updateTaskRequest = async (id, task) =>
@@ -36,15 +36,26 @@ const _updateTaskRequest = async (id, task) =>
   new Promise((resolve) => {
     setTimeout(() => {
       resolve({ id, task });
-    }, 1000);
+    }, 0);
   });
 
-const _startTaskRequest = async id =>
+const _startTaskRequest = async task =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ id });
-    }, 1000);
+    try {
+      const response = fetch('http://localhost:8080/tasks', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(task),
+      });
+      const result = response.json();
+      resolve(result);
+    } catch (err) {
+      resolve(err);
+    }
   });
 
 const _stopTaskRequest = async id =>
@@ -57,7 +68,7 @@ const _stopTaskRequest = async id =>
 
 // Private Actions
 const _addTask = makeActionCreator(TASK_ACTIONS.ADD, 'response');
-const _removeTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
+const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
@@ -75,10 +86,10 @@ const addTask = task =>
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
 
-const removeTask = id =>
-  dispatch => _removeTaskRequest(id).then(
-    response => dispatch(_removeTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.REMOVE, error)),
+const destroyTask = id =>
+  dispatch => _destroyTaskRequest(id).then(
+    response => dispatch(_destroyTask(response)),
+    error => dispatch(handleError(TASK_ACTIONS.DESTROY, error)),
   );
 
 const updateTask = (id, task) =>
@@ -87,8 +98,8 @@ const updateTask = (id, task) =>
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 
-const startTask = id =>
-  dispatch => _startTaskRequest(id).then(
+const startTask = task =>
+  dispatch => _startTaskRequest(task).then(
     response => dispatch(_startTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.START, error)),
   );
@@ -110,7 +121,7 @@ export const TASK_FIELDS = {
 
 export const taskActions = {
   add: addTask,
-  remove: removeTask,
+  destroy: destroyTask,
   edit: editTask,
   select: selectTask,
   load: loadTask,

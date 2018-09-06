@@ -3,6 +3,11 @@ const { findItem, selectStyle } = require('./classes/findItem');
 
 let supportedSites = []; //pull in the list of supported sites
 
+let config = {
+    base_url: 'https://www.yeezysupply.com/sitemap_products_1.xml',
+    pos_keywords: ['classified', 'pink']
+}
+
 module.exports = async function(config) {
 
     findItem(config, proxies[index], function(err, delay, res) {

@@ -179,7 +179,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(taskActions.update(task.id, task));
   },
   onStartTask: (task) => {
-    dispatch(taskActions.start(task.id));
+    dispatch(taskActions.start(task));
   },
   onStopTask: (task) => {
     dispatch(taskActions.stop(task.id));
