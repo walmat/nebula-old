@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 
 const taskErrors = PropTypes.shape({
-  sku: PropTypes.bool,
+  product: PropTypes.bool,
+  site: PropTypes.bool,
   profile: PropTypes.bool,
   status: PropTypes.bool,
   sizes: PropTypes.bool,

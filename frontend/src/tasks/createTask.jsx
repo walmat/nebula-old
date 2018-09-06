@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, taskActions } from '../state/actions';
 import getAllSizes from '../getSizes';
+import getAllSites from '../getSites';
 
 import './tasks.css';
 
@@ -15,10 +16,6 @@ import tDefns from '../utils/definitions/taskDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 class CreateTask extends Component {
-  static buildSizeOptions() {
-    return getAllSizes();
-  }
-
   static formatPairs(val) {
     if (val.length === 0) {
       return 1;
@@ -44,6 +41,11 @@ class CreateTask extends Component {
   }
   createOnChangeHandler(field) {
     switch (field) {
+      case TASK_FIELDS.EDIT_SITE:
+        return (event) => {
+          const site = { name: event.label, url: event.value };
+          this.props.onChange({ field, value: site });
+        };
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
           const change = this.props.profiles.find(p => p.id === event.value);
@@ -54,7 +56,7 @@ class CreateTask extends Component {
           const values = event.map(s => s.value);
           this.props.onChange({ field, value: values });
         };
-      case TASK_FIELDS.EDIT_SKU:
+      case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
@@ -75,18 +77,37 @@ class CreateTask extends Component {
         label: this.props.value.profile.profileName,
       };
     }
+    let newTaskSiteValue = null;
+    if (this.props.value.site !== null) {
+      newTaskSiteValue = {
+        value: this.props.value.site.url,
+        label: this.props.value.site.name,
+      };
+    }
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>
         <div id="create-box" />
-        <p id="sku-label">Input SKU</p>
+        <p id="product-label">Product</p>
         <input
-          id="sku"
+          id="product"
           type="text"
-          placeholder="SKU 000000"
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)}
-          value={this.props.value.sku}
+          placeholder="SKU, Keywords, Link"
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
+          value={this.props.value.product}
           required
+        />
+        <p id="site-label">Site</p>
+        <Select
+          required
+          classNamePrefix="select"
+          placeholder="Choose Site"
+          components={{ DropdownIndicator }}
+          id="sites"
+          styles={colourStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+          value={newTaskSiteValue}
+          options={getAllSites()}
         />
         <p id="profiles-label">Billing Profiles</p>
         <Select
@@ -112,7 +133,7 @@ class CreateTask extends Component {
           styles={colourStyles}
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
           value={this.props.value.sizes.map(size => ({ value: size, label: `${size}` }))}
-          options={CreateTask.buildSizeOptions()}
+          options={getAllSizes()}
         />
         <p id="pairs-label"># Pairs</p>
         <NumberFormat

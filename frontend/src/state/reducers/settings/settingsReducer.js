@@ -1,6 +1,5 @@
 import {
   SETTINGS_ACTIONS,
-  SETTINGS_FIELDS,
   mapSettingsFieldToKey,
 } from '../../actions';
 
