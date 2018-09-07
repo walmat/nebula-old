@@ -77,9 +77,9 @@ class CreateTask extends Component {
       sizes = this.props.task.sizes.map(size => ({ value: size, label: `${size}` }));
     }
     return (
-      <div className="tasks-create col col--start col--no-gutter-left col--no-gutter-right">
-        <div className="row row--gutter-left row--gutter-right">
-          <div className="col">
+      <div className="tasks-create col col--start col--no-gutter">
+        <div className="row row--start row--gutter">
+          <div className="col tasks-create__input-group tasks-create__input-group--first">
             <p className="tasks-create__label">Input SKU</p>
             <input
               className="tasks-create__input tasks-create__input--bordered tasks-create__input--sku"
@@ -91,8 +91,8 @@ class CreateTask extends Component {
             />
           </div>
         </div>
-        <div className="row row--gutter-left row--gutter-right">
-          <div className="col">
+        <div className="row row--start row--gutter">
+          <div className="col tasks-create__input-group">
             <p className="tasks-create__label">Billing Profiles</p>
             <Select
               required
@@ -106,34 +106,38 @@ class CreateTask extends Component {
             />
           </div>
         </div>
-        <div className="row row--start row--gutter-left row--gutter-right">
-          <div className="col">
-            <p className="tasks-create__label">Sizes</p>
-            <Select
-              required
-              isMulti
-              isClearable={false}
-              placeholder="Choose Size"
-              components={{ DropdownIndicator }}
-              styles={colourStyles}
-              onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-              value={sizes}
-              options={CreateTask.buildSizeOptions()}
-              className="tasks-create__input tasks-create__input--sizes"
-            />
-          </div>
-          <div className="col col--no-gutter-left">
-            <p className="tasks-create__label"># Pairs</p>
-            <NumberFormat
-              className="tasks-create__input tasks-create__input--pairs tasks-create__input--bordered"
-              format={CreateTask.formatPairs}
-              placeholder="1"
-              value={this.props.task.pairs}
-              onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
-            />
+        <div className="row row--start row--gutter">
+          <div className="col tasks-create__input-group tasks-create__input-group--last">
+            <div className="row row--gutter">
+              <div className="col col--no-gutter-left tasks-create__input-group--sizes">
+                <p className="tasks-create__label">Sizes</p>
+                <Select
+                  required
+                  isMulti
+                  isClearable={false}
+                  placeholder="Choose Size"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
+                  value={sizes}
+                  options={CreateTask.buildSizeOptions()}
+                  className="tasks-create__input tasks-create__input--sizes"
+                />
+              </div>
+              <div className="col col--no-gutter">
+                <p className="tasks-create__label"># Pairs</p>
+                <NumberFormat
+                  className="tasks-create__input tasks-create__input--pairs tasks-create__input--bordered"
+                  format={CreateTask.formatPairs}
+                  placeholder="1"
+                  value={this.props.task.pairs}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
+                />
+              </div>
+            </div>
           </div>
         </div>
-        <div className="row row--end row--expand row--gutter-left row--gutter-right">
+        <div className="row row--end row--expand row--gutter">
           <div className="col">
             <button
               className="tasks-create__submit"

@@ -56,13 +56,17 @@
     }
 }
 
+.tasks__title {
+    padding-bottom: 4px !important;
+}
+
 .tasks-table-container {
     display: block;
     width: 741px;
     border: 1px solid #F0405E;
     border-radius: 3px;
     overflow: scroll;
-    margin: 0 15px 0 0 !important;
+    margin: 0 16px 0 0 !important;
 
     .tasks-table__wrapper {
         min-width: 0;
@@ -71,6 +75,7 @@
 
     .tasks-table__header {
         margin: 0;
+        padding-bottom: 1px;
 
         .tasks-table__header__edit {
             @extend %tasks-table__header__field;
@@ -153,11 +158,12 @@
                 height: 80px;
                 align-items: flex-start;
                 border: #b8d9d2 solid 1px;
-                margin: 0;
+                margin: 0 -5px 5px -5px;
                 border-radius: 3px !important;
 
                 .billing {
                     vertical-align: middle;
+                    padding-left: 19px;
 
                     &__label {
                         margin: 0;
@@ -172,6 +178,7 @@
 
                 .sizes {
                     vertical-align: middle;
+                    margin-left: 10px !important;
 
                     &__label {
                         margin: 0;
@@ -186,6 +193,7 @@
             
                 .pairs {
                     vertical-align: middle;
+                    margin-left: 10px !important;
 
                     &__label {
                         margin: 0;
@@ -202,7 +210,7 @@
                 }
 
                 .submit {
-                    margin-top: 10px;
+                    margin-top: 12px;
 
                     &__button {
                         width: 83px;
@@ -290,13 +298,29 @@
     border: 1px solid #f0405e;
     border-radius: 3px;
 
+    &__section-header {
+        padding-bottom: 1px;
+    }
+
     &__label {
         @include tasks-select-font();
         height: 12px;
         margin-bottom: 3px;
-        margin-top: 11px;
-        // width: 42px;
-        // height: 12px;
+        margin-top: 9px;
+        padding-left: 0.5px;
+    }
+
+    &__input-group {
+        margin: 0 11.5px !important;
+        padding-bottom: 2px;
+
+        &--last {
+            padding-top: 1px;
+        }
+
+        &--sizes {
+            margin-right: 14px !important;
+        }
     }
 
     &__input {
@@ -310,6 +334,7 @@
 
         &--sku {
             text-transform: uppercase;
+            margin-top: 1px;
         }
 
         &--sizes {
@@ -328,6 +353,7 @@
     }
 
     &__submit {
+        margin-right: -1px;
         width: 83px;
         height: 29px;
         cursor: pointer;
@@ -346,8 +372,15 @@
     height: 300px;
     border: 1px solid #F0405E;
     border-radius: 3px;
+    margin-left: -1px;
+
+    &__section-header {
+        padding-bottom: 3px;
+    }
 
     &__header {
+        padding-bottom: 1px;
+
         &__id {
             @extend %tasks-log__header__field;
             width: 7px;
@@ -464,6 +497,7 @@
 
 .temp-table-row {
     height: 330px;
+    padding-top: 1px;
 }
 
 .temp-debug {

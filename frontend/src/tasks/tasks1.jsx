@@ -56,14 +56,14 @@ class Tasks1 extends Component {
           <div className="col col--start">
             <div className="row row--start">
               <div className="col col--no-gutter-left">
-                <h1 className="text-header">Tasks</h1>
+                <h1 className="text-header tasks__title">Tasks</h1>
               </div>
             </div>
             <div className="row">
               <div className="col">
                 <div className="row row--start">
                   <div className="col col--no-gutter-left">
-                    <p className="body-text section-header">Create</p>
+                    <p className="body-text section-header tasks-create__section-header">Create</p>
                   </div>
                 </div>
                 <div className="row">
@@ -77,7 +77,7 @@ class Tasks1 extends Component {
           <div className="col col--start">
             <div className="row row--start">
               <div className="col">
-                <p className="body-text section-header section-header--no-top">Log</p>
+                <p className="body-text section-header section-header--no-top tasks-log__section-header">Log</p>
               </div>
             </div>
             <div className="row">

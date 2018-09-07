@@ -41,13 +41,17 @@
   padding-top: 0;
 }
 
+.tasks__title {
+  padding-bottom: 4px !important;
+}
+
 .tasks-table-container {
   display: block;
   width: 741px;
   border: 1px solid #F0405E;
   border-radius: 3px;
   overflow: scroll;
-  margin: 0 15px 0 0 !important;
+  margin: 0 16px 0 0 !important;
 }
 .tasks-table-container .tasks-table__wrapper {
   min-width: 0;
@@ -55,6 +59,7 @@
 }
 .tasks-table-container .tasks-table__header {
   margin: 0;
+  padding-bottom: 1px;
 }
 .tasks-table-container .tasks-table__header .tasks-table__header__edit {
   width: 16px;
@@ -114,11 +119,12 @@
   height: 80px;
   align-items: flex-start;
   border: #b8d9d2 solid 1px;
-  margin: 0;
+  margin: 0 -5px 5px -5px;
   border-radius: 3px !important;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing {
   vertical-align: middle;
+  padding-left: 19px;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing__label {
   margin: 0;
@@ -136,6 +142,7 @@
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes {
   vertical-align: middle;
+  margin-left: 10px !important;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes__label {
   margin: 0;
@@ -153,6 +160,7 @@
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs {
   vertical-align: middle;
+  margin-left: 10px !important;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs__label {
   margin: 0;
@@ -169,7 +177,7 @@
   border-radius: 3px;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit__button {
   width: 83px;
@@ -238,6 +246,9 @@
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
+.tasks-create__section-header {
+  padding-bottom: 1px;
+}
 .tasks-create__label {
   font-family: AvenirNext-Medium;
   font-size: 9px;
@@ -245,7 +256,18 @@
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
-  margin-top: 11px;
+  margin-top: 9px;
+  padding-left: 0.5px;
+}
+.tasks-create__input-group {
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+}
+.tasks-create__input-group--last {
+  padding-top: 1px;
+}
+.tasks-create__input-group--sizes {
+  margin-right: 14px !important;
 }
 .tasks-create__input {
   width: 252px;
@@ -260,6 +282,7 @@
 }
 .tasks-create__input--sku {
   text-transform: uppercase;
+  margin-top: 1px;
 }
 .tasks-create__input--sizes {
   width: 185px;
@@ -273,6 +296,7 @@
   align-self: flex-end;
 }
 .tasks-create__submit {
+  margin-right: -1px;
   width: 83px;
   height: 29px;
   cursor: pointer;
@@ -290,6 +314,13 @@
   height: 300px;
   border: 1px solid #F0405E;
   border-radius: 3px;
+  margin-left: -1px;
+}
+.tasks-log__section-header {
+  padding-bottom: 3px;
+}
+.tasks-log__header {
+  padding-bottom: 1px;
 }
 .tasks-log__header__id {
   width: 7px;
@@ -382,6 +413,7 @@
 /* TEmporary */
 .temp-table-row {
   height: 330px;
+  padding-top: 1px;
 }
 
 .temp-debug {

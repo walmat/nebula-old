@@ -61,7 +61,7 @@ class TaskRow1 extends Component {
       return (
         <div key={`${this.props.value.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
           <div className="col">
-            <div className="row">
+            <div className="row row--start">
               <div className="col billing">
                 <p className="billing__label">Billing Profiles</p>
                 { /*
