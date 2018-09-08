@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, taskActions } from '../state/actions';
 import getAllSizes from '../getSizes';
+import getAllSites from '../getSites';
 
 import './tasks.css';
 
@@ -42,6 +43,11 @@ class CreateTask extends Component {
 
   createOnChangeHandler(field) {
     switch (field) {
+      case TASK_FIELDS.EDIT_SITE:
+        return (event) => {
+          const site = { name: event.label, url: event.value };
+          this.props.onChange({ field, value: site });
+        };
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
           const change = this.props.profiles.find(p => p.id === event.value);
@@ -52,7 +58,7 @@ class CreateTask extends Component {
           const values = event.map(s => s.value);
           this.props.onChange({ field, value: values });
         };
-      case TASK_FIELDS.EDIT_SKU:
+      case TASK_FIELDS.EDIT_PRODUCT:
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
         };
@@ -64,11 +70,18 @@ class CreateTask extends Component {
   }
 
   render() {
-    let currentProfileValue = null;
+    let newTaskProfileValue = null;
     if (this.props.task.profile.id) {
-      currentProfileValue = {
+      newTaskProfileValue = {
         value: this.props.task.profile.id,
         label: this.props.task.profile.profileName,
+      };
+    }
+    let newTaskSiteValue = null;
+    if (this.props.task.site !== null) {
+      newTaskSiteValue = {
+        value: this.props.task.site.url,
+        label: this.props.task.site.name,
       };
     }
     console.log(this.props.task);
@@ -79,16 +92,34 @@ class CreateTask extends Component {
     return (
       <div className="tasks-create col col--start col--no-gutter">
         <div className="row row--start row--gutter">
-          <div className="col tasks-create__input-group tasks-create__input-group--first">
-            <p className="tasks-create__label">Input SKU</p>
-            <input
-              className="tasks-create__input tasks-create__input--bordered tasks-create__input--sku"
-              type="text"
-              placeholder="SKU 000000"
-              onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SKU)}
-              value={this.props.task.sku}
-              required
-            />
+          <div className="col tasks-create__input-group">
+            <div className="row row--gutter">
+              <div className="col col--no-gutter">
+                <p className="tasks-create__label">Product</p>
+                <input
+                  className="tasks-create__input tasks-create__input--bordered tasks-create__input--product"
+                  type="text"
+                  placeholder="SKU, Keywords, Link"
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
+                  value={this.props.task.product}
+                  required
+                />
+              </div>
+              <div className="col col--no-gutter tasks-create__input-group--site">
+                <p className="tasks-create__label">Site</p>
+                <Select
+                  required
+                  className="tasks-create__input tasks-create__input--site"
+                  classNamePrefix="select"
+                  placeholder="Choose Site"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+                  value={newTaskSiteValue}
+                  options={getAllSites()}
+                />
+              </div>
+            </div>
           </div>
         </div>
         <div className="row row--start row--gutter">
@@ -96,11 +127,11 @@ class CreateTask extends Component {
             <p className="tasks-create__label">Billing Profiles</p>
             <Select
               required
-              placeholder="Choose a Profile"
+              placeholder="Choose Profile"
               components={{ DropdownIndicator }}
               styles={colourStyles}
               onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-              value={currentProfileValue}
+              value={newTaskProfileValue}
               options={this.buildProfileOptions()}
               className="tasks-create__input"
             />
@@ -115,7 +146,7 @@ class CreateTask extends Component {
                   required
                   isMulti
                   isClearable={false}
-                  placeholder="Choose Size"
+                  placeholder="Choose Sizes"
                   components={{ DropdownIndicator }}
                   styles={colourStyles}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}

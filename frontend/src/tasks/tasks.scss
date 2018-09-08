@@ -91,7 +91,7 @@
             }
         }
 
-        .tasks-table__header__sku {
+        .tasks-table__header__product {
             @extend %tasks-table__header__field;
             width: 129px;
         }
@@ -242,7 +242,7 @@
                 width: 26px;
             }
 
-            .tasks-sku {
+            .tasks-product {
                 @extend %tasks-table__text-field;
                 width: 129px;
             }
@@ -318,6 +318,10 @@
             padding-top: 1px;
         }
 
+        &--site {
+            padding-left: 14px;
+        }
+
         &--sizes {
             margin-right: 14px !important;
         }
@@ -332,9 +336,15 @@
             border: 1px solid #F0405E;
         }
 
-        &--sku {
+        &--product {
+            width: 119px;
             text-transform: uppercase;
             margin-top: 1px;
+        }
+
+        &--site {
+            width: 119px;
+            height: 29px;
         }
 
         &--sizes {

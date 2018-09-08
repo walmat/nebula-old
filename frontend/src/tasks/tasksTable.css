@@ -1,12 +1,12 @@
-.tasks-table .tasks-row-container .tasks-row .tasks-sizes, .tasks-table .tasks-row-container .tasks-row .tasks-profile, .tasks-table .tasks-row-container .tasks-row .tasks-sku {
+.tasks-table .tasks-row-container .tasks-row .tasks-sizes, .tasks-table .tasks-row-container .tasks-row .tasks-profile, .tasks-table .tasks-row-container .tasks-row .tasks-product {
   text-transform: uppercase;
   text-overflow: ellipsis;
 }
 
-.tasks-table-container .tasks-table__header .tasks-table__header__actions, .tasks-table-container .tasks-table__header .tasks-table__header__pairs, .tasks-table-container .tasks-table__header .tasks-table__header__sizes, .tasks-table-container .tasks-table__header .tasks-table__header__profile, .tasks-table-container .tasks-table__header .tasks-table__header__sites, .tasks-table-container .tasks-table__header .tasks-table__header__sku, .tasks-table-container .tasks-table__header .tasks-table__header__id, .tasks-table-container .tasks-table__header .tasks-table__header__edit {
+.tasks-table-container .tasks-table__header .tasks-table__header__actions, .tasks-table-container .tasks-table__header .tasks-table__header__pairs, .tasks-table-container .tasks-table__header .tasks-table__header__sizes, .tasks-table-container .tasks-table__header .tasks-table__header__profile, .tasks-table-container .tasks-table__header .tasks-table__header__sites, .tasks-table-container .tasks-table__header .tasks-table__header__product, .tasks-table-container .tasks-table__header .tasks-table__header__id, .tasks-table-container .tasks-table__header .tasks-table__header__edit {
   margin: 0;
 }
-.tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks-table-container .tasks-table__header .tasks-table__header__sku > p, .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks-table-container .tasks-table__header .tasks-table__header__edit > p {
+.tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks-table-container .tasks-table__header .tasks-table__header__edit > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   color: #161318;
@@ -70,7 +70,7 @@
 .tasks-table-container .tasks-table__header .tasks-table__header__id > p {
   text-align: center;
 }
-.tasks-table-container .tasks-table__header .tasks-table__header__sku {
+.tasks-table-container .tasks-table__header .tasks-table__header__product {
   width: 129px;
 }
 .tasks-table-container .tasks-table__header .tasks-table__header__sites {
@@ -205,7 +205,7 @@
 .tasks-table .tasks-row-container .tasks-row .tasks-id {
   width: 26px;
 }
-.tasks-table .tasks-row-container .tasks-row .tasks-sku {
+.tasks-table .tasks-row-container .tasks-row .tasks-product {
   width: 129px;
 }
 .tasks-table .tasks-row-container .tasks-row .tasks-sites {
@@ -266,6 +266,9 @@
 .tasks-create__input-group--last {
   padding-top: 1px;
 }
+.tasks-create__input-group--site {
+  padding-left: 14px;
+}
 .tasks-create__input-group--sizes {
   margin-right: 14px !important;
 }
@@ -280,9 +283,14 @@
 .tasks-create__input--bordered {
   border: 1px solid #F0405E;
 }
-.tasks-create__input--sku {
+.tasks-create__input--product {
+  width: 119px;
   text-transform: uppercase;
   margin-top: 1px;
+}
+.tasks-create__input--site {
+  width: 119px;
+  height: 29px;
 }
 .tasks-create__input--sizes {
   width: 185px;

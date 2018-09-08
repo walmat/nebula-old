@@ -143,7 +143,7 @@ class TaskRow1 extends Component {
       <div key={this.props.value.id} id={this.props.value.id} className="tasks-row row">
         <div className="col col--no-gutter tasks-edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></div>
         <div className="col col--no-gutter tasks-id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</div>
-        <div className="col col--no-gutter tasks-sku">SKU {this.props.value.sku}</div>
+        <div className="col col--no-gutter tasks-product">{this.props.value.product}</div>
         <div className="col col--no-gutter tasks-sites">01</div>
         <div className="col col--no-gutter tasks-profile">{this.props.value.profile.profileName}</div>
         <div className="col col--no-gutter tasks-sizes">{this.props.value.sizes}</div>

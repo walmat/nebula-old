@@ -116,7 +116,7 @@ class Tasks1 extends Component {
                   <div className="col tasks-table__header__id">
                     <p>#</p>
                   </div>
-                  <div className="col tasks-table__header__sku">
+                  <div className="col tasks-table__header__product">
                     <p>Product</p>
                   </div>
                   <div className="col tasks-table__header__sites">
