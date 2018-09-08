@@ -1,18 +1,65 @@
 const { pay } = require('./classes/pay');
 const { findItem, selectStyle } = require('./classes/findItem');
 
-let supportedSites = []; //pull in the list of supported sites
+/*
 
-let config = {
-    base_url: 'https://www.yeezysupply.com/sitemap_products_1.xml',
-    pos_keywords: ['classified', 'pink']
+task: {
+	id: string,
+	product: {
+		raw: string,
+		pos_keywords: [],
+		neg_keywords: [],
+		url: [],
+	},
+	site: string,
+	profile: {
+		id: string,
+		profileName: string,
+		billingMatchesShipping: bool,
+		shipping: {
+			firstName: string,
+			lastName: string,
+			address: string,
+			apt: string,
+			city: string,
+			country: string,
+			state: string,
+			zipCode: string,
+			phone: string,
+		},
+		billing: {
+			firstName: string,
+			lastName: string,
+			address: string,
+			apt: string,
+			city: string,
+			country: string,
+			state: string,
+			zipCode: string,
+			phone: string,
+		},
+		payment: {
+			email: string,
+			cardNumber: string,
+			exp: string,
+			cvv, string,
+		},
+	},
+	sizes: [],
+	pairs: 1 - 5,
+	status: string,
 }
 
-module.exports = async function(config) {
+*/
 
-    findItem(config, proxies[index], function(err, delay, res) {
+
+module.exports = async function(task) {
+
+    findItem(task, proxies[index], function(err, delay, res) {
 
         if (err) {
+            console.log(res);
+            // make this more extensive once we figure out the layout and everything
             setTimeout(() => {
                 return run(config);
             }, delay);

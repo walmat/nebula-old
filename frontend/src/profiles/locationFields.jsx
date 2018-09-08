@@ -79,7 +79,7 @@ class LocationFields extends Component {
           options={LocationFields.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
           value={this.props.value.state}
-          style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])}
+          // style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])}
           isDisabled={this.isStatesDisabled()}
         />
         <input id={`${this.props.id}-zip-code`} required placeholder="Zip Code" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)} value={this.props.value.zipCode} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])} disabled={disabled} />

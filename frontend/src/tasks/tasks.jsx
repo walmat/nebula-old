@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import ViewTask from './viewTask';
+import LogTask from './logTask';
 import CreateTask from './createTask';
 
 import startAll from '../_assets/start-all.svg';
@@ -29,12 +30,14 @@ class Tasks extends Component {
   startAllTasks() {
     for (let i = 0; i < this.props.tasks.length; i += 1) {
       this.props.onStartTask(this.props.tasks[i]);
+      this.props.tasks[i].status = 'running';
     }
   }
 
   stopAllTasks() {
     for (let i = 0; i < this.props.tasks.length; i += 1) {
       this.props.onStopTask(this.props.tasks[i]);
+      this.props.tasks[i].status = 'stopped';
     }
   }
 
@@ -44,12 +47,6 @@ class Tasks extends Component {
       this.props.onDestroyTasks(this.props.tasks[i]);
     }
   }
-
-  /* MORE HELPERS HERE IF NEED */
-
-  // async toggleSVG(state) {
-  // //based on the state of the <select> tags, change the src of the img
-  // }
 
   render() {
     const { newTask } = this.props;
@@ -67,7 +64,9 @@ class Tasks extends Component {
           <p id="log-site">Site</p>
           <p id="log-output">Output</p>
           <hr id="log-line" />
-          <div id="log-scroll-box" />
+          <div id="log-scroll-box">
+            <LogTask />
+          </div>
 
           {/* VIEW TASK */}
           <p className="body-text" id="view-label">View</p>
