@@ -68,13 +68,12 @@ task: {
 
 function findItem(task, proxy, cb) {
 
-    // depending on what method the user is using
     switch(task.method) {
-        case 'EARLY_LINK':
+        case 'URL':
             break;
-        case 'KEYWORDS':
+        case 'Keywords':
             break;
-        case 'VARIANTS':
+        case 'Variant':
             break;
         default:
             break;

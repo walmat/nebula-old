@@ -10,6 +10,8 @@ import getAllSites from '../getSites';
 
 import './tasks.css';
 
+import getMethodOptions from '../getMethods';
+
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
@@ -45,6 +47,10 @@ class CreateTask extends Component {
         return (event) => {
           const site = { name: event.label, url: event.value };
           this.props.onChange({ field, value: site });
+        };
+      case TASK_FIELDS.EDIT_METHOD:
+        return (event) => {
+          this.props.onChange({ field, value: event });
         };
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
@@ -91,11 +97,37 @@ class CreateTask extends Component {
         <p id="product-label">Product</p>
         <input
           id="product"
+          className="product-input"
           type="text"
           placeholder="SKU, Keywords, Link"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
           value={this.props.value.product.raw}
           required
+          disabled={!this.props.value.method}
+        />
+        <p id="method-label">Method</p>
+        <Select
+          required
+          classNamePrefix="select"
+          placeholder="Method"
+          components={{ DropdownIndicator }}
+          id="method"
+          styles={colourStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_METHOD)}
+          value={this.props.value.method}
+          options={getMethodOptions()}
+        />
+        <p id="profiles-label">Billing Profile</p>
+        <Select
+          required
+          classNamePrefix="select"
+          placeholder="Choose Profile"
+          components={{ DropdownIndicator }}
+          id="profiles"
+          styles={colourStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+          value={newTaskProfileValue}
+          options={this.buildProfileOptions()}
         />
         <p id="site-label">Site</p>
         <Select
@@ -108,18 +140,6 @@ class CreateTask extends Component {
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
           value={newTaskSiteValue}
           options={getAllSites()}
-        />
-        <p id="profiles-label">Billing Profiles</p>
-        <Select
-          required
-          classNamePrefix="select"
-          placeholder="Choose Profile"
-          components={{ DropdownIndicator }}
-          id="profiles"
-          styles={colourStyles}
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={newTaskProfileValue}
-          options={this.buildProfileOptions()}
         />
         <p id="size-label">Sizes</p>
         <Select

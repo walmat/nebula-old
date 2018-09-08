@@ -4,14 +4,12 @@ import {
   TASK_ACTIONS,
   TASK_FIELDS,
   mapTaskFieldsToKey,
-  mapProductFieldsToKey,
 } from '../../actions';
 
 export const initialTaskState = {
   id: '',
   method: null,
   product: {
-    raw: '',
     variant: null,
     pos_keywords: null,
     neg_keywords: null,
@@ -20,11 +18,11 @@ export const initialTaskState = {
   site: null,
   profile: initialProfileState,
   sizes: [],
-  pairs: 1,
   status: 'idle',
   error_delay: null,
   refresh_delay: null,
   errors: {
+    method: null,
     product: {
       raw: null,
       variant: null,
@@ -35,8 +33,9 @@ export const initialTaskState = {
     site: null,
     profile: null,
     sizes: null,
-    pairs: null,
     status: null,
+    error_delay: null,
+    refresh_delay: null,
   },
 };
 
@@ -54,6 +53,7 @@ export function taskReducer(state = initialTaskState, action) {
         break;
       // add cases if we ever need them, but they're all the same
       default: {
+        console.log(action);
         change = {
           [mapTaskFieldsToKey[action.field]]: action.value,
           errors: Object.assign({}, state.errors, action.errors),

@@ -124,6 +124,7 @@ const stopTask = id =>
 // Field Edits
 export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
+  EDIT_METHOD: 'EDIT_METHOD',
   EDIT_SITE: 'EDIT_SITE',
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
@@ -143,6 +144,7 @@ export const taskActions = {
 
 export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_PRODUCT]: 'product',
+  [TASK_FIELDS.EDIT_METHOD]: 'method',
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZES]: 'sizes',

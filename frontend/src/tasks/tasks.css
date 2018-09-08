@@ -23,10 +23,36 @@
         position: absolute;
         top:150px;
         left:153px;
-        width: 119px;
+        width: 153px;
         height: 29px;
         border: 1px solid #F0405E;
         text-transform: uppercase;
+    }
+
+    .product-input:disabled {
+        background: rgb(229,229,229);
+        cursor: not-allowed;
+    }
+
+    #method-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:134px;
+        left:320px;
+        width: 42px;
+        height: 12px;
+    } 
+
+    #method {
+        position: absolute;
+        top:150px;
+        left:320px;
+        width: 85px;
+        height: 29px;
     }
 
     #site-label {
@@ -36,7 +62,7 @@
         color: #161318;
         letter-spacing: 0;
         position: absolute;
-        top:134px;
+        top:190px;
         left:286px;
         width: 42px;
         height: 12px;
@@ -44,7 +70,7 @@
 
     #sites {
         position: absolute;
-        top:150px;
+        top:205px;
         left:286px;
         width: 119px;
         height: 29px;
@@ -58,7 +84,7 @@
         position: absolute;
         top:205px;
         left:153px;
-        width: 252px;
+        width: 119px;
         height: 29px;
         font-family: AvenirNext-Medium;
         font-size: 9px;
