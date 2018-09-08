@@ -17,17 +17,36 @@ export const TASK_ACTIONS = {
 const _addTaskRequest = async task =>
   // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
-    const product = task.product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), [])
-    console.log(product);
-    const isKeywords = product.map(val => /^[+-][A-Za-z]+$/.test(val));
-    console.log(isKeywords);
-    if (isKeywords.some(val => val === false)) {
-      reject(); // add reason
-    } else {
-      setTimeout(() => {
-        const copy = JSON.parse(JSON.stringify(task));
-        resolve({ task: copy });
-      }, 0);
+    switch (task.method.value) {
+      case 'URL':
+        // validate the url
+        console.log('url');
+        break;
+      case 'Keywords':
+        // validate the keywords and separate them into positive and negative
+        const product = task.product.keywords.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), [])
+        console.log(product);
+        const isKeywords = product.map(val => /^[+-][A-Za-z]+$/.test(val));
+        console.log(isKeywords);
+        if (isKeywords.some(val => val === false)) {
+          reject(); // add reason
+        } else {
+          setTimeout(() => {
+            const copy = JSON.parse(JSON.stringify(task));
+            resolve({ task: copy });
+          }, 0);
+        }
+        break;
+      case 'Variant':
+        // validate the variant
+        console.log('variant');
+        setTimeout(() => {
+          const copy = JSON.parse(JSON.stringify(task));
+          resolve({ task: copy });
+        }, 0);
+        break;
+      default:
+        break;
     }
   });
 

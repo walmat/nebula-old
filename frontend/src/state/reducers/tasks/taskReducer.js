@@ -10,6 +10,7 @@ export const initialTaskState = {
   id: '',
   method: null,
   product: {
+    raw: '',
     variant: null,
     pos_keywords: null,
     neg_keywords: null,
@@ -53,7 +54,6 @@ export function taskReducer(state = initialTaskState, action) {
         break;
       // add cases if we ever need them, but they're all the same
       default: {
-        console.log(action);
         change = {
           [mapTaskFieldsToKey[action.field]]: action.value,
           errors: Object.assign({}, state.errors, action.errors),

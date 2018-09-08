@@ -104,6 +104,7 @@ class CreateTask extends Component {
           value={this.props.value.product.raw}
           required
           disabled={!this.props.value.method}
+          title="Please Choose Method"
         />
         <p id="method-label">Method</p>
         <Select
@@ -116,6 +117,7 @@ class CreateTask extends Component {
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_METHOD)}
           value={this.props.value.method}
           options={getMethodOptions()}
+          c
         />
         <p id="profiles-label">Billing Profile</p>
         <Select
@@ -128,6 +130,7 @@ class CreateTask extends Component {
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
           value={newTaskProfileValue}
           options={this.buildProfileOptions()}
+          isRequired="true"
         />
         <p id="site-label">Site</p>
         <Select
@@ -140,6 +143,7 @@ class CreateTask extends Component {
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
           value={newTaskSiteValue}
           options={getAllSites()}
+          isRequired="true"
         />
         <p id="size-label">Sizes</p>
         <Select
@@ -154,6 +158,7 @@ class CreateTask extends Component {
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
           value={this.props.value.sizes.map(size => ({ value: size, label: `${size}` }))}
           options={getAllSizes()}
+          isRequired="true"
         />
         <p id="pairs-label"># Pairs</p>
         <NumberFormat
