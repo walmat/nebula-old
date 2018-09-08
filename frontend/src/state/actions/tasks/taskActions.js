@@ -16,11 +16,19 @@ export const TASK_ACTIONS = {
 // Private API Requests
 const _addTaskRequest = async task =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
-    setTimeout(() => {
-      const copy = JSON.parse(JSON.stringify(task));
-      resolve({ task: copy });
-    }, 0);
+  new Promise((resolve, reject) => {
+    const product = task.product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), [])
+    console.log(product);
+    const isKeywords = product.map(val => /^[+-][A-Za-z]+$/.test(val));
+    console.log(isKeywords);
+    if (isKeywords.some(val => val === false)) {
+      reject(); // add reason
+    } else {
+      setTimeout(() => {
+        const copy = JSON.parse(JSON.stringify(task));
+        resolve({ task: copy });
+      }, 0);
+    }
   });
 
 const _destroyTaskRequest = async id =>

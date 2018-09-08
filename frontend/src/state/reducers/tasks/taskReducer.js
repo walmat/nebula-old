@@ -2,9 +2,10 @@ import { initialProfileState } from '../profiles/profileReducer';
 
 import {
   TASK_ACTIONS,
+  TASK_FIELDS,
   mapTaskFieldsToKey,
+  mapProductFieldsToKey,
 } from '../../actions';
-import { TASK_FIELDS } from '../../actions/tasks/taskActions';
 
 export const initialTaskState = {
   id: '',
