@@ -41,7 +41,7 @@ class Tasks extends Component {
   destroyAllTasks() {
     // if user clicks the large `garbage can` button, erase all tasks
     for (let i = 0; i < this.props.tasks.length; i += 1) {
-      this.props.onRemoveTask(this.props.tasks[i]);
+      this.props.onDestroyTasks(this.props.tasks[i]);
     }
   }
 
@@ -117,7 +117,7 @@ Tasks.propTypes = {
   tasks: defns.taskList.isRequired,
   newTask: defns.task.isRequired,
   onSelectTask: PropTypes.func.isRequired,
-  onRemoveTask: PropTypes.func.isRequired,
+  onDestroyTasks: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
 };
@@ -138,8 +138,8 @@ const mapDispatchToProps = dispatch => ({
   onUpdateTask: (task) => {
     dispatch(taskActions.update(task.editId, task));
   },
-  onRemoveTask: () => {
-    dispatch(taskActions.remove(null));
+  onDestroyTasks: () => {
+    dispatch(taskActions.destroy(null));
   },
   onStartTask: (task) => {
     dispatch(taskActions.start(task.id));

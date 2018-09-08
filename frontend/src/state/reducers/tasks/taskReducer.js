@@ -2,12 +2,20 @@ import { initialProfileState } from '../profiles/profileReducer';
 
 import {
   TASK_ACTIONS,
+  TASK_FIELDS,
   mapTaskFieldsToKey,
+  mapProductFieldsToKey,
 } from '../../actions';
 
 export const initialTaskState = {
   id: '',
-  product: '',
+  product: {
+    raw: '',
+    pos_keywords: null,
+    neg_keywords: null,
+    url: null,
+    sku: null,
+  },
   site: null,
   profile: initialProfileState,
   sizes: [],
@@ -28,7 +36,13 @@ export function taskReducer(state = initialTaskState, action) {
 
   if (action.type === TASK_ACTIONS.EDIT) {
     switch (action.field) {
-      // add cases if we ever need them, but they're all the same
+      case TASK_FIELDS.EDIT_PRODUCT:
+        change = {
+          product: {
+            raw: action.value,
+          },
+        };
+        break;
       default: {
         change = {
           [mapTaskFieldsToKey[action.field]]: action.value,
