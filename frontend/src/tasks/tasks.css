@@ -152,6 +152,10 @@
         border: 1px solid #F0405E;
         border-radius: 3px;
     }
+
+    .active {
+        opacity: 0.5;
+    }
 /* END CREATE SPECIFIC IDS */
 
 /* VIEW SPECIFIC IDS */
@@ -558,6 +562,11 @@
         left: 899px;
         cursor: pointer;
     }
+
+    #start-all:hover, #stop-all:hover, #destroy-all:hover {
+        opacity: 0.5;
+    }
+
 /* END VIEW SPECIFIC IDS */
 
 /* LOG SPECIFIC IDS */

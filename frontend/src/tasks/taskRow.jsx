@@ -7,15 +7,14 @@ import getAllSizes from '../getSizes';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 import start from '../_assets/run.svg';
-import startDim from '../_assets/run_dim.svg';
 import stop from '../_assets/stop.svg';
-import stopDim from '../_assets/stop_dim.svg';
 import destroy from '../_assets/destroy.svg';
 import edit from '../_assets/edit_icon.svg';
 import { taskActions } from '../state/actions';
 
-class TaskRow extends Component {
+import './tasks.css';
 
+class TaskRow extends Component {
   static buildSizeOptions() {
     return getAllSizes();
   }
@@ -40,6 +39,7 @@ class TaskRow extends Component {
 
   startTask(task) {
     console.log('starting task: ', task.id);
+    task.status = 'running';
     this.props.onStartTask(task);
   }
 
@@ -128,8 +128,8 @@ class TaskRow extends Component {
         <div className="tasks-profile">{this.props.value.profile.profileName}</div>
         <div className="tasks-sizes">{this.props.value.sizes}</div>
         <div className="tasks-pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</div>
-        <div className="tasks-start"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
-        <div className="tasks-stop"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></div>
+        <div className="tasks-start"><img src={start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
+        <div className="tasks-stop"><img src={stop} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></div>
         <div className="tasks-destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></div>
         <div className="extend" />
       </div>
@@ -185,7 +185,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(taskActions.stop(task.id));
   },
   onDestroyTask: (task) => {
-    dispatch(taskActions.remove(task.id));
+    dispatch(taskActions.destroy(task.id));
   },
 });
 

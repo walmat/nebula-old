@@ -15,8 +15,111 @@ let userHasBeenNotifiedEmpty = false;
 
 module.exports = {};
 
-function findItem(config, proxy, cb) {
-    if (config.base_url.endsWith('.xml')) {
+/*
+
+task: {
+	id: string,
+	product: {
+		raw: string,
+		pos_keywords: [],
+		neg_keywords: [],
+		url: [],
+	},
+	site: string,
+	profile: {
+		id: string,
+		profileName: string,
+		billingMatchesShipping: bool,
+		shipping: {
+			firstName: string,
+			lastName: string,
+			address: string,
+			apt: string,
+			city: string,
+			country: string,
+			state: string,
+			zipCode: string,
+			phone: string,
+		},
+		billing: {
+			firstName: string,
+			lastName: string,
+			address: string,
+			apt: string,
+			city: string,
+			country: string,
+			state: string,
+			zipCode: string,
+			phone: string,
+		},
+		payment: {
+			email: string,
+			cardNumber: string,
+			exp: string,
+			cvv, string,
+		},
+	},
+	sizes: [],
+	pairs: 1 - 5,
+	status: string,
+}
+
+*/
+
+function findItem(task, proxy, cb) {
+
+    // depending on what method the user is using
+    switch(task.method) {
+        case 'EARLY_LINK':
+            break;
+        case 'KEYWORDS':
+            break;
+        case 'VARIANTS':
+            break;
+        default:
+            break;
+    }
+    // run in "early link" mode
+    if (task.product.url !== null) {
+        request(
+            {
+                method: 'get',
+                url: `${task.product.url}.json`,
+                proxy: proxy,
+                gzip: false,
+                headers: {
+                    'User-Agent': userAgent,
+                }
+            }, 
+            function (err, res, body) {
+                if (err) {
+                    // 404 error COULD & SHOULD happen before product is loaded
+                    return cb(true, task.delay, err);
+                }
+                try {
+                    // gather essentials needed for checking out
+                    const products = JSON.parse(body);
+                    if (products.product.length === 0) {
+                        // item not loaded yet, or not found, or something?
+                    } else {
+                        let product = [];
+                        product.push({})
+                        return cb(false, null, products.product.variants);
+                    }
+                } catch (e) {
+                    if (res.statusCode === 430) {
+                        return cb(true, task.error_delay, null);
+                    } else if (res.statusCode === 401) {
+                        return cb(true, task.delay, null);
+                    } else {
+                        // unknown error, handle it
+                        return cb(true, null, res.statusCode);
+                    }
+                }
+            }
+        )
+
+    } else if (task.site.endsWith('.xml')) {
 
         let matchString;
         let foundItems = [];
@@ -209,7 +312,16 @@ function selectStyle(config, res, onSuccess) {
 
 module.exports.selectStyle = selectStyle;
 
-findItem({base_url: 'https://www.yeezysupply.com/sitemap_products_1.xml', pos_keywords: ['black']}, null, function(err, delay, res) {
+findItem(
+    { // task object "early link"
+        product: {
+            url: 'https://www.blendsus.com/products/vans-vault-x-wtaps-og-sk8-hi-lx-flame',
+            pos_keywords: null,
+            neg_keywords: null,
+            raw: '' 
+        }
+    }, null, 
+    function(err, delay, res) {
     if (err) {
         console.log('error: ' + err);
     } else {

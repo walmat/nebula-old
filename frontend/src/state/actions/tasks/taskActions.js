@@ -42,20 +42,23 @@ const _updateTaskRequest = async (id, task) =>
 const _startTaskRequest = async task =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
-    try {
-      const response = fetch('http://localhost:8080/tasks', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(task),
-      });
-      const result = response.json();
-      resolve(result);
-    } catch (err) {
-      resolve(err);
-    }
+    setTimeout(() => {
+      resolve({ task });
+    }, 1000);
+    // try {
+    //   const response = fetch('http://localhost:8080/tasks', {
+    //     method: 'POST',
+    //     headers: {
+    //       Accept: 'application/json',
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(task),
+    //   });
+    //   const result = response.json();
+    //   resolve(result);
+    // } catch (err) {
+    //   resolve(err);
+    // }
   });
 
 const _stopTaskRequest = async id =>

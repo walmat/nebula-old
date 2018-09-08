@@ -13,6 +13,8 @@ export const initialTaskState = {
   sizes: [],
   pairs: 1,
   status: 'idle',
+  error_delay: null,
+  refresh_delay: null,
   errors: {
     product: null,
     site: null,
