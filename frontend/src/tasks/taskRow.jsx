@@ -70,6 +70,11 @@ class TaskRow extends Component {
     }
   }
 
+  saveTask() {
+    const { task, onCommitEdits } = this.props;
+    onCommitEdits(task);
+  }
+
   selectTask(task) {
     if (this.props.selectedTask.id !== task.id) {
       this.props.onSelectTask(task);
@@ -139,7 +144,7 @@ class TaskRow extends Component {
                   className="submit__button"
                   tabIndex={0}
                   onKeyPress={() => {}}
-                  onClick={this.saveTask}
+                  onClick={() => { this.saveTask(); }}
                 >
                   Save
                 </button>
@@ -242,6 +247,7 @@ TaskRow.propTypes = {
   onStopTask: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,
   onEditTask: PropTypes.func.isRequired,
+  onCommitEdits: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -259,6 +265,9 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
   onEditTask: (task, changes) => {
     dispatch(taskActions.edit(task.id, changes.field, changes.value));
+  },
+  onCommitEdits: (task) => {
+    dispatch(taskActions.update(task.id, task));
   },
   onSelectTask: (task) => {
     dispatch(taskActions.select(task));

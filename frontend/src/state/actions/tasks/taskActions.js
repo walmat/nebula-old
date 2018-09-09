@@ -112,8 +112,14 @@ const destroyTask = id =>
   );
 
 const updateTask = (id, task) =>
-  dispatch => _updateTaskRequest(id, task).then(
-    response => dispatch(_updateTask(response)),
+  (dispatch, getState) => _updateTaskRequest(id, task).then(
+    (response) => {
+      dispatch(_updateTask(response));
+      const state = getState();
+      if (state.selectedTask && state.selectedTask.id === response.id) {
+        dispatch(selectTask(null));
+      }
+    },
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 

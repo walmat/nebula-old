@@ -75,6 +75,45 @@ export function taskListReducer(state = initialTaskListState, action) {
       }
       break;
     }
+    case TASK_ACTIONS.UPDATE: {
+      // If we have a response error, we should do nothing
+      if (action.response !== undefined && action.response.error !== undefined) {
+        console.log('ERROR with TASK UPDATE');
+        console.log(action.response);
+        break;
+      }
+
+      const updateId = action.response.id;
+      const updateTask = JSON.parse(JSON.stringify(action.response.task));
+
+      // Check for the task to update
+      const foundTask = nextState.find(t => t.id === updateId);
+      if (!foundTask) {
+        break;
+      }
+
+      // find the index of the out of date task
+      const idxToUpdate = nextState.indexOf(foundTask);
+
+      // Check if current task has been setup properly
+      if ((updateTask.edits.profile || updateTask.edits.pairs || updateTask.edits.sizes)) {
+        // Set it up properly
+        updateTask.profile = updateTask.edits.profile || updateTask.profile;
+        updateTask.pairs = updateTask.edits.pairs || updateTask.pairs;
+        updateTask.sizes = updateTask.edits.sizes || updateTask.sizes;
+        // copy over to edits
+        updateTask.edits = {
+          ...updateTask.edits,
+          profile: updateTask.profile,
+          sizes: updateTask.sizes,
+          pairs: updateTask.pairs,
+        };
+      }
+
+      // Update the task
+      nextState[idxToUpdate] = updateTask;
+      break;
+    }
     case TASK_ACTIONS.EDIT: {
       // check if id is given (we only change the state on a non-null id)
       if (action.id === null) {
