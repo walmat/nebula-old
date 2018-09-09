@@ -4,7 +4,6 @@ import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 import Navbar from './navbar/navbar';
 import Tasks from './tasks/tasks';
-import TasksOld from './tasks/old/tasks';
 import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
@@ -85,7 +84,6 @@ class App extends PureComponent {
             <div className="main-container">
               <Switch>
                 <Route component={Tasks} path="/tasks" />
-                <Route component={TasksOld} path="/tasksold" /> {/* TEMPORARY */}
                 <Route component={Profiles} path="/profiles" />
                 <Route component={Server} path="/server" />
                 <Route component={Settings} path="/settings" />

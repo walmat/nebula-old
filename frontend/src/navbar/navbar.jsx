@@ -76,18 +76,6 @@ class Navbar extends PureComponent {
           >
             <img src={settings} className="main-icons" id="icon-settings" alt="settings" draggable="false" />
           </div>
-
-          { /* TEMPORARY */ }
-          <div
-            role="button"
-            tabIndex={0}
-            onKeyPress={() => {}}
-            onClick={() => {
-              this.props.history.push('/tasksold');
-            }}
-          >
-            <img src={tasks} className="main-icons" id="icon-tasks1" alt="tasks1" draggable="false" />
-          </div>
         </div>
       </div>
     );
