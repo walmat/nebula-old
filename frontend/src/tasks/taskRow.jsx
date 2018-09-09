@@ -131,7 +131,7 @@ class TaskRow extends Component {
         <div className="col col--no-gutter tasks-site">{this.props.value.site.name}</div>
         <div className="col col--no-gutter tasks-profile">{this.props.value.profile.profileName}</div>
         <div className="col col--no-gutter tasks-sizes">{this.props.value.sizes}</div>
-        <div className="col col--no-gutter tasks-pairs">{taskAccountValue}</div>
+        <div className="col col--no-gutter tasks-account">{taskAccountValue}</div>
         <div className="col col--no-gutter tasks-actions">
           <div className="row row--gutter">
             <div className="tasks-actions__button"><img src={start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
