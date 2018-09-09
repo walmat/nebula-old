@@ -24,13 +24,24 @@ const _addTaskRequest = async task =>
     const validKeywords = kws.map(val => keywordRegex.test(val));
 
     if (urlRegex.test(task.product.raw)) { // test a url match
+      copy.product.url = copy.product.raw;
       resolve({ task: copy });
     } else if (variantRegex.test(task.product.raw)) { // test variant match
+      copy.product.variant = copy.product.raw;
       resolve({ task: copy });
     } else if (validKeywords) { // test keyword match
       if (validKeywords.some(v => v === false)) {
         reject();
       } else {
+        copy.product.pos_keywords = [];
+        copy.product.neg_keywords = [];
+        kws.map(kw => {
+          if (kw.slice(0, 1) === '+') { // positive keywords
+            copy.product.pos_keywords.push(kw.slice(1, kw.length));
+          } else { // negative keywords
+            copy.product.neg_keyword.push(kw.slice(1, kw.length));
+          }
+        });
         resolve({ task: copy });
       }
     } else { // reject any other input that fails
