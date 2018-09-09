@@ -31,14 +31,14 @@ class CreateTask extends Component {
   }
 
   buildProfileOptions() {
-    const p = this.props.profiles;
-    return p.map(profile => ({ value: profile.id, label: profile.profileName }));
+    return this.props.profiles.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
   saveTask(e) {
     e.preventDefault();
-    this.props.onAddNewTask(this.props.value);
+    this.props.onAddNewTask(this.props.task);
   }
+
   createOnChangeHandler(field) {
     switch (field) {
       case TASK_FIELDS.EDIT_SITE:
@@ -62,7 +62,7 @@ class CreateTask extends Component {
           this.props.onChange({ field, value: event.target.value });
         };
       default:
-      // should never be called, but nice to have just in case
+        // should never be called, but nice to have just in case
         return (event) => {
           this.props.onChange({ field, value: event.target.value });
         };
@@ -71,104 +71,130 @@ class CreateTask extends Component {
 
   render() {
     let newTaskProfileValue = null;
-    if (this.props.value.profile.id !== null) {
+    if (this.props.task.profile.id) {
       newTaskProfileValue = {
-        value: this.props.value.profile.id,
-        label: this.props.value.profile.profileName,
+        value: this.props.task.profile.id,
+        label: this.props.task.profile.profileName,
       };
     }
     let newTaskSiteValue = null;
-    if (this.props.value.site !== null) {
+    if (this.props.task.site !== null) {
       newTaskSiteValue = {
-        value: this.props.value.site.url,
-        label: this.props.value.site.name,
+        value: this.props.task.site.url,
+        label: this.props.task.site.name,
       };
     }
+    let sizes = [];
+    if (this.props.task.sizes !== '') {
+      sizes = this.props.task.sizes.map(size => ({ value: size, label: `${size}` }));
+    }
     return (
-      <div>
-        <p className="body-text" id="create-label">Create</p>
-        <div id="create-box" />
-        <p id="product-label">Product</p>
-        <input
-          id="product"
-          type="text"
-          placeholder="SKU, Keywords, Link"
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
-          value={this.props.value.product}
-          required
-        />
-        <p id="site-label">Site</p>
-        <Select
-          required
-          classNamePrefix="select"
-          placeholder="Choose Site"
-          components={{ DropdownIndicator }}
-          id="sites"
-          styles={colourStyles}
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
-          value={newTaskSiteValue}
-          options={getAllSites()}
-        />
-        <p id="profiles-label">Billing Profiles</p>
-        <Select
-          required
-          classNamePrefix="select"
-          placeholder="Choose Profile"
-          components={{ DropdownIndicator }}
-          id="profiles"
-          styles={colourStyles}
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={newTaskProfileValue}
-          options={this.buildProfileOptions()}
-        />
-        <p id="size-label">Sizes</p>
-        <Select
-          required
-          isMulti
-          classNamePrefix="select"
-          placeholder="Choose Sizes"
-          isClearable={false}
-          components={{ DropdownIndicator }}
-          id="size"
-          styles={colourStyles}
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-          value={this.props.value.sizes.map(size => ({ value: size, label: `${size}` }))}
-          options={getAllSizes()}
-        />
-        <p id="pairs-label"># Pairs</p>
-        <NumberFormat
-          format={CreateTask.formatPairs}
-          placeholder="1"
-          value={this.props.value.pairs}
-          id="pairs"
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
-        />
-        <button
-          id="submit-tasks"
-          tabIndex={0}
-          onKeyPress={() => {}}
-          onClick={this.saveTask}
-        >
-        Submit
-        </button>
+      <div className="tasks-create col col--start col--no-gutter">
+        <div className="row row--start row--gutter">
+          <div className="col tasks-create__input-group">
+            <div className="row row--gutter">
+              <div className="col col--no-gutter">
+                <p className="tasks-create__label">Product</p>
+                <input
+                  className="tasks-create__input tasks-create__input--bordered tasks-create__input--product"
+                  type="text"
+                  placeholder="SKU, Keywords, Link"
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
+                  value={this.props.task.product}
+                  required
+                />
+              </div>
+              <div className="col col--no-gutter tasks-create__input-group--site">
+                <p className="tasks-create__label">Site</p>
+                <Select
+                  required
+                  className="tasks-create__input tasks-create__input--site"
+                  classNamePrefix="select"
+                  placeholder="Choose Site"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+                  value={newTaskSiteValue}
+                  options={getAllSites()}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="row row--start row--gutter">
+          <div className="col tasks-create__input-group">
+            <p className="tasks-create__label">Billing Profiles</p>
+            <Select
+              required
+              placeholder="Choose Profile"
+              components={{ DropdownIndicator }}
+              styles={colourStyles}
+              onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+              value={newTaskProfileValue}
+              options={this.buildProfileOptions()}
+              className="tasks-create__input"
+            />
+          </div>
+        </div>
+        <div className="row row--start row--gutter">
+          <div className="col tasks-create__input-group tasks-create__input-group--last">
+            <div className="row row--gutter">
+              <div className="col col--no-gutter-left tasks-create__input-group--sizes">
+                <p className="tasks-create__label">Sizes</p>
+                <Select
+                  required
+                  isMulti
+                  isClearable={false}
+                  placeholder="Choose Sizes"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
+                  value={sizes}
+                  options={getAllSizes()}
+                  className="tasks-create__input tasks-create__input--sizes"
+                />
+              </div>
+              <div className="col col--no-gutter">
+                <p className="tasks-create__label"># Pairs</p>
+                <NumberFormat
+                  className="tasks-create__input tasks-create__input--pairs tasks-create__input--bordered"
+                  format={CreateTask.formatPairs}
+                  placeholder="1"
+                  value={this.props.task.pairs}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="row row--end row--expand row--gutter">
+          <div className="col">
+            <button
+              className="tasks-create__submit"
+              tabIndex={0}
+              onKeyPress={() => {}}
+              onClick={this.saveTask}
+            >
+            Submit
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 }
 
 CreateTask.propTypes = {
-  // errors: tDefns.taskErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
-  value: tDefns.task.isRequired,
+  task: tDefns.task.isRequired,
   onAddNewTask: PropTypes.func.isRequired,
 };
 
 
 const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
-  value: ownProps.taskToEdit,
-  errors: ownProps.taskToEdit.errors,
+  task: ownProps.taskToEdit,
 });
 
 const mapDispatchToProps = dispatch => ({

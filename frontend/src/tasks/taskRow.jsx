@@ -15,10 +15,6 @@ import edit from '../_assets/edit_icon.svg';
 import { taskActions } from '../state/actions';
 
 class TaskRow extends Component {
-  static buildSizeOptions() {
-    return getAllSizes();
-  }
-
   static formatPairs(val) {
     if (val.length === 0) {
       return 1;
@@ -59,58 +55,64 @@ class TaskRow extends Component {
   renderEditMenu() {
     if (this.props.isEditing) {
       return (
-        <div key={`${this.props.value.id}-edit`} className="tasks-row tasks-row--edit-orig tasks-row--edit">
-          <div className="edit-billing">
-            <p className="edit-billing__label">Billing Profiles</p>
-            <Select
-              required
-              classNamePrefix="select"
-              className="edit-billing__select"
-              placeholder="Choose Profile"
-              components={{ DropdownIndicator }}
-              styles={colourStyles}
-              // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-              // value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
-              options={this.buildProfileOptions()}
-            />
-          </div>
-          <div className="edit-sizes">
-            <p className="edit-sizes__label">Sizes</p>
-            <Select
-              required
-              isMulti
-              isClearable={false}
-              classNamePrefix="select"
-              className="edit-sizes__select"
-              placeholder="Choose Sizes"
-              components={{ DropdownIndicator }}
-              styles={colourStyles}
-              // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-              // value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
-              options={TaskRow.buildSizeOptions()}
-            />
-          </div>
-          <div className="edit-pairs extend">
-            <p className="edit-pairs__label"># Pairs</p>
-            <NumberFormat
-              format={TaskRow.formatPairs}
-              placeholder="1"
-              // value={this.props.value.pairs}
-              className="edit-pairs__input"
-              // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
-            />
-            <div className="submit-edit">
-              <button
-                className="submit-edit__button"
-                tabIndex={0}
-                onKeyPress={() => {}}
-                onClick={this.saveTask}
-              >
-                Save
-              </button>
+        <div key={`${this.props.value.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
+          <div className="col">
+            <div className="row row--start">
+              <div className="col billing">
+                <p className="billing__label">Billing Profiles</p>
+                <Select
+                  required
+                  classNamePrefix="select"
+                  className="billing__select"
+                  placeholder="Choose Profile"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+                  // value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
+                  options={this.buildProfileOptions()}
+                />
+              </div>
+              <div className="col sizes">
+                <p className="sizes__label">Sizes</p>
+                <Select
+                  required
+                  isMulti
+                  isClearable={false}
+                  classNamePrefix="select"
+                  className="sizes__select"
+                  placeholder="Choose Sizes"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+                  // value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
+                  options={getAllSizes()}
+                />
+              </div>
+              <div className="col pairs">
+                <p className="pairs__label"># Pairs</p>
+                <NumberFormat
+                  format={TaskRow.formatPairs}
+                  placeholder="1"
+                  // value={this.props.value.pairs}
+                  className="pairs__input"
+                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
+                />
+              </div>
+            </div>
+            <div className="row">
+              <div className="col col--expand" />
+              <div className="col submit">
+                <button
+                  className="submit__button"
+                  tabIndex={0}
+                  onKeyPress={() => {}}
+                  onClick={this.saveTask}
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
-          {/* </div> */}
         </div>
       );
     }
@@ -119,25 +121,28 @@ class TaskRow extends Component {
 
   renderTableRow() {
     return (
-      <div key={this.props.value.id} id={this.props.value.id} className="tasks-row">
-        <div className="tasks-edit pad-left"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></div>
-        <div className="tasks-id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</div>
-        <div className="tasks-product">{this.props.value.product}</div>
-        <div className="tasks-sites">{this.props.value.site.name}</div>
-        <div className="tasks-profile">{this.props.value.profile.profileName}</div>
-        <div className="tasks-sizes">{this.props.value.sizes}</div>
-        <div className="tasks-pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</div>
-        <div className="tasks-start"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
-        <div className="tasks-stop"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></div>
-        <div className="tasks-destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></div>
-        <div className="extend" />
+      <div key={this.props.value.id} id={this.props.value.id} className="tasks-row row">
+        <div className="col col--no-gutter tasks-edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></div>
+        <div className="col col--no-gutter tasks-id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</div>
+        <div className="col col--no-gutter tasks-product">{this.props.value.product}</div>
+        <div className="col col--no-gutter tasks-sites">01</div>
+        <div className="col col--no-gutter tasks-profile">{this.props.value.profile.profileName}</div>
+        <div className="col col--no-gutter tasks-sizes">{this.props.value.sizes}</div>
+        <div className="col col--no-gutter tasks-pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</div>
+        <div className="col col--no-gutter tasks-actions">
+          <div className="row row--gutter">
+            <div className="tasks-actions__button"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
+            <div className="tasks-actions__button"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></div>
+            <div className="tasks-actions__button"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></div>
+          </div>
+        </div>
       </div>
     );
   }
 
   render() {
     return (
-      <div className="tasks-row-container">
+      <div className="tasks-row-container col">
         { this.renderTableRow() }
         { this.renderEditMenu() }
       </div>
