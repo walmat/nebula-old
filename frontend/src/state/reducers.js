@@ -9,6 +9,7 @@ import { currentProfileReducer, initialProfileState, selectedProfileReducer } fr
 import { profileListReducer, initialProfileListState } from './reducers/profiles/profileListReducer';
 import { serverReducer, initialServerState, initialServerListState } from './reducers/server/serverReducer';
 import { settingsReducer, initialSettingsState } from './reducers/settings/settingsReducer';
+import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
 
 import serverListOptions from '../utils/servers';
 
@@ -21,6 +22,7 @@ export const initialState = {
   currentProfile: initialProfileState,
   tasks: initialTaskListState,
   newTask: initialTaskState,
+  navbar: initialNavbarState,
   selectedTask: initialTaskState,
   proxies: initialSettingsState,
   settings: initialSettingsState,
@@ -33,6 +35,7 @@ const topLevelReducer = (state = initialState, action) => {
   const changes = {
     tasks: taskListReducer(state.tasks, action),
     newTask: newTaskReducer(state.newTask, action),
+    navbar: navbarReducer(state.navbar, action),
     selectedTask: selectedTaskReducer(state.selectedTask, action),
     profiles: profileListReducer(state.profiles, action),
     currentProfile: currentProfileReducer(state.currentProfile, action),
