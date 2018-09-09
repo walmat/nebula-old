@@ -274,11 +274,11 @@ input:focus {
 
 .main-container {
   margin-left: 140px; /*width of navbar*/
-  margin-top: 30px; /*height of transparent titlebar for dragging*/
+  margin-top: 25px; /*height of transparent titlebar for dragging*/
   margin-bottom: 30px;
-  margin-right: 30px;
+  margin-right: 0;
   width: calc(100% - 140px);
-  height:100% !important;
+  height: 665px;
 }
 
 input, select {
