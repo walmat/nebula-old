@@ -9,13 +9,14 @@ import Server from './server/server';
 import Settings from './settings/settings';
 import Auth from './auth/auth';
 
+import { ROUTES } from './state/actions';
+
 import close from './_assets/close.svg';
 import deactivate from './_assets/logout.svg';
 
 import './app.css';
 
 class App extends PureComponent {
-
   static close(e) {
     e.preventDefault();
     if (window.Bridge) {
@@ -83,13 +84,13 @@ class App extends PureComponent {
             <Navbar />
             <div className="main-container">
               <Switch>
-                <Route component={Tasks} path="/tasks" />
-                <Route component={Profiles} path="/profiles" />
-                <Route component={Server} path="/server" />
-                <Route component={Settings} path="/settings" />
+                <Route component={Tasks} path={ROUTES.TASKS} />
+                <Route component={Profiles} path={ROUTES.PROFILES} />
+                <Route component={Server} path={ROUTES.SERVER} />
+                <Route component={Settings} path={ROUTES.SETTINGS} />
                 <Route component={Auth} path="/auth" />
                 <Route path="/">
-                  <Redirect to="/tasks" />
+                  <Redirect to={ROUTES.TASKS} />
                 </Route>
               </Switch>
             </div>
