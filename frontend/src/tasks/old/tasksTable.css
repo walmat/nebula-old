@@ -1,0 +1,437 @@
+.tasks-table .tasks-row-container .tasks-row .tasks-sizes, .tasks-table .tasks-row-container .tasks-row .tasks-profile, .tasks-table .tasks-row-container .tasks-row .tasks-product {
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+}
+
+.tasks-table-container .tasks-table__header .tasks-table__header__actions, .tasks-table-container .tasks-table__header .tasks-table__header__pairs, .tasks-table-container .tasks-table__header .tasks-table__header__sizes, .tasks-table-container .tasks-table__header .tasks-table__header__profile, .tasks-table-container .tasks-table__header .tasks-table__header__sites, .tasks-table-container .tasks-table__header .tasks-table__header__product, .tasks-table-container .tasks-table__header .tasks-table__header__id, .tasks-table-container .tasks-table__header .tasks-table__header__edit {
+  margin: 0;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks-table-container .tasks-table__header .tasks-table__header__edit > p {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #161318;
+  letter-spacing: 0;
+  margin: 5px 0;
+}
+
+.tasks-log__header__output, .tasks-log__header__site, .tasks-log__header__id {
+  margin: 0;
+}
+.tasks-log__header__output > p, .tasks-log__header__site > p, .tasks-log__header__id > p {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #161318;
+  letter-spacing: 0;
+  margin: 5px 0;
+}
+
+.view-line {
+  margin: 0;
+  border: 1px solid #EDBCC6;
+  flex: 1 1 100%;
+}
+
+.section-header {
+  max-height: 32px;
+  margin: 6px 0;
+}
+.section-header.section-header--no-top {
+  margin-top: 0;
+}
+
+.tasks__title {
+  padding-top: 1px !important;
+  padding-bottom: 3px !important;
+}
+
+.tasks-table-container {
+  width: 741px;
+  height: 300px;
+  border: 1px solid #F0405E;
+  border-radius: 3px;
+  margin: 0 16px 0 0 !important;
+}
+.tasks-table-container .tasks-table__wrapper {
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  display: block;
+}
+.tasks-table-container .tasks-table__header {
+  margin: 0;
+  padding-bottom: 1px;
+  height: 26px;
+  min-height: 26px;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__edit {
+  width: 16px;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__id {
+  width: 26px;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__id > p {
+  text-align: center;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__product {
+  width: 129px;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__sites {
+  width: 73px;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__profile {
+  width: 268px;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__sizes {
+  width: 54px;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__pairs {
+  width: 50px;
+}
+.tasks-table-container .tasks-table__header .tasks-table__header__actions {
+  width: 50px;
+}
+
+.tasks-table {
+  border-collapse: collapse;
+  border-spacing: 0 10px;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+.tasks-table__section-header {
+  padding-top: 1px;
+}
+.tasks-table .blank {
+  padding-left: 10px;
+}
+.tasks-table .extend {
+  padding-right: 4px;
+}
+.tasks-table .pad-left {
+  padding-left: 5px;
+  padding-bottom: 0;
+}
+.tasks-table .tasks-row-container {
+  border-bottom: #dfdfdf solid 1px;
+}
+.tasks-table .tasks-row-container .tasks-row {
+  display: flex;
+  height: 30px;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit-orig {
+  margin: 0 10px !important;
+  padding: 10px 0 !important;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
+  padding: 10px;
+  height: 80px;
+  align-items: flex-start;
+  border: #b8d9d2 solid 1px;
+  margin: 0 -5px 5px -5px;
+  border-radius: 3px !important;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing {
+  vertical-align: middle;
+  padding-left: 19px;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing__label {
+  margin: 0;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing__select {
+  width: 355px;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes {
+  vertical-align: middle;
+  margin-left: 10px !important;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes__label {
+  margin: 0;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes__select {
+  width: 168px;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs {
+  vertical-align: middle;
+  margin-left: 10px !important;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs__label {
+  margin: 0;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs__input {
+  vertical-align: middle;
+  width: 78px;
+  height: 29px;
+  border: #F0405E solid 1px;
+  border-radius: 3px;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit {
+  margin-top: 12px;
+}
+.tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit__button {
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  background: #F0405E;
+  border: none;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #EFEFEF;
+  letter-spacing: 0;
+}
+.tasks-table .tasks-row-container .tasks-row .pad-left {
+  padding-left: 5px;
+  padding-bottom: 0;
+}
+.tasks-table .tasks-row-container .tasks-row img {
+  cursor: pointer;
+  vertical-align: middle;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-edit {
+  width: 16px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-id {
+  width: 26px;
+  text-align: center;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-product {
+  width: 129px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-sites {
+  text-overflow: ellipsis;
+  width: 73px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-profile {
+  width: 268px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-profile > p {
+  text-overflow: ellipsis;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-sizes {
+  width: 54px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-pairs {
+  width: 50px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-actions {
+  width: 50px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-actions__button {
+  padding-bottom: 3px;
+  width: 16px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-start {
+  padding-bottom: 3px;
+  width: 16px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-stop {
+  padding-bottom: 3px;
+  width: 16px;
+}
+.tasks-table .tasks-row-container .tasks-row .tasks-destroy {
+  padding-bottom: 3px;
+  width: 16px;
+}
+
+.tasks-create {
+  height: 226px;
+  width: 277px;
+  border: 1px solid #f0405e;
+  border-radius: 3px;
+}
+.tasks-create__section-header {
+  padding-bottom: 1px;
+}
+.tasks-create__label {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+  height: 12px;
+  margin-bottom: 3px;
+  margin-top: 9px;
+  padding-left: 0.5px;
+}
+.tasks-create__input-group {
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+}
+.tasks-create__input-group--last {
+  padding-top: 1px;
+}
+.tasks-create__input-group--site {
+  padding-left: 14px;
+}
+.tasks-create__input-group--sizes {
+  margin-right: 14px !important;
+}
+.tasks-create__input {
+  width: 252px;
+  height: 29px;
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+.tasks-create__input--bordered {
+  border: 1px solid #F0405E;
+}
+.tasks-create__input--product {
+  width: 119px;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+.tasks-create__input--site {
+  width: 119px;
+  height: 29px;
+}
+.tasks-create__input--sizes {
+  width: 185px;
+  height: 29px;
+}
+.tasks-create__input--pairs {
+  width: 53px;
+  height: 29px;
+}
+.tasks-create__submit-row {
+  align-self: flex-end;
+}
+.tasks-create__submit {
+  margin-right: -1px;
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  background: #F0405E;
+  border: none;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #EFEFEF;
+  letter-spacing: 0;
+}
+
+.tasks-log {
+  width: 504px;
+  height: 300px;
+  border: 1px solid #F0405E;
+  border-radius: 3px;
+  margin-left: -1px;
+}
+.tasks-log__section-header {
+  padding-top: 1px;
+  padding-bottom: 2px;
+}
+.tasks-log__header {
+  padding-bottom: 1px;
+}
+.tasks-log__header__id {
+  width: 7px;
+}
+.tasks-log__header__site {
+  width: 21px;
+}
+.tasks-log__header__output {
+  width: 40px;
+}
+
+.bulk-action-sidebar .bulk-action-sidebar__button {
+  padding-bottom: 15px;
+  cursor: pointer;
+}
+
+.container {
+  margin: 0 15px;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-around;
+  margin: 0 -15px;
+}
+.row--start {
+  justify-content: flex-start;
+}
+.row--end {
+  justify-content: flex-end;
+}
+.row--between {
+  justify-content: space-between;
+}
+.row--expand {
+  flex: 1 1 auto;
+}
+.row--gutter-left {
+  margin-left: 0 !important;
+}
+.row--gutter-right {
+  margin-right: 0 !important;
+}
+.row--gutter {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-around;
+  margin: 0 15px;
+}
+.col--start {
+  justify-content: flex-start;
+}
+.col--end {
+  justify-content: flex-end;
+}
+.col--between {
+  justify-content: space-between;
+}
+.col--expand {
+  flex: 1 1 auto;
+}
+.col--no-gutter-left {
+  margin-left: 0 !important;
+}
+.col--no-gutter-right {
+  margin-right: 0 !important;
+}
+.col--no-gutter {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Temporary */
+.temp-debug {
+  background-color: gray;
+}
+
+/*# sourceMappingURL=tasksTable.css.map */
