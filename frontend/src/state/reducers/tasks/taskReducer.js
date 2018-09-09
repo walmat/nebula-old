@@ -46,9 +46,47 @@ export function taskReducer(state = initialTaskState, action) {
   if (action.type === TASK_ACTIONS.EDIT) {
     switch (action.field) {
       case TASK_FIELDS.EDIT_PRODUCT:
+        switch (state.method.value) {
+          case 'URL':
+            change = {
+              product: {
+                url: action.value,
+              },
+            };
+            break;
+          case 'Keywords': // fix this later..
+            change = {
+              product: {
+                keywords: action.value,
+              },
+            };
+            break;
+          case 'Variant':
+            change = {
+              product: {
+                variant: action.value,
+              },
+            };
+            break;
+          default:
+            change = {
+              product: {
+                raw: action.value,
+              },
+            };
+            break;
+        }
+        break;
+      case TASK_FIELDS.EDIT_METHOD:
+      // had to generalize this because we need to reset the product state when switching
         change = {
+          method: action.value,
           product: {
-            raw: action.value,
+            raw: '',
+            variant: null,
+            pos_keywords: null,
+            neg_keywords: null,
+            url: null,
           },
         };
         break;

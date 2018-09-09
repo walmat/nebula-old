@@ -15,20 +15,23 @@ export const TASK_ACTIONS = {
 
 // Private API Requests
 const _addTaskRequest = async task =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     switch (task.method.value) {
       case 'URL':
-        // validate the url
-        console.log('url');
+        const validUrl = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/i.test(task.product.url);
+        if (!validUrl) {
+          reject(); // add reason
+        } else {
+          const copy = JSON.parse(JSON.stringify(task));
+          resolve({ task: copy });
+        }
         break;
       case 'Keywords':
-        // validate the keywords and separate them into positive and negative
+
+        // FIX THIS SHIT OML
         const product = task.product.keywords.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), [])
-        console.log(product);
-        const isKeywords = product.map(val => /^[+-][A-Za-z]+$/.test(val));
-        console.log(isKeywords);
-        if (isKeywords.some(val => val === false)) {
+        const validKeywords = product.map(val => /^[+-][A-Za-z]+$/.test(val));
+        if (validKeywords.some(val => val === false)) {
           reject(); // add reason
         } else {
           setTimeout(() => {
@@ -38,12 +41,15 @@ const _addTaskRequest = async task =>
         }
         break;
       case 'Variant':
-        // validate the variant
-        console.log('variant');
-        setTimeout(() => {
-          const copy = JSON.parse(JSON.stringify(task));
-          resolve({ task: copy });
-        }, 0);
+        const validVariant = /^\d+$/.test(task.product.variant);
+        if (!validVariant) {
+          reject(); // add reason
+        } else {
+          setTimeout(() => {
+            const copy = JSON.parse(JSON.stringify(task));
+            resolve({ task: copy });
+          }, 0);
+        }
         break;
       default:
         break;

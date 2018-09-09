@@ -160,14 +160,14 @@ class CreateTask extends Component {
           options={getAllSizes()}
           isRequired="true"
         />
-        <p id="pairs-label"># Pairs</p>
+        {/* <p id="pairs-label"># Pairs</p>
         <NumberFormat
           format={CreateTask.formatPairs}
           placeholder="1"
           value={this.props.value.pairs}
           id="pairs"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
-        />
+        /> */}
         <button
           id="submit-tasks"
           tabIndex={0}
