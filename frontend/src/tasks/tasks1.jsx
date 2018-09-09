@@ -104,10 +104,10 @@ class Tasks1 extends Component {
             </div>
           </div>
         </div>
-        <div className="row row--start row--expand temp-table-row">
+        <div className="row row--start">
           <div className="col col--start">
             <div className="row row--start">
-              <p className="body-text section-header">View</p>
+              <p className="body-text section-header tasks-table__section-header">View</p>
             </div>
             <div className="row row--expand">
               <div className="col col--start tasks-table-container">

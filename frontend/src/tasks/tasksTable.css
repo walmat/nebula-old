@@ -28,7 +28,6 @@
 .view-line {
   margin: 0;
   border: 1px solid #EDBCC6;
-  width: 100%;
   flex: 1 1 100%;
 }
 
@@ -46,20 +45,23 @@
 }
 
 .tasks-table-container {
-  display: block;
   width: 741px;
+  height: 300px;
   border: 1px solid #F0405E;
   border-radius: 3px;
-  overflow: scroll;
   margin: 0 16px 0 0 !important;
 }
 .tasks-table-container .tasks-table__wrapper {
   min-width: 0;
   width: 100%;
+  overflow: hidden;
+  display: block;
 }
 .tasks-table-container .tasks-table__header {
   margin: 0;
   padding-bottom: 1px;
+  height: 26px;
+  min-height: 26px;
 }
 .tasks-table-container .tasks-table__header .tasks-table__header__edit {
   width: 16px;
@@ -92,6 +94,12 @@
 .tasks-table {
   border-collapse: collapse;
   border-spacing: 0 10px;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+.tasks-table__section-header {
+  padding-top: 1px;
 }
 .tasks-table .blank {
   padding-left: 10px;
@@ -345,9 +353,6 @@
 .tasks-log__header__output {
   width: 40px;
 }
-.tasks-log__view-line {
-  padding-right: 2px;
-}
 
 .bulk-action-sidebar .bulk-action-sidebar__button {
   padding-bottom: 15px;
@@ -424,12 +429,7 @@
   margin-right: 0 !important;
 }
 
-/* TEmporary */
-.temp-table-row {
-  height: 330px;
-  padding-top: 1px;
-}
-
+/* Temporary */
 .temp-debug {
   background-color: gray;
 }
