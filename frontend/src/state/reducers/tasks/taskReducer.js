@@ -41,33 +41,63 @@ export const initialTaskState = {
     error_delay: null,
     refresh_delay: null,
   },
+  edits: {
+    sizes: null,
+    profile: null,
+    pairs: null,
+    errors: {
+      sizes: null,
+      profile: null,
+      pairs: null,
+    },
+  },
 };
 
 export function taskReducer(state = initialTaskState, action) {
   let change = {};
   if (action.type === TASK_ACTIONS.EDIT) {
-    switch (action.field) {
-      case TASK_FIELDS.EDIT_PRODUCT: {
-        change = {
-          product: {
-            raw: action.value,
-          },
-        };
-        break;
+    // Check if we are editing a new task or an existing one
+    if (action.id === null) {
+      switch (action.field) {
+        case TASK_FIELDS.EDIT_PRODUCT: {
+          change = {
+            product: {
+              raw: action.value,
+            },
+          };
+          break;
+        }
+        case TASK_FIELDS.EDIT_SITE: {
+          change = {
+            site: action.value,
+            username: null,
+            password: null,
+          };
+          break;
+        }
+        default: {
+          change = {
+            [mapTaskFieldsToKey[action.field]]: action.value,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+        }
       }
-      case TASK_FIELDS.EDIT_SITE: {
-        change = {
-          site: action.value,
-          username: null,
-          password: null,
-        };
-        break;
-      }
-      default: {
-        change = {
-          [mapTaskFieldsToKey[action.field]]: action.value,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
+    } else {
+      // If we are editing an existing task, only perform the change on valid edit fields
+      switch (action.field) {
+        case TASK_FIELDS.EDIT_PAIRS:
+        case TASK_FIELDS.EDIT_PROFILE:
+        case TASK_FIELDS.EDIT_SIZES: {
+          change = {
+            edits: {
+              ...state.edits,
+              [mapTaskFieldsToKey[action.field]]: action.value,
+              errors: Object.assign({}, state.errors, action.errors),
+            },
+          };
+          break;
+        }
+        default: break;
       }
     }
   }
