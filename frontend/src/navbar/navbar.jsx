@@ -83,7 +83,7 @@ class Navbar extends PureComponent {
             tabIndex={0}
             onKeyPress={() => {}}
             onClick={() => {
-              this.props.history.push('/tasks1');
+              this.props.history.push('/tasksold');
             }}
           >
             <img src={tasks} className="main-icons" id="icon-tasks1" alt="tasks1" draggable="false" />
