@@ -11,7 +11,7 @@ import stopAll from '../_assets/stop-all.svg';
 import destroyAll from '../_assets/destroy-all.svg';
 
 import '../app.css';
-import './tasksTable.css';
+import './tasks.css';
 import { taskActions } from '../state/actions';
 
 import defns from '../utils/definitions/taskDefinitions';
@@ -47,7 +47,7 @@ class Tasks extends Component {
   render() {
     const { newTask } = this.props;
     return (
-      <div className="container">
+      <div className="container tasks">
         <div className="row">
           <div className="col col--start">
             <div className="row row--start">
