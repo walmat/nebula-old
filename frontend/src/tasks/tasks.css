@@ -1,4 +1,8 @@
 /* CREATE SPECIFIC IDS */
+    input:disabled {
+        background: rgb(229, 229, 229);
+    }
+
     #create-label {
         margin: 0;
         position: absolute;
@@ -23,36 +27,10 @@
         position: absolute;
         top:150px;
         left:153px;
-        width: 153px;
+        width: 119px;
         height: 29px;
         border: 1px solid #F0405E;
-        text-transform: uppercase;
-    }
-
-    .product-input:disabled {
-        background: rgb(229,229,229);
-        cursor: not-allowed;
-    }
-
-    #method-label {
-        margin: 0;
-        font-family: AvenirNext-Medium;
-        font-size: 9px;
-        color: #161318;
-        letter-spacing: 0;
-        position: absolute;
-        top:134px;
-        left:320px;
-        width: 42px;
-        height: 12px;
-    } 
-
-    #method {
-        position: absolute;
-        top:150px;
-        left:320px;
-        width: 85px;
-        height: 29px;
+        text-transform: none;
     }
 
     #site-label {
@@ -62,7 +40,7 @@
         color: #161318;
         letter-spacing: 0;
         position: absolute;
-        top:190px;
+        top:134px;
         left:286px;
         width: 42px;
         height: 12px;
@@ -70,7 +48,7 @@
 
     #sites {
         position: absolute;
-        top:205px;
+        top:150px;
         left:286px;
         width: 119px;
         height: 29px;
@@ -107,9 +85,9 @@
 
     #size {
         position: absolute;
-        top:261px;
-        left:153px;
-        width: 185px;
+        top:205px;
+        left:286px;
+        width: 119px;
         height: 29px;
         border-radius: 3px;
         font-family: AvenirNext-Medium;
@@ -125,10 +103,56 @@
         color: #161318;
         letter-spacing: 0;
         position: absolute;
-        top:246px;
-        left:153px;
+        top:190px;
+        left:286px;
         width: 21px;
         height: 12px;
+    }
+
+    #username-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:246px;
+        left:153px;
+        width: 27px;
+        height: 12px;
+    }
+
+    #username {
+        position: absolute;
+        top:261px;
+        left:153px;
+        width: 119px;
+        height: 29px;
+        border: 1px solid #F0405E;
+        text-transform: none;
+    }
+
+    #password-label {
+        margin: 0;
+        font-family: AvenirNext-Medium;
+        font-size: 9px;
+        color: #161318;
+        letter-spacing: 0;
+        position: absolute;
+        top:246px;
+        left:286px;
+        width: 27px;
+        height: 12px;
+    }
+
+    #password {
+        position: absolute;
+        top:261px;
+        left:286px;
+        width: 119px;
+        height: 29px;
+        border: 1px solid #F0405E;
+        text-transform: none;
     }
 
     #pairs-label {

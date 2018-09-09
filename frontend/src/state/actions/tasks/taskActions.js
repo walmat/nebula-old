@@ -16,41 +16,25 @@ export const TASK_ACTIONS = {
 // Private API Requests
 const _addTaskRequest = async task =>
   new Promise((resolve, reject) => {
-    switch (task.method.value) {
-      case 'URL':
-        const validUrl = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/i.test(task.product.url);
-        if (!validUrl) {
-          reject(); // add reason
-        } else {
-          const copy = JSON.parse(JSON.stringify(task));
-          resolve({ task: copy });
-        }
-        break;
-      case 'Keywords':
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/i;
+    const keywordRegex = /^[+-][A-Za-z0-9]+$/;
+    const variantRegex = /^\d+$/;
+    const copy = JSON.parse(JSON.stringify(task));
+    const kws = task.product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
+    const validKeywords = kws.map(val => keywordRegex.test(val));
 
-        // FIX THIS SHIT OML
-        const product = task.product.keywords.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), [])
-        const validKeywords = product.map(val => /^[+-][A-Za-z]+$/.test(val));
-        if (validKeywords.some(val => val === false)) {
-          reject(); // add reason
-        } else {
-          const copy = JSON.parse(JSON.stringify(task));
-          resolve({ task: copy });
-        }
-        break;
-      case 'Variant':
-        const validVariant = /^\d+$/.test(task.product.variant);
-        if (!validVariant) {
-          reject(); // add reason
-        } else {
-          setTimeout(() => {
-            const copy = JSON.parse(JSON.stringify(task));
-            resolve({ task: copy });
-          }, 0);
-        }
-        break;
-      default:
-        break;
+    if (urlRegex.test(task.product.raw)) { // test a url match
+      resolve({ task: copy });
+    } else if (variantRegex.test(task.product.raw)) { // test variant match
+      resolve({ task: copy });
+    } else if (validKeywords) { // test keyword match
+      if (validKeywords.some(v => v === false)) {
+        reject();
+      } else {
+        resolve({ task: copy });
+      }
+    } else { // reject any other input that fails
+      reject();
     }
   });
 
@@ -147,6 +131,8 @@ const stopTask = id =>
 // Field Edits
 export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
+  EDIT_USERNAME: 'EDIT_USERNAME',
+  EDIT_PASSWORD: 'EDIT_PASSWORD',
   EDIT_METHOD: 'EDIT_METHOD',
   EDIT_SITE: 'EDIT_SITE',
   EDIT_PROFILE: 'EDIT_PROFILE',
@@ -167,6 +153,8 @@ export const taskActions = {
 
 export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_PRODUCT]: 'product',
+  [TASK_FIELDS.EDIT_USERNAME]: 'username',
+  [TASK_FIELDS.EDIT_PASSWORD]: 'password',
   [TASK_FIELDS.EDIT_METHOD]: 'method',
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',

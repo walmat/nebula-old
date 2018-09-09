@@ -45,12 +45,9 @@ class CreateTask extends Component {
     switch (field) {
       case TASK_FIELDS.EDIT_SITE:
         return (event) => {
-          const site = { name: event.label, url: event.value };
+          console.log()
+          const site = { name: event.label, url: event.value, auth: event.auth };
           this.props.onChange({ field, value: site });
-        };
-      case TASK_FIELDS.EDIT_METHOD:
-        return (event) => {
-          this.props.onChange({ field, value: event });
         };
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
@@ -90,6 +87,10 @@ class CreateTask extends Component {
         label: this.props.value.site.name,
       };
     }
+    let accountFieldsDisabled = true;
+    if (this.props.value.site !== null) {
+      accountFieldsDisabled = !this.props.value.site.auth;
+    }
     return (
       <div>
         <p className="body-text" id="create-label">Create</p>
@@ -97,39 +98,11 @@ class CreateTask extends Component {
         <p id="product-label">Product</p>
         <input
           id="product"
-          className="product-input"
           type="text"
-          placeholder="SKU, Keywords, Link"
+          placeholder="Variant, Keywords, Link"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
           value={this.props.value.product.raw}
           required
-          disabled={!this.props.value.method}
-          title="Please Choose Method"
-        />
-        <p id="method-label">Method</p>
-        <Select
-          required
-          classNamePrefix="select"
-          placeholder="Method"
-          components={{ DropdownIndicator }}
-          id="method"
-          styles={colourStyles}
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_METHOD)}
-          value={this.props.value.method}
-          options={getMethodOptions()}
-        />
-        <p id="profiles-label">Billing Profile</p>
-        <Select
-          required
-          classNamePrefix="select"
-          placeholder="Choose Profile"
-          components={{ DropdownIndicator }}
-          id="profiles"
-          styles={colourStyles}
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-          value={newTaskProfileValue}
-          options={this.buildProfileOptions()}
-          isRequired="true"
         />
         <p id="site-label">Site</p>
         <Select
@@ -142,6 +115,18 @@ class CreateTask extends Component {
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
           value={newTaskSiteValue}
           options={getAllSites()}
+        />
+        <p id="profiles-label">Billing Profile</p>
+        <Select
+          required
+          classNamePrefix="select"
+          placeholder="Choose Profile"
+          components={{ DropdownIndicator }}
+          id="profiles"
+          styles={colourStyles}
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+          value={newTaskProfileValue}
+          options={this.buildProfileOptions()}
           isRequired="true"
         />
         <p id="size-label">Sizes</p>
@@ -159,14 +144,24 @@ class CreateTask extends Component {
           options={getAllSizes()}
           isRequired="true"
         />
-        {/* <p id="pairs-label"># Pairs</p>
-        <NumberFormat
-          format={CreateTask.formatPairs}
-          placeholder="1"
-          value={this.props.value.pairs}
-          id="pairs"
-          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
-        /> */}
+        <p id="username-label">Username</p>
+        <input
+          id="username"
+          type="text"
+          placeholder="johndoe@gmail.com"
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
+          value={this.props.value.username}
+          disabled={accountFieldsDisabled}
+        />
+        <p id="password-label">Password</p>
+        <input
+          id="password"
+          type="text"
+          placeholder="************"
+          onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
+          value={this.props.value.password}
+          disabled={accountFieldsDisabled}
+        />
         <button
           id="submit-tasks"
           tabIndex={0}

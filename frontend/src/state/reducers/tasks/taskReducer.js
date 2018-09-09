@@ -8,7 +8,6 @@ import {
 
 export const initialTaskState = {
   id: '',
-  method: null,
   product: {
     raw: '',
     variant: null,
@@ -19,6 +18,8 @@ export const initialTaskState = {
   site: null,
   profile: initialProfileState,
   sizes: [],
+  username: null,
+  password: null,
   status: 'idle',
   error_delay: null,
   refresh_delay: null,
@@ -34,6 +35,8 @@ export const initialTaskState = {
     site: null,
     profile: null,
     sizes: null,
+    username: null,
+    password: null,
     status: null,
     error_delay: null,
     refresh_delay: null,
@@ -42,55 +45,24 @@ export const initialTaskState = {
 
 export function taskReducer(state = initialTaskState, action) {
   let change = {};
-
   if (action.type === TASK_ACTIONS.EDIT) {
     switch (action.field) {
-      case TASK_FIELDS.EDIT_PRODUCT:
-        switch (state.method.value) {
-          case 'URL':
-            change = {
-              product: {
-                url: action.value,
-              },
-            };
-            break;
-          case 'Keywords': // fix this later..
-            change = {
-              product: {
-                keywords: action.value,
-              },
-            };
-            break;
-          case 'Variant':
-            change = {
-              product: {
-                variant: action.value,
-              },
-            };
-            break;
-          default:
-            change = {
-              product: {
-                raw: action.value,
-              },
-            };
-            break;
+      case TASK_FIELDS.EDIT_PRODUCT: {
+        change = {
+          product: {
+            raw: action.value,
+          },
         }
         break;
-      case TASK_FIELDS.EDIT_METHOD:
-      // had to generalize this because we need to reset the product state when switching
+      }
+      case TASK_FIELDS.EDIT_SITE: {
         change = {
-          method: action.value,
-          product: {
-            raw: '',
-            variant: null,
-            pos_keywords: null,
-            neg_keywords: null,
-            url: null,
-          },
+          site: action.value,
+          username: null,
+          password: null,
         };
         break;
-      // add cases if we ever need them, but they're all the same
+      }
       default: {
         change = {
           [mapTaskFieldsToKey[action.field]]: action.value,
