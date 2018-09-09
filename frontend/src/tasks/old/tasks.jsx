@@ -11,8 +11,8 @@ import stopAll from '../../_assets/stop-all.svg';
 import destroyAll from '../../_assets/destroy-all.svg';
 
 import '../../app.css';
-import '.././tasks.css';
-import '.././tasksTable.css';
+import './tasks.css';
+import './tasksTable.css';
 import { taskActions } from '../../state/actions';
 
 import defns from '../../utils/definitions/taskDefinitions';

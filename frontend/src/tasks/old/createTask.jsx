@@ -8,7 +8,7 @@ import { TASK_FIELDS, taskActions } from '../../state/actions';
 import getAllSizes from '../../getSizes';
 import getAllSites from '../../getSites';
 
-import '../tasks.css';
+import './tasks.css';
 
 import pDefns from '../../utils/definitions/profileDefinitions';
 import tDefns from '../../utils/definitions/taskDefinitions';
