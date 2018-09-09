@@ -6,6 +6,7 @@ import * as profiles from './actions/profiles/profileActions';
 import * as task from './actions/tasks/taskActions';
 import * as settings from './actions/settings/settingsActions';
 import * as server from './actions/server/serverActions';
+import * as navbar from './actions/navbar/navbarActions';
 
 export const {
   profileActions,
@@ -39,3 +40,9 @@ export const {
   SETTINGS_ACTIONS,
   SETTINGS_FIELDS,
 } = settings;
+
+export const {
+  navbarActions,
+  mapActionsToRoutes,
+  ROUTES,
+} = navbar;
