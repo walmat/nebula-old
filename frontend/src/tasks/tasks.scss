@@ -57,7 +57,8 @@
 }
 
 .tasks__title {
-    padding-bottom: 4px !important;
+    padding-top: 1px !important;
+    padding-bottom: 3px !important;
 }
 
 .tasks-table-container {
@@ -240,6 +241,7 @@
 
             .tasks-id {
                 width: 26px;
+                text-align: center;
             }
 
             .tasks-product {
@@ -272,6 +274,11 @@
 
             .tasks-actions {
                 width: 50px;
+
+                &__button {
+                    padding-bottom: 3px;
+                    width: 16px;
+                }
             }
 
             .tasks-start {
@@ -414,7 +421,7 @@
 
 .bulk-action-sidebar {
     & &__button {
-        padding-bottom: 12px;
+        padding-bottom: 15px;
         cursor: pointer;
     }
 }

@@ -64,12 +64,6 @@ class TaskRow1 extends Component {
             <div className="row row--start">
               <div className="col billing">
                 <p className="billing__label">Billing Profiles</p>
-                { /*
-                <select className="billing__select">
-                  <option value="" selected disabled hidden>Choose Profile</option>
-                  {this.buildProfileOptions()}
-                </select>
-                */ }
                 <Select
                   required
                   classNamePrefix="select"
@@ -84,12 +78,6 @@ class TaskRow1 extends Component {
               </div>
               <div className="col sizes">
                 <p className="sizes__label">Sizes</p>
-                { /*
-                <select className="sizes__select">
-                  <option value="" selected disabled hidden>Choose Sizes</option>
-                  {TaskRow1.buildSizeOptions()}
-                </select>
-                */ }
                 <Select
                   required
                   isMulti
@@ -106,9 +94,6 @@ class TaskRow1 extends Component {
               </div>
               <div className="col pairs">
                 <p className="pairs__label"># Pairs</p>
-                { /*
-                <input className="pairs__input" type="number" min="1" max="10" maxLength="2" size="2" placeholder="00" required />
-                */ }
                 <NumberFormat
                   format={TaskRow1.formatPairs}
                   placeholder="1"
@@ -150,9 +135,9 @@ class TaskRow1 extends Component {
         <div className="col col--no-gutter tasks-pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</div>
         <div className="col col--no-gutter tasks-actions">
           <div className="row row--gutter">
-            <div className="tasks-start"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
-            <div className="tasks-stop"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></div>
-            <div className="tasks-destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></div>
+            <div className="tasks-actions__button"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
+            <div className="tasks-actions__button"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></div>
+            <div className="tasks-actions__button"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></div>
           </div>
         </div>
       </div>
