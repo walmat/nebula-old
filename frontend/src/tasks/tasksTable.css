@@ -38,7 +38,6 @@
 }
 .section-header.section-header--no-top {
   margin-top: 0;
-  padding-top: 0;
 }
 
 .tasks__title {
@@ -331,7 +330,8 @@
   margin-left: -1px;
 }
 .tasks-log__section-header {
-  padding-bottom: 3px;
+  padding-top: 1px;
+  padding-bottom: 2px;
 }
 .tasks-log__header {
   padding-bottom: 1px;

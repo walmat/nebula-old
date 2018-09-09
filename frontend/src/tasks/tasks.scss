@@ -52,7 +52,6 @@
 
     &.section-header--no-top {
         margin-top: 0;
-        padding-top: 0;
     }
 }
 
@@ -392,7 +391,8 @@
     margin-left: -1px;
 
     &__section-header {
-        padding-bottom: 3px;
+        padding-top: 1px;
+        padding-bottom: 2px;
     }
 
     &__header {
