@@ -9,8 +9,7 @@ import start from '../_assets/run.svg';
 import stop from '../_assets/stop.svg';
 import destroy from '../_assets/destroy.svg';
 import edit from '../_assets/edit_icon.svg';
-import { taskActions } from '../state/actions';
-import { TASK_FIELDS } from '../state/actions/tasks/taskActions';
+import { taskActions, TASK_FIELDS } from '../state/actions';
 
 class TaskRow extends Component {
   static formatPairs(val) {
@@ -20,9 +19,58 @@ class TaskRow extends Component {
     return val <= 5 && val > 0 ? val : null;
   }
 
+  static renderTableRowButton(desc, src, className, onClick) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        title={desc}
+        onKeyPress={() => {}}
+        onClick={onClick}
+      >
+        <img
+          src={src}
+          alt={desc}
+          draggable="false"
+          className={className}
+        />
+      </div>
+    );
+  }
+
+  static renderTableRowActionButton(desc, src, className, onClick) {
+    return (
+      <div className="task-actions__button">
+        {TaskRow.renderTableRowButton(desc, src, className, onClick)}
+      </div>
+    );
+  }
+
+  createOnChangeHandler(field) {
+    const { onEditTask, task } = this.props;
+    switch (field) {
+      case TASK_FIELDS.EDIT_PAIRS: {
+        return event => onEditTask(task, { field, value: event.target.value });
+      }
+      case TASK_FIELDS.EDIT_PROFILE: {
+        return (event) => {
+          const value = this.props.profiles.find(p => p.id === event.value);
+          onEditTask(task, { field, value });
+        };
+      }
+      case TASK_FIELDS.EDIT_SIZES: {
+        return (event) => {
+          const values = event.map(s => s.value);
+          onEditTask(task, { field, value: values });
+        };
+      }
+      default: {
+        return () => {};
+      }
+    }
+  }
+
   selectTask(task) {
-    console.log('selected task: ', this.props.selectedTask.id);
-    console.log('passed in: ', task.id);
     if (this.props.selectedTask.id !== task.id) {
       this.props.onSelectTask(task);
     } else {
@@ -37,8 +85,20 @@ class TaskRow extends Component {
 
   renderEditMenu() {
     if (this.props.isEditing) {
+      const { edits } = this.props;
+      let editProfile = null;
+      if (edits.profile.id !== null) {
+        editProfile = {
+          value: edits.profile.id,
+          label: edits.profile.profileName,
+        };
+      }
+      let editSizes = [];
+      if (edits.sizes) {
+        editSizes = edits.sizes.map(size => ({ value: size, label: `${size}` }));
+      }
       return (
-        <div key={`${this.props.value.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
+        <div key={`${this.props.task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
           <div className="col">
             <div className="row row--start">
               <div className="col billing">
@@ -50,14 +110,8 @@ class TaskRow extends Component {
                   placeholder="Choose Profile"
                   components={{ DropdownIndicator }}
                   styles={colourStyles}
-                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-                  // value={
-                  //     this.props.value.profile.id === null ? '' :
-                  //     {
-                  //       value: this.props.value.profile.id,
-                  //       label: this.props.value.profile.profileName,
-                  //     }
-                  // }
+                  value={editProfile}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                   options={this.buildProfileOptions()}
                 />
               </div>
@@ -72,26 +126,10 @@ class TaskRow extends Component {
                   placeholder="Choose Sizes"
                   components={{ DropdownIndicator }}
                   styles={colourStyles}
-                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-                  // value={
-                  //   this.props.value.profile.id === null ? '' :
-                  //   {
-                  //     value: this.props.value.profile.id,
-                  //     label: this.props.value.profile.profileName,
-                  //   }
-                  // }
+                  value={editSizes}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
                   options={getAllSizes()}
                 />
-              </div>
-              <div className="col pairs">
-                <p className="pairs__label"># Pairs</p>
-                {/* <NumberFormat
-                  format={TaskRow.formatPairs}
-                  placeholder="1"
-                  // value={this.props.value.pairs}
-                  className="pairs__input"
-                  // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
-                /> */}
               </div>
             </div>
             <div className="row">
@@ -114,57 +152,68 @@ class TaskRow extends Component {
     return null;
   }
 
+  renderTableRowStartActionButton() {
+    const { task, onStartTask } = this.props;
+    return TaskRow.renderTableRowActionButton(
+      'Start Task',
+      start,
+      task.status === 'running' ? 'active' : '',
+      () => { onStartTask(task); },
+    );
+  }
+
+  renderTableRowStopActionButton() {
+    const { task, onStopTask } = this.props;
+    return TaskRow.renderTableRowActionButton(
+      'Stop Task',
+      stop,
+      task.status === 'stopped' ? 'active' : '',
+      () => { onStopTask(task); },
+    );
+  }
+
+  renderTableRowDestroyActionButton() {
+    const { task, onDestroyTask } = this.props;
+    return TaskRow.renderTableRowActionButton(
+      'Destroy Task',
+      destroy,
+      '',
+      () => { onDestroyTask(task); },
+    );
+  }
+
+  renderTableRowEditButton() {
+    const { task } = this.props;
+    return TaskRow.renderTableRowButton(
+      'Edit Task',
+      edit,
+      task.status === 'editing' ? 'active' : '',
+      () => { this.selectTask(this.props.task); },
+    );
+  }
+
   renderTableRow() {
+    const { task } = this.props;
     let taskAccountValue = 'None';
-    if (this.props.value.username !== null && this.props.value.password !== null) {
-      taskAccountValue = this.props.value.username;
+    if (task.username !== null && task.password !== null) {
+      taskAccountValue = task.username;
     }
     return (
-      <div key={this.props.value.id} id={this.props.value.id} className="tasks-row row">
-        <div
-          className="col col--no-gutter tasks-edit"
-          role="button"
-          tabIndex={0}
-          onKeyPress={() => {}}
-          onClick={() => { this.selectTask(this.props.value); }}
-        >
-          <img src={edit} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} />
+      <div key={task.id} className="tasks-row row">
+        <div className="col col--no-gutter tasks-edit">
+          {this.renderTableRowEditButton()}
         </div>
-        <div className="col col--no-gutter tasks-id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</div>
-        <div className="col col--no-gutter tasks-product">{this.props.value.product.raw}</div>
-        <div className="col col--no-gutter tasks-site">{this.props.value.site.name}</div>
-        <div className="col col--no-gutter tasks-profile">{this.props.value.profile.profileName}</div>
-        <div className="col col--no-gutter tasks-sizes">{this.props.value.sizes}</div>
+        <div className="col col--no-gutter tasks-id">{task.id < 10 ? `0${task.id}` : task.id}</div>
+        <div className="col col--no-gutter tasks-product">{task.product.raw}</div>
+        <div className="col col--no-gutter tasks-sites">{task.site.name}</div>
+        <div className="col col--no-gutter tasks-profile">{task.profile.profileName}</div>
+        <div className="col col--no-gutter tasks-sizes">{task.sizes}</div>
         <div className="col col--no-gutter tasks-account">{taskAccountValue}</div>
         <div className="col col--no-gutter tasks-actions">
           <div className="row row--gutter">
-            <div
-              className="tasks-actions__button"
-              role="button"
-              tabIndex={0}
-              onKeyPress={() => {}}
-              onClick={() => { this.props.onStartTask(this.props.value); }}
-            >
-              <img src={start} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} />
-            </div>
-            <div
-              className="tasks-actions__button"
-              role="button"
-              tabIndex={0}
-              onKeyPress={() => {}}
-              onClick={() => { this.props.onStopTask(this.props.value); }}
-            >
-              <img src={stop} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} />
-            </div>
-            <div
-              className="tasks-actions__button"
-              role="button"
-              tabIndex={0}
-              onKeyPress={() => {}}
-              onClick={() => { this.props.onDestroyTask(this.props.value); }}
-            >
-              <img src={destroy} alt="destroy" draggable="false" />
-            </div>
+            {this.renderTableRowStartActionButton()}
+            {this.renderTableRowStopActionButton()}
+            {this.renderTableRowDestroyActionButton()}
           </div>
         </div>
       </div>
@@ -184,21 +233,22 @@ class TaskRow extends Component {
 TaskRow.propTypes = {
   // errors: PropTypes.objectOf(PropTypes.any).isRequired,
   isEditing: PropTypes.bool.isRequired,
-  selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
-  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
-  // onChange: PropTypes.func.isRequired,
-  value: PropTypes.objectOf(PropTypes.any).isRequired,
+  selectedTask: PropTypes.objectOf(PropTypes.any).isRequired, // TODO: use defns
+  profiles: PropTypes.arrayOf(PropTypes.any).isRequired, // TODO: use defns
+  task: PropTypes.objectOf(PropTypes.any).isRequired, // TODO: use defns
+  edits: PropTypes.objectOf(PropTypes.any).isRequired, // TODO: use defns
   onSelectTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,
-  // onEditTask: PropTypes.func.isRequired,
+  onEditTask: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   errors: ownProps.task.errors,
-  value: ownProps.task,
+  task: ownProps.task,
+  edits: ownProps.task.edits,
   selectedTask: state.selectedTask,
   isEditing: ownProps.task.id === state.selectedTask.id,
 });
