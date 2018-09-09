@@ -34,10 +34,8 @@ const _addTaskRequest = async task =>
         if (validKeywords.some(val => val === false)) {
           reject(); // add reason
         } else {
-          setTimeout(() => {
-            const copy = JSON.parse(JSON.stringify(task));
-            resolve({ task: copy });
-          }, 0);
+          const copy = JSON.parse(JSON.stringify(task));
+          resolve({ task: copy });
         }
         break;
       case 'Variant':

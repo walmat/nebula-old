@@ -117,7 +117,6 @@ class CreateTask extends Component {
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_METHOD)}
           value={this.props.value.method}
           options={getMethodOptions()}
-          c
         />
         <p id="profiles-label">Billing Profile</p>
         <Select
