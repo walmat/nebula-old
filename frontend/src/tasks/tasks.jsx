@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import ViewTask from './viewTask';
+import LogTask from './logTask';
 import CreateTask from './createTask';
 
 import startAll from '../_assets/start-all.svg';
@@ -21,7 +22,6 @@ class Tasks extends Component {
     const taskId = event.target.value;
     const { tasks } = this.props;
     const selectedTask = tasks.find(t => t.id === taskId);
-
     this.props.onSelectTask(selectedTask);
   }
 
@@ -40,7 +40,7 @@ class Tasks extends Component {
   destroyAllTasks() {
     // if user clicks the large `garbage can` button, erase all tasks
     for (let i = 0; i < this.props.tasks.length; i += 1) {
-      this.props.onRemoveTask(this.props.tasks[i]);
+      this.props.onDestroyTasks(this.props.tasks[i]);
     }
   }
 
@@ -116,7 +116,7 @@ class Tasks extends Component {
                     <p>Product</p>
                   </div>
                   <div className="col tasks-table__header__sites">
-                    <p>Sites</p>
+                    <p>Site</p>
                   </div>
                   <div className="col tasks-table__header__profile">
                     <p>Billing Profile</p>
@@ -125,7 +125,7 @@ class Tasks extends Component {
                     <p>Sizes</p>
                   </div>
                   <div className="col tasks-table__header__pairs">
-                    <p># Pairs</p>
+                    <p>Account</p>
                   </div>
                   <div className="col tasks-table__header__actions">
                     <p>Actions</p>
@@ -189,7 +189,7 @@ Tasks.propTypes = {
   tasks: defns.taskList.isRequired,
   newTask: defns.task.isRequired,
   onSelectTask: PropTypes.func.isRequired,
-  onRemoveTask: PropTypes.func.isRequired,
+  onDestroyTasks: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
 };
@@ -210,14 +210,14 @@ const mapDispatchToProps = dispatch => ({
   onUpdateTask: (task) => {
     dispatch(taskActions.update(task.editId, task));
   },
-  onRemoveTask: () => {
-    dispatch(taskActions.remove(null));
+  onDestroyTasks: () => {
+    dispatch(taskActions.destroy(null));
   },
   onStartTask: (task) => {
-    dispatch(taskActions.start(task.id));
+    dispatch(taskActions.start(task));
   },
   onStopTask: (task) => {
-    dispatch(taskActions.stop(task.id));
+    dispatch(taskActions.stop(task));
   },
   onChangeField: (change, field, event) => {
     dispatch(taskActions.edit(null, field, event.target.value));

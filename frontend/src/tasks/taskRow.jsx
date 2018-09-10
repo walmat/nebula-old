@@ -1,18 +1,16 @@
 import React, { Component } from 'react';
 import Select from 'react-select';
-import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import getAllSizes from '../getSizes';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 import start from '../_assets/run.svg';
-import startDim from '../_assets/run_dim.svg';
 import stop from '../_assets/stop.svg';
-import stopDim from '../_assets/stop_dim.svg';
 import destroy from '../_assets/destroy.svg';
 import edit from '../_assets/edit_icon.svg';
 import { taskActions } from '../state/actions';
+import { TASK_FIELDS } from '../state/actions/tasks/taskActions';
 
 class TaskRow extends Component {
   static formatPairs(val) {
@@ -31,21 +29,6 @@ class TaskRow extends Component {
       // deselect current task (or toggle it)
       this.props.onSelectTask(null);
     }
-  }
-
-  startTask(task) {
-    console.log('starting task: ', task.id);
-    this.props.onStartTask(task);
-  }
-
-  stopTask(task) {
-    console.log('stopping task: ', task.id);
-    this.props.onStopTask(task);
-  }
-
-  destroyTask(task) {
-    console.log('destroying task: ', task.id);
-    this.props.onDestroyTask(task);
   }
 
   buildProfileOptions() {
@@ -68,7 +51,13 @@ class TaskRow extends Component {
                   components={{ DropdownIndicator }}
                   styles={colourStyles}
                   // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-                  // value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
+                  // value={
+                  //     this.props.value.profile.id === null ? '' :
+                  //     {
+                  //       value: this.props.value.profile.id,
+                  //       label: this.props.value.profile.profileName,
+                  //     }
+                  // }
                   options={this.buildProfileOptions()}
                 />
               </div>
@@ -84,19 +73,25 @@ class TaskRow extends Component {
                   components={{ DropdownIndicator }}
                   styles={colourStyles}
                   // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-                  // value={this.props.value.profile.id === null ? '' : { value: this.props.value.profile.id, label: this.props.value.profile.profileName }}
+                  // value={
+                  //   this.props.value.profile.id === null ? '' :
+                  //   {
+                  //     value: this.props.value.profile.id,
+                  //     label: this.props.value.profile.profileName,
+                  //   }
+                  // }
                   options={getAllSizes()}
                 />
               </div>
               <div className="col pairs">
                 <p className="pairs__label"># Pairs</p>
-                <NumberFormat
+                {/* <NumberFormat
                   format={TaskRow.formatPairs}
                   placeholder="1"
                   // value={this.props.value.pairs}
                   className="pairs__input"
                   // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
-                />
+                /> */}
               </div>
             </div>
             <div className="row">
@@ -120,20 +115,56 @@ class TaskRow extends Component {
   }
 
   renderTableRow() {
+    let taskAccountValue = 'None';
+    if (this.props.value.username !== null && this.props.value.password !== null) {
+      taskAccountValue = this.props.value.username;
+    }
     return (
       <div key={this.props.value.id} id={this.props.value.id} className="tasks-row row">
-        <div className="col col--no-gutter tasks-edit"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></div>
+        <div
+          className="col col--no-gutter tasks-edit"
+          role="button"
+          tabIndex={0}
+          onKeyPress={() => {}}
+          onClick={() => { this.selectTask(this.props.value); }}
+        >
+          <img src={edit} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} />
+        </div>
         <div className="col col--no-gutter tasks-id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</div>
-        <div className="col col--no-gutter tasks-product">{this.props.value.product}</div>
-        <div className="col col--no-gutter tasks-sites">01</div>
+        <div className="col col--no-gutter tasks-product">{this.props.value.product.raw}</div>
+        <div className="col col--no-gutter tasks-site">{this.props.value.site.name}</div>
         <div className="col col--no-gutter tasks-profile">{this.props.value.profile.profileName}</div>
         <div className="col col--no-gutter tasks-sizes">{this.props.value.sizes}</div>
-        <div className="col col--no-gutter tasks-pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</div>
+        <div className="col col--no-gutter tasks-account">{taskAccountValue}</div>
         <div className="col col--no-gutter tasks-actions">
           <div className="row row--gutter">
-            <div className="tasks-actions__button"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
-            <div className="tasks-actions__button"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></div>
-            <div className="tasks-actions__button"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></div>
+            <div
+              className="tasks-actions__button"
+              role="button"
+              tabIndex={0}
+              onKeyPress={() => {}}
+              onClick={() => { this.props.onStartTask(this.props.value); }}
+            >
+              <img src={start} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} />
+            </div>
+            <div
+              className="tasks-actions__button"
+              role="button"
+              tabIndex={0}
+              onKeyPress={() => {}}
+              onClick={() => { this.props.onStopTask(this.props.value); }}
+            >
+              <img src={stop} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} />
+            </div>
+            <div
+              className="tasks-actions__button"
+              role="button"
+              tabIndex={0}
+              onKeyPress={() => {}}
+              onClick={() => { this.props.onDestroyTask(this.props.value); }}
+            >
+              <img src={destroy} alt="destroy" draggable="false" />
+            </div>
           </div>
         </div>
       </div>
@@ -151,13 +182,16 @@ class TaskRow extends Component {
 }
 
 TaskRow.propTypes = {
-  errors: PropTypes.objectOf(PropTypes.any).isRequired,
+  // errors: PropTypes.objectOf(PropTypes.any).isRequired,
   isEditing: PropTypes.bool.isRequired,
   selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   // onChange: PropTypes.func.isRequired,
   value: PropTypes.objectOf(PropTypes.any).isRequired,
   onSelectTask: PropTypes.func.isRequired,
+  onStartTask: PropTypes.func.isRequired,
+  onStopTask: PropTypes.func.isRequired,
+  onDestroyTask: PropTypes.func.isRequired,
   // onEditTask: PropTypes.func.isRequired,
 };
 
@@ -183,13 +217,13 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(taskActions.update(task.id, task));
   },
   onStartTask: (task) => {
-    dispatch(taskActions.start(task.id));
+    dispatch(taskActions.start(task));
   },
   onStopTask: (task) => {
-    dispatch(taskActions.stop(task.id));
+    dispatch(taskActions.stop(task));
   },
   onDestroyTask: (task) => {
-    dispatch(taskActions.remove(task.id));
+    dispatch(taskActions.destroy(task.id));
   },
 });
 

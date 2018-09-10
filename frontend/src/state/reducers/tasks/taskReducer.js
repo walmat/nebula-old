@@ -2,33 +2,67 @@ import { initialProfileState } from '../profiles/profileReducer';
 
 import {
   TASK_ACTIONS,
+  TASK_FIELDS,
   mapTaskFieldsToKey,
 } from '../../actions';
 
 export const initialTaskState = {
   id: '',
-  product: '',
+  product: {
+    raw: '',
+    variant: null,
+    pos_keywords: null,
+    neg_keywords: null,
+    url: null,
+  },
   site: null,
   profile: initialProfileState,
   sizes: [],
-  pairs: 1,
+  username: null,
+  password: null,
   status: 'idle',
+  error_delay: null,
+  refresh_delay: null,
   errors: {
-    product: null,
+    method: null,
+    product: {
+      raw: null,
+      variant: null,
+      pos_keywords: null,
+      neg_keywords: null,
+      url: null,
+    },
     site: null,
     profile: null,
     sizes: null,
-    pairs: null,
+    username: '',
+    password: '',
     status: null,
+    error_delay: null,
+    refresh_delay: null,
   },
 };
 
 export function taskReducer(state = initialTaskState, action) {
   let change = {};
-
   if (action.type === TASK_ACTIONS.EDIT) {
     switch (action.field) {
-      // add cases if we ever need them, but they're all the same
+      case TASK_FIELDS.EDIT_PRODUCT: {
+        change = {
+          product: {
+            raw: action.value,
+          },
+        };
+        break;
+      }
+      case TASK_FIELDS.EDIT_SITE: {
+        change = {
+          site: action.value,
+          username: null,
+          password: null,
+        };
+        break;
+      }
       default: {
         change = {
           [mapTaskFieldsToKey[action.field]]: action.value,

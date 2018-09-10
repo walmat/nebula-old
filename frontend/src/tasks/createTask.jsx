@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Select from 'react-select';
-import NumberFormat from 'react-number-format';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
@@ -41,7 +40,7 @@ class CreateTask extends Component {
     switch (field) {
       case TASK_FIELDS.EDIT_SITE:
         return (event) => {
-          const site = { name: event.label, url: event.value };
+          const site = { name: event.label, url: event.value, auth: event.auth };
           this.props.onChange({ field, value: site });
         };
       case TASK_FIELDS.EDIT_PROFILE:
@@ -75,6 +74,10 @@ class CreateTask extends Component {
         label: this.props.task.profile.profileName,
       };
     }
+    let sizes = [];
+    if (this.props.task.sizes !== '') {
+      sizes = this.props.task.sizes.map(size => ({ value: size, label: `${size}` }));
+    }
     let newTaskSiteValue = null;
     if (this.props.task.site !== null) {
       newTaskSiteValue = {
@@ -82,9 +85,9 @@ class CreateTask extends Component {
         label: this.props.task.site.name,
       };
     }
-    let sizes = [];
-    if (this.props.task.sizes !== '') {
-      sizes = this.props.task.sizes.map(size => ({ value: size, label: `${size}` }));
+    let accountFieldsDisabled = true;
+    if (this.props.task.site !== null) {
+      accountFieldsDisabled = !this.props.task.site.auth;
     }
     return (
       <div className="tasks-create col col--start col--no-gutter">
@@ -94,11 +97,11 @@ class CreateTask extends Component {
               <div className="col col--no-gutter">
                 <p className="tasks-create__label">Product</p>
                 <input
-                  className="tasks-create__input tasks-create__input--bordered tasks-create__input--product"
+                  className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
-                  placeholder="SKU, Keywords, Link"
+                  placeholder="Variant, Keywords, Link"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
-                  value={this.props.task.product}
+                  value={this.props.task.product.raw}
                   required
                 />
               </div>
@@ -106,7 +109,7 @@ class CreateTask extends Component {
                 <p className="tasks-create__label">Site</p>
                 <Select
                   required
-                  className="tasks-create__input tasks-create__input--site"
+                  className="tasks-create__input tasks-create__input--field"
                   classNamePrefix="select"
                   placeholder="Choose Site"
                   components={{ DropdownIndicator }}
@@ -119,47 +122,63 @@ class CreateTask extends Component {
             </div>
           </div>
         </div>
-        <div className="row row--start row--gutter">
-          <div className="col tasks-create__input-group">
-            <p className="tasks-create__label">Billing Profiles</p>
-            <Select
-              required
-              placeholder="Choose Profile"
-              components={{ DropdownIndicator }}
-              styles={colourStyles}
-              onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
-              value={newTaskProfileValue}
-              options={this.buildProfileOptions()}
-              className="tasks-create__input"
-            />
+        <div className="col tasks-create__input-group">
+          <div className="row row--gutter">
+            <div className="col col--no-gutter">
+              <p className="tasks-create__label">Billing Profile</p>
+              <Select
+                required
+                placeholder="Choose Profile"
+                components={{ DropdownIndicator }}
+                styles={colourStyles}
+                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+                value={newTaskProfileValue}
+                options={this.buildProfileOptions()}
+                className="tasks-create__input tasks-create__input--field"
+              />
+            </div>
+            <div className="col col--no-gutter tasks-create__input-group--site">
+              <p className="tasks-create__label">Sizes</p>
+              <Select
+                required
+                isMulti
+                isClearable={false}
+                placeholder="Choose Sizes"
+                components={{ DropdownIndicator }}
+                styles={colourStyles}
+                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
+                value={sizes}
+                options={getAllSizes()}
+                className="tasks-create__input tasks-create__input--field"
+              />
+            </div>
           </div>
         </div>
         <div className="row row--start row--gutter">
-          <div className="col tasks-create__input-group tasks-create__input-group--last">
+          <div className="col tasks-create__input-group">
             <div className="row row--gutter">
-              <div className="col col--no-gutter-left tasks-create__input-group--sizes">
-                <p className="tasks-create__label">Sizes</p>
-                <Select
-                  required
-                  isMulti
-                  isClearable={false}
-                  placeholder="Choose Sizes"
-                  components={{ DropdownIndicator }}
-                  styles={colourStyles}
-                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-                  value={sizes}
-                  options={getAllSizes()}
-                  className="tasks-create__input tasks-create__input--sizes"
+              <div className="col col--no-gutter">
+                <p className="tasks-create__label">Username</p>
+                <input
+                  className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
+                  type="text"
+                  placeholder="johndoe@example.com"
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
+                  value={this.props.task.username}
+                  required={accountFieldsDisabled}
+                  disabled={accountFieldsDisabled}
                 />
               </div>
-              <div className="col col--no-gutter">
-                <p className="tasks-create__label"># Pairs</p>
-                <NumberFormat
-                  className="tasks-create__input tasks-create__input--pairs tasks-create__input--bordered"
-                  format={CreateTask.formatPairs}
-                  placeholder="1"
-                  value={this.props.task.pairs}
-                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
+              <div className="col col--no-gutter tasks-create__input-group--site">
+                <p className="tasks-create__label">Password</p>
+                <input
+                  className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
+                  type="text"
+                  placeholder="***********"
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
+                  value={this.props.task.password} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
+                  required={accountFieldsDisabled}
+                  disabled={accountFieldsDisabled}
                 />
               </div>
             </div>

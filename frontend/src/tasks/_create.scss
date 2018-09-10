@@ -38,33 +38,19 @@
     }
 
     &__input {
-      width: 252px;
-      height: 29px;
       @include tasks-select-font();
 
       &--bordered {
         border: 1px solid #F0405E;
       }
 
-      &--product {
-        width: 119px;
-        text-transform: uppercase;
-        margin-top: 1px;
-      }
-
-      &--site {
+      &--field {
         width: 119px;
         height: 29px;
-      }
-
-      &--sizes {
-        width: 185px;
-        height: 29px;
-      }
-
-      &--pairs {
-        width: 53px;
-        height: 29px;
+        &:disabled {
+          background: rgb(229, 229, 229);
+          cursor: not-allowed;
+        }
       }
     }
 

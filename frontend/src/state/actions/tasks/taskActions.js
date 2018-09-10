@@ -15,20 +15,46 @@ export const TASK_ACTIONS = {
 
 // Private API Requests
 const _addTaskRequest = async task =>
-  // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
-    setTimeout(() => {
-      const copy = JSON.parse(JSON.stringify(task));
+  new Promise((resolve, reject) => {
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/i;
+    const keywordRegex = /^[+-][A-Za-z0-9]+$/;
+    const variantRegex = /^\d+$/;
+    const copy = JSON.parse(JSON.stringify(task));
+    const kws = task.product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
+    const validKeywords = kws.map(val => keywordRegex.test(val));
+
+    if (urlRegex.test(task.product.raw)) { // test a url match
+      copy.product.url = copy.product.raw;
       resolve({ task: copy });
-    }, 1000);
+    } else if (variantRegex.test(task.product.raw)) { // test variant match
+      copy.product.variant = copy.product.raw;
+      resolve({ task: copy });
+    } else if (validKeywords) { // test keyword match
+      if (validKeywords.some(v => v === false)) {
+        reject();
+      } else {
+        copy.product.pos_keywords = [];
+        copy.product.neg_keywords = [];
+        kws.map(kw => {
+          if (kw.slice(0, 1) === '+') { // positive keywords
+            copy.product.pos_keywords.push(kw.slice(1, kw.length));
+          } else { // negative keywords
+            copy.product.neg_keyword.push(kw.slice(1, kw.length));
+          }
+        });
+        resolve({ task: copy });
+      }
+    } else { // reject any other input that fails
+      reject();
+    }
   });
 
-const _removeTaskRequest = async id =>
+const _destroyTaskRequest = async id =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
     setTimeout(() => {
       resolve({ id });
-    }, 1000);
+    }, 0);
   });
 
 const _updateTaskRequest = async (id, task) =>
@@ -36,28 +62,32 @@ const _updateTaskRequest = async (id, task) =>
   new Promise((resolve) => {
     setTimeout(() => {
       resolve({ id, task });
-    }, 1000);
+    }, 0);
   });
 
-const _startTaskRequest = async id =>
+const _startTaskRequest = async task =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ id });
-    }, 1000);
+  new Promise((resolve, reject) => {
+    if (task.status === 'running') {
+      reject();
+    } else {
+      resolve({ task });
+    }
   });
 
-const _stopTaskRequest = async id =>
+const _stopTaskRequest = async task =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ id });
-    }, 1000);
+  new Promise((resolve, reject) => {
+    if (task.status === 'stopped') {
+      reject();
+    } else {
+      resolve({ task });
+    }
   });
 
 // Private Actions
 const _addTask = makeActionCreator(TASK_ACTIONS.ADD, 'response');
-const _removeTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
+const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
@@ -75,10 +105,10 @@ const addTask = task =>
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
 
-const removeTask = id =>
-  dispatch => _removeTaskRequest(id).then(
-    response => dispatch(_removeTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.REMOVE, error)),
+const destroyTask = id =>
+  dispatch => _destroyTaskRequest(id).then(
+    response => dispatch(_destroyTask(response)),
+    error => dispatch(handleError(TASK_ACTIONS.DESTROY, error)),
   );
 
 const updateTask = (id, task) =>
@@ -87,14 +117,14 @@ const updateTask = (id, task) =>
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 
-const startTask = id =>
-  dispatch => _startTaskRequest(id).then(
+const startTask = task =>
+  dispatch => _startTaskRequest(task).then(
     response => dispatch(_startTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.START, error)),
   );
 
-const stopTask = id =>
-  dispatch => _stopTaskRequest(id).then(
+const stopTask = task =>
+  dispatch => _stopTaskRequest(task).then(
     response => dispatch(_stopTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.STOP, error)),
   );
@@ -102,6 +132,9 @@ const stopTask = id =>
 // Field Edits
 export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
+  EDIT_USERNAME: 'EDIT_USERNAME',
+  EDIT_PASSWORD: 'EDIT_PASSWORD',
+  EDIT_METHOD: 'EDIT_METHOD',
   EDIT_SITE: 'EDIT_SITE',
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
@@ -110,7 +143,7 @@ export const TASK_FIELDS = {
 
 export const taskActions = {
   add: addTask,
-  remove: removeTask,
+  destroy: destroyTask,
   edit: editTask,
   select: selectTask,
   load: loadTask,
@@ -121,6 +154,8 @@ export const taskActions = {
 
 export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_PRODUCT]: 'product',
+  [TASK_FIELDS.EDIT_USERNAME]: 'username',
+  [TASK_FIELDS.EDIT_PASSWORD]: 'password',
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZES]: 'sizes',

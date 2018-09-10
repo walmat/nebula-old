@@ -1,4 +1,3 @@
-const fs = require('fs');
 const _ = require('underscore');
 const parseString = require('xml2js').parseString;
 
@@ -16,8 +15,110 @@ let userHasBeenNotifiedEmpty = false;
 
 module.exports = {};
 
-function findItem(config, proxy, cb) {
-    if (config.base_url.endsWith('.xml')) {
+/*
+
+task: {
+	id: string,
+	product: {
+		raw: string,
+		pos_keywords: [],
+		neg_keywords: [],
+		url: [],
+	},
+	site: string,
+	profile: {
+		id: string,
+		profileName: string,
+		billingMatchesShipping: bool,
+		shipping: {
+			firstName: string,
+			lastName: string,
+			address: string,
+			apt: string,
+			city: string,
+			country: string,
+			state: string,
+			zipCode: string,
+			phone: string,
+		},
+		billing: {
+			firstName: string,
+			lastName: string,
+			address: string,
+			apt: string,
+			city: string,
+			country: string,
+			state: string,
+			zipCode: string,
+			phone: string,
+		},
+		payment: {
+			email: string,
+			cardNumber: string,
+			exp: string,
+			cvv, string,
+		},
+	},
+	sizes: [],
+	pairs: 1 - 5,
+	status: string,
+}
+
+*/
+
+function findItem(task, proxy, cb) {
+
+    switch(task.method) {
+        case 'URL':
+            break;
+        case 'Keywords':
+            break;
+        case 'Variant':
+            break;
+        default:
+            break;
+    }
+    // run in "early link" mode
+    if (task.product.url !== null) {
+        request(
+            {
+                method: 'get',
+                url: `${task.product.url}.json`,
+                proxy: proxy,
+                gzip: false,
+                headers: {
+                    'User-Agent': userAgent,
+                }
+            }, 
+            function (err, res, body) {
+                if (err) {
+                    // 404 error COULD & SHOULD happen before product is loaded
+                    return cb(true, task.delay, err);
+                }
+                try {
+                    // gather essentials needed for checking out
+                    const products = JSON.parse(body);
+                    if (products.product.length === 0) {
+                        // item not loaded yet, or not found, or something?
+                    } else {
+                        let product = [];
+                        product.push({})
+                        return cb(false, null, products.product.variants);
+                    }
+                } catch (e) {
+                    if (res.statusCode === 430) {
+                        return cb(true, task.error_delay, null);
+                    } else if (res.statusCode === 401) {
+                        return cb(true, task.delay, null);
+                    } else {
+                        // unknown error, handle it
+                        return cb(true, null, res.statusCode);
+                    }
+                }
+            }
+        )
+
+    } else if (task.site.endsWith('.xml')) {
 
         let matchString;
         let foundItems = [];
@@ -54,12 +155,9 @@ function findItem(config, proxy, cb) {
                             let chk_words = matchString[0]['image:title'].toString().split(' ').splice('-');
 
                             config.pos_keywords.forEach(word => {
-                                chk_words.forEach(chk => {
-                                    if (chk.toLowerCase().indexOf(word.toLowerCase()) > -1) { //match detected
-                                        //TODO - remove duplicate entries of words so matchCount doesn't increase for the same word
-                                        matchCount++;
-                                    }
-                                });
+                                if (chk_words.map(chk => chk.toLowerCase()).includes(word.toLowerCase())) {
+                                    matchCount++;
+                                }
                             });
 
                             if (matchCount === config.pos_keywords.length) {
@@ -72,7 +170,7 @@ function findItem(config, proxy, cb) {
                         console.log(item['image:image'][0]['image:title']);
                     });
                     console.log('length: ' + foundItems.length);
-
+                    return cb(null, null, foundItems);
                 });
             }
         );
@@ -212,3 +310,20 @@ function selectStyle(config, res, onSuccess) {
 }
 
 module.exports.selectStyle = selectStyle;
+
+findItem(
+    { // task object "early link"
+        product: {
+            url: 'https://www.blendsus.com/products/vans-vault-x-wtaps-og-sk8-hi-lx-flame',
+            pos_keywords: null,
+            neg_keywords: null,
+            raw: '' 
+        }
+    }, null, 
+    function(err, delay, res) {
+    if (err) {
+        console.log('error: ' + err);
+    } else {
+        console.log(res);
+    }
+})
