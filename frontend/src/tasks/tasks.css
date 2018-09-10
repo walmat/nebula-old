@@ -172,7 +172,7 @@
   padding-left: 50px;
 }
 
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-sizes, .tasks .tasks-table .tasks-row-container .tasks-row .tasks-profile, .tasks .tasks-table .tasks-row-container .tasks-row .tasks-product {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product {
   text-transform: uppercase;
   text-overflow: ellipsis;
 }
@@ -357,44 +357,40 @@
   color: #EFEFEF;
   letter-spacing: 0;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .pad-left {
-  padding-left: 5px;
-  padding-bottom: 0;
-}
 .tasks .tasks-table .tasks-row-container .tasks-row img {
   cursor: pointer;
   vertical-align: middle;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-edit {
+.tasks .tasks-table .tasks-row-container .tasks-row__edit {
   width: 16px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-id {
+.tasks .tasks-table .tasks-row-container .tasks-row__id {
   width: 26px;
   text-align: center;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-product {
+.tasks .tasks-table .tasks-row-container .tasks-row__product {
   width: 129px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-sites {
+.tasks .tasks-table .tasks-row-container .tasks-row__sites {
   text-overflow: ellipsis;
   width: 73px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-profile {
+.tasks .tasks-table .tasks-row-container .tasks-row__profile {
   width: 268px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-profile > p {
+.tasks .tasks-table .tasks-row-container .tasks-row__profile > p {
   text-overflow: ellipsis;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-sizes {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes {
   width: 54px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-account {
+.tasks .tasks-table .tasks-row-container .tasks-row__account {
   width: 50px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-actions {
+.tasks .tasks-table .tasks-row-container .tasks-row__actions {
   width: 50px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-actions__button {
+.tasks .tasks-table .tasks-row-container .tasks-row__actions__button {
   padding-bottom: 3px;
   width: 16px;
 }

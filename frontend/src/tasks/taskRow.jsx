@@ -40,7 +40,7 @@ class TaskRow extends Component {
 
   static renderTableRowActionButton(desc, src, className, onClick) {
     return (
-      <div className="task-actions__button">
+      <div className="task-row__actions__button">
         {TaskRow.renderTableRowButton(desc, src, className, onClick)}
       </div>
     );
@@ -223,13 +223,13 @@ class TaskRow extends Component {
         <div className="col col--no-gutter tasks-edit">
           {this.renderTableRowEditButton()}
         </div>
-        <div className="col col--no-gutter tasks-id">{task.id < 10 ? `0${task.id}` : task.id}</div>
-        <div className="col col--no-gutter tasks-product">{task.product.raw}</div>
-        <div className="col col--no-gutter tasks-sites">{task.site.name}</div>
-        <div className="col col--no-gutter tasks-profile">{task.profile.profileName}</div>
-        <div className="col col--no-gutter tasks-sizes">{task.sizes}</div>
-        <div className="col col--no-gutter tasks-account">{taskAccountValue}</div>
-        <div className="col col--no-gutter tasks-actions">
+        <div className="col col--no-gutter tasks-row__id">{task.id < 10 ? `0${task.id}` : task.id}</div>
+        <div className="col col--no-gutter tasks-row__product">{task.product.raw}</div>
+        <div className="col col--no-gutter tasks-row__sites">{task.site.name}</div>
+        <div className="col col--no-gutter tasks-row__profile">{task.profile.profileName}</div>
+        <div className="col col--no-gutter tasks-row__sizes">{task.sizes}</div>
+        <div className="col col--no-gutter tasks-row__account">{taskAccountValue}</div>
+        <div className="col col--no-gutter tasks-row__actions">
           <div className="row row--gutter">
             {this.renderTableRowStartActionButton()}
             {this.renderTableRowStopActionButton()}
