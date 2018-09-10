@@ -38,8 +38,6 @@
     }
 
     &__input {
-      width: 119px !important;
-      margin-top: 1px !important;
       @include tasks-select-font();
 
       &--bordered {

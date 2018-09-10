@@ -176,7 +176,7 @@ class CreateTask extends Component {
                   type="text"
                   placeholder="***********"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
-                  value={this.props.task.password}
+                  value={this.props.task.password} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
                   required={accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
                 />

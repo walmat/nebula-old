@@ -67,32 +67,22 @@ const _updateTaskRequest = async (id, task) =>
 
 const _startTaskRequest = async task =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
-    setTimeout(() => {
+  new Promise((resolve, reject) => {
+    if (task.status === 'running') {
+      reject();
+    } else {
       resolve({ task });
-    }, 1000);
-    // try {
-    //   const response = fetch('http://localhost:8080/tasks', {
-    //     method: 'POST',
-    //     headers: {
-    //       Accept: 'application/json',
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(task),
-    //   });
-    //   const result = response.json();
-    //   resolve(result);
-    // } catch (err) {
-    //   resolve(err);
-    // }
+    }
   });
 
-const _stopTaskRequest = async id =>
+const _stopTaskRequest = async task =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ id });
-    }, 1000);
+  new Promise((resolve, reject) => {
+    if (task.status === 'stopped') {
+      reject();
+    } else {
+      resolve({ task });
+    }
   });
 
 // Private Actions
@@ -133,8 +123,8 @@ const startTask = task =>
     error => dispatch(handleError(TASK_ACTIONS.START, error)),
   );
 
-const stopTask = id =>
-  dispatch => _stopTaskRequest(id).then(
+const stopTask = task =>
+  dispatch => _stopTaskRequest(task).then(
     response => dispatch(_stopTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.STOP, error)),
   );
@@ -166,7 +156,6 @@ export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_PRODUCT]: 'product',
   [TASK_FIELDS.EDIT_USERNAME]: 'username',
   [TASK_FIELDS.EDIT_PASSWORD]: 'password',
-  [TASK_FIELDS.EDIT_METHOD]: 'method',
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZES]: 'sizes',

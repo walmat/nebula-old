@@ -29,14 +29,12 @@ class Tasks extends Component {
   startAllTasks() {
     for (let i = 0; i < this.props.tasks.length; i += 1) {
       this.props.onStartTask(this.props.tasks[i]);
-      this.props.tasks[i].status = 'running';
     }
   }
 
   stopAllTasks() {
     for (let i = 0; i < this.props.tasks.length; i += 1) {
       this.props.onStopTask(this.props.tasks[i]);
-      this.props.tasks[i].status = 'stopped';
     }
   }
 

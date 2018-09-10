@@ -35,8 +35,8 @@ export const initialTaskState = {
     site: null,
     profile: null,
     sizes: null,
-    username: null,
-    password: null,
+    username: '',
+    password: '',
     status: null,
     error_delay: null,
     refresh_delay: null,
@@ -52,7 +52,7 @@ export function taskReducer(state = initialTaskState, action) {
           product: {
             raw: action.value,
           },
-        }
+        };
         break;
       }
       case TASK_FIELDS.EDIT_SITE: {
@@ -70,6 +70,15 @@ export function taskReducer(state = initialTaskState, action) {
         };
       }
     }
+  } else if (action.type === TASK_ACTIONS.START) {
+    console.log(action);
+    change = {
+      status: 'running',
+    };
+  } else if (action.type === TASK_ACTIONS.STOP) {
+    change = {
+      status: 'stopped',
+    };
   }
 
   return Object.assign({}, state, change);
