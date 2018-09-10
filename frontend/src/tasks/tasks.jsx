@@ -95,6 +95,9 @@ class Tasks extends Component {
                       <hr className="view-line" />
                     </div>
                   </div>
+                  <div className="row row--expand tasks-log__table">
+                    <LogTask />
+                  </div>
                 </div>
               </div>
             </div>
