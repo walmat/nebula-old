@@ -32,8 +32,9 @@ class CreateTask extends Component {
   }
 
   saveTask(e) {
+    const { task, onAddNewTask } = this.props;
     e.preventDefault();
-    this.props.onAddNewTask(this.props.task);
+    onAddNewTask(task);
   }
 
   createOnChangeHandler(field) {
@@ -67,27 +68,28 @@ class CreateTask extends Component {
   }
 
   render() {
+    const { task } = this.props;
     let newTaskProfileValue = null;
-    if (this.props.task.profile.id) {
+    if (task.profile.id) {
       newTaskProfileValue = {
-        value: this.props.task.profile.id,
-        label: this.props.task.profile.profileName,
+        value: task.profile.id,
+        label: task.profile.profileName,
       };
     }
     let sizes = [];
-    if (this.props.task.sizes !== '') {
-      sizes = this.props.task.sizes.map(size => ({ value: size, label: `${size}` }));
+    if (task.sizes !== '') {
+      sizes = task.sizes.map(size => ({ value: size, label: `${size}` }));
     }
     let newTaskSiteValue = null;
-    if (this.props.task.site !== null) {
+    if (task.site !== null) {
       newTaskSiteValue = {
-        value: this.props.task.site.url,
-        label: this.props.task.site.name,
+        value: task.site.url,
+        label: task.site.name,
       };
     }
     let accountFieldsDisabled = true;
-    if (this.props.task.site !== null) {
-      accountFieldsDisabled = !this.props.task.site.auth;
+    if (task.site !== null) {
+      accountFieldsDisabled = !task.site.auth;
     }
     return (
       <div className="tasks-create col col--start col--no-gutter">
@@ -101,7 +103,7 @@ class CreateTask extends Component {
                   type="text"
                   placeholder="Variant, Keywords, Link"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
-                  value={this.props.task.product.raw}
+                  value={task.product.raw}
                   required
                 />
               </div>
@@ -164,7 +166,7 @@ class CreateTask extends Component {
                   type="text"
                   placeholder="johndoe@example.com"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
-                  value={this.props.task.username}
+                  value={task.username || ''}
                   required={accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
                 />
@@ -176,7 +178,7 @@ class CreateTask extends Component {
                   type="text"
                   placeholder="***********"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
-                  value={this.props.task.password} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
+                  value={task.password || ''} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
                   required={accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
                 />
