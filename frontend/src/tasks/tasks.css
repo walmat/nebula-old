@@ -327,6 +327,21 @@
   border: #F0405E solid 1px;
   border-radius: 3px;
 }
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .cancel {
+  margin-top: 12px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .cancel__button {
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  background: #46ADB4;
+  border: none;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #EFEFEF;
+  letter-spacing: 0;
+}
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit {
   margin-top: 12px;
 }

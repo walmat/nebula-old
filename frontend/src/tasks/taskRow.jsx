@@ -75,6 +75,11 @@ class TaskRow extends Component {
     onCommitEdits(task);
   }
 
+  cancelEdits() {
+    const { task, onCancelEdits } = this.props;
+    onCancelEdits(task);
+  }
+
   selectTask(task) {
     if (this.props.selectedTask.id !== task.id) {
       this.props.onSelectTask(task);
@@ -139,6 +144,16 @@ class TaskRow extends Component {
             </div>
             <div className="row">
               <div className="col col--expand" />
+              <div className="col cancel">
+                <button
+                  className="cancel__button"
+                  tabIndex={0}
+                  onKeyPress={() => {}}
+                  onClick={() => { this.cancelEdits(); }}
+                >
+                  Cancel
+                </button>
+              </div>
               <div className="col submit">
                 <button
                   className="submit__button"
@@ -248,6 +263,7 @@ TaskRow.propTypes = {
   onDestroyTask: PropTypes.func.isRequired,
   onEditTask: PropTypes.func.isRequired,
   onCommitEdits: PropTypes.func.isRequired,
+  onCancelEdits: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -265,6 +281,9 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
   onEditTask: (task, changes) => {
     dispatch(taskActions.edit(task.id, changes.field, changes.value));
+  },
+  onCancelEdits: (task) => {
+    dispatch(taskActions.clearEdits(task.id, task));
   },
   onCommitEdits: (task) => {
     dispatch(taskActions.update(task.id, task));

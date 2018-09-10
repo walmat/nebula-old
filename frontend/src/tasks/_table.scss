@@ -178,6 +178,23 @@
             }
           }
 
+          .cancel {
+            margin-top: 12px;
+
+            &__button {
+              width: 83px;
+              height: 29px;
+              cursor: pointer;
+              background: #46ADB4;
+              border: none;
+              border-radius: 3px;
+              font-family: AvenirNext-Medium;
+              font-size: 12px;
+              color: #EFEFEF;
+              letter-spacing: 0;
+            }
+          }
+
           .submit {
             margin-top: 12px;
 

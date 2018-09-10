@@ -16,7 +16,7 @@ export const TASK_ACTIONS = {
 // Private API Requests
 const _addTaskRequest = async task =>
   new Promise((resolve, reject) => {
-    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/i;
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/i;
     const keywordRegex = /^[+-][A-Za-z0-9]+$/;
     const variantRegex = /^\d+$/;
     const copy = JSON.parse(JSON.stringify(task));
@@ -35,12 +35,12 @@ const _addTaskRequest = async task =>
       } else {
         copy.product.pos_keywords = [];
         copy.product.neg_keywords = [];
-        kws.map(kw => {
+        kws.map((kw) => {
           if (kw.slice(0, 1) === '+') { // positive keywords
-            copy.product.pos_keywords.push(kw.slice(1, kw.length));
-          } else { // negative keywords
-            copy.product.neg_keyword.push(kw.slice(1, kw.length));
+            return copy.product.pos_keywords.push(kw.slice(1, kw.length));
           }
+          // negative keywords
+          return copy.product.neg_keyword.push(kw.slice(1, kw.length));
         });
         resolve({ task: copy });
       }
@@ -61,7 +61,24 @@ const _updateTaskRequest = async (id, task) =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
     setTimeout(() => {
-      resolve({ id, task });
+      // API will likely do something like this:
+      const copy = JSON.parse(JSON.stringify(task));
+      if (copy.edits !== null) {
+        copy.profile = copy.edits.profile || copy.profile;
+        copy.pairs = copy.edits.pairs || copy.pairs;
+        copy.sizes = copy.edits.sizes || copy.sizes;
+      }
+      copy.edits = {
+        profile: copy.profile,
+        pairs: copy.pairs,
+        sizes: copy.sizes,
+        errors: {
+          profile: null,
+          pairs: null,
+          sizes: null,
+        },
+      };
+      resolve({ id, task: copy });
     }, 0);
   });
 
@@ -123,6 +140,22 @@ const updateTask = (id, task) =>
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 
+const clearEdits = (id, task) => {
+  // Clear the edits so the update clears them out properly
+  const copy = JSON.parse(JSON.stringify(task));
+  copy.edits = null;
+  return (dispatch, getState) => _updateTaskRequest(id, copy).then(
+    (response) => {
+      dispatch(_updateTask(response));
+      const state = getState();
+      if (state.selectedTask && state.selectedTask.id === response.id) {
+        dispatch(selectTask(null));
+      }
+    },
+    error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
+  );
+};
+
 const startTask = task =>
   dispatch => _startTaskRequest(task).then(
     response => dispatch(_startTask(response)),
@@ -151,6 +184,7 @@ export const taskActions = {
   add: addTask,
   destroy: destroyTask,
   edit: editTask,
+  clearEdits,
   select: selectTask,
   load: loadTask,
   update: updateTask,
