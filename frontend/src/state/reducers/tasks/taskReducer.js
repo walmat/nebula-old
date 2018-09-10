@@ -70,15 +70,6 @@ export function taskReducer(state = initialTaskState, action) {
         };
       }
     }
-  } else if (action.type === TASK_ACTIONS.START) {
-    console.log(action);
-    change = {
-      status: 'running',
-    };
-  } else if (action.type === TASK_ACTIONS.STOP) {
-    change = {
-      status: 'stopped',
-    };
   }
 
   return Object.assign({}, state, change);

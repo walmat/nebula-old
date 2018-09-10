@@ -83,48 +83,40 @@ export function taskListReducer(state = initialTaskListState, action) {
       break;
     }
     case TASK_ACTIONS.START: {
-      if (action.response.id === null) {
+      if (action.response.task.id === null) {
         break;
       }
 
-      const found = nextState.find(t => t.id === action.response.id);
+      const found = nextState.find(t => t.id === action.response.task.id);
       if (found === undefined) {
         break;
       }
       const idx = nextState.indexOf(found);
-
-      // console.log(nextState[idx].status);
 
       // do nothing if the task is already running..
       if (nextState[idx].status === 'running') {
         break;
       } else {
-        // change task state status
         nextState[idx].status = 'running';
-        // todo >> bunch of fun stuff here
       }
       break;
     }
     case TASK_ACTIONS.STOP: {
-      if (action.response.id === null) {
+      if (action.response.task.id === null) {
         break;
       }
 
-      const found = nextState.find(t => t.id === action.response.id);
+      const found = nextState.find(t => t.id === action.response.task.id);
       if (found === undefined) {
         break;
       }
       const idx = nextState.indexOf(found);
 
-      // console.log(nextState[idx].status);
-
       // do nothing if the status is already stopped or idle
       if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
         break;
       } else {
-        // change task state status
         nextState[idx].status = 'stopped';
-        // todo >> bunch of fun stuff here
       }
       break;
     }

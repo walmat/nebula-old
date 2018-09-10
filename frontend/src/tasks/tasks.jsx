@@ -22,7 +22,6 @@ class Tasks extends Component {
     const taskId = event.target.value;
     const { tasks } = this.props;
     const selectedTask = tasks.find(t => t.id === taskId);
-
     this.props.onSelectTask(selectedTask);
   }
 
@@ -215,10 +214,10 @@ const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.destroy(null));
   },
   onStartTask: (task) => {
-    dispatch(taskActions.start(task.id));
+    dispatch(taskActions.start(task));
   },
   onStopTask: (task) => {
-    dispatch(taskActions.stop(task.id));
+    dispatch(taskActions.stop(task));
   },
   onChangeField: (change, field, event) => {
     dispatch(taskActions.edit(null, field, event.target.value));
