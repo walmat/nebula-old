@@ -64,18 +64,33 @@ const _updateTaskRequest = async (id, task) =>
       // API will likely do something like this:
       const copy = JSON.parse(JSON.stringify(task));
       if (copy.edits !== null) {
+        const useAuth = (copy.edits.site && copy.edits.site.auth) || (copy.site && copy.site.auth);
         copy.profile = copy.edits.profile || copy.profile;
-        copy.pairs = copy.edits.pairs || copy.pairs;
+        copy.product = copy.edits.product || copy.product;
         copy.sizes = copy.edits.sizes || copy.sizes;
+        copy.site = copy.edits.site || copy.site;
+        if (useAuth && copy.edits.site) {
+          copy.username = copy.edits.username;
+          copy.password = copy.edits.password;
+        } else if (!(useAuth && copy.site)) {
+          copy.username = null;
+          copy.password = null;
+        }
       }
       copy.edits = {
         profile: copy.profile,
-        pairs: copy.pairs,
+        product: copy.product,
         sizes: copy.sizes,
+        site: copy.site,
+        username: copy.username,
+        password: copy.password,
         errors: {
           profile: null,
-          pairs: null,
+          product: null,
           sizes: null,
+          site: null,
+          username: null,
+          password: null,
         },
       };
       resolve({ id, task: copy });

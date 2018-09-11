@@ -42,9 +42,12 @@ export const initialTaskState = {
     refresh_delay: null,
   },
   edits: {
+    product: null,
     sizes: null,
     profile: null,
-    pairs: null,
+    username: null,
+    password: null,
+    site: null,
     errors: {
       sizes: null,
       profile: null,
@@ -85,9 +88,33 @@ export function taskReducer(state = initialTaskState, action) {
     } else {
       // If we are editing an existing task, only perform the change on valid edit fields
       switch (action.field) {
+        case TASK_FIELDS.EDIT_PRODUCT: {
+          change = {
+            edits: {
+              ...state.edits,
+              product: {
+                raw: action.value,
+              },
+            },
+          };
+          break;
+        }
+        case TASK_FIELDS.EDIT_SITE: {
+          change = {
+            edits: {
+              ...state.edits,
+              site: action.value,
+              username: null,
+              password: null,
+            },
+          };
+          break;
+        }
         case TASK_FIELDS.EDIT_PAIRS:
         case TASK_FIELDS.EDIT_PROFILE:
-        case TASK_FIELDS.EDIT_SIZES: {
+        case TASK_FIELDS.EDIT_SIZES:
+        case TASK_FIELDS.EDIT_PASSWORD:
+        case TASK_FIELDS.EDIT_USERNAME: {
           change = {
             edits: {
               ...state.edits,

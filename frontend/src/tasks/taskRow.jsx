@@ -50,8 +50,11 @@ class TaskRow extends Component {
   createOnChangeHandler(field) {
     const { onEditTask, task } = this.props;
     switch (field) {
-      case TASK_FIELDS.EDIT_PAIRS: {
-        return event => onEditTask(task, { field, value: event.target.value });
+      case TASK_FIELDS.EDIT_SITE: {
+        return (event) => {
+          const site = { name: event.label, url: event.value, auth: event.auth };
+          onEditTask(task, { field, value: site });
+        };
       }
       case TASK_FIELDS.EDIT_PROFILE: {
         return (event) => {
@@ -66,7 +69,9 @@ class TaskRow extends Component {
         };
       }
       default: {
-        return () => {};
+        return (event) => {
+          onEditTask(task, { field, value: event.target.value });
+        };
       }
     }
   }
@@ -108,6 +113,15 @@ class TaskRow extends Component {
       if (edits.sizes) {
         editSizes = edits.sizes.map(size => ({ value: size, label: `${size}` }));
       }
+      let editSite = null;
+      let editAccountFieldDisabled = true;
+      if (edits.site) {
+        editSite = {
+          value: edits.site.url,
+          label: edits.site.name,
+        };
+        editAccountFieldDisabled = !edits.site.auth;
+      }
       return (
         <div key={`${this.props.task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
           <div className="col">
@@ -119,7 +133,7 @@ class TaskRow extends Component {
                   type="text"
                   placeholder="Variant, Keywords, Link"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
-                  value={''} // TODO: Fix This
+                  value={edits.product.raw || ''}
                   required
                 />
               </div>
@@ -133,7 +147,7 @@ class TaskRow extends Component {
                   components={{ DropdownIndicator }}
                   styles={colourStyles}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
-                  value={null} // TODO: Fix this
+                  value={editSite}
                   options={getAllSites()}
                 />
               </div>
@@ -174,9 +188,9 @@ class TaskRow extends Component {
                   type="text"
                   placeholder="johndoe@example.com"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
-                  value={''} // TODO: Fix This
-                  required={false} // TODO: Fix This
-                  disabled={false} // TODO: Fix This
+                  value={edits.username || ''}
+                  required={editAccountFieldDisabled}
+                  disabled={editAccountFieldDisabled}
                 />
               </div>
               <div className="col edit-field">
@@ -186,9 +200,9 @@ class TaskRow extends Component {
                   type="text"
                   placeholder="***********"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
-                  value={''} // TODO: Fix This
-                  required={false} // TODO: Fix This
-                  disabled={false} // TODO: Fix This
+                  value={edits.password || ''}
+                  required={editAccountFieldDisabled}
+                  disabled={editAccountFieldDisabled}
                 />
               </div>
             </div>

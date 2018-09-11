@@ -42,8 +42,12 @@ export function taskListReducer(state = initialTaskListState, action) {
       newTask.edits = {
         ...newTask.edits,
         profile: newTask.profile,
+        product: newTask.product,
         sizes: newTask.sizes,
+        site: newTask.site,
         pairs: newTask.pairs,
+        username: newTask.username,
+        password: newTask.password,
       };
 
       // add new task
@@ -99,14 +103,19 @@ export function taskListReducer(state = initialTaskListState, action) {
       if ((updateTask.edits.profile || updateTask.edits.pairs || updateTask.edits.sizes)) {
         // Set it up properly
         updateTask.profile = updateTask.edits.profile || updateTask.profile;
-        updateTask.pairs = updateTask.edits.pairs || updateTask.pairs;
+        updateTask.product = updateTask.edits.product || updateTask.product;
+        updateTask.site = updateTask.edits.site || updateTask.site;
         updateTask.sizes = updateTask.edits.sizes || updateTask.sizes;
+        updateTask.username = updateTask.edits.username || updateTask.edits.password;
         // copy over to edits
         updateTask.edits = {
           ...updateTask.edits,
           profile: updateTask.profile,
+          product: updateTask.product,
           sizes: updateTask.sizes,
-          pairs: updateTask.pairs,
+          site: updateTask.site,
+          username: updateTask.username,
+          password: updateTask.password,
         };
       }
 

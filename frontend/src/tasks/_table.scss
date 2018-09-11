@@ -137,6 +137,10 @@
           
             &__select {
               @include tasks-select-font();
+              &:disabled {
+                background: rgb(229, 229, 229);
+                cursor: not-allowed;
+              }
             }
           
             &__input {
@@ -144,6 +148,10 @@
               height: 29px;
               border: #F0405E solid 1px;
               border-radius: 3px;
+              &:disabled {
+                background: rgb(229, 229, 229);
+                cursor: not-allowed;
+              }
             }
           }
 

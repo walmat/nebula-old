@@ -287,11 +287,19 @@
   color: #161318;
   letter-spacing: 0;
 }
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select:disabled {
+  background: #e5e5e5;
+  cursor: not-allowed;
+}
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input {
   vertical-align: middle;
   height: 29px;
   border: #F0405E solid 1px;
   border-radius: 3px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input:disabled {
+  background: #e5e5e5;
+  cursor: not-allowed;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action {
   margin: 12px 7px 0 7px;
