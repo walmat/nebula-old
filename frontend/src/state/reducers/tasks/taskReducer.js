@@ -51,7 +51,6 @@ export const initialTaskState = {
     errors: {
       sizes: null,
       profile: null,
-      pairs: null,
     },
   },
 };

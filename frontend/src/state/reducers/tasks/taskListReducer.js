@@ -45,7 +45,6 @@ export function taskListReducer(state = initialTaskListState, action) {
         product: newTask.product,
         sizes: newTask.sizes,
         site: newTask.site,
-        pairs: newTask.pairs,
         username: newTask.username,
         password: newTask.password,
       };
