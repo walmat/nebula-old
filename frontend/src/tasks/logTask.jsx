@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
 
 import './tasks.css';
 
 class LogTask extends Component {
-
   render() {
     return (
       <div>

@@ -172,7 +172,7 @@
   padding-left: 50px;
 }
 
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-sizes, .tasks .tasks-table .tasks-row-container .tasks-row .tasks-profile, .tasks .tasks-table .tasks-row-container .tasks-row .tasks-product {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product {
   text-transform: uppercase;
   text-overflow: ellipsis;
 }
@@ -261,10 +261,6 @@
   display: flex;
   height: 30px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit-orig {
-  margin: 0 10px !important;
-  padding: 10px 0 !important;
-}
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
   padding: 10px;
   height: 80px;
@@ -273,68 +269,45 @@
   margin: 0 -5px 5px -5px;
   border-radius: 3px !important;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing {
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field {
   vertical-align: middle;
-  padding-left: 19px;
+  margin: 0 7px !important;
+  width: 100px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing__label {
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__label {
   margin: 0;
   font-family: AvenirNext-Medium;
   font-size: 9px;
   color: #161318;
   letter-spacing: 0;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .billing__select {
-  width: 355px;
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {
   font-family: AvenirNext-Medium;
   font-size: 9px;
   color: #161318;
   letter-spacing: 0;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes {
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select:disabled {
+  background: #e5e5e5;
+  cursor: not-allowed;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input {
   vertical-align: middle;
-  margin-left: 10px !important;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes__label {
-  margin: 0;
-  font-family: AvenirNext-Medium;
-  font-size: 9px;
-  color: #161318;
-  letter-spacing: 0;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .sizes__select {
-  width: 168px;
-  font-family: AvenirNext-Medium;
-  font-size: 9px;
-  color: #161318;
-  letter-spacing: 0;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs {
-  vertical-align: middle;
-  margin-left: 10px !important;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs__label {
-  margin: 0;
-  font-family: AvenirNext-Medium;
-  font-size: 9px;
-  color: #161318;
-  letter-spacing: 0;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .pairs__input {
-  vertical-align: middle;
-  width: 78px;
   height: 29px;
   border: #F0405E solid 1px;
   border-radius: 3px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit {
-  margin-top: 12px;
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input:disabled {
+  background: #e5e5e5;
+  cursor: not-allowed;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .submit__button {
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action {
+  margin: 12px 7px 0 7px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button {
   width: 83px;
   height: 29px;
   cursor: pointer;
-  background: #F0405E;
   border: none;
   border-radius: 3px;
   font-family: AvenirNext-Medium;
@@ -342,56 +315,46 @@
   color: #EFEFEF;
   letter-spacing: 0;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .pad-left {
-  padding-left: 5px;
-  padding-bottom: 0;
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--cancel {
+  background: #46ADB4;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--save {
+  background: #F0405E;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row img {
   cursor: pointer;
   vertical-align: middle;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-edit {
+.tasks .tasks-table .tasks-row-container .tasks-row__edit {
   width: 16px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-id {
+.tasks .tasks-table .tasks-row-container .tasks-row__id {
   width: 26px;
   text-align: center;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-product {
+.tasks .tasks-table .tasks-row-container .tasks-row__product {
   width: 129px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-sites {
+.tasks .tasks-table .tasks-row-container .tasks-row__sites {
   text-overflow: ellipsis;
   width: 73px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-profile {
+.tasks .tasks-table .tasks-row-container .tasks-row__profile {
   width: 268px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-profile > p {
+.tasks .tasks-table .tasks-row-container .tasks-row__profile > p {
   text-overflow: ellipsis;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-sizes {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes {
   width: 54px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-account {
+.tasks .tasks-table .tasks-row-container .tasks-row__account {
   width: 50px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-actions {
+.tasks .tasks-table .tasks-row-container .tasks-row__actions {
   width: 50px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-actions__button {
-  padding-bottom: 3px;
-  width: 16px;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-start {
-  padding-bottom: 3px;
-  width: 16px;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-stop {
-  padding-bottom: 3px;
-  width: 16px;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row .tasks-destroy {
+.tasks .tasks-table .tasks-row-container .tasks-row__actions__button {
   padding-bottom: 3px;
   width: 16px;
 }

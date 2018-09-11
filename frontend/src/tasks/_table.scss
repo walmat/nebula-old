@@ -115,13 +115,8 @@
       .tasks-row {
         display: flex;
         height: 30px;
-
         // align-items: center;
-        &.tasks-row--edit-orig {
-          margin: 0 10px !important;
-          padding: 10px 0 !important;
-        }
-
+        
         &.tasks-row--edit {
           padding: 10px;
           height: 80px;
@@ -130,101 +125,85 @@
           margin: 0 -5px 5px -5px;
           border-radius: 3px !important;
 
-          .billing {
+          .edit-field {
             vertical-align: middle;
-            padding-left: 19px;
-
+            margin: 0 7px !important;
+            width: 100px;
+          
             &__label {
               margin: 0;
               @include tasks-select-font();
             }
-
+          
             &__select {
-              width: 355px;
               @include tasks-select-font();
+              &:disabled {
+                background: rgb(229, 229, 229);
+                cursor: not-allowed;
+              }
             }
-          }
-
-          .sizes {
-            vertical-align: middle;
-            margin-left: 10px !important;
-
-            &__label {
-              margin: 0;
-              @include tasks-select-font();
-            }
-
-            &__select {
-              width: 168px;
-              @include tasks-select-font();
-            }
-          }
-
-          .pairs {
-            vertical-align: middle;
-            margin-left: 10px !important;
-
-            &__label {
-              margin: 0;
-              @include tasks-select-font();
-            }
-
+          
             &__input {
               vertical-align: middle;
-              width: 78px;
               height: 29px;
               border: #F0405E solid 1px;
               border-radius: 3px;
+              &:disabled {
+                background: rgb(229, 229, 229);
+                cursor: not-allowed;
+              }
             }
           }
 
-          .submit {
-            margin-top: 12px;
+          .action {
+            margin: 12px 7px 0 7px;
 
             &__button {
               width: 83px;
               height: 29px;
               cursor: pointer;
-              background: #F0405E;
               border: none;
               border-radius: 3px;
               font-family: AvenirNext-Medium;
               font-size: 12px;
               color: #EFEFEF;
               letter-spacing: 0;
+
+              &--cancel {
+                background: #46ADB4;
+              }
+
+              &--save {
+                background: #F0405E;
+              }
             }
           }
-        }
-
-        .pad-left {
-          padding-left: 5px;
-          padding-bottom: 0;
         }
 
         img {
           @include image();
         }
 
-        .tasks-edit {
+        &__edit {
           width: 16px;
         }
 
-        .tasks-id {
+        &__id {
           width: 26px;
           text-align: center;
         }
 
-        .tasks-product {
+        &__product {
           @extend %tasks-table__text-field;
           width: 129px;
         }
 
-        .tasks-sites {
+        &__sites {
           text-overflow: ellipsis;
           width: 73px;
         }
 
-        .tasks-profile {
+        &__profile {
           @extend %tasks-table__text-field;
           width: 268px;
 
@@ -233,37 +212,22 @@
           }
         }
 
-        .tasks-sizes {
+        &__sizes {
           @extend %tasks-table__text-field;
           width: 54px;
         }
 
-        .tasks-account {
+        &__account {
           width: 50px;
         }
 
-        .tasks-actions {
+        &__actions {
           width: 50px;
 
           &__button {
             padding-bottom: 3px;
             width: 16px;
           }
-        }
-
-        .tasks-start {
-          padding-bottom: 3px;
-          width: 16px;
-        }
-
-        .tasks-stop {
-          padding-bottom: 3px;
-          width: 16px;
-        }
-
-        .tasks-destroy {
-          padding-bottom: 3px;
-          width: 16px;
         }
       }
     }

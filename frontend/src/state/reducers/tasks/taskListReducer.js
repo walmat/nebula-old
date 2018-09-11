@@ -2,7 +2,26 @@ import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
 
 export const initialTaskListState = [];
-let num = 1;
+let _num = 1;
+
+function _getId(taskList) {
+  // if the tasksList is empty, reset the numbering
+  if (taskList.length === 0) {
+    _num = 1;
+  }
+
+  // assign new id
+  let newId = _num;
+
+  // check if generate id already exists
+  const idCheck = t => t.id === newId;
+  while (taskList.some(idCheck)) {
+    _num += 1;
+    newId = _num;
+  }
+
+  return newId;
+}
 
 export function taskListReducer(state = initialTaskListState, action) {
   let nextState = JSON.parse(JSON.stringify(state));
@@ -16,26 +35,22 @@ export function taskListReducer(state = initialTaskListState, action) {
         break;
       }
 
-      // if the tasksList is empty, reset the numbering
-      if (nextState.length === 0) {
-        num = 1;
-      }
-
       // perform a deep copy of given profile
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
-      // assign new id
-      let newId = num;
-
-      // check if generate id already exists
-      const idCheck = t => t.id === newId;
-      while (nextState.some(idCheck)) {
-        num += 1;
-        newId = num;
-      }
+      // copy over edits
+      newTask.edits = {
+        ...newTask.edits,
+        profile: newTask.profile,
+        product: newTask.product,
+        sizes: newTask.sizes,
+        site: newTask.site,
+        username: newTask.username,
+        password: newTask.password,
+      };
 
       // add new task
-      newTask.id = newId;
+      newTask.id = _getId(nextState);
       nextState.push(newTask);
       break;
     }
@@ -58,14 +73,58 @@ export function taskListReducer(state = initialTaskListState, action) {
 
       // adjust the id of each following task to shift down one when a task is deleted
       for (let i = action.response.id - 1; i < nextState.length; i += 1) {
-        num = nextState[i].id;
+        _num = nextState[i].id;
         nextState[i].id -= 1;
       }
       break;
     }
+    case TASK_ACTIONS.UPDATE: {
+      // If we have a response error, we should do nothing
+      if (action.response !== undefined && action.response.error !== undefined) {
+        console.log('ERROR with TASK UPDATE');
+        console.log(action.response);
+        break;
+      }
+
+      const updateId = action.response.id;
+      const updateTask = JSON.parse(JSON.stringify(action.response.task));
+
+      // Check for the task to update
+      const foundTask = nextState.find(t => t.id === updateId);
+      if (!foundTask) {
+        break;
+      }
+
+      // find the index of the out of date task
+      const idxToUpdate = nextState.indexOf(foundTask);
+
+      // Check if current task has been setup properly
+      if ((updateTask.edits.profile || updateTask.edits.pairs || updateTask.edits.sizes)) {
+        // Set it up properly
+        updateTask.profile = updateTask.edits.profile || updateTask.profile;
+        updateTask.product = updateTask.edits.product || updateTask.product;
+        updateTask.site = updateTask.edits.site || updateTask.site;
+        updateTask.sizes = updateTask.edits.sizes || updateTask.sizes;
+        updateTask.username = updateTask.edits.username || updateTask.edits.password;
+        // copy over to edits
+        updateTask.edits = {
+          ...updateTask.edits,
+          profile: updateTask.profile,
+          product: updateTask.product,
+          sizes: updateTask.sizes,
+          site: updateTask.site,
+          username: updateTask.username,
+          password: updateTask.password,
+        };
+      }
+
+      // Update the task
+      nextState[idxToUpdate] = updateTask;
+      break;
+    }
     case TASK_ACTIONS.EDIT: {
       // check if id is given (we only change the state on a non-null id)
-      if (action.id == null) {
+      if (action.id === null) {
         break;
       }
 
