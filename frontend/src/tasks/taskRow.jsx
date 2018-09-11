@@ -3,6 +3,7 @@ import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import getAllSizes from '../getSizes';
+import getAllSites from '../getSites';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 import start from '../_assets/run.svg';
@@ -111,12 +112,37 @@ class TaskRow extends Component {
         <div key={`${this.props.task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
           <div className="col">
             <div className="row row--start">
-              <div className="col billing">
-                <p className="billing__label">Billing Profiles</p>
+              <div className="col edit-field">
+                <p className="edit-field__label">Product</p>
+                <input
+                  className="edit-field__input"
+                  type="text"
+                  placeholder="Variant, Keywords, Link"
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
+                  value={''} // TODO: Fix This
+                  required
+                />
+              </div>
+              <div className="col edit-field">
+                <p className="edit-field__label">Site</p>
+                <Select
+                  required
+                  className="edit-field__select"
+                  classNamePrefix="select"
+                  placeholder="Choose Site"
+                  components={{ DropdownIndicator }}
+                  styles={colourStyles}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+                  value={null} // TODO: Fix this
+                  options={getAllSites()}
+                />
+              </div>
+              <div className="col edit-field">
+                <p className="edit-field__label">Billing Profiles</p>
                 <Select
                   required
                   classNamePrefix="select"
-                  className="billing__select"
+                  className="edit-field__select"
                   placeholder="Choose Profile"
                   components={{ DropdownIndicator }}
                   styles={colourStyles}
@@ -125,14 +151,14 @@ class TaskRow extends Component {
                   options={this.buildProfileOptions()}
                 />
               </div>
-              <div className="col sizes">
-                <p className="sizes__label">Sizes</p>
+              <div className="col edit-field">
+                <p className="edit-field__label">Sizes</p>
                 <Select
                   required
                   isMulti
                   isClearable={false}
                   classNamePrefix="select"
-                  className="sizes__select"
+                  className="edit-field__select"
                   placeholder="Choose Sizes"
                   components={{ DropdownIndicator }}
                   styles={colourStyles}
@@ -141,27 +167,50 @@ class TaskRow extends Component {
                   options={getAllSizes()}
                 />
               </div>
-            </div>
-            <div className="row">
-              <div className="col col--expand" />
-              <div className="col cancel">
-                <button
-                  className="cancel__button"
-                  tabIndex={0}
-                  onKeyPress={() => {}}
-                  onClick={() => { this.cancelEdits(); }}
-                >
-                  Cancel
-                </button>
+              <div className="col edit-field">
+                <p className="edit-field__label">Username</p>
+                <input
+                  className="edit-field__input"
+                  type="text"
+                  placeholder="johndoe@example.com"
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
+                  value={''} // TODO: Fix This
+                  required={false} // TODO: Fix This
+                  disabled={false} // TODO: Fix This
+                />
               </div>
-              <div className="col submit">
+              <div className="col edit-field">
+                <p className="edit-field__label">Password</p>
+                <input
+                  className="edit-field__input"
+                  type="text"
+                  placeholder="***********"
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
+                  value={''} // TODO: Fix This
+                  required={false} // TODO: Fix This
+                  disabled={false} // TODO: Fix This
+                />
+              </div>
+            </div>
+            <div className="row row--end">
+              <div className="col action">
                 <button
-                  className="submit__button"
+                  className="action__button action__button--save"
                   tabIndex={0}
                   onKeyPress={() => {}}
                   onClick={() => { this.saveTask(); }}
                 >
                   Save
+                </button>
+              </div>
+              <div className="col action">
+                <button
+                  className="action__button action__button--cancel"
+                  tabIndex={0}
+                  onKeyPress={() => {}}
+                  onClick={() => { this.cancelEdits(); }}
+                >
+                  Cancel
                 </button>
               </div>
             </div>
@@ -208,7 +257,7 @@ class TaskRow extends Component {
       'Edit Task',
       edit,
       task.status === 'editing' ? 'active' : '',
-      () => { this.selectTask(this.props.task); },
+      () => { this.selectTask(task); },
     );
   }
 
