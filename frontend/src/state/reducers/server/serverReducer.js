@@ -51,7 +51,12 @@ export const initialServerListState = [
   Object.assign(
     {},
     initialServerListRowState,
-    JSON.parse('{"type": "test","size": "test", "location": "test", "charges": "$0.15", "status": "running", "action": ""}')
+    JSON.parse('{"type": "Compute Optimized","size": "C5 - 4XL", "location": "US East (N. Virginia)", "charges": "$1.32", "status": "Connected", "action": ""}'),
+  ),
+  Object.assign(
+    {},
+    initialServerListRowState,
+    JSON.parse('{"type": "General Purpose","size": "T2 - Micro", "location": "US East (N. Virginia)", "charges": "$0.15", "status": "Running", "action": ""}'),
   ),
 ];
 
@@ -125,8 +130,6 @@ export function serverReducer(state = initialServerState, action) {
 
 export function serverListReducer(state = initialServerListState, action) {
   let change = {};
-
-  console.log(state);
   const nextState = JSON.parse(JSON.stringify(state));
 
   if (action.type === SERVER_ACTIONS.CONNECT) {

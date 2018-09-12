@@ -33,7 +33,6 @@ class ServerLog extends Component {
   }
 
   createTable() {
-    console.log(this.props.servers);
     const table = [];
     for (let i = 0; i < this.props.servers.length; i += 1) {
       const server = this.props.servers[i];
@@ -57,8 +56,8 @@ class ServerLog extends Component {
           </td>
           <td className="server-log-action">
             <img
-              src={server.status === 'connected' ? stop : start}
-              alt={server.status === 'connected' ? 'stop' : 'start'}
+              src={server.status === 'Connected' ? stop : start}
+              alt={server.status === 'Connected' ? 'stop' : 'start'}
               onClick={() => { this.connect(server); }}
               onKeyPress={() => {}}
             />
