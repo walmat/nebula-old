@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 import start from '../_assets/run.svg';
 import stop from '../_assets/stop.svg';
+import defns from '../utils/definitions/serverDefinitions';
 import { serverActions } from '../state/actions/server/serverActions';
 import './server';
 
@@ -32,6 +33,7 @@ class ServerLog extends Component {
   }
 
   createTable() {
+    console.log(this.props.servers);
     const table = [];
     for (let i = 0; i < this.props.servers.length; i += 1) {
       const server = this.props.servers[i];
@@ -77,6 +79,13 @@ class ServerLog extends Component {
   }
 }
 
+ServerLog.propTypes = {
+  servers: defns.serverList.isRequired,
+  onConnect: PropTypes.func.isRequired,
+  onStop: PropTypes.func.isRequired,
+  onDestroy: PropTypes.func.isRequired,
+};
+
 const mapStateToProps = state => ({
   servers: state.servers,
 });
@@ -92,12 +101,5 @@ const mapDispatchToProps = dispatch => ({
     dispatch(serverActions.remove(opts.id));
   },
 });
-
-ServerLog.propTypes = {
-  servers: PropTypes.objectOf(PropTypes.any).isRequired,
-  onConnect: PropTypes.func.isRequired,
-  onStop: PropTypes.func.isRequired,
-  onDestroy: PropTypes.func.isRequired,
-};
 
 export default connect(mapStateToProps, mapDispatchToProps)(ServerLog);

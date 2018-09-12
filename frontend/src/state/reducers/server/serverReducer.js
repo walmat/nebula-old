@@ -2,6 +2,7 @@ import {
   SERVER_FIELDS,
   SERVER_ACTIONS,
   mapServerFieldToKey,
+  mapServerListFieldToKey,
   subMapToKey,
 } from '../../actions';
 
@@ -17,9 +18,9 @@ export const initialServerState = {
     password: '',
   },
   serverOptions: {
-    type: null,
-    size: null,
-    location: null,
+    type: {},
+    size: {},
+    location: {},
   },
   proxies: [],
   coreServer: {
@@ -29,7 +30,30 @@ export const initialServerState = {
   },
 };
 
-export const initialServerListState = [];
+const initialServerListRowState = {
+  type: null,
+  size: null,
+  location: null,
+  charges: null,
+  status: null,
+  action: null,
+  errors: {
+    type: null,
+    size: null,
+    location: null,
+    charges: null,
+    status: null,
+    action: null,
+  },
+};
+
+export const initialServerListState = [
+  Object.assign(
+    {},
+    initialServerListRowState,
+    JSON.parse('{"type": "test","size": "test", "location": "test", "charges": "$0.15", "status": "running", "action": ""}')
+  ),
+];
 
 export function serverReducer(state = initialServerState, action) {
   // initialize change object
@@ -97,4 +121,24 @@ export function serverReducer(state = initialServerState, action) {
   }
 
   return nextState;
+}
+
+export function serverListReducer(state = initialServerListState, action) {
+  let change = {};
+
+  console.log(state);
+  const nextState = JSON.parse(JSON.stringify(state));
+
+  if (action.type === SERVER_ACTIONS.CONNECT) {
+    switch (action.field) {
+      case '':
+        // figure out this later...
+        change = {
+          [mapServerListFieldToKey[action.field]]: action.field,
+        };
+        break;
+      default:
+        break;
+    }
+  }
 }

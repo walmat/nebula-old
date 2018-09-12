@@ -66,9 +66,9 @@ class Server extends Component {
     this.props.onGenerateProxies(this.props.serverInfo.proxyOptions);
   }
 
-  destroyServer(e) {
+  destroyServers(e) {
     e.preventDefault();
-    this.props.onDestroyServer(this.props.serverInfo.coreServer.path);
+    this.props.onDestroyServers(this.props.serverInfo.coreServer.path);
   }
 
   createServer(e) {
@@ -158,6 +158,7 @@ class Server extends Component {
 
   render() {
     const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
+
     return (
       <div className="container">
         <h1 className="text-header" id="server-header">Server</h1>
@@ -189,7 +190,7 @@ class Server extends Component {
         {this.renderServerSizeComponent()}
         {this.renderServerLocationComponent()}
         <button disabled={!loggedInAws} id="create-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.createServer}>Create</button>
-        <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServer} >Destroy All</button>
+        <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServers} >Destroy All</button>
 
         {/* SERVER LOG */}
         <p className="body-text" id="server-log-label">Log</p>
@@ -210,7 +211,7 @@ class Server extends Component {
 }
 
 Server.propTypes = {
-  servers: PropTypes.arrayOf(PropTypes.any).isRequired,
+  servers: defns.serverList.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   serverListOptions: defns.serverListOptions.isRequired,
   serverType: defns.serverType.isRequired,
@@ -218,7 +219,7 @@ Server.propTypes = {
   serverLocation: defns.serverLocation.isRequired,
   onCreateServer: PropTypes.func.isRequired,
   onDestroyProxies: PropTypes.func.isRequired,
-  onDestroyServer: PropTypes.func.isRequired,
+  onDestroyServers: PropTypes.func.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
   onGenerateProxies: PropTypes.func.isRequired,
   onValidateAws: PropTypes.func.isRequired,
@@ -226,6 +227,7 @@ Server.propTypes = {
 };
 
 const mapStateToProps = state => ({
+  servers: state.servers,
   serverInfo: state.serverInfo,
   serverType: state.serverInfo.serverOptions.type,
   serverSize: state.serverInfo.serverOptions.size,
@@ -240,7 +242,7 @@ const mapDispatchToProps = dispatch => ({
   onDestroyProxies: () => {
     dispatch(serverActions.destroyProxies());
   },
-  onDestroyServer: (path) => {
+  onDestroyServers: (path) => {
     dispatch(serverActions.destroy(path));
   },
   onEditServerInfo: (field, value) => {

@@ -1,6 +1,7 @@
 import awsCredentials from './server/awsCredentials';
 import proxyOptions from './server/proxyOptions';
 import serverInfo from './server/serverInfo';
+import serverList from './server/serverList';
 import serverListOptions from './server/serverListOptions';
 import serverLocation from './server/serverLocation';
 import serverOptions from './server/serverOptions';
@@ -11,6 +12,7 @@ export default {
   awsCredentials,
   proxyOptions,
   serverInfo,
+  serverList,
   serverListOptions,
   serverLocation,
   serverOptions,

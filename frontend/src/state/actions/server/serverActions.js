@@ -4,6 +4,7 @@ import makeActionCreator from '../actionCreator';
 export const SERVER_ACTIONS = {
   EDIT: 'EDIT_SERVER_OPTIONS',
   CREATE: 'CREATE_SERVER',
+  CONNECT: 'CONNECT_SERVER',
   ERROR: 'SERVER_HANDLE_ERROR',
   DESTROY: 'DESTROY_SERVER',
   GEN_PROXIES: 'GENERATE_PROXIES',
@@ -73,6 +74,7 @@ const _validateAwsRequest = async awsCredentials =>
 const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
+const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'credentials');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS);
@@ -99,6 +101,9 @@ const generateProxies = proxyOptions =>
     proxies => dispatch(_generateProxies(proxies)),
     error => dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error)),
   );
+
+const connectServer = credentials =>
+  dispatch => _connectServer(credentials).then(console.log('yep'));
 
 const destroyProxies = () =>
   dispatch => _destroyProxiesRequest().then(
@@ -150,6 +155,9 @@ export const mapServerFieldToKey = {
   [SERVER_FIELDS.EDIT_PROXY_PASSWORD]: 'proxyOptions',
   [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'credentials',
   [SERVER_FIELDS.EDIT_AWS_SECRET_KEY]: 'credentials',
+};
+
+export const mapServerListFieldToKey = {
 };
 
 export const subMapToKey = {
