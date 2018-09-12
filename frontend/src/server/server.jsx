@@ -36,7 +36,7 @@ class Server extends Component {
     this.validateAws = this.validateAws.bind(this);
     this.destroyProxies = this.destroyProxies.bind(this);
     this.generateProxies = this.generateProxies.bind(this);
-    this.destroyServer = this.destroyServer.bind(this);
+    this.destroyServers = this.destroyServers.bind(this);
     this.createServer = this.createServer.bind(this);
     this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(this);
   }
@@ -137,6 +137,10 @@ class Server extends Component {
     type, label, defaultOption, value,
     disabled, onChange, optionGenerator,
   ) {
+    // empty object check to prevent required prop errors
+    if (Object.keys(value).length === 0 && value.constructor === Object) {
+      value = null;
+    }
     return (
       <div>
         <p id={`${type}-server-label`}>{label}</p>
@@ -203,7 +207,7 @@ class Server extends Component {
         <p className="server-log-header" id="server-actions-header">Action</p>
         <hr id="server-log-line" />
         <div id="server-scroll-box">
-          <ServerLog />
+          {/* <ServerLog /> */}
         </div>
       </div>
     );
