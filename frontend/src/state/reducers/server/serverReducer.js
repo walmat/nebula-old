@@ -141,4 +141,5 @@ export function serverListReducer(state = initialServerListState, action) {
         break;
     }
   }
+  return nextState;
 }
