@@ -7,6 +7,7 @@ import {
 } from '../../actions';
 
 export const initialServerState = {
+  id: '',
   credentials: {
     AWSAccessKey: '',
     AWSSecretKey: '',
@@ -51,12 +52,12 @@ export const initialServerListState = [
   Object.assign(
     {},
     initialServerListRowState,
-    JSON.parse('{"type": "Compute Optimized","size": "C5 - 4XL", "location": "US East (N. Virginia)", "charges": "$1.32", "status": "Connected", "action": ""}'),
+    JSON.parse('{"id": "1", "type": "Compute Optimized","size": "C5 - 4XL", "location": "US East (N. Virginia)", "charges": "$1.32", "status": "Connected", "action": ""}'),
   ),
   Object.assign(
     {},
     initialServerListRowState,
-    JSON.parse('{"type": "General Purpose","size": "T2 - Micro", "location": "US East (N. Virginia)", "charges": "$0.15", "status": "Running", "action": ""}'),
+    JSON.parse('{"id": "2", "type": "General Purpose","size": "T2 - Micro", "location": "US East (N. Virginia)", "charges": "$0.15", "status": "Running", "action": ""}'),
   ),
 ];
 
@@ -108,11 +109,10 @@ export function serverReducer(state = initialServerState, action) {
     // Use the info given in the action as the core server info
     nextState.coreServer = action.serverInfo;
   } else if (action.type === SERVER_ACTIONS.DESTROY) {
-    // Check if the path we want to destroy is the same as the current on, then
-    // destroy if necessary
-    if (state.coreServer.path === action.serverPath) {
-      nextState.coreServer = null;
-    }
+    console.log(action);
+    // if (state.coreServer.path === action.serverPath) {
+    //   nextState.coreServer = null;
+    // }
   } else if (action.type === SERVER_ACTIONS.ERROR) {
     console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {

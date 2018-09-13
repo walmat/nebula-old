@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 import start from '../_assets/run.svg';
 import stop from '../_assets/stop.svg';
+import destroy from '../_assets/destroy.svg';
 import defns from '../utils/definitions/serverDefinitions';
 import { serverActions } from '../state/actions/server/serverActions';
 import './server';
@@ -12,24 +13,6 @@ class ServerLog extends Component {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
-    this.connect = this.connect.bind(this);
-    this.destroy = this.destroy.bind(this);
-    this.stop = this.stop.bind(this);
-  }
-
-  connect(opts) {
-    console.log('starting server: ', opts);
-    this.props.onConnect(opts);
-  }
-
-  stop(opts) {
-    console.log('stopping server: ', opts);
-    this.props.onStop(opts);
-  }
-
-  destroy(opts) {
-    console.log('destroying server: ', opts);
-    this.props.onDestroy(opts);
   }
 
   createTable() {
@@ -54,13 +37,33 @@ class ServerLog extends Component {
           <td className="server-log-status">
             <p>{server.status}</p>
           </td>
-          <td className="server-log-action">
-            <img
-              src={server.status === 'Connected' ? stop : start}
-              alt={server.status === 'Connected' ? 'stop' : 'start'}
-              onClick={() => { this.connect(server); }}
-              onKeyPress={() => {}}
-            />
+          <td
+            className={server.status === 'Connected' ? 'server-log-action active' : 'server-log-action'}
+            role="button"
+            tabIndex={0}
+            onClick={() => { this.props.onStart(server); }}
+            onKeyPress={() => {}}
+          >
+            <img src={start} alt="" />
+          </td>
+          <td
+            className="server-log-action"
+            role="button"
+            tabIndex={0}
+            onClick={() => { this.props.onStop(server); }}
+            onKeyPress={() => {}}
+          >
+            <img src={stop} alt="" />
+          </td>
+          <td
+            className="server-log-action"
+            id="action-last"
+            role="button"
+            tabIndex={0}
+            onClick={() => { this.props.onDestroy(server); }}
+            onKeyPress={() => {}}
+          >
+            <img src={destroy} alt="" />
           </td>
           <td className="blank" />
         </tr>
@@ -80,7 +83,7 @@ class ServerLog extends Component {
 
 ServerLog.propTypes = {
   servers: defns.serverList.isRequired,
-  onConnect: PropTypes.func.isRequired,
+  onStart: PropTypes.func.isRequired,
   onStop: PropTypes.func.isRequired,
   onDestroy: PropTypes.func.isRequired,
 };
@@ -90,14 +93,14 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onConnect: (opts) => {
-    dispatch(serverActions.start(opts.id));
+  onStart: (opts) => {
+    dispatch(serverActions.start(opts));
   },
   onStop: (opts) => {
-    dispatch(serverActions.stop(opts.id));
+    dispatch(serverActions.stop(opts));
   },
   onDestroy: (opts) => {
-    dispatch(serverActions.remove(opts.id));
+    dispatch(serverActions.destroy(opts));
   },
 });
 

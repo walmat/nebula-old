@@ -4,9 +4,10 @@ import makeActionCreator from '../actionCreator';
 export const SERVER_ACTIONS = {
   EDIT: 'EDIT_SERVER_OPTIONS',
   CREATE: 'CREATE_SERVER',
-  CONNECT: 'CONNECT_SERVER',
-  ERROR: 'SERVER_HANDLE_ERROR',
+  START: 'START_SERVER',
+  STOP: 'STOP_SERVER',
   DESTROY: 'DESTROY_SERVER',
+  ERROR: 'SERVER_HANDLE_ERROR',
   GEN_PROXIES: 'GENERATE_PROXIES',
   DESTROY_PROXIES: 'DESTROY_PROXIES',
   VALIDATE_AWS: 'VALIDATE_AWS_CREDENTIALS',
@@ -29,9 +30,9 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
   });
 
 const _destroyServerRequest = async serverPath =>
-  // TODO: Replace this with an actual API call
-  Promise.resolve(serverPath);
-
+  new Promise((resolve, reject) => {
+    resolve(serverPath);
+  });
 
 const _generateProxiesRequest = async proxyOptions =>
   // TOOD: Replace this with an actual API call
@@ -54,6 +55,18 @@ const _generateProxiesRequest = async proxyOptions =>
     }
   });
 
+const _startServerRequest = async serverInfo =>
+  new Promise((resolve, reject) => {
+    // TODO - make this request to the aws server with user's credentials
+    resolve(serverInfo);
+  });
+
+const _stopServerRequest = async serverInfo =>
+  new Promise((resolve, reject) => {
+    // TODO - make this request to the aws server with user's credentials
+    resolve(serverInfo);
+  });
+
 const _destroyProxiesRequest = async () =>
   // TODO: Replace this with an actual API call
   Promise.resolve();
@@ -72,6 +85,8 @@ const _validateAwsRequest = async awsCredentials =>
 
 // Private Actions
 const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
+const _startServer = makeActionCreator(SERVER_ACTIONS.START, 'serverPath');
+const _stopServer = makeActionCreator(SERVER_ACTIONS.STOP, 'serverPath');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
 const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'credentials');
@@ -88,6 +103,18 @@ const createServer = (serverOptions, awsCredentials) =>
   dispatch => _createServerRequest(serverOptions, awsCredentials).then(
     info => dispatch(_createServer(info)),
     error => dispatch(handleError(SERVER_ACTIONS.CREATE, error)),
+  );
+
+const startServer = serverPath =>
+  dispatch => _startServerRequest(serverPath).then(
+    path => dispatch(_startServer(path)),
+    error => dispatch(handleError(SERVER_ACTIONS.START, error)),
+  );
+
+const stopServer = serverPath =>
+  dispatch => _stopServerRequest(serverPath).then(
+    path => dispatch(_stopServer(path)),
+    error => dispatch(handleError(SERVER_ACTIONS.START, error)),
   );
 
 const destroyServer = serverPath =>
@@ -126,6 +153,8 @@ const logoutAws = path =>
 export const serverActions = {
   edit: editServer,
   create: createServer,
+  start: startServer,
+  stop: stopServer,
   destroy: destroyServer,
   error: handleError,
   generateProxies,
