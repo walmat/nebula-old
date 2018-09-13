@@ -94,13 +94,14 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onStart: (opts) => {
-    dispatch(serverActions.start(opts));
+    dispatch(serverActions.start(opts.id));
   },
   onStop: (opts) => {
-    dispatch(serverActions.stop(opts));
+    dispatch(serverActions.stop(opts.id));
   },
   onDestroy: (opts) => {
-    dispatch(serverActions.destroy(opts));
+    console.log(opts.id);
+    dispatch(serverActions.destroy(opts.id));
   },
 });
 

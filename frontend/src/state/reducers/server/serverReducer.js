@@ -1,3 +1,5 @@
+import uuidv4 from 'uuid/v4';
+
 import {
   SERVER_FIELDS,
   SERVER_ACTIONS,
@@ -5,9 +7,9 @@ import {
   mapServerListFieldToKey,
   subMapToKey,
 } from '../../actions';
+import server from '../../../server/server';
 
 export const initialServerState = {
-  id: '',
   credentials: {
     AWSAccessKey: '',
     AWSSecretKey: '',
@@ -105,14 +107,8 @@ export function serverReducer(state = initialServerState, action) {
         nextState[mapServerFieldToKey[action.field]],
         change,
       );
-  } else if (action.type === SERVER_ACTIONS.CREATE) {
-    // Use the info given in the action as the core server info
-    nextState.coreServer = action.serverInfo;
   } else if (action.type === SERVER_ACTIONS.DESTROY) {
     console.log(action);
-    // if (state.coreServer.path === action.serverPath) {
-    //   nextState.coreServer = null;
-    // }
   } else if (action.type === SERVER_ACTIONS.ERROR) {
     console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
@@ -143,6 +139,26 @@ export function serverListReducer(state = initialServerListState, action) {
       default:
         break;
     }
+  } else if (action.type === SERVER_ACTIONS.CREATE) {
+    // perform a deep copy of given profile
+    const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
+    let newId = uuidv4();
+    const newServer = {};
+    newServer.id = newId;
+    newServer.type = serverOptions.type.label;
+    newServer.size = serverOptions.size.label;
+    newServer.location = serverOptions.location.label;
+    newServer.charges = '0';
+    newServer.status = 'Initializing..';
+    const idCheck = s => s.id === newId;
+    while (nextState.some(idCheck)) {
+      newId = uuidv4();
+    }
+    nextState.push(newServer);
+  } else if (action.type === SERVER_ACTIONS.DESTROY) {
+    // fix this
+    const next = nextState.filter(s => s.id !== action.serverPath);
+    return next;
   }
   return nextState;
 }
