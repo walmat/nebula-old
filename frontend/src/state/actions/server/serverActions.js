@@ -7,6 +7,7 @@ export const SERVER_ACTIONS = {
   START: 'START_SERVER',
   STOP: 'STOP_SERVER',
   DESTROY: 'DESTROY_SERVER',
+  DESTROY_ALL: 'DESTROY_SERVER',
   ERROR: 'SERVER_HANDLE_ERROR',
   GEN_PROXIES: 'GENERATE_PROXIES',
   DESTROY_PROXIES: 'DESTROY_PROXIES',
@@ -32,6 +33,11 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 const _destroyServerRequest = async serverPath =>
   new Promise((resolve, reject) => {
     resolve(serverPath);
+  });
+
+const _destroyAllServerRequest = async credentials =>
+  new Promise((resolve, reject) => {
+    resolve(credentials);
   });
 
 const _generateProxiesRequest = async proxyOptions =>
@@ -88,6 +94,7 @@ const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
 const _startServer = makeActionCreator(SERVER_ACTIONS.START, 'serverPath');
 const _stopServer = makeActionCreator(SERVER_ACTIONS.STOP, 'serverPath');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
+const _destroyAllServers = makeActionCreator(SERVER_ACTIONS.DESTROY_ALL, 'credentials');
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
 const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'credentials');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
@@ -123,6 +130,12 @@ const destroyServer = serverPath =>
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY, error)),
   );
 
+const destroyAllServers = credentials =>
+  dispatch => _destroyAllServerRequest(credentials).then(
+    res => dispatch(_destroyAllServers(res)),
+    error => dispatch(handleError(SERVER_ACTIONS.DESTROY_ALL, error)),
+  );
+
 const generateProxies = proxyOptions =>
   dispatch => _generateProxiesRequest(proxyOptions).then(
     proxies => dispatch(_generateProxies(proxies)),
@@ -156,6 +169,7 @@ export const serverActions = {
   start: startServer,
   stop: stopServer,
   destroy: destroyServer,
+  destroyAll: destroyAllServers,
   error: handleError,
   generateProxies,
   destroyProxies,

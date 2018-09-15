@@ -7,7 +7,6 @@ import {
   mapServerListFieldToKey,
   subMapToKey,
 } from '../../actions';
-import server from '../../../server/server';
 
 export const initialServerState = {
   credentials: {
@@ -21,9 +20,9 @@ export const initialServerState = {
     password: '',
   },
   serverOptions: {
-    type: {},
-    size: {},
-    location: {},
+    type: null,
+    size: null,
+    location: null,
   },
   proxies: [],
   coreServer: {
@@ -50,18 +49,7 @@ const initialServerListRowState = {
   },
 };
 
-export const initialServerListState = [
-  Object.assign(
-    {},
-    initialServerListRowState,
-    JSON.parse('{"id": "1", "type": "Compute Optimized","size": "C5 - 4XL", "location": "US East (N. Virginia)", "charges": "$1.32", "status": "Connected", "action": ""}'),
-  ),
-  Object.assign(
-    {},
-    initialServerListRowState,
-    JSON.parse('{"id": "2", "type": "General Purpose","size": "T2 - Micro", "location": "US East (N. Virginia)", "charges": "$0.15", "status": "Running", "action": ""}'),
-  ),
-];
+export const initialServerListState = [];
 
 export function serverReducer(state = initialServerState, action) {
   // initialize change object
