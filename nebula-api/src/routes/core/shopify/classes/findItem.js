@@ -123,13 +123,20 @@ function findProduct(task, proxy, cb) {
                     if (err) {
                         //parsing error
                         return cb(true, err);
+                    } else if (body.indexOf('http://www.sitemaps.org/schemas') > -1) {
+                        let products = res['urlset']['url'];
+                        products.shift();
+                        products.map(product => {
+                            // filter last 100 results based on `product`.lastmod`
+                            if (product) {
+                                let titles = [];
+                                if (product['image:image']) {
+                                    titles = product['image:image'][0]['image:title'];
+                                }
+                                console.log(titles);
+                            }
+                        });
                     }
-                    let products = res['urlset']['url'].filter(product => {
-                        // filter based on product.lastmod
-                        return product;
-                    });
-                    //get rid of first result cause it's irrelevant
-                    products.shift();
                 });
             }
         )
@@ -374,7 +381,7 @@ findProduct(
     {
         product: {
             url: null,
-            pos_keywords: ['+yeezy'],
+            pos_keywords: ['yeezy'],
             neg_keywords: null,
             variant: null,
             raw: '',
