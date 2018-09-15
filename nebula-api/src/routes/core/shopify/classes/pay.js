@@ -16,12 +16,12 @@ let matches;
 
 module.exports = {};
 
-function pay(task, _matches, productUrl, cb) {
-    matches = _matches;
-    let styleID = matches[0].id;
+function pay(task, discordBot, _match, _styleID) {
+    match = _match;
+    styleID = _styleID;
     request(
         {
-            url: `${productUrl[0]}`,
+            url: `${task.site}/products/` + match.handle,
             followAllRedirects: true,
             method: 'get',
             headers: {
@@ -114,9 +114,9 @@ function pay(task, _matches, productUrl, cb) {
                             console.log(`Store ID: ${storeID}`);
                             console.log(`Checkout ID: ${checkoutID}`);
                             price = $('#checkout_total_price').text();
-                            // notify(task, discordBot, '#36a64f', 'Added to Cart');
+                            notify(task, discordBot, '#36a64f', 'Added to Cart');
 
-                            return input(task, auth_token);
+                            return input(task, discordBot, auth_token);
                         }
                     );
                 }
@@ -128,11 +128,11 @@ function pay(task, _matches, productUrl, cb) {
 module.exports.pay = pay;
 
 function input(task, auth_token) {
-    console.log(`Checkout URL: ${url}`);
+    log(`Checkout URL: ${task.checkout_url}`);
     let form;
 
-    if (url.indexOf('checkout.shopify.com') > -1) {
-        console.log(`Checkout with checkout.shopify.com discovered`);
+    if (checkout_url.indexOf('checkout.shopify.com') > -1) {
+        log(`Checkout with checkout.shopify.com discovered`);
         form = {
             utf8: '✓',
             _method: 'patch',
@@ -141,16 +141,16 @@ function input(task, auth_token) {
             step: 'shipping_method',
             'checkout[email]': task.payment.email,
             'checkout[buyer_accepts_marketing]': '1',
-            'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-            'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
+            'checkout[shipping_address][first_name]': task.shipping.firstName,
+            'checkout[shipping_address][last_name]': task.shipping.lastName,
             'checkout[shipping_address][company]': '',
-            'checkout[shipping_address][address1]': task.profile.shipping.address,
-            'checkout[shipping_address][address2]': task.profile.shipping.apt,
-            'checkout[shipping_address][city]': task.profile.shipping.city,
-            'checkout[shipping_address][country]': task.profile.shipping.country,
-            'checkout[shipping_address][province]': task.profile.shipping.state,
-            'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-            'checkout[shipping_address][phone]': task.profile.shipping.phone,
+            'checkout[shipping_address][address1]': task.shipping.address,
+            'checkout[shipping_address][address2]': task.shipping.apt,
+            'checkout[shipping_address][city]': task.shipping.city,
+            'checkout[shipping_address][country]': task.shipping.country,
+            'checkout[shipping_address][province]': task.shipping.state,
+            'checkout[shipping_address][zip]': task.shipping.zipCode,
+            'checkout[shipping_address][phone]': task.shipping.phone,
             'checkout[remember_me]': '0',
             button: '',
             'checkout[client_details][browser_width]': '979',
@@ -162,17 +162,17 @@ function input(task, auth_token) {
             _method: 'patch',
             authenticity_token: auth_token,
             previous_step: 'contact_information',
-            'checkout[email]': task.profile.payment.email,
-            'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-            'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
+            'checkout[email]': task.payment.email,
+            'checkout[shipping_address][first_name]': task.shipping.firstName,
+            'checkout[shipping_address][last_name]': task.shipping.lastName,
             'checkout[shipping_address][company]': '',
-            'checkout[shipping_address][address1]': task.profile.shipping.address,
-            'checkout[shipping_address][address2]': task.profile.shipping.apt,
-            'checkout[shipping_address][city]': task.profile.shipping.city,
-            'checkout[shipping_address][country]': task.profile.shipping.country,
-            'checkout[shipping_address][province]': task.profile.shipping.state,
-            'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-            'checkout[shipping_address][phone]': task.profile.shipping.phone,
+            'checkout[shipping_address][address1]': task.shipping.address,
+            'checkout[shipping_address][address2]': task.shipping.apt,
+            'checkout[shipping_address][city]': task.shipping.city,
+            'checkout[shipping_address][country]': task.shipping.country,
+            'checkout[shipping_address][province]': task.shipping.state,
+            'checkout[shipping_address][zip]': task.shipping.zipCode,
+            'checkout[shipping_address][phone]': task.shipping.phone,
             'checkout[remember_me]': '0',
             'checkout[client_details][browser_width]': '979',
             'checkout[client_details][browser_height]': '631',
@@ -183,7 +183,7 @@ function input(task, auth_token) {
 
     request(
         {
-            url: url,
+            url: checkout_url,
             followAllRedirects: true,
             headers: {
                 Origin: `${checkoutHost}`,
