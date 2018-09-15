@@ -156,7 +156,6 @@ class Server extends Component {
 
   render() {
     const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
-
     return (
       <div className="container">
         <h1 className="text-header" id="server-header">Server</h1>
@@ -209,7 +208,7 @@ class Server extends Component {
 }
 
 Server.propTypes = {
-  // servers: defns.serverList.isRequired,
+  servers: defns.serverList.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   serverType: defns.serverType.isRequired,
   serverSize: defns.serverSize.isRequired,
@@ -225,7 +224,7 @@ Server.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  // servers: state.servers,
+  servers: state.servers,
   serverInfo: state.serverInfo,
   serverType: state.serverInfo.serverOptions.type,
   serverSize: state.serverInfo.serverOptions.size,
