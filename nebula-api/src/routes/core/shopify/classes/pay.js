@@ -17,14 +17,12 @@ let styleID;
 
 module.exports = {};
 
-//pull in config from dynamoDB
-
-function pay(config, discordBot, _match, _styleID) {
+function pay(task, discordBot, _match, _styleID) {
     match = _match;
     styleID = _styleID;
     request(
         {
-            url: `${config.base_url}/products/` + match.handle,
+            url: `${task.site}/products/` + match.handle,
             followAllRedirects: true,
             method: 'get',
             headers: {
@@ -40,7 +38,7 @@ function pay(config, discordBot, _match, _styleID) {
 
     request(
         {
-            url: `${config.base_url}/cart/add.js`,
+            url: `${task.site}/cart/add.js`,
             followAllRedirects: true,
             method: 'post',
             headers: {
@@ -74,8 +72,6 @@ function pay(config, discordBot, _match, _styleID) {
                     if (err) {
                         log(err, 'error');
                     }
-                    log('Added to cart!');
-                    log('Checking out your item...');
                     request(
                         {
                             url: `${config.base_url}/cart`,
@@ -96,7 +92,7 @@ function pay(config, discordBot, _match, _styleID) {
                             checkoutHost = 'https://' + res.request.originalHost;
 
                             if (res.request.href.indexOf('stock_problems') > -1) {
-                                log(`This item is currently Sold Out, sorry for the inconvenience`);
+                                // sold out
                                 process.exit(1);
                             }
 
@@ -110,9 +106,9 @@ function pay(config, discordBot, _match, _styleID) {
                             log(`Store ID: ${storeID}`);
                             log(`Checkout ID: ${checkoutID}`);
                             price = $('#checkout_total_price').text();
-                            notify(config, discordBot, '#36a64f', 'Added to Cart');
+                            notify(task, discordBot, '#36a64f', 'Added to Cart');
 
-                            return input(config, discordBot, auth_token);
+                            return input(task, discordBot, auth_token);
                         }
                     );
                 }
@@ -123,11 +119,11 @@ function pay(config, discordBot, _match, _styleID) {
 
 module.exports.pay = pay;
 
-function input(config, discordBot, auth_token) {
-    log(`Checkout URL: ${url}`);
+function input(task, auth_token) {
+    log(`Checkout URL: ${task.checkout_url}`);
     let form;
 
-    if (url.indexOf('checkout.shopify.com') > -1) {
+    if (checkout_url.indexOf('checkout.shopify.com') > -1) {
         log(`Checkout with checkout.shopify.com discovered`);
         form = {
             utf8: '✓',
@@ -135,18 +131,18 @@ function input(config, discordBot, auth_token) {
             authenticity_token: auth_token,
             previous_step: 'contact_information',
             step: 'shipping_method',
-            'checkout[email]': config.email,
+            'checkout[email]': task.payment.email,
             'checkout[buyer_accepts_marketing]': '1',
-            'checkout[shipping_address][first_name]': config.firstName,
-            'checkout[shipping_address][last_name]': config.lastName,
+            'checkout[shipping_address][first_name]': task.shipping.firstName,
+            'checkout[shipping_address][last_name]': task.shipping.lastName,
             'checkout[shipping_address][company]': '',
-            'checkout[shipping_address][address1]': config.address,
-            'checkout[shipping_address][address2]': '',
-            'checkout[shipping_address][city]': config.city,
-            'checkout[shipping_address][country]': config.country,
-            'checkout[shipping_address][province]': config.state,
-            'checkout[shipping_address][zip]': config.zipCode,
-            'checkout[shipping_address][phone]': config.phoneNumber,
+            'checkout[shipping_address][address1]': task.shipping.address,
+            'checkout[shipping_address][address2]': task.shipping.apt,
+            'checkout[shipping_address][city]': task.shipping.city,
+            'checkout[shipping_address][country]': task.shipping.country,
+            'checkout[shipping_address][province]': task.shipping.state,
+            'checkout[shipping_address][zip]': task.shipping.zipCode,
+            'checkout[shipping_address][phone]': task.shipping.phone,
             'checkout[remember_me]': '0',
             button: '',
             'checkout[client_details][browser_width]': '979',
@@ -158,17 +154,17 @@ function input(config, discordBot, auth_token) {
             _method: 'patch',
             authenticity_token: auth_token,
             previous_step: 'contact_information',
-            'checkout[email]': config.email,
-            'checkout[shipping_address][first_name]': config.firstName,
-            'checkout[shipping_address][last_name]': config.lastName,
+            'checkout[email]': task.payment.email,
+            'checkout[shipping_address][first_name]': task.shipping.firstName,
+            'checkout[shipping_address][last_name]': task.shipping.lastName,
             'checkout[shipping_address][company]': '',
-            'checkout[shipping_address][address1]': config.address,
-            'checkout[shipping_address][address2]': '',
-            'checkout[shipping_address][city]': config.city,
-            'checkout[shipping_address][country]': config.country,
-            'checkout[shipping_address][province]': config.state,
-            'checkout[shipping_address][zip]': config.zipCode,
-            'checkout[shipping_address][phone]': config.phoneNumber,
+            'checkout[shipping_address][address1]': task.shipping.address,
+            'checkout[shipping_address][address2]': task.shipping.apt,
+            'checkout[shipping_address][city]': task.shipping.city,
+            'checkout[shipping_address][country]': task.shipping.country,
+            'checkout[shipping_address][province]': task.shipping.state,
+            'checkout[shipping_address][zip]': task.shipping.zipCode,
+            'checkout[shipping_address][phone]': task.shipping.phone,
             'checkout[remember_me]': '0',
             'checkout[client_details][browser_width]': '979',
             'checkout[client_details][browser_height]': '631',
@@ -179,7 +175,7 @@ function input(config, discordBot, auth_token) {
 
     request(
         {
-            url: url,
+            url: checkout_url,
             followAllRedirects: true,
             headers: {
                 Origin: `${checkoutHost}`,
