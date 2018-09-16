@@ -4,9 +4,10 @@ import {
   SERVER_FIELDS,
   SERVER_ACTIONS,
   mapServerFieldToKey,
-  mapServerListFieldToKey,
   subMapToKey,
 } from '../../actions';
+
+export const initialServerListState = [];
 
 export const initialServerState = {
   credentials: {
@@ -32,7 +33,6 @@ export const initialServerState = {
   },
 };
 
-export const initialServerListState = [];
 
 export function serverReducer(state = initialServerState, action) {
   // initialize change object
@@ -112,15 +112,16 @@ export function serverListReducer(state = initialServerListState, action) {
       }
       const newServer = {
         id: newId,
-        type: serverOptions.type.label,
-        location: serverOptions.location.label,
+        type: serverOptions.type,
+        sizes: serverOptions.size,
+        location: serverOptions.location,
         charges: '0',
         status: 'Initializing...',
       };
       nextState.push(newServer);
       break;
     case SERVER_ACTIONS.DESTROY:
-      nextState.filter(s => s.id !== action.serverPath);
+      nextState = nextState.filter(s => s.id !== action.serverPath);
       break;
     case SERVER_ACTIONS.DESTROY_ALL:
       nextState = [];

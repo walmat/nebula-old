@@ -17,6 +17,7 @@
     "sass": "./tool/compile_css.sh"
   },
   "dependencies": {
+    "aws-sdk": "^2.315.0",
     "bodymovin": "^4.13.0",
     "electron": "^2.0.6",
     "electron-window-manager": "^1.0.6",

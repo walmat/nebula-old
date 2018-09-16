@@ -32,7 +32,9 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
 const _destroyServerRequest = async serverPath =>
   new Promise((resolve, reject) => {
-    resolve(serverPath);
+    setTimeout(() => {
+      resolve(serverPath);
+    }, 5000);
   });
 
 const _destroyAllServerRequest = async credentials =>
