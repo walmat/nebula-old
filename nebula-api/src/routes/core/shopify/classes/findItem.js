@@ -41,6 +41,14 @@ function matchWord(word1, word2) {
     return word1.toUpperCase() === word2.toUpperCase();
 }
 
+function trimKeywords(arr) {
+    let ret = [];
+    arr.map(word => {
+        ret.push(word.substring(1, word.length).trim()); //trim() just in case, probably not necessary
+    });
+    return ret;
+}
+
 function findProduct(task, proxy, cb) {
 
     if (task.product.url !== null) {
@@ -126,33 +134,48 @@ function findProduct(task, proxy, cb) {
                 }
             }, function (err, res, body) {
                 if (err) {
+                    // let's try some other method before we decide it's another error..
+                    // gotta come up with multiple ways to parse shit
                     return cb(true, err);
                 }
-                // parse xml
-                parseString(body, function(err, res) {
-                    if (err) {
-                        //parsing error
-                        return cb(true, err);
-                    } else if (body.indexOf('http://www.sitemaps.org/schemas') > -1) {
-                        let products = res['urlset']['url'];
-                        products.shift();
-                        products.map(product => {
-                            // filter last 100 results based on `product`.lastmod`
-                            if (product) { // null check
-                                if (product['image:image']) { // null check
-                                    titles = product['image:image'][0]['image:title'];
-                                    // make this work right and be way faster
-                                    let found = titles[0].toUpperCase().search(task.product.pos_keywords.map(kw => kw.toUpperCase()));
-                                    if (found > -1) {
-                                        matchedProducts.push(titles[0]);
-                                        // handle negative keywords
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    // parse xml
+                    parseString(body, function(err, res) {
+                        if (err) {
+                            //parsing error
+                            return cb(true, err);
+                        } else if (body.indexOf('http://www.sitemaps.org/schemas') > -1) { // sitemap returned correctly
+                            let products = res['urlset']['url'];
+                            products.shift();
+                            products.map(product => {
+                                // filter last 100 results based on `product`.lastmod`
+                                if (product) { // null check
+                                    if (product['image:image']) { // null check
+                                        titles = product['image:image'][0]['image:title'];
+
+                                        /**
+                                         * make the product matching work like so:
+                                         * 1. if ALL pos_keywords found in word A, consider A matched.
+                                         * 2. if ANY neg_keywords found in word A, consider A not matched.
+                                         * 
+                                         * if 1 === true, and 2 === false, consider A matched.
+                                         */
+                                        trimKeywords(task.product.pos_keywords).map(kw => {
+                                            // console.log(kw);
+                                            let found = titles[0].toUpperCase().search(kw.toUpperCase());
+                                            // console.log(found, titles[0].toUpperCase(), kw.toUpperCase());
+                                            if (found > -1) {
+                                                matchedProducts.push(titles[0]);
+                                            }
+                                        });
+                                        console.log(matchedProducts);
                                     }
-                                    // console.log(matchedProducts);
                                 }
-                            }
-                        });
-                    }
-                });
+                            });
+                        }
+                    });
+                }
+                
             }
         )
     }
@@ -393,7 +416,7 @@ findProduct(
     {
         product: {
             url: null,
-            pos_keywords: ['yeezy'],
+            pos_keywords: ['+yeezy', '+700'],
             neg_keywords: null,
             variant: null,
             raw: '',
