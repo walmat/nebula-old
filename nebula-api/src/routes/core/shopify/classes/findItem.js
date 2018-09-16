@@ -31,6 +31,16 @@ function formatProxy(input) {
     }
   }
 
+/**
+ * Matches two words together
+ * @param {string} word1 - first word
+ * @param {string} word2 - second word
+ * @return -1: false, 0: match, 1: 
+ */
+function matchWord(word1, word2) {
+    return word1.toUpperCase() === word2.toUpperCase();
+}
+
 function findProduct(task, proxy, cb) {
 
     if (task.product.url !== null) {
@@ -102,6 +112,9 @@ function findProduct(task, proxy, cb) {
         )
         
     } else if (task.product.pos_keywords !== null) {
+
+        let matchedProducts = [];
+
         request(
             {
                 method: 'GET',
@@ -125,12 +138,17 @@ function findProduct(task, proxy, cb) {
                         products.shift();
                         products.map(product => {
                             // filter last 100 results based on `product`.lastmod`
-                            if (product) {
-                                let titles = [];
-                                if (product['image:image']) {
+                            if (product) { // null check
+                                if (product['image:image']) { // null check
                                     titles = product['image:image'][0]['image:title'];
+                                    // make this work right and be way faster
+                                    let found = titles[0].toUpperCase().search(task.product.pos_keywords.map(kw => kw.toUpperCase()));
+                                    if (found > -1) {
+                                        matchedProducts.push(titles[0]);
+                                        // handle negative keywords
+                                    }
+                                    // console.log(matchedProducts);
                                 }
-                                console.log(titles);
                             }
                         });
                     }
