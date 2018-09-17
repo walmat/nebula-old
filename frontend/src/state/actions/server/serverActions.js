@@ -1,5 +1,7 @@
 import makeActionCreator from '../actionCreator';
 
+import regexes from '../../../utils/validation';
+
 const AWS = require('aws-sdk');
 
 // Top level Actions
@@ -93,6 +95,11 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
     } else {
       reject(new Error('parameters should not be null!'));
     }
+  });
+
+const _connectServerRequest = async (serverOptions, awsCredentials) =>
+  new Promise((resolve, reject) => {
+    resolve(serverOptions);
   });
 
 /**
@@ -235,9 +242,11 @@ const _destroyProxiesRequest = async () =>
 const _validateAwsRequest = async awsCredentials =>
   // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
+
+    console.log(awsCredentials);
     const aKey = awsCredentials.AWSAccessKey;
     const sKey = awsCredentials.AWSSecretKey;
-    if (aKey && aKey !== '' && sKey && sKey !== '') {
+    if (regexes.aws_access_key.test(aKey) && regexes.aws_secret_key.test(sKey)) {
       resolve('access_token');
     } else {
       reject(new Error('Keys should be valid!'));
@@ -297,8 +306,11 @@ const generateProxies = proxyOptions =>
     error => dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error)),
   );
 
-const connectServer = credentials =>
-  dispatch => _connectServer(credentials).then(console.log('yep'));
+const connectServer = (serverOptions, awsCredentials) =>
+  dispatch => _connectServerRequest((serverOptions, awsCredentials)).then(
+    res => dispatch(_connectServer(res)),
+    error => dispatch(handleError(SERVER_ACTIONS.CONNECT, error)),
+  );
 
 const destroyProxies = () =>
   dispatch => _destroyProxiesRequest().then(
@@ -312,9 +324,9 @@ const validateAws = awsCredentials =>
     error => dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error)),
   );
 
-const logoutAws = path =>
+const logoutAws = (serverOptions, awsCredentials) =>
   dispatch => dispatch(destroyProxies())
-    .then(() => dispatch(destroyServer(path)))
+    .then(() => dispatch(destroyAllServers(serverOptions, awsCredentials)))
     .then(() => dispatch(_logoutAws()))
     .catch(error => dispatch(handleError(SERVER_ACTIONS.LOGOUT_AWS, error)));
 
