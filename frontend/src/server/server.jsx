@@ -12,6 +12,7 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import '../app.css';
 import './server.css';
 
+
 class Server extends Component {
   static buildServerTypeChoices(options, onFilter) {
     return () => {

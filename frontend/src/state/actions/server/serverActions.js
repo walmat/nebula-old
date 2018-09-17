@@ -1,5 +1,7 @@
 import makeActionCreator from '../actionCreator';
 
+const AWS = require('aws-sdk');
+
 // Top level Actions
 export const SERVER_ACTIONS = {
   EDIT: 'EDIT_SERVER_OPTIONS',
@@ -16,25 +18,108 @@ export const SERVER_ACTIONS = {
 };
 
 // Private API Requests
+  /**
+   * see https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/javascript/example_code/ec2/ec2_createinstances.js
+   */
 const _createServerRequest = async (serverOptions, awsCredentials) =>
   // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (serverOptions && awsCredentials) {
-      resolve({
-        path: 'temppath',
-        serverOptions,
-        awsCredentials,
+      AWS.config = new AWS.Config({
+        accessKeyId: awsCredentials.AWSAccessKey,
+        secretAccessKey: awsCredentials.AWSSecretKey,
+        region: serverOptions.location.value,
+      });
+
+      // ec2 object
+      const ec2 = new AWS.EC2();
+      let keyPairName = '';
+      // create a keypair
+      ec2.createKeyPair({ KeyName: 'test' }, (err, data) => {
+        if (err) {
+          console.log('error', err);
+        } else {
+          // use this in creating the instance
+          console.log(JSON.stringify(data));
+          keyPairName = data;
+        }
+      });
+
+      console.log(keyPairName);
+
+      // parameters for the instance
+      const instanceParams = {
+        ImageId: '', // todo - find this based on the linux ami
+        InstanceType: serverOptions.size.value,
+        KeyName: keyPairName,
+        MinCount: 1,
+        MaxCount: 1,
+      };
+
+      // maybe await this?
+      ec2.runInstances(instanceParams).promise().then((data) => {
+        console.log(data);
+        const instanceId = data.Instances[0].InstanceId; //  we might need to keep track of this to destroy/stop later?
+        console.log('Created instance', instanceId);
+
+        resolve({
+          path: 'temppath',
+          serverOptions,
+          awsCredentials,
+        });
+      }).catch((err) => {
+        // error handling
+        if (err.statusCode === 401) {
+          reject(new Error('Not subscribed to AWS'));
+        }
+        console.error(err, err.stack);
       });
     } else {
       reject(new Error('parameters should not be null!'));
     }
   });
 
-const _destroyServerRequest = async serverPath =>
+/**
+ * grabs current running instances for the user
+ * @param {*} credentials - user's AWS access/secret key
+ */
+const _getCurrentInstances = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve(serverPath);
-    }, 5000);
+    AWS.config = new AWS.Config({
+      accessKeyId: awsCredentials.AWSAccessKey,
+      secretAccessKey: awsCredentials.AWSSecretKey,
+      region: serverOptions.location.value,
+    });
+    const ec2 = new AWS.EC2();
+    ec2.describeInstances({}, (err, data) => {
+      if (err) {
+        reject(new Error(err));
+      } else {
+        resolve(data);
+      }
+    });
+  });
+
+const _destroyServerRequest = async (serverOptions, awsCredentials) =>
+  new Promise((resolve, reject) => {
+    AWS.config = new AWS.Config({
+      accessKeyId: awsCredentials.AWSAccessKey,
+      secretAccessKey: awsCredentials.AWSSecretKey,
+      region: serverOptions.location.value,
+    });
+    const ec2 = new AWS.EC2();
+    const params = {
+      InstanceIds: [
+        serverOptions.instanceId, // fix this later..
+      ],
+    };
+    ec2.terminateInstances(params, (err, data) => {
+      if (err) {
+        reject(new Error(err));
+      } else {
+        resolve(data);
+      }
+    });
   });
 
 const _destroyAllServerRequest = async credentials =>
@@ -43,7 +128,6 @@ const _destroyAllServerRequest = async credentials =>
   });
 
 const _generateProxiesRequest = async proxyOptions =>
-  // TOOD: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (proxyOptions != null) {
       // convert proxies;
@@ -63,16 +147,48 @@ const _generateProxiesRequest = async proxyOptions =>
     }
   });
 
-const _startServerRequest = async serverInfo =>
+const _startServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
-    // TODO - make this request to the aws server with user's credentials
-    resolve(serverInfo);
+    AWS.config = new AWS.Config({
+      accessKeyId: awsCredentials.AWSAccessKey,
+      secretAccessKey: awsCredentials.AWSSecretKey,
+      region: serverOptions.location.value,
+    });
+    const ec2 = new AWS.EC2();
+    const params = {
+      InstanceIds: [
+        serverOptions.instanceId,
+      ],
+    };
+    ec2.startInstances(params, (err, data) => {
+      if (err) {
+        reject(new Error(err));
+      } else {
+        resolve(data);
+      }
+    });
   });
 
-const _stopServerRequest = async serverInfo =>
+const _stopServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
-    // TODO - make this request to the aws server with user's credentials
-    resolve(serverInfo);
+    AWS.config = new AWS.Config({
+      accessKeyId: awsCredentials.AWSAccessKey,
+      secretAccessKey: awsCredentials.AWSSecretKey,
+      region: serverOptions.location.value,
+    });
+    const ec2 = new AWS.EC2();
+    const params = {
+      InstanceIds: [
+        serverOptions.instanceId, // fix this later..
+      ],
+    };
+    ec2.stopInstances(params, (err, data) => {
+      if (err) {
+        reject(new Error(err));
+      } else {
+        resolve(data);
+      }
+    });
   });
 
 const _destroyProxiesRequest = async () =>
