@@ -39,22 +39,22 @@ class ServerRow extends Component {
   }
 
   renderTableRowStartActionButton() {
-    const { server } = this.props;
+    const { server, serverInfo } = this.props;
     return ServerRow.renderTableRowButton(
       'Start Server',
       start,
       server.status === 'running' ? 'active' : '',
-      () => { this.props.onStartServer(server); },
+      () => { this.props.onStartServer(server, serverInfo.credentials); },
     );
   }
 
   renderTableRowStopActionButton() {
-    const { server } = this.props;
+    const { server, serverInfo } = this.props;
     return ServerRow.renderTableRowActionButton(
       'Stop Server',
       stop,
       server.status === 'stopped' ? 'active' : '',
-      () => { this.props.onStopServer(server); },
+      () => { this.props.onStopServer(server, serverInfo.credentials); },
     );
   }
 
@@ -111,14 +111,13 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onStartServer: (opts) => {
-    dispatch(serverActions.start(opts.id));
+  onStartServer: (serverOptions, awsCredentials) => {
+    dispatch(serverActions.start(serverOptions, awsCredentials));
   },
-  onStoServerp: (opts) => {
-    dispatch(serverActions.stop(opts.id));
+  onStopServer: (serverOptions, awsCredentials) => {
+    dispatch(serverActions.stop(serverOptions, awsCredentials));
   },
   onDestroyServer: (serverOptions, awsCredentials) => {
-    console.log(serverOptions, awsCredentials);
     dispatch(serverActions.destroy(serverOptions, awsCredentials));
   },
 });

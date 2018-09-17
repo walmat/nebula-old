@@ -152,7 +152,6 @@ const _destroyServerRequest = async (serverOptions, awsCredentials) =>
 
 const _destroyAllServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
-    // todo - finish this implementation
     resolve(serverOptions);
   });
 
@@ -164,6 +163,7 @@ const _generateProxiesRequest = async (serverOptions, awsCredentials) =>
 
 const _startServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
+    console.log(serverOptions, awsCredentials);
     AWS.config = new AWS.Config({
       accessKeyId: awsCredentials.AWSAccessKey,
       secretAccessKey: awsCredentials.AWSSecretKey,
@@ -172,7 +172,7 @@ const _startServerRequest = async (serverOptions, awsCredentials) =>
     const ec2 = new AWS.EC2();
     const params = {
       InstanceIds: [
-        serverOptions.instanceId,
+        serverOptions.id,
       ],
     };
     ec2.startInstances(params, (err, data) => {
@@ -189,6 +189,7 @@ const _startServerRequest = async (serverOptions, awsCredentials) =>
           64 : stopping
           80 : stopped
          */
+        console.log(data);
         resolve(data);
       }
     });
@@ -204,7 +205,7 @@ const _stopServerRequest = async (serverOptions, awsCredentials) =>
     const ec2 = new AWS.EC2();
     const params = {
       InstanceIds: [
-        serverOptions.instanceId, // fix this later..
+        serverOptions.id,
       ],
     };
     ec2.stopInstances(params, (err, data) => {
@@ -221,6 +222,7 @@ const _stopServerRequest = async (serverOptions, awsCredentials) =>
           64 : stopping
           80 : stopped
          */
+        console.log(data);
         resolve(data);
       }
     });
@@ -265,14 +267,14 @@ const createServer = (serverOptions, awsCredentials) =>
     error => dispatch(handleError(SERVER_ACTIONS.CREATE, error)),
   );
 
-const startServer = serverPath =>
-  dispatch => _startServerRequest(serverPath).then(
+const startServer = (serverOptions, awsCredentials) =>
+  dispatch => _startServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_startServer(path)),
     error => dispatch(handleError(SERVER_ACTIONS.START, error)),
   );
 
-const stopServer = serverPath =>
-  dispatch => _stopServerRequest(serverPath).then(
+const stopServer = (serverOptions, awsCredentials) =>
+  dispatch => _stopServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_stopServer(path)),
     error => dispatch(handleError(SERVER_ACTIONS.START, error)),
   );

@@ -103,7 +103,6 @@ export function serverListReducer(state = initialServerListState, action) {
     case SERVER_ACTIONS.CREATE:
       // perform a deep copy of given profile
       const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
-      console.log(action);
       const newServer = {
         id: action.serverInfo.path,
         type: serverOptions.type,
