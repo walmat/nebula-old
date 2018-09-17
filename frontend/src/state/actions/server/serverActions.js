@@ -9,7 +9,7 @@ export const SERVER_ACTIONS = {
   START: 'START_SERVER',
   STOP: 'STOP_SERVER',
   DESTROY: 'DESTROY_SERVER',
-  DESTROY_ALL: 'DESTROY_SERVER',
+  DESTROY_ALL: 'DESTROY_SERVERS',
   ERROR: 'SERVER_HANDLE_ERROR',
   GEN_PROXIES: 'GENERATE_PROXIES',
   DESTROY_PROXIES: 'DESTROY_PROXIES',
@@ -127,7 +127,7 @@ const _destroyServerRequest = async (serverOptions, awsCredentials) =>
     const ec2 = new AWS.EC2();
     const params = {
       InstanceIds: [
-        serverOptions.instanceId, // fix this later..
+        serverOptions.id,
       ],
     };
     ec2.terminateInstances(params, (err, data) => {
@@ -144,6 +144,7 @@ const _destroyServerRequest = async (serverOptions, awsCredentials) =>
           64 : stopping
           80 : stopped
          */
+        console.log(data);
         resolve(data);
       }
     });
@@ -276,8 +277,8 @@ const stopServer = serverPath =>
     error => dispatch(handleError(SERVER_ACTIONS.START, error)),
   );
 
-const destroyServer = serverPath =>
-  dispatch => _destroyServerRequest(serverPath).then(
+const destroyServer = (serverOptions, awsCredentials) =>
+  dispatch => _destroyServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_destroyServer(path)),
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY, error)),
   );
@@ -350,9 +351,6 @@ export const mapServerFieldToKey = {
   [SERVER_FIELDS.EDIT_PROXY_PASSWORD]: 'proxyOptions',
   [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'credentials',
   [SERVER_FIELDS.EDIT_AWS_SECRET_KEY]: 'credentials',
-};
-
-export const mapServerListFieldToKey = {
 };
 
 export const subMapToKey = {

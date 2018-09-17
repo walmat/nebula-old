@@ -1,5 +1,3 @@
-import uuidv4 from 'uuid/v4';
-
 import {
   SERVER_FIELDS,
   SERVER_ACTIONS,
@@ -38,7 +36,7 @@ export function serverReducer(state = initialServerState, action) {
   // initialize change object
   let change = {};
   // Deep copy the current state
-  const nextState = JSON.parse(JSON.stringify(state));
+  let nextState = JSON.parse(JSON.stringify(state));
   // Check if we are performing an edit
   if (action.type === SERVER_ACTIONS.EDIT) {
     // Choose what to change based on the field
@@ -85,6 +83,7 @@ export function serverReducer(state = initialServerState, action) {
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
     nextState.proxies = null;
   } else if (action.type === SERVER_ACTIONS.DESTROY_ALL) {
+    // nextState = nextState.filter(s => s.id !== action);
     console.log(action, nextState);
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     nextState.credentials.accessToken = action.token;
@@ -96,7 +95,6 @@ export function serverReducer(state = initialServerState, action) {
 }
 
 export function serverListReducer(state = initialServerListState, action) {
-  let change = {};
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
@@ -105,13 +103,9 @@ export function serverListReducer(state = initialServerListState, action) {
     case SERVER_ACTIONS.CREATE:
       // perform a deep copy of given profile
       const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
-      let newId = uuidv4();
-      const idCheck = s => s.id === newId;
-      while (nextState.some(idCheck)) {
-        newId = uuidv4();
-      }
+      console.log(action);
       const newServer = {
-        id: newId,
+        id: action.serverInfo.path,
         type: serverOptions.type,
         sizes: serverOptions.size,
         location: serverOptions.location,
@@ -121,7 +115,7 @@ export function serverListReducer(state = initialServerListState, action) {
       nextState.push(newServer);
       break;
     case SERVER_ACTIONS.DESTROY:
-      nextState = nextState.filter(s => s.id !== action.serverPath);
+      nextState = nextState.filter(s => s.id !== action.serverPath.TerminatingInstances[0].InstanceId);
       break;
     case SERVER_ACTIONS.DESTROY_ALL:
       nextState = [];

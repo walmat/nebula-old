@@ -59,12 +59,12 @@ class ServerRow extends Component {
   }
 
   renderTableRowDestroyActionButton() {
-    const { server } = this.props;
+    const { server, serverInfo } = this.props;
     return ServerRow.renderTableRowActionButton(
       'Destroy Server',
       destroy,
       '',
-      () => { this.props.onDestroyServer(server); },
+      () => { this.props.onDestroyServer(server, serverInfo.credentials); },
     );
   }
 
@@ -117,8 +117,9 @@ const mapDispatchToProps = dispatch => ({
   onStoServerp: (opts) => {
     dispatch(serverActions.stop(opts.id));
   },
-  onDestroyServer: (opts) => {
-    dispatch(serverActions.destroy(opts.id));
+  onDestroyServer: (serverOptions, awsCredentials) => {
+    console.log(serverOptions, awsCredentials);
+    dispatch(serverActions.destroy(serverOptions, awsCredentials));
   },
 });
 
