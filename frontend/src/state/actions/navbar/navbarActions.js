@@ -28,7 +28,7 @@ const _routeAction = action => makeActionCreator(action, 'history');
 // Public General Route Action
 const route = (action, history) =>
   (dispatch) => {
-    history.push(mapActionsToRoutes[action]);
+    history.push(mapActionsToRoutes[action] || '/');
     dispatch(_routeAction(action)(history));
   };
 

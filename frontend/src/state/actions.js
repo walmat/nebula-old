@@ -44,5 +44,6 @@ export const {
 export const {
   navbarActions,
   mapActionsToRoutes,
+  NAVBAR_ACTIONS,
   ROUTES,
 } = navbar;
