@@ -46,7 +46,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
       // list all key pair names
       ec2.describeKeyPairs(describeParams, (err, data) => {
         if (err) {
-          // create a keypair
+          // try creating the keypair
           ec2.createKeyPair(createParams, (e, d) => {
             if (e) {
               console.log(e);
@@ -54,16 +54,20 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
               console.log(d.KeyName);
             }
           });
-        } else {
-          console.log(data.KeyNames);
+        } else if (!data.KeyPairs.some(kp => kp.KeyName === 'nebula' )) {
+          ec2.createKeyPair(createParams, (error) => {
+            if (error) {
+              reject(new Error('Unable to create keypair'));
+            } // otherwise the keypair should be created fine
+          });
         }
       });
 
       // parameters for the instance
       const instanceParams = {
-        ImageId: 'ami-04169656fea786776', // linux 16.04 LTS
+        ImageId: 'ami-04169656fea786776', // linux 16.04 LTS (we need to find this, cause it changes based on region)
         InstanceType: serverOptions.size.value,
-        KeyName: params.KeyName,
+        KeyName: createParams.KeyName,
         MinCount: 1,
         MaxCount: 1,
       };

@@ -201,7 +201,7 @@ class Server extends Component {
         <p className="server-log-header" id="server-actions-header">Action</p>
         <hr id="server-log-line" />
         <div id="server-scroll-box">
-          {/* <ViewLog /> */}
+          <ViewLog />
         </div>
       </div>
     );
