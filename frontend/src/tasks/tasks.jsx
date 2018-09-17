@@ -27,7 +27,7 @@ class Tasks extends Component {
 
   startAllTasks() {
     for (let i = 0; i < this.props.tasks.length; i += 1) {
-      this.props.onStartTask(this.props.tasks[i]);
+      this.props.onStartTask(this.props.tasks[i], this.props.proxies);
     }
   }
 
@@ -199,6 +199,7 @@ Tasks.propTypes = {
 
 const mapStateToProps = state => ({
   tasks: state.tasks,
+  proxies: state.settings.proxies,
   newTask: state.newTask,
   selectedTask: state.selectedTask,
 });
@@ -216,8 +217,8 @@ const mapDispatchToProps = dispatch => ({
   onDestroyTasks: () => {
     dispatch(taskActions.destroy(null));
   },
-  onStartTask: (task) => {
-    dispatch(taskActions.start(task));
+  onStartTask: (task, proxies) => {
+    dispatch(taskActions.start(task, proxies));
   },
   onStopTask: (task) => {
     dispatch(taskActions.stop(task));

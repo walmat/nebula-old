@@ -19,7 +19,9 @@ export const SERVER_ACTIONS = {
 
 // Private API Requests
   /**
-   * see https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/javascript/example_code/ec2/ec2_createinstances.js
+   * see:
+   * exmaples - https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/javascript/example_code/ec2/ec2_createinstances.js
+   * docs - https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
    */
 const _createServerRequest = async (serverOptions, awsCredentials) =>
   // TODO: Replace this with an actual API call
@@ -39,7 +41,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
         if (err) {
           console.log('error', err);
         } else {
-          // use this in creating the instance
+          // todo -- use this in creating the instance
           console.log(JSON.stringify(data));
           keyPairName = data;
         }
@@ -117,34 +119,31 @@ const _destroyServerRequest = async (serverOptions, awsCredentials) =>
       if (err) {
         reject(new Error(err));
       } else {
+        /** data.Code : data.Name
+          ( The low byte represents the state.
+          The high byte is used for internal purposes and should be ignored )
+          0 : pending
+          16 : running
+          32 : shutting-down
+          48 : terminated
+          64 : stopping
+          80 : stopped
+         */
         resolve(data);
       }
     });
   });
 
-const _destroyAllServerRequest = async credentials =>
+const _destroyAllServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
-    resolve(credentials);
+    // todo - finish this implementation
+    resolve(serverOptions);
   });
 
-const _generateProxiesRequest = async proxyOptions =>
+const _generateProxiesRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
-    if (proxyOptions != null) {
-      // convert proxies;
-      const proxies = [];
-      const { numProxies, username, password } = proxyOptions;
-      for (let i = 0; i < numProxies; i += 1) {
-        proxies.push({
-          ip: 'localhost',
-          port: (25000 + i),
-          username,
-          password,
-        });
-      }
-      resolve(proxies);
-    } else {
-      reject(new Error('parameters should not be null!'));
-    }
+    // todo - finish this implementation
+    resolve(serverOptions);
   });
 
 const _startServerRequest = async (serverOptions, awsCredentials) =>
@@ -164,6 +163,16 @@ const _startServerRequest = async (serverOptions, awsCredentials) =>
       if (err) {
         reject(new Error(err));
       } else {
+        /** data.Code : data.Name
+          ( The low byte represents the state.
+          The high byte is used for internal purposes and should be ignored )
+          0 : pending
+          16 : running
+          32 : shutting-down
+          48 : terminated
+          64 : stopping
+          80 : stopped
+         */
         resolve(data);
       }
     });
@@ -186,6 +195,16 @@ const _stopServerRequest = async (serverOptions, awsCredentials) =>
       if (err) {
         reject(new Error(err));
       } else {
+        /** data.Code : data.Name
+          ( The low byte represents the state.
+          The high byte is used for internal purposes and should be ignored )
+          0 : pending
+          16 : running
+          32 : shutting-down
+          48 : terminated
+          64 : stopping
+          80 : stopped
+         */
         resolve(data);
       }
     });
