@@ -69,6 +69,7 @@
     "eslint-plugin-import": "^2.13.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.10.0",
+    "jest": "^23.6.0",
     "replace": "^1.0.0",
     "sass": "^1.12.0"
   }
