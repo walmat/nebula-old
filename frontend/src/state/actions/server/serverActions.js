@@ -34,18 +34,22 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
       // ec2 object
       const ec2 = new AWS.EC2();
-      const params = {
+      const describeParams = {
+        KeyNames: [
+          'nebula',
+        ],
+      };
+      const createParams = {
         KeyName: 'nebula',
       };
 
-      // create a key-pair if it doesn't exist
-      ec2.describeKeyPairs(params, (err, data) => {
+      // list all key pair names
+      ec2.describeKeyPairs(describeParams, (err, data) => {
         if (err) {
           // create a keypair
-          ec2.createKeyPair(params, (e, d) => {
+          ec2.createKeyPair(createParams, (e, d) => {
             if (e) {
-              console.log('error', e);
-              // check to see if the keypair already exists
+              console.log(e);
             } else {
               console.log(d.KeyName);
             }
@@ -103,6 +107,7 @@ const _getCurrentInstances = async (serverOptions, awsCredentials) =>
       if (err) {
         reject(new Error(err));
       } else {
+        console.log(data);
         resolve(data);
       }
     });
