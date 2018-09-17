@@ -24,7 +24,6 @@ export const SERVER_ACTIONS = {
    * docs - https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
    */
 const _createServerRequest = async (serverOptions, awsCredentials) =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (serverOptions && awsCredentials) {
       AWS.config = new AWS.Config({
@@ -35,25 +34,32 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
       // ec2 object
       const ec2 = new AWS.EC2();
-      let keyPairName = '';
-      // create a keypair
-      ec2.createKeyPair({ KeyName: 'test' }, (err, data) => {
+      const params = {
+        KeyName: 'nebula',
+      };
+
+      // create a key-pair if it doesn't exist
+      ec2.describeKeyPairs(params, (err, data) => {
         if (err) {
-          console.log('error', err);
+          // create a keypair
+          ec2.createKeyPair(params, (e, d) => {
+            if (e) {
+              console.log('error', e);
+              // check to see if the keypair already exists
+            } else {
+              console.log(d.KeyName);
+            }
+          });
         } else {
-          // todo -- use this in creating the instance
-          console.log(JSON.stringify(data));
-          keyPairName = data;
+          console.log(data.KeyNames);
         }
       });
 
-      console.log(keyPairName);
-
       // parameters for the instance
       const instanceParams = {
-        ImageId: '', // todo - find this based on the linux ami
+        ImageId: 'ami-04169656fea786776', // linux 16.04 LTS
         InstanceType: serverOptions.size.value,
-        KeyName: keyPairName,
+        KeyName: params.KeyName,
         MinCount: 1,
         MaxCount: 1,
       };
@@ -65,7 +71,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
         console.log('Created instance', instanceId);
 
         resolve({
-          path: 'temppath',
+          path: instanceId,
           serverOptions,
           awsCredentials,
         });

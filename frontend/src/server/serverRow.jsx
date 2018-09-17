@@ -70,6 +70,7 @@ class ServerRow extends Component {
 
   renderTableRow() {
     const { server } = this.props;
+    console.log(server);
     return (
       <div key={server.id} className="tasks-row row">
         <div className="col col--no-gutter tasks-row__id">{server.type.label}</div>
