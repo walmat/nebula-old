@@ -13,7 +13,7 @@ import './server';
 class ServerRow extends Component {
   static renderTableRowActionButton(desc, src, className, onClick) {
     return (
-      <div className="task-row__actions__button">
+      <div className="server-row__actions__button">
         {ServerRow.renderTableRowButton(desc, src, className, onClick)}
       </div>
     );
@@ -71,13 +71,13 @@ class ServerRow extends Component {
   renderTableRow() {
     const { server } = this.props;
     return (
-      <div key={server.id} className="tasks-row row">
-        <div className="col col--no-gutter tasks-row__id">{server.type.label}</div>
-        <div className="col col--no-gutter tasks-row__product">{server.sizes.label}</div>
-        <div className="col col--no-gutter tasks-row__sites">{server.location.label}</div>
-        <div className="col col--no-gutter tasks-row__profile">{server.charges}</div>
-        <div className="col col--no-gutter tasks-row__product">{server.status}</div>
-        <div className="col col--no-gutter tasks-row__actions">
+      <div key={server.id} className="server-row row">
+        <div className="col col--no-gutter server-row__type">{server.type.label}</div>
+        <div className="col col--no-gutter server-row__size">{server.sizes.label}</div>
+        <div className="col col--no-gutter server-row__location">{server.location.label}</div>
+        <div className="col col--no-gutter server-row__charges">{server.charges}</div>
+        <div className="col col--no-gutter server-row__status">{server.status}</div>
+        <div className="col col--no-gutter server-row__actions">
           <div className="row row--gutter">
             {this.renderTableRowStartActionButton()}
             {this.renderTableRowStopActionButton()}
@@ -90,7 +90,7 @@ class ServerRow extends Component {
 
   render() {
     return (
-      <div className="tasks-row-container col">
+      <div className="server-row-container col">
         { this.renderTableRow() }
       </div>
     );

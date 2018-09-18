@@ -34,7 +34,6 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
         region: serverOptions.location.value,
       });
 
-      // ec2 object
       const ec2 = new AWS.EC2();
       const describeParams = {
         KeyNames: [
@@ -49,11 +48,9 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
       ec2.describeKeyPairs(describeParams, (err, data) => {
         if (err) {
           // try creating the keypair
-          ec2.createKeyPair(createParams, (e, d) => {
+          ec2.createKeyPair(createParams, (e) => {
             if (e) {
-              console.log(e);
-            } else {
-              console.log(d.KeyName);
+              reject(new Error('Unable to create keypair'));
             }
           });
         } else if (!data.KeyPairs.some(kp => kp.KeyName === 'nebula')) {
@@ -74,9 +71,8 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
         MaxCount: 1,
       };
 
-      // maybe await this?
       ec2.runInstances(instanceParams).promise().then((data) => {
-        const instanceId = data.Instances[0].InstanceId; //  we might need to keep track of this to destroy/stop later?
+        const instanceId = data.Instances[0].InstanceId; 
 
         resolve({
           path: instanceId,
@@ -88,7 +84,6 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
         if (err.statusCode === 401) {
           reject(new Error('Not subscribed to AWS'));
         }
-        console.error(err, err.stack);
       });
     } else {
       reject(new Error('parameters should not be null!'));
@@ -182,7 +177,6 @@ const _destroyAllServerRequest = async (servers, awsCredentials) =>
           64 : stopping
           80 : stopped
          */
-        console.log(data);
         resolve(data);
       }
     });
@@ -267,7 +261,7 @@ const _validateAwsRequest = async awsCredentials =>
   new Promise((resolve, reject) => {
     const aKey = awsCredentials.AWSAccessKey;
     const sKey = awsCredentials.AWSSecretKey;
-    
+
     // test the string inputs
     if (regexes.aws_access_key.test(aKey) && regexes.aws_secret_key.test(sKey)) {
       resolve('access_token');
