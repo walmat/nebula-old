@@ -24,7 +24,6 @@ export const initialState = {
   newTask: initialTaskState,
   navbar: initialNavbarState,
   selectedTask: initialTaskState,
-  proxies: initialSettingsState,
   settings: initialSettingsState,
   serverInfo: initialServerState,
   servers: initialServerListState,
