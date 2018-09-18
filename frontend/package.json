@@ -69,7 +69,9 @@
     "eslint-plugin-import": "^2.13.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.10.0",
+    "history": "^4.7.2",
     "jest": "^23.6.0",
+    "redux-mock-store": "^1.5.3",
     "replace": "^1.0.0",
     "sass": "^1.12.0"
   }

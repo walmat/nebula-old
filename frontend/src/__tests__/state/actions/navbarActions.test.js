@@ -1,58 +1,68 @@
-/* global describe it expect beforeEach jest */
+/* global describe it expect beforeEach */
+import configureMockStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
+import createMemoryHistory from 'history/createMemoryHistory';
+
 import * as actions from '../../../state/actions';
+import { initialState } from '../../../state/reducers';
+
+const { navbarActions, NAVBAR_ACTIONS, ROUTES } = actions;
+const _createMockStore = configureMockStore([thunk]);
 
 describe('navbar actions', () => {
   let mockHistory;
-  let mockDispatch;
-  let historyRoute;
+  let mockStore;
 
-  const routeTests = (action, actionType, route) => {
-    expect(action).toBeDefined();
-    expect(typeof action).toBe('function');
-    action(mockDispatch);
-    expect(historyRoute).toBe(route);
-    expect(mockDispatch.mock.calls.length).toBe(1);
-    expect(mockDispatch.mock.calls[0][0].type).toBe(actionType);
-    expect(mockDispatch.mock.calls[0][0].history).toBeDefined();
+  const routeTests = (action, expectedRoute, expectedActions) => {
+    mockStore.dispatch(action);
+    const actualActions = mockStore.getActions();
+    expect(actualActions.length).toBe(1);
+    expect(actualActions).toEqual(expectedActions);
+    expect(mockHistory.location.pathname).toBe(expectedRoute);
   };
 
   beforeEach(() => {
-    historyRoute = null;
-    mockHistory = {
-      push: (route) => {
-        historyRoute = route;
-      },
-    };
-    mockDispatch = jest.fn();
+    mockHistory = createMemoryHistory();
+    mockStore = _createMockStore(initialState);
   });
 
   it('should create an action to route anywhere', () => {
-    const { navbarActions } = actions;
     const routeAction = navbarActions.route('ROUTE_SOMEWHERE', mockHistory);
-    routeTests(routeAction, 'ROUTE_SOMEWHERE', '/');
+    const expectedActions = [
+      { type: 'ROUTE_SOMEWHERE', history: mockHistory },
+    ];
+    routeTests(routeAction, '/', expectedActions);
   });
 
   it('should create an action to route to profiles', () => {
-    const { navbarActions, NAVBAR_ACTIONS, ROUTES } = actions;
     const routeAction = navbarActions.routeProfiles(mockHistory);
-    routeTests(routeAction, NAVBAR_ACTIONS.ROUTE_PROFILES, ROUTES.PROFILES);
+    const expectedActions = [
+      { type: NAVBAR_ACTIONS.ROUTE_PROFILES, history: mockHistory },
+    ];
+    routeTests(routeAction, ROUTES.PROFILES, expectedActions);
   });
 
   it('should create an action to route to tasks', () => {
-    const { navbarActions, NAVBAR_ACTIONS, ROUTES } = actions;
     const routeAction = navbarActions.routeTasks(mockHistory);
-    routeTests(routeAction, NAVBAR_ACTIONS.ROUTE_TASKS, ROUTES.TASKS);
+    const expectedActions = [
+      { type: NAVBAR_ACTIONS.ROUTE_TASKS, history: mockHistory },
+    ];
+    routeTests(routeAction, ROUTES.TASKS, expectedActions);
   });
 
   it('should create an action to route to server', () => {
-    const { navbarActions, NAVBAR_ACTIONS, ROUTES } = actions;
     const routeAction = navbarActions.routeServer(mockHistory);
-    routeTests(routeAction, NAVBAR_ACTIONS.ROUTE_SERVER, ROUTES.SERVER);
+    const expectedActions = [
+      { type: NAVBAR_ACTIONS.ROUTE_SERVER, history: mockHistory },
+    ];
+    routeTests(routeAction, ROUTES.SERVER, expectedActions);
   });
 
   it('should create an action to route to settings', () => {
-    const { navbarActions, NAVBAR_ACTIONS, ROUTES } = actions;
     const routeAction = navbarActions.routeSettings(mockHistory);
-    routeTests(routeAction, NAVBAR_ACTIONS.ROUTE_SETTINGS, ROUTES.SETTINGS);
+    const expectedActions = [
+      { type: NAVBAR_ACTIONS.ROUTE_SETTINGS, history: mockHistory },
+    ];
+    routeTests(routeAction, ROUTES.SETTINGS, expectedActions);
   });
 });
