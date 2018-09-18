@@ -103,8 +103,9 @@ const _updateProfileRequest = async (id, profile) =>
   new Promise((resolve) => {
     setTimeout(() => {
       const copy = JSON.parse(JSON.stringify(profile));
+      copy.id = id;
       resolve(copy);
-    }, 1000);
+    }, 0);
   });
 
 // TODO this is only temporary until we get registration key stuff implemented
@@ -136,7 +137,7 @@ const _removeProfileRequest = async id =>
   new Promise((resolve) => {
     setTimeout(() => {
       resolve(id);
-    }, 1000);
+    }, 0);
   });
 
 // Private Actions
@@ -177,6 +178,7 @@ export const profileActions = {
   select: selectProfile,
   load: loadProfile,
   update: updateProfile,
+  error: handleError,
 };
 
 // Field Edits
