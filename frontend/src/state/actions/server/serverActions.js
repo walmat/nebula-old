@@ -1,5 +1,4 @@
 import makeActionCreator from '../actionCreator';
-
 import regexes from '../../../utils/validation';
 
 const AWS = require('aws-sdk');
@@ -72,7 +71,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
       };
 
       ec2.runInstances(instanceParams).promise().then((data) => {
-        const instanceId = data.Instances[0].InstanceId; 
+        const instanceId = data.Instances[0].InstanceId;
 
         resolve({
           path: instanceId,
@@ -92,6 +91,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
 const _connectServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
+    // TODO - finalize this API request internally
     resolve(serverOptions);
   });
 
