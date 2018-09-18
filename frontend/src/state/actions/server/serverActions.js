@@ -42,26 +42,6 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
       const createParams = {
         KeyName: 'nebula',
       };
-
-      // list all key pair names
-      ec2.describeKeyPairs(describeParams, (err, data) => {
-        if (err) {
-          // try creating the keypair
-          ec2.createKeyPair(createParams, (e) => {
-            if (e) {
-              reject(new Error('Unable to create keypair'));
-            }
-          });
-        } else if (!data.KeyPairs.some(kp => kp.KeyName === 'nebula')) {
-          ec2.createKeyPair(createParams, (error) => {
-            if (error) {
-              reject(new Error('Unable to create keypair'));
-            } // otherwise the keypair should be created fine
-          });
-        }
-      });
-
-      // parameters for the instance
       const instanceParams = {
         ImageId: 'ami-04169656fea786776', // linux 16.04 LTS (we need to find this, cause it changes based on region)
         InstanceType: serverOptions.size.value,
@@ -70,19 +50,23 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
         MaxCount: 1,
       };
 
-      ec2.runInstances(instanceParams).promise().then((data) => {
-        const instanceId = data.Instances[0].InstanceId;
+      const describePromise = ec2.describeKeyPairs(describeParams).promise();
 
+      describePromise.then((data) => {
+        if (data.KeyPairs.some(kp => kp.KeyName === 'nebula')) {
+          return Promise.resolve();
+        }
+        return ec2.createKeyPair(createParams).promise();
+      }, () =>
+        ec2.createKeyPair(createParams).promise()).then(() =>
+        ec2.runInstances(instanceParams).promise()).then((data) => {
         resolve({
-          path: instanceId,
+          path: data.Instances[0].InstanceId,
           serverOptions,
           awsCredentials,
         });
       }).catch((err) => {
-        // error handling
-        if (err.statusCode === 401) {
-          reject(new Error('Not subscribed to AWS'));
-        }
+        reject(new Error(err));
       });
     } else {
       reject(new Error('parameters should not be null!'));
@@ -93,27 +77,6 @@ const _connectServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
     // TODO - finalize this API request internally
     resolve(serverOptions);
-  });
-
-/**
- * grabs current running instances for the user
- * @param {*} credentials - user's AWS access/secret key
- */
-const _getCurrentInstances = async (serverOptions, awsCredentials) =>
-  new Promise((resolve, reject) => {
-    AWS.config = new AWS.Config({
-      accessKeyId: awsCredentials.AWSAccessKey,
-      secretAccessKey: awsCredentials.AWSSecretKey,
-      region: serverOptions.location.value,
-    });
-    const ec2 = new AWS.EC2();
-    ec2.describeInstances({}, (err, data) => {
-      if (err) {
-        reject(new Error(err));
-      } else {
-        resolve(data);
-      }
-    });
   });
 
 const _destroyServerRequest = async (serverOptions, awsCredentials) =>
@@ -129,22 +92,24 @@ const _destroyServerRequest = async (serverOptions, awsCredentials) =>
         serverOptions.id,
       ],
     };
-    ec2.terminateInstances(params, (err, data) => {
-      if (err) {
-        reject(new Error(err));
-      } else {
-        /** data.Code : data.Name
-          ( The low byte represents the state.
-          The high byte is used for internal purposes and should be ignored )
-          0 : pending
-          16 : running
-          32 : shutting-down
-          48 : terminated
-          64 : stopping
-          80 : stopped
-         */
-        resolve(data);
-      }
+
+    const terminateInstances = ec2.terminateInstances(params).promise();
+
+    /**
+      data.Code : data.Name
+      ( The low byte represents the state.
+      The high byte is used for internal purposes and should be ignored )
+      0 : pending
+      16 : running
+      32 : shutting-down
+      48 : terminated
+      64 : stopping
+      80 : stopped
+    */
+    terminateInstances.then((data) => {
+      resolve(data); // do a window.Bridge fn in preload.js
+    }).catch((error) => {
+      reject(new Error(error));
     });
   });
 
@@ -155,6 +120,7 @@ const _destroyAllServerRequest = async (servers, awsCredentials) =>
       secretAccessKey: awsCredentials.AWSSecretKey,
       region: servers[0].location.value,
       // what about the case where we have instances in >1 region?
+      // maybe this is solved by: https://github.com/walmat/nebula/issues/45
     });
     const ec2 = new AWS.EC2();
 
@@ -163,22 +129,23 @@ const _destroyAllServerRequest = async (servers, awsCredentials) =>
     const params = {
       InstanceIds,
     };
-    ec2.terminateInstances(params, (err, data) => {
-      if (err) {
-        reject(new Error(err));
-      } else {
-        /** data.Code : data.Name
-          ( The low byte represents the state.
-          The high byte is used for internal purposes and should be ignored )
-          0 : pending
-          16 : running
-          32 : shutting-down
-          48 : terminated
-          64 : stopping
-          80 : stopped
-         */
-        resolve(data);
-      }
+    const terminateInstances = ec2.terminateInstances(params).promise();
+
+    /**
+      data.Code : data.Name
+      ( The low byte represents the state.
+      The high byte is used for internal purposes and should be ignored )
+      0 : pending
+      16 : running
+      32 : shutting-down
+      48 : terminated
+      64 : stopping
+      80 : stopped
+    */
+    terminateInstances.then((data) => {
+      resolve(data); // do a window.Bridge fn in preload.js
+    }).catch((error) => {
+      reject(new Error(error));
     });
   });
 
@@ -201,22 +168,23 @@ const _startServerRequest = async (serverOptions, awsCredentials) =>
         serverOptions.id,
       ],
     };
-    ec2.startInstances(params, (err, data) => {
-      if (err) {
-        reject(new Error(err));
-      } else {
-        /** data.Code : data.Name
-          ( The low byte represents the state.
-          The high byte is used for internal purposes and should be ignored )
-          0 : pending
-          16 : running
-          32 : shutting-down
-          48 : terminated
-          64 : stopping
-          80 : stopped
-         */
-        resolve(data);
-      }
+    const startInstances = ec2.startInstances(params).promise();
+
+    /**
+      data.Code : data.Name
+      ( The low byte represents the state.
+      The high byte is used for internal purposes and should be ignored )
+      0 : pending
+      16 : running
+      32 : shutting-down
+      48 : terminated
+      64 : stopping
+      80 : stopped
+    */
+    startInstances.then((data) => {
+      resolve(data); // do a window.Bridge fn in preload.js
+    }).catch((error) => {
+      reject(new Error(error));
     });
   });
 
@@ -233,22 +201,23 @@ const _stopServerRequest = async (serverOptions, awsCredentials) =>
         serverOptions.id,
       ],
     };
-    ec2.stopInstances(params, (err, data) => {
-      if (err) {
-        reject(new Error(err));
-      } else {
-        /** data.Code : data.Name
-          ( The low byte represents the state.
-          The high byte is used for internal purposes and should be ignored )
-          0 : pending
-          16 : running
-          32 : shutting-down
-          48 : terminated
-          64 : stopping
-          80 : stopped
-         */
-        resolve(data);
-      }
+    const stopInstances = ec2.stopInstances(params).promise();
+
+    /**
+      data.Code : data.Name
+      ( The low byte represents the state.
+      The high byte is used for internal purposes and should be ignored )
+      0 : pending
+      16 : running
+      32 : shutting-down
+      48 : terminated
+      64 : stopping
+      80 : stopped
+    */
+    stopInstances.then((data) => {
+      resolve(data); // do a window.Bridge fn in preload.js
+    }).catch((error) => {
+      reject(new Error(error));
     });
   });
 
