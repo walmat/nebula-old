@@ -49,8 +49,12 @@ export const initialTaskState = {
     password: null,
     site: null,
     errors: {
+      product: null,
       sizes: null,
       profile: null,
+      username: null,
+      password: null,
+      site: null,
     },
   },
 };

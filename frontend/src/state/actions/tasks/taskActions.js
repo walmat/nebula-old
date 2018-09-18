@@ -202,10 +202,11 @@ export const taskActions = {
   edit: editTask,
   clearEdits,
   select: selectTask,
-  load: loadTask,
+  // load: loadTask,
   update: updateTask,
   start: startTask,
   stop: stopTask,
+  error: handleError,
 };
 
 export const mapTaskFieldsToKey = {
