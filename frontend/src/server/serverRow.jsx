@@ -70,7 +70,6 @@ class ServerRow extends Component {
 
   renderTableRow() {
     const { server } = this.props;
-    console.log(server);
     return (
       <div key={server.id} className="tasks-row row">
         <div className="col col--no-gutter tasks-row__id">{server.type.label}</div>
@@ -100,6 +99,7 @@ class ServerRow extends Component {
 
 ServerRow.propTypes = {
   server: defns.serverRow.isRequired,
+  serverInfo: defns.serverInfo.isRequired,
   onStartServer: PropTypes.func.isRequired,
   onStopServer: PropTypes.func.isRequired,
   onDestroyServer: PropTypes.func.isRequired,

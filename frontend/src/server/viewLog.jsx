@@ -17,7 +17,7 @@ class ViewLog extends Component {
 
   render() {
     return (
-      <div className="tasks-table">
+      <div className="server-table">
         {this.createTable()}
       </div>
     );

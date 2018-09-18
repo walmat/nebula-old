@@ -132,10 +132,6 @@ class Server extends Component {
     type, label, defaultOption, value,
     disabled, onChange, optionGenerator,
   ) {
-    // empty object check to prevent required prop errors
-    // if (Object.keys(value).length === 0 && value.constructor === Object) {
-    //   value = null;
-    // }
     return (
       <div>
         <p id={`${type}-server-label`}>{label}</p>
@@ -188,7 +184,7 @@ class Server extends Component {
         {this.renderServerSizeComponent()}
         {this.renderServerLocationComponent()}
         <button disabled={!loggedInAws} id="create-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.createServer}>Create</button>
-        <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={() => { this.props.onDestroyServers(this.props.serverInfo.credentials); }} >Destroy All</button>
+        <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={() => { this.props.onDestroyServers(this.props.servers, this.props.serverInfo.credentials); }} >Destroy All</button>
 
         {/* SERVER LOG */}
         <p className="body-text" id="server-log-label">Log</p>
@@ -211,9 +207,9 @@ class Server extends Component {
 Server.propTypes = {
   servers: defns.serverList.isRequired,
   serverInfo: defns.serverInfo.isRequired,
-  serverType: defns.serverType.isRequired,
-  serverSize: defns.serverSize.isRequired,
-  serverLocation: defns.serverLocation.isRequired,
+  serverType: defns.serverType,
+  serverSize: defns.serverSize,
+  serverLocation: defns.serverLocation,
   serverListOptions: defns.serverListOptions.isRequired,
   onCreateServer: PropTypes.func.isRequired,
   onDestroyProxies: PropTypes.func.isRequired,
@@ -227,9 +223,9 @@ Server.propTypes = {
 const mapStateToProps = state => ({
   servers: state.servers,
   serverInfo: state.serverInfo,
-  serverType: state.serverInfo.serverOptions.type,
-  serverSize: state.serverInfo.serverOptions.size,
-  serverLocation: state.serverInfo.serverOptions.location,
+  serverType: state.serverInfo.serverOptions.type || null,
+  serverSize: state.serverInfo.serverOptions.size || null,
+  serverLocation: state.serverInfo.serverOptions.location || null,
   serverListOptions: state.serverListOptions,
 });
 
@@ -240,8 +236,8 @@ const mapDispatchToProps = dispatch => ({
   onDestroyProxies: () => {
     dispatch(serverActions.destroyProxies());
   },
-  onDestroyServers: (path) => {
-    dispatch(serverActions.destroyAll(path));
+  onDestroyServers: (servers, awsCredentials) => {
+    dispatch(serverActions.destroyAll(servers, awsCredentials));
   },
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));

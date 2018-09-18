@@ -36,7 +36,7 @@ export function serverReducer(state = initialServerState, action) {
   // initialize change object
   let change = {};
   // Deep copy the current state
-  let nextState = JSON.parse(JSON.stringify(state));
+  const nextState = JSON.parse(JSON.stringify(state));
   // Check if we are performing an edit
   if (action.type === SERVER_ACTIONS.EDIT) {
     // Choose what to change based on the field
@@ -46,7 +46,7 @@ export function serverReducer(state = initialServerState, action) {
         change = {
           type: action.value,
           // If we are selecting a different type, reset the size to force the user to reselect
-          size: type && type.id === action.value.id ? size : {},
+          size: type && type.id === action.value.id ? size : null,
         };
         break;
       case SERVER_FIELDS.EDIT_PROXY_NUMBER:
@@ -83,8 +83,8 @@ export function serverReducer(state = initialServerState, action) {
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
     nextState.proxies = null;
   } else if (action.type === SERVER_ACTIONS.DESTROY_ALL) {
+    // todo
     // nextState = nextState.filter(s => s.id !== action);
-    console.log(action, nextState);
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     nextState.credentials.accessToken = action.token;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
@@ -109,7 +109,7 @@ export function serverListReducer(state = initialServerListState, action) {
         sizes: serverOptions.size,
         location: serverOptions.location,
         charges: '0',
-        status: 'Initializing...',
+        status: 'Pending...',
       };
       nextState.push(newServer);
       break;

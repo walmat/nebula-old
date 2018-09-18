@@ -1,5 +1,7 @@
 import makeActionCreator from '../actionCreator';
 
+import regexes from '../../../utils/validation';
+
 const AWS = require('aws-sdk');
 
 // Top level Actions
@@ -54,7 +56,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
               console.log(d.KeyName);
             }
           });
-        } else if (!data.KeyPairs.some(kp => kp.KeyName === 'nebula' )) {
+        } else if (!data.KeyPairs.some(kp => kp.KeyName === 'nebula')) {
           ec2.createKeyPair(createParams, (error) => {
             if (error) {
               reject(new Error('Unable to create keypair'));
@@ -74,9 +76,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
       // maybe await this?
       ec2.runInstances(instanceParams).promise().then((data) => {
-        console.log(data);
         const instanceId = data.Instances[0].InstanceId; //  we might need to keep track of this to destroy/stop later?
-        console.log('Created instance', instanceId);
 
         resolve({
           path: instanceId,
@@ -95,6 +95,11 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
     }
   });
 
+const _connectServerRequest = async (serverOptions, awsCredentials) =>
+  new Promise((resolve, reject) => {
+    resolve(serverOptions);
+  });
+
 /**
  * grabs current running instances for the user
  * @param {*} credentials - user's AWS access/secret key
@@ -111,7 +116,6 @@ const _getCurrentInstances = async (serverOptions, awsCredentials) =>
       if (err) {
         reject(new Error(err));
       } else {
-        console.log(data);
         resolve(data);
       }
     });
@@ -144,15 +148,44 @@ const _destroyServerRequest = async (serverOptions, awsCredentials) =>
           64 : stopping
           80 : stopped
          */
-        console.log(data);
         resolve(data);
       }
     });
   });
 
-const _destroyAllServerRequest = async (serverOptions, awsCredentials) =>
+const _destroyAllServerRequest = async (servers, awsCredentials) =>
   new Promise((resolve, reject) => {
-    resolve(serverOptions);
+    AWS.config = new AWS.Config({
+      accessKeyId: awsCredentials.AWSAccessKey,
+      secretAccessKey: awsCredentials.AWSSecretKey,
+      region: servers[0].location.value,
+      // what about the case where we have instances in >1 region?
+    });
+    const ec2 = new AWS.EC2();
+
+    const InstanceIds = servers.map(server => server.id);
+
+    const params = {
+      InstanceIds,
+    };
+    ec2.terminateInstances(params, (err, data) => {
+      if (err) {
+        reject(new Error(err));
+      } else {
+        /** data.Code : data.Name
+          ( The low byte represents the state.
+          The high byte is used for internal purposes and should be ignored )
+          0 : pending
+          16 : running
+          32 : shutting-down
+          48 : terminated
+          64 : stopping
+          80 : stopped
+         */
+        console.log(data);
+        resolve(data);
+      }
+    });
   });
 
 const _generateProxiesRequest = async (serverOptions, awsCredentials) =>
@@ -163,7 +196,6 @@ const _generateProxiesRequest = async (serverOptions, awsCredentials) =>
 
 const _startServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
-    console.log(serverOptions, awsCredentials);
     AWS.config = new AWS.Config({
       accessKeyId: awsCredentials.AWSAccessKey,
       secretAccessKey: awsCredentials.AWSSecretKey,
@@ -189,7 +221,6 @@ const _startServerRequest = async (serverOptions, awsCredentials) =>
           64 : stopping
           80 : stopped
          */
-        console.log(data);
         resolve(data);
       }
     });
@@ -222,7 +253,6 @@ const _stopServerRequest = async (serverOptions, awsCredentials) =>
           64 : stopping
           80 : stopped
          */
-        console.log(data);
         resolve(data);
       }
     });
@@ -237,7 +267,9 @@ const _validateAwsRequest = async awsCredentials =>
   new Promise((resolve, reject) => {
     const aKey = awsCredentials.AWSAccessKey;
     const sKey = awsCredentials.AWSSecretKey;
-    if (aKey && aKey !== '' && sKey && sKey !== '') {
+    
+    // test the string inputs
+    if (regexes.aws_access_key.test(aKey) && regexes.aws_secret_key.test(sKey)) {
       resolve('access_token');
     } else {
       reject(new Error('Keys should be valid!'));
@@ -285,8 +317,8 @@ const destroyServer = (serverOptions, awsCredentials) =>
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY, error)),
   );
 
-const destroyAllServers = credentials =>
-  dispatch => _destroyAllServerRequest(credentials).then(
+const destroyAllServers = (serverOptions, awsCredentials) =>
+  dispatch => _destroyAllServerRequest(serverOptions, awsCredentials).then(
     res => dispatch(_destroyAllServers(res)),
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY_ALL, error)),
   );
@@ -297,8 +329,11 @@ const generateProxies = proxyOptions =>
     error => dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error)),
   );
 
-const connectServer = credentials =>
-  dispatch => _connectServer(credentials).then(console.log('yep'));
+const connectServer = (serverOptions, awsCredentials) =>
+  dispatch => _connectServerRequest((serverOptions, awsCredentials)).then(
+    res => dispatch(_connectServer(res)),
+    error => dispatch(handleError(SERVER_ACTIONS.CONNECT, error)),
+  );
 
 const destroyProxies = () =>
   dispatch => _destroyProxiesRequest().then(
@@ -312,9 +347,9 @@ const validateAws = awsCredentials =>
     error => dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error)),
   );
 
-const logoutAws = path =>
+const logoutAws = (serverOptions, awsCredentials) =>
   dispatch => dispatch(destroyProxies())
-    .then(() => dispatch(destroyServer(path)))
+    .then(() => dispatch(destroyAllServers(serverOptions, awsCredentials)))
     .then(() => dispatch(_logoutAws()))
     .catch(error => dispatch(handleError(SERVER_ACTIONS.LOGOUT_AWS, error)));
 
