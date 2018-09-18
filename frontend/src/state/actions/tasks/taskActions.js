@@ -31,7 +31,7 @@ const _addTaskRequest = async task =>
       resolve({ task: copy });
     } else if (validKeywords) { // test keyword match
       if (validKeywords.some(v => v === false)) {
-        reject();
+        reject(new Error('Improper keywords'));
       } else {
         copy.product.pos_keywords = [];
         copy.product.neg_keywords = [];
@@ -45,7 +45,7 @@ const _addTaskRequest = async task =>
         resolve({ task: copy });
       }
     } else { // reject any other input that fails
-      reject();
+      reject(new Error('Unknown Input'));
     }
   });
 
@@ -97,11 +97,12 @@ const _updateTaskRequest = async (id, task) =>
     }, 0);
   });
 
-const _startTaskRequest = async task =>
+const _startTaskRequest = async (task, proxies) =>
   // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
+    console.log(task, proxies);
     if (task.status === 'running') {
-      reject();
+      reject(new Error('Already running'));
     } else {
       resolve({ task });
     }
@@ -111,7 +112,7 @@ const _stopTaskRequest = async task =>
   // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (task.status === 'stopped') {
-      reject();
+      reject(new Error('Already stopped'));
     } else {
       resolve({ task });
     }
@@ -171,8 +172,8 @@ const clearEdits = (id, task) => {
   );
 };
 
-const startTask = task =>
-  dispatch => _startTaskRequest(task).then(
+const startTask = (task, proxies) =>
+  dispatch => _startTaskRequest(task, proxies).then(
     response => dispatch(_startTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.START, error)),
   );

@@ -236,12 +236,12 @@ class TaskRow extends Component {
   }
 
   renderTableRowStartActionButton() {
-    const { task, onStartTask } = this.props;
+    const { task, onStartTask, proxies } = this.props;
     return TaskRow.renderTableRowActionButton(
       'Start Task',
       start,
       task.status === 'running' ? 'active' : '',
-      () => { onStartTask(task); },
+      () => { onStartTask(task, proxies); },
     );
   }
 
@@ -331,6 +331,7 @@ TaskRow.propTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
+  proxies: state.settings.proxies,
   errors: ownProps.task.errors,
   task: ownProps.task,
   edits: ownProps.task.edits,
@@ -357,8 +358,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onUpdateTask: (task) => {
     dispatch(taskActions.update(task.id, task));
   },
-  onStartTask: (task) => {
-    dispatch(taskActions.start(task));
+  onStartTask: (task, proxies) => {
+    dispatch(taskActions.start(task, proxies));
   },
   onStopTask: (task) => {
     dispatch(taskActions.stop(task));

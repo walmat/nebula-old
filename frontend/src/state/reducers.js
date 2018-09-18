@@ -7,7 +7,7 @@ import { newTaskReducer, initialTaskState, selectedTaskReducer } from './reducer
 import { initialTaskListState, taskListReducer } from './reducers/tasks/taskListReducer';
 import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/profileReducer';
 import { profileListReducer, initialProfileListState } from './reducers/profiles/profileListReducer';
-import { serverReducer, initialServerState, initialServerListState } from './reducers/server/serverReducer';
+import { serverReducer, serverListReducer, initialServerState, initialServerListState } from './reducers/server/serverReducer';
 import { settingsReducer, initialSettingsState } from './reducers/settings/settingsReducer';
 import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
 
@@ -42,7 +42,7 @@ const topLevelReducer = (state = initialState, action) => {
     selectedProfile: selectedProfileReducer(state.selectedProfile, action),
     settings: settingsReducer(state.settings, action),
     serverInfo: serverReducer(state.serverInfo, action),
-    // servers: serverReducer(state.servers, action),
+    servers: serverListReducer(state.servers, action),
   };
 
   return Object.assign({}, state, changes);

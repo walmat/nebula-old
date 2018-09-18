@@ -51,7 +51,7 @@ async function main(line) {
         let command = args.shift();
         if (command.toLowerCase() === 'exit') {
             if (args.length !== 0) {
-                console.log(errorMessages.toManyArgs);
+                console.log(errorMessages.tooManyArgs);
                 return
             } else {
                 console.log('Deleting Nebula Key Pair');

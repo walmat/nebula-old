@@ -4,13 +4,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
-import ServerLog from './serverLog';
+import ViewLog from './viewLog';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import defns from '../utils/definitions/serverDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 import '../app.css';
 import './server.css';
+
 
 class Server extends Component {
   static buildServerTypeChoices(options, onFilter) {
@@ -36,7 +37,6 @@ class Server extends Component {
     this.validateAws = this.validateAws.bind(this);
     this.destroyProxies = this.destroyProxies.bind(this);
     this.generateProxies = this.generateProxies.bind(this);
-    this.destroyServer = this.destroyServer.bind(this);
     this.createServer = this.createServer.bind(this);
     this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(this);
   }
@@ -64,11 +64,6 @@ class Server extends Component {
   generateProxies(e) {
     e.preventDefault();
     this.props.onGenerateProxies(this.props.serverInfo.proxyOptions);
-  }
-
-  destroyServer(e) {
-    e.preventDefault();
-    this.props.onDestroyServer(this.props.serverInfo.coreServer.path);
   }
 
   createServer(e) {
@@ -189,7 +184,7 @@ class Server extends Component {
         {this.renderServerSizeComponent()}
         {this.renderServerLocationComponent()}
         <button disabled={!loggedInAws} id="create-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.createServer}>Create</button>
-        <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyServer} >Destroy All</button>
+        <button disabled={!loggedInAws} id="destroy-server" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={() => { this.props.onDestroyServers(this.props.servers, this.props.serverInfo.credentials); }} >Destroy All</button>
 
         {/* SERVER LOG */}
         <p className="body-text" id="server-log-label">Log</p>
@@ -202,7 +197,7 @@ class Server extends Component {
         <p className="server-log-header" id="server-actions-header">Action</p>
         <hr id="server-log-line" />
         <div id="server-scroll-box">
-          <ServerLog />
+          <ViewLog />
         </div>
       </div>
     );
@@ -210,15 +205,15 @@ class Server extends Component {
 }
 
 Server.propTypes = {
-  servers: PropTypes.arrayOf(PropTypes.any).isRequired,
+  servers: defns.serverList.isRequired,
   serverInfo: defns.serverInfo.isRequired,
+  serverType: defns.serverType,
+  serverSize: defns.serverSize,
+  serverLocation: defns.serverLocation,
   serverListOptions: defns.serverListOptions.isRequired,
-  serverType: defns.serverType.isRequired,
-  serverSize: defns.serverSize.isRequired,
-  serverLocation: defns.serverLocation.isRequired,
   onCreateServer: PropTypes.func.isRequired,
   onDestroyProxies: PropTypes.func.isRequired,
-  onDestroyServer: PropTypes.func.isRequired,
+  onDestroyServers: PropTypes.func.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
   onGenerateProxies: PropTypes.func.isRequired,
   onValidateAws: PropTypes.func.isRequired,
@@ -226,10 +221,11 @@ Server.propTypes = {
 };
 
 const mapStateToProps = state => ({
+  servers: state.servers,
   serverInfo: state.serverInfo,
-  serverType: state.serverInfo.serverOptions.type,
-  serverSize: state.serverInfo.serverOptions.size,
-  serverLocation: state.serverInfo.serverOptions.location,
+  serverType: state.serverInfo.serverOptions.type || null,
+  serverSize: state.serverInfo.serverOptions.size || null,
+  serverLocation: state.serverInfo.serverOptions.location || null,
   serverListOptions: state.serverListOptions,
 });
 
@@ -240,8 +236,8 @@ const mapDispatchToProps = dispatch => ({
   onDestroyProxies: () => {
     dispatch(serverActions.destroyProxies());
   },
-  onDestroyServer: (path) => {
-    dispatch(serverActions.destroy(path));
+  onDestroyServers: (servers, awsCredentials) => {
+    dispatch(serverActions.destroyAll(servers, awsCredentials));
   },
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));

@@ -5,6 +5,8 @@ import {
   subMapToKey,
 } from '../../actions';
 
+export const initialServerListState = [];
+
 export const initialServerState = {
   credentials: {
     AWSAccessKey: '',
@@ -29,7 +31,6 @@ export const initialServerState = {
   },
 };
 
-export const initialServerListState = [];
 
 export function serverReducer(state = initialServerState, action) {
   // initialize change object
@@ -45,7 +46,7 @@ export function serverReducer(state = initialServerState, action) {
         change = {
           type: action.value,
           // If we are selecting a different type, reset the size to force the user to reselect
-          size: type && type.id === action.value.id ? size : {},
+          size: type && type.id === action.value.id ? size : null,
         };
         break;
       case SERVER_FIELDS.EDIT_PROXY_NUMBER:
@@ -75,26 +76,51 @@ export function serverReducer(state = initialServerState, action) {
         nextState[mapServerFieldToKey[action.field]],
         change,
       );
-  } else if (action.type === SERVER_ACTIONS.CREATE) {
-    // Use the info given in the action as the core server info
-    nextState.coreServer = action.serverInfo;
-  } else if (action.type === SERVER_ACTIONS.DESTROY) {
-    // Check if the path we want to destroy is the same as the current on, then
-    // destroy if necessary
-    if (state.coreServer.path === action.serverPath) {
-      nextState.coreServer = null;
-    }
   } else if (action.type === SERVER_ACTIONS.ERROR) {
     console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
     nextState.proxies = action.proxies;
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
     nextState.proxies = null;
+  } else if (action.type === SERVER_ACTIONS.DESTROY_ALL) {
+    // todo
+    // nextState = nextState.filter(s => s.id !== action);
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     nextState.credentials.accessToken = action.token;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
     nextState.credentials = initialServerState.credentials;
   }
 
+  return nextState;
+}
+
+export function serverListReducer(state = initialServerListState, action) {
+  let nextState = JSON.parse(JSON.stringify(state));
+
+  switch (action.type) {
+    case SERVER_ACTIONS.CONNECT:
+      break;
+    case SERVER_ACTIONS.CREATE:
+      // perform a deep copy of given profile
+      const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
+      const newServer = {
+        id: action.serverInfo.path,
+        type: serverOptions.type,
+        sizes: serverOptions.size,
+        location: serverOptions.location,
+        charges: '0',
+        status: 'Pending...',
+      };
+      nextState.push(newServer);
+      break;
+    case SERVER_ACTIONS.DESTROY:
+      nextState = nextState.filter(s => s.id !== action.serverPath.TerminatingInstances[0].InstanceId);
+      break;
+    case SERVER_ACTIONS.DESTROY_ALL:
+      nextState = [];
+      break;
+    default:
+      break;
+  }
   return nextState;
 }

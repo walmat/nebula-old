@@ -494,7 +494,7 @@ table {
 
 .server-log-status {
     position: relative;
-    width: 120px;
+    width: 100px;
     border-bottom: #dfdfdf solid 1px;
 
 }
@@ -504,7 +504,20 @@ table {
     border-bottom: #dfdfdf solid 1px;
 }
 
+.server-log-action {
+    width: 16px;
+    vertical-align: middle;
+}
+
 .server-log-action > img {
     cursor: pointer;
     vertical-align:middle;
+}
+
+#action-last {
+    padding-right: 23px;
+}
+
+.active {
+    opacity: 0.5;
 }
