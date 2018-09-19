@@ -49,7 +49,7 @@ export function profileReducer(state = initialProfileStates.profile, action) {
   return Object.assign({}, state, change);
 }
 
-export function currentProfileReducer(state = initialProfileState, action) {
+export function currentProfileReducer(state = initialProfileStates.profile, action) {
   switch (action.type) {
     case PROFILE_ACTIONS.EDIT: {
       // only modify the current profile if the action id is null
@@ -65,7 +65,7 @@ export function currentProfileReducer(state = initialProfileState, action) {
       }
 
       // If adding a new profile, we should reset the current profile to default values
-      return Object.assign({}, initialProfileState);
+      return Object.assign({}, initialProfileStates.profile);
     }
     case PROFILE_ACTIONS.UPDATE: {
       // If we have a response error, we should do nothing
@@ -74,7 +74,7 @@ export function currentProfileReducer(state = initialProfileState, action) {
       }
 
       // If updating an existing profile, we should reset the current profile to default values
-      return Object.assign({}, initialProfileState);
+      return Object.assign({}, initialProfileStates.profile);
     }
     case PROFILE_ACTIONS.LOAD: {
       // If selecting a profile, we should return the profile that is given
@@ -93,7 +93,7 @@ export function currentProfileReducer(state = initialProfileState, action) {
       // Check if we are removing the current profile
       if (action.id === (state.id || state.editId)) {
         // Return initial state
-        return Object.assign({}, initialProfileState);
+        return Object.assign({}, initialProfileStates.profile);
       }
       break;
     }
@@ -104,7 +104,7 @@ export function currentProfileReducer(state = initialProfileState, action) {
   return Object.assign({}, state);
 }
 
-export function selectedProfileReducer(state = initialProfileState, action) {
+export function selectedProfileReducer(state = initialProfileStates.profile, action) {
   switch (action.type) {
     case PROFILE_ACTIONS.SELECT: {
       // Set the next state to the selected profile
@@ -119,7 +119,7 @@ export function selectedProfileReducer(state = initialProfileState, action) {
       // Check if we are removing the current profile
       if (action.id === state.id) {
         // Return initial state
-        return Object.assign({}, initialProfileState);
+        return Object.assign({}, initialProfileStates.profile);
       }
 
       break;

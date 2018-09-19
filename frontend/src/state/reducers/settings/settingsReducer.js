@@ -3,11 +3,11 @@ import {
   mapSettingsFieldToKey,
 } from '../../actions';
 
-import { initialProfileState } from '../profiles/profileReducer';
+import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
 export const initialSettingsState = {
   proxies: [],
-  defaultProfile: initialProfileState,
+  defaultProfile: initialProfileStates.profile,
   defaultSizes: [],
   discord: '',
   slack: '',
@@ -38,7 +38,7 @@ export function settingsReducer(state = initialSettingsState, action) {
   } else if (action.type === SETTINGS_ACTIONS.CLEAR) {
     change = {
       defaults: {},
-      defaultProfile: initialProfileState,
+      defaultProfile: initialProfileStates.profile,
       defaultSizes: [],
       errors: action.errors,
     };

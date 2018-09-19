@@ -83,7 +83,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
   return Object.assign({}, state, change);
 }
 
-export function newTaskReducer(state = initialTaskState, action) {
+export function newTaskReducer(state = initialTaskStates.task, action) {
   switch (action.type) {
     case TASK_ACTIONS.EDIT: {
       // only modify the current task if the action id is null
@@ -98,7 +98,7 @@ export function newTaskReducer(state = initialTaskState, action) {
         return Object.assign({}, action.task);
       }
       // If adding a new task, we should reset the current task to default values
-      return Object.assign({}, initialTaskState);
+      return Object.assign({}, initialTaskStates.task);
     }
     default:
       break;
@@ -107,7 +107,7 @@ export function newTaskReducer(state = initialTaskState, action) {
   return Object.assign({}, state);
 }
 
-export function selectedTaskReducer(state = initialTaskState, action) {
+export function selectedTaskReducer(state = initialTaskStates.task, action) {
   switch (action.type) {
     case TASK_ACTIONS.SELECT: {
       // if the user is toggling

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-export const initialLocationStateErrors = {
+export const initialLocationErrorState = {
   firstName: null,
   lastName: null,
   address: null,
