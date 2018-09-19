@@ -1,7 +1,7 @@
 import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
+import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 
-export const initialTaskListState = [];
 let _num = 1;
 
 function _getId(taskList) {
@@ -23,7 +23,7 @@ function _getId(taskList) {
   return newId;
 }
 
-export function taskListReducer(state = initialTaskListState, action) {
+export default function taskListReducer(state = initialTaskStates.list, action) {
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {

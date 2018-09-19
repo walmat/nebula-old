@@ -5,61 +5,9 @@ import {
   TASK_FIELDS,
   mapTaskFieldsToKey,
 } from '../../actions';
+import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 
-export const initialTaskState = {
-  id: '',
-  product: {
-    raw: '',
-    variant: null,
-    pos_keywords: null,
-    neg_keywords: null,
-    url: null,
-  },
-  site: null,
-  profile: initialProfileState,
-  sizes: [],
-  username: null,
-  password: null,
-  status: 'idle',
-  error_delay: null,
-  refresh_delay: null,
-  errors: {
-    method: null,
-    product: {
-      raw: null,
-      variant: null,
-      pos_keywords: null,
-      neg_keywords: null,
-      url: null,
-    },
-    site: null,
-    profile: null,
-    sizes: null,
-    username: '',
-    password: '',
-    status: null,
-    error_delay: null,
-    refresh_delay: null,
-  },
-  edits: {
-    product: null,
-    sizes: null,
-    profile: null,
-    username: null,
-    password: null,
-    site: null,
-    errors: {
-      product: null,
-      sizes: null,
-      profile: null,
-      username: null,
-      password: null,
-      site: null,
-    },
-  },
-};
-
-export function taskReducer(state = initialTaskState, action) {
+export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
   if (action.type === TASK_ACTIONS.EDIT) {
     // Check if we are editing a new task or an existing one

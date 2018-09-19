@@ -1,8 +1,22 @@
 import PropTypes from 'prop-types';
 
-import taskProductErrors from './taskProductErrors';
+import taskProductErrors, { initialTaskProductErrorState } from './taskProductErrors';
+
+export const initialTaskErrorState = {
+  method: null,
+  product: initialTaskProductErrorState,
+  site: null,
+  profile: null,
+  sizes: null,
+  username: '',
+  password: '',
+  status: null,
+  error_delay: null,
+  refresh_delay: null,
+};
 
 const taskErrors = PropTypes.shape({
+  method: PropTypes.bool,
   product: taskProductErrors,
   site: PropTypes.bool,
   profile: PropTypes.bool,

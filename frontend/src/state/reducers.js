@@ -3,9 +3,9 @@
  * files, this is just a shared import point.
  */
 // import { combineReducers } from 'redux';
-import { newTaskReducer, initialTaskState, selectedTaskReducer } from './reducers/tasks/taskReducer';
-import { initialTaskListState, taskListReducer } from './reducers/tasks/taskListReducer';
-import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/profileReducer';
+import { newTaskReducer, selectedTaskReducer } from './reducers/tasks/taskReducer';
+import taskListReducer from './reducers/tasks/taskListReducer';
+import { currentProfileReducer, selectedProfileReducer } from './reducers/profiles/profileReducer';
 import profileListReducer from './reducers/profiles/profileListReducer';
 import { serverReducer, serverListReducer, initialServerState, initialServerListState } from './reducers/server/serverReducer';
 import { settingsReducer, initialSettingsState } from './reducers/settings/settingsReducer';
@@ -13,18 +13,19 @@ import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReduc
 
 import serverListOptions from '../utils/servers';
 import { initialProfileStates } from '../utils/definitions/profileDefinitions';
+import { initialTaskStates } from '../utils/definitions/taskDefinitions';
 
 /**
  * Application State
  */
 export const initialState = {
   profiles: initialProfileStates.list,
-  selectedProfile: initialProfileState,
-  currentProfile: initialProfileState,
-  tasks: initialTaskListState,
-  newTask: initialTaskState,
+  selectedProfile: initialProfileStates.profile,
+  currentProfile: initialProfileStates.profile,
+  tasks: initialTaskStates.list,
+  newTask: initialTaskStates.task,
   navbar: initialNavbarState,
-  selectedTask: initialTaskState,
+  selectedTask: initialTaskStates.task,
   settings: initialSettingsState,
   serverInfo: initialServerState,
   servers: initialServerListState,
