@@ -1,18 +1,7 @@
 import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../actions';
-import { locationReducer, initialLocationState } from './locationReducer';
-import { paymentReducer, initialPaymentState } from './paymentReducer';
-
-export const initialProfileState = {
-  id: null,
-  profileName: '',
-  errors: {
-    profileName: null,
-  },
-  billingMatchesShipping: false,
-  shipping: initialLocationState,
-  billing: initialLocationState,
-  payment: initialPaymentState,
-};
+import locationReducer from './locationReducer';
+import paymentReducer from './paymentReducer';
+import { initialProfileState } from '../../../utils/definitions/profiles/profile';
 
 export function profileReducer(state = initialProfileState, action) {
   let change = {};
@@ -23,7 +12,7 @@ export function profileReducer(state = initialProfileState, action) {
           shipping: locationReducer(
             state.shipping,
             { type: action.subField, value: action.value, errors: action.errors },
-          )
+          ),
         };
         break;
       case PROFILE_FIELDS.EDIT_BILLING:
@@ -61,7 +50,6 @@ export function profileReducer(state = initialProfileState, action) {
 }
 
 export function currentProfileReducer(state = initialProfileState, action) {
-
   switch (action.type) {
     case PROFILE_ACTIONS.EDIT: {
       // only modify the current profile if the action id is null

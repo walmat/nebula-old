@@ -1,29 +1,7 @@
 import { mapLocationFieldToKey } from '../../actions';
+import { initialLocationState } from '../../../utils/definitions/profiles/locationState';
 
-export const initialLocationState = {
-  firstName: '',
-  lastName: '',
-  address: '',
-  apt: '',
-  city: '',
-  country: null,
-  state: null,
-  zipCode: '',
-  phone: '',
-  errors: {
-    firstName: null,
-    lastName: null,
-    address: null,
-    apt: null,
-    city: null,
-    country: null,
-    state: null,
-    zipCode: null,
-    phone: null,
-  },
-};
-
-export const locationReducer = (state = initialLocationState, action) => {
+const locationReducer = (state = initialLocationState, action) => {
   let change = {};
   switch (action.type) {
     default: {
@@ -36,3 +14,4 @@ export const locationReducer = (state = initialLocationState, action) => {
   change.errors = action.errors;
   return Object.assign({}, state, change);
 };
+export default locationReducer;

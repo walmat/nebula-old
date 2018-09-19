@@ -1,19 +1,7 @@
 import { mapPaymentFieldToKey } from '../../actions';
+import { initialPaymentState } from '../../../utils/definitions/profiles/paymentState';
 
-export const initialPaymentState = {
-  email: '',
-  cardNumber: '',
-  exp: '',
-  cvv: '',
-  errors: {
-    email: null,
-    cardNumber: null,
-    exp: null,
-    cvv: null,
-  },
-};
-
-export const paymentReducer = (state = initialPaymentState, action) => {
+const paymentReducer = (state = initialPaymentState, action) => {
   let change = {};
 
   switch (action.type) {
@@ -28,3 +16,4 @@ export const paymentReducer = (state = initialPaymentState, action) => {
   change.errors = action.errors;
   return Object.assign({}, state, change);
 };
+export default paymentReducer;

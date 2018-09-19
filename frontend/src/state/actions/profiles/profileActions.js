@@ -38,11 +38,9 @@ export const PROFILE_ACTIONS = {
 // }
 const _addProfileRequest = async profile =>
   // TODO: Replace this with an actual API call
-  new Promise(async (resolve) => {
-    setTimeout(() => {
-      const copy = JSON.parse(JSON.stringify(profile));
-      resolve(copy);
-    }, 0);
+  new Promise((resolve) => {
+    const copy = JSON.parse(JSON.stringify(profile));
+    resolve(copy);
     // console.log('trying for request');
     // try {
     //   const response = await fetch(
@@ -101,11 +99,9 @@ const _addProfileRequest = async profile =>
 const _updateProfileRequest = async (id, profile) =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
-    setTimeout(() => {
-      const copy = JSON.parse(JSON.stringify(profile));
-      copy.id = id;
-      resolve(copy);
-    }, 0);
+    const copy = JSON.parse(JSON.stringify(profile));
+    copy.id = id;
+    resolve(copy);
   });
 
 // TODO this is only temporary until we get registration key stuff implemented
@@ -135,9 +131,7 @@ const _updateProfileRequest = async (id, profile) =>
 const _removeProfileRequest = async id =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(id);
-    }, 0);
+    resolve(id);
   });
 
 // Private Actions

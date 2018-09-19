@@ -6,12 +6,13 @@
 import { newTaskReducer, initialTaskState, selectedTaskReducer } from './reducers/tasks/taskReducer';
 import { initialTaskListState, taskListReducer } from './reducers/tasks/taskListReducer';
 import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/profileReducer';
-import { profileListReducer, initialProfileListState } from './reducers/profiles/profileListReducer';
+import profileListReducer from './reducers/profiles/profileListReducer';
 import { serverReducer, serverListReducer, initialServerState, initialServerListState } from './reducers/server/serverReducer';
 import { settingsReducer, initialSettingsState } from './reducers/settings/settingsReducer';
 import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
 
 import serverListOptions from '../utils/servers';
+import { initialProfileListState } from '../utils/definitions/profiles/profileList';
 
 /**
  * Application State
