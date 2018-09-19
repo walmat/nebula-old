@@ -1,15 +1,14 @@
 /* global describe it expect */
 import PropTypes from 'prop-types';
 
-import profileList from '../../../../utils/definitions/profiles/profileList';
-import { initialProfileState } from '../../../../utils/definitions/profiles/profile';
+import pDefns, { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
 import { setupConsoleErrorSpy } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('profileList definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   const specWrapper = {
-    test: profileList,
+    test: pDefns.profileList,
   };
 
   it('should succeed when an empty array is passed', () => {
@@ -22,7 +21,7 @@ describe('profileList definitions', () => {
 
   it('should succeed when a non-empty array of profiles is passed', () => {
     const testState = {
-      test: [initialProfileState],
+      test: [initialProfileStates.profile],
     };
     PropTypes.checkPropTypes(specWrapper, testState, 'test', 'success check');
     expect(spy.consoleError).not.toHaveBeenCalled();

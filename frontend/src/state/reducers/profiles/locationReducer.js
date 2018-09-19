@@ -1,7 +1,7 @@
 import { mapLocationFieldToKey } from '../../actions';
-import { initialLocationState } from '../../../utils/definitions/profiles/locationState';
+import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
-const locationReducer = (state = initialLocationState, action) => {
+const locationReducer = (state = initialProfileStates.location, action) => {
   let change = {};
   switch (action.type) {
     default: {

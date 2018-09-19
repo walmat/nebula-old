@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-export const initialPaymentErrorsState = {
+export const initialPaymentErrorState = {
   email: null,
   cardNumber: null,
   exp: null,

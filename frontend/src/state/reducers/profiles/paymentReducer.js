@@ -1,7 +1,7 @@
 import { mapPaymentFieldToKey } from '../../actions';
-import { initialPaymentState } from '../../../utils/definitions/profiles/paymentState';
+import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
-const paymentReducer = (state = initialPaymentState, action) => {
+const paymentReducer = (state = initialProfileStates.payment, action) => {
   let change = {};
 
   switch (action.type) {

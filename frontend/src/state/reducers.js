@@ -12,13 +12,13 @@ import { settingsReducer, initialSettingsState } from './reducers/settings/setti
 import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
 
 import serverListOptions from '../utils/servers';
-import { initialProfileListState } from '../utils/definitions/profiles/profileList';
+import { initialProfileStates } from '../utils/definitions/profileDefinitions';
 
 /**
  * Application State
  */
 export const initialState = {
-  profiles: initialProfileListState,
+  profiles: initialProfileStates.list,
   selectedProfile: initialProfileState,
   currentProfile: initialProfileState,
   tasks: initialTaskListState,

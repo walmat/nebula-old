@@ -2,9 +2,9 @@ import uuidv4 from 'uuid/v4';
 
 import { PROFILE_ACTIONS } from '../../actions';
 import { profileReducer } from './profileReducer';
-import { initialProfileListState } from '../../../utils/definitions/profiles/profileList';
+import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
-export default function profileListReducer(state = initialProfileListState, action) {
+export default function profileListReducer(state = initialProfileStates.list, action) {
   // perform deep copy of given state
   let nextState = JSON.parse(JSON.stringify(state));
 
