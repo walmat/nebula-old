@@ -1,6 +1,4 @@
 /* global describe it expect */
-import PropTypes from 'prop-types';
-
 import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 import { setupConsoleErrorSpy, testArray } from '../../../../__testUtils__/definitionTestUtils';
 
