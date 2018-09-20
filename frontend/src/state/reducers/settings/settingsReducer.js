@@ -4,28 +4,15 @@ import {
 } from '../../actions';
 
 import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
+import { initialSettingsStates } from '../../../utils/definitions/settingsDefinitions';
 
-export const initialSettingsState = {
-  proxies: [],
-  defaultProfile: initialProfileStates.profile,
-  defaultSizes: [],
-  discord: '',
-  slack: '',
-  errors: {
-    proxies: [],
-    defaultProfile: null,
-    defaultSizes: null,
-    discord: null,
-    slack: null,
-  },
-};
-
-export function settingsReducer(state = initialSettingsState, action) {
+export default function settingsReducer(state = initialSettingsStates.settings, action) {
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
       default:
         change = {
+
           [mapSettingsFieldToKey[action.field]]: action.value,
           errors: action.errors,
         };
@@ -37,9 +24,7 @@ export function settingsReducer(state = initialSettingsState, action) {
     };
   } else if (action.type === SETTINGS_ACTIONS.CLEAR) {
     change = {
-      defaults: {},
-      defaultProfile: initialProfileStates.profile,
-      defaultSizes: [],
+      defaults: initialSettingsStates.defaults,
       errors: action.errors,
     };
   }

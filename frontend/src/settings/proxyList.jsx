@@ -137,7 +137,7 @@ class ProxyList extends Component {
 }
 
 ProxyList.propTypes = {
-  proxies: defns.proxies.isRequired,
+  proxies: PropTypes.arrayOf(defns.proxy).isRequired,
   errors: defns.proxyErrors.isRequired,
   onUpdateProxies: PropTypes.func.isRequired,
 };

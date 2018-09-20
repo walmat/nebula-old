@@ -8,12 +8,13 @@ import taskListReducer from './reducers/tasks/taskListReducer';
 import { currentProfileReducer, selectedProfileReducer } from './reducers/profiles/profileReducer';
 import profileListReducer from './reducers/profiles/profileListReducer';
 import { serverReducer, serverListReducer, initialServerState, initialServerListState } from './reducers/server/serverReducer';
-import { settingsReducer, initialSettingsState } from './reducers/settings/settingsReducer';
+import settingsReducer from './reducers/settings/settingsReducer';
 import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
 
 import serverListOptions from '../utils/servers';
 import { initialProfileStates } from '../utils/definitions/profileDefinitions';
 import { initialTaskStates } from '../utils/definitions/taskDefinitions';
+import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
 
 /**
  * Application State
@@ -26,7 +27,7 @@ export const initialState = {
   newTask: initialTaskStates.task,
   navbar: initialNavbarState,
   selectedTask: initialTaskStates.task,
-  settings: initialSettingsState,
+  settings: initialSettingsStates.settings,
   serverInfo: initialServerState,
   servers: initialServerListState,
   serverListOptions,
