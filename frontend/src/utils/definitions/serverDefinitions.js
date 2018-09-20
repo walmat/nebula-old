@@ -4,10 +4,8 @@ import serverInfo, { initialServerInfoState } from './server/serverInfo';
 import coreServer, { initialCoreServerState } from './server/coreServer';
 import { serverList, serverRow, initialServerListState } from './server/serverList';
 import serverListOptions from './server/serverListOptions';
-import serverLocation from './server/serverLocation';
+import serverProperty from './server/serverProperty';
 import serverOptions, { initialServerOptionsState } from './server/serverOptions';
-import serverSize from './server/serverSize';
-import serverType from './server/serverType';
 
 export const initialServerStates = {
   awsCredentials: initialAwsCredentialsState,
@@ -25,9 +23,7 @@ export default {
   serverInfo,
   serverList,
   serverListOptions,
-  serverLocation,
+  serverProperty,
   serverOptions,
-  serverSize,
-  serverType,
   serverRow,
 };

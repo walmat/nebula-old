@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
 
-import serverLocation from './serverLocation';
-import serverSize from './serverSize';
-import serverType from './serverType';
+import serverProperty from './serverProperty';
 
 export const initialServerOptionsState = {
   type: null,
@@ -11,9 +9,9 @@ export const initialServerOptionsState = {
 };
 
 const serverOptions = PropTypes.shape({
-  type: serverType,
-  size: serverSize,
-  location: serverLocation,
+  type: serverProperty,
+  size: serverProperty,
+  location: serverProperty,
 });
 
 export default serverOptions;

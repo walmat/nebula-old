@@ -12,7 +12,7 @@ export const initialServerInfoState = {
   coreServer: initialCoreServerState,
   proxies: [],
   serverOptions: initialServerOptionsState,
-}
+};
 
 const serverInfo = PropTypes.shape({
   credentials: awsCredentials,

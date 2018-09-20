@@ -1,10 +1,9 @@
 import PropTypes from 'prop-types';
 
-const serverSize = PropTypes.shape({
+const serverProperty = PropTypes.shape({
   id: PropTypes.number,
   value: PropTypes.string,
   label: PropTypes.string,
-  types: PropTypes.arrayOf(PropTypes.number),
 });
 
-export default serverSize;
+export default serverProperty;
