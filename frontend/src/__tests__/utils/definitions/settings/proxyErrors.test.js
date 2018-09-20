@@ -2,7 +2,7 @@
 import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
 import { setupConsoleErrorSpy, testArray } from '../../../../__testUtils__/definitionTestUtils';
 
-describe('taskList definitions', () => {
+describe('proxyErrors definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   testArray(

@@ -59,7 +59,7 @@ export const testValue = (valid, invalid, spec, spy) => {
   const _testValue = (value, isValid) => {
     it(`should ${isValid ? 'succeed' : 'fail'} when ${isValid ? '' : 'in'}valid value "${value}" is passed to spec`, () => {
       const idx = getIdx();
-      PropTypes.checkPropTypes({ value: spec }, { value }, 'test', `${isValid ? 'success' : 'failure'} check ${idx}`, () => {});
+      PropTypes.checkPropTypes({ value: spec }, { value }, 'test', `${isValid ? 'success' : 'failure'} check ${idx}`);
       if (isValid) {
         expect(spy.consoleError).not.toHaveBeenCalled();
       } else {

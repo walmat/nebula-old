@@ -2,7 +2,7 @@
 import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
 import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
-describe('defaultsErrors definitions', () => {
+describe('defaults definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   const testDefaultsKey = (keyName, valid, invalid) =>
