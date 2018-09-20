@@ -1,23 +1,15 @@
 import PropTypes from 'prop-types';
 
+import serverLocation from './serverLocation';
+import serverSize from './serverSize';
+import serverType from './serverType';
+
+export const initialServerListState = [];
+
 export const serverRow = PropTypes.shape({
-  type: PropTypes.shape({
-    id: PropTypes.number,
-    value: PropTypes.string,
-    label: PropTypes.string,
-    sizes: PropTypes.arrayOf(PropTypes.number),
-  }),
-  size: PropTypes.shape({
-    id: PropTypes.number,
-    value: PropTypes.string,
-    label: PropTypes.string,
-    sizes: PropTypes.arrayOf(PropTypes.number),
-  }),
-  location: PropTypes.shape({
-    id: PropTypes.number,
-    value: PropTypes.string,
-    label: PropTypes.string,
-  }),
+  type: serverType,
+  size: serverSize,
+  location: serverLocation,
   charges: PropTypes.string,
   status: PropTypes.string,
   action: PropTypes.string,
