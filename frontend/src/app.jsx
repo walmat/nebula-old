@@ -5,7 +5,8 @@ import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 import Navbar from './navbar/navbar';
 import Tasks from './tasks/tasks';
 import Profiles from './profiles/profiles';
-import Server from './server/server';
+import Server from './server/old/server';
+import Server1 from './server/server1';
 import Settings from './settings/settings';
 import Auth from './auth/auth';
 
@@ -88,6 +89,7 @@ class App extends PureComponent {
                 <Route component={Profiles} path={ROUTES.PROFILES} />
                 <Route component={Server} path={ROUTES.SERVER} />
                 <Route component={Settings} path={ROUTES.SETTINGS} />
+                <Route component={Server1} path={ROUTES.SERVER1} />
                 <Route component={Auth} path="/auth" />
                 <Route path="/">
                   <Redirect to={ROUTES.TASKS} />

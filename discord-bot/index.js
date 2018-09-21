@@ -1,7 +1,6 @@
 const { prefixes, token } = require('./config.json');
 const Discord = require('discord.js');
 
-const fs = require('fs');
 const dotenv = require('dotenv');
 const fetch = require('node-fetch');
 const client = new Discord.Client();
@@ -10,7 +9,8 @@ const client = new Discord.Client();
 dotenv.load();
 
 client.on('ready', () => {
-    console.log('Ready!');
+    // setting the activity to show the discord bot is actively serving nebula
+    client.user.setActivity(capitalizeFirstLetter(`${client.guilds.get("426860107054317575")}`.toLowerCase()));
 });
 
 client.on('guildMemberAdd', async ( member )=> {
@@ -22,7 +22,7 @@ client.on('guildMemberAdd', async ( member )=> {
 
 client.on('message', async message => {
 
-    if (message.author.bot) return;
+    if (message.author.bot) return; // don't allow bots to message us
 
     /* DM received to bot */
     if (message.guild === null) {
@@ -33,9 +33,14 @@ client.on('message', async message => {
 async function bindUser(message) {
     // get registration key and discordId from the message
     let content = message.content.split(' ');
-    const registrationKey = content[1];
+    const licenseKey = content[1];
     const discordId = message.author.id;
     console.log(discordId);
+    
+    // ...some validation
+    if (content.length !== 2 || !content[0].startsWith('!')) {
+        return;
+    }
 
     // call the nebula api endpoint
     let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/user`,
@@ -47,22 +52,23 @@ async function bindUser(message) {
             },
             body: JSON.stringify({
                 discordId,
-                registrationKey
-            })
+                licenseKey
+            }),
         });
 
     console.log(result);
 
-    if (result.status === 200) {
-        message.channel.send(`${registrationKey} is now binded with your account`);
-    } else {
-        message.channel.send(`${registrationKey} is an invalid key`);
-                            // So we get our messages, and delete them. Simple enough, right?
-        const fetched = await message.channel.fetchMessages({count: 1});
-        message.channel.bulkDelete(fetched)
-            .catch(error => message.reply(`Couldn't delete messages because of: ${error}`));
-
-    }
+    if (result.status === process.env.SUCCESS) {
+        message.channel.send(`${licenseKey} successfully bound to your Discord account`);
+    } else if (result.status === process.env.KEY_IN_USE) {
+        message.channel.send(`Key: ${licenseKey} in use.`);
+    } // otherwise send no status report to reduce clutter
 }
 
+// helper
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// bot login method
 client.login(token);

@@ -11,7 +11,8 @@ export const NAVBAR_ACTIONS = {
 export const ROUTES = {
   TASKS: '/tasks',
   PROFILES: '/profiles',
-  SERVER: '/server',
+  SERVER: '/old/server',
+  SERVER1: '/server1',
   SETTINGS: '/settings',
 };
 
@@ -20,6 +21,7 @@ export const mapActionsToRoutes = {
   [NAVBAR_ACTIONS.ROUTE_PROFILES]: ROUTES.PROFILES,
   [NAVBAR_ACTIONS.ROUTE_SERVER]: ROUTES.SERVER,
   [NAVBAR_ACTIONS.ROUTE_SETTINGS]: ROUTES.SETTINGS,
+  [NAVBAR_ACTIONS.ROUTE_SERVER1]: ROUTES.SERVER1,
 };
 
 // Private Action Object Generator for Reducer
