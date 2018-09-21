@@ -29,9 +29,17 @@ describe('navbar actions', () => {
   it('should create an action to route anywhere', () => {
     const routeAction = navbarActions.route('ROUTE_SOMEWHERE', mockHistory);
     const expectedActions = [
-      { type: 'ROUTE_SOMEWHERE', history: mockHistory },
+      { type: NAVBAR_ACTIONS.ROUTE_HOME, history: mockHistory },
     ];
-    routeTests(routeAction, '/', expectedActions);
+    routeTests(routeAction, ROUTES.HOME, expectedActions);
+  });
+
+  it('should create an action to route to home', () => {
+    const routeAction = navbarActions.routeHome(mockHistory);
+    const expectedActions = [
+      { type: NAVBAR_ACTIONS.ROUTE_HOME, history: mockHistory },
+    ];
+    routeTests(routeAction, ROUTES.HOME, expectedActions);
   });
 
   it('should create an action to route to profiles', () => {
