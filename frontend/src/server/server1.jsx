@@ -153,18 +153,15 @@ class Server extends Component {
                     <p className="body-text section-header server-credentials__section-header">Login</p>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col col--no-gutter-left">
-                <AWSCredentials />
+                <div className="row">
+                  <div className="col col--no-gutter-left">
+                    <AWSCredentials />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        {/* <p className="body-text" id="login-label">Login</p> */}
-
-
         {/* PROXIES */}
         <p className="body-text" id="proxies-label">Proxies</p>
         <div id="proxies-box" />

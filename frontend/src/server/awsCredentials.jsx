@@ -39,11 +39,11 @@ class AWSCredentials extends Component {
           <div className="col server-credentials__input-group">
             <div className="row row--gutter">
               <div className="col col--no-gutter">
-                <p className="server-credentials__label">Access Key</p>
+                <p className="server-credentials__label">AWS Access Key</p>
                 <input
                   className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                   type="text"
-                  placeholder="Access Key"
+                  placeholder="CHANGE THIS"
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={serverInfo.credentials.AWSAccessKey}
                   required
@@ -55,11 +55,11 @@ class AWSCredentials extends Component {
         <div className="col server-credentials__input-group">
           <div className="row row--gutter">
             <div className="col col--no-gutter">
-              <p className="server-credentials__label">Secret Key</p>
+              <p className="server-credentials__label">AWS Secret Key</p>
               <input
                 className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                 type="password"
-                placeholder="Secret Key"
+                placeholder="CHANGE THIS"
                 onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                 value={serverInfo.credentials.AWSSecretKey}
                 required
