@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 import ViewLog from './viewLog1';
+import AWSCredentials from './awsCredentials';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import defns from '../utils/definitions/serverDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
@@ -33,32 +34,19 @@ class Server extends Component {
 
   constructor(props) {
     super(props);
-    this.logoutAws = this.logoutAws.bind(this);
-    this.validateAws = this.validateAws.bind(this);
     this.destroyProxies = this.destroyProxies.bind(this);
     this.generateProxies = this.generateProxies.bind(this);
     this.createServer = this.createServer.bind(this);
     this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(this);
   }
 
-  logoutAws(e) {
-    e.preventDefault();
-    const message = 'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
-    window.Bridge.confirmDialog(message).then((logout) => {
-      if (logout) {
-        this.props.onLogoutAws(this.props.serverInfo.coreServer.path);
-      }
-    });
-  }
-
-  validateAws(e) {
-    e.preventDefault();
-    this.props.onValidateAws(this.props.serverInfo.credentials);
-  }
-
   destroyProxies(e) {
     e.preventDefault();
     this.props.onDestroyProxies();
+  }
+
+  createServerInfoChangeHandler(field) {
+    return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
   }
 
   generateProxies(e) {
@@ -72,10 +60,6 @@ class Server extends Component {
       this.props.serverInfo.serverOptions,
       this.props.serverInfo.credentials,
     );
-  }
-
-  createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
   }
 
   renderServerTypeComponent() {
@@ -172,17 +156,14 @@ class Server extends Component {
               </div>
             </div>
             <div className="row">
-              
+              <div className="col col--no-gutter-left">
+                <AWSCredentials />
+              </div>
             </div>
           </div>
         </div>
-        <p className="body-text" id="login-label">Login</p>
-        <div id="login-box" />
-        <p id="access-key-label">AWS Access Key</p>
-        <input id="access-key" type="text" placeholder="Access Key" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)} value={this.props.serverInfo.credentials.AWSAccessKey} required />
-        <p id="secret-key-label">AWS Secret Key</p>
-        <input id="secret-key" type="password" placeholder="xxxxxxx" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)} value={this.props.serverInfo.credentials.AWSSecretKey} required />
-        <button id="submit-aws-login" onClick={loggedInAws ? this.logoutAws : this.validateAws}>{loggedInAws ? 'Log out' : 'Submit'}</button>
+        {/* <p className="body-text" id="login-label">Login</p> */}
+
 
         {/* PROXIES */}
         <p className="body-text" id="proxies-label">Proxies</p>
@@ -231,12 +212,10 @@ Server.propTypes = {
   serverLocation: defns.serverLocation,
   serverListOptions: defns.serverListOptions.isRequired,
   onCreateServer: PropTypes.func.isRequired,
+  onEditServerInfo: PropTypes.func.isRequired,
   onDestroyProxies: PropTypes.func.isRequired,
   onDestroyServers: PropTypes.func.isRequired,
-  onEditServerInfo: PropTypes.func.isRequired,
   onGenerateProxies: PropTypes.func.isRequired,
-  onValidateAws: PropTypes.func.isRequired,
-  onLogoutAws: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
@@ -252,23 +231,17 @@ const mapDispatchToProps = dispatch => ({
   onCreateServer: (serverOptions, awsCredentials) => {
     dispatch(serverActions.create(serverOptions, awsCredentials));
   },
+  onEditServerInfo: (field, value) => {
+    dispatch(serverActions.edit(null, field, value));
+  },
   onDestroyProxies: () => {
     dispatch(serverActions.destroyProxies());
   },
   onDestroyServers: (servers, awsCredentials) => {
     dispatch(serverActions.destroyAll(servers, awsCredentials));
   },
-  onEditServerInfo: (field, value) => {
-    dispatch(serverActions.edit(null, field, value));
-  },
   onGenerateProxies: (options) => {
     dispatch(serverActions.generateProxies(options));
-  },
-  onValidateAws: (credentials) => {
-    dispatch(serverActions.validateAws(credentials));
-  },
-  onLogoutAws: (path) => {
-    dispatch(serverActions.logoutAws(path));
   },
 });
 

@@ -27,7 +27,6 @@ const bodymovinOptions = {
 class Navbar extends PureComponent {
   render() {
     const { history, navbar } = this.props;
-    console.log(history, navbar);
     return (
       <div className="nav-container">
         <div className="flex-column">

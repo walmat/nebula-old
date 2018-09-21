@@ -1,12 +1,11 @@
 // Tasks Table Specific Rules
 @import '_mixins';
 
-%tasks-table__text-field {
-  text-transform: uppercase;
+%server-table__text-field {
   text-overflow: ellipsis;
 }
 
-%tasks-table__header__field {
+%server-table__header__field {
   margin: 0;
 
   &>p {
@@ -18,33 +17,28 @@
   }
 }
 
-.tasks {
-  .tasks-table-container {
+.server {
+  .server-table-container {
     width: 741px;
     height: 300px;
     border: 1px solid #F0405E;
     border-radius: 3px;
     margin: 0 16px 0 0 !important;
 
-    .tasks-table__wrapper {
+    .server-table__wrapper {
       min-width: 0;
       width: 100%;
       overflow: hidden;
       display: block;
     }
 
-    .tasks-table__header {
+    .server-table__header {
       margin: 0;
       padding-bottom: 1px;
       height: 26px;
       min-height: 26px;
 
-      .tasks-table__header__edit {
-        @extend %tasks-table__header__field;
-        width: 16px;
-      }
-
-      .tasks-table__header__id {
+      .server-table__header__type {
         @extend %tasks-table__header__field;
         width: 26px;
 
@@ -53,39 +47,34 @@
         }
       }
 
-      .tasks-table__header__product {
+      .server-table__header__size {
         @extend %tasks-table__header__field;
         width: 129px;
       }
 
-      .tasks-table__header__sites {
+      .server-table__header__location {
         @extend %tasks-table__header__field;
         width: 73px;
       }
 
-      .tasks-table__header__profile {
+      .server-table__header__charges {
         @extend %tasks-table__header__field;
         width: 268px;
       }
 
-      .tasks-table__header__sizes {
+      .server-table__header__status {
         @extend %tasks-table__header__field;
         width: 54px;
       }
 
-      .tasks-table__header__pairs {
-        @extend %tasks-table__header__field;
-        width: 50px;
-      }
-
-      .tasks-table__header__actions {
+      .server-table__header__actions {
         @extend %tasks-table__header__field;
         width: 50px;
       }
     }
   }
 
-  .tasks-table {
+  .server-table {
     border-collapse: collapse;
     border-spacing: 0 10px;
     height: 100%;
@@ -109,101 +98,34 @@
       padding-bottom: 0;
     }
 
-    .tasks-row-container {
+    .server-row-container {
       border-bottom: #dfdfdf solid 1px;
 
-      .tasks-row {
+      .server-row {
         display: flex;
         height: 30px;
-        // align-items: center;
-        
-        &.tasks-row--edit {
-          padding: 10px;
-          height: 80px;
-          align-items: flex-start;
-          border: #b8d9d2 solid 1px;
-          margin: 0 -5px 5px -5px;
-          border-radius: 3px !important;
-
-          .edit-field {
-            vertical-align: middle;
-            margin: 0 7px !important;
-            width: 100px;
-          
-            &__label {
-              margin: 0;
-              @include tasks-select-font();
-            }
-          
-            &__select {
-              @include tasks-select-font();
-              &:disabled {
-                background: rgb(229, 229, 229);
-                cursor: not-allowed;
-              }
-            }
-          
-            &__input {
-              vertical-align: middle;
-              height: 29px;
-              border: #F0405E solid 1px;
-              border-radius: 3px;
-              &:disabled {
-                background: rgb(229, 229, 229);
-                cursor: not-allowed;
-              }
-            }
-          }
-
-          .action {
-            margin: 12px 7px 0 7px;
-
-            &__button {
-              width: 83px;
-              height: 29px;
-              cursor: pointer;
-              border: none;
-              border-radius: 3px;
-              font-family: AvenirNext-Medium;
-              font-size: 12px;
-              color: #EFEFEF;
-              letter-spacing: 0;
-
-              &--cancel {
-                background: #46ADB4;
-              }
-
-              &--save {
-                background: #F0405E;
-              }
-            }
-          }
-        }
 
         img {
           @include image();
         }
 
-        &__edit {
-          width: 16px;
-        }
 
-        &__id {
+        &__type {
           width: 26px;
           text-align: center;
         }
 
-        &__product {
+        &__size {
           @extend %tasks-table__text-field;
           width: 129px;
         }
 
-        &__sites {
+        &__location {
           text-overflow: ellipsis;
           width: 73px;
         }
 
-        &__profile {
+        &__charges {
           @extend %tasks-table__text-field;
           width: 268px;
 
@@ -212,13 +134,9 @@
           }
         }
 
-        &__sizes {
+        &__status {
           @extend %tasks-table__text-field;
           width: 54px;
-        }
-
-        &__account {
-          width: 50px;
         }
 
         &__actions {
