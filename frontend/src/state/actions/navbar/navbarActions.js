@@ -5,13 +5,14 @@ export const NAVBAR_ACTIONS = {
   ROUTE_TASKS: 'ROUTE_TASKS',
   ROUTE_PROFILES: 'ROUTE_PROFILES',
   ROUTE_SERVER: 'ROUTE_SERVER',
+  ROUTE_SERVER1: 'ROUTE_SERVER1',
   ROUTE_SETTINGS: 'ROUTE_SETTINGS',
 };
 
 export const ROUTES = {
   TASKS: '/tasks',
   PROFILES: '/profiles',
-  SERVER: '/old/server',
+  SERVER: '/server',
   SERVER1: '/server1',
   SETTINGS: '/settings',
 };
@@ -43,5 +44,6 @@ export const navbarActions = {
   routeTasks: routeAction(NAVBAR_ACTIONS.ROUTE_TASKS),
   routeProfiles: routeAction(NAVBAR_ACTIONS.ROUTE_PROFILES),
   routeServer: routeAction(NAVBAR_ACTIONS.ROUTE_SERVER),
+  routeServer1: routeAction(NAVBAR_ACTIONS.ROUTE_SERVER1),
   routeSettings: routeAction(NAVBAR_ACTIONS.ROUTE_SETTINGS),
 };

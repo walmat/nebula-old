@@ -89,7 +89,7 @@ class Navbar extends PureComponent {
             className={navbar.location === ROUTES.SERVER1 ? 'active' : null}
             style={{ position: 'absolute', top: '25%', left: '0%' }}
             onClick={() => {
-              this.props.onRouteServer(history);
+              this.props.onRouteServer1(history);
             }}
           >
             <img src={server} className="main-icons" id="icon-server" alt="server" draggable="false" />
@@ -106,6 +106,7 @@ Navbar.propTypes = {
   onRouteTasks: PropTypes.func.isRequired,
   onRouteProfiles: PropTypes.func.isRequired,
   onRouteServer: PropTypes.func.isRequired,
+  onRouteServer1: PropTypes.func.isRequired,
   onRouteSettings: PropTypes.func.isRequired,
 };
 
@@ -117,6 +118,7 @@ const mapDispatchToProps = dispatch => ({
   onRouteTasks: history => dispatch(navbarActions.routeTasks(history)),
   onRouteProfiles: history => dispatch(navbarActions.routeProfiles(history)),
   onRouteServer: history => dispatch(navbarActions.routeServer(history)),
+  onRouteServer1: history => dispatch(navbarActions.routeServer1(history)),
   onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
 });
 
