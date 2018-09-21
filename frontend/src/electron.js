@@ -54,7 +54,7 @@ function startMainWindow() {
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
-      webSecurity: 'true',
+      webSecurity: true,
     },
   });
 
@@ -74,7 +74,7 @@ function startMainWindow() {
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
-      webSecurity: 'true',
+      webSecurity: true,
     },
   });
 
@@ -87,12 +87,14 @@ function startMainWindow() {
     fullscreenable: false,
     movable: true,
     resizable: false,
+    show: false,
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
-      webSecurity: 'true',
+      webSecurity: true,
     },
     onLoadFailure: (window) => {
+      window.close();
       console.log('window load failure');
       console.log(window);
     },
