@@ -305,22 +305,22 @@
     min-height: 26px;
   }
   .server .server-table-container .server-table__header .server-table__header__type {
-    width: 26px;
+    width: 105px;
   }
   .server .server-table-container .server-table__header .tasks-table__header__size {
-    width: 129px;
+    width: 100px;
   }
   .server .server-table-container .server-table__header .tasks-table__header__location {
-    width: 73px;
+    width: 103px;
   }
   .server .server-table-container .server-table__header .tasks-table__header__charges {
-    width: 268px;
+    width: 50px;
   }
   .server .server-table-container .server-table__header .tasks-table__header__status {
-    width: 54px;
+    width: 75px;
   }
   .server .server-table-container .server-table__header .tasks-table__header__actions {
-    width: 50px;
+    width: 75px;
   }
   .server .server-table {
     border-collapse: collapse;
