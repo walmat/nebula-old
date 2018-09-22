@@ -6,12 +6,12 @@ const locationReducer = (state = initialProfileStates.location, action) => {
   switch (action.type) {
     default: {
       change = {
-        [mapLocationFieldToKey[action.type]]: action.value,
+        [mapLocationFieldToKey[action.type]]: action.value || state[mapLocationFieldToKey[action.type]],
+        errors: action.errors || state.errors,
       };
       break;
     }
   }
-  change.errors = action.errors;
   return Object.assign({}, state, change);
 };
 export default locationReducer;

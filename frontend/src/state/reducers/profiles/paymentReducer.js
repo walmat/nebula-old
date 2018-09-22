@@ -13,7 +13,7 @@ const paymentReducer = (state = initialProfileStates.payment, action) => {
     }
   }
 
-  change.errors = action.errors;
+  change.errors = action.errors || state.errors;
   return Object.assign({}, state, change);
 };
 export default paymentReducer;
