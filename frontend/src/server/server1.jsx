@@ -161,6 +161,27 @@ class Server extends Component {
               </div>
             </div>
           </div>
+          <div className="col">
+            <div className="row row--start">
+              <div className="col col--no-gutter-left">
+                <p className="body-text section-header server-proxies__section-header">Proxies</p>
+              </div>
+            </div>
+            <div className="row">
+              <div className="col">
+                <div className="row row--start">
+                  <div className="col col--no-gutter-left">
+                    <p className="body-text section-header server-credentials__section-header">Login</p>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col col--no-gutter-left">
+                    <CreateProxies />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         {/* PROXIES */}
         <p className="body-text" id="proxies-label">Proxies</p>
