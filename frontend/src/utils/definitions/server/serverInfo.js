@@ -12,6 +12,7 @@ export const initialServerInfoState = {
   coreServer: initialCoreServerState,
   proxies: [],
   serverOptions: initialServerOptionsState,
+  errors: {}, // TODO: Replace with initial serverInfoErrorState (when it gets defined)
 };
 
 const serverInfo = PropTypes.shape({
@@ -20,6 +21,7 @@ const serverInfo = PropTypes.shape({
   proxies: PropTypes.arrayOf(proxy),
   proxyOptions,
   serverOptions,
+  errors: PropTypes.objectOf(PropTypes.any), // TODO: define this!
 });
 
 export default serverInfo;

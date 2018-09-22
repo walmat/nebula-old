@@ -4,6 +4,7 @@ export const initialProxyOptionsState = {
   numProxies: 0,
   username: '',
   password: '',
+  errors: {}, // TODO: Replace with initialProxyOptionsErrorState (when it gets defined)
 };
 
 const proxyOptions = PropTypes.shape({
@@ -13,6 +14,7 @@ const proxyOptions = PropTypes.shape({
   ]),
   username: PropTypes.string,
   password: PropTypes.string,
+  errors: PropTypes.objectOf(PropTypes.any), // TODO: Define this!
 });
 
 export default proxyOptions;
