@@ -84,7 +84,7 @@ class Server extends PureComponent {
             <div className="row row--expand">
               <div className="col col--start server-table-container">
                 <div className="row server-table__header">
-                  <div className="col server-table__header__type">
+                  <div className="col col--no-gutter server-table__header__type">
                     <p>Type</p>
                   </div>
                   <div className="col server-table__header__size">
@@ -94,7 +94,7 @@ class Server extends PureComponent {
                     <p>Location</p>
                   </div>
                   <div className="col server-table__header__charges">
-                    <p>Estimated Charges</p>
+                    <p>Charges</p>
                   </div>
                   <div className="col server-table__header__status">
                     <p>Status</p>

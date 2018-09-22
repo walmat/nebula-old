@@ -305,22 +305,23 @@
     min-height: 26px;
   }
   .server .server-table-container .server-table__header .server-table__header__type {
-    width: 105px;
+    margin-left: -20px !important;
+    width: 99px;
   }
-  .server .server-table-container .server-table__header .tasks-table__header__size {
-    width: 100px;
+  .server .server-table-container .server-table__header .server-table__header__size {
+    width: 45px;
   }
-  .server .server-table-container .server-table__header .tasks-table__header__location {
-    width: 103px;
+  .server .server-table-container .server-table__header .server-table__header__location {
+    width: 55px;
   }
-  .server .server-table-container .server-table__header .tasks-table__header__charges {
+  .server .server-table-container .server-table__header .server-table__header__charges {
+    width: 15px;
+  }
+  .server .server-table-container .server-table__header .server-table__header__status {
+    width: 35px;
+  }
+  .server .server-table-container .server-table__header .server-table__header__actions {
     width: 50px;
-  }
-  .server .server-table-container .server-table__header .tasks-table__header__status {
-    width: 75px;
-  }
-  .server .server-table-container .server-table__header .tasks-table__header__actions {
-    width: 75px;
   }
   .server .server-table {
     border-collapse: collapse;
@@ -354,26 +355,29 @@
     vertical-align: middle;
   }
   .server .server-table .server-row-container .server-row__type {
-    width: 129px;
+    margin-left: -2px !important;
+    width: 135px;
   }
   .server .server-table .server-row-container .server-row__size {
     text-overflow: ellipsis;
-    width: 73px;
+    width: 80px;
   }
   .server .server-table .server-row-container .server-row__location {
-    width: 268px;
-  }
-  .server .server-table .server-row-container .server-row__location > p {
-    text-overflow: ellipsis;
+    width: 100px;
   }
   .server .server-table .server-row-container .server-row__charges {
-    width: 54px;
+    margin-left: 8px !important;
+    width: 30px;
+  }
+  .server .server-table .server-row-container .server-row__charges > p {
+    text-align: center;
   }
   .server .server-table .server-row-container .server-row__status {
-    width: 50px;
+    width: 67px;
   }
   .server .server-table .server-row-container .server-row__actions {
     width: 50px;
+    margin-right: 20px !important;
   }
   .server .server-table .server-row-container .server-row__actions__button {
     padding-bottom: 3px;
