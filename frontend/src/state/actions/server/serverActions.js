@@ -26,6 +26,7 @@ export const SERVER_ACTIONS = {
    */
 const _createServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
+    console.log(serverOptions, awsCredentials);
     if (serverOptions && awsCredentials) {
       AWS.config = new AWS.Config({
         accessKeyId: awsCredentials.AWSAccessKey,

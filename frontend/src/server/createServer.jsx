@@ -136,12 +136,12 @@ class CreateServer extends Component {
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={() => {}}
-              onClick={
-                this.props.onCreateServer(
-                  this.props.serverInfo.serverOptions,
+              onClick={() => {
+                this.props.onDestroyServers(
+                  this.props.servers,
                   this.props.serverInfo.credentials,
-                  )
-              }
+                );
+              }}
             >
               Destroy All
             </button>
@@ -154,12 +154,12 @@ class CreateServer extends Component {
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={() => {}}
-              onClick={
-                this.props.onDestroyServers(
-                  this.props.servers,
+              onClick={() => {
+                this.props.onCreateServer(
+                  this.props.serverInfo.serverOptions,
                   this.props.serverInfo.credentials,
-                )
-              }
+                );
+              }}
             >
               Create
             </button>
@@ -184,6 +184,7 @@ CreateServer.propTypes = {
 
 
 const mapStateToProps = (state, ownProps) => ({
+  servers: state.servers,
   serverInfo: state.serverInfo,
   serverType: state.serverInfo.serverOptions.type || null,
   serverSize: state.serverInfo.serverOptions.size || null,

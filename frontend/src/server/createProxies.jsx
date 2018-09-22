@@ -22,21 +22,6 @@ class CreateProxies extends Component {
     return val;
   }
 
-  constructor(props) {
-    super(props);
-    this.destroyProxies = this.destroyProxies.bind(this);
-  }
-
-  destroyProxies(e) {
-    e.preventDefault();
-    this.props.onDestroyProxies();
-  }
-
-  generateProxies(e) {
-    e.preventDefault();
-    this.props.onGenerateProxies(this.props.serverInfo.proxyOptions);
-  }
-
   createServerInfoChangeHandler(field) {
     return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
   }
@@ -106,7 +91,7 @@ class CreateProxies extends Component {
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={() => {}}
-              onClick={this.destroyProxies}
+              onClick={() => { this.props.onDestroyProxies(); }}
             >
               Destroy All
             </button>
@@ -120,7 +105,7 @@ class CreateProxies extends Component {
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={() => {}}
-              onClick={this.generateProxies}
+              onClick={() => { this.props.onGenerateProxies(this.props.serverInfo.proxyOptions); }}
             >
               Generate
             </button>
@@ -135,6 +120,7 @@ CreateProxies.propTypes = {
   onEditServerInfo: PropTypes.func.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   onGenerateProxies: PropTypes.func.isRequired,
+  onDestroyProxies: PropTypes.func.isRequired,
 };
 
 
