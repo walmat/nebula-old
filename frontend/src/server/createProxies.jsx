@@ -51,18 +51,17 @@ class CreateProxies extends Component {
     const { serverInfo } = this.props;
     const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
     return (
-      <div className="proxies-number col col--start col--no-gutter">
+      <div className="proxy-options col col--start col--no-gutter">
         <div className="row row--start row--gutter">
-          <div className="col proxies-number__input-group">
+          <div className="col proxy-options__input-group">
             <div className="row row--gutter">
               <div className="col col--no-gutter">
-                <p className="proxies-number__label">Number</p>
+                <p className="proxy-options__label">Number</p>
                 <NumberFormat
                   value={serverInfo.proxyOptions.numProxies}
-                  displayType="text"
                   format="##"
                   placeholder="00"
-                  className="proxies-number__input proxies-number__input--bordered proxies-number__input--field"
+                  className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
                   required
                 />
@@ -70,30 +69,66 @@ class CreateProxies extends Component {
             </div>
           </div>
         </div>
-        <div className="col server-credentials__input-group">
-          <div className="row row--gutter">
-            <div className="col col--no-gutter">
-              <p className="server-credentials__label">AWS Secret Key</p>
-              <input
-                className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
-                type="password"
-                placeholder="CHANGE THIS"
-                onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
-                value={serverInfo.credentials.AWSSecretKey}
-                required
-              />
+        <div className="row row--start row--gutter">
+          <div className="col proxy-options__input-group">
+            <div className="row row--gutter">
+              <div className="col col--no-gutter">
+                <p className="proxy-options__label">Username</p>
+                <input
+                  className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
+                  type="text"
+                  placeholder="Desired Username"
+                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
+                  value={serverInfo.proxyOptions.username}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="row row--start row--gutter">
+          <div className="col proxy-options__input-group">
+            <div className="row row--gutter">
+              <div className="col col--no-gutter">
+                <p className="proxy-options__label">Password</p>
+                <input
+                  className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
+                  type="test"
+                  placeholder="Desired Password"
+                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
+                  value={serverInfo.proxyOptions.password}
+                  required
+                />
+              </div>
             </div>
           </div>
         </div>
         <div className="row row--end row--expand row--gutter">
           <div className="col">
             <button
-              className="server-credentials__submit"
+              className="proxy-options__destroy"
               tabIndex={0}
+              disabled={!loggedInAws}
+              style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
+              title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={() => {}}
-              onClick={loggedInAws ? this.logoutAws : this.validateAws}
+              onClick={this.destroyProxies}
             >
-              {loggedInAws ? 'Log out' : 'Submit'}
+              Destroy All
+            </button>
+          </div>
+          <div className="col">
+          
+            <button
+              className="proxy-options__generate"
+              tabIndex={0}
+              disabled={!loggedInAws}
+              style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
+              title={!loggedInAws ? 'Login Required' : ''}
+              onKeyPress={() => {}}
+              onClick={this.generateProxies}
+            >
+              Generate
             </button>
           </div>
         </div>

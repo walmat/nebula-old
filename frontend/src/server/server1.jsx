@@ -164,19 +164,23 @@ class Server extends Component {
               </div>
             </div>
           </div>
+          <div className="col col--start">
+            <div className="row">
+              <div className="col">
+                <div className="row row--start">
+                  <div className="col col--no-gutter-left">
+                    <p className="body-text section-header proxy-options__section-header">Proxies</p>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col col--no-gutter-left">
+                    <CreateProxies />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        {/* PROXIES */}
-        <p className="body-text" id="proxies-label">Proxies</p>
-        <div id="proxies-box" />
-        <p id="number-label">Number</p>
-        <input id="number" type="text" placeholder="00" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)} value={this.props.serverInfo.proxyOptions.numProxies} required />
-        <p id="username-proxies-label">Username</p>
-        <input id="username-proxies" type="text" placeholder="Desired Username" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)} value={this.props.serverInfo.proxyOptions.username} required />
-        <p id="password-proxies-label">Password</p>
-        <input id="password-proxies" type="password" placeholder="Desired Password" onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)} value={this.props.serverInfo.proxyOptions.password} required />
-        <button disabled={!loggedInAws} id="generate-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.generateProxies} >Generate</button>
-        <button disabled={!loggedInAws} id="destroy-proxies" title={!loggedInAws ? 'Login Required' : ''} style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }} onClick={this.destroyProxies} >Destroy All</button>
-
         {/* CONNECT */}
         <p className="body-text" id="server-label">Connect</p>
         <div id="server-box" />
