@@ -24,27 +24,21 @@ class CreateProxies extends Component {
 
   constructor(props) {
     super(props);
-    this.logoutAws = this.logoutAws.bind(this);
-    this.validateAws = this.validateAws.bind(this);
+    this.destroyProxies = this.destroyProxies.bind(this);
   }
 
-  logoutAws(e) {
+  destroyProxies(e) {
     e.preventDefault();
-    const message = 'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
-    window.Bridge.confirmDialog(message).then((logout) => {
-      if (logout) {
-        this.props.onLogoutAws(this.props.serverInfo.coreServer.path);
-      }
-    });
+    this.props.onDestroyProxies();
+  }
+
+  generateProxies(e) {
+    e.preventDefault();
+    this.props.onGenerateProxies(this.props.serverInfo.proxyOptions);
   }
 
   createServerInfoChangeHandler(field) {
     return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
-  }
-
-  validateAws(e) {
-    e.preventDefault();
-    this.props.onValidateAws(this.props.serverInfo.credentials);
   }
 
   render() {
@@ -140,24 +134,25 @@ class CreateProxies extends Component {
 CreateProxies.propTypes = {
   onEditServerInfo: PropTypes.func.isRequired,
   serverInfo: defns.serverInfo.isRequired,
-  onValidateAws: PropTypes.func.isRequired,
-  onLogoutAws: PropTypes.func.isRequired,
+  onGenerateProxies: PropTypes.func.isRequired,
 };
 
 
 const mapStateToProps = (state, ownProps) => ({
   serverInfo: state.serverInfo,
+  onDestroyProxies: PropTypes.func.isRequired,
+  onGenerateProxies: PropTypes.func.isRequired,
 });
 
 const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
-  onValidateAws: (credentials) => {
-    dispatch(serverActions.validateAws(credentials));
+  onGenerateProxies: (options) => {
+    dispatch(serverActions.generateProxies(options));
   },
-  onLogoutAws: (path) => {
-    dispatch(serverActions.logoutAws(path));
+  onDestroyProxies: () => {
+    dispatch(serverActions.destroyProxies());
   },
 });
 

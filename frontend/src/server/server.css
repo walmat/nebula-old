@@ -7,7 +7,7 @@
     justify-content: flex-start;
     align-items: stretch;
   }
-  
+    /* grid start */
   .row {
     display: flex;
     flex-direction: row;
@@ -67,24 +67,19 @@
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-  
+  /* grid end */
+
+
+  /* server credentials start */
   .server .server-credentials {
+    margin-top: 1px;
     height: 167px;
     width: 277px;
     border: 1px solid #f0405e;
     border-radius: 3px;
   }
-  .server .proxy-options {
-    height: 219px;
-    width: 258px;
-    border: 1px solid #f0405e;
-    border-radius: 3px;
-  }
   .server .server-credentials__section-header {
-    padding-top: 5px;
-  }
-  .server .proxy-options__section-header {
-    padding-top: 71px;
+    padding-top: 0px;
   }
   .server .server-credentials__label {
     font-family: AvenirNext-Medium;
@@ -96,41 +91,12 @@
     margin-top: 9px;
     padding-left: 0.5px;
   }
-  .server .proxy-options__label {
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
-    height: 12px;
-    margin-bottom: 3px;
-    margin-top: 9px;
-    padding-left: 0.5px;
-  }
   .server .server-credentials__input-group {
     margin: 0 11.5px !important;
+    padding-top: -1px;
     padding-bottom: 2px;
-  }
-  .server .proxy-options__input-group {
-    margin: 0 11.5px !important;
-    padding-bottom: 2px;
-  }
-  .server .server-credentials__input-group--last {
-    padding-top: 1px;
-  }
-  .server .server-credentials__input-group--site {
-    padding-left: 14px;
-  }
-  .server .server-credentials__input-group--sizes {
-    margin-right: 14px !important;
   }
   .server .server-credentials__input {
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
-  }
-
-  .server .proxy-options__input {
     font-family: AvenirNext-Medium;
     font-size: 9px;
     color: #161318;
@@ -139,19 +105,8 @@
   .server .server-credentials__input--bordered {
     border: 1px solid #F0405E;
   }
-  .server .proxy-options__input--bordered {
-    border: 1px solid #F0405E;
-  }
   .server .server-credentials__input--field {
     width: 252px;
-    height: 29px;
-  }
-  .server .proxy-options__input--number {
-    width: 106px;
-    height: 29px;
-  }
-  .server .proxy-options__input--field {
-    width: 234px;
     height: 29px;
   }
   .server .server-credentials__input--field:disabled {
@@ -174,7 +129,50 @@
     color: #EFEFEF;
     letter-spacing: 0;
   }
+  /* server credentials end */
 
+  /* proxy options start */
+  .server .proxy-options {
+    margin-left: -10px;
+    height: 219px;
+    width: 258px;
+    border: 1px solid #f0405e;
+    border-radius: 3px;
+  }
+  .server .proxy-options__section-header {
+    padding-top: 71px;
+  }
+  .server .proxy-options__label {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
+    height: 12px;
+    margin-bottom: 3px;
+    margin-top: 9px;
+    padding-left: 0.5px;
+  }
+  .server .proxy-options__input-group {
+    margin: 0 11.5px !important;
+    padding-bottom: 2px;
+  }
+  .server .proxy-options__input {
+    font-family: AvenirNext-Medium;
+    font-size: 9px;
+    color: #161318;
+    letter-spacing: 0;
+  }
+  .server .proxy-options__input--bordered {
+    border: 1px solid #F0405E;
+  }
+  .server .proxy-options__input--number {
+    width: 106px;
+    height: 29px;
+  }
+  .server .proxy-options__input--field {
+    width: 234px;
+    height: 29px;
+  }
   .server .proxy-options__generate {
     margin-right: -3px;
     width: 110px;
@@ -188,7 +186,6 @@
     color: #EFEFEF;
     letter-spacing: 0;
   }
-
   .server .proxy-options__destroy {
     margin-right: -17px;
     width: 110px;
@@ -202,181 +199,55 @@
     color: #EFEFEF;
     letter-spacing: 0;
   }
-  
-  .tasks .tasks-log__header__output, .tasks .tasks-log__header__site, .tasks .tasks-log__header__id {
-    margin: 0;
+  /* proxy options end */
+
+  /* server options start */
+  .server .server-options {
+    height: 219px;
+    width: 258px;
+    border: 1px solid #f0405e;
+    border-radius: 3px;
   }
-  .tasks .tasks-log__header__output > p, .tasks .tasks-log__header__site > p, .tasks .tasks-log__header__id > p {
+  .server .server-options__section-header {
+    padding-top: 71px;
+  }
+  .server .server-options__label {
     font-family: AvenirNext-Medium;
-    font-size: 12px;
+    font-size: 9px;
     color: #161318;
     letter-spacing: 0;
-    margin: 5px 0;
+    height: 12px;
+    margin-bottom: 3px;
+    margin-top: 9px;
+    padding-left: 0.5px;
   }
-  
-  .tasks .tasks-log {
-    width: 504px;
-    height: 300px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-    margin-left: -1px;
-  }
-  .tasks .tasks-log__section-header {
-    padding-top: 1px;
+  .server .server-options__input-group {
+    margin: 0 11.5px !important;
     padding-bottom: 2px;
   }
-  .tasks .tasks-log__header {
-    padding-bottom: 1px;
-  }
-  .tasks .tasks-log__header__id {
-    width: 7px;
-    padding-left: 14px;
-  }
-  .tasks .tasks-log__header__site {
-    width: 21px;
-    padding-left: 18px;
-  }
-  .tasks .tasks-log__header__output {
-    width: 40px;
-    padding-left: 50px;
-  }
-  
-  .tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product {
-    text-transform: uppercase;
-    text-overflow: ellipsis;
-  }
-  
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit {
-    margin: 0;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p {
+  .server .server-options__input {
     font-family: AvenirNext-Medium;
-    font-size: 12px;
+    font-size: 9px;
     color: #161318;
     letter-spacing: 0;
-    margin: 5px 0;
   }
-  
-  .tasks .tasks-table-container {
-    width: 741px;
-    height: 300px;
+  .server .server-options__input--bordered {
     border: 1px solid #F0405E;
-    border-radius: 3px;
-    margin: 0 16px 0 0 !important;
   }
-  .tasks .tasks-table-container .tasks-table__wrapper {
-    min-width: 0;
-    width: 100%;
-    overflow: hidden;
-    display: block;
-  }
-  .tasks .tasks-table-container .tasks-table__header {
-    margin: 0;
-    padding-bottom: 1px;
-    height: 26px;
-    min-height: 26px;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit {
-    width: 16px;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id {
-    width: 26px;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p {
-    text-align: center;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product {
-    width: 129px;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites {
-    width: 73px;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile {
-    width: 268px;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes {
-    width: 54px;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs {
-    width: 50px;
-  }
-  .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions {
-    width: 50px;
-  }
-  .tasks .tasks-table {
-    border-collapse: collapse;
-    border-spacing: 0 10px;
-    height: 100%;
-    overflow-y: scroll;
-    overflow-x: hidden;
-  }
-  .tasks .tasks-table__section-header {
-    padding-top: 1px;
-  }
-  .tasks .tasks-table .blank {
-    padding-left: 10px;
-  }
-  .tasks .tasks-table .extend {
-    padding-right: 4px;
-  }
-  .tasks .tasks-table .pad-left {
-    padding-left: 5px;
-    padding-bottom: 0;
-  }
-  .tasks .tasks-table .tasks-row-container {
-    border-bottom: #dfdfdf solid 1px;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row {
-    display: flex;
-    height: 30px;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
-    padding: 10px;
-    height: 80px;
-    align-items: flex-start;
-    border: #b8d9d2 solid 1px;
-    margin: 0 -5px 5px -5px;
-    border-radius: 3px !important;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field {
-    vertical-align: middle;
-    margin: 0 7px !important;
-    width: 100px;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__label {
-    margin: 0;
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select:disabled {
-    background: #e5e5e5;
-    cursor: not-allowed;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input {
-    vertical-align: middle;
+  .server .server-options__input--field {
+    width: 234px;
     height: 29px;
-    border: #F0405E solid 1px;
-    border-radius: 3px;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input:disabled {
-    background: #e5e5e5;
-    cursor: not-allowed;
+  .server .server-options__select--type {
+    width: 234px;
+    height: 29px;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action {
-    margin: 12px 7px 0 7px;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button {
-    width: 83px;
+  .server .server-options__create {
+    margin-right: -3px;
+    width: 110px;
     height: 29px;
     cursor: pointer;
+    background: #F0405E;
     border: none;
     border-radius: 3px;
     font-family: AvenirNext-Medium;
@@ -384,46 +255,127 @@
     color: #EFEFEF;
     letter-spacing: 0;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--cancel {
+  .server .server-options__destroy {
+    margin-right: -17px;
+    width: 110px;
+    height: 29px;
+    cursor: pointer;
     background: #46ADB4;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--save {
-    background: #F0405E;
+  /* server options end */
+  
+  .server .server-table .server-row-container .server-row__size, .server .server-table .server-row-container .server-row__type, .server .server-table .server-row-container .server-row__location {
+    text-overflow: ellipsis;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row img {
+  
+  .server .server-table-container .server-table__header .server-table__header__actions, .server .server-table-container .server-table__header .server-table__header__type, .server .server-table-container .server-table__header .server-table__header__size, .server .server-table-container .server-table__header .server-table__header__location, .server .server-table-container .server-table__header .server-table__header__charges, .server .server-table-container .server-table__header .server-table__header__status {
+    margin: 0;
+  }
+  .server .server-table-container .server-table__header .server-table__header__actions > p, .server .server-table-container .server-table__header .server-table__header__type > p, .server .server-table-container .server-table__header .server-table__header__size > p, .server .server-table-container .server-table__header .server-table__header__location > p, .server .server-table-container .server-table__header .server-table__header__charges > p, .server .server-table-container .server-table__header .server-table__header__status > p {
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #161318;
+    letter-spacing: 0;
+    margin: 5px 0;
+  }
+  
+  .server .server-table-container {
+    width: 741px;
+    height: 300px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+    margin: 0 16px 0 0 !important;
+  }
+  .server .server-table-container .server-table__wrapper {
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+    display: block;
+  }
+  .server .server-table-container .server-table__header {
+    margin: 0;
+    padding-bottom: 1px;
+    height: 26px;
+    min-height: 26px;
+  }
+  .server .server-table-container .server-table__header .server-table__header__type {
+    width: 26px;
+  }
+  .server .server-table-container .server-table__header .tasks-table__header__size {
+    width: 129px;
+  }
+  .server .server-table-container .server-table__header .tasks-table__header__location {
+    width: 73px;
+  }
+  .server .server-table-container .server-table__header .tasks-table__header__charges {
+    width: 268px;
+  }
+  .server .server-table-container .server-table__header .tasks-table__header__status {
+    width: 54px;
+  }
+  .server .server-table-container .server-table__header .tasks-table__header__actions {
+    width: 50px;
+  }
+  .server .server-table {
+    border-collapse: collapse;
+    border-spacing: 0 10px;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+  }
+  .server .server-table__section-header {
+    padding-top: 1px;
+  }
+  .server .server-table .blank {
+    padding-left: 10px;
+  }
+  .server .server-table .extend {
+    padding-right: 4px;
+  }
+  .server .server-table .pad-left {
+    padding-left: 5px;
+    padding-bottom: 0;
+  }
+  .server .server-table .server-row-container {
+    border-bottom: #dfdfdf solid 1px;
+  }
+  .server .server-table .server-row-container .server-row {
+    display: flex;
+    height: 30px;
+  }
+  .server .server-table .server-row-container .server-row img {
     cursor: pointer;
     vertical-align: middle;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row__edit {
-    width: 16px;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row__id {
-    width: 26px;
-    text-align: center;
-  }
-  .tasks .tasks-table .tasks-row-container .tasks-row__product {
+  .server .server-table .server-row-container .server-row__type {
     width: 129px;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row__sites {
+  .server .server-table .server-row-container .server-row__size {
     text-overflow: ellipsis;
     width: 73px;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row__profile {
+  .server .server-table .server-row-container .server-row__location {
     width: 268px;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row__profile > p {
+  .server .server-table .server-row-container .server-row__location > p {
     text-overflow: ellipsis;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row__sizes {
+  .server .server-table .server-row-container .server-row__charges {
     width: 54px;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row__account {
+  .server .server-table .server-row-container .server-row__status {
     width: 50px;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row__actions {
+  .server .server-table .server-row-container .server-row__actions {
     width: 50px;
   }
-  .tasks .tasks-table .tasks-row-container .tasks-row__actions__button {
+  .server .server-table .server-row-container .server-row__actions__button {
     padding-bottom: 3px;
     width: 16px;
   }
@@ -442,14 +394,9 @@
     margin-top: 0;
   }
   
-  .tasks__title {
+  .server__title {
     padding-top: 1px !important;
     padding-bottom: 3px !important;
-  }
-  
-  .bulk-action-sidebar .bulk-action-sidebar__button {
-    padding-bottom: 15px;
-    cursor: pointer;
   }
   
   /* Temporary */
