@@ -91,6 +91,10 @@
     margin: 0 11.5px !important;
     padding-bottom: 2px;
   }
+  .server .proxies-number__input-group {
+    margin: 0 11.5px !important;
+    padding-bottom: 2px;
+  }
   .server .server-credentials__input-group--last {
     padding-top: 1px;
   }
@@ -121,6 +125,20 @@
     align-self: flex-end;
   }
   .server .server-credentials__submit {
+    margin-right: -1px;
+    width: 83px;
+    height: 29px;
+    cursor: pointer;
+    background: #F0405E;
+    border: none;
+    border-radius: 3px;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+  }
+
+  .server .proxies_number__submit {
     margin-right: -1px;
     width: 83px;
     height: 29px;

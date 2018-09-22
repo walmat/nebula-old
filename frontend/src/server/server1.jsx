@@ -4,8 +4,11 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
+// components
 import ViewLog from './viewLog1';
 import AWSCredentials from './awsCredentials';
+import CreateProxies from './createProxies';
+
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import defns from '../utils/definitions/serverDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
@@ -156,27 +159,6 @@ class Server extends Component {
                 <div className="row">
                   <div className="col col--no-gutter-left">
                     <AWSCredentials />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col">
-            <div className="row row--start">
-              <div className="col col--no-gutter-left">
-                <p className="body-text section-header server-proxies__section-header">Proxies</p>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col">
-                <div className="row row--start">
-                  <div className="col col--no-gutter-left">
-                    <p className="body-text section-header server-credentials__section-header">Login</p>
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="col col--no-gutter-left">
-                    <CreateProxies />
                   </div>
                 </div>
               </div>

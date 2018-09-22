@@ -1,10 +1,27 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import NumberFormat from 'react-number-format';
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 
 class CreateProxies extends Component {
+
+  static limit(val, max) {
+    if (val.length === 1 && val[0] > max[0]) {
+      val = `0${val}`;
+    }
+
+    if (val.length === 2) {
+      if (Number(val) === 0) {
+        val = '01';
+      } else if (val > max) { // this can happen when user paste number
+        val = max;
+      }
+    }
+    return val;
+  }
+
   constructor(props) {
     super(props);
     this.logoutAws = this.logoutAws.bind(this);
@@ -40,12 +57,13 @@ class CreateProxies extends Component {
             <div className="row row--gutter">
               <div className="col col--no-gutter">
                 <p className="proxies-number__label">Number</p>
-                <input
+                <NumberFormat
+                  value={serverInfo.proxyOptions.numProxies}
+                  displayType="text"
+                  format="##"
+                  placeholder="00"
                   className="proxies-number__input proxies-number__input--bordered proxies-number__input--field"
-                  type="text"
-                  placeholder="CHANGE THIS"
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
-                  value={serverInfo.credentials.AWSAccessKey}
+                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
                   required
                 />
               </div>
