@@ -136,13 +136,17 @@ class CreateServer extends Component {
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={() => {}}
-              onClick={this.destroyProxies}
+              onClick={
+                this.props.onCreateServer(
+                  this.props.serverInfo.serverOptions,
+                  this.props.serverInfo.credentials,
+                  )
+              }
             >
               Destroy All
             </button>
           </div>
           <div className="col">
-
             <button
               className="server-options__create"
               tabIndex={0}
@@ -150,7 +154,12 @@ class CreateServer extends Component {
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={() => {}}
-              onClick={this.generateProxies}
+              onClick={
+                this.props.onDestroyServers(
+                  this.props.servers,
+                  this.props.serverInfo.credentials,
+                )
+              }
             >
               Create
             </button>
@@ -162,8 +171,10 @@ class CreateServer extends Component {
 }
 
 CreateServer.propTypes = {
+  servers: defns.serverList.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
   onCreateServer: PropTypes.func.isRequired,
+  onDestroyServers: PropTypes.func.isRequired,
   serverType: defns.serverType,
   serverSize: defns.serverSize,
   serverLocation: defns.serverLocation,

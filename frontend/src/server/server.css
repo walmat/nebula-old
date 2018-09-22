@@ -58,7 +58,7 @@
     flex: 1 1 auto;
   }
   .col--no-gutter-left {
-    margin-left: 0 !important;
+    margin-left: -1.5px !important;
   }
   .col--no-gutter-right {
     margin-right: 0 !important;
@@ -282,15 +282,15 @@
     font-size: 12px;
     color: #161318;
     letter-spacing: 0;
-    margin: 5px 0;
+    margin: 0px 0;
   }
   
   .server .server-table-container {
-    width: 741px;
-    height: 300px;
+    width: 823px;
+    height: 333px;
     border: 1px solid #F0405E;
     border-radius: 3px;
-    margin: 0 16px 0 0 !important;
+    margin: 0 0px 0 0;
   }
   .server .server-table-container .server-table__wrapper {
     min-width: 0;
@@ -330,7 +330,7 @@
     overflow-x: hidden;
   }
   .server .server-table__section-header {
-    padding-top: 1px;
+    margin-top: -9px;
   }
   .server .server-table .blank {
     padding-left: 10px;
@@ -399,10 +399,5 @@
     padding-bottom: 3px !important;
   }
   
-  /* Temporary */
-  .temp-debug {
-    background-color: gray;
-  }
-  
-  /*# sourceMappingURL=tasks.css.map */
+  /*# sourceMappingURL=server.css.map */
   
