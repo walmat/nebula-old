@@ -2,7 +2,7 @@
   "name": "nebula",
   "version": "0.1.0",
   "private": true,
-  "main": "src/electron.js",
+  "main": "main/electron.js",
   "homepage": "./",
   "scripts": {
     "start": "react-scripts start & node src/electron-wait-react",

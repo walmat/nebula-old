@@ -16,6 +16,7 @@ const _quit = () => {
   _sendEvent('window-event', 'quit');
 };
 
+// Send a close window event
 const _close = () => {
   _sendEvent('window-event', 'close');
 };
