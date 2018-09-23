@@ -1,9 +1,9 @@
-const electron = require('electron');
+const electron = require('electron').remote;
 const path = require('path');
 
-const { BrowserWindow } = electron.BrowserWindow;
+const { BrowserWindow } = electron.remote.BrowserWindow;
 
-export const mainWindow = new BrowserWindow({
+const mainWindow = new BrowserWindow({
   width: 1000,
   height: 715,
   center: true,
@@ -19,7 +19,7 @@ export const mainWindow = new BrowserWindow({
   },
 });
 
-export const authWindow = new BrowserWindow({
+const authWindow = new BrowserWindow({
   width: 300,
   height: 215,
   center: true,
@@ -34,7 +34,7 @@ export const authWindow = new BrowserWindow({
   },
 });
 
-export const youtubeWindow = new BrowserWindow({
+const youtubeWindow = new BrowserWindow({
   width: 450,
   height: 475,
   center: true,
@@ -49,7 +49,7 @@ export const youtubeWindow = new BrowserWindow({
   },
 });
 
-export const captchaWindow = new BrowserWindow({
+const captchaWindow = new BrowserWindow({
   proxyRules: 'http://127.0.0.1:8080',
   center: true,
   fullscreen: false,
@@ -67,3 +67,10 @@ export const captchaWindow = new BrowserWindow({
     webSecurity: true,
   },
 });
+
+module.exports = {
+  captchaWindow,
+  mainWindow,
+  youtubeWindow,
+  authWindow,
+};
