@@ -19,11 +19,11 @@
 
 .server {
   .server-table-container {
-    width: 741px;
-    height: 300px;
+    width: 823px;
+    height: 333px;
     border: 1px solid #F0405E;
     border-radius: 3px;
-    margin: 0 16px 0 0 !important;
+    margin: 0 !important;
 
     .server-table__wrapper {
       min-width: 0;
@@ -40,31 +40,28 @@
 
       .server-table__header__type {
         @extend %tasks-table__header__field;
-        width: 26px;
-
-        &>p {
-          text-align: center;
-        }
+        margin-left: -20px;
+        width: 99px;
       }
 
       .server-table__header__size {
         @extend %tasks-table__header__field;
-        width: 129px;
+        width: 45px;
       }
 
       .server-table__header__location {
         @extend %tasks-table__header__field;
-        width: 73px;
+        width: 55px;
       }
 
       .server-table__header__charges {
         @extend %tasks-table__header__field;
-        width: 268px;
+        width: 15px;
       }
 
       .server-table__header__status {
         @extend %tasks-table__header__field;
-        width: 54px;
+        width: 35px;
       }
 
       .server-table__header__actions {
@@ -82,7 +79,7 @@
     overflow-x: hidden;
 
     &__section-header {
-      padding-top: 1px;
+      margin-top: -9px;
     }
 
     .blank {
@@ -111,32 +108,32 @@
 
 
         &__type {
-          width: 26px;
-          text-align: center;
+          margin-left: -2px;
+          width: 135px;
         }
 
         &__size {
           @extend %tasks-table__text-field;
-          width: 129px;
+          width: 80px;
         }
 
         &__location {
           text-overflow: ellipsis;
-          width: 73px;
+          width: 100px;
         }
 
         &__charges {
           @extend %tasks-table__text-field;
-          width: 268px;
-
-          &>p {
-            text-overflow: ellipsis;
+          margin-left: 8px;
+          width: 30px;
+          & > p {
+            text-align: center;
           }
         }
 
         &__status {
           @extend %tasks-table__text-field;
-          width: 54px;
+          width: 67px;
         }
 
         &__actions {

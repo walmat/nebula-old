@@ -154,6 +154,7 @@
   }
   .server .proxy-options__input-group {
     margin: 0 11.5px !important;
+    padding-top: -1px;
     padding-bottom: 2px;
   }
   .server .proxy-options__input {
@@ -238,7 +239,7 @@
     width: 234px;
     height: 29px;
   }
-  .server .server-options__select--type {
+  .server .server-options__input--select {
     width: 234px;
     height: 29px;
   }

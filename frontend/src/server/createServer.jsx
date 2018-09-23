@@ -56,7 +56,7 @@ class CreateServer extends Component {
                 placeholder={defaultOption}
                 components={{ DropdownIndicator }}
                 classNamePrefix="select"
-                className="server-options__select--type"
+                className="server-options__input--select"
                 styles={colourStyles}
                 onChange={onChange}
                 isDisabled={disabled}

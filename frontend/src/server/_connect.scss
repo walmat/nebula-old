@@ -1,17 +1,16 @@
-// AWS Login Specific Rules
+// Proxy Options Specific Rules
 @import '_mixins';
 
 .server {
-  .server-credentials {
-    margin-top: 1px;
-    height: 167px;
-    width: 277px;
+  .server-options {
+    height: 219px;
+    width: 258px;
     border: 1px solid #f0405e;
     border-radius: 3px;
 
-    // &__section-header {
-    //   padding-bottom: 1px;
-    // }
+    &__section-header {
+      padding-top: 71px;
+    }
 
     &__label {
       @include tasks-select-font();
@@ -23,7 +22,6 @@
 
     &__input-group {
       margin: 0 11.5px !important;
-      padding-top: -1px;
       padding-bottom: 2px;
     }
 
@@ -35,12 +33,17 @@
       }
 
       &--field {
-        width: 252px;
+        width: 234px;
         height: 29px;
         &:disabled {
           background: rgb(229, 229, 229);
           cursor: not-allowed;
         }
+      }
+
+      &--select {
+          width: 234px;
+          height: 29px;
       }
     }
 
@@ -48,12 +51,26 @@
       align-self: flex-end;
     }
 
-    &__submit {
-      margin-right: -1px;
-      width: 83px;
+    &__create {
+      margin-right: -3px;
+      width: 110px;
       height: 29px;
       cursor: pointer;
       background: #F0405E;
+      border: none;
+      border-radius: 3px;
+      font-family: AvenirNext-Medium;
+      font-size: 12px;
+      color: #EFEFEF;
+      letter-spacing: 0;
+    }
+
+    &__destroy {
+      margin-right: -17px;
+      width: 110px;
+      height: 29px;
+      cursor: pointer;
+      background: #46ADB4;
       border: none;
       border-radius: 3px;
       font-family: AvenirNext-Medium;
