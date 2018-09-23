@@ -3,7 +3,6 @@ const path = require('path');
 const url = require('url');
 
 const { platform, env } = process;
-const { BrowserWindow } = electron.BrowserWindow;
 
 /**
  * Get eletron dependencies:
@@ -14,6 +13,7 @@ const { BrowserWindow } = electron.BrowserWindow;
  */
 const {
   app,
+  BrowserWindow,
   ipcMain,
   session,
   Menu,
@@ -102,28 +102,56 @@ function createWindow() {
   /**
    * -- auth check here -- something similar to: https://github.com/keygen-sh/example-electron-app/blob/master/main.js
    */
+  console.log(env.NODE_ENV);
 
-  // load the auth window by default...
-  window = new BrowserWindow({
-    width: AUTH_WIDTH,
-    height: AUTH_HEIGHT,
-    center: true,
-    frame: false,
-    fullscreenable: false,
-    movable: true,
-    resizable: false,
-    show: false,
-    webPreferences: {
-      nodeIntegration: false,
-      webSecurity: true,
-    },
-  });
+  if (env.NODE_ENV === 'development') {
+    // load the main window in development always
+    window = new BrowserWindow({
+      width: MAIN_WIDTH,
+      height: MAIN_HEIGHT,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        preload: path.join(__dirname, 'preload.js'),
+        webSecurity: true,
+      },
+    });
 
-  startUrl = process.env.ELECTRON_START_URL || url.format({
-    pathname: path.join(__dirname, '/../build/auth.html'),
-    protocol: 'file:',
-    slashes: true,
-  });
+    startUrl = env.ELECTRON_START_URL || url.format({
+      pathname: path.join(__dirname, '/../build/index.html'),
+      protocol: 'file:',
+      slashes: true,
+    });
+  } else {
+    // otherwise, load the auth window by default...
+    window = new BrowserWindow({
+      width: AUTH_WIDTH,
+      height: AUTH_HEIGHT,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        preload: path.join(__dirname, 'preload.js'),
+        webSecurity: true,
+      },
+    });
+
+    startUrl = env.ELECTRON_START_URL || url.format({
+      pathname: path.join(__dirname, '/../build/auth.html'),
+      protocol: 'file:',
+      slashes: true,
+    });
+  }
+
   window.loadURL(startUrl);
   setMenu();
 
@@ -134,7 +162,7 @@ function createWindow() {
   // get authentication event from the main process
   ipcMain.on('unauthenticated', (event) => {
     invalidate(); // invalidate the user's machine
-    startUrl = process.env.ELECTRON_AUTH_URL || url.format({
+    startUrl = env.ELECTRON_AUTH_URL || url.format({
       pathname: path.join(__dirname, '/../build/auth.html'),
       protocol: 'file:',
       slashes: true,
@@ -163,7 +191,7 @@ function createWindow() {
         webSecurity: true,
       },
     });
-    startUrl = process.env.ELECTRON_START_URL || url.format({
+    startUrl = env.ELECTRON_START_URL || url.format({
       pathname: path.join(__dirname, '/../build/index.html'),
       protocol: 'file:',
       slashes: true,
