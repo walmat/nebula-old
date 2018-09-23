@@ -14,7 +14,7 @@
     // }
 
     &__label {
-      @include tasks-select-font();
+      @include server-select-font();
       height: 12px;
       margin-bottom: 3px;
       margin-top: 9px;
@@ -28,7 +28,7 @@
     }
 
     &__input {
-      @include tasks-select-font();
+      @include server-select-font();
 
       &--bordered {
         border: 1px solid #F0405E;
