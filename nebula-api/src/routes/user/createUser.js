@@ -1,11 +1,11 @@
 const AWS = require('aws-sdk');
 AWS.config = {
     region: "us-west-2",
-    endpoint: "http://localhost:8000",
+    endpoint: process.env.NEBULA_API_ENDPOINT,
     accessKeyId: 'local',
     secretAccessKey: 'local'
 }
-var docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint('http://localhost:8000') });
+var docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(process.env.NEBULA_API_ENDPOINT) });
 
 async function getRegistationKey(registrationKey) {
 	const params = {
@@ -78,12 +78,12 @@ module.exports = function(app) {
 		try {
 			const userData = req.body;
 			console.log(userData);
-			if (!userData.registrationKey || !userData.discordId) {
+			if (!userData.licenseKey || !userData.discordId) {
 				res.status(404).json({
 					error: 'Missing registration key or discordId!'
 				});
 			} else {
-				await createUser(res, userData.registrationKey, userData.discordId);
+				await createUser(res, userData.licenseKey, userData.discordId);
 			}
 		} catch (err) {
 			console.log(err);

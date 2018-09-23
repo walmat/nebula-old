@@ -10,22 +10,6 @@ AWS.config.update({
 
 var dynamodb = new AWS.DynamoDB();
 
-var profiles = {
-    TableName : "Profiles",
-    KeySchema: [
-        { AttributeName: "discordId", KeyType: "HASH"},  //Partition key
-        { AttributeName: "profileName", KeyType: "RANGE" }  //Sort key
-    ],
-    AttributeDefinitions: [
-        { AttributeName: "discordId", AttributeType: "S" },
-        { AttributeName: "profileName", AttributeType: "S" }
-    ],
-    ProvisionedThroughput: {
-        ReadCapacityUnits: 5,
-        WriteCapacityUnits: 5
-    }
-};
-
 var users = {
     TableName : "Users",
     KeySchema: [
@@ -43,10 +27,10 @@ var users = {
 var keys = {
     TableName : "Keys",
     KeySchema: [
-        { AttributeName: "registrationKey", KeyType: "HASH"},  //Partition key
+        { AttributeName: "nebulaKey", KeyType: "HASH"},  //Partition key
     ],
     AttributeDefinitions: [
-        { AttributeName: "registrationKey", AttributeType: "S" },
+        { AttributeName: "nebulaKey", AttributeType: "S" },
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 5,
@@ -59,14 +43,6 @@ dynamodb.createTable(users, function(err, data) {
         console.log("Error creating table users.", JSON.stringify(err, null, 2));
     } else {
         console.log("Created table: Users.", JSON.stringify(data, null, 2));
-    }
-});
-
-dynamodb.createTable(profiles, function(err, data) {
-    if (err) {
-        console.error("Unable to create table profiles. Error JSON:", JSON.stringify(err, null, 2));
-    } else {
-        console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
     }
 });
 

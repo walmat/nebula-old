@@ -10,8 +10,10 @@ public/
 
 # discord-bot
 
-# website
-dynamodb_local/
+# global ignores
+_dynamodb_local/
+_design-files/
+_legal/
 .DS_Store
 .vscode/
 

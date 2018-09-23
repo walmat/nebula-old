@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken');
 
 AWS.config = {
     region: "us-west-2",
-    endpoint: "http://localhost:8000",
+    endpoint: process.env.NEBULA_API_ENDPOINT,
     accessKeyId: 'local',
     secretAccessKey: 'local'
 }
-let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint('http://localhost:8000') });
+let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(process.env.NEBULA_API_ENDPOINT) });
 
 async function getDiscordIdFromDiscordToken(discordAccessToken) {
 	let response = await fetch(`https://discordapp.com/api/users/@me`,

@@ -1,18 +1,20 @@
 const shortId = require('shortid');
 const AWS = require('aws-sdk');
+
 AWS.config = {
     region: "us-west-2",
-    endpoint: "http://localhost:8000",
+    endpoint: process.env.NEBULA_API_ENDPOINT,
     accessKeyId: 'local',
     secretAccessKey: 'local'
 }
-let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint('http://localhost:8000') });
-
+let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(process.env.NEBULA_API_ENDPOINT) });
 
 async function generateKey() {
+
+	// TODO - create a secure hash and make a license key based on this. Needs to be secure.
 	try {
 		let keyData = {
-			registrationKey: shortId.generate()
+			nebulaKey: shortId.generate()
 		}
 		let params = {
 			TableName: 'Keys',
