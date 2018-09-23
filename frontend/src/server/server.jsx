@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import EnsureAuthorization from '../EnsureAuthorization';
 
 // components
-import ViewLog from './viewLog1';
+import ViewLog from './viewLog';
 import AWSCredentials from './awsCredentials';
 import CreateProxies from './createProxies';
 import CreateServer from './createServer';
@@ -18,7 +18,6 @@ import './server.css';
 
 class Server extends PureComponent {
   render() {
-    const { serverInfo } = this.props;
     return (
       <div className="container server">
         <div className="row">

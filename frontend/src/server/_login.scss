@@ -9,10 +9,6 @@
     border: 1px solid #f0405e;
     border-radius: 3px;
 
-    // &__section-header {
-    //   padding-bottom: 1px;
-    // }
-
     &__label {
       @include server-select-font();
       height: 12px;

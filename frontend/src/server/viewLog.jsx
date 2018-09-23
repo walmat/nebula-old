@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import ServerRow from './serverRow1';
+import ServerRow from './serverRow';
 import defns from '../utils/definitions/serverDefinitions';
 
 class ViewLog extends Component {

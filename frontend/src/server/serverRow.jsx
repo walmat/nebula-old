@@ -8,7 +8,7 @@ import destroy from '../_assets/destroy.svg';
 
 import defns from '../utils/definitions/serverDefinitions';
 import { serverActions } from '../state/actions/server/serverActions';
-import './server1';
+import './server';
 
 class ServerRow extends Component {
   static renderTableRowActionButton(desc, src, className, onClick) {
