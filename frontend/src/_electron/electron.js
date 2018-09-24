@@ -1,8 +1,16 @@
 const electron = require('electron');
 const path = require('path');
 const url = require('url');
+const nebulaEnv = require('./env');
 
 const { platform, env } = process;
+
+// Set up nebula environment variables
+if (env.NODE_ENV === 'development') {
+  nebulaEnv.setUpDevEnvironment();
+} else {
+  nebulaEnv.setUpProdEnvironment();
+}
 
 /**
  * Get eletron dependencies:
@@ -46,7 +54,7 @@ const installExtensions = async () => {
 };
 
 function getLicense() {
-  if (env.NODE_ENV === 'development') {
+  if (env.NEBULA_ENV === 'development') {
     return true;
   }
   // TODO - setup api call of some sort to grab the license key data
@@ -102,9 +110,8 @@ function createWindow() {
   /**
    * -- auth check here -- something similar to: https://github.com/keygen-sh/example-electron-app/blob/master/main.js
    */
-  console.log(env.NODE_ENV);
 
-  if (env.NODE_ENV === 'development') {
+  if (env.NEBULA_ENV === 'development') {
     // load the main window in development always
     window = new BrowserWindow({
       width: MAIN_WIDTH,
@@ -122,7 +129,7 @@ function createWindow() {
       },
     });
 
-    startUrl = env.ELECTRON_START_URL || url.format({
+    startUrl = env.NEBULA_START_URL || url.format({
       pathname: path.join(__dirname, '/../build/index.html'),
       protocol: 'file:',
       slashes: true,
@@ -145,7 +152,7 @@ function createWindow() {
       },
     });
 
-    startUrl = env.ELECTRON_START_URL || url.format({
+    startUrl = env.NEBULA_START_URL || url.format({
       pathname: path.join(__dirname, '/../build/auth.html'),
       protocol: 'file:',
       slashes: true,
@@ -191,7 +198,7 @@ function createWindow() {
         webSecurity: true,
       },
     });
-    startUrl = env.ELECTRON_START_URL || url.format({
+    startUrl = env.NEBULA_START_URL || url.format({
       pathname: path.join(__dirname, '/../build/index.html'),
       protocol: 'file:',
       slashes: true,
@@ -201,7 +208,7 @@ function createWindow() {
       window.show();
     });
 
-    if (env.NODE_ENV === 'development') {
+    if (env.NEBULA_ENV === 'development') {
       window.webContents.openDevTools();
       return; // don't update dev environment
     }
