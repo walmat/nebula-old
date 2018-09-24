@@ -12,12 +12,14 @@ const _sendEvent = (channel, msg) => {
 
 // Send a deactivate window event
 const _deactivate = () => {
-  _sendEvent('window-event', 'unauthenticated');
+  // add event here as well..
+  _sendEvent('unauthenticated');
 };
 
 // Send a deactivate window event
 const _activate = () => {
-  _sendEvent('window-event', 'authenticated');
+  // add event here as well..
+  _sendEvent('authenticated');
 };
 
 // Send a close window event

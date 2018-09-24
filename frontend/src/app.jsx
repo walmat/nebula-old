@@ -43,7 +43,7 @@ class App extends PureComponent {
                 tabIndex={0}
                 title="deactivate"
                 onKeyPress={() => {}}
-                onClick={(e) => { App.close(e); }}
+                onClick={(e) => { App.deactivate(e); }}
                 draggable="false"
               >
                 <img
@@ -67,7 +67,7 @@ class App extends PureComponent {
                 tabIndex={0}
                 title="close"
                 onKeyPress={() => {}}
-                onClick={(e) => { App.deactivate(e); }}
+                onClick={(e) => { App.close(e); }}
                 draggable="false"
               >
                 <img

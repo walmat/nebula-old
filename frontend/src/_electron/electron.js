@@ -173,11 +173,28 @@ function createWindow() {
 
   // get authentication event from the main process
   ipcMain.on('unauthenticated', (event) => {
+    window.hide();
     invalidate(); // invalidate the user's machine
 
     // show the auth window
-    startUrl = env.ELECTRON_AUTH_URL || url.format({
-      pathname: path.join(__dirname, '/../build/auth.html'),
+    window = new BrowserWindow({
+      width: AUTH_WIDTH,
+      height: AUTH_HEIGHT,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        preload: path.join(__dirname, 'preload.js'),
+        webSecurity: true,
+      },
+    });
+
+    startUrl = url.format({
+      pathname: path.join(__dirname, '../../public/auth.html'),
       protocol: 'file:',
       slashes: true,
     });
