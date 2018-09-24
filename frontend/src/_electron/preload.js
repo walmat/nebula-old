@@ -10,9 +10,14 @@ const _sendEvent = (channel, msg) => {
   ipcRenderer.send(channel, msg);
 };
 
-// Send a quit window event
-const _quit = () => {
-  _sendEvent('window-event', 'quit');
+// Send a deactivate window event
+const _deactivate = () => {
+  _sendEvent('window-event', 'unauthenticated');
+};
+
+// Send a deactivate window event
+const _activate = () => {
+  _sendEvent('window-event', 'authenticated');
 };
 
 // Send a close window event
@@ -61,6 +66,7 @@ process.once('loaded', () => {
   window.Bridge.refresh = _refresh;
   window.Bridge.harvest = _harvest;
   window.Bridge.endSession = _endSession;
-  window.Bridge.quit = _quit;
+  window.Bridge.deactivate = _deactivate;
+  window.Bridge.activate = _activate;
   window.Bridge.confirmDialog = _confirmDialog;
 });

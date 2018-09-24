@@ -37,8 +37,8 @@ let startUrl;
 /**
  * CONSTANT PARAMETERS
  */
-const AUTH_WIDTH = 250;
-const AUTH_HEIGHT = 200;
+const AUTH_WIDTH = 300;
+const AUTH_HEIGHT = 215;
 const MAIN_WIDTH = 1000;
 const MAIN_HEIGHT = 715;
 
@@ -153,12 +153,16 @@ function createWindow() {
       },
     });
 
-    startUrl = env.NEBULA_START_URL || url.format({
-      pathname: path.join(__dirname, '/../build/auth.html'),
+    startUrl = url.format({
+      // pathname: path.join(__dirname, '/../build/auth.html'),
+      pathname: path.join(__dirname, '../../public/auth.html'),
       protocol: 'file:',
       slashes: true,
     });
   }
+
+  // TEMPORARY
+  // window.webContents.openDevTools();
 
   window.loadURL(startUrl);
   setMenu();
@@ -170,6 +174,8 @@ function createWindow() {
   // get authentication event from the main process
   ipcMain.on('unauthenticated', (event) => {
     invalidate(); // invalidate the user's machine
+
+    // show the auth window
     startUrl = env.ELECTRON_AUTH_URL || url.format({
       pathname: path.join(__dirname, '/../build/auth.html'),
       protocol: 'file:',
