@@ -134,6 +134,7 @@ function createWindow() {
       protocol: 'file:',
       slashes: true,
     });
+    window.webContents.openDevTools();
   } else {
     // otherwise, load the auth window by default...
     window = new BrowserWindow({
