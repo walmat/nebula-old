@@ -6,6 +6,10 @@ import { initialProfileStates } from '../../../utils/definitions/profileDefiniti
 export function profileReducer(state = initialProfileStates.profile, action) {
   let change = {};
   if (action.type === PROFILE_ACTIONS.EDIT) {
+    // If we can't map the field to a profile key, don't change anything
+    if (!mapProfileFieldToKey[action.field]) {
+      return Object.assign({}, state);
+    }
     switch (action.field) {
       case PROFILE_FIELDS.EDIT_SHIPPING:
         change = {
@@ -39,7 +43,7 @@ export function profileReducer(state = initialProfileStates.profile, action) {
         break;
       default:
         change = {
-          [mapProfileFieldToKey[action.field]]: action.value,
+          [mapProfileFieldToKey[action.field]]: action.value || state[mapProfileFieldToKey[action.field]],
           errors: Object.assign({}, state.errors, action.errors),
         };
         break;
@@ -53,30 +57,26 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
   switch (action.type) {
     case PROFILE_ACTIONS.EDIT: {
       // only modify the current profile if the action id is null
-      if (action.id == null) {
+      if (!action.id) {
         return profileReducer(state, action);
       }
       break;
     }
-    case PROFILE_ACTIONS.ADD: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        return Object.assign({}, action.profile);
+    case PROFILE_ACTIONS.ADD:
+    case PROFILE_ACTIONS.UPDATE: {
+      // If there's no profile, we should do nothing
+      if (!action.profile) {
+        break;
       }
 
       // If adding a new profile, we should reset the current profile to default values
       return Object.assign({}, initialProfileStates.profile);
     }
-    case PROFILE_ACTIONS.UPDATE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        return Object.assign({}, action.profile);
-      }
-
-      // If updating an existing profile, we should reset the current profile to default values
-      return Object.assign({}, initialProfileStates.profile);
-    }
     case PROFILE_ACTIONS.LOAD: {
+      // If we have no profile, or the profile doesn't have an id, do nothing
+      if (!action.profile || (action.profile && !action.profile.id)) {
+        break;
+      }
       // If selecting a profile, we should return the profile that is given
       const loadedProfile = Object.assign({}, action.profile);
       loadedProfile.editId = loadedProfile.id;
@@ -85,9 +85,9 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       return loadedProfile;
     }
     case PROFILE_ACTIONS.REMOVE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        return Object.assign({}, state);
+      // If we have no id, we should do nothing
+      if (!action.id) {
+        break;
       }
 
       // Check if we are removing the current profile
@@ -107,13 +107,17 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
 export function selectedProfileReducer(state = initialProfileStates.profile, action) {
   switch (action.type) {
     case PROFILE_ACTIONS.SELECT: {
+      // If profile wasn't passed, don't do anything
+      if (!action.profile) {
+        break;
+      }
       // Set the next state to the selected profile
       return Object.assign({}, action.profile);
     }
     case PROFILE_ACTIONS.REMOVE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        return Object.assign({}, state);
+      // If we have no id, we should do nothing
+      if (!action.id) {
+        break;
       }
 
       // Check if we are removing the current profile
@@ -125,7 +129,7 @@ export function selectedProfileReducer(state = initialProfileStates.profile, act
       break;
     }
     case PROFILE_ACTIONS.UPDATE: {
-      if (action.id === state.id) {
+      if (action.profile && (state.id === (action.id || action.profile.id))) {
         return Object.assign({}, action.profile);
       }
       break;

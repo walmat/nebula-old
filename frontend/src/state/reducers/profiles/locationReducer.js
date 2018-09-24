@@ -3,6 +3,10 @@ import { initialProfileStates } from '../../../utils/definitions/profileDefiniti
 
 const locationReducer = (state = initialProfileStates.location, action) => {
   let change = {};
+  if (!mapLocationFieldToKey[action.type]) {
+    // If we can't map the field to a location key, don't change anything
+    return Object.assign({}, state);
+  }
   switch (action.type) {
     default: {
       change = {

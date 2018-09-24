@@ -10,10 +10,8 @@ export default function profileListReducer(state = initialProfileStates.list, ac
 
   switch (action.type) {
     case PROFILE_ACTIONS.ADD: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE ADD');
-        console.log(action.response);
+      // If profile is not defined, do nothing
+      if (!action.profile) {
         break;
       }
 
@@ -23,14 +21,12 @@ export default function profileListReducer(state = initialProfileStates.list, ac
         newProfile.billing = newProfile.shipping;
       }
 
-      // assign new id
-      let newId = uuidv4();
-
-      // check if generated id already exists
+      // assign new id and check if generated id already exists
+      let newId;
       const idCheck = p => p.id === newId;
-      while (nextState.some(idCheck)) {
+      do {
         newId = uuidv4();
-      }
+      } while (nextState.some(idCheck));
 
       // add new profile
       newProfile.id = newId;
@@ -38,13 +34,6 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       break;
     }
     case PROFILE_ACTIONS.REMOVE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE REMOVE');
-        console.log(action.response);
-        break;
-      }
-
       // perform a deep copy of given state
       nextState = JSON.parse(JSON.stringify(state));
 
@@ -71,15 +60,9 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       break;
     }
     case PROFILE_ACTIONS.UPDATE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE UPDATE');
-        console.log(action.response);
-        break;
-      }
-
       // check if id is given (we only change the state on a non-null id)
-      if (action.id == null) {
+      // check if profile is given (we only change the state if profile is given)
+      if (!action.id || !action.profile) {
         break;
       }
 
