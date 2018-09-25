@@ -162,7 +162,7 @@ function createWindow() {
   }
 
   // TEMPORARY
-  // window.webContents.openDevTools();
+  window.webContents.openDevTools();
 
   window.loadURL(startUrl);
   setMenu();
@@ -205,7 +205,7 @@ function createWindow() {
   });
 
   // load the application when the user validates
-  ipcMain.on('authenticated', async (event) => {
+  ipcMain.on('authenticate', async (event) => {
     // change window stuff
     window = new BrowserWindow({
       width: MAIN_WIDTH,
@@ -227,10 +227,6 @@ function createWindow() {
       protocol: 'file:',
       slashes: true,
     });
-    window.loadURL(startUrl);
-    window.once('ready-to-show', () => {
-      window.show();
-    });
 
     if (env.NEBULA_ENV === 'development') {
       window.webContents.openDevTools();
@@ -238,8 +234,14 @@ function createWindow() {
     }
     const { license } = await getLicense(); // API call here
     if (!license) {
-      return; // some how this is happening?
+      window.close();
+      // invalidate();
+      return;
     }
+    window.loadURL(startUrl);
+    window.once('ready-to-show', () => {
+      window.show();
+    });
     checkForUpdates();
   });
 }
