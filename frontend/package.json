@@ -12,7 +12,7 @@
     "electron": "electron .",
     "electron-dev-server": "react-scripts start",
     "electron-dev": "NODE_ENV=production electron .",
-    "electron-dev-windows": "set NODE_ENV=development&& electron .",
+    "electron-dev-windows": "set NODE_ENV=production&& electron .",
     "lint": "./node_modules/.bin/eslint src/",
     "sass": "./tool/compile_css.sh"
   },
