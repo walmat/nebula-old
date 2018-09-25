@@ -1,7 +1,6 @@
 node_modules/*
 package-lock.json
 build/
-public/
 dynamodb_local/
 _legal/
 _dynamodb_local/

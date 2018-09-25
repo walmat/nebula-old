@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+  <title>nebula</title>
+  <script src="./lottie.js"></script>
+</head>
+<body>
+  <div id="titlebar"></div>
+  <img src="../src/_assets/close-auth.svg" id="close" />
+  <!-- this ^ will fail once we do a build or something I'm assuming.. -->
+  <img />
+  <div
+    style="position:absolute;width:100px;height:100px;background-color:#46ADB4;top:20px;left:36%;" id="bodymovin">
+  </div>
+  <div id="authorization-box"></div>
+  <p id="body-text">License Key</p>
+  <input id="license-key-input" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"/>
+  <button id="license-key-submit" onclick="checkLicense">Submit</button>
+</body>
+<style>
+  body, html {
+    height: 100%;
+    width:100%;
+    background: #46ADB4;
+  }
+  #titlebar {
+    user-select: none;
+    position: absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:25px;
+    background: transparent;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+  }
+  #close {
+    position: absolute;
+    top: 5px;
+    left: 285.11px;
+    height: 11px;
+    width: 11px;
+  }
+  #body-text {
+    font-family: AvenirNext-Medium;
+    font-size: 6.5px;
+    padding-left: 1px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+    position: absolute;
+    top: 125.58px;
+    left: 63.5px;
+    width: 64px;
+    height: 14px;
+    margin: 0;
+  }
+  #authorization-box {
+    position: absolute;
+    top: 122px;
+    left: 57px;
+    width: 187px;
+    height: 42px;
+    border: 0.5px #B8D9D2 solid;
+    border-radius: 3px;
+  }
+  #license-key-input {
+    position: absolute;
+    top: 138.19px;
+    left: 63.5px;
+    width: 124.5px;
+    height: 14.67px;
+    border: 0.5px #EFEFEF solid;
+    border-radius: 1.5px;
+    background: #46ADB4;
+    outline: none;
+    padding-left: 5px;
+    font-size: 6px;
+    color: #EFEFEF;
+  }
+  #license-key-input::placeholder {
+    color: #EFEFEF;
+    opacity: 0.5;
+  }
+  #license-key-submit {
+    color: #46ADB4;
+    background-color: #EFEFEF;
+    position: absolute;
+    top: 138.19px;
+    left: 197.5px;
+    width: 42px;
+    height: 17.67px;
+    margin: 0;
+    font-size: 6px;
+    outline: none;
+    border: none;
+    border-radius: 1.5px;
+    cursor: pointer;
+  }
+</style>
+<script>
+  var animData = {
+      wrapper: document.getElementById('bodymovin'),
+      animType: 'html',
+      loop: true,
+      prerender: true,
+      autoplay: true,
+      path: 'nebula.json'
+  };
+  var anim = bodymovin.loadAnimation(animData);
+
+  function checkLicense(lic) {
+    ipcRenderer.send('authenticated');
+  }
+</script>
+</html>
