@@ -303,6 +303,7 @@ ipcMain.on('window-event', (event, arg) => {
 
     case 'close': {
       // TODO - just close application
+      console.log('here');
       app.quit();
       break;
     }
