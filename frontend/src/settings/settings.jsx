@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import EnsureAuthorization from '../EnsureAuthorization';
 
 import '../app.css';
 import './settings.css';
@@ -237,4 +236,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Settings));
+export default connect(mapStateToProps, mapDispatchToProps)(Settings);

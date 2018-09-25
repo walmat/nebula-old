@@ -1,12 +1,15 @@
 const electron = require('electron');
 const path = require('path');
 const url = require('url');
+const fetch = require('node-fetch');
 const nebulaEnv = require('./env');
 
 const { platform, env } = process;
 
+const isDevelopment = env.NODE_ENV === 'development';
+
 // Set up nebula environment variables
-if (env.NODE_ENV === 'development') {
+if (isDevelopment) {
   nebulaEnv.setUpDevEnvironment();
 } else {
   nebulaEnv.setUpProdEnvironment();
@@ -53,12 +56,18 @@ const installExtensions = async () => {
     .catch(err => console.error(`An Error Occurred: ${err}`))));
 };
 
-function getLicense() {
-  if (env.NEBULA_ENV === 'development') {
+async function checkLicense() {
+  if (isDevelopment) {
     return true;
   }
-  // TODO - setup api call of some sort to grab the license key data
+  // make an api call to check the licensing system
   return false;
+  // TODO - setup api call of some sort to grab the license key data
+}
+
+async function invalidate() {
+  // change some flag here in the db or something..?
+  return true;
 }
 
 function checkForUpdates() {
@@ -106,12 +115,34 @@ function setMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
 }
 
-function createWindow() {
+async function createWindow() {
   /**
    * -- auth check here -- something similar to: https://github.com/keygen-sh/example-electron-app/blob/master/main.js
    */
-
-  if (env.NEBULA_ENV === 'development') {
+  const { license } = await checkLicense();
+  if (!license) {
+    // not authenticated..
+    window = new BrowserWindow({
+      width: AUTH_WIDTH,
+      height: AUTH_HEIGHT,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        preload: path.join(__dirname, 'preload.js'),
+        webSecurity: true,
+      },
+    });
+    startUrl = url.format({
+      pathname: path.join(__dirname, '../../public/auth.html'),
+      protocol: 'file:',
+      slashes: true,
+    });
+  } else {
     // load the main window in development always
     window = new BrowserWindow({
       width: MAIN_WIDTH,
@@ -134,130 +165,16 @@ function createWindow() {
       protocol: 'file:',
       slashes: true,
     });
-    window.webContents.openDevTools();
-  } else {
-    // otherwise, load the auth window by default...
-    window = new BrowserWindow({
-      width: AUTH_WIDTH,
-      height: AUTH_HEIGHT,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: path.join(__dirname, 'preload.js'),
-        webSecurity: true,
-      },
-    });
-
-    startUrl = url.format({
-      // pathname: path.join(__dirname, '/../build/auth.html'),
-      pathname: path.join(__dirname, '../../public/auth.html'),
-      protocol: 'file:',
-      slashes: true,
-    });
+    if (isDevelopment) {
+      window.webContents.openDevTools();
+    }
   }
-  // TEMPORARY
-  window.webContents.openDevTools();
 
   window.loadURL(startUrl);
   setMenu();
 
   window.once('ready-to-show', () => {
     window.show();
-  });
-
-  // get authentication event from the main process
-  ipcMain.on('unauthenticated', (event) => {
-    window.hide();
-    invalidate(); // invalidate the user's machine
-
-    // show the auth window
-    window = new BrowserWindow({
-      width: AUTH_WIDTH,
-      height: AUTH_HEIGHT,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: path.join(__dirname, 'preload.js'),
-        webSecurity: true,
-      },
-    });
-
-    startUrl = url.format({
-      pathname: path.join(__dirname, '../../public/auth.html'),
-      protocol: 'file:',
-      slashes: true,
-    });
-    window.loadURL(startUrl);
-    window.once('ready-to-show', () => {
-      window.show();
-    });
-  });
-
-  // load the application when the user validates
-  ipcMain.on('authenticate', async (event, key) => {
-    
-    let res = await fetch(`http://localhost:3000/user/${key}`, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
-    if (res.statusCode === 200) {
-      const result = await res.json();
-      if (!result.auth) {
-        ipcMain.send('error', 'Invalid Key');
-        return;
-      } else if ()
-    }
-
-    // change window stuff
-    window = new BrowserWindow({
-      width: MAIN_WIDTH,
-      height: MAIN_HEIGHT,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: path.join(__dirname, 'preload.js'),
-        webSecurity: true,
-      },
-    });
-    startUrl = env.NEBULA_START_URL || url.format({
-      pathname: path.join(__dirname, '/../build/index.html'),
-      protocol: 'file:',
-      slashes: true,
-    });
-
-    if (env.NEBULA_ENV === 'development') {
-      window.webContents.openDevTools();
-      return; // don't update dev environment
-    }
-    const { license } = await getLicense(); // API call here
-    if (!license) {
-      window.close();
-      // invalidate();
-      return;
-    }
-    window.loadURL(startUrl);
-    window.once('ready-to-show', () => {
-      window.show();
-    });
-    checkForUpdates();
   });
 }
 
@@ -327,4 +244,87 @@ ipcMain.on('window-event', (event, arg) => {
       console.log(event, arg);
       break;
   }
+});
+
+// get authentication event from the main process
+ipcMain.on('unauthenticated', async (event) => {
+  window.close();
+  window = null;
+  const invalidated = await invalidate(); // invalidate the user's machine
+  if (!invalidated) {
+    ipcMain.send('error', 'Unable to invalidate');
+    return;
+  }
+  // show the auth window
+  window = new BrowserWindow({
+    width: AUTH_WIDTH,
+    height: AUTH_HEIGHT,
+    center: true,
+    frame: false,
+    fullscreenable: false,
+    movable: true,
+    resizable: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js'),
+      webSecurity: true,
+    },
+  });
+
+  startUrl = url.format({
+    pathname: path.join(__dirname, '../../public/auth.html'),
+    protocol: 'file:',
+    slashes: true,
+  });
+  window.loadURL(startUrl);
+  window.once('ready-to-show', () => {
+    window.show();
+  });
+});
+
+// load the application when the user validates
+ipcMain.on('authenticate', async (event, key) => {
+  /**
+   * TODO – handle authentication here..
+   */
+  const license = await checkLicense(); // API call here
+  if (!license) {
+    return new Error('Invalid Key');
+  }
+
+  window.hide();
+  window = null;
+  // else if valid, do this stuff..
+  // change window stuff
+  window = new BrowserWindow({
+    width: MAIN_WIDTH,
+    height: MAIN_HEIGHT,
+    center: true,
+    frame: false,
+    fullscreenable: false,
+    movable: true,
+    resizable: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js'),
+      webSecurity: true,
+    },
+  });
+  startUrl = env.NEBULA_START_URL || url.format({
+    pathname: path.join(__dirname, '../../build/index.html'),
+    protocol: 'file:',
+    slashes: true,
+  });
+
+  if (isDevelopment) {
+    window.webContents.openDevTools();
+  }
+  window.loadURL(startUrl);
+  window.once('ready-to-show', () => {
+    window.show();
+  });
+  checkForUpdates();
+  return true;
 });

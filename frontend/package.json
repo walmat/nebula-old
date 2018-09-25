@@ -11,8 +11,8 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "electron-dev-server": "react-scripts start",
-    "electron-dev": "NODE_ENV=production electron .",
-    "electron-dev-windows": "set NODE_ENV=production&& electron .",
+    "electron-dev": "NODE_ENV=development electron .",
+    "electron-dev-windows": "set NODE_ENV=development&& electron .",
     "lint": "./node_modules/.bin/eslint src/",
     "sass": "./tool/compile_css.sh"
   },
@@ -27,6 +27,7 @@
     "jquery": "^3.3.1",
     "jsonfile": "^4.0.0",
     "moment": "^2.22.2",
+    "node-fetch": "^2.2.0",
     "npm": "^6.3.0",
     "prop-types": "^15.6.2",
     "qs": "^6.5.2",
