@@ -160,7 +160,6 @@ function createWindow() {
       slashes: true,
     });
   }
-
   // TEMPORARY
   window.webContents.openDevTools();
 
