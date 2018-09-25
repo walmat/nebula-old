@@ -205,8 +205,22 @@ function createWindow() {
 
   // load the application when the user validates
   ipcMain.on('authenticate', async (event, key) => {
-    console.log(event);
-    console.log(key);
+    
+    let res = await fetch(`http://localhost:3000/user/${key}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.statusCode === 200) {
+      const result = await res.json();
+      if (!result.auth) {
+        ipcMain.send('error', 'Invalid Key');
+        return;
+      } else if ()
+    }
+
     // change window stuff
     window = new BrowserWindow({
       width: MAIN_WIDTH,
