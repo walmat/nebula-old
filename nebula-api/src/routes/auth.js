@@ -6,4 +6,10 @@ module.exports = async function(app) {
             auth: true
         });
     });
+    app.post('/auth', authenticate, function(req, res) {
+        console.log(req, res);
+        res.status(200).json({
+            auth: true
+        });
+    });
 };

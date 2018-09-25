@@ -10,7 +10,7 @@ AWS.config.update({
 var dynamodb = new AWS.DynamoDB();
 
 var params = {
-    TableName : 'Keys'
+    TableName : "Keys"
 };
 
 dynamodb.deleteTable(params, function(err, data) {

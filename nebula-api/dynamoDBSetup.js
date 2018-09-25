@@ -27,10 +27,10 @@ var users = {
 var keys = {
     TableName : "Keys",
     KeySchema: [
-        { AttributeName: "nebulaKey", KeyType: "HASH"},  //Partition key
+        { AttributeName: "licenseKey", KeyType: "HASH"},  //Partition key
     ],
     AttributeDefinitions: [
-        { AttributeName: "nebulaKey", AttributeType: "S" },
+        { AttributeName: "licenseKey", AttributeType: "S" },
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 5,

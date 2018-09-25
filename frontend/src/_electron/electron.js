@@ -56,13 +56,25 @@ const installExtensions = async () => {
     .catch(err => console.error(`An Error Occurred: ${err}`))));
 };
 
-async function checkLicense() {
-  if (isDevelopment) {
+async function checkLicense(license) {
+  // if (isDevelopment) {
+  //   return true;
+  // }
+  if (license === null) {
+    return false;
+  }
+  const res = await fetch('http://localhost:8080/auth', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ license }),
+  });
+  if (res.status === 200) {
     return true;
   }
-  // make an api call to check the licensing system
   return false;
-  // TODO - setup api call of some sort to grab the license key data
 }
 
 async function invalidate() {
@@ -119,7 +131,12 @@ async function createWindow() {
   /**
    * -- auth check here -- something similar to: https://github.com/keygen-sh/example-electron-app/blob/master/main.js
    */
-  const { license } = await checkLicense();
+  let licenceStorage = null;
+  session.defaultSession.cookies.get({ url: 'https://nebula.io' }, (error, cookies) => {
+    licenceStorage = cookies.nebula_auth;
+  });
+  const license = await checkLicense(licenceStorage || null);
+  console.log(license);
   if (!license) {
     // not authenticated..
     window = new BrowserWindow({
@@ -169,7 +186,7 @@ async function createWindow() {
       window.webContents.openDevTools();
     }
   }
-
+  window.webContents.openDevTools();
   window.loadURL(startUrl);
   setMenu();
 
@@ -288,10 +305,17 @@ ipcMain.on('authenticate', async (event, key) => {
   /**
    * TODO – handle authentication here..
    */
-  const license = await checkLicense(); // API call here
+  const license = await checkLicense(key); // API call here
   if (!license) {
     return new Error('Invalid Key');
   }
+
+  const cookie = { url: 'http://www.nebula.io', name: 'nebula_auth', value: license };
+  session.defaultSession.cookies.set(cookie, (error) => {
+    if (error) {
+      console.error(error);
+    }
+  });
 
   window.hide();
   window = null;

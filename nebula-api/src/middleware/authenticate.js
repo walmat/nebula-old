@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken');
 const AWS = require('aws-sdk');
 AWS.config = {
     region: "us-west-2",
@@ -8,66 +7,37 @@ AWS.config = {
 }
 let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint('http://localhost:8000') });
 
-async function isValidUser(discordId, registrationKey) {
+async function isValidKey(licenseKey) {
     let params = {
-        TableName : 'Users',
-        Key: discordId,
-        KeyConditionExpression: '#discordId = :discordId',
-        FilterExpression: '#registrationKey = :registrationKey',
-        ExpressionAttributeNames:{
-            '#discordId': 'discordId',
-            '#registrationKey': 'registrationKey'
+        TableName : 'Keys',
+        Key: licenseKey,
+        KeyConditionExpression: '#licenseKey = :licenseKey',
+        ExpressionAttributeNames: {
+            '#licenseKey': 'licenseKey'
         },
         ExpressionAttributeValues: {
-            ":discordId": discordId,
-            ":registrationKey": registrationKey
+            ":licenseKey": licenseKey
         }
     };
     let result = await docClient.query(params).promise();
+    console.log(result);
     return result.Items.length;
 }
 
 module.exports = async function(req, res, next) {
-    let token = req.headers['x-access-token'];
-
-    if (!token) {
-        return res.status(401).json({
+    console.log(req.body);
+    try {
+        let licenseKey = req.body.license;
+        if (await isValidKey(licenseKey)) {
+            return next();
+        }
+        return res.status(404).send({
             error: {
-                name: 'NoJWTProvided',
-                message: 'No auth token provided'
+                name: 'InvalidKey',
+                message: 'Invalid Key'
             }
         });
+    } catch (err) {
+        console.log('Authentication error: ', err);
     }
-
-    jwt.verify(token, process.env.NEBULA_API_JWT_SECERT, async function(error, decoded) {
-        try {
-            if (error) {
-                return res.status(401).json({
-                    error
-                });
-            }
-
-            let discordId = decoded.user.discordId;
-            let registrationKey = decoded.user.registrationKey;
-
-            if (await isValidUser(discordId, registrationKey)) {
-                req.user = {
-                    discordId,
-                    registrationKey
-                };
-                return next();
-            }
-
-            return res.status(404).send({
-                error: {
-                    name: 'InvalidUser',
-                    message: 'Not a valid user'
-                }
-            });
-        } catch (err) {
-            console.log('Authentication error: ', err);
-        }
-
-    });
-
 };
