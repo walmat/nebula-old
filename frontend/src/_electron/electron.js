@@ -204,7 +204,9 @@ function createWindow() {
   });
 
   // load the application when the user validates
-  ipcMain.on('authenticate', async (event) => {
+  ipcMain.on('authenticate', async (event, key) => {
+    console.log(event);
+    console.log(key);
     // change window stuff
     window = new BrowserWindow({
       width: MAIN_WIDTH,

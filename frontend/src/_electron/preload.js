@@ -17,9 +17,8 @@ const _deactivate = () => {
 };
 
 // Send a deactivate window event
-const _activate = () => {
-  // add event here as well..
-  _sendEvent('authenticated');
+const _authenticate = (key) => {
+  _sendEvent('authenticate', key);
 };
 
 // Send a close window event
@@ -69,6 +68,6 @@ process.once('loaded', () => {
   window.Bridge.harvest = _harvest;
   window.Bridge.endSession = _endSession;
   window.Bridge.deactivate = _deactivate;
-  window.Bridge.activate = _activate;
+  window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;
 });

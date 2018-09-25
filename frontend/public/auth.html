@@ -16,7 +16,7 @@
   <div id="authorization-box"></div>
   <p id="body-text">License Key</p>
   <input id="license-key-input" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"/>
-  <button id="license-key-submit" onclick="checkLicense">Submit</button>
+  <button id="license-key-submit" onclick="checkLicense()">Submit</button>
 </body>
 <style>
   body, html {
@@ -112,8 +112,9 @@
   };
   var anim = bodymovin.loadAnimation(animData);
 
-  function checkLicense(lic) {
-    ipcRenderer.send('authenticated');
+  function checkLicense() {
+    let key = document.getElementById('license-key-input').value;
+    window.Bridge.authenticate(key);
   }
 </script>
 </html>
