@@ -1,11 +1,8 @@
 const AWS = require('aws-sdk');
-AWS.config = {
-    region: "us-west-2",
-    endpoint: "http://localhost:8000",
-    accessKeyId: 'local',
-    secretAccessKey: 'local'
-}
-let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint('http://localhost:8000') });
+var config = require('../../dynamoConfig.json');
+AWS.config.update(config);
+
+let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint("https://dynamodb.us-west-2.amazonaws.com") });
 
 async function isValidKey(licenseKey) {
     let params = {
@@ -20,12 +17,10 @@ async function isValidKey(licenseKey) {
         }
     };
     let result = await docClient.query(params).promise();
-    console.log(result);
     return result.Items.length;
 }
 
 module.exports = async function(req, res, next) {
-    console.log(req.body);
     try {
         let licenseKey = req.body.license;
         if (await isValidKey(licenseKey)) {

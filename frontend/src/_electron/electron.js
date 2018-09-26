@@ -186,7 +186,9 @@ async function createWindow() {
       window.webContents.openDevTools();
     }
   }
-  window.webContents.openDevTools();
+  // FOR TESTING PURPOSES, UNCOMMENT
+  // window.webContents.openDevTools();
+  
   window.loadURL(startUrl);
   setMenu();
 
@@ -309,13 +311,6 @@ ipcMain.on('authenticate', async (event, key) => {
   if (!license) {
     return new Error('Invalid Key');
   }
-
-  const cookie = { url: 'http://www.nebula.io', name: 'nebula_auth', value: license };
-  session.defaultSession.cookies.set(cookie, (error) => {
-    if (error) {
-      console.error(error);
-    }
-  });
 
   window.hide();
   window = null;
