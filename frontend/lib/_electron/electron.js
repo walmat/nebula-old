@@ -18,18 +18,21 @@ if (isDevelopment) {
 /**
  * Get eletron dependencies:
  * app - module to control application life.
- * autoUpdate - module to push updates from the deployment url
+ * autoUpdater - module to push updates from the deployment url
  * BrowserWindow - module to create native window browser
+ * dialog - module to display a dialog from the main process (used with autoUpdater)
  * ipcMain - module to intercept renderer messages
+ * Menu - module to define and control the structure of the native application menu
+ * session - controls the session for the life of an electron window
  */
 const {
   app,
-  BrowserWindow,
-  ipcMain,
-  session,
-  Menu,
   autoUpdater,
+  BrowserWindow,
   dialog,
+  ipcMain,
+  Menu,
+  session,
 } = electron;
 
 const { version } = app.getVersion();
@@ -200,7 +203,9 @@ async function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-  await installExtensions();
+  if (isDevelopment) {
+    await installExtensions();
+  }
   createWindow();
 });
 

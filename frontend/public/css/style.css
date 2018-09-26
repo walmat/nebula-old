@@ -1,0 +1,89 @@
+#bodymovin {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-color: #46ADB4;
+    top: 20px;
+    left: 36%;
+}
+body, html {
+    height: 100%;
+    width:100%;
+    background: #46ADB4;
+  }
+  #titlebar {
+    user-select: none;
+    position: absolute;
+    top:0;
+    left:0;
+    right:16px;
+    height:25px;
+    background: transparent;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+  }
+  ::-webkit-scrollbar { 
+    display: none; 
+}
+  #close {
+    position: absolute;
+    top: 5px;
+    left: 285.11px;
+    height: 11px;
+    width: 11px;
+  }
+  #body-text {
+    font-family: AvenirNext-Medium;
+    font-size: 6.5px;
+    padding-left: 1px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+    position: absolute;
+    top: 125.58px;
+    left: 63.5px;
+    width: 64px;
+    height: 14px;
+    margin: 0;
+  }
+  #authorization-box {
+    position: absolute;
+    top: 122px;
+    left: 57px;
+    width: 187px;
+    height: 42px;
+    border: 0.5px #B8D9D2 solid;
+    border-radius: 3px;
+  }
+  #license-key-input {
+    position: absolute;
+    top: 138.19px;
+    left: 63.5px;
+    width: 124.5px;
+    height: 14.67px;
+    border: 0.5px #EFEFEF solid;
+    border-radius: 1.5px;
+    background: #46ADB4;
+    outline: none;
+    padding-left: 5px;
+    font-size: 6px;
+    color: #EFEFEF;
+  }
+  #license-key-input::placeholder {
+    color: #EFEFEF;
+    opacity: 0.5;
+  }
+  #license-key-submit {
+    color: #46ADB4;
+    background-color: #EFEFEF;
+    position: absolute;
+    top: 138.19px;
+    left: 197.5px;
+    width: 42px;
+    height: 17.67px;
+    margin: 0;
+    font-size: 6px;
+    outline: none;
+    border: none;
+    border-radius: 1.5px;
+    cursor: pointer;
+  }

@@ -3,11 +3,13 @@ const dotenv = require('dotenv');
 
 function _setUpEnvironment(envFname) {
   const envConfig = dotenv.parse(fs.readFileSync(envFname));
-  Object.keys(envConfig).forEach((k) => {
-    if (k.startsWith('NEBULA_')) {
-      process.env[k] = envConfig[k];
-    }
-  });
+  if (envConfig) {
+    Object.keys(envConfig).forEach((k) => {
+      if (k.startsWith('NEBULA_')) {
+        process.env[k] = envConfig[k];
+      }
+    });
+  }
 }
 
 function setUpDevEnvironment() {
