@@ -22,7 +22,6 @@ if (isDevelopment) {
  * Get eletron dependencies:
  * app - module to control application life.
  * autoUpdater - module to push updates from the deployment url
- * BrowserWindow - module to create native window browser
  * dialog - module to display a dialog from the main process (used with autoUpdater)
  * ipcMain - module to intercept renderer messages
  * Menu - module to define and control the structure of the native application menu
@@ -31,7 +30,6 @@ if (isDevelopment) {
 const {
   app,
   autoUpdater,
-  BrowserWindow,
   dialog,
   ipcMain,
   Menu,
@@ -54,10 +52,10 @@ const installExtensions = async () => {
     .catch(err => console.error(`An Error Occurred: ${err}`))));
 };
 
-async function checkLicense(license) {
-  if (isDevelopment) {
-    return true;
-  }
+async function validate(license) {
+  // if (isDevelopment) {
+  //   return true;
+  // }
   if (license === null) {
     return false;
   }
@@ -75,9 +73,23 @@ async function checkLicense(license) {
   return false;
 }
 
-async function invalidate() {
+async function invalidate(license) {
+  if (license === null) {
+    return false;
+  }
+  const res = await fetch('http://localhost:8080/auth', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ license }),
+  });
+  if (res.status === 200) {
+    return true;
+  }
   // change some flag here in the db or something..?
-  return true;
+  return false;
 }
 
 function checkForUpdates() {
@@ -117,7 +129,7 @@ async function createWindow() {
   session.defaultSession.cookies.get({ url: 'https://nebula.io' }, (error, cookies) => {
     licenceStorage = cookies.nebula_auth;
   });
-  const license = await checkLicense(licenceStorage || null);
+  const license = await validate(licenceStorage || null);
   if (!license) {
     // not authenticated..
     window = authWindow();
@@ -139,7 +151,7 @@ async function createWindow() {
     }
   }
   // FOR TESTING PURPOSES, UNCOMMENT
-  // window.webContents.openDevTools();
+  window.webContents.openDevTools();
 
   window.loadURL(startUrl);
   setMenu();
@@ -205,7 +217,6 @@ ipcMain.on('window-event', (event, arg) => {
 
     case 'close': {
       // TODO - just close application
-      console.log('here');
       app.quit();
       break;
     }
@@ -242,7 +253,7 @@ ipcMain.on('authenticate', async (event, key) => {
   /**
    * TODO – handle authentication here..
    */
-  const license = await checkLicense(key); // API call here
+  const license = await validate(key); // API call here
   if (!license) {
     return new Error('Invalid Key');
   }

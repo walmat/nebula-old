@@ -5,15 +5,23 @@ var config = require('./dynamoConfig.json');
 
 AWS.config.update(config);
 
+var crypto = require('crypto');
+var { makeHash } = require('./hash');
+const { salt, algo, output } = require('./hashConfig.json');
+
 var dynamodb = new AWS.DynamoDB();
 
-module.exports = function(key) {
-  var key_hash = crypto.createHash('sha256').update(key).digest("hex");
+// module.exports = function(key) {
+function hash(key) {
+  keyHash = crypto.createHash(algo)
+        .update(key)
+        .update(makeHash(salt))
+        .digest(output);
 
   var params = {
     Item: {
       "licenseKey": {
-        S: key_hash
+        S: keyHash
       }
     }, 
     ReturnConsumedCapacity: "TOTAL", 
@@ -24,3 +32,5 @@ module.exports = function(key) {
       else     console.log(data);           // successful response
   });
 }
+
+hash('matt');
