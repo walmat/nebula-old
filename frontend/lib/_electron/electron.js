@@ -8,6 +8,9 @@ const { platform, env } = process;
 
 const isDevelopment = env.NODE_ENV === 'development';
 
+const { mainWindow, authWindow, captchaWindow, youtubeWindow } = require('./windows');
+const { menu } = require('./menu');
+
 // Set up nebula environment variables
 if (isDevelopment) {
   nebulaEnv.setUpDevEnvironment();
@@ -40,14 +43,6 @@ const { version } = app.getVersion();
 let window;
 let startUrl;
 
-/**
- * CONSTANT PARAMETERS
- */
-const AUTH_WIDTH = 300;
-const AUTH_HEIGHT = 215;
-const MAIN_WIDTH = 1000;
-const MAIN_HEIGHT = 715;
-
 // Install Dev tools extensions
 const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
 
@@ -60,9 +55,9 @@ const installExtensions = async () => {
 };
 
 async function checkLicense(license) {
-  // if (isDevelopment) {
-  //   return true;
-  // }
+  if (isDevelopment) {
+    return true;
+  }
   if (license === null) {
     return false;
   }
@@ -111,22 +106,6 @@ function checkForUpdates() {
 }
 
 function setMenu() {
-  const menu = [{
-    label: 'File',
-    submenu: [{
-      label: 'Quit',
-      click() {
-        app.quit();
-      },
-      accelerator: 'CmdOrCtrl+Q',
-    }],
-  },
-  {
-    label: 'Edit',
-    submenu: [{ role: 'copy' },
-      { role: 'paste' },
-      { role: 'selectall' }],
-  }];
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
 }
 
@@ -141,21 +120,7 @@ async function createWindow() {
   const license = await checkLicense(licenceStorage || null);
   if (!license) {
     // not authenticated..
-    window = new BrowserWindow({
-      width: AUTH_WIDTH,
-      height: AUTH_HEIGHT,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: path.join(__dirname, 'preload.js'),
-        webSecurity: true,
-      },
-    });
+    window = mainWindow;
     startUrl = url.format({
       pathname: path.join(__dirname, '../../public/auth.html'),
       protocol: 'file:',
@@ -163,22 +128,7 @@ async function createWindow() {
     });
   } else {
     // load the main window in development always
-    window = new BrowserWindow({
-      width: MAIN_WIDTH,
-      height: MAIN_HEIGHT,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: path.join(__dirname, 'preload.js'),
-        webSecurity: true,
-      },
-    });
-
+    window = authWindow;
     startUrl = env.NEBULA_START_URL || url.format({
       pathname: path.join(__dirname, '/../build/index.html'),
       protocol: 'file:',
@@ -279,22 +229,7 @@ ipcMain.on('unauthenticated', async (event) => {
     return;
   }
   // show the auth window
-  window = new BrowserWindow({
-    width: AUTH_WIDTH,
-    height: AUTH_HEIGHT,
-    center: true,
-    frame: false,
-    fullscreenable: false,
-    movable: true,
-    resizable: false,
-    show: false,
-    webPreferences: {
-      nodeIntegration: false,
-      preload: path.join(__dirname, 'preload.js'),
-      webSecurity: true,
-    },
-  });
-
+  window = authWindow;
   startUrl = url.format({
     pathname: path.join(__dirname, '../../public/auth.html'),
     protocol: 'file:',
@@ -320,21 +255,7 @@ ipcMain.on('authenticate', async (event, key) => {
   window = null;
   // else if valid, do this stuff..
   // change window stuff
-  window = new BrowserWindow({
-    width: MAIN_WIDTH,
-    height: MAIN_HEIGHT,
-    center: true,
-    frame: false,
-    fullscreenable: false,
-    movable: true,
-    resizable: false,
-    show: false,
-    webPreferences: {
-      nodeIntegration: false,
-      preload: path.join(__dirname, 'preload.js'),
-      webSecurity: true,
-    },
-  });
+  window = mainWindow;
   startUrl = env.NEBULA_START_URL || url.format({
     pathname: path.join(__dirname, '../../build/index.html'),
     protocol: 'file:',

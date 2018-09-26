@@ -3,7 +3,7 @@ const electron = require('electron');
 const { app } = electron;
 
 // Make the window menu
-export const menu = [{
+const menu = [{
   label: 'File',
   submenu: [{
     label: 'Quit',
@@ -19,3 +19,5 @@ export const menu = [{
     { role: 'paste' },
     { role: 'selectall' }],
 }];
+
+module.exports = menu;

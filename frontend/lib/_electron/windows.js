@@ -1,4 +1,4 @@
-const electron = require('electron').remote;
+const electron = require('electron');
 const path = require('path');
 
 const { BrowserWindow } = electron.remote.BrowserWindow;
@@ -30,6 +30,7 @@ const authWindow = new BrowserWindow({
   show: false,
   webPreferences: {
     nodeIntegration: false,
+    preload: path.join(__dirname, 'preload.js'),
     webSecurity: true,
   },
 });
