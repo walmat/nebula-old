@@ -136,7 +136,6 @@ async function createWindow() {
     licenceStorage = cookies.nebula_auth;
   });
   const license = await checkLicense(licenceStorage || null);
-  console.log(license);
   if (!license) {
     // not authenticated..
     window = new BrowserWindow({
@@ -188,7 +187,7 @@ async function createWindow() {
   }
   // FOR TESTING PURPOSES, UNCOMMENT
   // window.webContents.openDevTools();
-  
+
   window.loadURL(startUrl);
   setMenu();
 
