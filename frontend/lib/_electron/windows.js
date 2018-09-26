@@ -1,7 +1,5 @@
-const electron = require('electron');
 const path = require('path');
-
-const { BrowserWindow } = electron;
+const { BrowserWindow } = require('electron');
 
 const mainWindow = () => new BrowserWindow({
   width: 1000,

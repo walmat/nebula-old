@@ -106,7 +106,7 @@ function checkForUpdates() {
 }
 
 function setMenu() {
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menu()));
 }
 
 async function createWindow() {
@@ -120,7 +120,7 @@ async function createWindow() {
   const license = await checkLicense(licenceStorage || null);
   if (!license) {
     // not authenticated..
-    window = mainWindow();
+    window = authWindow();
     startUrl = url.format({
       pathname: path.join(__dirname, '../../public/auth.html'),
       protocol: 'file:',
@@ -128,7 +128,7 @@ async function createWindow() {
     });
   } else {
     // load the main window in development always
-    window = authWindow();
+    window = mainWindow();
     startUrl = env.NEBULA_START_URL || url.format({
       pathname: path.join(__dirname, '/../build/index.html'),
       protocol: 'file:',
