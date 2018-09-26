@@ -120,7 +120,7 @@ async function createWindow() {
   const license = await checkLicense(licenceStorage || null);
   if (!license) {
     // not authenticated..
-    window = mainWindow;
+    window = mainWindow();
     startUrl = url.format({
       pathname: path.join(__dirname, '../../public/auth.html'),
       protocol: 'file:',
@@ -128,7 +128,7 @@ async function createWindow() {
     });
   } else {
     // load the main window in development always
-    window = authWindow;
+    window = authWindow();
     startUrl = env.NEBULA_START_URL || url.format({
       pathname: path.join(__dirname, '/../build/index.html'),
       protocol: 'file:',
@@ -229,7 +229,7 @@ ipcMain.on('unauthenticated', async (event) => {
     return;
   }
   // show the auth window
-  window = authWindow;
+  window = authWindow();
   startUrl = url.format({
     pathname: path.join(__dirname, '../../public/auth.html'),
     protocol: 'file:',
@@ -255,7 +255,7 @@ ipcMain.on('authenticate', async (event, key) => {
   window = null;
   // else if valid, do this stuff..
   // change window stuff
-  window = mainWindow;
+  window = mainWindow();
   startUrl = env.NEBULA_START_URL || url.format({
     pathname: path.join(__dirname, '../../build/index.html'),
     protocol: 'file:',

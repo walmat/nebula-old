@@ -1,9 +1,9 @@
 const electron = require('electron');
 const path = require('path');
 
-const { BrowserWindow } = electron.remote.BrowserWindow;
+const { BrowserWindow } = electron;
 
-const mainWindow = new BrowserWindow({
+const mainWindow = () => new BrowserWindow({
   width: 1000,
   height: 715,
   center: true,
@@ -19,7 +19,7 @@ const mainWindow = new BrowserWindow({
   },
 });
 
-const authWindow = new BrowserWindow({
+const authWindow = () => new BrowserWindow({
   width: 300,
   height: 215,
   center: true,
@@ -35,7 +35,7 @@ const authWindow = new BrowserWindow({
   },
 });
 
-const youtubeWindow = new BrowserWindow({
+const youtubeWindow = () => new BrowserWindow({
   width: 450,
   height: 475,
   center: true,
@@ -50,7 +50,7 @@ const youtubeWindow = new BrowserWindow({
   },
 });
 
-const captchaWindow = new BrowserWindow({
+const captchaWindow = () => new BrowserWindow({
   proxyRules: 'http://127.0.0.1:8080',
   center: true,
   fullscreen: false,
