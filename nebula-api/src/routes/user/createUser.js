@@ -1,11 +1,7 @@
 const AWS = require('aws-sdk');
-AWS.config = {
-    region: "us-west-2",
-    endpoint: process.env.NEBULA_API_ENDPOINT,
-    accessKeyId: 'local',
-    secretAccessKey: 'local'
-}
-var docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(process.env.NEBULA_API_ENDPOINT) });
+var config = require('../../../dynamoConfig.json');
+
+let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
 async function getRegistationKey(registrationKey) {
 	const params = {

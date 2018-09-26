@@ -2,7 +2,7 @@ const AWS = require('aws-sdk');
 var config = require('../../dynamoConfig.json');
 AWS.config.update(config);
 
-let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint("https://dynamodb.us-west-2.amazonaws.com") });
+let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
 async function isValidKey(licenseKey) {
     let params = {
