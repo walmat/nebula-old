@@ -21,4 +21,3 @@ function setUpProdEnvironment() {
 }
 
 module.exports = { setUpDevEnvironment, setUpProdEnvironment };
-

@@ -9,10 +9,10 @@ var dynamodb = new AWS.DynamoDB();
 var users = {
     TableName : "Users",
     KeySchema: [
-        { AttributeName: "discordId", KeyType: "HASH"},  //Partition key
+        { AttributeName: "keyId", KeyType: "HASH"},  //Partition key
     ],
     AttributeDefinitions: [
-        { AttributeName: "discordId", AttributeType: "S" }
+        { AttributeName: "keyId", AttributeType: "S" }
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 5,

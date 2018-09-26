@@ -7,17 +7,17 @@ AWS.config.update(config);
 
 var dynamodb = new AWS.DynamoDB();
 
-module.exports = function(key) {
-  var key_hash = crypto.createHash('sha256').update(key).digest("hex");
+module.exports = function(key_hash) {
+  var keyID = crypto.createHash('sha256').update(key_hash).digest("hex");
 
   var params = {
     Item: {
-      "licenseKey": {
-        S: key_hash
+      "KeyId": {
+        S: keyID
       }
     }, 
     ReturnConsumedCapacity: "TOTAL", 
-    TableName: "Keys"
+    TableName: "Users"
     };
     dynamodb.putItem(params, function(err, data) {
       if (err) console.log(err, err.stack); // an error occurred
