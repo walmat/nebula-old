@@ -26,7 +26,7 @@ async function getValidKey(licenseKey) {
         }
     };
     let result = await docClient.query(params).promise();
-    return result.Items[0].licenseKey;
+    return result.Items.length && result.Items[0].licenseKey;
 }
 
 async function isInUse(licenseHash) {
@@ -55,8 +55,10 @@ module.exports = async function(req, res, next) {
         let licenseKey = req.body.key;
         let key = await getValidKey(licenseKey);
         if (key) {
-            if (await isInUse(key) === 0) {
-                storeUser(key);
+            // TODO: REMOVE THIS BYPASS
+            let bypass = true;
+            if (await isInUse(key) === 0 || bypass) {
+                // storeUser(key);
                 return next();
             } else {
                 return res.status(404).send({

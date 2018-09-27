@@ -15,6 +15,7 @@ if (!process.env.NEBULA_ENV_LOADED) {
 }
 
 const store = new Store();
+module.exports.store = store;
 
 // Get session from store
 function getSession() {
@@ -22,6 +23,9 @@ function getSession() {
 
   if (session) {
     session = JSON.parse(session);
+
+    console.log(session);
+    console.log(Date.now());
 
     if (session.expiry === null || session.expiry > Date.now()) {
       console.log(Date.now());
@@ -37,6 +41,8 @@ module.exports.getSession = getSession;
 function getPreviousLicense() {
   let session = getSession();
   let license = store.get('license');
+
+  console.log(session);
 
   // Check if session is available
   if (!session) {
@@ -114,7 +120,8 @@ async function createSession(key) {
 
     return { id, token, expiry };
   }
-  const { errors } = await res.json();
-  return { errors };
+  const body = await res.json();
+  console.log(body);
+  return { errors: body.error };
 }
 module.exports.createSession = createSession;

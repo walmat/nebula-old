@@ -11,6 +11,7 @@ module.exports = async function(app) {
     });
     app.post('/auth', authenticate, function(req, res) {
         // TODO: generate random id
+        console.log('key success');
         const { key } = req.body;
         const token = jwt.sign({ key }, SECRET_KEY, { expiresIn: '2d' });
         const { exp } = jwt.decode(token);

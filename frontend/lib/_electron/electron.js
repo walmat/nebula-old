@@ -52,45 +52,45 @@ const installExtensions = async () => {
     .catch(err => console.error(`An Error Occurred: ${err}`))));
 };
 
-async function validate(key) {
-  // if (isDevelopment) {
-  //   return true;
-  // }
-  if (key === null) {
-    return false;
-  }
-  const res = await fetch('http://localhost:8080/auth', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ key }),
-  });
-  if (res.status === 200) {
-    return true;
-  }
-  return false;
-}
+// async function validate(key) {
+//   // if (isDevelopment) {
+//   //   return true;
+//   // }
+//   if (key === null) {
+//     return false;
+//   }
+//   const res = await fetch('http://localhost:8080/auth', {
+//     method: 'POST',
+//     headers: {
+//       Accept: 'application/json',
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({ key }),
+//   });
+//   if (res.status === 200) {
+//     return true;
+//   }
+//   return false;
+// }
 
-async function invalidate(key) {
-  if (key === null) {
-    return false;
-  }
-  const res = await fetch('http://localhost:8080/auth', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ key }),
-  });
-  if (res.status === 200) {
-    return true;
-  }
-  // change some flag here in the db or something..?
-  return false;
-}
+// async function invalidate(key) {
+//   if (key === null) {
+//     return false;
+//   }
+//   const res = await fetch('http://localhost:8080/auth', {
+//     method: 'POST',
+//     headers: {
+//       Accept: 'application/json',
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({ key }),
+//   });
+//   if (res.status === 200) {
+//     return true;
+//   }
+//   // change some flag here in the db or something..?
+//   return false;
+// }
 
 function checkForUpdates() {
   autoUpdater.setFeedURL(`https://nebula-deployment.herokuapp.com/dist/nebula/${version}`); // fix this??
@@ -125,15 +125,25 @@ async function createWindow() {
   /**
    * -- auth check here -- something similar to: https://github.com/keygen-sh/example-electron-app/blob/master/main.js
    */
+
+  nebulaAuth.store.clear();
   let session = nebulaAuth.getSession();
+
+  console.log(session);
   if (!session) {
+    console.log('test');
     // session doesn't exist, attempt to get new session using previous auth
     const prevLicense = nebulaAuth.getPreviousLicense();
     if (prevLicense) {
+      console.log('test2');
       session = await nebulaAuth.createSession(prevLicense.key);
     }
 
-    if (!session) {
+    console.log('testing...');
+    // console.log(session.errors);
+
+    if (!session || (session && session.errors)) {
+      console.log('display auth');
       // Previous License was not found, nor could it be used to create a new session
       window = authWindow();
       startUrl = url.format({
@@ -150,7 +160,7 @@ async function createWindow() {
         slashes: true,
       });
       // if (isDevelopment) {
-        window.webContents.openDevTools();
+      window.webContents.openDevTools();
       // }
     }
   } else {
@@ -162,7 +172,7 @@ async function createWindow() {
       slashes: true,
     });
     // if (isDevelopment) {
-      window.webContents.openDevTools();
+    window.webContents.openDevTools();
     // }
   }
   // FOR TESTING PURPOSES, UNCOMMENT
@@ -273,10 +283,13 @@ ipcMain.on('authenticate', async (event, key) => {
     session = await nebulaAuth.createSession(key);
   }
 
+  console.log(session.errors);
+
   window.hide();
   window = null;
 
-  if (session) {
+  if (session && !(session.errors)) {
+    console.log('displaying main window...');
     // session is there, display main window
     window = mainWindow();
     startUrl = env.NEBULA_START_URL || url.format({
@@ -285,7 +298,7 @@ ipcMain.on('authenticate', async (event, key) => {
       slashes: true,
     });
     // if (isDevelopment) {
-      window.webContents.openDevTools();
+    window.webContents.openDevTools();
     // }
   } else {
     window = authWindow();
@@ -302,33 +315,4 @@ ipcMain.on('authenticate', async (event, key) => {
   });
   checkForUpdates();
   return true;
-
-  // /**
-  //  * TODO – handle authentication here..
-  //  */
-  // const license = await checkLicense(key); // API call here
-  // if (!license) {
-  //   return new Error('Invalid Key');
-  // }
-
-  // window.hide();
-  // window = null;
-  // // else if valid, do this stuff..
-  // // change window stuff
-  // window = mainWindow();
-  // startUrl = env.NEBULA_START_URL || url.format({
-  //   pathname: path.join(__dirname, '../../build/index.html'),
-  //   protocol: 'file:',
-  //   slashes: true,
-  // });
-
-  // if (isDevelopment) {
-  //   window.webContents.openDevTools();
-  // }
-  // window.loadURL(startUrl);
-  // window.once('ready-to-show', () => {
-  //   window.show();
-  // });
-  // checkForUpdates();
-  // return true;
 });
