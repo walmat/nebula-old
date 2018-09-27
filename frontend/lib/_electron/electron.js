@@ -126,24 +126,17 @@ async function createWindow() {
    * -- auth check here -- something similar to: https://github.com/keygen-sh/example-electron-app/blob/master/main.js
    */
 
-  nebulaAuth.store.clear();
+  // nebulaAuth.store.clear();
   let session = nebulaAuth.getSession();
 
-  console.log(session);
   if (!session) {
-    console.log('test');
     // session doesn't exist, attempt to get new session using previous auth
     const prevLicense = nebulaAuth.getPreviousLicense();
     if (prevLicense) {
-      console.log('test2');
       session = await nebulaAuth.createSession(prevLicense.key);
     }
 
-    console.log('testing...');
-    // console.log(session.errors);
-
     if (!session || (session && session.errors)) {
-      console.log('display auth');
       // Previous License was not found, nor could it be used to create a new session
       window = authWindow();
       startUrl = url.format({
@@ -155,7 +148,7 @@ async function createWindow() {
       // new session created, display main window
       window = mainWindow();
       startUrl = env.NEBULA_START_URL || url.format({
-        pathname: path.join(__dirname, '/../build/index.html'),
+        pathname: path.join(__dirname, '../../build/index.html'),
         protocol: 'file:',
         slashes: true,
       });
@@ -167,7 +160,7 @@ async function createWindow() {
     // session is there, display main window
     window = mainWindow();
     startUrl = env.NEBULA_START_URL || url.format({
-      pathname: path.join(__dirname, '/../build/index.html'),
+      pathname: path.join(__dirname, '../../build/index.html'),
       protocol: 'file:',
       slashes: true,
     });
@@ -283,8 +276,6 @@ ipcMain.on('authenticate', async (event, key) => {
     session = await nebulaAuth.createSession(key);
   }
 
-  console.log(session.errors);
-
   window.hide();
   window = null;
 
@@ -293,7 +284,7 @@ ipcMain.on('authenticate', async (event, key) => {
     // session is there, display main window
     window = mainWindow();
     startUrl = env.NEBULA_START_URL || url.format({
-      pathname: path.join(__dirname, '/../build/index.html'),
+      pathname: path.join(__dirname, '../../build/index.html'),
       protocol: 'file:',
       slashes: true,
     });
