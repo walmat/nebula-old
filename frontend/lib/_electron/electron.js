@@ -3,6 +3,7 @@ const path = require('path');
 const url = require('url');
 const fetch = require('node-fetch');
 const nebulaEnv = require('./env');
+const nebulaAuth = require('./auth');
 
 const { platform, env } = process;
 
@@ -33,7 +34,6 @@ const {
   dialog,
   ipcMain,
   Menu,
-  session,
 } = electron;
 
 const { version } = app.getVersion();
@@ -52,11 +52,11 @@ const installExtensions = async () => {
     .catch(err => console.error(`An Error Occurred: ${err}`))));
 };
 
-async function validate(license) {
+async function validate(key) {
   // if (isDevelopment) {
   //   return true;
   // }
-  if (license === null) {
+  if (key === null) {
     return false;
   }
   const res = await fetch('http://localhost:8080/auth', {
@@ -65,7 +65,7 @@ async function validate(license) {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ license }),
+    body: JSON.stringify({ key }),
   });
   if (res.status === 200) {
     return true;
@@ -73,8 +73,8 @@ async function validate(license) {
   return false;
 }
 
-async function invalidate(license) {
-  if (license === null) {
+async function invalidate(key) {
+  if (key === null) {
     return false;
   }
   const res = await fetch('http://localhost:8080/auth', {
@@ -83,7 +83,7 @@ async function invalidate(license) {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ license }),
+    body: JSON.stringify({ key }),
   });
   if (res.status === 200) {
     return true;
@@ -125,30 +125,45 @@ async function createWindow() {
   /**
    * -- auth check here -- something similar to: https://github.com/keygen-sh/example-electron-app/blob/master/main.js
    */
-  let licenceStorage = null;
-  session.defaultSession.cookies.get({ url: 'https://nebula.io' }, (error, cookies) => {
-    licenceStorage = cookies.nebula_auth;
-  });
-  const license = await validate(licenceStorage || null);
-  if (!license) {
-    // not authenticated..
-    window = authWindow();
-    startUrl = url.format({
-      pathname: path.join(__dirname, '../../public/auth.html'),
-      protocol: 'file:',
-      slashes: true,
-    });
+  let session = nebulaAuth.getSession();
+  if (!session) {
+    // session doesn't exist, attempt to get new session using previous auth
+    const prevLicense = nebulaAuth.getPreviousLicense();
+    if (prevLicense) {
+      session = await nebulaAuth.createSession(prevLicense.key);
+    }
+
+    if (!session) {
+      // Previous License was not found, nor could it be used to create a new session
+      window = authWindow();
+      startUrl = url.format({
+        pathname: path.join(__dirname, '../../public/auth.html'),
+        protocol: 'file:',
+        slashes: true,
+      });
+    } else {
+      // new session created, display main window
+      window = mainWindow();
+      startUrl = env.NEBULA_START_URL || url.format({
+        pathname: path.join(__dirname, '/../build/index.html'),
+        protocol: 'file:',
+        slashes: true,
+      });
+      // if (isDevelopment) {
+        window.webContents.openDevTools();
+      // }
+    }
   } else {
-    // load the main window in development always
+    // session is there, display main window
     window = mainWindow();
     startUrl = env.NEBULA_START_URL || url.format({
       pathname: path.join(__dirname, '/../build/index.html'),
       protocol: 'file:',
       slashes: true,
     });
-    if (isDevelopment) {
+    // if (isDevelopment) {
       window.webContents.openDevTools();
-    }
+    // }
   }
   // FOR TESTING PURPOSES, UNCOMMENT
   window.webContents.openDevTools();
@@ -182,7 +197,7 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.on('window-event', (event, arg) => {
+ipcMain.on('window-event', async (event, arg) => {
   switch (arg) {
     case 'launchYoutube': {
       // open youtube url using youtube window template
@@ -201,12 +216,12 @@ ipcMain.on('window-event', (event, arg) => {
     case 'endSession': {
       // close all the windows and signs the user out of that google account
       // TODO - close wnidows
-      session.defaultSession.clearStorageData([], () => {
-        // todo - error handle
-      });
-      session.defaultSession.clearCache(() => {
-        // todo - error handle
-      });
+      // session.defaultSession.clearStorageData([], () => {
+      // todo - error handle
+      // });
+      // session.defaultSession.clearCache(() => {
+      // todo - error handle
+      // });
       break;
     }
     case 'quit': {
@@ -217,6 +232,8 @@ ipcMain.on('window-event', (event, arg) => {
 
     case 'close': {
       // TODO - just close application
+      console.log('here');
+      await nebulaAuth.clearSession(); // temporary
       app.quit();
       break;
     }
@@ -250,32 +267,68 @@ ipcMain.on('unauthenticated', async (event) => {
 
 // load the application when the user validates
 ipcMain.on('authenticate', async (event, key) => {
-  /**
-   * TODO – handle authentication here..
-   */
-  const license = await validate(key); // API call here
-  if (!license) {
-    return new Error('Invalid Key');
+  let session = nebulaAuth.getSession();
+  if (!session) {
+    // Use key to create session
+    session = await nebulaAuth.createSession(key);
   }
 
   window.hide();
   window = null;
-  // else if valid, do this stuff..
-  // change window stuff
-  window = mainWindow();
-  startUrl = env.NEBULA_START_URL || url.format({
-    pathname: path.join(__dirname, '../../build/index.html'),
-    protocol: 'file:',
-    slashes: true,
-  });
 
-  if (isDevelopment) {
-    window.webContents.openDevTools();
+  if (session) {
+    // session is there, display main window
+    window = mainWindow();
+    startUrl = env.NEBULA_START_URL || url.format({
+      pathname: path.join(__dirname, '/../build/index.html'),
+      protocol: 'file:',
+      slashes: true,
+    });
+    // if (isDevelopment) {
+      window.webContents.openDevTools();
+    // }
+  } else {
+    window = authWindow();
+    startUrl = url.format({
+      pathname: path.join(__dirname, '../../public/auth.html'),
+      protocol: 'file:',
+      slashes: true,
+    });
   }
+
   window.loadURL(startUrl);
   window.once('ready-to-show', () => {
     window.show();
   });
   checkForUpdates();
   return true;
+
+  // /**
+  //  * TODO – handle authentication here..
+  //  */
+  // const license = await checkLicense(key); // API call here
+  // if (!license) {
+  //   return new Error('Invalid Key');
+  // }
+
+  // window.hide();
+  // window = null;
+  // // else if valid, do this stuff..
+  // // change window stuff
+  // window = mainWindow();
+  // startUrl = env.NEBULA_START_URL || url.format({
+  //   pathname: path.join(__dirname, '../../build/index.html'),
+  //   protocol: 'file:',
+  //   slashes: true,
+  // });
+
+  // if (isDevelopment) {
+  //   window.webContents.openDevTools();
+  // }
+  // window.loadURL(startUrl);
+  // window.once('ready-to-show', () => {
+  //   window.show();
+  // });
+  // checkForUpdates();
+  // return true;
 });

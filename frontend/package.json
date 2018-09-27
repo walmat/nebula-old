@@ -11,7 +11,7 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "electron-dev-server": "react-scripts start",
-    "electron-dev": "NODE_ENV=development electron .",
+    "electron-dev": "NODE_ENV=production electron .",
     "electron-dev-windows": "set NODE_ENV=development&& electron .",
     "lint": "./node_modules/.bin/eslint src/",
     "sass": "./tool/compile_css.sh"
@@ -21,6 +21,7 @@
     "bodymovin": "^4.13.0",
     "dotenv": "^6.0.0",
     "electron": "^2.0.6",
+    "electron-store": "^2.0.0",
     "electron-window-manager": "^1.0.6",
     "express": "^4.16.3",
     "express-validator": "^5.3.0",

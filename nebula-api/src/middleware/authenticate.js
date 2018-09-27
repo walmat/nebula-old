@@ -52,7 +52,7 @@ async function isInUse(licenseHash) {
 
 module.exports = async function(req, res, next) {
     try {
-        let licenseKey = req.body.license;
+        let licenseKey = req.body.key;
         let key = await getValidKey(licenseKey);
         if (key) {
             if (await isInUse(key) === 0) {
