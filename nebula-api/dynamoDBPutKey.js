@@ -1,5 +1,4 @@
 var AWS = require("aws-sdk");
-var crypto = require('crypto');
 
 // FOR USE IN DEV MODE ONLY!
 process.env.NODE_ENV = 'development';
@@ -8,18 +7,14 @@ var config = require('./src/utils/setupDynamoConfig').getConfig();
 
 AWS.config.update(config);
 
-var crypto = require('crypto');
-var { makeHash } = require('./hash');
+var { hash } = require('./hash');
 const { salt, algo, output } = require('./hashConfig.json');
 
 var dynamodb = new AWS.DynamoDB();
 
 // module.exports = function(key) {
 function hash(key) {
-  keyHash = crypto.createHash(algo)
-        .update(key)
-        .update(makeHash(salt))
-        .digest(output);
+  keyHash = hash(algo, key, salt, output);
 
   var params = {
     Item: {

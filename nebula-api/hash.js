@@ -5,4 +5,11 @@ function makeHash(val) {
     return crypto.createHash(algo).update(val).digest(output);
 }
 
-module.exports = { makeHash };
+function hash(algo, license, salt, output) {
+    return crypto.createHash(algo)
+    .update(license)
+    .update(makeHash(salt))
+    .digest(output);
+}
+
+module.exports = { hash };

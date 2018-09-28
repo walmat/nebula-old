@@ -1,69 +1,85 @@
 const AWS = require('aws-sdk');
 var config = require('../../utils/setupDynamoConfig').getConfig();
+var { hash } = require('../../../hash');
+const { salt, algo, output } = require('../../../hashConfig.json');
 
 let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
-async function getRegistationKey(registrationKey) {
+async function getLicenseKeyHash(licenseKey) {
+
+	const licenseHash = hash(algo, licenseKey, salt, output);
+
 	const params = {
 		TableName : 'Keys',
-		Key: registrationKey,
-		KeyConditionExpression: '#registrationKey = :registrationKey',
+		Key: licenseHash,
+		KeyConditionExpression: '#licenseKey = :licenseKey',
 		ExpressionAttributeNames:{
-			'#registrationKey': 'registrationKey'
+			'#licenseKey': 'licenseKey'
 		},
 		ExpressionAttributeValues: {
-			":registrationKey": registrationKey
+			":licenseKey": licenseHash
 		}
 	};
 	const items = (await docClient.query(params).promise()).Items;
 	return items.length > 0 ? items[0] : null;
 }
 
-async function updateKeyWithDiscordUser(registrationKey, discordId) {
+async function getDiscordIdAssociatedWithLicense(licenseKey) {
+
+	const licenseHash = hash(algo, licenseKey, salt, output);
+
+	const params = {
+		TableName : 'Discord',
+		Key: discordId,
+		KeyConditionExpression: '#discordId = :discordId',
+		ExpressionAttributeNames:{
+			'#licenseKey': 'licenseKey',
+			'#discordId': 'discordId'
+		},
+		ExpressionAttributeValues: {
+			":licenseKey": licenseHash,
+			":discordId": discordId
+		}
+	};
+	const items = (await docClient.query(params).promise()).Items;
+	return items.length > 0 ? items[0] : null;
+}
+
+async function addUser(licenseHash, discordId) {
 	let keyData = {
-		registrationKey,
+		licenseKey: licenseHash,
 		discordId
 	}
 	let params = {
-		TableName: 'Keys',
+		TableName: 'Discord',
 		Item: keyData
 	}
 	await docClient.put(params).promise();
 }
 
-async function addUser(registrationKey, discordId) {
-	let keyData = {
-		registrationKey,
-		discordId
-	}
-	let params = {
-		TableName: 'Users',
-		Item: keyData
-	}
-	await docClient.put(params).promise();
-}
-
-async function createUser(res, registrationKey, discordId) {
+async function createUser(res, licenseKey, discordId) {
 	// verify registration key is valid and is not being used
-	const savedRegistationKey = await getRegistationKey(registrationKey);
-	if (!savedRegistationKey) {
+	const licenseHash = await getLicenseKeyHash(licenseKey);
+	if (!licenseHash) {
 		return res.status(404).json({
-			error: 'Invalid registration key!'
+			error: 'Invalid license key or already bound'
 		});
 	}
 
-	if (savedRegistationKey.discordId) {
+	const discord = await getDiscordIdAssociatedWithLicense(licenseKey);
+
+	// found a discord tied to the license
+	if (discord) {
 		return res.status(404).json({
-			error: 'Registration key in use!'
+			error: 'Invalid license key or already bound'
 		});
 	}
 
 	// update key with the associated discord id and add the new user
-	await updateKeyWithDiscordUser(registrationKey, discordId);
-	await addUser(registrationKey, discordId);
+	await addUser(licenseHash, discordId);
 
 	return res.status(200).json({
-		message: 'User added'
+		message: 'Key successfully bound, welcome!'
 	});
 
 }
