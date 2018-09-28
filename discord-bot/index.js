@@ -1,10 +1,9 @@
-const { token } = require('./config.json');
+const { token, prefixes } = require('./config.json');
 const Discord = require('discord.js');
 
 const { bind, deactivate, purge } = require('./auth');
 
 const dotenv = require('dotenv');
-const fetch = require('node-fetch');
 const client = new Discord.Client();
 
 // loads enviornment variables
@@ -28,7 +27,42 @@ client.on('message', async message => {
 
     /* DM received to bot */
     if (message.guild === null) {
-        bindUser(message);
+        let content = message.content.split(' ');
+        if (content.length !== 2 || !prefixes.some(v => v === content[0].charAt(0))) {
+            return;
+        }
+        const licenseKey = content[1];
+        const discordId = message.author.id;
+
+        switch(content[0]) {
+            case '!bind': {
+                bind(licenseKey, discordId, (msg) => {
+                    message.channel.send(msg);
+                });
+                break;
+            }
+            case '!deactivate': {
+                deactivate(licenseKey, discordId, (msg) => {
+                    message.channel.send(msg);
+                });
+                break;
+            }
+            case '!purge': {
+                purge(licenseKey, discordId, (msg) => {
+                    message.channel.send(msg);
+                });
+                break;
+            }
+            case '?help': {
+                message.channel
+                    .send(`List of commands: \n\n
+                            !bind <key> - binds the key to the discord user\n
+                            !deactivate <key> - deactivates electron app from user's machine\n
+                            !purge <key> - completely removes the user from the application (used for reselling)\n
+                          `)
+                break;
+            }
+        }
     }
 });
 
