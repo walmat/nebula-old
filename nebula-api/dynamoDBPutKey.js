@@ -1,7 +1,9 @@
 var AWS = require("aws-sdk");
 var crypto = require('crypto');
 
-var config = require('./dynamoConfig.json');
+// FOR USE IN DEV MODE ONLY!
+process.env.NODE_ENV = 'development'
+var config = require('./src/utils/setupDynamoConfig').getConfig();
 
 AWS.config.update(config);
 
@@ -33,4 +35,4 @@ function hash(key) {
   });
 }
 
-hash('matt');
+hash('testkey');

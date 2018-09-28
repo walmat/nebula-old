@@ -2,7 +2,7 @@ const AWS = require('aws-sdk');
 const fetch = require('node-fetch');
 const jwt = require('jsonwebtoken');
 
-var config = require('../../../dynamoConfig.json');
+var config = require('../../utils/setupDynamoConfig').getConfig();
 
 let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 

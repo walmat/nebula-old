@@ -1,7 +1,8 @@
 // Run this to set up your local dynamoDB tables necessary to develop the backend
 var AWS = require("aws-sdk");
-
-var config = require('./dynamoConfig.json');
+// FOR USE IN DEV MODE ONLY!
+process.env.NODE_ENV = 'development'
+var config = require('./src/utils/setupDynamoConfig').getConfig();
 
 AWS.config.update(config);
 var dynamodb = new AWS.DynamoDB();

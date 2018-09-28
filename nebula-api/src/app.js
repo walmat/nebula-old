@@ -1,6 +1,11 @@
 // This is to load in environment variables from the .env file
 const dotenv = require('dotenv');
+const nebulaenv = require('./utils/env');
 dotenv.load();
+
+if(process.env.NODE_ENV === 'development') {
+    nebulaenv.setUpDevEnvironment();
+}
 
 const cors = require('cors');
 

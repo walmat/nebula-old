@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-var config = require('../../dynamoConfig.json');
+var config = require('../utils/setupDynamoConfig').getConfig();
 AWS.config.update(config);
 
 var { storeUser } = require('../../dynamoDBUser');
@@ -26,6 +26,10 @@ async function getValidKey(licenseKey) {
         }
     };
     let result = await docClient.query(params).promise();
+    console.log('VALID KEY RESPONSE: ', result.Items.length);
+    if(result.Items && result.Items.length) {
+        console.log('VALID KEY RESPONSE KEY: ', result.Items[0].licenseKey);
+    }
     return result.Items.length && result.Items[0].licenseKey;
 }
 
@@ -47,6 +51,7 @@ async function isInUse(licenseHash) {
         }
     };
     let result = await docClient.query(params).promise();
+    console.log('IS INUSE RESULT: ', result.Items.length);
     return result.Items.length;
 }
 
@@ -55,10 +60,8 @@ module.exports = async function(req, res, next) {
         let licenseKey = req.body.key;
         let key = await getValidKey(licenseKey);
         if (key) {
-            // TODO: REMOVE THIS BYPASS
-            let bypass = true;
-            if (await isInUse(key) === 0 || bypass) {
-                // storeUser(key);
+            if (await isInUse(key) === 0) {
+                storeUser(key);
                 return next();
             } else {
                 return res.status(404).send({

@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const authenticate = require('../middleware/authenticate');
-
-const SECRET_KEY = 'shhhhhhItsasecret';
+const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
 
 module.exports = async function(app) {
     app.get('/auth', authenticate, function(req, res) {

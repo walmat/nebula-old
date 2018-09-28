@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-var config = require('../../../dynamoConfig.json');
+var config = require('../../utils/setupDynamoConfig').getConfig();
 
 let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 

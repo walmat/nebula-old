@@ -1,9 +1,13 @@
 var AWS = require("aws-sdk");
+// FOR USE IN DEV MODE ONLY!
+process.env.NODE_ENV = 'development'
+var config = require('./src/utils/setupDynamoConfig').getConfig();
 
-var config = require('./dynamoConfig.json');
 AWS.config.update(config);
 
 var dynamodb = new AWS.DynamoDB();
+
+console.log(config);
 
 var params = {
     TableName : "Keys"
