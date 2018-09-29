@@ -33,11 +33,21 @@ client.on('message', async message => {
         }
         const licenseKey = content[1];
         const discordId = message.author.id;
+        // guild id: 426860107054317575
 
         switch(content[0]) {
             case '!bind': {
-                bind(licenseKey, discordId, (msg) => {
+                bind(licenseKey, discordId, (err, msg) => {
+                    console.log(msg, err);
                     message.channel.send(msg);
+                    if (err) {
+                        return;
+                    }
+                    // grant access to discord @member role
+                    const server = client.guilds.get("426860107054317575");
+                    const member = server.members.get(`${discordId}`);
+                    // TODO -- missing permissions error..
+                    member.addRole(server.roles.find(role => role.name === 'member'));
                 });
                 break;
             }
