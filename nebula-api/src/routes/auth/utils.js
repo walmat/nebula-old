@@ -1,5 +1,4 @@
 const AWS = require('aws-sdk');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const config = require('../../utils/setupDynamoConfig').getConfig();
@@ -79,13 +78,54 @@ async function checkValidKey(key) {
 }
 module.exports.checkValidKey = checkValidKey;
 
+async function getDiscordUser(key) {
+  AWS.config = new AWS.Config(config);
+  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  const keyHash = hash(algo, key, salt, output);
+  let params = {
+    TableName : 'Discord',
+    Key: licenseKey,
+    KeyConditionExpression: '#licenseKey = :licenseKey',
+    ExpressionAttributeNames:{
+        '#licenseKey': 'licenseKey'
+    },
+    ExpressionAttributeValues: {
+        ":licenseKey": keyHash
+    }
+  };
+  return docClient.query(params).promise().then(
+    (data) => {
+      console.log('[DEBUG]: CHECK DISCORD RESPONSE: ', data);
+      if (data.Items.length && data.Items[0].licenseKey && data.Items[0].discordId) {
+        return data.Items[0];
+      }
+    },
+    (err) => {
+      console.log('[ERROR]: CHECK DISCORD RESPONSE: ', err, err.stack);
+    }
+  );
+}
+
+module.exports.getDiscordUser = getDiscordUser;
+
+async function addDiscordUser(keyHash, discordId) {
+  let data = {
+    licenseKey: keyHash,
+    discordId
+  }
+  let params = {
+    TableName: 'Discord',
+    Item: data
+  }
+  await docClient.put(params).promise();
+}
+
+module.exports.addDiscordUser = addDiscordUser;
+
 async function checkIsInUse(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  const keyHash = crypto.createHash(algo)
-    .update(key)
-    .update(makeHash(salt))
-    .digest(output);
+  const keyHash = hash(algo, key, salt, output);
   let params = {
     TableName: 'Users',
     Key: keyHash,

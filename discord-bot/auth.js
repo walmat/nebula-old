@@ -3,11 +3,11 @@ const fetch = require('node-fetch');
 async function bind(licenseKey, discordId, cb) {
 
     // call the nebula api endpoint
-    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/user`,
+    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/auth/discord`,
         {
             method: "POST",
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -15,6 +15,8 @@ async function bind(licenseKey, discordId, cb) {
                 licenseKey
             }),
         });
+
+    console.log(result);
 
     if (result.status === 200) {
         return cb(false, `${licenseKey} successfully bound`);

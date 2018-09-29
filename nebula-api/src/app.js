@@ -22,14 +22,11 @@ let tasks = require('./routes/tasks/tasks');
 let profiles = require('./routes/profiles/profiles');
 let server = require('./routes/server/server');
 let settings = require('./routes/settings/settings');
-let getUser = require('./routes/user/getUser');
-let createUser = require('./routes/user/createUser');
 let auth = require('./routes/auth/auth');
 
 // wrap the app
 tasks(app); profiles(app);
 server(app); settings(app);
-createUser(app); getUser(app);
 auth(app);
 
 app.listen(port, () => console.log(`Nebula API started on port ${port}`));
