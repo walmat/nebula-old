@@ -3,8 +3,8 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const config = require('../../utils/setupDynamoConfig').getConfig();
-const { storeUser, deleteUser } = require('../../../dynamoDBUser');
-const { makeHash } = require('../../../hash');
+const { storeUser } = require('../../../dynamoDBUser');
+const { hash } = require('../../../hash');
 const { salt, algo, output } = require('../../../hashConfig.json');
 
 const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
@@ -50,10 +50,7 @@ module.exports.generateTokens = generateTokens;
 async function checkValidKey(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  const keyHash = crypto.createHash(algo)
-    .update(key)
-    .update(makeHash(salt))
-    .digest(output);
+  const keyHash = hash(algo, key, salt, output);
   console.log('[DEBUG]: checking for hash: ', keyHash);
   const params = {
     TableName: 'Keys',

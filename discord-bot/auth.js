@@ -26,47 +26,48 @@ async function bind(licenseKey, discordId, cb) {
 async function deactivate(licenseKey, discordId, cb) {
 
     // call the nebula api endpoint
-    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/user`,
+    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/auth`,
         {
-            method: "POST",
+            method: "DELETE",
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 discordId,
-                licenseKey
+                key: licenseKey
             }),
         });
 
     if (result.status === 200) {
-        return cb(`${licenseKey} successfully bound`);
+        return cb(`${licenseKey} successfully deactivated`);
     } else if (result.status === process.env.KEY_IN_USE) {
-        return cb(`Key: ${licenseKey} in use.`);
+        return cb(`Invalid key, or unable to deactivate.`);
     } // otherwise send no status report to reduce clutter
 }
 
-async function purge(licenseKey, discordId, cb) {
+// async function purge(licenseKey, discordId, cb) {
 
-    // call the nebula api endpoint
-    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/user`,
-        {
-            method: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                discordId,
-                licenseKey
-            }),
-        });
+//     // call the nebula api endpoint
+//     let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/user`,
+//         {
+//             method: "POST",
+//             headers: {
+//                 'Accept': 'application/json',
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify({
+//                 discordId,
+//                 licenseKey
+//             }),
+//         });
 
-    if (result.status === process.env.SUCCESS) {
-        return cb(`${licenseKey} successfully bound`);
-    } else if (result.status === process.env.KEY_IN_USE) {
-        return cb(`Key: ${licenseKey} in use.`);
-    } // otherwise send no status report to reduce clutter
-}
+//     if (result.status === process.env.SUCCESS) {
+//         return cb(`${licenseKey} successfully bound`);
+//     } else if (result.status === process.env.KEY_IN_USE) {
+//         return cb(`Key: ${licenseKey} in use.`);
+//     } // otherwise send no status report to reduce clutter
+// }
 
-module.exports = { bind, deactivate, purge };
+// purge
+module.exports = { bind, deactivate,  };
