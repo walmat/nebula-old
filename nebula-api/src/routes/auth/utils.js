@@ -47,9 +47,6 @@ function generateTokens(key, refreshPayload) {
 module.exports.generateTokens = generateTokens;
 
 async function checkValidKey(key) {
-
-  console.log(config);
-
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   const keyHash = hash(algo, key, salt, output);
@@ -81,30 +78,39 @@ async function checkValidKey(key) {
 }
 module.exports.checkValidKey = checkValidKey;
 
-async function getDiscordUser(key) {
+/**
+ * Returns the discord user tied to a given key
+ * @param {*} key – unmalformed license key data
+ */
+async function getDiscordUser(keyHash, discordId) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  const licenseKey = hash(algo, key, salt, output);
   let params = {
     TableName : 'Discord',
-    Key: licenseKey,
+    Key: keyHash,
     KeyConditionExpression: '#licenseKey = :licenseKey',
     ExpressionAttributeNames:{
         '#licenseKey': 'licenseKey'
     },
     ExpressionAttributeValues: {
-        ":licenseKey": licenseKey
+        ":licenseKey": keyHash
     }
   };
   return docClient.query(params).promise().then(
     (data) => {
       console.log('[DEBUG]: CHECK DISCORD RESPONSE: ', data);
-      if (data.Items.length && data.Items[0].licenseKey && data.Items[0].discordId) {
-        return data.Items[0];
+      if (data.Items.length > 0) {
+        // only return the data if the discord id's match
+        if (data.Items[0].discordId === discordId) {
+          return data.Items[0];
+        } else {
+          return null;
+        }
       }
     },
     (err) => {
       console.log('[ERROR]: CHECK DISCORD RESPONSE: ', err, err.stack);
+      return null;
     }
   );
 }
@@ -123,8 +129,23 @@ async function addDiscordUser(keyHash, discordId) {
   }
   await docClient.put(params).promise();
 }
-
 module.exports.addDiscordUser = addDiscordUser;
+
+async function removeUser(keyHash) {
+  AWS.config = new AWS.Config(config);
+  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  
+  console.log(keyHash);
+  const params = {
+    Key: {
+      "keyId": keyHash,
+    },
+    ReturnConsumedCapacity: "TOTAL", 
+    TableName: "Users"
+  };
+  await docClient.delete(params).promise();
+}
+module.exports.removeUser = removeUser;
 
 async function checkIsInUse(key) {
   AWS.config = new AWS.Config(config);

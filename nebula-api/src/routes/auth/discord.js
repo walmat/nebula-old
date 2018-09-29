@@ -14,7 +14,6 @@ async function createDiscordUser(res, userData) {
     }
 
     const discord = await authUtils.getDiscordUser(keyHash, discordId);
-
     if (discord) {
         return res.status(401).json({
             name: 'InvalidRequest',
@@ -25,10 +24,45 @@ async function createDiscordUser(res, userData) {
     await authUtils.addDiscordUser(keyHash, discordId);
 
     return res.status(200).json({
-        message: 'Key successfully bound, welcome!'
+        name: 'Success',
+        message: 'Key Bound Successfully'
     })
-  
-  }
+}
+
+/**
+ * 
+ * @param {*} res – any response is carried along
+ * @param {*} userData – contains licenseKey && discordId
+ */
+async function deactivateUser(res, userData) {
+
+    const key = userData.licenseKey;
+    const discordId = userData.discordId;
+    const keyHash = await authUtils.checkValidKey(key);
+    if (!keyHash) {
+        return res.status(401).json({
+            name: 'MalformedRequest',
+            message: 'Malformed Request'
+        });
+    }
+
+    const discord = await authUtils.getDiscordUser(keyHash, discordId);
+
+    // verify it's the proper discord user
+    if (!discord) {
+        return res.status(401).json({
+            name: 'InvalidRequest',
+            message: 'Invalid Request'
+        })
+    }
+
+    await authUtils.removeUser(keyHash);
+
+    return res.status(200).json({
+        name: 'Success',
+        message: 'Deactivated!'
+    });
+}
 
 module.exports = async function(app) {
     app.get('/auth/discord', function(req, res) {
@@ -41,7 +75,7 @@ module.exports = async function(app) {
         const userData = req.body;
         
         if (!userData.licenseKey || !userData.discordId) {
-            res.status(404).json({
+            res.status(401).json({
                 name: 'MalformedRequest',
                 message: 'Malformed Request'
             })
@@ -51,25 +85,15 @@ module.exports = async function(app) {
     });
 
     app.delete('/auth/discord', async function(req, res) {
-        const { key } = req.body;
-        if (key) {
-            const response = await authUtil.verifyKey(key);
-            if (response.error) {
-                if (response.error.name === 'InternalError') {
-                    // server error
-                    return res.status(501).json(repsonse);
-                }
-                // auth error
-                return res.status(401).json(response);
-            }
-            // success
-            return res.status(200).json(response);
-        }
-        return res.status(404).json({
-            error: {
+        const userData = req.body;
+
+        if (!userData.licenseKey || !userData.discordId) {
+            res.status(401).json({
                 name: 'MalformedRequest',
-                message: 'Malformed Request',
-            },
-        });
+                message: 'Malformed Request'
+            })
+        } else {
+            await deactivateUser(res, userData);
+        }
     });
 };

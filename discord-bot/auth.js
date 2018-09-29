@@ -28,16 +28,16 @@ async function bind(licenseKey, discordId, cb) {
 async function deactivate(licenseKey, discordId, cb) {
 
     // call the nebula api endpoint
-    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/auth`,
+    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/auth/discord`,
         {
             method: "DELETE",
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 discordId,
-                key: licenseKey
+                licenseKey
             }),
         });
 
