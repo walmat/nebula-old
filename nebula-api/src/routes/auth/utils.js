@@ -2,7 +2,7 @@ const AWS = require('aws-sdk');
 const jwt = require('jsonwebtoken');
 
 const config = require('../../utils/setupDynamoConfig').getConfig();
-const { storeUser } = require('../../../dynamoDBUser');
+const { storeUser, deleteUser } = require('../../../dynamoDBUser');
 const { hash } = require('../../../hash');
 const { salt, algo, output } = require('../../../hashConfig.json');
 
