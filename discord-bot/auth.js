@@ -19,7 +19,7 @@ async function bind(licenseKey, discordId, cb) {
     if (result.status === 200) {
         return cb(false, `${licenseKey} successfully bound`);
     } else if (result.status === 404) {
-        return cb(true, `Key in use.`);
+        return cb(true, `Invalid key, or already in use.`);
     } // otherwise send no status report to reduce clutter
 }
 

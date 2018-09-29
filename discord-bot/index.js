@@ -47,10 +47,9 @@ client.on('message', async message => {
                     const server = client.guilds.get("426860107054317575");
                     const member = server.members.get(`${discordId}`);
                     const role = server.roles.find("name", "member");
-                    // TODO -- missing permissions error..?
                     try {
                         member.addRole(role);
-                    } catch (UnhandledPromiseRejection) {
+                    } catch (e) {
                         console.log(e);
                     }
                 });
@@ -83,7 +82,7 @@ client.on('message', async message => {
                 break;
             }
             case '?help': {
-                message.channel.send(`List of commands:\n\n!bind <key> - binds the key to the discord user\n!deactivate <key> - deactivates electron app from user's machine\n!purge <key> - completely removes the user from the application (used for reselling)`);
+                message.channel.send("List of commands:\n\n`!bind <key>` – binds the key to the discord user\n`!deactivate <key>` – deactivates electron app from user's machine\n`!purge <key>` – completely removes the user from the application/discord");
                 break;
             }
         }
