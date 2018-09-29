@@ -13,12 +13,12 @@ const _sendEvent = (channel, msg) => {
 // Send a deactivate window event
 const _deactivate = () => {
   // add event here as well..
-  _sendEvent('unauthenticated');
+  _sendEvent('auth', { arg: 'deactivate' });
 };
 
 // Send a deactivate window event
 const _authenticate = (key) => {
-  _sendEvent('authenticate', key);
+  _sendEvent('auth', { arg: 'activate', key });
 };
 
 // Send a close window event
@@ -70,4 +70,9 @@ process.once('loaded', () => {
   window.Bridge.deactivate = _deactivate;
   window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;
+  if (process.env.NEBULA_ENV === 'development') {
+    window.Bridge.sendDebugCmd = (evt) => {
+      _sendEvent('debug', evt);
+    };
+  }
 });

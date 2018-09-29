@@ -3,16 +3,17 @@ const fetch = require('node-fetch');
 
 const nebulaEnv = require('./env');
 
-const _isDevelopment = process.env.NODE_ENV === 'development';
-
 if (!process.env.NEBULA_ENV_LOADED) {
   // Set up nebula environment variables
-  if (_isDevelopment) {
+  if (process.env.NODE_ENV === 'development') {
     nebulaEnv.setUpDevEnvironment();
   } else {
     nebulaEnv.setUpProdEnvironment();
   }
 }
+
+const _isDevelopment = process.env.NODE_ENV === 'development';
+
 
 const store = new Store();
 module.exports.store = store;
@@ -23,9 +24,7 @@ async function getSession() {
 
   if (session) {
     session = JSON.parse(session);
-
     if (session.expiry === null || session.expiry > (Date.now() / 1000)) {
-      console.log('returning session...');
       return session;
     }
 
@@ -67,10 +66,11 @@ async function clearSession() {
     if (!res.ok) {
       const { error } = await res.json();
       console.log('ERROR With Deletion: ', error);
-      return;
+      return false;
     }
   }
   store.delete('session');
+  return true;
 }
 module.exports.clearSession = clearSession;
 

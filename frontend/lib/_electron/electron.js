@@ -1,23 +1,22 @@
 const electron = require('electron');
-const path = require('path');
-const url = require('url');
-const fetch = require('node-fetch');
 const nebulaEnv = require('./env');
 const nebulaAuth = require('./auth');
-
-const { platform, env } = process;
-
-const isDevelopment = env.NODE_ENV === 'development';
-
-const { mainWindow, authWindow, captchaWindow, youtubeWindow } = require('./windows');
+const {
+  mainWindow, authWindow, captchaWindow, youtubeWindow,
+} = require('./windows');
 const { menu } = require('./menu');
 
 // Set up nebula environment variables
-if (isDevelopment) {
-  nebulaEnv.setUpDevEnvironment();
-} else {
-  nebulaEnv.setUpProdEnvironment();
+if (!process.env.NEBULA_ENV_LOADED) {
+  // Set up nebula environment variables
+  if (process.env.NODE_ENV === 'development') {
+    nebulaEnv.setUpDevEnvironment();
+  } else {
+    nebulaEnv.setUpProdEnvironment();
+  }
 }
+
+const isDevelopment = process.env.NEBULA_ENV === 'development';
 
 /**
  * Get eletron dependencies:
@@ -38,8 +37,38 @@ const {
 
 const { version } = app.getVersion();
 
-let window;
-let startUrl;
+const current = {};
+const prev = {};
+
+function setMenu() {
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menu()));
+}
+
+const _hideCurrentWindow = () => {
+  if (current && current.window) {
+    current.window.webContents.closeDevTools();
+    current.window.hide();
+    prev.window = current.window;
+    prev.url = current.url;
+  }
+};
+
+const _showNewWindow = ({ win, winUrl }) => {
+  _hideCurrentWindow();
+  current.window = win;
+  current.url = winUrl;
+
+  current.window.loadURL(current.url);
+  current.window.on('ready-to-show', () => {
+    prev.window = null;
+    prev.url = null;
+    current.window.show();
+    setMenu();
+    if (isDevelopment) {
+      current.window.webContents.openDevTools();
+    }
+  });
+};
 
 // Install Dev tools extensions
 const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
@@ -52,55 +81,15 @@ const installExtensions = async () => {
     .catch(err => console.error(`An Error Occurred: ${err}`))));
 };
 
-// async function validate(key) {
-//   // if (isDevelopment) {
-//   //   return true;
-//   // }
-//   if (key === null) {
-//     return false;
-//   }
-//   const res = await fetch('http://localhost:8080/auth', {
-//     method: 'POST',
-//     headers: {
-//       Accept: 'application/json',
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({ key }),
-//   });
-//   if (res.status === 200) {
-//     return true;
-//   }
-//   return false;
-// }
-
-// async function invalidate(key) {
-//   if (key === null) {
-//     return false;
-//   }
-//   const res = await fetch('http://localhost:8080/auth', {
-//     method: 'POST',
-//     headers: {
-//       Accept: 'application/json',
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({ key }),
-//   });
-//   if (res.status === 200) {
-//     return true;
-//   }
-//   // change some flag here in the db or something..?
-//   return false;
-// }
-
 function checkForUpdates() {
   autoUpdater.setFeedURL(`https://nebula-deployment.herokuapp.com/dist/nebula/${version}`); // fix this??
-  autoUpdater.on('error', err => window.webContents.send('error', err));
-  autoUpdater.on('checking-for-update', () => window.webContents.send('log', 'checking-for-update', autoUpdater.getFeedURL()));
-  autoUpdater.on('update-available', () => window.webContents.send('log', 'update-available', autoUpdater.getFeedURL()));
-  autoUpdater.on('update-not-available', () => window.webContents.send('log', 'update-not-available', autoUpdater.getFeedURL()));
+  autoUpdater.on('error', err => current.window.webContents.send('error', err));
+  autoUpdater.on('checking-for-update', () => current.window.webContents.send('log', 'checking-for-update', autoUpdater.getFeedURL()));
+  autoUpdater.on('update-available', () => current.window.webContents.send('log', 'update-available', autoUpdater.getFeedURL()));
+  autoUpdater.on('update-not-available', () => current.window.webContents.send('log', 'update-not-available', autoUpdater.getFeedURL()));
   autoUpdater.on('update-downloaded', (...args) => {
-    window.webContents.send('log', 'update-downloaded', autoUpdater.getFeedURL(), args);
-    const choice = dialog.showMessageBox(window, {
+    current.window.webContents.send('log', 'update-downloaded', autoUpdater.getFeedURL(), args);
+    const choice = dialog.showMessageBox(current.window, {
       message: 'An update has been downloaded. Do you want to restart now to finish installing it?',
       title: 'Update is ready',
       type: 'question',
@@ -117,66 +106,19 @@ function checkForUpdates() {
   autoUpdater.checkForUpdates();
 }
 
-function setMenu() {
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menu()));
-}
-
 async function createWindow() {
   /**
    * -- auth check here -- something similar to: https://github.com/keygen-sh/example-electron-app/blob/master/main.js
    */
+  const session = await nebulaAuth.getSession();
 
-  // nebulaAuth.store.clear();
-  let session = nebulaAuth.getSession();
-
-  if (!session) {
-    // session doesn't exist, attempt to get new session using previous auth
-    const prevLicense = nebulaAuth.getPreviousLicense();
-    if (prevLicense) {
-      session = await nebulaAuth.createSession(prevLicense.key);
-    }
-
-    if (!session || (session && session.errors)) {
-      // Previous License was not found, nor could it be used to create a new session
-      window = authWindow();
-      startUrl = url.format({
-        pathname: path.join(__dirname, '../../public/auth.html'),
-        protocol: 'file:',
-        slashes: true,
-      });
-    } else {
-      // new session created, display main window
-      window = mainWindow();
-      startUrl = env.NEBULA_START_URL || url.format({
-        pathname: path.join(__dirname, '../../build/index.html'),
-        protocol: 'file:',
-        slashes: true,
-      });
-      // if (isDevelopment) {
-      window.webContents.openDevTools();
-      // }
-    }
+  if (!session || (session && session.errors)) {
+    // Previous License was not found, nor could it be used to create a new session
+    _showNewWindow(authWindow());
   } else {
     // session is there, display main window
-    window = mainWindow();
-    startUrl = env.NEBULA_START_URL || url.format({
-      pathname: path.join(__dirname, '../../build/index.html'),
-      protocol: 'file:',
-      slashes: true,
-    });
-    // if (isDevelopment) {
-    window.webContents.openDevTools();
-    // }
+    _showNewWindow(mainWindow());
   }
-  // FOR TESTING PURPOSES, UNCOMMENT
-  window.webContents.openDevTools();
-
-  window.loadURL(startUrl);
-  setMenu();
-
-  window.once('ready-to-show', () => {
-    window.show();
-  });
 }
 
 // This method will be called when Electron has finished
@@ -195,7 +137,7 @@ app.on('window-all-closed', app.quit);
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (window === null) {
+  if (current.window === null) {
     createWindow();
   }
 });
@@ -228,15 +170,13 @@ ipcMain.on('window-event', async (event, arg) => {
       break;
     }
     case 'quit': {
-      // TODO - deauth user and close application
+      // deauth user and close application
+      await nebulaAuth.clearSession();
       app.quit();
       break;
     }
 
     case 'close': {
-      // TODO - just close application
-      console.log('here');
-      await nebulaAuth.clearSession(); // temporary
       app.quit();
       break;
     }
@@ -246,64 +186,46 @@ ipcMain.on('window-event', async (event, arg) => {
   }
 });
 
-// get authentication event from the main process
-ipcMain.on('unauthenticated', async (event) => {
-  window.close();
-  window = null;
-  const invalidated = await invalidate(); // invalidate the user's machine
-  if (!invalidated) {
-    ipcMain.send('error', 'Unable to invalidate');
-    return;
+ipcMain.on('auth', async (event, { arg, key }) => {
+  switch (arg) {
+    case 'activate': {
+      let session = await nebulaAuth.getSession();
+      if (!session) {
+        session = await nebulaAuth.createSession(key);
+      }
+
+      if (!session || (session && session.errors)) {
+        // no session or session has errors, display auth
+        _showNewWindow(authWindow());
+      } else {
+        _showNewWindow(mainWindow());
+        checkForUpdates();
+      }
+      break;
+    }
+    case 'deactivate': {
+      const deactivated = await nebulaAuth.clearSession();
+      if (!deactivated) {
+        ipcMain.send('error', 'Unable to invalidate');
+        return;
+      }
+      _showNewWindow(authWindow());
+      break;
+    }
+    default: {
+      break;
+    }
   }
-  // show the auth window
-  window = authWindow();
-  startUrl = url.format({
-    pathname: path.join(__dirname, '../../public/auth.html'),
-    protocol: 'file:',
-    slashes: true,
-  });
-  window.loadURL(startUrl);
-  window.once('ready-to-show', () => {
-    window.show();
-  });
 });
 
-// load the application when the user validates
-ipcMain.on('authenticate', async (event, key) => {
-  let session = nebulaAuth.getSession();
-  if (!session) {
-    // Use key to create session
-    session = await nebulaAuth.createSession(key);
-  }
-
-  window.hide();
-  window = null;
-
-  if (session && !(session.errors)) {
-    console.log('displaying main window...');
-    // session is there, display main window
-    window = mainWindow();
-    startUrl = env.NEBULA_START_URL || url.format({
-      pathname: path.join(__dirname, '../../build/index.html'),
-      protocol: 'file:',
-      slashes: true,
-    });
-    // if (isDevelopment) {
-    window.webContents.openDevTools();
-    // }
-  } else {
-    window = authWindow();
-    startUrl = url.format({
-      pathname: path.join(__dirname, '../../public/auth.html'),
-      protocol: 'file:',
-      slashes: true,
-    });
-  }
-
-  window.loadURL(startUrl);
-  window.once('ready-to-show', () => {
-    window.show();
+if (isDevelopment) {
+  ipcMain.on('debug', (event) => {
+    switch (event) {
+      case 'clearStore': {
+        nebulaAuth.store.clear();
+        break;
+      }
+      default: break;
+    }
   });
-  checkForUpdates();
-  return true;
-});
+}
