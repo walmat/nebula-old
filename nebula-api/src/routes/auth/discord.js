@@ -6,7 +6,6 @@ async function createDiscordUser(res, userData) {
     const discordId = userData.discordId;
   
     const keyHash = await authUtils.checkValidKey(key);
-
     if (!keyHash) {
       return res.status(401).json({
         name: 'MalformedRequest',
