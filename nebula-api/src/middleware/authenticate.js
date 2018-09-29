@@ -80,5 +80,6 @@ module.exports = async function(req, res, next) {
         });
     } catch (err) {
         console.log('Authentication error: ', err);
+        return res.status(501).send('INTERNAL SERVER ERROR');
     }
 };

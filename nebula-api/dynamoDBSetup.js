@@ -13,7 +13,7 @@ var users = {
         { AttributeName: "keyId", KeyType: "HASH"},  //Partition key
     ],
     AttributeDefinitions: [
-        { AttributeName: "keyId", AttributeType: "S" }
+        { AttributeName: "keyId", AttributeType: "S" },
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 5,

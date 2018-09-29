@@ -26,7 +26,7 @@ let server = require('./routes/server/server');
 let settings = require('./routes/settings/settings');
 let getUser = require('./routes/user/getUser');
 let createUser = require('./routes/user/createUser');
-let auth = require('./routes/auth');
+let auth = require('./routes/auth/auth');
 
 // wrap the app
 tasks(app); profiles(app);
