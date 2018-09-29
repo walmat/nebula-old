@@ -47,6 +47,7 @@ function generateTokens(key, refreshPayload) {
 module.exports.generateTokens = generateTokens;
 
 async function checkValidKey(key) {
+
   console.log(config);
 
   AWS.config = new AWS.Config(config);
@@ -83,7 +84,7 @@ module.exports.checkValidKey = checkValidKey;
 async function getDiscordUser(key) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  const keyHash = hash(algo, key, salt, output);
+  const licenseKey = hash(algo, key, salt, output);
   let params = {
     TableName : 'Discord',
     Key: licenseKey,
@@ -92,7 +93,7 @@ async function getDiscordUser(key) {
         '#licenseKey': 'licenseKey'
     },
     ExpressionAttributeValues: {
-        ":licenseKey": keyHash
+        ":licenseKey": licenseKey
     }
   };
   return docClient.query(params).promise().then(
@@ -110,6 +111,8 @@ async function getDiscordUser(key) {
 module.exports.getDiscordUser = getDiscordUser;
 
 async function addDiscordUser(keyHash, discordId) {
+  AWS.config = new AWS.Config(config);
+  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   let data = {
     licenseKey: keyHash,
     discordId
