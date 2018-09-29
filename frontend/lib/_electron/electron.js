@@ -1,6 +1,7 @@
 const electron = require('electron');
 const nebulaEnv = require('./env');
 const nebulaAuth = require('./auth');
+const nebulaDebug = require('./debug');
 const {
   mainWindow, authWindow, captchaWindow, youtubeWindow,
 } = require('./windows');
@@ -56,7 +57,7 @@ const _showNewWindow = ({ win, winUrl }) => {
     prev.url = null;
     current.window.show();
     setMenu();
-    if (isDevelopment) {
+    if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
       current.window.webContents.openDevTools();
     }
   });
@@ -210,14 +211,4 @@ ipcMain.on('auth', async (event, { arg, key }) => {
   }
 });
 
-if (isDevelopment) {
-  ipcMain.on('debug', (event) => {
-    switch (event) {
-      case 'clearStore': {
-        nebulaAuth.store.clear();
-        break;
-      }
-      default: break;
-    }
-  });
-}
+nebulaDebug.bindDebugEvents();

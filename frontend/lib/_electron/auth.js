@@ -9,7 +9,9 @@ const _isDevelopment = process.env.NEBULA_ENV === 'development';
 
 
 const store = new Store();
-module.exports.store = store;
+if (_isDevelopment) {
+  module.exports.store = store;
+}
 
 // Get session from store
 async function getSession() {
