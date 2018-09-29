@@ -28,17 +28,17 @@ client.on('message', async message => {
     /* DM received to bot */
     if (message.guild === null) {
         let content = message.content.split(' ');
-        if (content.length !== 2 || !prefixes.some(v => v === content[0].charAt(0))) {
-            return;
-        }
-        const licenseKey = content[1];
-        const discordId = message.author.id;
         // guild id: 426860107054317575
 
         switch(content[0]) {
-            case '!bind': {
+            case '!bind': {     
+                if (content.length !== 2) {
+                    return message.channel.send('Format: `!bind <key>`')
+                }
+                const licenseKey = content[1];
+                const discordId = message.author.id;
+
                 bind(licenseKey, discordId, (err, msg) => {
-                    console.log(msg, err);
                     message.channel.send(msg);
                     if (err) {
                         return;
@@ -46,30 +46,44 @@ client.on('message', async message => {
                     // grant access to discord @member role
                     const server = client.guilds.get("426860107054317575");
                     const member = server.members.get(`${discordId}`);
-                    // TODO -- missing permissions error..
-                    member.addRole(server.roles.find(role => role.name === 'member'));
+                    const role = server.roles.find("name", "member");
+                    // TODO -- missing permissions error..?
+                    try {
+                        member.addRole(role);
+                    } catch (UnhandledPromiseRejection) {
+                        console.log(e);
+                    }
                 });
                 break;
             }
             case '!deactivate': {
+
+                if (content.length !== 2) {
+                    return message.channel.send('Format: `!deactivate <key>`')
+                }
+                const licenseKey = content[1];
+                const discordId = message.author.id;
+
                 deactivate(licenseKey, discordId, (msg) => {
                     message.channel.send(msg);
                 });
                 break;
             }
             case '!purge': {
+
+                if (content.length !== 2) {
+                    return message.channel.send('Format: `!purge <key>`')
+                }
+                const licenseKey = content[1];
+                const discordId = message.author.id;
+
                 purge(licenseKey, discordId, (msg) => {
                     message.channel.send(msg);
                 });
                 break;
             }
             case '?help': {
-                message.channel
-                    .send(`List of commands: \n\n
-                            !bind <key> - binds the key to the discord user\n
-                            !deactivate <key> - deactivates electron app from user's machine\n
-                            !purge <key> - completely removes the user from the application (used for reselling)\n
-                          `)
+                message.channel.send(`List of commands:\n\n!bind <key> - binds the key to the discord user\n!deactivate <key> - deactivates electron app from user's machine\n!purge <key> - completely removes the user from the application (used for reselling)`);
                 break;
             }
         }

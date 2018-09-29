@@ -16,8 +16,6 @@ async function bind(licenseKey, discordId, cb) {
             }),
         });
 
-    console.log(result);
-
     if (result.status === 200) {
         return cb(false, `${licenseKey} successfully bound`);
     } else if (result.status === 404) {
