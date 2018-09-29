@@ -9,26 +9,28 @@ module.exports = async function(app) {
             auth: true
         });
     });
-    app.post('/auth', authenticate, function(req, res) {
-        // TODO: generate random id
-        console.log('key success');
-        const { key } = req.body;
-        const token = jwt.sign({ key }, SECRET_KEY, { expiresIn: '2d' });
-        const { exp } = jwt.decode(token);
-        console.log(token);
-        res.status(200).json({
-            data: {
-                id: 1,
-                attributes: {
-                    token,
-                    expiry: exp,
-                },
-            },
-        });
-    });
+
+    app.delete('/auth', authenticate, async function(req, res) {
+        // Get Key
+        const { dec: { key } } = res.locals.jwt;
+
+        // Attempt to Delete Key
+        const response = await authUtils.deleteKey(key);
+
+        // Handle Response
+        if(response.error) {
+            if(response.error.name === 'InternalError') {
+                // Internal error
+                return res.status(501).json(response);
+            }
+            // Bad request
+            return res.status(400).json(response);
+        }
+        // Success
+        return res.status(200).json(response);
+    })
 
     app.post('/auth/token', async function(req, res) {
-        console.log(req.body);
         // Check grant type
         const { grant_type } = req.body;
         let value = null;

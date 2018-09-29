@@ -89,5 +89,10 @@ module.exports = async function(req, res, next) {
 
     console.log('[DEBUG]: Token is valid, continuing...');
     console.log('===============================================');
+    // Save the jwt in the locals 
+    res.locals.jwt = {
+        raw: token,
+        dec: decoded,
+    };
     next();
 };

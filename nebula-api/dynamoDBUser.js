@@ -34,6 +34,7 @@ async function storeUser(keyHash) {
   return await dynamodb.putItem(params).promise().then(
     (data) => {
       console.log('success');
+      console.log(data);
       return refreshToken;
     },
     (err) => {
@@ -43,7 +44,7 @@ async function storeUser(keyHash) {
   );
 }
 
-async function removeUser(keyHash) {
+async function deleteUser(keyHash) {
   AWS.config = new AWS.Config(config);
   const dynamodb = new AWS.DynamoDB();
   const keyId = crypto.createHash(algo)
@@ -51,17 +52,18 @@ async function removeUser(keyHash) {
         .update(makeHash(salt))
         .digest(output);
   const params = {
-    Item: {
+    Key: {
       "keyId": {
-        S: keyId
-      }
-    }, 
+        S: keyId,
+      },
+    },
     ReturnConsumedCapacity: "TOTAL", 
     TableName: "Users"
   };
   return await dynamodb.deleteItem(params).promise().then(
     (data) => {
       console.log('success');
+      console.log(data);
       return true;
     },
     (err) => {
@@ -70,4 +72,4 @@ async function removeUser(keyHash) {
     }
   );
 }
-module.exports = { storeUser, removeUser };
+module.exports = { storeUser, deleteUser };

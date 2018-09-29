@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const config = require('../../utils/setupDynamoConfig').getConfig();
-const { storeUser } = require('../../../dynamoDBUser');
+const { storeUser, deleteUser } = require('../../../dynamoDBUser');
 const { makeHash } = require('../../../hash');
 const { salt, algo, output } = require('../../../hashConfig.json');
 
@@ -210,11 +210,11 @@ async function verifyToken(token) {
   // Check if key has been previously registered
   const inUse = await checkIsInUse(keyHash);
   if(!inUse) {
-    console.log('[WARN]: INVALID STATE: Key is not registered, but jwt token has already been created!');
+    console.log('[ERROR]: INVALID STATE: Key has not been registered');
     return {
       error: {
-        name: 'InternalError',
-        message: 'Internal Error',
+        name: 'InvalidToken',
+        message: 'token is invalid',
       },
     };
   }
@@ -252,3 +252,48 @@ async function verifyToken(token) {
   return response;
 }
 module.exports.verifyToken = verifyToken;
+
+async function deleteKey(key) {
+  console.log(`[TRACE]: Starting Delete Key ${key} ...`);
+
+  // Ensure key is valid
+  const keyHash = await checkValidKey(key);
+  if(!keyHash) {
+    console.log('[ERROR]: INVALID KEY!');
+    return {
+      error: {
+        name: 'InvalidKey',
+        message: 'Invalid Key',
+      },
+    };
+  }
+
+  // Ensure key is in use
+  const inUse = await checkIsInUse(keyHash);
+  if(!inUse) {
+    console.log('[ERROR]: INVALID STATE: Key has not been registered');
+    return {
+      error: {
+        name: 'InternalError',
+        message: 'Internal Error',
+      },
+    };
+  }
+
+  // Perform deletion
+  const response = await deleteUser(keyHash);
+  if(response) {
+    return {
+      response: 'success',
+    };
+  }
+
+  // Handle delete error
+  return {
+    error: {
+      name: 'InternalError',
+      message: 'Internal Error',
+    },
+  };
+}
+module.exports.deleteKey = deleteKey;
