@@ -8,7 +8,7 @@ const { makeHash } = require('./hash');
 const { salt, algo, output } = require('./hashConfig.json');
 
 async function storeUser(keyHash) {
-  AWS.config.update(config);
+  AWS.config = new AWS.Config(config);
   const dynamodb = new AWS.DynamoDB();
   const keyId = crypto.createHash(algo)
         .update(keyHash)
@@ -44,7 +44,7 @@ async function storeUser(keyHash) {
 }
 
 async function removeUser(keyHash) {
-  AWS.config.update(config);
+  AWS.config = new AWS.Config(config);
   const dynamodb = new AWS.DynamoDB();
   const keyId = crypto.createHash(algo)
         .update(keyHash)

@@ -1,0 +1,254 @@
+const AWS = require('aws-sdk');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+
+const config = require('../../utils/setupDynamoConfig').getConfig();
+const { storeUser } = require('../../../dynamoDBUser');
+const { makeHash } = require('../../../hash');
+const { salt, algo, output } = require('../../../hashConfig.json');
+
+const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
+
+function generateTokens(key, refreshPayload) {
+  // Generate Access Token
+  const accessToken = jwt.sign({
+    key,
+  },
+  SECRET_KEY,
+  {
+    issuer: process.env.NEBULA_API_ID,
+    subject: 'feauth',
+    audience: 'fe',
+    expiresIn: '2d',
+  });
+  const { exp } = jwt.decode(accessToken);
+
+  // Generate Refresh token
+  const refreshToken = jwt.sign({
+    ref: refreshPayload,
+    key,
+  },
+  SECRET_KEY,
+  {
+    issuer: process.env.NEBULA_API_ID,
+    subject: 'feref',
+    audience: 'api',
+    expiresIn: '90d',
+  });
+
+  // Craft response
+  const response = {
+    token_type: 'bearer',
+    access_token: accessToken,
+    expiry: exp,
+    refresh_token: refreshToken,
+  };
+  return response;
+}
+module.exports.generateTokens = generateTokens;
+
+async function checkValidKey(key) {
+  AWS.config = new AWS.Config(config);
+  const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  const keyHash = crypto.createHash(algo)
+    .update(key)
+    .update(makeHash(salt))
+    .digest(output);
+  console.log('[DEBUG]: checking for hash: ', keyHash);
+  const params = {
+    TableName: 'Keys',
+    Key: keyHash,
+    KeyConditionExpression: '#licenseKey = :licenseKey',
+    ExpressionAttributeNames: {
+      '#licenseKey': 'licenseKey',
+    },
+    ExpressionAttributeValues: {
+      ':licenseKey': keyHash,
+    },
+  };
+  return docClient.query(params).promise().then(
+    (data) => {
+      console.log('[DEBUG]: CHECK KEY RESPONSE: ', data);
+      if (data.Items.length && data.Items[0].licenseKey) {
+        return data.Items[0].licenseKey;
+      }
+      return null;
+    },
+    (err) => {
+      console.log('[ERROR]: CHECK KEY RESPONSE: ', err, err.stack);
+      return null;
+    }
+  );
+}
+module.exports.checkValidKey = checkValidKey;
+
+async function checkIsInUse(key) {
+  AWS.config = new AWS.Config(config);
+  const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  const keyHash = crypto.createHash(algo)
+    .update(key)
+    .update(makeHash(salt))
+    .digest(output);
+  let params = {
+    TableName: 'Users',
+    Key: keyHash,
+    KeyConditionExpression: '#keyId = :keyId',
+    ExpressionAttributeNames: {
+      '#keyId': 'keyId',
+    },
+    ExpressionAttributeValues: {
+      ':keyId': keyHash,
+    },
+  };
+  return docClient.query(params).promise().then(
+    (data) => {
+      console.log('[DEBUG]: CHECK IN USE RESPONSE: ', data);
+      if(data.Items.length) {
+        if (data.Items.length > 1) {
+          console.log('[WARN]: Data Items is longer than one! Using first response');
+        }
+        return data.Items[0];
+      }
+      return null;
+    },
+    (err) => {
+      console.log('[ERROR]: CHECK IN USE RESPONSE: ', err, err.stack);
+      return null;
+    }
+  );
+}
+module.exports.checkIsInUse = checkIsInUse;
+
+async function verifyKey(key) {
+  console.log(`[TRACE]: Starting Key Verification with key: ${key} ...`);
+  const keyHash = await checkValidKey(key);
+  if(!keyHash) {
+    console.log('[TRACE]: KEY IS INVALID, returning error...');
+    return {
+      error: {
+        name: 'InvalidKey',
+        message: 'Invalid Key',
+      },
+    };
+  };
+
+  const inUse = await checkIsInUse(keyHash);
+  if(inUse) {
+    console.log('[TRACE]: KEY IS IN USE, returning error...');
+    return {
+      error: {
+        name: 'KeyInUse',
+        message: 'Key In Use',
+      },
+    };
+  }
+
+  const refreshTokenPayload = await storeUser(keyHash);
+  if(!refreshTokenPayload) {
+    console.log('[TRACE]: UNABLE TO STORE USER, returning error...');
+    return {
+      error: {
+        name: 'InternalError',
+        message: 'Internal Error',
+      },
+    };
+  }
+
+  const response = generateTokens(key, refreshTokenPayload);
+
+  console.log('[TRACE]: KEY VERIFIED: Returning Response: ', response);
+  return response;
+}
+module.exports.verifyKey = verifyKey;
+
+async function verifyToken(token) {
+  // Attempt to Decode token
+  let decoded = null;
+  try {
+    decoded = jwt.verify(token, SECRET_KEY, {
+      issuer: process.env.NEBULA_API_ID,
+      audience: 'api',
+      subject: 'feref',
+      clockTolerance: 60,
+    })
+  } catch (err) {
+    // Handle decode error
+    console.log('[ERROR]: JWT VERIFICATION ERROR: ', err);
+    return {
+      error: {
+        name: 'InvalidToken',
+        message: 'Token is invalid',
+      },
+    };
+  }
+
+  // Handle no payload...
+  if(!decoded) {
+    console.log('[ERROR]: JWT VERIFICATION: invalid decoding');
+    return {
+      error: {
+        name: 'InvalidToken',
+        message: 'Token is invalid',
+      },
+    };
+  }
+
+  console.log('[DEBUG]: JWT VERIFICIATION: Received decoded key: ', decoded);
+
+  // Check if key is valid
+  const keyHash = await checkValidKey(decoded.key);
+  if(!keyHash) {
+    console.log('[ERROR]: INVALID KEY!');
+    return {
+      error: {
+        name: 'InvalidKey',
+        message: 'Invalid Key',
+      },
+    };
+  }
+
+  // Check if key has been previously registered
+  const inUse = await checkIsInUse(keyHash);
+  if(!inUse) {
+    console.log('[WARN]: INVALID STATE: Key is not registered, but jwt token has already been created!');
+    return {
+      error: {
+        name: 'InternalError',
+        message: 'Internal Error',
+      },
+    };
+  }
+
+  console.log('[DEBUG]: Comparing payload to token now...');
+
+  // Check if refresh payload is the same as the database
+  if (decoded.ref !== inUse.refresh_token) {
+    console.log('[ERROR]: INVALID STATE: Refresh token has an invalid payload');
+    console.log('Database: ', inUse);
+    console.log('Token: ', token);
+    return {
+      error: {
+        name: 'InvalidToken',
+        message: 'Token is invalid',
+      },
+    };
+  }
+
+  // Update store with new refresh payload
+  const refreshTokenPayload = await storeUser(keyHash);
+  if(!refreshTokenPayload) {
+    console.log('[TRACE]: UNABLE TO UPDATE USER, returning error...');
+    return {
+      error: {
+        name: 'InternalError',
+        message: 'Internal Error',
+      },
+    };
+  }
+
+  const response = generateTokens(decoded.key, refreshTokenPayload);
+
+  console.log('[TRACE]: KEY VERIFIED: Returning Response: ', response);
+  return response;
+}
+module.exports.verifyToken = verifyToken;

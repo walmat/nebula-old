@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const authenticate = require('../../middleware/authenticate');
-const authUtil = require('./checkKey');
+const authUtils = require('./utils');
 const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
 
 module.exports = async function(app) {
@@ -31,11 +31,11 @@ module.exports = async function(app) {
         // Check for key
         const { key } = req.body;
         if (key) {
-            const response = await authUtil.verifyKey(key);
+            const response = await authUtils.verifyKey(key);
             if(response.error) {
-                if(response.error.name == 'InternalError') {
+                if(response.error.name === 'InternalError') {
                     // Internal error
-                    return res.status(501).json(repsonse);
+                    return res.status(501).json(response);
                 }
                 // Authentication Error
                 return res.status(401).json(response);
@@ -43,12 +43,37 @@ module.exports = async function(app) {
             // Success
             return res.status(200).json(response);
         }
-
-        return res.status(404).json({
+        // Bad Request
+        return res.status(400).json({
             error: {
-                name: 'MalformedRequest',
-                message: 'Malformed Request',
+                name: 'BadRequest',
+                message: 'Bad Request',
             },
         });
     });
+
+    app.post('/auth/refresh', async function(req, res) {
+        // Check for token
+        const { token } = req.body;
+        if(token) {
+            const response = await authUtils.verifyToken(token);
+            if(response.error) {
+                if (response.error.name === 'InternalError') {
+                    // Internal Error
+                    return res.status(501).json(response);
+                }
+                // Authentication Error
+                return res.status(401).json(response);
+            }
+            // Success
+            return res.status(200).json(response);
+        }
+        // Bad Request
+        return res.status(400).json({
+            error: {
+                name: 'BadRequest',
+                message: 'Bad Request',
+            },
+        });
+    })
 };
