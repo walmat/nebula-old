@@ -43,6 +43,7 @@ client.on('message', async message => {
                     if (err) {
                         return;
                     }
+
                     // grant access to discord @member role
                     const server = client.guilds.get("426860107054317575");
                     const member = server.members.get(`${discordId}`);
@@ -58,7 +59,7 @@ client.on('message', async message => {
             case '!deactivate': {
 
                 if (content.length !== 2) {
-                    return message.channel.send('Format: `!deactivate <key>`')
+                    return message.channel.send('Format: `!deactivate <key>`');
                 }
                 const licenseKey = content[1];
                 const discordId = message.author.id;
@@ -71,7 +72,7 @@ client.on('message', async message => {
             case '!purge': {
 
                 if (content.length !== 2) {
-                    return message.channel.send('Format: `!purge <key>`')
+                    return message.channel.send('Format: `!purge <key>`');
                 }
                 const licenseKey = content[1];
                 const discordId = message.author.id;

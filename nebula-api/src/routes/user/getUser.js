@@ -1,36 +1,22 @@
 const AWS = require('aws-sdk');
-const fetch = require('node-fetch');
 const jwt = require('jsonwebtoken');
 
 var config = require('../../utils/setupDynamoConfig').getConfig();
 
 let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
-async function getDiscordIdFromDiscordToken(discordAccessToken) {
-	let response = await fetch(`https://discordapp.com/api/users/@me`,
-	{
-	  method: 'GET',
-	  headers: {
-		Authorization: `Bearer ${discordAccessToken}`,
-	  },
-	});
-
-	let userInfo = await response.json();
-	return userInfo && userInfo.id;
-}
-
-async function getNebulaUser(discordId) {
+async function getNebulaUser(licenseKey) {
+	// do some token shit here?
     try {
-        // is this discordId linked with a registration key?
         let params = {
-            TableName : 'Users',
-            Key: discordId,
-            KeyConditionExpression: '#discordId = :discordId',
+            TableName : 'Discord',
+            Key: licenseKey,
+            KeyConditionExpression: '#licenseKey = :licenseKey',
             ExpressionAttributeNames:{
-                '#discordId': 'discordId'
+                '#licenseKey': 'licenseKey'
             },
             ExpressionAttributeValues: {
-                ":discordId": discordId
+                ":licenseKey": licenseKey
             }
         };
         let result = await docClient.query(params).promise();
@@ -41,20 +27,10 @@ async function getNebulaUser(discordId) {
 }
 
 module.exports = async function(app) {
-    app.get('/user/:discordAccessToken', async function(req, res) {
-		let discordAccessToken = req.params.discordAccessToken;
-        console.log(discordAccessToken);
-		let discordId = await getDiscordIdFromDiscordToken(discordAccessToken);
-
-		if (!discordId) {
-			//invalid discord token, return 400
-			return res.status(400).json({
-				error: 'Invalid discord token'
-			});
-		}
-
+    app.get('/user', async function(req, res) {
+		let licenseKeyToken = req.body.licenseKeyToken;
 		// get nebula user
-		let user = await getNebulaUser(discordId);
+		let user = await getNebulaUser(licenseKeyToken);
 		if (!user) {
 			//invalid user, return 400
 			return res.status(400).json({

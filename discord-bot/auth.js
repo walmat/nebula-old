@@ -39,9 +39,7 @@ async function deactivate(licenseKey, discordId, cb) {
             }),
         });
 
-    console.log(result);
-
-    if (result.status === process.env.SUCCESS) {
+    if (result.status === 200) {
         return cb(`${licenseKey} successfully bound`);
     } else if (result.status === process.env.KEY_IN_USE) {
         return cb(`Key: ${licenseKey} in use.`);
@@ -63,8 +61,6 @@ async function purge(licenseKey, discordId, cb) {
                 licenseKey
             }),
         });
-
-    console.log(result);
 
     if (result.status === process.env.SUCCESS) {
         return cb(`${licenseKey} successfully bound`);
