@@ -5,11 +5,7 @@ require('./src/utils/env').setUpEnvironment();
 var config = require('./src/utils/setupDynamoConfig').getConfig();
 
 AWS.config.update(config);
-
 var dynamodb = new AWS.DynamoDB();
-
-console.log(config);
-
 var params = {
     TableName : "Keys"
 };

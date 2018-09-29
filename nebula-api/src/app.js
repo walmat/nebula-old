@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const nebulaenv = require('./utils/env');
 dotenv.load();
 
-nebulaenv.setupEnvironment();
+nebulaenv.setUpEnvironment();
 
 const cors = require('cors');
 

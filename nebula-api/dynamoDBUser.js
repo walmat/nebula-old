@@ -34,8 +34,7 @@ async function storeUser(keyHash) {
   };
   return await dynamodb.putItem(params).promise().then(
     (data) => {
-      console.log('success');
-      console.log(data);
+      console.log('[SUCCESS]: Successfully added new user');
       return refreshToken;
     },
     (err) => {
@@ -63,8 +62,7 @@ async function deleteUser(keyHash) {
   };
   return await dynamodb.deleteItem(params).promise().then(
     (data) => {
-      console.log('success');
-      console.log(data);
+      console.log('[SUCCESS]: Successfully deleted user');
       return true;
     },
     (err) => {
