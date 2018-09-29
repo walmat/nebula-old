@@ -35,7 +35,6 @@ async function createDiscordUser(res, userData) {
  * @param {*} userData – contains licenseKey && discordId
  */
 async function deactivateUser(res, userData) {
-
     const key = userData.licenseKey;
     const discordId = userData.discordId;
     const keyHash = await authUtils.checkValidKey(key);
@@ -86,6 +85,8 @@ module.exports = async function(app) {
 
     app.delete('/auth/discord', async function(req, res) {
         const userData = req.body;
+
+        // if accessToken, decoode it into licenseKey && discordId
 
         if (!userData.licenseKey || !userData.discordId) {
             res.status(401).json({
