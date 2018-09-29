@@ -47,6 +47,8 @@ function generateTokens(key, refreshPayload) {
 module.exports.generateTokens = generateTokens;
 
 async function checkValidKey(key) {
+  console.log(config);
+
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   const keyHash = hash(algo, key, salt, output);
@@ -105,7 +107,6 @@ async function getDiscordUser(key) {
     }
   );
 }
-
 module.exports.getDiscordUser = getDiscordUser;
 
 async function addDiscordUser(keyHash, discordId) {

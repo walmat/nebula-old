@@ -5,7 +5,8 @@ async function createDiscordUser(res, userData) {
     const key = userData.licenseKey;
     const discordId = userData.discordId;
   
-    const keyHash = await checkValidKey(key);
+    const keyHash = await authUtils.checkValidKey(key);
+
     if (!keyHash) {
       return res.status(401).json({
         name: 'MalformedRequest',
@@ -39,8 +40,6 @@ module.exports = async function(app) {
     app.post('/auth/discord', async function(req, res) {
 
         const userData = req.body;
-
-        console.log(userData);
         
         if (!userData.licenseKey || !userData.discordId) {
             res.status(404).json({
