@@ -18,107 +18,85 @@ const store = new Store();
 module.exports.store = store;
 
 // Get session from store
-function getSession() {
+async function getSession() {
   let session = store.get('session');
 
   if (session) {
     session = JSON.parse(session);
 
-    console.log(session);
-    console.log(Date.now());
-
-    if (session.expiry === null || session.expiry > Date.now()) {
-      console.log(Date.now());
+    if (session.expiry === null || session.expiry > (Date.now() / 1000)) {
       console.log('returning session...');
       return session;
     }
+
+    // session expired, attempt to refresh it
+    const res = await fetch(`${process.env.NEBULA_API_URL}/auth/token`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ grant_type: 'refresh', token: session.refreshToken }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const { accessToken, refreshToken, expiry } = data;
+      store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
+      return { accessToken, refreshToken, expiry };
+    }
+    const { error } = await res.json();
+    console.log('ERROR PERFORMING REFRESH: ', error);
+    return null;
   }
   return null;
 }
 module.exports.getSession = getSession;
 
-// Get key from store
-function getPreviousLicense() {
-  let session = getSession();
-  let license = store.get('license');
-
-  console.log(session);
-
-  // Check if session is available
-  if (!session) {
-    // Attempt to get expired session
-    session = store.get('session');
-    if (session) {
-      session = JSON.parse(session);
-    } else {
-      return null;
-    }
-  }
-
-  // Check if license was saved
-  if (license) {
-    license = JSON.parse(license);
-
-    // Return is tokens match
-    if (license.token === session.token) {
-      return license;
-    }
-  }
-
-  return null;
-}
-module.exports.getPreviousLicense = getPreviousLicense;
-
 // Clear session from store
 async function clearSession() {
-  const session = getSession();
+  const session = await getSession();
   if (session) {
-    await fetch(`${process.env.NEBULA_API_URL}/auth`, {
+    const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {
       method: 'DELETE',
       headers: {
         Accept: 'application/json',
-        Authorization: `Bearer ${session.token}`,
-        'Content-Type': 'application.json',
+        Authorization: `Bearer ${session.accessToken}`,
+        'Content-Type': 'application/json',
       },
     });
+    if (!res.ok) {
+      const { error } = await res.json();
+      console.log('ERROR With Deletion: ', error);
+      return;
+    }
   }
-
   store.delete('session');
 }
 module.exports.clearSession = clearSession;
 
 async function createSession(key) {
   if (_isDevelopment) {
-    return { id: 'dev', token: 'DEVMODE', expiry: null };
+    return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
   }
-  const session = getSession();
+  const session = await getSession();
   if (session) {
     return session;
   }
 
-  const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {
+  const res = await fetch(`${process.env.NEBULA_API_URL}/auth/token`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ key }),
+    body: JSON.stringify({ grant_type: 'key', key }),
   });
   if (res.ok) {
-    const { data, errors } = await res.json();
-    console.log(data);
-    if (errors) {
-      console.error(errors);
-      return { errors };
-    }
+    const data = await res.json();
+    const { accessToken, refreshToken, expiry } = data;
+    store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
 
-    const { id, attributes: { token, expiry } } = data;
-    store.set('session', JSON.stringify({ id, token, expiry }));
-    store.set('license', JSON.stringify({ key, token }));
-
-    console.log('got data and saved it');
-
-    return { id, token, expiry };
+    return { accessToken, refreshToken, expiry };
   }
   const body = await res.json();
   console.log(body);
