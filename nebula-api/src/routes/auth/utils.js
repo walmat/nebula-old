@@ -226,6 +226,7 @@ module.exports.verifyKey = verifyKey;
 async function verifyToken(token) {
   // Attempt to Decode token
   let decoded = null;
+
   try {
     decoded = jwt.verify(token, SECRET_KEY, {
       issuer: process.env.NEBULA_API_ID,
