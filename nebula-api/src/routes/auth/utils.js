@@ -38,10 +38,10 @@ function generateTokens(key, refreshPayload) {
 
   // Craft response
   const response = {
-    token_type: 'bearer',
-    access_token: accessToken,
+    tokenType: 'bearer',
+    accessToken: accessToken,
     expiry: exp,
-    refresh_token: refreshToken,
+    refreshToken: refreshToken,
   };
   return response;
 }
