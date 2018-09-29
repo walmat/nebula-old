@@ -23,6 +23,7 @@ const mainWindow = () => ({
     protocol: 'file:',
     slashes: true,
   }),
+  tag: 'main',
 });
 
 const authWindow = () => ({
@@ -46,6 +47,7 @@ const authWindow = () => ({
     protocol: 'file:',
     slashes: true,
   }),
+  tag: 'auth',
 });
 
 const youtubeWindow = () => ({
@@ -69,6 +71,7 @@ const youtubeWindow = () => ({
     protocol: 'file:',
     slashes: true,
   }),
+  tag: 'youtube',
 });
 
 const captchaWindow = () => ({
@@ -96,6 +99,7 @@ const captchaWindow = () => ({
     protocol: 'file:',
     slashes: true,
   }),
+  tag: 'captcha',
 });
 
 module.exports = {

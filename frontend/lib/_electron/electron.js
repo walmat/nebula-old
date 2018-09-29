@@ -2,6 +2,7 @@ const electron = require('electron');
 const nebulaEnv = require('./env');
 const nebulaAuth = require('./auth');
 const nebulaDebug = require('./debug');
+const nebulaCheckUpdates = require('./checkUpdates');
 const {
   mainWindow, authWindow, captchaWindow, youtubeWindow,
 } = require('./windows');
@@ -22,13 +23,9 @@ const isDevelopment = process.env.NEBULA_ENV === 'development';
  */
 const {
   app,
-  autoUpdater,
-  dialog,
   ipcMain,
   Menu,
 } = electron;
-
-const { version } = app.getVersion();
 
 const current = {};
 const prev = {};
@@ -43,18 +40,21 @@ const _hideCurrentWindow = () => {
     current.window.hide();
     prev.window = current.window;
     prev.url = current.url;
+    prev.tag = current.tag;
   }
 };
 
-const _showNewWindow = ({ win, winUrl }) => {
+const _showNewWindow = ({ win, winUrl, tag }) => {
   _hideCurrentWindow();
   current.window = win;
   current.url = winUrl;
+  current.tag = tag;
 
   current.window.loadURL(current.url);
   current.window.on('ready-to-show', () => {
     prev.window = null;
     prev.url = null;
+    prev.tag = null;
     current.window.show();
     setMenu();
     if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
@@ -73,31 +73,6 @@ const installExtensions = async () => {
     .then(name => console.log(`Added Extension: ${name}`))
     .catch(err => console.error(`An Error Occurred: ${err}`))));
 };
-
-function checkForUpdates() {
-  autoUpdater.setFeedURL(`https://nebula-deployment.herokuapp.com/dist/nebula/${version}`); // fix this??
-  autoUpdater.on('error', err => current.window.webContents.send('error', err));
-  autoUpdater.on('checking-for-update', () => current.window.webContents.send('log', 'checking-for-update', autoUpdater.getFeedURL()));
-  autoUpdater.on('update-available', () => current.window.webContents.send('log', 'update-available', autoUpdater.getFeedURL()));
-  autoUpdater.on('update-not-available', () => current.window.webContents.send('log', 'update-not-available', autoUpdater.getFeedURL()));
-  autoUpdater.on('update-downloaded', (...args) => {
-    current.window.webContents.send('log', 'update-downloaded', autoUpdater.getFeedURL(), args);
-    const choice = dialog.showMessageBox(current.window, {
-      message: 'An update has been downloaded. Do you want to restart now to finish installing it?',
-      title: 'Update is ready',
-      type: 'question',
-      buttons: [
-        'Yes',
-        'No',
-      ],
-    });
-
-    if (choice === 0) {
-      autoUpdater.quitAndInstall();
-    }
-  });
-  autoUpdater.checkForUpdates();
-}
 
 async function createWindow() {
   /**
@@ -192,7 +167,7 @@ ipcMain.on('auth', async (event, { arg, key }) => {
         _showNewWindow(authWindow());
       } else {
         _showNewWindow(mainWindow());
-        checkForUpdates();
+        nebulaCheckUpdates.checkForUpdates(current.window);
       }
       break;
     }
