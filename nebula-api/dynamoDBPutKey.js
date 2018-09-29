@@ -11,9 +11,10 @@ var { hash } = require('./hash');
 const { salt, algo, output } = require('./hashConfig.json');
 
 var dynamodb = new AWS.DynamoDB();
+let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(process.env.NEBULA_API_DYNAMODB_ENDPOINT) });
 
 // module.exports = function(key) {
-function hash(key) {
+function storeKey(key) {
   keyHash = hash(algo, key, salt, output);
 
   var params = {
@@ -27,12 +28,52 @@ function hash(key) {
     };
     dynamodb.putItem(params, function(err, data) {
       if (err) console.log(err, err.stack); // an error occurred
-      else     console.log(data);           // successful response
+      else {
+        getAllKeys();
+        getAllDiscord();
+        getAllUsers();
+      }
   });
 }
 
-if (process.argv.length < 3) {
-  hash('testkey');
-} else {
-  hash(process.argv[2]);
+storeKey('testkey');
+
+/**
+ * ONLY FOR DEV USE! NEVER EVER USE IN PROD ENV
+ */
+async function getAllKeys() {
+	try {
+		let params = {
+			TableName: "Keys"
+		}
+		let result = await docClient.scan(params).promise();
+    console.log(result);
+  } catch (err) {
+    console.log(`Couldn't read the table Keys.`);
+  }
 }
+
+async function getAllDiscord() {
+	try {
+		let params = {
+			TableName: "Discord"
+		}
+		let result = await docClient.scan(params).promise();
+    console.log(result);
+  } catch (err) {
+    console.log(`Couldn't read the table Discord.`);
+  }
+}
+
+async function getAllUsers() {
+	try {
+		let params = {
+			TableName: "Users"
+		}
+		let result = await docClient.scan(params).promise();
+    console.log(result);
+  } catch (err) {
+    console.log(`Couldn't read the table Users.`);
+  }
+}
+

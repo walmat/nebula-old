@@ -21,18 +21,17 @@ async function getLicenseKeyHash(licenseKey) {
 		}
 	};
 	const items = (await docClient.query(params).promise()).Items;
-	return items.length > 0 ? items[0] : null;
+
+	return items.length > 0 ? items[0].licenseKey : null;
 }
 
-async function getDiscordIdAssociatedWithLicense(licenseKey) {
-
-	const licenseHash = hash(algo, licenseKey, salt, output);
+async function getDiscordIdAssociatedWithLicense(licenseHash, discordId) {
 
 	const params = {
 		TableName : 'Discord',
-		Key: discordId,
-		KeyConditionExpression: '#discordId = :discordId',
-		ExpressionAttributeNames:{
+		Key: licenseHash,
+		KeyConditionExpression: '#licenseKey = :licenseKey',
+		ExpressionAttributeNames: {
 			'#licenseKey': 'licenseKey',
 			'#discordId': 'discordId'
 		},
@@ -42,6 +41,9 @@ async function getDiscordIdAssociatedWithLicense(licenseKey) {
 		}
 	};
 	const items = (await docClient.query(params).promise()).Items;
+
+	console.log(items);
+
 	return items.length > 0 ? items[0] : null;
 }
 
@@ -66,7 +68,7 @@ async function createUser(res, licenseKey, discordId) {
 		});
 	}
 
-	const discord = await getDiscordIdAssociatedWithLicense(licenseKey);
+	const discord = await getDiscordIdAssociatedWithLicense(licenseHash, discordId);
 
 	// found a discord tied to the license
 	if (discord) {
@@ -89,7 +91,6 @@ module.exports = function(app) {
     app.post('/user', async function(req, res) {
 		try {
 			const userData = req.body;
-			console.log(userData);
 			if (!userData.licenseKey || !userData.discordId) {
 				res.status(404).json({
 					error: 'Missing registration key or discordId!'

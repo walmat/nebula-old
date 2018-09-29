@@ -2,8 +2,6 @@ const fetch = require('node-fetch');
 
 async function bind(licenseKey, discordId, cb) {
 
-    console.log(`${process.env.NEBULA_API_ENDPOINT}/user`)
-
     // call the nebula api endpoint
     let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/user`,
         {
