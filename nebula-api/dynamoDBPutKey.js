@@ -35,4 +35,8 @@ function hash(key) {
   });
 }
 
-hash('testkey');
+if (process.argv.length < 3) {
+  hash('testkey');
+} else {
+  hash(process.argv[2]);
+}

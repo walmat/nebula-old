@@ -1,85 +1,93 @@
-const AWS = require('aws-sdk');
-var config = require('../utils/setupDynamoConfig').getConfig();
-AWS.config.update(config);
-
-var { storeUser } = require('../../dynamoDBUser');
-var crypto = require('crypto');
-var { makeHash } = require('../../hash');
-const { salt, algo, output } = require('../../hashConfig.json');
-
-let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-
-async function getValidKey(licenseKey) {
-    licenseKeyHash = crypto.createHash(algo)
-        .update(licenseKey)
-        .update(makeHash(salt))
-        .digest(output);
-    let params = {
-        TableName : 'Keys',
-        Key: licenseKeyHash,
-        KeyConditionExpression: '#licenseKey = :licenseKey',
-        ExpressionAttributeNames: {
-            '#licenseKey': 'licenseKey'
-        },
-        ExpressionAttributeValues: {
-            ":licenseKey": licenseKeyHash
-        }
-    };
-    let result = await docClient.query(params).promise();
-    console.log('VALID KEY RESPONSE: ', result.Items.length);
-    if(result.Items && result.Items.length) {
-        console.log('VALID KEY RESPONSE KEY: ', result.Items[0].licenseKey);
-    }
-    return result.Items.length && result.Items[0].licenseKey;
-}
-
-async function isInUse(licenseHash) {
-    console.log(licenseHash);
-    keyIdHash = crypto.createHash(algo)
-        .update(licenseHash)
-        .update(makeHash(salt))
-        .digest(output);
-    let params = {
-        TableName : 'Users',
-        Key: keyIdHash,
-        KeyConditionExpression: '#keyId = :keyId',
-        ExpressionAttributeNames: {
-            '#keyId': 'keyId'
-        },
-        ExpressionAttributeValues: {
-            ":keyId": keyIdHash
-        }
-    };
-    let result = await docClient.query(params).promise();
-    console.log('IS INUSE RESULT: ', result.Items.length);
-    return result.Items.length;
-}
+const jwt = require('jsonwebtoken');
+const authUtils = require('../routes/auth/utils');
+const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
 
 module.exports = async function(req, res, next) {
-    try {
-        let licenseKey = req.body.key;
-        let key = await getValidKey(licenseKey);
-        if (key) {
-            if (await isInUse(key) === 0) {
-                storeUser(key);
-                return next();
-            } else {
-                return res.status(404).send({
-                    error: {
-                        name: 'KeyInUse',
-                        message: 'Key In Use'
-                    }
-                });
-            }
-        }
-        return res.status(404).send({
+    // Check for authorization header to be present
+    if (!req.headers || (req.headers && !req.headers.authorization)) {
+        console.log('[ERROR]: Authorization header not preset! ', req.headers);
+        console.log('===============================================');
+        return res.status(400).json({
             error: {
-                name: 'InvalidKey',
-                message: 'Invalid Key'
-            }
+                name: 'MalformedRequest',
+                message: 'Malformed Request',
+            },
+        });
+    }
+
+    // Check for valid header format:
+    const auth = req.headers.authorization;
+    if (!/^Bearer (.+\..+\..+)$/.test(auth)) {
+        console.log('[ERROR]: Invalid Authorization Header: ', auth);
+        console.log('===============================================');
+        return res.status(400).json({
+            error: {
+                name: 'MalformedRequest',
+                message: 'Malformed Request',
+            },
+        });
+    }
+
+    const matches = /^Bearer (.+\..+\..+)$/.exec(auth);
+    const token = matches[1]; // Get the second match since the first will be the whole input
+    console.log('[DEBUG]: Parsing token: ', token);
+
+    let decoded = null;
+    try {
+        decoded = jwt.verify(token, SECRET_KEY, {
+            issuer: process.env.NEBULA_API_ID,
+            audience: 'fe',
+            subject: 'feauth',
+            clockTolerance: 60,
         });
     } catch (err) {
-        console.log('Authentication error: ', err);
-        return res.status(501).send('INTERNAL SERVER ERROR');
+        console.log('[ERROR]: JWT VERIFICATION ERROR: ', err);
+        console.log('===============================================');
+        return res.status(401).json({
+            error: {
+                name: 'InvalidToken',
+                message: 'Token is invalid',
+            },
+        });
     }
+    if (!decoded) {
+        console.log('[ERROR]: JWT VERIFICATION ERROR: null payload');
+        console.log('===============================================');
+        return res.status(401).json({
+            error: {
+                name: 'InvalidToken',
+                message: 'Token is invalid',
+            },
+        });
+    }
+
+    // Check if tokens key is valid
+    const keyHash = await authUtils.checkValidKey(decoded.key);
+    if (!keyHash) {
+        console.log('[ERROR]: INVALID KEY!');
+        console.log('===============================================');
+        return res.status(401).json({
+            error: {
+                name: 'InvalidToken',
+                message: 'Token is invalid',
+            },
+        });
+    }
+
+    // Check if key is registered
+    const inUse = await authUtils.checkIsInUse(keyHash);
+    if (!inUse) {
+        console.log('[ERROR]: Key is not registered!');
+        console.log('===============================================');
+        return res.status(403).json({
+            error: {
+                name: 'InvalidToken',
+                message: 'Token is invalid',
+            },
+        });
+    }
+
+    console.log('[DEBUG]: Token is valid, continuing...');
+    console.log('===============================================');
+    next();
 };

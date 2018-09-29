@@ -170,7 +170,7 @@ async function verifyToken(token) {
       audience: 'api',
       subject: 'feref',
       clockTolerance: 60,
-    })
+    });
   } catch (err) {
     // Handle decode error
     console.log('[ERROR]: JWT VERIFICATION ERROR: ', err);
