@@ -30,29 +30,6 @@ module.exports = async function(app) {
         return res.status(200).json(response);
     })
 
-    app.delete('/auth', authenticate, async function(req, res) {
-        const { key } = req.body;
-        if (key) {
-            const response = await authUtil.verifyKey(key);
-            if (response.error) {
-                if (response.error.name === 'InternalError') {
-                    // server error
-                    return res.status(501).json(repsonse);
-                }
-                // auth error
-                return res.status(401).json(response);
-            }
-            // success
-            return res.status(200).json(response);
-        }
-        return res.status(404).json({
-            error: {
-                name: 'MalformedRequest',
-                message: 'Malformed Request',
-            },
-        });
-    });
-
     app.post('/auth/token', async function(req, res) {
         // Check grant type
         const { grant_type } = req.body;

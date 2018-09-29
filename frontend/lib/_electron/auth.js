@@ -98,20 +98,3 @@ async function createSession(key) {
   return { errors: body.error };
 }
 module.exports.createSession = createSession;
-
-async function deactivateFrontEnd() {
-  const session = await getSession();
-  console.log(session);
-  if (session) {
-    const res = await fetch(`${process.env.NEBULA_API_URL}/auth/discord`, {
-      method: 'DELETE',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${session.accessToken}`,
-        'Content-Type': 'application/json',
-      }
-    });
-    console.log(res);
-  }
-}
-module.exports.deactivateFrontEnd = deactivateFrontEnd;

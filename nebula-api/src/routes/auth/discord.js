@@ -82,22 +82,4 @@ module.exports = async function(app) {
             await createDiscordUser(res, userData);
         }
     });
-
-    app.delete('/auth/discord', async function(req, res) {
-        const userData = req.body;
-        // if accessToken, decoode it into licenseKey && discordId
-        if (userData.accessToken) {
-            let resp = await authUtils.verifyToken(userData.accessToken);
-            console.log(resp);
-        }
-
-        // if (!userData.licenseKey || !userData.discordId) {
-        //     res.status(401).json({
-        //         name: 'MalformedRequest',
-        //         message: 'Malformed Request'
-        //     })
-        // } else {
-        //     await deactivateUser(res, userData);
-        // }
-    });
 };
