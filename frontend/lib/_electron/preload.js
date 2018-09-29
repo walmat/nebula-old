@@ -1,5 +1,6 @@
 const { dialog } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
+require('./env').setUpEnvironment();
 
 // disable zoom
 webFrame.setVisualZoomLevelLimits(1, 1);

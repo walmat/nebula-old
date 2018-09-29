@@ -7,15 +7,7 @@ const {
 const { menu } = require('./menu');
 
 // Set up nebula environment variables
-if (!process.env.NEBULA_ENV_LOADED) {
-  // Set up nebula environment variables
-  if (process.env.NODE_ENV === 'development') {
-    nebulaEnv.setUpDevEnvironment();
-  } else {
-    nebulaEnv.setUpProdEnvironment();
-  }
-}
-
+nebulaEnv.setUpEnvironment();
 const isDevelopment = process.env.NEBULA_ENV === 'development';
 
 /**

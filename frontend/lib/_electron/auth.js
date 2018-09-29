@@ -3,16 +3,9 @@ const fetch = require('node-fetch');
 
 const nebulaEnv = require('./env');
 
-if (!process.env.NEBULA_ENV_LOADED) {
-  // Set up nebula environment variables
-  if (process.env.NODE_ENV === 'development') {
-    nebulaEnv.setUpDevEnvironment();
-  } else {
-    nebulaEnv.setUpProdEnvironment();
-  }
-}
-
-const _isDevelopment = process.env.NODE_ENV === 'development';
+// Set up nebula environment variables
+nebulaEnv.setUpEnvironment();
+const _isDevelopment = process.env.NEBULA_ENV === 'development';
 
 
 const store = new Store();
@@ -44,7 +37,7 @@ async function getSession() {
       return { accessToken, refreshToken, expiry };
     }
     const { error } = await res.json();
-    console.log('ERROR PERFORMING REFRESH: ', error);
+    console.log('[ERROR] Unable to perform refresh: ', error);
     return null;
   }
   return null;
@@ -65,7 +58,7 @@ async function clearSession() {
     });
     if (!res.ok) {
       const { error } = await res.json();
-      console.log('ERROR With Deletion: ', error);
+      console.log('[ERROR]: Unable to Delete: ', error);
       return false;
     }
   }
@@ -99,7 +92,7 @@ async function createSession(key) {
     return { accessToken, refreshToken, expiry };
   }
   const body = await res.json();
-  console.log(body);
+  console.log('[ERROR]: Unable to create auth token: ', body);
   return { errors: body.error };
 }
 module.exports.createSession = createSession;

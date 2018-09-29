@@ -9,15 +9,28 @@ function _setUpEnvironment(envFname) {
         process.env[k] = envConfig[k];
       }
     });
+    process.env.NEBULA_ENV_LOADED = true;
   }
 }
 
 function setUpDevEnvironment() {
-  _setUpEnvironment('.env.dev');
+  if (!process.env.NEBULA_ENV_LOADED) {
+    _setUpEnvironment('.env.dev');
+  }
 }
 
 function setUpProdEnvironment() {
-  _setUpEnvironment('.env.prod');
+  if (!process.env.NEBULA_ENV_LOADED) {
+    _setUpEnvironment('.env.prod');
+  }
 }
 
-module.exports = { setUpDevEnvironment, setUpProdEnvironment };
+function setUpEnvironment() {
+  if (process.env.NODE_ENV === 'development') {
+    setUpDevEnvironment();
+  } else {
+    setUpProdEnvironment();
+  }
+}
+
+module.exports = { setUpDevEnvironment, setUpProdEnvironment, setUpEnvironment };
