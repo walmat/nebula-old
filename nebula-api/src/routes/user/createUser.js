@@ -25,24 +25,20 @@ async function getLicenseKeyHash(licenseKey) {
 	return items.length > 0 ? items[0].licenseKey : null;
 }
 
-async function getDiscordIdAssociatedWithLicense(licenseHash, discordId) {
+async function getDiscordAssociatedWithLicense(licenseHash) {
 
 	const params = {
 		TableName : 'Discord',
 		Key: licenseHash,
-		KeyConditionExpression: '#licenseKey = :licenseKey',
+        KeyConditionExpression: '#licenseKey = :licenseKey',
 		ExpressionAttributeNames: {
 			'#licenseKey': 'licenseKey',
-			'#discordId': 'discordId'
 		},
 		ExpressionAttributeValues: {
 			":licenseKey": licenseHash,
-			":discordId": discordId
 		}
 	};
 	const items = (await docClient.query(params).promise()).Items;
-
-	console.log(items);
 
 	return items.length > 0 ? items[0] : null;
 }
@@ -68,7 +64,7 @@ async function createUser(res, licenseKey, discordId) {
 		});
 	}
 
-	const discord = await getDiscordIdAssociatedWithLicense(licenseHash, discordId);
+	const discord = await getDiscordAssociatedWithLicense(licenseHash, discordId);
 
 	// found a discord tied to the license
 	if (discord) {
