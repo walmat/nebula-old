@@ -30,7 +30,7 @@ async function createDiscordUser(res, userData) {
 }
 
 /**
- * 
+ * !deactivate <key> called from within the discord bot
  * @param {*} res – any response is carried along
  * @param {*} userData – contains licenseKey && discordId
  */
@@ -38,15 +38,15 @@ async function deactivateUser(res, userData) {
     const key = userData.licenseKey;
     const discordId = userData.discordId;
     const keyHash = await authUtils.checkValidKey(key);
+
     if (!keyHash) {
         return res.status(401).json({
             name: 'MalformedRequest',
             message: 'Malformed Request'
         });
     }
-
     const discord = await authUtils.getDiscordUser(keyHash, discordId);
-
+    console.log(discord);
     // verify it's the proper discord user
     if (!discord) {
         return res.status(401).json({
@@ -80,6 +80,28 @@ module.exports = async function(app) {
             })
         } else {
             await createDiscordUser(res, userData);
+            return res.status(200).json({
+                name: 'Success',
+                message: 'Successfully bound'
+            });
+        }
+    });
+
+    app.delete('/auth/discord', async function(req, res) {
+
+        const userData = req.body;
+
+        if(!userData.licenseKey || !userData.discordId) {
+            res.status(401).json({
+                name: 'MalformedRequest',
+                message: 'Malformed Request'
+            });
+        } else {
+            await deactivateUser(res, userData);
+            return res.status(200).json({
+                name: 'Success',
+                messagE: 'Successfully deactivated'
+            });
         }
     });
 };

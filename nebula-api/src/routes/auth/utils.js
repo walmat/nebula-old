@@ -49,6 +49,7 @@ module.exports.generateTokens = generateTokens;
 async function checkValidKey(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  console.log(docClient);
   const keyHash = hash(algo, key, salt, output);
   console.log('[DEBUG]: checking for hash: ', keyHash);
   const params = {

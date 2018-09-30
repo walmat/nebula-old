@@ -49,7 +49,7 @@ module.exports.getSession = getSession;
 // Clear session from store
 async function clearSession() {
   const session = await getSession();
-  if (session) {
+  if (session && process.env.NEBULA_ENV !== 'development') {
     const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {
       method: 'DELETE',
       headers: {
