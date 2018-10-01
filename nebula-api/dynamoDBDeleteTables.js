@@ -1,16 +1,13 @@
 var AWS = require("aws-sdk");
+// FOR USE IN DEV MODE ONLY!
+process.env.NODE_ENV = 'development';
+require('./src/utils/env').setUpEnvironment();
+var config = require('./src/utils/setupDynamoConfig').getConfig();
 
-AWS.config.update({
-    region: "us-west-2",
-    endpoint: "http://localhost:8000",
-    accessKeyId: 'local',
-    secretAccessKey: 'local'
-  });
-
+AWS.config.update(config);
 var dynamodb = new AWS.DynamoDB();
-
 var params = {
-    TableName : 'Keys'
+    TableName : "Keys"
 };
 
 dynamodb.deleteTable(params, function(err, data) {

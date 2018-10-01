@@ -21,8 +21,13 @@ class App extends PureComponent {
     e.preventDefault();
     if (window.Bridge) {
       window.Bridge.close();
-    } else {
-      console.error('Unable to close bot, try again.');
+    }
+  }
+
+  static deactivate(e) {
+    e.preventDefault();
+    if (window.Bridge) {
+      window.Bridge.deactivate();
     }
   }
 
@@ -38,7 +43,7 @@ class App extends PureComponent {
                 tabIndex={0}
                 title="deactivate"
                 onKeyPress={() => {}}
-                onClick={(e) => { App.close(e); }}
+                onClick={(e) => { App.deactivate(e); }}
                 draggable="false"
               >
                 <img

@@ -1,19 +1,10 @@
-# frontend
 node_modules/*
 package-lock.json
 build/
-public/
-
-# backend
-
-# aws-service
-
-# discord-bot
-
-# global ignores
+dynamodb_local/
+_legal/
 _dynamodb_local/
 _design-files/
-_legal/
 .DS_Store
 .vscode/
 

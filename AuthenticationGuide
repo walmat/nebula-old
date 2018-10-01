@@ -2,7 +2,7 @@ Guide on how to set up your local dev environment to be Authenticated. This will
 
 1. Download dynamodb from Amazon https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html
     I. Put the extracted folder wherever you want. I threw mine in nebula. We currently ignore the folder calledd dynamodb_local
-    II. Run `java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb` to start the local dynamodb
+    II. Run `java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8100` to start the local dynamodb
 
 2. Go into the nebula-api directory
     I. node dynamoDBDeleteTables.js (may need to do node dynamoDBDeleteTables if you previously had tables set up that are no longer valid)

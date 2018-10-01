@@ -1,9 +1,9 @@
 const { dialog } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
+require('./env').setUpEnvironment();
 
 // disable zoom
 webFrame.setVisualZoomLevelLimits(1, 1);
-// webFrame.setZoomLevelLimits(1, 1);
 webFrame.setLayoutZoomLevelLimits(0, 0);
 
 // Wrap ipcRenderer call
@@ -11,11 +11,18 @@ const _sendEvent = (channel, msg) => {
   ipcRenderer.send(channel, msg);
 };
 
-// Send a quit window event
-const _quit = () => {
-  _sendEvent('window-event', 'quit');
+// Send a deactivate window event
+const _deactivate = () => {
+  // add event here as well..
+  _sendEvent('auth', { arg: 'deactivate' });
 };
 
+// Send a deactivate window event
+const _authenticate = (key) => {
+  _sendEvent('auth', { arg: 'activate', key });
+};
+
+// Send a close window event
 const _close = () => {
   _sendEvent('window-event', 'close');
 };
@@ -61,6 +68,12 @@ process.once('loaded', () => {
   window.Bridge.refresh = _refresh;
   window.Bridge.harvest = _harvest;
   window.Bridge.endSession = _endSession;
-  window.Bridge.quit = _quit;
+  window.Bridge.deactivate = _deactivate;
+  window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;
+  if (process.env.NEBULA_ENV === 'development') {
+    window.Bridge.sendDebugCmd = (evt) => {
+      _sendEvent('debug', evt);
+    };
+  }
 });

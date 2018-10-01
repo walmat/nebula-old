@@ -11,7 +11,7 @@ package-lock.json
 /build
 
 # database
-src/nebula
+dynamoConfig.json
 
 # misc
 .DS_Store

@@ -1,22 +1,20 @@
 // Run this to set up your local dynamoDB tables necessary to develop the backend
 var AWS = require("aws-sdk");
+// FOR USE IN DEV MODE ONLY!
+process.env.NODE_ENV = 'development';
+require('./src/utils/env').setUpEnvironment();
+var config = require('./src/utils/setupDynamoConfig').getConfig();
 
-AWS.config.update({
-  region: "us-west-2",
-  endpoint: "http://localhost:8000",
-  accessKeyId: 'local',
-  secretAccessKey: 'local'
-});
-
+AWS.config.update(config);
 var dynamodb = new AWS.DynamoDB();
 
 var users = {
     TableName : "Users",
     KeySchema: [
-        { AttributeName: "discordId", KeyType: "HASH"},  //Partition key
+        { AttributeName: "keyId", KeyType: "HASH"},  //Partition key
     ],
     AttributeDefinitions: [
-        { AttributeName: "discordId", AttributeType: "S" }
+        { AttributeName: "keyId", AttributeType: "S" },
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 5,
@@ -27,10 +25,10 @@ var users = {
 var keys = {
     TableName : "Keys",
     KeySchema: [
-        { AttributeName: "nebulaKey", KeyType: "HASH"},  //Partition key
+        { AttributeName: "licenseKey", KeyType: "HASH"},  //Partition key
     ],
     AttributeDefinitions: [
-        { AttributeName: "nebulaKey", AttributeType: "S" },
+        { AttributeName: "licenseKey", AttributeType: "S" },
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 5,
