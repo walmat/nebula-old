@@ -12,17 +12,17 @@ const userAgent = require('../utils/common').userAgent;
 const log = require('../utils/log');
 
 let price, storeID, url, checkoutHost, checkoutID;
-let match;
-let styleID;
+let matches;
 
 module.exports = {};
 
-function pay(task, discordBot, _match, _styleID) {
-    match = _match;
-    styleID = _styleID;
+function pay(task, _matches) {
+    matches = _matches;
+    console.log(matches);
+    let styleID = matches[0].id;
     request(
         {
-            url: `${task.site}/products/` + match.handle,
+            url: `${task.site}/products/` + matches[0].handle,
             followAllRedirects: true,
             method: 'get',
             headers: {
@@ -42,12 +42,12 @@ function pay(task, discordBot, _match, _styleID) {
             followAllRedirects: true,
             method: 'post',
             headers: {
-                Origin: config.base_url,
+                Origin: task.site,
                 'User-Agent': userAgent,
                 'Content-Type': 'application/x-www-form-urlencoded',
                 Accept:
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: config.base_url + '/products/' + match.handle,
+                Referer: task.site + '/products/' + matches[0].handle,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
             formData: {
@@ -61,7 +61,7 @@ function pay(task, discordBot, _match, _styleID) {
             }
             request(
                 {
-                    url: `${config.base_url}/cart`,
+                    url: `${task.site}/cart`,
                     followAllRedirects: true,
                     method: 'get',
                     headers: {
@@ -74,7 +74,7 @@ function pay(task, discordBot, _match, _styleID) {
                     }
                     request(
                         {
-                            url: `${config.base_url}/cart`,
+                            url: `${task.site}/cart`,
                             followAllRedirects: true,
                             method: 'post',
                             headers: {
@@ -103,12 +103,12 @@ function pay(task, discordBot, _match, _styleID) {
                             const auth_token = $(
                                 'form.edit_checkout input[name=authenticity_token]'
                             ).attr('value');
-                            log(`Store ID: ${storeID}`);
-                            log(`Checkout ID: ${checkoutID}`);
+                            console.log(`Store ID: ${storeID}`);
+                            console.log(`Checkout ID: ${checkoutID}`);
                             price = $('#checkout_total_price').text();
-                            notify(task, discordBot, '#36a64f', 'Added to Cart');
+                            // notify(task, discordBot, '#36a64f', 'Added to Cart');
 
-                            return input(task, discordBot, auth_token);
+                            return input(task, auth_token);
                         }
                     );
                 }
@@ -120,11 +120,11 @@ function pay(task, discordBot, _match, _styleID) {
 module.exports.pay = pay;
 
 function input(task, auth_token) {
-    log(`Checkout URL: ${task.checkout_url}`);
+    console.log(`Checkout URL: ${url}`);
     let form;
 
-    if (checkout_url.indexOf('checkout.shopify.com') > -1) {
-        log(`Checkout with checkout.shopify.com discovered`);
+    if (url.indexOf('checkout.shopify.com') > -1) {
+        console.log(`Checkout with checkout.shopify.com discovered`);
         form = {
             utf8: '✓',
             _method: 'patch',
@@ -133,16 +133,16 @@ function input(task, auth_token) {
             step: 'shipping_method',
             'checkout[email]': task.payment.email,
             'checkout[buyer_accepts_marketing]': '1',
-            'checkout[shipping_address][first_name]': task.shipping.firstName,
-            'checkout[shipping_address][last_name]': task.shipping.lastName,
+            'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
+            'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
             'checkout[shipping_address][company]': '',
-            'checkout[shipping_address][address1]': task.shipping.address,
-            'checkout[shipping_address][address2]': task.shipping.apt,
-            'checkout[shipping_address][city]': task.shipping.city,
-            'checkout[shipping_address][country]': task.shipping.country,
-            'checkout[shipping_address][province]': task.shipping.state,
-            'checkout[shipping_address][zip]': task.shipping.zipCode,
-            'checkout[shipping_address][phone]': task.shipping.phone,
+            'checkout[shipping_address][address1]': task.profile.shipping.address,
+            'checkout[shipping_address][address2]': task.profile.shipping.apt,
+            'checkout[shipping_address][city]': task.profile.shipping.city,
+            'checkout[shipping_address][country]': task.profile.shipping.country,
+            'checkout[shipping_address][province]': task.profile.shipping.state,
+            'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
+            'checkout[shipping_address][phone]': task.profile.shipping.phone,
             'checkout[remember_me]': '0',
             button: '',
             'checkout[client_details][browser_width]': '979',
@@ -154,17 +154,17 @@ function input(task, auth_token) {
             _method: 'patch',
             authenticity_token: auth_token,
             previous_step: 'contact_information',
-            'checkout[email]': task.payment.email,
-            'checkout[shipping_address][first_name]': task.shipping.firstName,
-            'checkout[shipping_address][last_name]': task.shipping.lastName,
+            'checkout[email]': task.profile.payment.email,
+            'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
+            'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
             'checkout[shipping_address][company]': '',
-            'checkout[shipping_address][address1]': task.shipping.address,
-            'checkout[shipping_address][address2]': task.shipping.apt,
-            'checkout[shipping_address][city]': task.shipping.city,
-            'checkout[shipping_address][country]': task.shipping.country,
-            'checkout[shipping_address][province]': task.shipping.state,
-            'checkout[shipping_address][zip]': task.shipping.zipCode,
-            'checkout[shipping_address][phone]': task.shipping.phone,
+            'checkout[shipping_address][address1]': task.profile.shipping.address,
+            'checkout[shipping_address][address2]': task.profile.shipping.apt,
+            'checkout[shipping_address][city]': task.profile.shipping.city,
+            'checkout[shipping_address][country]': task.profile.shipping.country,
+            'checkout[shipping_address][province]': task.profile.shipping.state,
+            'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
+            'checkout[shipping_address][phone]': task.profile.shipping.phone,
             'checkout[remember_me]': '0',
             'checkout[client_details][browser_width]': '979',
             'checkout[client_details][browser_height]': '631',
@@ -175,7 +175,7 @@ function input(task, auth_token) {
 
     request(
         {
-            url: checkout_url,
+            url: url,
             followAllRedirects: true,
             headers: {
                 Origin: `${checkoutHost}`,
@@ -190,19 +190,21 @@ function input(task, auth_token) {
         },
         function(err, res, body) {
             if (err) {
-                log(err, 'error');
+                consolelog(err, 'error');
             }
             const $ = cheerio.load(body);
             return ship(
-                config,
+                task,
                 $('form.edit_checkout input[name=authenticity_token]').attr('value')
             );
         }
     );
 }
 
-function ship(config, discordBot, auth_token) {
+function ship(task, auth_token) {
     let form;
+
+    console.log(auth_token);
 
     if (url.indexOf('checkout.shopify.com') > -1) {
         form = {
@@ -212,16 +214,16 @@ function ship(config, discordBot, auth_token) {
             'checkout[client_details][browser_width]': '979',
             'checkout[client_details][browser_height]': '631',
             'checkout[client_details][javascript_enabled]': '1',
-            'checkout[email]': config.email,
-            'checkout[shipping_address][address1]': config.address1,
-            'checkout[shipping_address][address2]': config.address2,
-            'checkout[shipping_address][city]': config.city,
-            'checkout[shipping_address][country]': config.country,
-            'checkout[shipping_address][first_name]': config.firstName,
-            'checkout[shipping_address][last_name]': config.lastName,
-            'checkout[shipping_address][phone]': config.phoneNumber,
-            'checkout[shipping_address][province]': config.state,
-            'checkout[shipping_address][zip]': config.zipCode,
+            'checkout[email]': task.profile.payment.email,
+            'checkout[shipping_address][address1]': task.profile.shipping.address,
+            'checkout[shipping_address][address2]': task.profile.shipping.apt,
+            'checkout[shipping_address][city]': task.profile.shipping.city,
+            'checkout[shipping_address][country]': task.profile.shipping.country,
+            'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
+            'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
+            'checkout[shipping_address][phone]': task.profile.shipping.phone,
+            'checkout[shipping_address][province]': task.profile.shipping.state,
+            'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
             previous_step: 'contact_information',
             remember_me: 'false',
             step: 'shipping_method',
@@ -233,18 +235,18 @@ function ship(config, discordBot, auth_token) {
             _method: 'patch',
             authenticity_token: auth_token,
             button: '',
-            'checkout[email]': config.email,
-            'checkout[shipping_address][first_name]': config.firstName,
-            'checkout[shipping_address][last_name]': config.lastName,
+            'checkout[email]': task.profile.payment.email,
+            'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
+            'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
             'checkout[shipping_address][company]': '',
-            'checkout[shipping_address][address1]': config.address1,
-            'checkout[shipping_address][address2]': config.address2,
-            'checkout[shipping_address][city]': config.city,
-            'checkout[shipping_address][country]': config.country,
-            'checkout[shipping_address][province]': config.state,
-            'checkout[shipping_address][zip]': config.zipCode,
+            'checkout[shipping_address][address1]': task.profile.shipping.address,
+            'checkout[shipping_address][address2]': task.profile.shipping.apt,
+            'checkout[shipping_address][city]': task.profile.shipping.city,
+            'checkout[shipping_address][country]': task.profile.shipping.country,
+            'checkout[shipping_address][province]': task.profile.shipping.state,
+            'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
             'checkout[shipping_address][phone]': phoneFormatter.format(
-                config.phoneNumber,
+                task.profile.shipping.phone,
                 '(NNN) NNN-NNNN'
             ),
             'checkout[remember_me]': '0',
@@ -270,7 +272,7 @@ function ship(config, discordBot, auth_token) {
                 Referer: `${checkoutHost}/${storeID}/checkouts/${checkoutID}`,
                 'User-Agent': userAgent,
             },
-            formData: form,
+            form: form,
         },
         function(err, res, body) {
             const $ = cheerio.load(body);
@@ -281,19 +283,20 @@ function ship(config, discordBot, auth_token) {
                 const firstShippingOption = $(
                     'div.content-box__row .radio-wrapper'
                 ).attr('data-shipping-method');
+                console.log(firstShippingOption);
                 if (firstShippingOption === undefined) {
-                    log(`${config.base_url} is Incompatible, sorry for the inconvenience. A browser checkout session will be opened momentarily.`);
+                    console.log(`${task.site} is Incompatible, sorry for the inconvenience. A browser checkout session will be opened momentarily.`);
                     open(url);
                     process.exit(1);
                 } else {
-                    return submitShipping(config, discordBot, {
+                    return submitShipping(task, {
                         type: 'direct',
                         value: firstShippingOption,
                         auth_token: $('input[name="authenticity_token"]').val(),
                     });
                 }
             }
-            return submitShipping(config, discordBot, {
+            return submitShipping(task, {
                 type: 'poll',
                 value: shipping_pole_url,
             });
@@ -301,7 +304,7 @@ function ship(config, discordBot, auth_token) {
     );
 }
 
-function submitShipping(config, discordBot, res) {
+function submitShipping(config, res) {
     if (res.type === 'poll') {
         log(`Shipping Poll URL: ${checkoutHost}${res.value}`);
         log(`Timing out Shipping for ${config.shipping_pole_timeout}ms`);

@@ -1,79 +1,77 @@
 const { pay } = require('./classes/pay');
-const { findItem, selectStyle } = require('./classes/findItem');
+const { findProduct, getVariantsBySize } = require('./classes/findItem');
 
-/*
-
-task: {
-	id: string,
+let task = {
+	id: '01',
 	product: {
-		raw: string,
-		pos_keywords: [],
-		neg_keywords: [],
-		url: [],
+		raw: '+yeezy',
+		pos_keywords: ['+yeezy'],
+		neg_keywords: ['-500'],
+		variant: null,
+		url: null,
 	},
-	site: string,
+	site: 'https://blendsus.com',
 	profile: {
-		id: string,
-		profileName: string,
-		billingMatchesShipping: bool,
+		id: '0',
+		profileName: 'test profile',
+		billingMatchesShipping: true,
 		shipping: {
-			firstName: string,
-			lastName: string,
-			address: string,
-			apt: string,
-			city: string,
-			country: string,
-			state: string,
-			zipCode: string,
-			phone: string,
+			firstName: 'matt',
+			lastName: 'wall',
+			address: '1333 park drive',
+			apt: null,
+			city: 'oak park',
+			country: 'United States',
+			state: 'MI',
+			zipCode: '48237',
+			phone: '5157206516',
 		},
 		billing: {
-			firstName: string,
-			lastName: string,
-			address: string,
-			apt: string,
-			city: string,
-			country: string,
-			state: string,
-			zipCode: string,
-			phone: string,
+			firstName: '',
+			lastName: '',
+			address: '',
+			apt: '',
+			city: '',
+			country: '',
+			state: '',
+			zipCode: '',
+			phone: '',
 		},
 		payment: {
-			email: string,
-			cardNumber: string,
-			exp: string,
-			cvv, string,
+			email: 'matthew.wallt@gmail.com',
+			cardNumber: '4111111111111',
+			exp: '03/15',
+			cvv: '168',
 		},
 	},
-	sizes: [],
-	pairs: 1 - 5,
-	status: string,
+	sizes: ['8', '8.5', '9'],
+	status: 'idle',
+	delay: 2000,
 }
 
-*/
+let proxies = [];
+let index = 0;
 
+// module.exports = async function(task) {
 
-module.exports = async function(task) {
+   
+// };
 
-    findItem(task, proxies[index], function(err, delay, res) {
+findProduct(task, proxies[index], function(err, delay, res) {
 
-        if (err) {
-            console.log(res);
-            // make this more extensive once we figure out the layout and everything
-            setTimeout(() => {
-                return run(config);
-            }, delay);
-        } else {
-            selectStyle(config, res, (match, styleID) => {
-                pay(config, match, styleID, (err) => {
+	if (err) {
+		console.log(res);
+	} else {
+		console.log(res);
+		getVariantsBySize(task, res, (matches) => {
+			pay(task, matches, (err) => {
 
-                    //TODO -- handle moving onto the next user desired size and all that
+				//TODO -- handle moving onto the next user desired size and all that
 
-                    if (err === 'sold out') {
-                        return run(config);
-                    }
-                });
-            });
-        }
-    });
-};
+				if (err === 'sold out') {
+					return run(config);
+				}
+			});
+		});
+	}
+});
