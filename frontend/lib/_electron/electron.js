@@ -56,6 +56,7 @@ const _showNewWindow = ({ win, winUrl, tag }) => {
     prev.url = null;
     prev.tag = null;
     current.window.show();
+    current.window.webContents.openDevTools();
     setMenu();
     if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
       current.window.webContents.openDevTools();
