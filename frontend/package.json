@@ -4,6 +4,16 @@
   "private": true,
   "main": "lib/_electron/electron.js",
   "homepage": "./",
+  "build": {
+    "appId": "com.example.nebula",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "_assets"
+    }
+  },
   "scripts": {
     "start": "react-scripts start & node src/electron-wait-react",
     "build": "react-scripts build",
@@ -11,8 +21,10 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "electron-dev-server": "react-scripts start",
-    "electron-dev": "NODE_ENV=production electron .",
-    "electron-dev-windows": "set NODE_ENV=development&& electron .",
+    "electron-mac-dev": "NODE_ENV=development electron .",
+    "electron-mac-prod": "NODE_ENV=production electron .",
+    "electron-windows-dev": "set NODE_ENV=development&& electron .",
+    "electron-windows-prod": "set NODE_ENV=production&& electron .",
     "lint": "./node_modules/.bin/eslint src/",
     "sass": "./tool/compile_css.sh"
   },
@@ -38,7 +50,7 @@
     "react-number-format": "^3.6.0",
     "react-redux": "^5.0.7",
     "react-router-dom": "^4.2.2",
-    "react-scripts": "^1.1.4",
+    "react-scripts": "1.1.5",
     "react-select": "^2.0.0",
     "redux": "^4.0.0",
     "redux-localstorage": "^0.4.1",

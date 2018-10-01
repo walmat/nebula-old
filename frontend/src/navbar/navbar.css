@@ -27,6 +27,16 @@
     border-left: 2px solid #EFEFEF;
 }
 
+#try-line {
+    position: absolute;
+    display: block;
+    top: 8.5px;
+    left: 32px;
+    height: 700.28px;
+    width: 1px;
+    border-left: 2px solid #EFEFEF;
+}
+
 .active {
     opacity: 0.5;
 }
