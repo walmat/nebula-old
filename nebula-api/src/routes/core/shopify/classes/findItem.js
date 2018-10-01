@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const parseString = require('xml2js').parseString;
 const cheerio = require('cheerio');
-const moment = require('moment');
+var now = require("performance-now");
 
 const j = require('request').jar();
 const request = require('request').defaults({
@@ -20,8 +20,9 @@ module.exports = {};
  * @returns - http://USER:PASS@IP:PORT || http://IP:PORT
  */
 function formatProxy(input) {
+
     // safeguard for if it's already formatted or in a format we can't handle
-    if (input === null || input.startsWith('http') || input === 'localhost') {
+    if (input === null || input === undefined || input.startsWith('http') || input === 'localhost') {
         return input;
     } else {
         let data = input.split(':');
@@ -29,22 +30,12 @@ function formatProxy(input) {
                (data.length === 4) ? 'http://' + data[2] + ':' + data[3] + '@' + data[0] + ':' + data[1] :
                null;
     }
-  }
-
-/**
- * Matches two words together
- * @param {string} word1 - first word
- * @param {string} word2 - second word
- * @return -1: false, 0: match, 1: 
- */
-function matchWord(word1, word2) {
-    return word1.toUpperCase() === word2.toUpperCase();
 }
 
 function trimKeywords(arr) {
     let ret = [];
     arr.map(word => {
-        ret.push(word.substring(1, word.length).trim()); //trim() just in case, probably not necessary
+        ret.push(word.substring(1, word.length).trim().toUpperCase()); //trim() just in case, probably not necessary
     });
     return ret;
 }
@@ -125,7 +116,6 @@ function findProduct(task, proxy, cb) {
     } else if (task.product.pos_keywords !== null) {
 
         let matchedProducts = [];
-
         request(
             {
                 method: 'GET',
@@ -148,33 +138,43 @@ function findProduct(task, proxy, cb) {
                             //parsing error
                             return cb(true, err);
                         } else if (body.indexOf('http://www.sitemaps.org/schemas') > -1) { // sitemap returned correctly
-                            let products = res['urlset']['url'];
-                            products.shift();
+                            var start = now();
+                            let products = _.sortBy(res['urlset']['url'], function(product) {
+                                return product.lastmod; // sort by most recent products
+                            });
                             products.map(product => {
-                                // filter last 100 results based on `product`.lastmod`
                                 if (product) { // null check
                                     if (product['image:image']) { // null check
-                                        titles = product['image:image'][0]['image:title'];
-
+                                        title = product['image:image'][0]['image:title'];
                                         /**
                                          * make the product matching work like so:
                                          * 1. if ALL pos_keywords found in word A, consider A matched.
                                          * 2. if ANY neg_keywords found in word A, consider A not matched.
                                          * 
-                                         * if 1 === true, and 2 === false, consider A matched.
+                                         * if 1 === true, and 2 === false, consider A "matched"
                                          */
-                                        trimKeywords(task.product.pos_keywords).map(kw => {
-                                            // console.log(kw);
-                                            let found = titles[0].toUpperCase().search(kw.toUpperCase());
-                                            // console.log(found, titles[0].toUpperCase(), kw.toUpperCase());
-                                            if (found > -1) {
-                                                matchedProducts.push(titles[0]);
-                                            }
+                                        // https://underscorejs.org/#every
+                                        let pos = _.every(trimKeywords(task.product.pos_keywords), function(keyword) {
+                                            return title[0].indexOf(keyword) > -1;
                                         });
-                                        console.log(matchedProducts);
+                                        let neg = _.some(trimKeywords(task.product.neg_keywords), function(keyword) {
+                                            return title[0].indexOf(keyword) > -1;
+                                        });
+                                        if (pos && !neg) {
+                                            matchedProducts.push(product.loc);
+                                        }
                                     }
                                 }
                             });
+                            
+                            console.log(matchedProducts);
+                            console.log(`finding products for: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms`);
+                       
+                            if (matchedProducts.length > 0) { // found a product!
+                                return cb(null, task.delay, matchedProducts);
+                            } else { // keep monitoring
+                                
+                            }
                         }
                     });
                 }
@@ -347,26 +347,31 @@ const findvariantstock = function(config, handle, id, cb) {
     );
 };
 
-function getVariantsBySize(task, productUrl, onSuccess) {
+function getVariantsBySize(task, res, onSuccess) {
     let styleID;
 
-    //loop over all product variants
-    for (let i = 0; i < match.variants.length; i++) {
-        styleID = match.variants[i].id; //grab the id of the product
-        let size = match.variants[i].option1;
-        let optional = match.variants[i].option2;
-
-        //loop over all user's desired sizes
-        for (let j = 0; j < config.sizes.length; j++) {
-            if (size === config.sizes[j] || optional === config.sizes[j]) { //check to see if it matches one of the user's desired sizes
-                findvariantstock(config, match.handle, styleID, function(err, res) {
-                    if (err) { // means oos
-                        onSuccess(match, styleID);
-                    } else { // in stock, report that
-                        onSuccess(match, styleID);
+    request(
+        {
+            url: `${res}.json`,
+            followAllRedirects: true,
+            method: 'get',
+            headers: {
+                'User-Agent': userAgent,
+            },
+        },
+        function(err, res, body) {
+            try {
+                let matches = [];
+                const variants = JSON.parse(body).product.variants;
+                _.filter(variants, function(variant) {
+                    let match = _.some(task.sizes, function(size) {
+                        return variant.option1 === size || variant.option2 === size || variant.option3 === size;
+                    });
+                    if (match) {
+                        matches.push(variant);
                     }
                 });
-                return onSuccess(matches, productUrl);
+                return onSuccess(matches);
             } catch (e) {
                 console.log(e);
             }
@@ -374,67 +379,4 @@ function getVariantsBySize(task, productUrl, onSuccess) {
     );
 }
 
-module.exports.selectStyle = selectStyle;
-
-// test "early link" mode
-// findProduct(
-//     { // task object "early link"
-//         product: {
-//             url: 'https://kith.com/collections/footwear/products/nike-air-max-deluxe-black-midnight-navy',
-//             pos_keywords: null,
-//             neg_keywords: null,
-//             raw: ''
-//         },
-//         sizes: ['8', '8.5', '10'],
-//     }, null, 
-//     function(err, delay, res) {
-//     if (err) {
-//         console.log('error: ' + err);
-//     } else {
-//         console.log(res);
-//         selectStyle()
-//     }
-// })
-
-// test variant mode
-// findProduct(
-//     {
-//         product: {
-//             url: null,
-//             pos_keywords: null,
-//             neg_keywords: null,
-//             variant: '2189138657287',
-//             raw: '2189138657287',
-//         },
-//         sizes: [],
-//         site: 'https://kith.com'
-//     }, null,
-//     function(err, delay, res) {
-//         if (err) {
-//             console.log(err);
-//         } else {
-//             console.log(res);
-//         }
-//     }
-// )
-
-findProduct(
-    {
-        product: {
-            url: null,
-            pos_keywords: ['+yeezy', '+700'],
-            neg_keywords: null,
-            variant: null,
-            raw: '',
-        },
-        sizes: [],
-        site: 'https://kith.com'
-    }, null,
-    function(err, delay, res) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(res);
-        }
-    }
-)
+module.exports.getVariantsBySize = getVariantsBySize;
