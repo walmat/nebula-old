@@ -1,6 +1,6 @@
 /* global describe it expect test */
-import { profileReducer } from '../../../state/reducers/profiles/profileReducer';
-import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
+import { profileReducer } from '../../../../state/reducers/profiles/profileReducer';
+import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
 import {
   mapProfileFieldToKey,
   mapLocationFieldToKey,
@@ -9,7 +9,7 @@ import {
   LOCATION_FIELDS,
   PAYMENT_FIELDS,
   PROFILE_FIELDS,
-} from '../../../state/actions';
+} from '../../../../state/actions';
 
 describe('profile reducer', () => {
   it('should return initial state', () => {

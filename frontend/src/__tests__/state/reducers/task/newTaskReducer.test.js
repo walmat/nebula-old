@@ -1,10 +1,10 @@
 /* global describe expect it test jest */
-import { newTaskReducer } from '../../../state/reducers/tasks/taskReducer';
-import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
+import { newTaskReducer } from '../../../../state/reducers/tasks/taskReducer';
+import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 import {
   TASK_ACTIONS,
   TASK_FIELDS,
-} from '../../../state/actions';
+} from '../../../../state/actions';
 
 describe('new task reducer', () => {
   it('should return initial state', () => {

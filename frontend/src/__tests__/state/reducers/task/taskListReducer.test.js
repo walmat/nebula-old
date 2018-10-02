@@ -1,10 +1,10 @@
 /* global describe expect it test beforeEach jest */
-import taskListReducer from '../../../state/reducers/tasks/taskListReducer';
-import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
+import taskListReducer from '../../../../state/reducers/tasks/taskListReducer';
+import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 import {
   TASK_ACTIONS,
   TASK_FIELDS,
-} from '../../../state/actions';
+} from '../../../../state/actions';
 
 describe('task list reducer', () => {
   it('should return initial state', () => {
