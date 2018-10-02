@@ -1,7 +1,7 @@
 var AWS = require("aws-sdk");
 
 // FOR USE IN DEV MODE ONLY!
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'production';
 require('./src/utils/env').setUpEnvironment();
 var config = require('./src/utils/setupDynamoConfig').getConfig();
 
@@ -11,7 +11,9 @@ var { hash } = require('./hash');
 const { salt, algo, output } = require('./hashConfig.json');
 
 var dynamodb = new AWS.DynamoDB();
-let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(process.env.NEBULA_API_DYNAMODB_ENDPOINT) });
+
+console.log(config.endpoint);
+let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
 // module.exports = function(key) {
 function storeKey(key) {
@@ -36,7 +38,8 @@ function storeKey(key) {
   });
 }
 
-storeKey('testkey');
+// storeKey('testkey');
+storeKey('testkey3');
 
 /**
  * ONLY FOR DEV USE! NEVER EVER USE IN PROD ENV
