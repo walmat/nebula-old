@@ -20,7 +20,7 @@ async function bind(licenseKey, discordId, cb) {
         return cb(false, `${licenseKey} successfully bound`);
     } else if (result.status === 401) {
         return cb(true, `Invalid key, or already in use.`);
-    } // otherwise send no status report to reduce clutter
+    } // otherwise send no status report to reduce clutter in DMs
 }
 
 async function deactivate(licenseKey, discordId, cb) {

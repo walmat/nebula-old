@@ -32,17 +32,17 @@ client.on('message', async message => {
         switch(content[0]) {
             case '!bind': {     
                 if (content.length !== 2) {
-                    return message.channel.send('Format: `!bind <key>`')
+                    message.channel.send('Format: `!bind <key>`')
                 }
                 const licenseKey = content[1];
                 const discordId = message.author.id;
 
                 bind(licenseKey, discordId, (err, msg) => {
                     if (err) {
-                        console.log(err);
-                        return;
+                        message.channel.send(msg);
+                        return; // don't give them access or anything..
                     }
-                    // grant access to discord @member role
+                    // continue to grant access to discord `@member` role
                     const server = client.guilds.get("426860107054317575");
                     const member = server.members.get(`${discordId}`);
                     const role = server.roles.find("name", "member");
@@ -56,7 +56,7 @@ client.on('message', async message => {
             }
             case '!deactivate': {
                 if (content.length !== 2) {
-                    return message.channel.send('Format: `!deactivate <key>`');
+                    message.channel.send('Format: `!deactivate <key>`');
                 }
                 const licenseKey = content[1];
                 const discordId = message.author.id;
@@ -69,7 +69,7 @@ client.on('message', async message => {
             case '!purge': {
 
                 if (content.length !== 2) {
-                    return message.channel.send('Format: `!purge <key>`');
+                    message.channel.send('Not supported');
                 }
                 const licenseKey = content[1];
                 const discordId = message.author.id;
@@ -80,7 +80,7 @@ client.on('message', async message => {
                 break;
             }
             case '?help': {
-                message.channel.send("List of commands:\n\n`!bind <key>` – binds the key to the discord user\n`!deactivate <key>` – deactivates electron app from user's machine\n`!purge <key>` – completely removes the user from the application/discord");
+                message.channel.send("List of commands:\n\n`!bind <key>` – binds the key to the discord user\n`!deactivate <key>` – deactivates electron app from user's machine\n`!purge <key>` – not supported (yet)");
                 break;
             }
         }
