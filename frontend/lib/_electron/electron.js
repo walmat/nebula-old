@@ -171,7 +171,6 @@ ipcMain.on('auth', async (event, { arg, key }) => {
       break;
     }
     case 'deactivate': {
-      // const deactivated = await nebulaAuth.deactivateFrontEnd();
       const clearSession = await nebulaAuth.clearSession();
       if (!clearSession) {
         event.sender.send('error', 'Unable to deactivate');

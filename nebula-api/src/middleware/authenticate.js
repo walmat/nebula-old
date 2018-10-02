@@ -3,7 +3,6 @@ const authUtils = require('../routes/auth/utils');
 const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
 
 module.exports = async function(req, res, next) {
-
     // Check for authorization header to be present
     if (!req.headers || (req.headers && !req.headers.authorization)) {
         console.log('[ERROR]: Authorization header not preset! ', req.headers);

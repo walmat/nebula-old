@@ -28,7 +28,6 @@ client.on('message', async message => {
     /* DM received to bot */
     if (message.guild === null) {
         let content = message.content.split(' ');
-        // guild id: 426860107054317575
 
         switch(content[0]) {
             case '!bind': {     
@@ -39,25 +38,22 @@ client.on('message', async message => {
                 const discordId = message.author.id;
 
                 bind(licenseKey, discordId, (err, msg) => {
-                    message.channel.send(msg);
                     if (err) {
                         return;
                     }
-
                     // grant access to discord @member role
                     const server = client.guilds.get("426860107054317575");
                     const member = server.members.get(`${discordId}`);
                     const role = server.roles.find("name", "member");
-                    try {
-                        member.addRole(role);
-                    } catch (e) {
-                        console.log(e);
-                    }
+                    member.addRole(role).then(() => {
+                        message.channel.send(msg);
+                    }).catch(() => {
+                        message.channel.send('Unable to give permissions, please contact @sean#0002')
+                    });
                 });
                 break;
             }
             case '!deactivate': {
-
                 if (content.length !== 2) {
                     return message.channel.send('Format: `!deactivate <key>`');
                 }

@@ -9,7 +9,7 @@ const { salt, algo, output } = require('../../../hashConfig.json');
 
 const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
 
-async function checkValidKey(key) {
+function checkValidKey(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   const keyHash = hash(algo, key, salt, output);
@@ -41,7 +41,7 @@ async function checkValidKey(key) {
 }
 module.exports.checkValidKey = checkValidKey;
 
-async function checkIsInUse(key) {
+function checkIsInUse(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   const keyHash = hash(algo, key, salt, output);

@@ -16,8 +16,6 @@ async function bind(licenseKey, discordId, cb) {
             }),
         });
 
-    console.log(result);
-
     if (result.status === 200) {
         return cb(false, `${licenseKey} successfully bound`);
     } else if (result.status === 401) {
@@ -41,8 +39,6 @@ async function deactivate(licenseKey, discordId, cb) {
             }),
         });
 
-    console.log(result);
-
     if (result.status === 200) {
         return cb(`${licenseKey} successfully deactivated`);
     } else if (result.status === 401) {
@@ -50,6 +46,9 @@ async function deactivate(licenseKey, discordId, cb) {
     } // otherwise send no status report to reduce clutter
 }
 
+/**
+ * add this functionality if we decide to allow reselling of keys
+ */
 // async function purge(licenseKey, discordId, cb) {
 
 //     // call the nebula api endpoint
