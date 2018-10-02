@@ -45,7 +45,9 @@ const _hideCurrentWindow = () => {
 };
 
 const _showNewWindow = ({ win, winUrl, tag }) => {
-  _hideCurrentWindow();
+  if (tag === 'main' || tag === 'auth') {
+    _hideCurrentWindow();
+  }
   current.window = win;
   current.url = winUrl;
   current.tag = tag;
@@ -124,6 +126,7 @@ ipcMain.on('window-event', async (event, arg) => {
       *  1. send the event to the main process (a task that is needing a captcha)
       *  2. refresh the captcha page
       * */
+      _showNewWindow(captchaWindow());
       break;
     }
     case 'endSession': {

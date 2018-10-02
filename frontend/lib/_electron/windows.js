@@ -68,7 +68,6 @@ const youtubeWindow = () => ({
 
 const captchaWindow = () => ({
   win: new BrowserWindow({
-    proxyRules: 'http://127.0.0.1:8080',
     center: true,
     fullscreen: false,
     height: 475,
@@ -81,13 +80,13 @@ const captchaWindow = () => ({
     useContentSize: true,
     webPreferences: {
       nodeIntegration: false,
+      devTools: true,
       preload: path.join(__dirname, 'preload.js'),
       webSecurity: true,
     },
   }),
-  // TODO: CHANGE THIS
-  winUrl: process.env.NEBULA_START_URL || url.format({
-    pathname: path.join(__dirname, '../../build/index.html'),
+  winUrl: url.format({
+    pathname: path.join(__dirname, '../../public/captcha.html'),
     protocol: 'file:',
     slashes: true,
   }),

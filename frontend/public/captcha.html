@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>Harvester</title>
+    <style type="text/css">
+      body {
+        max-width: 450px;
+        margin: auto;
+      }
+    </style>
+  </head>
+  <body>
+  <center>
+  <form action="/submit" method="post" style="margin-top: 180px;">
+      <div id="captchaFrame"></div>
+      <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
+  </form>
+</center>
+<script>
+
+  const remote = require('electron').remote
+  const app = remote.app
+  const ipcRenderer = require('electron').ipcRenderer
+
+  $('#captchaFrame').html(`<div class="g-recaptcha" data-sitekey="${remote.getGlobal('sitekey')}" data-callback="sub"></div>`);
+
+  function sub() {
+    ipcRenderer.send('harvest', $('#g-recaptcha-response').val());
+    grecaptcha.reset();
+  }
+
+</script>
+  </body>
+</html>
