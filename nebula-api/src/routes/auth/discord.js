@@ -20,8 +20,6 @@ async function createDiscordUser(res, userData) {
       });
     }
     const discord = await authUtils.getDiscordUser(keyHash);
-    console.log(discord);
-    console.log(discord.discordId === discordId)
 
     if (discord && discord.discordId === discordId) {
         return res.status(200).json({

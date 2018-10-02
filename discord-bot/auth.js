@@ -17,7 +17,9 @@ async function bind(licenseKey, discordId, cb) {
         });
 
     if (result.status === 200) {
-        return cb(false, `${licenseKey} successfully bound`);
+        const body = await result.json();
+        console.log(body);
+        return cb(false, body.message);
     } else if (result.status === 401) {
         return cb(true, `Invalid key, or already in use.`);
     } // otherwise send no status report to reduce clutter in DMs
