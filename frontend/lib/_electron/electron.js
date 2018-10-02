@@ -115,10 +115,7 @@ app.on('activate', () => {
 ipcMain.on('window-event', async (event, arg) => {
   switch (arg) {
     case 'launchYoutube': {
-      // open youtube url using youtube window template
-      // if (ytWin === null) {
-      //   youtubeWindow.loadURL('https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin')
-      // }
+      _showNewWindow(youtubeWindow());
       break;
     }
     case 'launchHarvester': {

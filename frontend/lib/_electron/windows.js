@@ -58,11 +58,7 @@ const youtubeWindow = () => ({
     },
   }),
   // TODO: CHANGE THIS
-  winUrl: process.env.NEBULA_START_URL || url.format({
-    pathname: path.join(__dirname, '../../build/index.html'),
-    protocol: 'file:',
-    slashes: true,
-  }),
+  winUrl: 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin',
   tag: 'youtube',
 });
 
