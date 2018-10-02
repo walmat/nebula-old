@@ -46,7 +46,7 @@ function generateTokens(key, refreshPayload) {
 }
 module.exports.generateTokens = generateTokens;
 
-async function checkValidKey(key) {
+function checkValidKey(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   const keyHash = hash(algo, key, salt, output);
@@ -82,65 +82,36 @@ module.exports.checkValidKey = checkValidKey;
  * Returns the discord user tied to a given key
  * @param {*} key – unmalformed license key data
  */
-async function getDiscordUser(keyHash, discordId) {
+async function getDiscordUser(keyHash) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  
-  let data = {
-    discordId
-  }
-  let discordTableParams = {
+  let params = {
     TableName: 'Discord',
-    Item: data
-  }
-  let exists = await docClient.scan(discordTableParams).promise().then(
+    Key: keyHash,
+    KeyConditionExpression: '#licenseKey = :licenseKey',
+    ExpressionAttributeNames: {
+      '#licenseKey': 'licenseKey',
+    },
+    ExpressionAttributeValues: {
+      ':licenseKey': keyHash,
+    },
+  };
+  return docClient.query(params).promise().then(
     (data) => {
-      if (data.Items.length > 0) {
-        return true;
-      } else {
-        return false;
+      console.log('[DEBUG]: CHECK IN USE RESPONSE: ', data);
+      if(data.Items.length) {
+        if (data.Items.length > 1) {
+          console.log('[WARN]: Data Items is longer than one! Using first response');
+        }
+        return data.Items[0];
       }
+      return null;
     },
     (err) => {
-      return true; // let's just be safe here..
+      console.log('[ERROR]: CHECK IN USE RESPONSE: ', err, err.stack);
+      return null;
     }
   );
-  if (!exists) {
-    // user doesn't have a key tied to their account, let's continue..
-    let params = {
-      TableName : 'Discord',
-      Key: keyHash,
-      KeyConditionExpression: '#licenseKey = :licenseKey',
-      ExpressionAttributeNames:{
-          '#licenseKey': 'licenseKey'
-      },
-      ExpressionAttributeValues: {
-          ":licenseKey": keyHash
-      }
-    };
-    return docClient.query(params).promise().then(
-      (data) => {
-        console.log('[DEBUG]: CHECK DISCORD RESPONSE: ', data);
-        if (data.Items.length > 0) {
-          // only return the data if the discord id's match
-          if (data.Items[0].discordId === discordId) {
-            console.log(discordId, data.Items[0].discordId);
-            return data.Items[0];
-          } else {
-            console.log(data);
-            return null;
-          }
-        }
-      },
-      (err) => {
-        console.log(data);
-        console.log('[ERROR]: CHECK DISCORD RESPONSE: ', err, err.stack);
-        return null;
-      }
-    );
-  } else {
-    return 
-  }
 }
 module.exports.getDiscordUser = getDiscordUser;
 

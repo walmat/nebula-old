@@ -19,27 +19,29 @@ async function createDiscordUser(res, userData) {
         message: 'Malformed Request'
       });
     }
+    const discord = await authUtils.getDiscordUser(keyHash);
+    console.log(discord);
+    console.log(discord.discordId === discordId)
 
-    const discord = await authUtils.getDiscordUser(keyHash, discordId);
-    if (discord.err) {
-        console.log("account found..")
+    if (discord && discord.discordId === discordId) {
+        return res.status(200).json({
+            name: 'Success',
+            message: `You've already bound this key!`,
+        });
+    
+    } else if(discord) {
         return res.status(401).json({
             name: 'InvalidRequest',
             message: 'Invalid Request'
-        })
-    } else if(discord.duplicate) {
-        return res.status(200).json({
-          name: 'Success',
-          message: `You've already bound this key successfully!`,
         });
-      }
+    }
 
     await authUtils.addDiscordUser(keyHash, discordId);
 
     return res.status(200).json({
         name: 'Success',
         message: 'Key Bound Successfully'
-    })
+    });
 }
 
 /**
