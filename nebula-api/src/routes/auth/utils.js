@@ -118,23 +118,28 @@ async function getDiscordUser(keyHash, discordId) {
           ":licenseKey": keyHash
       }
     };
-    docClient.query(params).promise().then(
+    return docClient.query(params).promise().then(
       (data) => {
         console.log('[DEBUG]: CHECK DISCORD RESPONSE: ', data);
         if (data.Items.length > 0) {
           // only return the data if the discord id's match
           if (data.Items[0].discordId === discordId) {
+            console.log(discordId, data.Items[0].discordId);
             return data.Items[0];
           } else {
+            console.log(data);
             return null;
           }
         }
       },
       (err) => {
+        console.log(data);
         console.log('[ERROR]: CHECK DISCORD RESPONSE: ', err, err.stack);
         return null;
       }
     );
+  } else {
+    return 
   }
 }
 module.exports.getDiscordUser = getDiscordUser;

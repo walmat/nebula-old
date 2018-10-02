@@ -21,12 +21,18 @@ async function createDiscordUser(res, userData) {
     }
 
     const discord = await authUtils.getDiscordUser(keyHash, discordId);
-    if (discord) {
+    if (discord.err) {
+        console.log("account found..")
         return res.status(401).json({
             name: 'InvalidRequest',
             message: 'Invalid Request'
         })
-    }
+    } else if(discord.duplicate) {
+        return res.status(200).json({
+          name: 'Success',
+          message: `You've already bound this key successfully!`,
+        });
+      }
 
     await authUtils.addDiscordUser(keyHash, discordId);
 
