@@ -93,7 +93,7 @@ async function getDiscordUser(keyHash, discordId) {
     TableName: 'Discord',
     Item: data
   }
-  let exists = docClient.scan(discordTableParams).promise().then(
+  let exists = await docClient.scan(discordTableParams).promise().then(
     (data) => {
       if (data.Items.length > 0) {
         return true;
