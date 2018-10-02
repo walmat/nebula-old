@@ -85,34 +85,49 @@ module.exports.checkValidKey = checkValidKey;
 async function getDiscordUser(keyHash, discordId) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  let params = {
-    TableName : 'Discord',
-    Key: keyHash,
-    KeyConditionExpression: '#licenseKey = :licenseKey',
-    ExpressionAttributeNames:{
-        '#licenseKey': 'licenseKey'
-    },
-    ExpressionAttributeValues: {
-        ":licenseKey": keyHash
-    }
-  };
-  return docClient.query(params).promise().then(
-    (data) => {
-      console.log('[DEBUG]: CHECK DISCORD RESPONSE: ', data);
-      if (data.Items.length > 0) {
-        // only return the data if the discord id's match
-        if (data.Items[0].discordId === discordId) {
-          return data.Items[0];
-        } else {
+  
+  let data = {
+    discordId
+  }
+  let discordTableParams = {
+    TableName: 'Discord',
+    Item: data
+  }
+   docClient.scan(discordTableParams, function(err, data) {
+    if (err || data.Items.length !== 0) {
+      return null;
+    } else {
+      // user doesn't have a key tied to their account, let's continue..
+      let params = {
+        TableName : 'Discord',
+        Key: keyHash,
+        KeyConditionExpression: '#licenseKey = :licenseKey',
+        ExpressionAttributeNames:{
+            '#licenseKey': 'licenseKey'
+        },
+        ExpressionAttributeValues: {
+            ":licenseKey": keyHash
+        }
+      };
+      docClient.query(params).promise().then(
+        (data) => {
+          console.log('[DEBUG]: CHECK DISCORD RESPONSE: ', data);
+          if (data.Items.length > 0) {
+            // only return the data if the discord id's match
+            if (data.Items[0].discordId === discordId) {
+              return data.Items[0];
+            } else {
+              return null;
+            }
+          }
+        },
+        (err) => {
+          console.log('[ERROR]: CHECK DISCORD RESPONSE: ', err, err.stack);
           return null;
         }
-      }
-    },
-    (err) => {
-      console.log('[ERROR]: CHECK DISCORD RESPONSE: ', err, err.stack);
-      return null;
+      );
     }
-  );
+   });
 }
 module.exports.getDiscordUser = getDiscordUser;
 

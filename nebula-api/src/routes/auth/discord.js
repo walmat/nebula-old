@@ -1,5 +1,12 @@
 const authUtils = require('./utils');
 
+/**
+ * Add an entry to the `Discord` table if:
+ * a) user doesn't already have a valid key tied
+ * b) key isn't already tied to another user
+ * @param {*} res – response object to send a status message back
+ * @param {*} userData – contains: licenseKey (non-hashed) and discordId
+ */
 async function createDiscordUser(res, userData) {
 
     const key = userData.licenseKey;
@@ -63,12 +70,8 @@ async function deactivateUser(res, userData) {
     });
 }
 
-module.exports = async function(app) {
-    app.get('/auth/discord', function(req, res) {
-        res.status(200).json({
-            auth: true
-        });
-    });
+module.exports = function(app) {
+
     app.post('/auth/discord', async function(req, res) {
 
         const userData = req.body;
@@ -80,10 +83,6 @@ module.exports = async function(app) {
             })
         } else {
             await createDiscordUser(res, userData);
-            return res.status(200).json({
-                name: 'Success',
-                message: 'Successfully bound'
-            });
         }
     });
 
@@ -98,10 +97,6 @@ module.exports = async function(app) {
             });
         } else {
             await deactivateUser(res, userData);
-            return res.status(200).json({
-                name: 'Success',
-                messagE: 'Successfully deactivated'
-            });
         }
     });
 };

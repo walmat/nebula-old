@@ -39,6 +39,7 @@ client.on('message', async message => {
 
                 bind(licenseKey, discordId, (err, msg) => {
                     if (err) {
+                        console.log(err);
                         return;
                     }
                     // grant access to discord @member role
