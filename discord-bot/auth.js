@@ -16,13 +16,12 @@ async function bind(licenseKey, discordId, cb) {
             }),
         });
 
+    const body = await result.json();
     if (result.status === 200) {
-        const body = await result.json();
-        console.log(body);
         return cb(false, body.message);
-    } else if (result.status === 401) {
-        return cb(true, `Invalid key, or already in use.`);
-    } // otherwise send no status report to reduce clutter in DMs
+    } else {
+        return cb(true, body.message);
+    }
 }
 
 async function deactivate(licenseKey, discordId, cb) {
@@ -41,11 +40,9 @@ async function deactivate(licenseKey, discordId, cb) {
             }),
         });
 
-    if (result.status === 200) {
-        return cb(`${licenseKey} successfully deactivated`);
-    } else if (result.status === 401) {
-        return cb(`Invalid key, or unable to deactivate.`);
-    } // otherwise send no status report to reduce clutter
+    const body = await result.json();
+    console.log(body);
+    return cb(body.message);
 }
 
 /**

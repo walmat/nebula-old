@@ -15,10 +15,12 @@ async function createDiscordUser(res, userData) {
     const keyHash = await authUtils.checkValidKey(key);
     if (!keyHash) {
       return res.status(401).json({
-        name: 'MalformedRequest',
-        message: 'Malformed Request'
+        name: 'Invalid Request',
+        message: 'Invalid Key or Already in use.'
       });
     }
+
+    const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(discordId);
     const discord = await authUtils.getDiscordUser(keyHash);
 
     if (discord && discord.discordId === discordId) {
@@ -30,16 +32,23 @@ async function createDiscordUser(res, userData) {
     } else if(discord) {
         return res.status(401).json({
             name: 'InvalidRequest',
-            message: 'Invalid Request'
+            message: 'Invalid Key or Already in use.'
         });
     }
 
-    await authUtils.addDiscordUser(keyHash, discordId);
+    if (!isDiscordAccountPresent) {
+        await authUtils.addDiscordUser(keyHash, discordId);
 
-    return res.status(200).json({
-        name: 'Success',
-        message: 'Key Bound Successfully'
-    });
+        return res.status(200).json({
+            name: 'Success',
+            message: 'Key Bound Successfully'
+        });
+    } else {
+        return res.status(401).json({
+            name: 'InvalidRequest',
+            message: 'Invalid Key or Already in use.'
+        });
+    }
 }
 
 /**
@@ -51,29 +60,30 @@ async function deactivateUser(res, userData) {
     const key = userData.licenseKey;
     const discordId = userData.discordId;
     const keyHash = await authUtils.checkValidKey(key);
-
+    console.log(keyHash);
     if (!keyHash) {
         return res.status(401).json({
             name: 'MalformedRequest',
-            message: 'Malformed Request'
+            message: 'Invalid Key'
         });
     }
-    const discord = await authUtils.getDiscordUser(keyHash, discordId);
+    const discord = await authUtils.getDiscordUser(keyHash);
     console.log(discord);
+
     // verify it's the proper discord user
-    if (!discord) {
+    if (discord && discord.discordId === discordId) {
+        await authUtils.removeUser(keyHash);
+
+        return res.status(200).json({
+            name: 'Success',
+            message: 'Deactivated!'
+        });
+    } else {
         return res.status(401).json({
             name: 'InvalidRequest',
-            message: 'Invalid Request'
+            message: 'Invalid Key or Inactive'
         })
     }
-
-    await authUtils.removeUser(keyHash);
-
-    return res.status(200).json({
-        name: 'Success',
-        message: 'Deactivated!'
-    });
 }
 
 module.exports = function(app) {

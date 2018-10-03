@@ -115,6 +115,34 @@ async function getDiscordUser(keyHash) {
 }
 module.exports.getDiscordUser = getDiscordUser;
 
+async function isDiscordAccountPresent(discordId) {
+  AWS.config = new AWS.Config(config);
+  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  let data = {
+    discordId
+  }
+  let params = {
+    TableName: 'Discord',
+    Item: data
+  }
+  return docClient.scan(params).promise().then(
+    (data) => {
+      if (data.Items.length) {
+        if (data.Items.length > 1) {
+          console.log('[WARN]: Data Items is longer than one! Using first response');
+        }
+        return data.Items[0];
+      }
+      return null;
+    },
+    (err) => {
+      console.log('[ERROR]: CHECK IN USE RESPONSE: ', err, err.stack);
+      return null;
+    }
+  );
+}
+module.exports.isDiscordAccountPresent = isDiscordAccountPresent;
+
 async function addDiscordUser(keyHash, discordId) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
@@ -125,7 +153,7 @@ async function addDiscordUser(keyHash, discordId) {
   let params = {
     TableName: 'Discord',
     Item: data
-  }
+  };
   await docClient.put(params).promise();
 }
 module.exports.addDiscordUser = addDiscordUser;
@@ -150,6 +178,7 @@ async function checkIsInUse(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   const keyHash = hash(algo, key, salt, output);
+  console.log(key, keyHash);
   let params = {
     TableName: 'Users',
     Key: keyHash,

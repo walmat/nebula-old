@@ -39,7 +39,7 @@ function storeKey(key) {
 }
 
 // storeKey('testkey');
-storeKey('testkey3');
+storeKey('testkey2');
 
 /**
  * ONLY FOR DEV USE! NEVER EVER USE IN PROD ENV
