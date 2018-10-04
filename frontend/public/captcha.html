@@ -16,18 +16,9 @@
   </form>
 </center>
 <script>
-
-  const remote = require('electron').remote
-  const app = remote.app
-  const ipcRenderer = require('electron').ipcRenderer
-
-  $('#captchaFrame').html(`<div class="g-recaptcha" data-sitekey="${remote.getGlobal('sitekey')}" data-callback="sub"></div>`);
-
-  function sub() {
-    ipcRenderer.send('harvest', $('#g-recaptcha-response').val());
-    grecaptcha.reset();
-  }
-
+  const token = document.getElementById('g-recaptcha-response').value;
+  window.Bridge.harvest(token);
+  grecaptcha.reset();
 </script>
   </body>
 </html>
