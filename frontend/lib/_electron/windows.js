@@ -66,8 +66,8 @@ const captchaWindow = () => ({
   win: new BrowserWindow({
     center: true,
     fullscreen: false,
-    height: 475,
-    width: 450,
+    height: 415,
+    width: 350,
     maximizable: false,
     minimizable: false,
     frame: false,
