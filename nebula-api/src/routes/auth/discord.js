@@ -81,7 +81,7 @@ async function deactivateUser(res, userData) {
     if (discord && discord.discordId === discordIdHash) {
         let isRemoved = await authUtils.removeUser(keyHash);
 
-        if (isRemoved) {
+        if (!isRemoved) {
             return res.status(200).json({
                 name: 'Success',
                 message: 'Deactivated!'

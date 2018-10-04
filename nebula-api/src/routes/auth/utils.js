@@ -172,6 +172,7 @@ async function removeUser(keyHash) {
     Key: {
       "keyId": keyId,
     },
+    Exists: true,
     ReturnConsumedCapacity: "TOTAL"
   };
   await docClient.delete(params).promise().then(
@@ -191,7 +192,7 @@ async function checkIsInUse(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   const keyHash = hash(algo, key, salt, output);
-  console.log(key, keyHash);
+
   let params = {
     TableName: 'Users',
     Key: keyHash,
@@ -203,6 +204,7 @@ async function checkIsInUse(key) {
       ':keyId': keyHash,
     },
   };
+  
   return docClient.query(params).promise().then(
     (data) => {
       console.log('[DEBUG]: CHECK IN USE RESPONSE: ', data);
