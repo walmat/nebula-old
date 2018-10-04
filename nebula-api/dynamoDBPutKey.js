@@ -31,8 +31,9 @@ function storeKey(key) {
   });
 }
 
-// storeKey('testkey');
+storeKey('testkey1');
 storeKey('testkey2');
+storeKey('testkey3');
 
 /**
  * ONLY FOR DEV USE! NEVER EVER USE IN PROD ENV

@@ -64,8 +64,11 @@ async function createDiscordUser(res, userData) {
 async function deactivateUser(res, userData) {
     const key = userData.licenseKey;
     const discordId = userData.discordId;
+
+    const discordIdHash = hash(algo, discordId, salt, output);
+
     const keyHash = await authUtils.checkValidKey(key);
-    console.log(keyHash);
+
     if (!keyHash) {
         return res.status(401).json({
             name: 'MalformedRequest',
@@ -73,16 +76,22 @@ async function deactivateUser(res, userData) {
         });
     }
     const discord = await authUtils.getDiscordUser(keyHash);
-    console.log(discord);
 
     // verify it's the proper discord user
-    if (discord && discord.discordId === discordId) {
-        await authUtils.removeUser(keyHash);
+    if (discord && discord.discordId === discordIdHash) {
+        let isRemoved = await authUtils.removeUser(keyHash);
 
-        return res.status(200).json({
-            name: 'Success',
-            message: 'Deactivated!'
-        });
+        if (isRemoved) {
+            return res.status(200).json({
+                name: 'Success',
+                message: 'Deactivated!'
+            });
+        } else {
+            return res.status(500).json({
+                name: 'InvalidRequest',
+                message: 'Already deactivated.'
+            });
+        }
     } else if(discord) {
         return res.status(401).json({
             name: 'InvalidRequest',

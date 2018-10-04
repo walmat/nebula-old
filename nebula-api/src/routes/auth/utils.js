@@ -165,15 +165,25 @@ async function removeUser(keyHash) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   
-  console.log(keyHash);
+  const keyId = hash(algo, keyHash, salt, output);
+
   const params = {
+    TableName: "Users",
     Key: {
-      "keyId": keyHash,
+      "keyId": keyId,
     },
-    ReturnConsumedCapacity: "TOTAL", 
-    TableName: "Users"
+    ReturnConsumedCapacity: "TOTAL"
   };
-  await docClient.delete(params).promise();
+  await docClient.delete(params).promise().then(
+    (data) => {
+      console.log('[SUCCESS]: Successfully deleted user');
+      return true;
+    },
+    (err) => {
+      console.log('[ERROR]: ', err, err.stack);
+      return false;
+    }
+  );
 }
 module.exports.removeUser = removeUser;
 
