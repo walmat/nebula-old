@@ -1,5 +1,6 @@
 import Electron from 'electron';
 import Path from 'path';
+import { IPCKeys } from '../common/Constants';
 
 /**
  * Manage the window.

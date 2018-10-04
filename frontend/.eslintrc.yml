@@ -8,4 +8,5 @@ rules:
   no-unused-vars: 0
   no-case-declarations: 0
   linebreak-style: 0
+  prefer-default-export: 0
   
