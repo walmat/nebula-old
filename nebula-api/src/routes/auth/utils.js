@@ -118,14 +118,12 @@ module.exports.getDiscordUser = getDiscordUser;
 async function isDiscordAccountPresent(discordId) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  let data = {
-    discordId
-  }
+
   let params = {
     TableName: 'Discord',
-    Item: data
+    Item: { discordId },
   }
-  return docClient.scan(params).promise().then(
+  return docClient.query(params).promise().then(
     (data) => {
       if (data.Items.length) {
         if (data.Items.length > 1) {

@@ -47,7 +47,7 @@ async function createDiscordUser(res, userData) {
     } else {
         return res.status(401).json({
             name: 'InvalidRequest',
-            message: 'Already have a key bound.'
+            message: 'You already have a key bound.'
         });
     }
 }
@@ -79,12 +79,17 @@ async function deactivateUser(res, userData) {
             name: 'Success',
             message: 'Deactivated!'
         });
-    } else {
+    } else if(discord) {
         return res.status(401).json({
             name: 'InvalidRequest',
-            message: 'Invalid Key or Inactive'
+            message: 'Invalid Key or Unauthorized'
         })
     }
+
+    return res.status(401).json({
+        name: 'InvalidRequest',
+        message: 'Invalid Key or Inactive'
+    })
 }
 
 module.exports = function(app) {
