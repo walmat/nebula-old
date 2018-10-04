@@ -22,3 +22,5 @@ const IPCKeys = {
   UpdateWindowIDs: 'UpdateWindowIDs',
   UpdateMessage: 'UpdateMessage',
 };
+
+module.exports = IPCKeys;

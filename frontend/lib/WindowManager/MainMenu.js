@@ -183,3 +183,6 @@ class MainMenu {
     };
   }
 }
+
+module.exports = MainMenu;
+

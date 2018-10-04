@@ -1,5 +1,5 @@
 const Electron = require('electron');
-const { IPCKeys } = require('../common/Constants');
+const IPCKeys = require('../common/Constants');
 
 /**
  * Manage the dialog.
@@ -23,7 +23,7 @@ class DialogManager {
    *
    * @return {Number} Index of the selected button on dialog.
    */
-  static showMessage(ownerWindow, options) {
+  showMessage(ownerWindow, options) {
     if (ownerWindow) {
       return Electron.dialog.showMessageBox(ownerWindow, options);
     }
@@ -40,7 +40,7 @@ class DialogManager {
    * @return {string[]} On success this method returns an array of file paths
    *                    chosen by the user, otherwise it returns undefined.
    */
-  static showOpenDialog(ownerWindow, options) {
+  showOpenDialog(ownerWindow, options) {
     if (ownerWindow) {
       return Electron.dialog.showOpenDialog(ownerWindow, options);
     }
@@ -80,3 +80,5 @@ class DialogManager {
     ev.sender.send(IPCKeys.FinishShowOpenDialog, paths, null);
   }
 }
+
+module.exports = DialogManager;

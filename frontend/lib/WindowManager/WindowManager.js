@@ -1,7 +1,7 @@
 const Electron = require('electron');
 const Path = require('path');
 
-const { IPCKeys } = require('../common/Constants');
+const IPCKeys = require('../common/Constants');
 
 /**
  * Manage the window.
@@ -39,7 +39,7 @@ class WindowManager {
   /**
    * Reload the focused window, For debug.
    */
-  static reload() {
+  reload() {
     const w = Electron.BrowserWindow.getFocusedWindow();
     if (w) {
       w.reload();
@@ -49,7 +49,7 @@ class WindowManager {
   /**
    * Switch the display of the developer tools window at focused window, For debug.
    */
-  static toggleDevTools() {
+  toggleDevTools() {
     const w = Electron.BrowserWindow.getFocusedWindow();
     if (w) {
       w.toggleDevTools();
@@ -61,7 +61,7 @@ class WindowManager {
    *
    * @return {BrowserWindow} Created window.
    */
-  createNewWindow() {
+  createMainWindow() {
     const w = new Electron.BrowserWindow({
       width: 400,
       height: 400,
@@ -181,3 +181,5 @@ class WindowManager {
     ev.sender.send(IPCKeys.FinishGetWindowIDs, windowIDs);
   }
 }
+
+module.exports = WindowManager;

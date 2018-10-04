@@ -70,7 +70,7 @@ class App {
    * Occurs when a application launched.
    */
   onReady() {
-    this._windowManager.createNewWindow();
+    this._windowManager.createMainWindow();
 
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
@@ -79,7 +79,7 @@ class App {
   /**
    * Occurs when a window all closed.
    */
-  static onWindowAllClosed() {
+  onWindowAllClosed() {
     if (process.env.NODE_ENV === 'development') {
       console.log('Quit');
     }
@@ -89,7 +89,6 @@ class App {
 }
 
 const app = new App();
-console.log(app);
 Electron.app.on('ready', () => {
   if (process.env.NODE_ENV === 'development') {
     console.log('Application is ready');
