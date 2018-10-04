@@ -119,9 +119,11 @@ async function isDiscordAccountPresent(discordId) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
+  let discordIdHash = hash(algo, discordId, salt, output);
+
   let params = {
     TableName: 'Discord',
-    Item: { discordId },
+    Item: { discordId: discordIdHash },
   }
   return docClient.query(params).promise().then(
     (data) => {
@@ -144,13 +146,12 @@ module.exports.isDiscordAccountPresent = isDiscordAccountPresent;
 async function addDiscordUser(keyHash, discordId) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  let data = {
-    licenseKey: keyHash,
-    discordId
-  }
+  
+  let discordIdHash = hash(algo, discordId, salt, output);
+
   let params = {
     TableName: 'Discord',
-    Item: data
+    Item: { licenseKey: keyHash, discordId: discordIdHash, }
   };
   await docClient.put(params).promise();
 }

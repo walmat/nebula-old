@@ -24,9 +24,9 @@
     "underscore": "^1.9.1"
   },
   "scripts": {
-    "start-win-dev": "set NODE_ENV=development nodemon src/app.js",
-    "start-win-prod": "set NODE_ENV=production nodemon src/app.js",
-    "start-mac-dev": "NODE_ENV=development&& nodemon src/app.js",
-    "start-mac-prod": "NODE_ENV=production&& nodemon src/app.js"
+    "start-win-dev": "set NODE_ENV=development&& nodemon src/app.js",
+    "start-win-prod": "set NODE_ENV=production&& nodemon src/app.js",
+    "start-mac-dev": "NODE_ENV=development nodemon src/app.js",
+    "start-mac-prod": "NODE_ENV=production nodemon src/app.js"
   }
 }
