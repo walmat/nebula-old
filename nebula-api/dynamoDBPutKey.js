@@ -8,7 +8,6 @@ const { salt, algo, output } = require('./hashConfig.json');
 AWS.config.update(config);
 var dynamodb = new AWS.DynamoDB();
 
-// module.exports = function(key) {
 function storeKey(key) {
   keyHash = hash(algo, key, salt, output);
 
@@ -23,21 +22,9 @@ function storeKey(key) {
     };
     dynamodb.putItem(params, function(err, data) {
       if (err) console.log(err, err.stack); // an error occurred
-      else {
-        getAllKeys();
-        getAllDiscord();
-        getAllUsers();
-      }
   });
 }
 
-storeKey('testkey1');
-storeKey('testkey2');
-storeKey('testkey3');
-
-/**
- * ONLY FOR DEV USE! NEVER EVER USE IN PROD ENV
- */
 async function getAllKeys() {
 	try {
 		let params = {
@@ -74,3 +61,35 @@ async function getAllUsers() {
   }
 }
 
+// Respond to CLI
+if (process.argv.length === 3) {
+  switch(process.argv[2]) {
+    case '-u': {
+      getAllUsers();
+      break;
+    }
+    case '-k': {
+      getAllKeys();
+      break;
+    }
+    case '-d': {
+      getAllDiscord();
+      break;
+    }
+    case '-a': {
+      // Call all here
+      getAllUsers();
+      getAllKeys();
+      getAllDiscord();
+      break;
+    }
+    default: {
+      storeKey(process.argv[2]);
+      break;
+    }
+  }
+} else {
+  storeKey('testkey1');
+  storeKey('testkey2');
+  storeKey('testkey3');
+}
