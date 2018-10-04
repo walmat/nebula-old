@@ -1,4 +1,6 @@
 const authUtils = require('./utils');
+const { hash } = require('../../../hash');
+const { salt, algo, output } = require('../../../hashConfig.json');
 
 /**
  * Add an entry to the `Discord` table if:
@@ -11,6 +13,8 @@ async function createDiscordUser(res, userData) {
 
     const key = userData.licenseKey;
     const discordId = userData.discordId;
+
+    const discordIdHash = hash(algo, discordId, salt, output);
   
     const keyHash = await authUtils.checkValidKey(key);
     if (!keyHash) {
@@ -22,7 +26,7 @@ async function createDiscordUser(res, userData) {
 
     const discord = await authUtils.getDiscordUser(keyHash);
 
-    if (discord && discord.discordId === discordId) {
+    if (discord && discord.discordId === discordIdHash) {
         return res.status(200).json({
             name: 'Success',
             message: `You've already bound this key!`,
@@ -35,10 +39,10 @@ async function createDiscordUser(res, userData) {
         });
     }
 
-    const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(discordId);
+    const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(discordIdHash);
 
     if (!isDiscordAccountPresent) {
-        await authUtils.addDiscordUser(keyHash, discordId);
+        await authUtils.addDiscordUser(keyHash, discordIdHash);
 
         return res.status(200).json({
             name: 'Success',

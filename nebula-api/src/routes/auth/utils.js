@@ -115,18 +115,20 @@ async function getDiscordUser(keyHash) {
 }
 module.exports.getDiscordUser = getDiscordUser;
 
-async function isDiscordAccountPresent(discordId) {
+async function isDiscordAccountPresent(discordIdHash) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-
-  let discordIdHash = hash(algo, discordId, salt, output);
 
   let params = {
     TableName: 'Discord',
     Item: { discordId: discordIdHash },
   }
+
+  console.log(discordIdHash);
+
   return docClient.query(params).promise().then(
     (data) => {
+      console.log(data);
       if (data.Items.length) {
         if (data.Items.length > 1) {
           console.log('[WARN]: Data Items is longer than one! Using first response');
@@ -143,12 +145,10 @@ async function isDiscordAccountPresent(discordId) {
 }
 module.exports.isDiscordAccountPresent = isDiscordAccountPresent;
 
-async function addDiscordUser(keyHash, discordId) {
+async function addDiscordUser(keyHash, discordIdHash) {
   AWS.config = new AWS.Config(config);
   let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
   
-  let discordIdHash = hash(algo, discordId, salt, output);
-
   let params = {
     TableName: 'Discord',
     Item: { licenseKey: keyHash, discordId: discordIdHash, }
