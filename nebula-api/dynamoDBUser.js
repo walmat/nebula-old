@@ -1,7 +1,5 @@
 var AWS = require("aws-sdk");
 const crypto = require('crypto');
-// FOR USE IN DEV MODE ONLY!
-process.env.NODE_ENV = 'development';
 require('./src/utils/env').setUpEnvironment();
 const config = require('./src/utils/setupDynamoConfig').getConfig();
 

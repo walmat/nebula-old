@@ -1,17 +1,12 @@
 var AWS = require("aws-sdk");
 
-// FOR USE IN DEV MODE ONLY!
 require('./src/utils/env').setUpEnvironment();
 var config = require('./src/utils/setupDynamoConfig').getConfig();
-
-AWS.config.update(config);
-
 var { hash } = require('./hash');
 const { salt, algo, output } = require('./hashConfig.json');
 
+AWS.config.update(config);
 var dynamodb = new AWS.DynamoDB();
-
-let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
 // module.exports = function(key) {
 function storeKey(key) {
@@ -47,7 +42,7 @@ async function getAllKeys() {
 		let params = {
 			TableName: "Keys"
 		}
-		let result = await docClient.scan(params).promise();
+		let result = await dynamodb.scan(params).promise();
     console.log(result);
   } catch (err) {
     console.log(`Couldn't read the table Keys.`);
@@ -59,7 +54,7 @@ async function getAllDiscord() {
 		let params = {
 			TableName: "Discord"
 		}
-		let result = await docClient.scan(params).promise();
+		let result = await dynamodb.scan(params).promise();
     console.log(result);
   } catch (err) {
     console.log(`Couldn't read the table Discord.`);
