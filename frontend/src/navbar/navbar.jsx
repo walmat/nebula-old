@@ -24,9 +24,9 @@ const bodymovinOptions = {
   },
 };
 
-class Navbar extends PureComponent {
+export class NavbarPrimitive extends PureComponent {
   render() {
-    const { history, navbar } = this.props;
+    const { history, navbar, onKeyPress } = this.props;
     return (
       <div className="nav-container">
         <div className="flex-column">
@@ -36,7 +36,7 @@ class Navbar extends PureComponent {
             role="button"
             tabIndex={0}
             title="TASKS"
-            onKeyPress={() => {}}
+            onKeyPress={onKeyPress}
             className={navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null}
             onClick={() => {
               this.props.onRouteTasks(history);
@@ -48,7 +48,7 @@ class Navbar extends PureComponent {
             role="button"
             tabIndex={0}
             title="PROFILES"
-            onKeyPress={() => {}}
+            onKeyPress={onKeyPress}
             className={navbar.location === ROUTES.PROFILES ? 'active' : null}
             onClick={() => {
               this.props.onRouteProfiles(history);
@@ -60,7 +60,7 @@ class Navbar extends PureComponent {
             role="button"
             tabIndex={0}
             title="SERVERS"
-            onKeyPress={() => {}}
+            onKeyPress={onKeyPress}
             className={navbar.location === ROUTES.SERVER ? 'active' : null}
             onClick={() => {
               this.props.onRouteServer(history);
@@ -72,7 +72,7 @@ class Navbar extends PureComponent {
             role="button"
             tabIndex={0}
             title="SETTINGS"
-            onKeyPress={() => {}}
+            onKeyPress={onKeyPress}
             className={navbar.location === ROUTES.SETTINGS ? 'active' : null}
             onClick={() => {
               this.props.onRouteSettings(history);
@@ -86,24 +86,29 @@ class Navbar extends PureComponent {
   }
 }
 
-Navbar.propTypes = {
+NavbarPrimitive.propTypes = {
   history: PropTypes.objectOf(PropTypes.any).isRequired,
   navbar: PropTypes.objectOf(PropTypes.any).isRequired,
   onRouteTasks: PropTypes.func.isRequired,
   onRouteProfiles: PropTypes.func.isRequired,
   onRouteServer: PropTypes.func.isRequired,
   onRouteSettings: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
 };
 
-const mapStateToProps = state => ({
+NavbarPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
+
+export const mapStateToProps = state => ({
   navbar: state.navbar,
 });
 
-const mapDispatchToProps = dispatch => ({
+export const mapDispatchToProps = dispatch => ({
   onRouteTasks: history => dispatch(navbarActions.routeTasks(history)),
   onRouteProfiles: history => dispatch(navbarActions.routeProfiles(history)),
   onRouteServer: history => dispatch(navbarActions.routeServer(history)),
   onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withRouter(Navbar));
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(NavbarPrimitive));

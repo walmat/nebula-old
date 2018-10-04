@@ -2,7 +2,7 @@ import bodymovin from 'bodymovin';
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const isDOM = typeof window === 'object' && typeof window.document === 'object';
+const isDOM = window && window.document;
 
 class Bodymovin extends React.Component {
   componentDidMount() {
