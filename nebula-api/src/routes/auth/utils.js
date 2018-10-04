@@ -121,12 +121,16 @@ async function isDiscordAccountPresent(discordIdHash) {
 
   let params = {
     TableName: 'Discord',
-    Item: { discordId: discordIdHash },
-  }
+    FilterExpression: '#discordId = :discordId',
+    ExpressionAttributeNames: {
+      '#discordId': 'discordId',
+    },
+    ExpressionAttributeValues: {
+      ':discordId': discordIdHash,
+    },
+  };
 
-  console.log(discordIdHash);
-
-  return docClient.query(params).promise().then(
+  return docClient.scan(params).promise().then(
     (data) => {
       console.log(data);
       if (data.Items.length) {
