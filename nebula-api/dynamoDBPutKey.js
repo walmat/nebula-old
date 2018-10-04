@@ -54,7 +54,7 @@ async function getAllUsers() {
 		let params = {
 			TableName: "Users"
 		}
-		let result = await docClient.scan(params).promise();
+		let result = await dynamodb.scan(params).promise();
     console.log(result);
   } catch (err) {
     console.log(`Couldn't read the table Users.`);
