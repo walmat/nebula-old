@@ -1,11 +1,12 @@
-import Electron from 'electron';
-import Path from 'path';
-import { IPCKeys } from '../common/Constants';
+const Electron = require('electron');
+const Path = require('path');
+
+const { IPCKeys } = require('../common/Constants');
 
 /**
  * Manage the window.
  */
-export default class WindowManager {
+class WindowManager {
   /**
    * Initialize instance.
    *

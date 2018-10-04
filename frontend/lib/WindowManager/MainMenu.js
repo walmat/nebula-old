@@ -1,12 +1,12 @@
-import Electron from 'electron';
+const Electron = require('electron');
 
-const APP_NAME = 'Electron Multiple Windows';
-const HELP_URL = 'https://github.com/akabekobeko/examples-electron';
+const APP_NAME = 'Nebula';
+const HELP_URL = 'https://nebulabots.com/about';
 
 /**
  * Main menu.
  */
-export default class MainMenu {
+class MainMenu {
   /**
    * Create menu.
    *

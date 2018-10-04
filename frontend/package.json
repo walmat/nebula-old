@@ -2,7 +2,7 @@
   "name": "nebula",
   "version": "0.1.0",
   "private": true,
-  "main": "lib/_electron/electron.js",
+  "main": "lib/WindowManager/App.js",
   "homepage": "./",
   "build": {
     "appId": "com.example.nebula",

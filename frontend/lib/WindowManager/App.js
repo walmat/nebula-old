@@ -1,7 +1,7 @@
-import Electron from 'electron';
-import MainMenu from './MainMenu';
-import DialogManager from './DialogManager';
-import WindowManager from './WindowManager';
+const Electron = require('electron');
+const MainMenu = require('./MainMenu');
+const DialogManager = require('./DialogManager');
+const WindowManager = require('./WindowManager');
 
 /**
  * Application entry point.
@@ -20,13 +20,13 @@ class App {
      * IPC module for main process.
      * @type {ipcMain}
      */
-    this._ipc = require('electron').ipcMain;
+    this._ipc = Electron.ipcMain;
 
     /**
      * The shell module provides functions related to desktop integration.
      * @type {shell}
      */
-    this._shell = require('electron').shell;
+    this._shell = Electron.shell;
 
     /**
      * Manage the window.
@@ -89,6 +89,7 @@ class App {
 }
 
 const app = new App();
+console.log(app);
 Electron.app.on('ready', () => {
   if (process.env.NODE_ENV === 'development') {
     console.log('Application is ready');

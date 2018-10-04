@@ -3,7 +3,7 @@
  * IPC keys.
  * @type {Object}
  */
-export const IPCKeys = {
+const IPCKeys = {
   RequestShowMessage: 'RequestShowMessage',
   FinishShowMessage: 'FinishShowMessage',
 

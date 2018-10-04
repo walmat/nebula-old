@@ -1,10 +1,10 @@
-import Electron from 'electron';
-import { IPCKeys } from '../common/Constants';
+const Electron = require('electron');
+const { IPCKeys } = require('../common/Constants');
 
 /**
  * Manage the dialog.
  */
-export default class DialogManager {
+class DialogManager {
   /**
    * Initialize instance.
    *
