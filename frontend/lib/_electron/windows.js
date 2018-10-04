@@ -18,11 +18,7 @@ const mainWindow = () => ({
       webSecurity: true,
     },
   }),
-  winUrl: process.env.NEBULA_START_URL || url.format({
-    pathname: path.join(__dirname, '../../build/index.html'),
-    protocol: 'file:',
-    slashes: true,
-  }),
+  winUrl: process.env.NEBULA_START_URL || `file:///${path.join(__dirname, '../../build/index.html')}`,
   tag: 'main',
 });
 
@@ -42,11 +38,7 @@ const authWindow = () => ({
       webSecurity: true,
     },
   }),
-  winUrl: url.format({
-    pathname: path.join(__dirname, '../../public/auth.html'),
-    protocol: 'file:',
-    slashes: true,
-  }),
+  winUrl: process.env.NEBULA_START_URL || `file:///${path.join(__dirname, '../../public/auth.html')}`,
   tag: 'auth',
 });
 

@@ -1,8 +1,9 @@
-const { prefixes, token } = require('./config.json');
+const { token, prefixes } = require('./config.json');
 const Discord = require('discord.js');
 
+const { bind, deactivate, purge } = require('./auth');
+
 const dotenv = require('dotenv');
-const fetch = require('node-fetch');
 const client = new Discord.Client();
 
 // loads enviornment variables
@@ -26,44 +27,65 @@ client.on('message', async message => {
 
     /* DM received to bot */
     if (message.guild === null) {
-        bindUser(message);
+        let content = message.content.split(' ');
+
+        switch(content[0]) {
+            case '!bind': {     
+                if (content.length !== 2) {
+                    message.channel.send('Format: `!bind <key>`')
+                }
+                const licenseKey = content[1];
+                const discordId = message.author.id;
+
+                bind(licenseKey, discordId, (err, msg) => {
+                    if (err) {
+                        message.channel.send(msg);
+                        return; // don't give them access or anything..
+                    }
+                    // continue to grant access to discord `@member` role
+                    const server = client.guilds.get("426860107054317575");
+                    const member = server.members.get(`${discordId}`);
+                    const role = server.roles.find("name", "member");
+                    member.addRole(role).then(() => {
+                        message.channel.send(msg);
+                    }).catch(() => {
+                        message.channel.send('Unable to give permissions, please contact @sean#0002')
+                    });
+                });
+                break;
+            }
+            case '!deactivate': {
+                if (content.length !== 2) {
+                    message.channel.send('Format: `!deactivate <key>`');
+                }
+                const licenseKey = content[1];
+                const discordId = message.author.id;
+
+                deactivate(licenseKey, discordId, (msg) => {
+                    message.channel.send(msg);
+                });
+                break;
+            }
+            case '!purge': {
+
+                if (content.length !== 2) {
+                    message.channel.send('Not supported');
+                }
+                const licenseKey = content[1];
+                const discordId = message.author.id;
+
+                purge(licenseKey, discordId, (msg) => {
+                    message.channel.send(msg);
+                });
+                break;
+            }
+            case '?help': {
+                message.channel.send("List of commands:\n\n`!bind <key>` – binds the key to the discord user\n`!deactivate <key>` – deactivates electron app from user's machine\n`!purge <key>` – not supported (yet)");
+                break;
+            }
+        }
     }
 });
-
-async function bindUser(message) {
-    // get registration key and discordId from the message
-    let content = message.content.split(' ');
-    const licenseKey = content[1];
-    const discordId = message.author.id;
-    console.log(discordId);
-    
-    // ...some validation
-    if (content.length !== 2 || !content[0].startsWith('!')) {
-        return;
-    }
-
-    // call the nebula api endpoint
-    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/user`,
-        {
-            method: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                discordId,
-                licenseKey
-            }),
-        });
-
-    console.log(result);
-
-    if (result.status === process.env.SUCCESS) {
-        message.channel.send(`${licenseKey} successfully bound to your Discord account`);
-    } else if (result.status === process.env.KEY_IN_USE) {
-        message.channel.send(`Key: ${licenseKey} in use.`);
-    } // otherwise send no status report to reduce clutter
-}
 
 // helper
 function capitalizeFirstLetter(string) {

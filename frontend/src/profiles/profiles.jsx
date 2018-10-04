@@ -13,8 +13,8 @@ import './profiles.css';
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
 
 // images
-import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 import checkboxChecked from '../_assets/Check_icons-01.svg';
+import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 class Profiles extends Component {
   constructor(props) {

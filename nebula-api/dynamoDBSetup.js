@@ -1,7 +1,5 @@
 // Run this to set up your local dynamoDB tables necessary to develop the backend
 var AWS = require("aws-sdk");
-// FOR USE IN DEV MODE ONLY!
-process.env.NODE_ENV = 'development';
 require('./src/utils/env').setUpEnvironment();
 var config = require('./src/utils/setupDynamoConfig').getConfig();
 
@@ -15,6 +13,20 @@ var users = {
     ],
     AttributeDefinitions: [
         { AttributeName: "keyId", AttributeType: "S" },
+    ],
+    ProvisionedThroughput: {
+        ReadCapacityUnits: 5,
+        WriteCapacityUnits: 5
+    }
+};
+
+var discord = {
+    TableName : "Discord",
+    KeySchema: [
+        { AttributeName: "licenseKey", KeyType: "HASH"}  //Partition key
+    ],
+    AttributeDefinitions: [
+        { AttributeName: "licenseKey", AttributeType: "S" },
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 5,
@@ -44,10 +56,18 @@ dynamodb.createTable(users, function(err, data) {
     }
 });
 
+dynamodb.createTable(discord, function(err, data) {
+    if (err) {
+        console.log("Error creating table Discord.", JSON.stringify(err, null, 2));
+    } else {
+        console.log("Created table: Discord.", JSON.stringify(data, null, 2));
+    }
+});
+
 dynamodb.createTable(keys, function(err, data) {
     if (err) {
-        console.error("Unable to create table keys. Error JSON:", JSON.stringify(err, null, 2));
+        console.error("Unable to create table Key.", JSON.stringify(err, null, 2));
     } else {
-        console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
+        console.log("Created table: Keys.", JSON.stringify(data, null, 2));
     }
 });

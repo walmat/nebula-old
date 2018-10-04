@@ -138,7 +138,6 @@ ipcMain.on('window-event', async (event, arg) => {
       break;
     }
     case 'quit': {
-      // deauth user and close application
       await nebulaAuth.clearSession();
       app.quit();
       break;
@@ -172,9 +171,9 @@ ipcMain.on('auth', async (event, { arg, key }) => {
       break;
     }
     case 'deactivate': {
-      const deactivated = await nebulaAuth.clearSession();
-      if (!deactivated) {
-        ipcMain.send('error', 'Unable to invalidate');
+      const clearSession = await nebulaAuth.clearSession();
+      if (!clearSession) {
+        event.sender.send('error', 'Unable to deactivate');
         return;
       }
       _showNewWindow(authWindow());

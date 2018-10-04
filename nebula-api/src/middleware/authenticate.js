@@ -63,6 +63,7 @@ module.exports = async function(req, res, next) {
 
     // Check if tokens key is valid
     const keyHash = await authUtils.checkValidKey(decoded.key);
+    console.log(keyHash);
     if (!keyHash) {
         console.log('[ERROR]: INVALID KEY!');
         console.log('===============================================');

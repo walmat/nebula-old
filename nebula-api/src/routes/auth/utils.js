@@ -1,10 +1,9 @@
 const AWS = require('aws-sdk');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const config = require('../../utils/setupDynamoConfig').getConfig();
 const { storeUser, deleteUser } = require('../../../dynamoDBUser');
-const { makeHash } = require('../../../hash');
+const { hash } = require('../../../hash');
 const { salt, algo, output } = require('../../../hashConfig.json');
 
 const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
@@ -47,13 +46,10 @@ function generateTokens(key, refreshPayload) {
 }
 module.exports.generateTokens = generateTokens;
 
-async function checkValidKey(key) {
+function checkValidKey(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  const keyHash = crypto.createHash(algo)
-    .update(key)
-    .update(makeHash(salt))
-    .digest(output);
+  const keyHash = hash(algo, key, salt, output);
   console.log('[DEBUG]: checking for hash: ', keyHash);
   const params = {
     TableName: 'Keys',
@@ -82,13 +78,121 @@ async function checkValidKey(key) {
 }
 module.exports.checkValidKey = checkValidKey;
 
+/**
+ * Returns the discord user tied to a given key
+ * @param {*} key – unmalformed license key data
+ */
+async function getDiscordUser(keyHash) {
+  AWS.config = new AWS.Config(config);
+  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  let params = {
+    TableName: 'Discord',
+    Key: keyHash,
+    KeyConditionExpression: '#licenseKey = :licenseKey',
+    ExpressionAttributeNames: {
+      '#licenseKey': 'licenseKey',
+    },
+    ExpressionAttributeValues: {
+      ':licenseKey': keyHash,
+    },
+  };
+  return docClient.query(params).promise().then(
+    (data) => {
+      console.log('[DEBUG]: CHECK DISCORD USER RESPONSE: ', data);
+      if(data.Items.length) {
+        if (data.Items.length > 1) {
+          console.log('[WARN]: Data Items is longer than one! Using first response');
+        }
+        return data.Items[0];
+      }
+      return null;
+    },
+    (err) => {
+      console.log('[ERROR]: CHECK DISCORD USER RESPONSE: ', err, err.stack);
+      return null;
+    }
+  );
+}
+module.exports.getDiscordUser = getDiscordUser;
+
+async function isDiscordAccountPresent(discordIdHash) {
+  AWS.config = new AWS.Config(config);
+  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+
+  let params = {
+    TableName: 'Discord',
+    FilterExpression: '#discordId = :discordId',
+    ExpressionAttributeNames: {
+      '#discordId': 'discordId',
+    },
+    ExpressionAttributeValues: {
+      ':discordId': discordIdHash,
+    },
+  };
+
+  return docClient.scan(params).promise().then(
+    (data) => {
+      console.log(data);
+      if (data.Items.length) {
+        if (data.Items.length > 1) {
+          console.log('[WARN]: Data Items is longer than one! Using first response');
+        }
+        return data.Items[0];
+      }
+      return null;
+    },
+    (err) => {
+      console.log('[ERROR]: CHECK DISCORD IN USE RESPONSE: ', err, err.stack);
+      return null;
+    }
+  );
+}
+module.exports.isDiscordAccountPresent = isDiscordAccountPresent;
+
+async function addDiscordUser(keyHash, discordIdHash) {
+  AWS.config = new AWS.Config(config);
+  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  
+  let params = {
+    TableName: 'Discord',
+    Item: { licenseKey: keyHash, discordId: discordIdHash, }
+  };
+  await docClient.put(params).promise();
+}
+module.exports.addDiscordUser = addDiscordUser;
+
+async function removeUser(keyHash) {
+  AWS.config = new AWS.Config(config);
+  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  
+  const keyId = hash(algo, keyHash, salt, output);
+
+  const params = {
+    TableName: "Users",
+    Key: {
+      "keyId": keyId,
+    },
+    Exists: true,
+    ReturnConsumedCapacity: "TOTAL"
+  };
+  await docClient.delete(params).promise().then(
+    (data) => {
+      console.log('[SUCCESS]: Successfully deleted user');
+      return true;
+    },
+    (err) => {
+      console.log('[ERROR]: ', err, err.stack);
+      return false;
+    }
+  );
+}
+module.exports.removeUser = removeUser;
+
 async function checkIsInUse(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  const keyHash = crypto.createHash(algo)
-    .update(key)
-    .update(makeHash(salt))
-    .digest(output);
+  const keyHash = hash(algo, key, salt, output);
+
   let params = {
     TableName: 'Users',
     Key: keyHash,
@@ -100,6 +204,7 @@ async function checkIsInUse(key) {
       ':keyId': keyHash,
     },
   };
+  
   return docClient.query(params).promise().then(
     (data) => {
       console.log('[DEBUG]: CHECK IN USE RESPONSE: ', data);
@@ -164,6 +269,7 @@ module.exports.verifyKey = verifyKey;
 async function verifyToken(token) {
   // Attempt to Decode token
   let decoded = null;
+
   try {
     decoded = jwt.verify(token, SECRET_KEY, {
       issuer: process.env.NEBULA_API_ID,
