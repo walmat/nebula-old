@@ -20,7 +20,6 @@ async function createDiscordUser(res, userData) {
       });
     }
 
-    const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(discordId);
     const discord = await authUtils.getDiscordUser(keyHash);
 
     if (discord && discord.discordId === discordId) {
@@ -36,6 +35,8 @@ async function createDiscordUser(res, userData) {
         });
     }
 
+    const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(discordId);
+
     if (!isDiscordAccountPresent) {
         await authUtils.addDiscordUser(keyHash, discordId);
 
@@ -46,7 +47,7 @@ async function createDiscordUser(res, userData) {
     } else {
         return res.status(401).json({
             name: 'InvalidRequest',
-            message: 'Invalid Key or Already in use.'
+            message: 'Already have a key bound.'
         });
     }
 }

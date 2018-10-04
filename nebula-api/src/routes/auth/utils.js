@@ -98,7 +98,7 @@ async function getDiscordUser(keyHash) {
   };
   return docClient.query(params).promise().then(
     (data) => {
-      console.log('[DEBUG]: CHECK IN USE RESPONSE: ', data);
+      console.log('[DEBUG]: CHECK DISCORD RESPONSE: ', data);
       if(data.Items.length) {
         if (data.Items.length > 1) {
           console.log('[WARN]: Data Items is longer than one! Using first response');
@@ -108,7 +108,7 @@ async function getDiscordUser(keyHash) {
       return null;
     },
     (err) => {
-      console.log('[ERROR]: CHECK IN USE RESPONSE: ', err, err.stack);
+      console.log('[ERROR]: CHECK DISCORD RESPONSE: ', err, err.stack);
       return null;
     }
   );

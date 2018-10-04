@@ -72,4 +72,4 @@ async function deactivate(licenseKey, discordId, cb) {
 // }
 
 // purge
-module.exports = { bind, deactivate,  };
+module.exports = { bind, deactivate };

@@ -1,7 +1,6 @@
 var AWS = require("aws-sdk");
 
 // FOR USE IN DEV MODE ONLY!
-process.env.NODE_ENV = 'production';
 require('./src/utils/env').setUpEnvironment();
 var config = require('./src/utils/setupDynamoConfig').getConfig();
 
@@ -12,7 +11,6 @@ const { salt, algo, output } = require('./hashConfig.json');
 
 var dynamodb = new AWS.DynamoDB();
 
-console.log(config.endpoint);
 let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
 // module.exports = function(key) {
