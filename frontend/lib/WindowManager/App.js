@@ -78,6 +78,7 @@ class App {
     const win = this._windowManager.createNewWindow('main');
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
+
     win.on('ready-to-show', () => {
       if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         win.webContents.openDevTools();

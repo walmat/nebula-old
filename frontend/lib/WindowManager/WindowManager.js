@@ -40,6 +40,12 @@ class WindowManager {
      */
     this._main = null;
 
+    /**
+     * Auth Window
+     * @type {BrowserWindow}
+     */
+    this._auth = null;
+
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
@@ -70,16 +76,13 @@ class WindowManager {
    *
    * @return {BrowserWindow} Created window.
    */
-  async createNewWindow(tag) {
+  createNewWindow(tag) {
     let w;
     let winUrl;
-
-    const session = await nebulaAuth.getSession();
-
     switch (tag) {
       case 'about': {
         if (this._aboutDialog) {
-          return;
+          return this._aboutDialog;
         }
         w = new Electron.BrowserWindow({
           width: 300,
@@ -92,6 +95,9 @@ class WindowManager {
         break;
       }
       case 'auth': {
+        if (this._auth) {
+          return this._auth;
+        }
         w = new Electron.BrowserWindow({
           width: 300,
           height: 215,
@@ -108,9 +114,13 @@ class WindowManager {
           },
         });
         winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
+        this._auth = w;
         break;
       }
       case 'main': {
+        if (this._main) {
+          return this._main;
+        }
         w = new Electron.BrowserWindow({
           width: 1000,
           height: 715,
