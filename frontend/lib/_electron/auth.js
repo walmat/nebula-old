@@ -16,46 +16,91 @@ class AuthManager {
    */
   constructor(context) {
     this._context = context;
+
+    /**
+     * Application Store
+     *
+     * @type {Store}
+     */
+    this._store = new Store();
+
+    if (_isDevelopment) {
+      module.exports.store = this._store;
+    }
   }
-}
 
-const store = new Store();
-if (_isDevelopment) {
-  module.exports.store = store;
-}
+  static async getSession() {
+    let session = this._store.get('session');
 
-// Get session from store
-async function getSession() {
-  let session = store.get('session');
+    if (session) {
+      session = JSON.parse(session);
+      if (session.expiry === null || session.expiry > (Date.now() / 1000)) {
+        return session;
+      }
 
-  if (session) {
-    session = JSON.parse(session);
-    if (session.expiry === null || session.expiry > (Date.now() / 1000)) {
+      const res = await fetch(`${process.env.NEBULA_API_URL}/auth/token`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ grant_type: 'refresh', token: session.refreshToken }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const { accessToken, refreshToken, expiry } = data;
+        this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
+        return { accessToken, refreshToken, expiry };
+      }
+      const { error } = await res.json();
+      console.log('[ERROR] Unable to perform refresh: ', error);
+      return null;
+    }
+    return null;
+  }
+
+  static async clearSession() {
+    const session = await this.getSession();
+    if (session) {
+      const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        console.log('[ERROR]: Unable to Delete: ', error);
+        return false;
+      }
+    }
+    this._store.delete('session');
+    return true;
+  }
+
+  static async createSession(key) {
+    if (_isDevelopment) {
+      return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
+    }
+    const session = await this.getSession();
+    if (session) {
       return session;
     }
 
-    // session expired, attempt to refresh it
     const res = await fetch(`${process.env.NEBULA_API_URL}/auth/token`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ grant_type: 'refresh', token: session.refreshToken }),
+      body: JSON.stringify({ grant_type: 'key', key }),
     });
     if (res.ok) {
       const data = await res.json();
       const { accessToken, refreshToken, expiry } = data;
-      store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
-      return { accessToken, refreshToken, expiry };
-    }
-    const { error } = await res.json();
-    console.log('[ERROR] Unable to perform refresh: ', error);
-    return null;
-  }
-  return null;
-}
-module.exports.getSession = getSession;
+      this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
 
 // Clear session from store
 async function clearSession() {
@@ -74,38 +119,10 @@ async function clearSession() {
       console.log('[ERROR]: Unable to Delete: ', error);
       return false;
     }
+    const body = await res.json();
+    console.log('[ERROR]: Unable to create auth token: ', body);
+    return { errors: body.error };
   }
-  store.delete('session');
-  return true;
 }
-module.exports.clearSession = clearSession;
 
-async function createSession(key) {
-  if (_isDevelopment) {
-    return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
-  }
-  const session = await getSession();
-  if (session) {
-    return session;
-  }
-
-  const res = await fetch(`${process.env.NEBULA_API_URL}/auth/token`, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ grant_type: 'key', key }),
-  });
-  if (res.ok) {
-    const data = await res.json();
-    const { accessToken, refreshToken, expiry } = data;
-    store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
-
-    return { accessToken, refreshToken, expiry };
-  }
-  const body = await res.json();
-  console.log('[ERROR]: Unable to create auth token: ', body);
-  return { errors: body.error };
-}
-module.exports.createSession = createSession;
+module.exports.createSession = AuthManager;
