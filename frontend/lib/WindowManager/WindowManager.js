@@ -202,7 +202,7 @@ class WindowManager {
           if (this._aboutDialog) {
             return this._aboutDialog;
           }
-          w = AuthManager.createAboutWindow();
+          w = WindowManager.createAboutWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
           this._aboutDialog = w;
           break;
@@ -211,7 +211,7 @@ class WindowManager {
           if (this._auth) {
             return this._auth;
           }
-          w = AuthManager.createAuthWindow();
+          w = WindowManager.createAuthWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
           this._auth = w;
           break;
@@ -220,18 +220,18 @@ class WindowManager {
           if (this._main) {
             return this._main;
           }
-          w = AuthManager.createMainWindow();
+          w = WindowManager.createMainWindow();
           winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
           this._main = w;
           break;
         }
         case 'youtube': {
-          w = AuthManager.createYouTubeWindow();
+          w = WindowManager.createYouTubeWindow();
           winUrl = 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
           break;
         }
         case 'captcha': {
-          w = AuthManager.createCaptchaWindow();
+          w = WindowManager.createCaptchaWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
           break;
         }
