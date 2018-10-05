@@ -8,6 +8,17 @@ nebulaEnv.setUpEnvironment();
 const _isDevelopment = process.env.NEBULA_ENV === 'development';
 
 
+class AuthManager {
+  /**
+   * Initialize auth manager
+   *
+   * @param {App} context Application context
+   */
+  constructor(context) {
+    this._context = context;
+  }
+}
+
 const store = new Store();
 if (_isDevelopment) {
   module.exports.store = store;
