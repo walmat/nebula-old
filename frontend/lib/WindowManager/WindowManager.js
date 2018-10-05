@@ -2,7 +2,13 @@ const Electron = require('electron');
 const Path = require('path');
 
 const IPCKeys = require('../common/Constants');
-const AuthManager = require('../_electron/AuthManager');
+const {
+  createAboutWindow,
+  createAuthWindow,
+  createCaptchaWindow,
+  createMainWindow,
+  createYouTubeWindow,
+} = require('./Windows');
 
 const isDevelopment = process.env.NEBULA_ENV === 'development';
 
@@ -72,120 +78,6 @@ class WindowManager {
   }
 
   /**
-   * Creates an Auth Window
-   *
-   * @return {BrowserWindow} Auth Window
-   */
-  static createAuthWindow() {
-    return new Electron.BrowserWindow({
-      width: 300,
-      height: 215,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: Path.join(__dirname, '../_electron/preload.js'),
-        webSecurity: true,
-      },
-    });
-  }
-
-  /**
-   * Creates an About Window
-   *
-   * @return {BrowserWindow} About Window
-   */
-  static createAboutWindow() {
-    return new Electron.BrowserWindow({
-      width: 300,
-      height: 215,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        webSecurity: true,
-      },
-    });
-  }
-
-  /**
-   * Creates an Captcha Window
-   *
-   * @return {BrowserWindow} Captcha Window
-   */
-  static createCaptchaWindow() {
-    return new Electron.BrowserWindow({
-      width: 415,
-      height: 350,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: Path.join(__dirname, '../_electron/preload.js'),
-        webSecurity: true,
-      },
-    });
-  }
-
-  /**
-   * Creates an YouTube Window
-   *
-   * @return {BrowserWindow} YouTube Window
-   */
-  static createYouTubeWindow() {
-    return new Electron.BrowserWindow({
-      width: 450,
-      height: 475,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: Path.join(__dirname, '../_electron/preload.js'),
-        webSecurity: true,
-      },
-    });
-  }
-
-  /**
-   * Creates an Main Window
-   *
-   * @return {BrowserWindow} Main Window
-   */
-  static createMainWindow() {
-    return new Electron.BrowserWindow({
-      width: 1000,
-      height: 715,
-      center: true,
-      frame: false,
-      fullscreenable: false,
-      movable: true,
-      resizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        preload: Path.join(__dirname, '../_electron/preload.js'),
-        webSecurity: true,
-      },
-    });
-  }
-
-  /**
    * Create the main application window.
    *
    * @return {BrowserWindow} Created window.
@@ -202,7 +94,7 @@ class WindowManager {
           if (this._aboutDialog) {
             return this._aboutDialog;
           }
-          w = WindowManager.createAboutWindow();
+          w = createAboutWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
           this._aboutDialog = w;
           break;
@@ -211,7 +103,7 @@ class WindowManager {
           if (this._auth) {
             return this._auth;
           }
-          w = WindowManager.createAuthWindow();
+          w = createAuthWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
           this._auth = w;
           break;
@@ -220,18 +112,18 @@ class WindowManager {
           if (this._main) {
             return this._main;
           }
-          w = WindowManager.createMainWindow();
+          w = createMainWindow();
           winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
           this._main = w;
           break;
         }
         case 'youtube': {
-          w = WindowManager.createYouTubeWindow();
+          w = createYouTubeWindow();
           winUrl = 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
           break;
         }
         case 'captcha': {
-          w = WindowManager.createCaptchaWindow();
+          w = createCaptchaWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
           break;
         }
