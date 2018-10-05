@@ -47,14 +47,6 @@ class MainMenu {
           type: 'separator',
         },
         {
-          label: 'Services',
-          role: 'services',
-          submenu: [],
-        },
-        {
-          type: 'separator',
-        },
-        {
           label: `Hide ${APP_NAME}`,
           accelerator: 'Command+H',
           role: 'hide',
@@ -86,22 +78,12 @@ class MainMenu {
    * @return {Object} Menu data.
    */
   static _menuView() {
-    const templates = {
-      label: 'View',
-      submenu: [
-        {
-          label: 'Toggle Full Screen',
-          accelerator: (() => (process.platform === 'darwin' ? 'Ctrl+Command+F' : 'F11'))(),
-          click: (item, focusedWindow) => {
-            if (focusedWindow) {
-              focusedWindow.setFullScreen(!(focusedWindow.isFullScreen()));
-            }
-          },
-        },
-      ],
-    };
-
     if (process.env.NODE_ENV === 'development') {
+      const templates = {
+        label: 'View',
+        submenu: [
+        ],
+      };
       templates.submenu.unshift({
         label: 'Reload',
         accelerator: 'CmdOrCtrl+R',
@@ -121,9 +103,9 @@ class MainMenu {
           }
         },
       });
+      return templates;
     }
-
-    return templates;
+    return null;
   }
 
   /**

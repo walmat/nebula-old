@@ -5,7 +5,7 @@ const nebulaDebug = require('./debug');
 const nebulaCheckUpdates = require('./checkUpdates');
 const {
   mainWindow, authWindow, captchaWindow, youtubeWindow,
-} = require('./windows');
+} = require('../common/windows');
 const { menu } = require('./menu');
 
 // Set up nebula environment variables

@@ -2,6 +2,9 @@ const Electron = require('electron');
 const Path = require('path');
 
 const IPCKeys = require('../common/Constants');
+const nebulaAuth = require('../_electron/auth');
+
+const isDevelopment = process.env.NEBULA_ENV === 'development';
 
 /**
  * Manage the window.
@@ -31,6 +34,12 @@ class WindowManager {
      */
     this._aboutDialog = null;
 
+    /**
+     * Main Window
+     * @type {BrowserWindow}
+     */
+    this._main = null;
+
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
@@ -39,7 +48,7 @@ class WindowManager {
   /**
    * Reload the focused window, For debug.
    */
-  reload() {
+  static reload() {
     const w = Electron.BrowserWindow.getFocusedWindow();
     if (w) {
       w.reload();
@@ -49,7 +58,7 @@ class WindowManager {
   /**
    * Switch the display of the developer tools window at focused window, For debug.
    */
-  toggleDevTools() {
+  static toggleDevTools() {
     const w = Electron.BrowserWindow.getFocusedWindow();
     if (w) {
       w.toggleDevTools();
@@ -57,23 +66,114 @@ class WindowManager {
   }
 
   /**
-   * Create a new window.
+   * Create the main application window.
    *
    * @return {BrowserWindow} Created window.
    */
-  createMainWindow() {
-    const w = new Electron.BrowserWindow({
-      width: 400,
-      height: 400,
-      minWidth: 400,
-      minHeight: 400,
-      resizable: true,
-    });
+  async createNewWindow(tag) {
+    let w;
+    let winUrl;
 
-    const { id } = w.id;
+    const session = await nebulaAuth.getSession();
+
+    switch (tag) {
+      case 'about': {
+        if (this._aboutDialog) {
+          return;
+        }
+        w = new Electron.BrowserWindow({
+          width: 300,
+          height: 256,
+          resizable: false,
+          alwaysOnTop: true,
+        });
+        winUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
+        break;
+      }
+      case 'auth': {
+        w = new Electron.BrowserWindow({
+          width: 300,
+          height: 215,
+          center: true,
+          frame: false,
+          fullscreenable: false,
+          movable: true,
+          resizable: false,
+          show: false,
+          webPreferences: {
+            nodeIntegration: false,
+            preload: Path.join(__dirname, '../_electron/preload.js'),
+            webSecurity: true,
+          },
+        });
+        winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
+        break;
+      }
+      case 'main': {
+        w = new Electron.BrowserWindow({
+          width: 1000,
+          height: 715,
+          center: true,
+          frame: false,
+          fullscreenable: false,
+          movable: true,
+          resizable: false,
+          show: false,
+          webPreferences: {
+            nodeIntegration: false,
+            preload: Path.join(__dirname, '../_electron/preload.js'),
+            webSecurity: true,
+          },
+        });
+        winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
+        break;
+      }
+      case 'youtube': {
+        w = new Electron.BrowserWindow({
+          width: 450,
+          height: 475,
+          center: true,
+          frame: false,
+          fullscreenable: false,
+          movable: true,
+          resizable: false,
+          show: false,
+          webPreferences: {
+            nodeIntegration: false,
+            preload: Path.join(__dirname, '../_electron/preload.js'),
+            webSecurity: true,
+          },
+        });
+        winUrl = 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
+        break;
+      }
+      case 'captcha': {
+        w = new Electron.BrowserWindow({
+          width: 415,
+          height: 350,
+          center: true,
+          frame: false,
+          fullscreenable: false,
+          movable: true,
+          resizable: false,
+          show: false,
+          webPreferences: {
+            nodeIntegration: false,
+            preload: Path.join(__dirname, '../_electron/preload.js'),
+            webSecurity: true,
+          },
+        });
+        winUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
+        break;
+      }
+      default: break;
+    }
+    w.loadURL(winUrl);
+    const { id } = w;
+    this._windows.set(id, w);
 
     w.on('closed', () => {
-      if (process.env.NODE_ENV === 'development') {
+      if (isDevelopment) {
         console.log(`Window was closed, id = ${id}`);
       }
 
@@ -85,42 +185,7 @@ class WindowManager {
         this._aboutDialog.close();
       }
     });
-
-    // `win.loadFile` will escape `#` to `%23`, So use `win.loadURL`
-    const filePath = Path.join(__dirname, 'index.html');
-    w.loadURL(`file://${filePath}#${id}`);
-    this._windows.set(id, w);
-
     return w;
-  }
-
-  /**
-   * Show the about application window.
-   */
-  createAboutWindow() {
-    if (this._aboutDialog) {
-      return;
-    }
-
-    const w = new Electron.BrowserWindow({
-      width: 400,
-      height: 256,
-      resizable: false,
-      alwaysOnTop: true,
-    });
-
-    w.setMenu(null);
-
-    w.on('closed', () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('The about application window was closed.');
-      }
-
-      this._aboutDialog = null;
-    });
-
-    w.loadFile('assets/about.html');
-    this._aboutDialog = w;
   }
 
   /**
@@ -148,8 +213,8 @@ class WindowManager {
    *
    * @param {IPCEvent} ev Event data.
    */
-  _onRequestCreateNewWindow(ev) {
-    const createdWindow = this.createNewWindow();
+  _onRequestCreateNewWindow(ev, tag) {
+    const createdWindow = this.createNewWindow(tag);
     ev.sender.send(IPCKeys.FinishCreateNewWindow);
 
     this._notifyUpdateWindowIDs(createdWindow.id);

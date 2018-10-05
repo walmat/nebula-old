@@ -2,6 +2,11 @@ const Electron = require('electron');
 const MainMenu = require('./MainMenu');
 const DialogManager = require('./DialogManager');
 const WindowManager = require('./WindowManager');
+const nebulaEnv = require('../_electron/env');
+const nebulaAuth = require('../_electron/auth');
+
+nebulaEnv.setUpEnvironment();
+const isDevelopment = process.env.NEBULA_ENV === 'development';
 
 /**
  * Application entry point.
@@ -12,7 +17,7 @@ class App {
    */
   constructor() {
     // Compile switch
-    if (process.env.NODE_ENV === 'development') {
+    if (isDevelopment) {
       console.log('Initialize Application');
     }
 
@@ -70,17 +75,22 @@ class App {
    * Occurs when a application launched.
    */
   onReady() {
-    this._windowManager.createMainWindow();
-
+    const win = this._windowManager.createNewWindow('main');
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
+    win.on('ready-to-show', () => {
+      if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
+        win.webContents.openDevTools();
+      }
+      win.show();
+    });
   }
 
   /**
    * Occurs when a window all closed.
    */
-  onWindowAllClosed() {
-    if (process.env.NODE_ENV === 'development') {
+  static onWindowAllClosed() {
+    if (isDevelopment) {
       console.log('Quit');
     }
 
@@ -90,7 +100,7 @@ class App {
 
 const app = new App();
 Electron.app.on('ready', () => {
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment) {
     console.log('Application is ready');
   }
 
@@ -98,13 +108,13 @@ Electron.app.on('ready', () => {
 });
 
 Electron.app.on('quit', () => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Application is quit');
+  if (isDevelopment) {
+    console.log('Application is quitting');
   }
 });
 
 Electron.app.on('window-all-closed', () => {
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment) {
     console.log('All of the window was closed.');
   }
 
