@@ -26,6 +26,9 @@ const IPCKeys = {
   AuthRequestDeactivate: 'AuthRequestDeactivate',
   AuthRequestStatus: 'AuthRequestStatus',
 
+  LaunchHarvester: 'LaunchHarvester',
+  LaunchYoutube: 'LaunchYoutube',
+  CloseWindow: 'CloseWindow',
 };
 
 module.exports = IPCKeys;

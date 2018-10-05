@@ -55,6 +55,7 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
+    context.ipc.on(IPCKeys.CloseWindow, this._onRequestWindowClose.bind(this));
   }
 
   /**
@@ -215,6 +216,14 @@ class WindowManager {
   _onRequestGetWindowIDs(ev) {
     const windowIDs = Array.from(this._windows.keys());
     ev.sender.send(IPCKeys.FinishGetWindowIDs, windowIDs);
+  }
+
+  _onRequestWindowClose(ev, id) {
+    const w = this._windows.get(id);
+    console.log(w);
+    if (w) {
+      w.close();
+    }
   }
 }
 

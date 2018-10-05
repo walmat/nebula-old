@@ -23,8 +23,8 @@ const _authenticate = (key) => {
 };
 
 // Send a close window event
-const _close = () => {
-  _sendEvent('window-event', 'close');
+const _close = (w) => {
+  _sendEvent('CloseWindow');
 };
 
 // Send a launchYoutube window event
