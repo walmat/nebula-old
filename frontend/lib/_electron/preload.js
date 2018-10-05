@@ -1,3 +1,4 @@
+const { remote } = require('electron');
 const { dialog } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
 require('./env').setUpEnvironment();
@@ -23,8 +24,9 @@ const _authenticate = (key) => {
 };
 
 // Send a close window event
-const _close = (w) => {
-  _sendEvent('CloseWindow');
+const _close = () => {
+  const win = remote.getCurrentWindow();
+  _sendEvent('CloseWindow', win);
 };
 
 // Send a launchYoutube window event
