@@ -2,7 +2,7 @@ const Electron = require('electron');
 const Path = require('path');
 
 const IPCKeys = require('../common/Constants');
-const nebulaAuth = require('../_electron/AuthManager');
+const AuthManager = require('../_electron/AuthManager');
 
 const isDevelopment = process.env.NEBULA_ENV === 'development';
 
@@ -79,6 +79,9 @@ class WindowManager {
   createNewWindow(tag) {
     let w;
     let winUrl;
+
+
+
     switch (tag) {
       case 'about': {
         if (this._aboutDialog) {

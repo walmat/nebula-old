@@ -28,6 +28,7 @@ class AuthManager {
 
     context.ipc.on(IPCKeys.AuthRequestActivate, this._onAuthRequestActivate.bind(this));
     context.ipc.on(IPCKeys.AuthRequestDeactivate, this._onAuthRequestDeactivate.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestStatus, this._onAuthRequestStatus.bind(this));
   }
 
   /**
@@ -154,13 +155,17 @@ async function clearSession() {
     }
   }
 
-  async _onAuthRequestDeactivate(event, key) {
+  async _onAuthRequestDeactivate(ev) {
     const deactivated = await this.clearSession();
     if (!deactivated) {
-      event.sender.send('error', 'Unable to invalidate');
+      ev.sender.send('error', 'Unable to invalidate');
       return;
     }
     this._context.WindowManager.createNewWindow('auth');
+  }
+
+  async _onAuthRequestStatus() {
+    return !!(await this.getSession());
   }
 }
 
