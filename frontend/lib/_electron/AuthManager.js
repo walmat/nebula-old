@@ -23,10 +23,17 @@ class AuthManager {
      * @type {Store}
      */
     this._store = new Store();
+  }
 
+  /**
+   * Get the Store.
+   * @return {Store} Electron Store.
+   */
+  get Store() {
     if (_isDevelopment) {
-      module.exports.store = this._store;
+      return this._store;
     }
+    return null;
   }
 
   async getSession() {
