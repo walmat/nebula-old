@@ -169,4 +169,4 @@ async function clearSession() {
   }
 }
 
-module.exports.createSession = AuthManager;
+module.exports = AuthManager;

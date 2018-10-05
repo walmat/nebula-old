@@ -2,8 +2,8 @@ const Electron = require('electron');
 const MainMenu = require('./MainMenu');
 const DialogManager = require('./DialogManager');
 const WindowManager = require('./WindowManager');
+const AuthManager = require('../_electron/AuthManager');
 const nebulaEnv = require('../_electron/env');
-const nebulaAuth = require('../_electron/AuthManager');
 
 nebulaEnv.setUpEnvironment();
 const isDevelopment = process.env.NEBULA_ENV === 'development';
@@ -44,6 +44,8 @@ class App {
      * @type {DialogManager}
      */
     this._dialogManager = new DialogManager(this);
+
+    this._authManager = new AuthManager(this);
   }
 
   /**
@@ -72,10 +74,19 @@ class App {
   }
 
   /**
+   * Get the window manager.
+   *
+   * @return {WindowManager} Instance of the window manager.
+   */
+  get authManager() {
+    return this._authManager;
+  }
+
+  /**
    * Occurs when a application launched.
    */
-  onReady() {
-    const win = this._windowManager.createNewWindow('main');
+  async onReady() {
+    const win = await this._windowManager.createNewWindow('main');
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
 

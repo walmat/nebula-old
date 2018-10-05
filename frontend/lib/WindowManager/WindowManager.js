@@ -72,134 +72,198 @@ class WindowManager {
   }
 
   /**
+   * Creates an Auth Window
+   *
+   * @return {BrowserWindow} Auth Window
+   */
+  static createAuthWindow() {
+    return new Electron.BrowserWindow({
+      width: 300,
+      height: 215,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        preload: Path.join(__dirname, '../_electron/preload.js'),
+        webSecurity: true,
+      },
+    });
+  }
+
+  /**
+   * Creates an About Window
+   *
+   * @return {BrowserWindow} About Window
+   */
+  static createAboutWindow() {
+    return new Electron.BrowserWindow({
+      width: 300,
+      height: 215,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        webSecurity: true,
+      },
+    });
+  }
+
+  /**
+   * Creates an Captcha Window
+   *
+   * @return {BrowserWindow} Captcha Window
+   */
+  static createCaptchaWindow() {
+    return new Electron.BrowserWindow({
+      width: 415,
+      height: 350,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        preload: Path.join(__dirname, '../_electron/preload.js'),
+        webSecurity: true,
+      },
+    });
+  }
+
+  /**
+   * Creates an YouTube Window
+   *
+   * @return {BrowserWindow} YouTube Window
+   */
+  static createYouTubeWindow() {
+    return new Electron.BrowserWindow({
+      width: 450,
+      height: 475,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        preload: Path.join(__dirname, '../_electron/preload.js'),
+        webSecurity: true,
+      },
+    });
+  }
+
+  /**
+   * Creates an Main Window
+   *
+   * @return {BrowserWindow} Main Window
+   */
+  static createMainWindow() {
+    return new Electron.BrowserWindow({
+      width: 1000,
+      height: 715,
+      center: true,
+      frame: false,
+      fullscreenable: false,
+      movable: true,
+      resizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        preload: Path.join(__dirname, '../_electron/preload.js'),
+        webSecurity: true,
+      },
+    });
+  }
+
+  /**
    * Create the main application window.
    *
    * @return {BrowserWindow} Created window.
    */
-  createNewWindow(tag) {
+  async createNewWindow(tag) {
     let w;
     let winUrl;
 
+    const session = this._context._authManager.getSession();
 
-
-    switch (tag) {
-      case 'about': {
-        if (this._aboutDialog) {
-          return this._aboutDialog;
+    if (session || ['auth', 'about'].includes(tag)) {
+      switch (tag) {
+        case 'about': {
+          if (this._aboutDialog) {
+            return this._aboutDialog;
+          }
+          w = AuthManager.createAboutWindow();
+          winUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
+          this._aboutDialog = w;
+          break;
         }
-        w = new Electron.BrowserWindow({
-          width: 300,
-          height: 256,
-          resizable: false,
-          alwaysOnTop: true,
-        });
-        winUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
-        this._aboutDialog = w;
-        break;
-      }
-      case 'auth': {
-        if (this._auth) {
-          return this._auth;
+        case 'auth': {
+          if (this._auth) {
+            return this._auth;
+          }
+          w = AuthManager.createAuthWindow();
+          winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
+          this._auth = w;
+          break;
         }
-        w = new Electron.BrowserWindow({
-          width: 300,
-          height: 215,
-          center: true,
-          frame: false,
-          fullscreenable: false,
-          movable: true,
-          resizable: false,
-          show: false,
-          webPreferences: {
-            nodeIntegration: false,
-            preload: Path.join(__dirname, '../_electron/preload.js'),
-            webSecurity: true,
-          },
-        });
-        winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
-        this._auth = w;
-        break;
-      }
-      case 'main': {
-        if (this._main) {
-          return this._main;
+        case 'main': {
+          if (this._main) {
+            return this._main;
+          }
+          w = AuthManager.createMainWindow();
+          winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
+          this._main = w;
+          break;
         }
-        w = new Electron.BrowserWindow({
-          width: 1000,
-          height: 715,
-          center: true,
-          frame: false,
-          fullscreenable: false,
-          movable: true,
-          resizable: false,
-          show: false,
-          webPreferences: {
-            nodeIntegration: false,
-            preload: Path.join(__dirname, '../_electron/preload.js'),
-            webSecurity: true,
-          },
-        });
-        winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
-        this._main = w;
-        break;
-      }
-      case 'youtube': {
-        w = new Electron.BrowserWindow({
-          width: 450,
-          height: 475,
-          center: true,
-          frame: false,
-          fullscreenable: false,
-          movable: true,
-          resizable: false,
-          show: false,
-          webPreferences: {
-            nodeIntegration: false,
-            preload: Path.join(__dirname, '../_electron/preload.js'),
-            webSecurity: true,
-          },
-        });
-        winUrl = 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
-        break;
-      }
-      case 'captcha': {
-        w = new Electron.BrowserWindow({
-          width: 415,
-          height: 350,
-          center: true,
-          frame: false,
-          fullscreenable: false,
-          movable: true,
-          resizable: false,
-          show: false,
-          webPreferences: {
-            nodeIntegration: false,
-            preload: Path.join(__dirname, '../_electron/preload.js'),
-            webSecurity: true,
-          },
-        });
-        winUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
-        break;
-      }
-      default: break;
-    }
-    w.loadURL(winUrl);
-    const { id } = w;
-    this._windows.set(id, w);
-
-    w.on('closed', () => {
-      if (isDevelopment) {
-        console.log(`Window was closed, id = ${id}`);
+        case 'youtube': {
+          w = AuthManager.createYouTubeWindow();
+          winUrl = 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
+          break;
+        }
+        case 'captcha': {
+          w = AuthManager.createCaptchaWindow();
+          winUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
+          break;
+        }
+        default: break;
       }
 
-      // Unregister
-      this._windows.delete(id);
-      this._notifyUpdateWindowIDs(id);
+      w.loadURL(winUrl);
+      const { id } = w;
+      this._windows.set(id, w);
 
-      if (this._windows.size === 0 && this._aboutDialog) {
-        this._aboutDialog.close();
-      }
+      w.on('closed', () => {
+        if (isDevelopment) {
+          console.log(`Window was closed, id = ${id}`);
+        }
+
+        // Unregister
+        this._windows.delete(id);
+        this._notifyUpdateWindowIDs(id);
+
+        if (this._windows.size === 0 && this._aboutDialog) {
+          this._aboutDialog.close();
+        }
+      });
+      return w;
+    } // end if
+
+    // if !session...
+    this._windows.forEach((win) => {
+      win.close();
     });
+    w = this.createAuthWindow();
+    this._auth = w; // only allow one auth window to be made..
     return w;
   }
 
