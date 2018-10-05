@@ -16,7 +16,7 @@ import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/a
 import checkboxChecked from '../_assets/Check_icons-01.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
-class Profiles extends Component {
+export class ProfilesPrimitive extends Component {
   constructor(props) {
     super(props);
     this.onProfileChange = this.onProfileChange.bind(this);
@@ -88,8 +88,8 @@ class Profiles extends Component {
   buildProfileOptions() {
     const { profiles } = this.props;
     const opts = [];
-    profiles.forEach(profile => {
-      opts.push({ value: profile.id, label: profile.profileName })
+    profiles.forEach((profile) => {
+      opts.push({ value: profile.id, label: profile.profileName });
     });
     return opts;
   }
@@ -136,12 +136,12 @@ class Profiles extends Component {
           <div
             role="button"
             tabIndex={0}
-            onKeyPress={() => {}}
+            onKeyPress={this.props.onKeyPress}
             onClick={this.props.onClickBillingMatchesShipping}
           >
             <img
               src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
-              alt="billing matches shipping checkbox"
+              alt={currentProfile.billingMatchesShipping ? 'Billing Matches Shipping' : 'Billing does not Match Shipping'}
               id="billing-match-shipping"
               draggable="false"
             />
@@ -163,7 +163,7 @@ class Profiles extends Component {
           </div>
 
           {/* PAYMENT INFORMATION */}
-          <PaymentFields profileToEdit={currentProfile} />
+          <PaymentFields id="payment" profileToEdit={currentProfile} />
 
           {/* SAVE PROFILE */}
           <input
@@ -185,7 +185,7 @@ class Profiles extends Component {
   }
 }
 
-Profiles.propTypes = {
+ProfilesPrimitive.propTypes = {
   profiles: defns.profileList.isRequired,
   currentProfile: defns.profile.isRequired,
   selectedProfile: defns.profile.isRequired,
@@ -196,15 +196,20 @@ Profiles.propTypes = {
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
   onUpdateProfile: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
 };
 
-const mapStateToProps = state => ({
+ProfilesPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
+
+export const mapStateToProps = state => ({
   profiles: state.profiles,
   currentProfile: state.currentProfile,
   selectedProfile: state.selectedProfile,
 });
 
-const mapDispatchToProps = dispatch => ({
+export const mapDispatchToProps = dispatch => ({
   onClickBillingMatchesShipping: () => {
     dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
   },
@@ -228,4 +233,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Profiles);
+export default connect(mapStateToProps, mapDispatchToProps)(ProfilesPrimitive);
