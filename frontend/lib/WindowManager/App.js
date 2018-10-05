@@ -3,7 +3,7 @@ const MainMenu = require('./MainMenu');
 const DialogManager = require('./DialogManager');
 const WindowManager = require('./WindowManager');
 const nebulaEnv = require('../_electron/env');
-const nebulaAuth = require('../_electron/auth');
+const nebulaAuth = require('../_electron/AuthManager');
 
 nebulaEnv.setUpEnvironment();
 const isDevelopment = process.env.NEBULA_ENV === 'development';

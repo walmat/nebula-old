@@ -29,7 +29,7 @@ class AuthManager {
     }
   }
 
-  static async getSession() {
+  async getSession() {
     let session = this._store.get('session');
 
     if (session) {
@@ -59,7 +59,7 @@ class AuthManager {
     return null;
   }
 
-  static async clearSession() {
+  async clearSession() {
     const session = await this.getSession();
     if (session) {
       const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {
@@ -80,7 +80,7 @@ class AuthManager {
     return true;
   }
 
-  static async createSession(key) {
+  async createSession(key) {
     if (_isDevelopment) {
       return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
     }

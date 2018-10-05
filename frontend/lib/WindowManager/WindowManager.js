@@ -2,7 +2,7 @@ const Electron = require('electron');
 const Path = require('path');
 
 const IPCKeys = require('../common/Constants');
-const nebulaAuth = require('../_electron/auth');
+const nebulaAuth = require('../_electron/AuthManager');
 
 const isDevelopment = process.env.NEBULA_ENV === 'development';
 

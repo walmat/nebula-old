@@ -1,6 +1,6 @@
 const electron = require('electron');
 const nebulaEnv = require('./env');
-const nebulaAuth = require('./auth');
+const nebulaAuth = require('./AuthManager');
 const nebulaDebug = require('./debug');
 const nebulaCheckUpdates = require('./checkUpdates');
 const {

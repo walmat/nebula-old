@@ -1,6 +1,6 @@
 const { ipcMain } = require('electron');
 const nebulaEnv = require('./env');
-const nebulaAuth = require('./auth');
+const nebulaAuth = require('./AuthManager');
 
 nebulaEnv.setUpEnvironment();
 
