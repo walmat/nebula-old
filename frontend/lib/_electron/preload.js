@@ -25,8 +25,8 @@ const _authenticate = (key) => {
 
 // Send a close window event
 const _close = () => {
-  const win = remote.getCurrentWindow();
-  _sendEvent('CloseWindow', win);
+  const { id } = remote.getCurrentWindow();
+  _sendEvent('CloseWindow', id);
 };
 
 // Send a launchYoutube window event

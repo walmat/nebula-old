@@ -218,9 +218,12 @@ class WindowManager {
     ev.sender.send(IPCKeys.FinishGetWindowIDs, windowIDs);
   }
 
-  _onRequestWindowClose(ev, win) {
-    if (win) {
-      win.close();
+  _onRequestWindowClose(ev, id) {
+    console.log(id);
+    const w = this._windows.get(id);
+    console.log(w);
+    if (w) {
+      w.close();
     }
   }
 }

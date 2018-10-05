@@ -101,7 +101,7 @@ class App {
   /**
    * Occurs when a window all closed.
    */
-  static onWindowAllClosed() {
+  onWindowAllClosed() {
     if (isDevelopment) {
       console.log('Quit');
     }
