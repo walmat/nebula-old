@@ -2,11 +2,13 @@ const Store = require('electron-store');
 const fetch = require('node-fetch');
 
 const nebulaEnv = require('./env');
+const IPCKeys = require('../common/Constants');
+const nebulaCheckUpdates = require('./checkUpdates');
+
 
 // Set up nebula environment variables
 nebulaEnv.setUpEnvironment();
 const _isDevelopment = process.env.NEBULA_ENV === 'development';
-
 
 class AuthManager {
   /**
@@ -23,6 +25,9 @@ class AuthManager {
      * @type {Store}
      */
     this._store = new Store();
+
+    context.ipc.on(IPCKeys.AuthRequestActivate, this._onAuthRequestActivate.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestDeactivate, this._onAuthRequestDeactivate.bind(this));
   }
 
   /**
@@ -129,6 +134,33 @@ async function clearSession() {
     const body = await res.json();
     console.log('[ERROR]: Unable to create auth token: ', body);
     return { errors: body.error };
+  }
+
+  async _onAuthRequestActivate(event, key) {
+    let session = await this.getSession();
+    if (!session) {
+      session = await this.createSession(key);
+    }
+
+    const windowManager = this._context.WindowManager;
+
+    if (!session || (session && session.errors)) {
+      if (!windowManager._auth) {
+        windowManager.createNewWindow('auth');
+      }
+    } else {
+      const win = windowManager.createNewWindow('main');
+      nebulaCheckUpdates.checkForUpdates(win);
+    }
+  }
+
+  async _onAuthRequestDeactivate(event, key) {
+    const deactivated = await this.clearSession();
+    if (!deactivated) {
+      event.sender.send('error', 'Unable to invalidate');
+      return;
+    }
+    this._context.WindowManager.createNewWindow('auth');
   }
 }
 

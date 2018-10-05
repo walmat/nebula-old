@@ -21,6 +21,11 @@ const IPCKeys = {
 
   UpdateWindowIDs: 'UpdateWindowIDs',
   UpdateMessage: 'UpdateMessage',
+
+  AuthRequestActivate: 'AuthRequestActivate',
+  AuthRequestDeactivate: 'AuthRequestDeactivate',
+  AuthRequestStatus: 'AuthRequestStatus',
+
 };
 
 module.exports = IPCKeys;
