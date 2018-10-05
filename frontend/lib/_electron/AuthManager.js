@@ -147,10 +147,10 @@ async function clearSession() {
 
     if (!session || (session && session.errors)) {
       if (!windowManager._auth) {
-        windowManager.createNewWindow('auth');
+        windowManager.transitionToDeauthedState();
       }
     } else {
-      const win = windowManager.createNewWindow('main');
+      const win = windowManager.transitiontoAuthedState();
       nebulaCheckUpdates.checkForUpdates(win);
     }
   }
@@ -161,7 +161,7 @@ async function clearSession() {
       ev.sender.send('error', 'Unable to invalidate');
       return;
     }
-    this._context.WindowManager.createNewWindow('auth');
+    this._context.WindowManager.transitionToDeauthedState();
   }
 
   async _onAuthRequestStatus() {

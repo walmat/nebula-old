@@ -150,14 +150,19 @@ class WindowManager {
       });
       return w;
     } // end if
+    return this.transitionToDeauthedState();
+  }
 
-    // if !session...
-    this._windows.forEach((win) => {
-      win.close();
-    });
-    w = this.createAuthWindow();
-    this._auth = w; // only allow one auth window to be made..
-    return w;
+  transitionToDeauthedState() {
+    this._auth = this.createAuthWindow();
+    this._windows.forEach(w => w.id !== this._auth.id && w.close());
+    return this._auth;
+  }
+
+  transitiontoAuthedState() {
+    this._main = this.createMainWindow();
+    this._windows.forEach(w => w.id !== this._main.id && w.close());
+    return this._main;
   }
 
   /**
@@ -219,10 +224,14 @@ class WindowManager {
   }
 
   _onRequestWindowClose(ev, id) {
-    console.log(id);
     const w = this._windows.get(id);
-    console.log(w);
-    if (w) {
+    if (this._main && (this._main.id === id)) {
+      // close all windows
+      this._windows.forEach((win) => {
+        win.close();
+      });
+    } else {
+      // just close the one window
       w.close();
     }
   }
