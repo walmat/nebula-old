@@ -88,6 +88,7 @@ class WindowManager {
           alwaysOnTop: true,
         });
         winUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
+        this._aboutDialog = w;
         break;
       }
       case 'auth': {
@@ -126,6 +127,7 @@ class WindowManager {
           },
         });
         winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
+        this._main = w;
         break;
       }
       case 'youtube': {
