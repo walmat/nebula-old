@@ -16,22 +16,30 @@ let matches;
 
 module.exports = {};
 
-function pay(task, _matches) {
+function pay(task, _matches, productUrl, cb) {
     matches = _matches;
-    console.log(matches);
     let styleID = matches[0].id;
     request(
         {
-            url: `${task.site}/products/` + matches[0].handle,
+            url: `${productUrl[0]}`,
             followAllRedirects: true,
             method: 'get',
             headers: {
                 'User-Agent': userAgent,
+                Origin: task.site,
+                'User-Agent': userAgent,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Accept:
+                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                Referer: task.site,
+                'Accept-Language': 'en-US,en;q=0.8',
             },
         },
-        function(err) {
+        function(err, res) {
             if (err) {
-                log(err, 'error');
+                console.log(err);
+            } else {
+                console.log(res.body);
             }
         }
     );
@@ -47,7 +55,7 @@ function pay(task, _matches) {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 Accept:
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: task.site + '/products/' + matches[0].handle,
+                Referer: productUrl,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
             formData: {
