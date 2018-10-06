@@ -1,5 +1,4 @@
 const Electron = require('electron');
-const MainMenu = require('./MainMenu');
 const DialogManager = require('./DialogManager');
 const WindowManager = require('./WindowManager');
 const AuthManager = require('./AuthManager');
@@ -117,28 +116,5 @@ class App {
     await Promise.all(devExts.map(ext => installExtension(ext)
       .then(name => console.log(`Added Extension: ${name}`))
       .catch(err => console.error(`An Error Occurred: ${err}`))));
-  };
+  }
 }
-
-const app = new App();
-Electron.app.on('ready', () => {
-  if (nebulaEnv.isDevelopment()) {
-    console.log('Application is ready');
-  }
-
-  app.onReady();
-});
-
-Electron.app.on('quit', () => {
-  if (nebulaEnv.isDevelopment()) {
-    console.log('Application is quitting');
-  }
-});
-
-Electron.app.on('window-all-closed', () => {
-  if (nebulaEnv.isDevelopment()) {
-    console.log('All of the window was closed.');
-  }
-
-  app.onWindowAllClosed();
-});
