@@ -117,22 +117,7 @@ class AuthManager {
       const { accessToken, refreshToken, expiry } = data;
       this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
 
-// Clear session from store
-async function clearSession() {
-  const session = await getSession();
-  if (session && process.env.NEBULA_ENV !== 'development') {
-    const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {
-      method: 'DELETE',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${session.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!res.ok) {
-      const { error } = await res.json();
-      console.log('[ERROR]: Unable to Delete: ', error);
-      return false;
+      return { accessToken, refreshToken, expiry };
     }
     const body = await res.json();
     console.log('[ERROR]: Unable to create auth token: ', body);

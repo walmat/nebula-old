@@ -15,7 +15,7 @@ body {
 #close-btn {
     position: absolute;
     top: 7px;
-    left: 330px;
+    right: 7px;
     cursor: pointer;
 }
 
