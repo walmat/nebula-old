@@ -12,7 +12,7 @@ import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../getSizes';
 import { settingsActions, SETTINGS_FIELDS } from '../state/actions';
 
-class Settings extends Component {
+export class SettingsPrimitive extends Component {
   /*
   * Launch a new browser window that opens a sign-in google window
   * and then redirects to youtube.
@@ -81,15 +81,6 @@ class Settings extends Component {
         return (event) => {
           this.props.onSettingsChange({ field, value: event });
         };
-      case SETTINGS_FIELDS.EDIT_DISCORD:
-      case SETTINGS_FIELDS.EDIT_SLACK:
-        return (event) => {
-          this.props.onSettingsChange({
-            field,
-            value: event.target.value,
-          });
-        };
-      // should never be called, but just in case, treat it as a normal field input
       default:
         return (event) => {
           this.props.onSettingsChange({
@@ -125,9 +116,9 @@ class Settings extends Component {
         <p className="body-text" id="proxy-list-label">Proxy List</p>
         <div id="proxy-list-box" />
         <ProxyList id="proxy-list-text" />
-        <button id="proxy-button-youtube" onClick={Settings.launchYoutube} >YouTube</button>
-        <button id="proxy-button-captcha" onClick={Settings.harvester} >Captcha</button>
-        <button id="proxy-button-close-session" onClick={Settings.closeSession} >End Session</button>
+        <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button>
+        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha</button>
+        <button id="proxy-button-close-session" onClick={SettingsPrimitive.closeSession} >End Session</button>
 
         {/* EXTRAS */}
         <p id="discord-label">Discord URL</p>
@@ -174,12 +165,12 @@ class Settings extends Component {
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
           value={this.props.settings.defaults.sizes.map(size =>
             ({ value: size.value, label: size.label }))}
-          options={Settings.buildSizeOptions()}
+          options={SettingsPrimitive.buildSizeOptions()}
         />
         <button
           id="save-defaults"
           tabIndex={0}
-          onKeyPress={() => {}}
+          onKeyPress={this.props.onKeyPress}
           onClick={this.saveDefaults}
         >
         Save
@@ -188,7 +179,7 @@ class Settings extends Component {
         <button
           id="clear-defaults"
           tabIndex={0}
-          onKeyPress={() => {}}
+          onKeyPress={this.props.onKeyPress}
           onClick={this.clearDefaults}
         >
         Clear
@@ -198,20 +189,25 @@ class Settings extends Component {
   }
 }
 
-Settings.propTypes = {
+SettingsPrimitive.propTypes = {
   onSettingsChange: PropTypes.func.isRequired,
   onSaveDefaults: PropTypes.func.isRequired,
   onClearDefaults: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
   profiles: pDefns.profileList.isRequired,
   settings: sDefns.settings.isRequired,
 };
 
-const mapStateToProps = state => ({
+SettingsPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
+
+export const mapStateToProps = state => ({
   profiles: state.profiles,
   settings: state.settings,
 });
 
-const mapDispatchToProps = dispatch => ({
+export const mapDispatchToProps = dispatch => ({
   onSettingsChange: (changes) => {
     dispatch(settingsActions.edit(
       changes.field,
@@ -226,4 +222,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);
+export default connect(mapStateToProps, mapDispatchToProps)(SettingsPrimitive);
