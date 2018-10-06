@@ -11,48 +11,78 @@ nebulaEnv.setUpEnvironment();
 webFrame.setVisualZoomLevelLimits(1, 1);
 webFrame.setLayoutZoomLevelLimits(0, 0);
 
-// Wrap ipcRenderer call
+/**
+ * Sends IPCMain an event trigger
+ * @param {String} channel definition for which trigger to look for
+ * @param {*} msg any object to send along with the event
+ */
 const _sendEvent = (channel, msg) => {
   ipcRenderer.send(channel, msg);
 };
 
-// Send a deactivate window event
+/**
+ * Sends the deactivate trigger to authManager.js
+ */
 const _deactivate = () => {
   _sendEvent(IPCKeys.AuthRequestDeactivate);
 };
 
-// Send a deactivate window event
+/**
+ * Sends the deactivate trigger to authManager.js
+ *
+ * @param {String} key user's license key (XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)
+ */
 const _authenticate = (key) => {
   _sendEvent(IPCKeys.AuthRequestActivate, key);
 };
 
-// Send a close window event
+/**
+ * Sends the close window trigger to windowManager.js
+ */
 const _close = () => {
   const { id } = remote.getCurrentWindow();
   _sendEvent(IPCKeys.RequestCloseWindow, id);
 };
 
-// Send a launchYoutube window event
+/**
+ * Sends the launch youtube window trigger to windowManager.js
+ */
 const _launchYoutube = () => {
   _sendEvent(IPCKeys.RequestCreateNewWindow, 'youtube');
 };
 
+/**
+ * Sends the launch captcha window trigger to windowManager.js
+ */
 const _launchHarvester = () => {
   _sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha');
 };
 
+/**
+ * Sends the end session trigger to windowManager.js
+ */
 const _endSession = () => {
   _sendEvent(IPCKeys.RequestEndSession);
 };
 
+/**
+ * Sends the harvest captcha trigger to windowManager.js
+ */
 const _harvest = (token) => {
   _sendEvent(IPCKeys.HarvestCaptcha, token);
 };
 
+/**
+ * Sends the refresh window trigger to windowManager.js
+ */
 const _refresh = (window) => {
   _sendEvent(IPCKeys.RequestRefresh, window);
 };
 
+/**
+ * ... TODO!
+ * Sends the confirmation dialog trigger to windowManager.js
+ */
 const _confirmDialog = async message =>
   new Promise((resolve) => {
     dialog.showMessageBox({
@@ -63,7 +93,9 @@ const _confirmDialog = async message =>
     }, response => resolve(response === 0));
   });
 
-// Once the process is loaded, create api bridge
+/**
+ * On process load, create the Bridge
+ */
 process.once('loaded', () => {
   window.Bridge = window.Bridge || {};
   /* BRIDGED EVENTS */

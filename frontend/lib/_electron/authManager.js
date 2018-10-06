@@ -40,6 +40,10 @@ class AuthManager {
     return null;
   }
 
+  /**
+   * Attempts to get the current session of the user
+   * @return {Object} valid session or null
+   */
   async getSession() {
     if (nebulaEnv.isDevelopment()) {
       return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
@@ -74,6 +78,10 @@ class AuthManager {
     return null;
   }
 
+  /**
+   * Attempts to clear the current session of the user
+   * @return {Boolean} valid attempt to clear
+   */
   async clearSession() {
     if (nebulaEnv.isDevelopment()) {
       return true;
@@ -98,6 +106,12 @@ class AuthManager {
     return true;
   }
 
+  /**
+   * Attempts to create a session for the user
+   * @param {String} key user's license key
+   *
+   * @return {Object} valid session or errors
+   */
   async createSession(key) {
     if (nebulaEnv.isDevelopment()) {
       return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
@@ -127,6 +141,10 @@ class AuthManager {
     return { errors: body.error };
   }
 
+  /**
+   * IPCMain intercept to validate a user
+   * @return {none}
+   */
   async _onAuthRequestActivate(event, key) {
     let session = await this.getSession();
     if (!session) {
@@ -144,6 +162,10 @@ class AuthManager {
     }
   }
 
+  /**
+   * IPCMain intercept to invalidate a user
+   * @return {none}
+   */
   async _onAuthRequestDeactivate(ev) {
     const deactivated = await this.clearSession();
     if (!deactivated) {
@@ -153,6 +175,10 @@ class AuthManager {
     this._context._windowManager.transitionToDeauthedState();
   }
 
+  /**
+   * IPCRenderer intercept to get validation status of user
+   * @return {none}
+   */
   async _onAuthRequestStatus() {
     return !!(await this.getSession());
   }

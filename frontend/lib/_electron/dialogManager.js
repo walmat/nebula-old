@@ -23,7 +23,7 @@ class DialogManager {
    *
    * @return {Number} Index of the selected button on dialog.
    */
-  showMessage(ownerWindow, options) {
+  static showMessage(ownerWindow, options) {
     if (ownerWindow) {
       return Electron.dialog.showMessageBox(ownerWindow, options);
     }
@@ -40,7 +40,7 @@ class DialogManager {
    * @return {string[]} On success this method returns an array of file paths
    *                    chosen by the user, otherwise it returns undefined.
    */
-  showOpenDialog(ownerWindow, options) {
+  static showOpenDialog(ownerWindow, options) {
     if (ownerWindow) {
       return Electron.dialog.showOpenDialog(ownerWindow, options);
     }

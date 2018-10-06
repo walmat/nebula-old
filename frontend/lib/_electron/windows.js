@@ -3,6 +3,11 @@ const Path = require('path');
 const nebulaEnv = require('./env');
 
 nebulaEnv.setUpEnvironment();
+
+/**
+ * Map of our respective urls
+ * :: (name, ref)
+ */
 const urls = new Map();
 
 /**

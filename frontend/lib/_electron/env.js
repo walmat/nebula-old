@@ -3,6 +3,10 @@ const dotenv = require('dotenv');
 
 let _isDevelopment = process.env.NODE_ENV === 'development';
 
+/**
+ * Sets up our environment variables based on `prod` || `dev` environment
+ * @param {String} envFname name of environment file to open
+ */
 function _setUpEnvironment(envFname) {
   const envConfig = dotenv.parse(fs.readFileSync(envFname));
   if (envConfig) {
@@ -16,22 +20,36 @@ function _setUpEnvironment(envFname) {
   }
 }
 
+/**
+ * Sets up development environment variables
+ */
 function setUpDevEnvironment() {
   if (!process.env.NEBULA_ENV_LOADED) {
     _setUpEnvironment('.env.dev');
   }
 }
 
+/**
+ * Sets up production environment variables
+ */
 function setUpProdEnvironment() {
   if (!process.env.NEBULA_ENV_LOADED) {
     _setUpEnvironment('.env.prod');
   }
 }
 
+/**
+ * Used to tell whether or not we're in development
+ * @return {Boolean} in development or not
+ */
 function isDevelopment() {
   return _isDevelopment;
 }
 
+/**
+ * Function to call the proper respective function
+ * based on whether or not we're in development
+ */
 function setUpEnvironment() {
   if (isDevelopment()) {
     setUpDevEnvironment();

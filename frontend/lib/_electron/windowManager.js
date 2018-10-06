@@ -139,6 +139,11 @@ class WindowManager {
     return this.transitionToDeauthedState();
   }
 
+  /**
+   * Function to handle a new window when it's shown
+   *
+   * @param {BrowserWindow} win reference to the window being shown
+   */
   handleShow(win) {
     return () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
@@ -151,6 +156,11 @@ class WindowManager {
     };
   }
 
+  /**
+   * Function to handle a new window when it's closed
+   *
+   * @param {BrowserWindow} win reference to the window being closed
+   */
   handleClose(win) {
     return () => {
       if (nebulaEnv.isDevelopment()) {
@@ -171,6 +181,9 @@ class WindowManager {
     };
   }
 
+  /**
+   * Function to handle the transition between main -> auth window
+   */
   async transitionToDeauthedState() {
     this._auth = await createAuthWindow();
     const winUrl = urls.get('auth');
@@ -188,6 +201,9 @@ class WindowManager {
     return this._auth;
   }
 
+  /**
+   * Function to handle the transition between auth -> main window
+   */
   async transitiontoAuthedState() {
     this._main = await createMainWindow();
     const winUrl = urls.get('main');

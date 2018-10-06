@@ -13,11 +13,15 @@ const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = req
  * Application entry point.
  */
 class App {
+
   /**
    * Initialize instance.
    */
   constructor() {
-    // Compile switch
+
+    /**
+     * Debug call to see if app was initialized..
+     */
     if (nebulaEnv.isDevelopment()) {
       console.log('Initialize Application');
     }
@@ -100,7 +104,7 @@ class App {
   }
 
   /**
-   * Occurs when a window all closed.
+   * Event triggered when all BrowserWindow objects are closed.
    */
   onWindowAllClosed() {
     if (nebulaEnv.isDevelopment()) {
@@ -110,6 +114,9 @@ class App {
     Electron.app.quit();
   }
 
+  /**
+   * Install development extensions
+   */
   static async installExtensions() {
     const devExts = [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS];
 
