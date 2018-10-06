@@ -347,12 +347,13 @@ const findvariantstock = function(config, handle, id, cb) {
     );
 };
 
-function getVariantsBySize(task, res, onSuccess) {
+function getVariantsBySize(task, productUrl, onSuccess) {
     let styleID;
 
+    console.log(productUrl);
     request(
         {
-            url: `${res}.json`,
+            url: `${productUrl}.json`,
             followAllRedirects: true,
             method: 'get',
             headers: {
@@ -371,7 +372,7 @@ function getVariantsBySize(task, res, onSuccess) {
                         matches.push(variant);
                     }
                 });
-                return onSuccess(matches);
+                return onSuccess(matches, productUrl);
             } catch (e) {
                 console.log(e);
             }

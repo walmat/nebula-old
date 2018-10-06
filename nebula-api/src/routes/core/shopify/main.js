@@ -62,9 +62,8 @@ findProduct(task, proxies[index], function(err, delay, res) {
 	if (err) {
 		console.log(res);
 	} else {
-		console.log(res);
-		getVariantsBySize(task, res, (matches) => {
-			pay(task, matches, (err) => {
+		getVariantsBySize(task, res, (matches, productUrl) => {
+			pay(task, matches, productUrl, (err) => {
 
 				//TODO -- handle moving onto the next user desired size and all that
 
