@@ -43,6 +43,7 @@ class AuthManager {
 
   async getSession() {
     let session = this._store.get('session');
+    console.log(session);
 
     if (session) {
       session = JSON.parse(session);

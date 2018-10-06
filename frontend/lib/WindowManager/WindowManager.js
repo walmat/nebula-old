@@ -139,7 +139,7 @@ class WindowManager {
       const { id } = w;
       this._windows.set(id, w);
 
-      w.on('closed', () => {
+      w.on('close', () => {
         if (isDevelopment) {
           console.log(`Window was closed, id = ${id}`);
         }
@@ -179,7 +179,27 @@ class WindowManager {
       this._auth.show();
     });
 
-    this._windows.forEach(w => w.id !== this._auth.id && w.close());
+    this._auth.on('close', () => {
+      if (isDevelopment) {
+        console.log(`Window was closed, id = ${id}`);
+      }
+
+      this._windows.delete(this._auth.id);
+      this._notifyUpdateWindowIDs(this._auth.id);
+
+      if (this._windows.size === 0 && this._aboutDialog) {
+        this._aboutDialog.close();
+      }
+    });
+
+    this._windows.forEach((w) => {
+      if (w.id !== this._auth.id) {
+        w.close();
+      }
+    });
+    if (isDevelopment) {
+      this._windows.forEach(w => console.log(w.id));
+    }
     return this._auth;
   }
 
@@ -197,7 +217,27 @@ class WindowManager {
       this._main.show();
     });
 
-    this._windows.forEach(w => w.id !== this._main.id && w.close());
+    this._main.on('close', () => {
+      if (isDevelopment) {
+        console.log(`Window was closed, id = ${id}`);
+      }
+
+      this._windows.delete(this._main.id);
+      this._notifyUpdateWindowIDs(this._main.id);
+
+      if (this._windows.size === 0 && this._aboutDialog) {
+        this._aboutDialog.close();
+      }
+    });
+
+    this._windows.forEach((w) => {
+      if (w.id !== this._main.id) {
+        w.close();
+      }
+    });
+    if (isDevelopment) {
+      this._windows.forEach(w => console.log(w.id));
+    }
     return this._main;
   }
 
