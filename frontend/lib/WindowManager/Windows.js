@@ -6,7 +6,7 @@ const Path = require('path');
  *
  * @return {BrowserWindow} Auth Window
  */
-const createAuthWindow = () => new Electron.BrowserWindow({
+const createAuthWindow = async () => new Electron.BrowserWindow({
   width: 300,
   height: 215,
   center: true,
@@ -27,7 +27,7 @@ const createAuthWindow = () => new Electron.BrowserWindow({
  *
  * @return {BrowserWindow} About Window
  */
-const createAboutWindow = () => new Electron.BrowserWindow({
+const createAboutWindow = async () => new Electron.BrowserWindow({
   width: 300,
   height: 215,
   center: true,
@@ -47,9 +47,9 @@ const createAboutWindow = () => new Electron.BrowserWindow({
  *
  * @return {BrowserWindow} Captcha Window
  */
-const createCaptchaWindow = () => new Electron.BrowserWindow({
-  width: 415,
-  height: 350,
+const createCaptchaWindow = async () => new Electron.BrowserWindow({
+  width: 400,
+  height: 650,
   center: true,
   frame: false,
   fullscreenable: false,
@@ -68,11 +68,11 @@ const createCaptchaWindow = () => new Electron.BrowserWindow({
  *
  * @return {BrowserWindow} YouTube Window
  */
-const createYouTubeWindow = () => new Electron.BrowserWindow({
+const createYouTubeWindow = async () => new Electron.BrowserWindow({
   width: 450,
   height: 475,
   center: true,
-  frame: false,
+  frame: true,
   fullscreenable: false,
   movable: true,
   resizable: false,
@@ -89,7 +89,7 @@ const createYouTubeWindow = () => new Electron.BrowserWindow({
  *
  * @return {BrowserWindow} Main Window
  */
-const createMainWindow = () => new Electron.BrowserWindow({
+const createMainWindow = async () => new Electron.BrowserWindow({
   width: 1000,
   height: 715,
   center: true,

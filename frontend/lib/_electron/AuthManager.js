@@ -5,7 +5,6 @@ const nebulaEnv = require('./env');
 const IPCKeys = require('../common/Constants');
 const nebulaCheckUpdates = require('./checkUpdates');
 
-
 // Set up nebula environment variables
 nebulaEnv.setUpEnvironment();
 const _isDevelopment = process.env.NEBULA_ENV === 'development';
@@ -138,12 +137,12 @@ async function clearSession() {
   }
 
   async _onAuthRequestActivate(event, key) {
+    console.log(key);
     let session = await this.getSession();
     if (!session) {
       session = await this.createSession(key);
     }
-
-    const windowManager = this._context.WindowManager;
+    const windowManager = this._context._windowManager;
 
     if (!session || (session && session.errors)) {
       if (!windowManager._auth) {
@@ -161,7 +160,7 @@ async function clearSession() {
       ev.sender.send('error', 'Unable to invalidate');
       return;
     }
-    this._context.WindowManager.transitionToDeauthedState();
+    this._context._windowManager.transitionToDeauthedState();
   }
 
   async _onAuthRequestStatus() {

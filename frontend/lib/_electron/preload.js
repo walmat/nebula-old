@@ -15,31 +15,31 @@ const _sendEvent = (channel, msg) => {
 // Send a deactivate window event
 const _deactivate = () => {
   // add event here as well..
-  _sendEvent('auth', { arg: 'deactivate' });
+  _sendEvent('AuthRequestDeactivate');
 };
 
 // Send a deactivate window event
 const _authenticate = (key) => {
-  _sendEvent('auth', { arg: 'activate', key });
+  _sendEvent('AuthRequestActivate', key);
 };
 
 // Send a close window event
 const _close = () => {
   const { id } = remote.getCurrentWindow();
-  _sendEvent('CloseWindow', id);
+  _sendEvent('RequestCloseWindow', id);
 };
 
 // Send a launchYoutube window event
 const _launchYoutube = () => {
-  _sendEvent('window-event', 'launchYoutube');
+  _sendEvent('RequestLaunchYoutube');
 };
 
 const _launchHarvester = () => {
-  _sendEvent('window-event', 'launchHarvester');
+  _sendEvent('RequestLaunchHarvester');
 };
 
 const _endSession = () => {
-  _sendEvent('window-event', 'endSession');
+  _sendEvent('RequestEndSession');
 };
 
 const _harvest = (token) => {

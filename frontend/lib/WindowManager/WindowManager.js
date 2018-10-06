@@ -55,7 +55,9 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
-    context.ipc.on(IPCKeys.CloseWindow, this._onRequestWindowClose.bind(this));
+    context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
+    context.ipc.on(IPCKeys.RequestLaunchHarvester, this._onRequestLaunchHarvester.bind(this));
+    context.ipc.on(IPCKeys.RequestLaunchYoutube, this._onRequestLaunchYoutube.bind(this));
   }
 
   /**
@@ -87,7 +89,9 @@ class WindowManager {
     let w;
     let winUrl;
 
-    const session = this._context._authManager.getSession();
+    const session = await this._context._authManager.getSession();
+
+    console.log(`[DEBUG]: ${session}`);
 
     if (session || ['auth', 'about'].includes(tag)) {
       switch (tag) {
@@ -95,7 +99,7 @@ class WindowManager {
           if (this._aboutDialog) {
             return this._aboutDialog;
           }
-          w = createAboutWindow();
+          w = await createAboutWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
           this._aboutDialog = w;
           break;
@@ -104,7 +108,7 @@ class WindowManager {
           if (this._auth) {
             return this._auth;
           }
-          w = createAuthWindow();
+          w = await createAuthWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
           this._auth = w;
           break;
@@ -113,18 +117,18 @@ class WindowManager {
           if (this._main) {
             return this._main;
           }
-          w = createMainWindow();
+          w = await createMainWindow();
           winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
           this._main = w;
           break;
         }
         case 'youtube': {
-          w = createYouTubeWindow();
+          w = await createYouTubeWindow();
           winUrl = 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
           break;
         }
         case 'captcha': {
-          w = createCaptchaWindow();
+          w = await createCaptchaWindow();
           winUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
           break;
         }
@@ -148,19 +152,51 @@ class WindowManager {
           this._aboutDialog.close();
         }
       });
+
+      w.on('ready-to-show', () => {
+        if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
+          w.webContents.openDevTools();
+        }
+        w.show();
+      });
+
       return w;
-    } // end if
+    }
     return this.transitionToDeauthedState();
   }
 
-  transitionToDeauthedState() {
-    this._auth = this.createAuthWindow();
+  async transitionToDeauthedState() {
+    this._auth = await createAuthWindow();
+    const winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
+    this._auth.loadURL(winUrl);
+    const { id } = this._auth;
+    this._windows.set(id, this._auth);
+
+    this._auth.on('ready-to-show', () => {
+      if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
+        this._auth.webContents.openDevTools();
+      }
+      this._auth.show();
+    });
+
     this._windows.forEach(w => w.id !== this._auth.id && w.close());
     return this._auth;
   }
 
-  transitiontoAuthedState() {
-    this._main = this.createMainWindow();
+  async transitiontoAuthedState() {
+    this._main = await createMainWindow();
+    const winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
+    this._main.loadURL(winUrl);
+    const { id } = this._main;
+    this._windows.set(id, this._main);
+
+    this._main.on('ready-to-show', () => {
+      if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
+        this._main.webContents.openDevTools();
+      }
+      this._main.show();
+    });
+
     this._windows.forEach(w => w.id !== this._main.id && w.close());
     return this._main;
   }
@@ -223,6 +259,11 @@ class WindowManager {
     ev.sender.send(IPCKeys.FinishGetWindowIDs, windowIDs);
   }
 
+  /**
+   * Occurs when any window sends a close event
+   * @param {IPCEvent} ev Event data.
+   * @param {Number} id corresponding window id
+   */
   _onRequestWindowClose(ev, id) {
     const w = this._windows.get(id);
     if (this._main && (this._main.id === id)) {
@@ -234,6 +275,22 @@ class WindowManager {
       // just close the one window
       w.close();
     }
+  }
+
+  /**
+   * Occurs when the main window sends the RequestLaunchHarvester event 
+   * @param {IPCEvent} ev Event data.
+   */
+  _onRequestLaunchHarvester(ev) {
+    this.createNewWindow('captcha');
+  }
+
+  /**
+   * Occurs when the main window sends the RequestLaunchHarvester event 
+   * @param {IPCEvent} ev Event data.
+   */
+  _onRequestLaunchYoutube(ev) {
+    this.createNewWindow('youtube');
   }
 }
 

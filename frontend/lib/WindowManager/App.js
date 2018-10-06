@@ -8,6 +8,9 @@ const nebulaEnv = require('../_electron/env');
 nebulaEnv.setUpEnvironment();
 const isDevelopment = process.env.NEBULA_ENV === 'development';
 
+// Install Dev tools extensions
+const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
+
 /**
  * Application entry point.
  */
@@ -86,7 +89,19 @@ class App {
    * Occurs when a application launched.
    */
   async onReady() {
-    const win = await this._windowManager.createNewWindow('main');
+
+    if (isDevelopment) {
+      await App.installExtensions();
+    }
+
+    let win;
+    const session = await this._authManager.getSession();
+
+    if (!session || (session && session.errors)) {
+      win = await this._windowManager.createNewWindow('auth');
+    } else {
+      win = await this._windowManager.createNewWindow('main');
+    }
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
 
@@ -108,6 +123,14 @@ class App {
 
     Electron.app.quit();
   }
+
+  static async installExtensions() {
+    const devExts = [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS];
+
+    await Promise.all(devExts.map(ext => installExtension(ext)
+      .then(name => console.log(`Added Extension: ${name}`))
+      .catch(err => console.error(`An Error Occurred: ${err}`))));
+  };
 }
 
 const app = new App();
