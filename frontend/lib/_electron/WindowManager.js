@@ -128,8 +128,6 @@ class WindowManager {
       }
 
       w.loadURL(urls.get(tag));
-      const { id } = w;
-      this._windows.set(id, w);
 
       w.on('ready-to-show', this.handleShow(w));
 
@@ -143,8 +141,11 @@ class WindowManager {
   handleShow(win) {
     return () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
+        console.log(`Window was opened, id = ${win.id}`);
         win.webContents.openDevTools();
       }
+      this._windows.set(win.id, win);
+      this._notifyUpdateWindowIDs(win.id);
       win.show();
     };
   }
@@ -167,8 +168,6 @@ class WindowManager {
     this._auth = await createAuthWindow();
     const winUrl = urls.get('auth');
     this._auth.loadURL(winUrl);
-    const { id } = this._auth;
-    this._windows.set(id, this._auth);
 
     this._auth.on('ready-to-show', this.handleShow(this._auth));
 
@@ -186,8 +185,6 @@ class WindowManager {
     this._main = await createMainWindow();
     const winUrl = urls.get('main');
     this._main.loadURL(winUrl);
-    const { id } = this._main;
-    this._windows.set(id, this._main);
 
     this._main.on('ready-to-show', this.handleShow(this._main));
 
