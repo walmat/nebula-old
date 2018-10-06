@@ -131,7 +131,7 @@ class WindowManager {
       const { id } = w;
       this._windows.set(id, w);
 
-      w.on('ready-to-show', WindowManager.handleShow(w));
+      w.on('ready-to-show', this.handleShow(w));
 
       w.on('close', this.handleClose(w));
 
@@ -170,7 +170,7 @@ class WindowManager {
     const { id } = this._auth;
     this._windows.set(id, this._auth);
 
-    this._auth.on('ready-to-show', WindowManager.handleShow(this._auth));
+    this._auth.on('ready-to-show', this.handleShow(this._auth));
 
     this._auth.on('close', this.handleClose(this._auth));
 
@@ -189,7 +189,7 @@ class WindowManager {
     const { id } = this._main;
     this._windows.set(id, this._main);
 
-    this._main.on('ready-to-show', WindowManager.handleShow(this._main));
+    this._main.on('ready-to-show', this.handleShow(this._main));
 
     this._main.on('close', this.handleClose(this._main));
 

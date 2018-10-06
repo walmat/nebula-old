@@ -118,3 +118,5 @@ class App {
       .catch(err => console.error(`An Error Occurred: ${err}`))));
   }
 }
+
+module.exports = App;
