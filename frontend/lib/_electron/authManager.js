@@ -75,6 +75,9 @@ class AuthManager {
   }
 
   async clearSession() {
+    if (nebulaEnv.isDevelopment()) {
+      return true;
+    }
     const session = await this.getSession();
     if (session) {
       const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {

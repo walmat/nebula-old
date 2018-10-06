@@ -132,6 +132,7 @@ class WindowManager {
       w.on('ready-to-show', this.handleShow(w));
 
       w.on('close', this.handleClose(w));
+      w.on('closed', () => { w = null; });
 
       return w;
     }
@@ -160,6 +161,12 @@ class WindowManager {
 
       if (this._windows.size === 0 && this._aboutDialog) {
         this._aboutDialog.close();
+      }
+
+      if (this._main && win.id === this._main.id) {
+        this._main = null;
+      } else if (this._auth && win.id === this._auth.id) {
+        this._auth = null;
       }
     };
   }
