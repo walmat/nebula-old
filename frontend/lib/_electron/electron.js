@@ -1,6 +1,6 @@
 const Electron = require('electron');
 const nebulaEnv = require('./env');
-const App = require('./app');
+const App = require('./App');
 
 const app = new App();
 Electron.app.on('ready', () => {
