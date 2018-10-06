@@ -2,6 +2,12 @@ const { app, autoUpdater, dialog } = require('electron');
 
 const { version } = app.getVersion();
 
+/**
+ * ...TODO! (Convert to updated windows)
+ * Function called when successful launch to our main window occurs
+ *
+ * @param {BrowserWindow} win window to listen for updates on
+ */
 function checkForUpdates(win) {
   autoUpdater.setFeedURL(`https://nebula-deployment.herokuapp.com/dist/nebula/${version}`); // fix this??
   autoUpdater.on('error', err => win.webContents.send('error', err));
@@ -26,4 +32,5 @@ function checkForUpdates(win) {
   });
   autoUpdater.checkForUpdates();
 }
+
 module.exports.checkForUpdates = checkForUpdates;

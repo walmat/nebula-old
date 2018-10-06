@@ -1,53 +1,88 @@
+const { remote } = require('electron');
 const { dialog } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
-require('./env').setUpEnvironment();
+const IPCKeys = require('../common/Constants');
+const nebulaEnv = require('../_electron/env');
+
+// setup environment
+nebulaEnv.setUpEnvironment();
 
 // disable zoom
 webFrame.setVisualZoomLevelLimits(1, 1);
 webFrame.setLayoutZoomLevelLimits(0, 0);
 
-// Wrap ipcRenderer call
+/**
+ * Sends IPCMain an event trigger
+ * @param {String} channel definition for which trigger to look for
+ * @param {*} msg any object to send along with the event
+ */
 const _sendEvent = (channel, msg) => {
   ipcRenderer.send(channel, msg);
 };
 
-// Send a deactivate window event
+/**
+ * Sends the deactivate trigger to authManager.js
+ */
 const _deactivate = () => {
-  // add event here as well..
-  _sendEvent('auth', { arg: 'deactivate' });
+  _sendEvent(IPCKeys.AuthRequestDeactivate);
 };
 
-// Send a deactivate window event
+/**
+ * Sends the deactivate trigger to authManager.js
+ *
+ * @param {String} key user's license key (XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)
+ */
 const _authenticate = (key) => {
-  _sendEvent('auth', { arg: 'activate', key });
+  _sendEvent(IPCKeys.AuthRequestActivate, key);
 };
 
-// Send a close window event
+/**
+ * Sends the close window trigger to windowManager.js
+ */
 const _close = () => {
-  _sendEvent('window-event', 'close');
+  const { id } = remote.getCurrentWindow();
+  _sendEvent(IPCKeys.RequestCloseWindow, id);
 };
 
-// Send a launchYoutube window event
+/**
+ * Sends the launch youtube window trigger to windowManager.js
+ */
 const _launchYoutube = () => {
-  _sendEvent('window-event', 'launchYoutube');
+  _sendEvent(IPCKeys.RequestCreateNewWindow, 'youtube');
 };
 
+/**
+ * Sends the launch captcha window trigger to windowManager.js
+ */
 const _launchHarvester = () => {
-  _sendEvent('window-event', 'launchHarvester');
+  _sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha');
 };
 
+/**
+ * Sends the end session trigger to windowManager.js
+ */
 const _endSession = () => {
-  _sendEvent('window-event', 'endSession');
+  _sendEvent(IPCKeys.RequestEndSession);
 };
 
+/**
+ * Sends the harvest captcha trigger to windowManager.js
+ */
 const _harvest = (token) => {
-  _sendEvent('harvest', token);
+  _sendEvent(IPCKeys.HarvestCaptcha, token);
 };
 
+/**
+ * Sends the refresh window trigger to windowManager.js
+ */
 const _refresh = (window) => {
-  _sendEvent('refresh', window);
+  _sendEvent(IPCKeys.RequestRefresh, window);
 };
 
+/**
+ * ... TODO!
+ * Sends the confirmation dialog trigger to windowManager.js
+ */
 const _confirmDialog = async message =>
   new Promise((resolve) => {
     dialog.showMessageBox({
@@ -58,7 +93,9 @@ const _confirmDialog = async message =>
     }, response => resolve(response === 0));
   });
 
-// Once the process is loaded, create api bridge
+/**
+ * On process load, create the Bridge
+ */
 process.once('loaded', () => {
   window.Bridge = window.Bridge || {};
   /* BRIDGED EVENTS */
@@ -71,7 +108,7 @@ process.once('loaded', () => {
   window.Bridge.deactivate = _deactivate;
   window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;
-  if (process.env.NEBULA_ENV === 'development') {
+  if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (evt) => {
       _sendEvent('debug', evt);
     };

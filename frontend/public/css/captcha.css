@@ -1,0 +1,85 @@
+html, body {
+    /* Rectangle: */
+    background: #f5f5f5;
+    border-radius: 3px;
+    border: none;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    max-width: 450px;
+    margin: auto;
+}
+
+#close-btn {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    cursor: pointer;
+}
+
+#titlebar {
+    user-select: none;
+    position: absolute;
+    top:0;
+    left:0;
+    right:30px;
+    height:25px;
+    background: transparent;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+}
+
+::-webkit-scrollbar { 
+    display: none; 
+}
+.loader {
+    position: absolute;
+    top: 50%;
+    left: 40%;
+    margin-left: 10%;
+    transform: translate3d(-50%, -50%, 0);
+}
+.dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 100%;
+    display: inline-block;
+    animation: slide 1s infinite;
+}
+.dot:nth-child(1) {
+    animation-delay: 0.1s;
+    background: #46adb4;
+}
+.dot:nth-child(2) {
+    animation-delay: 0.2s;
+    background: #b8d9d2;
+}
+.dot:nth-child(3) {
+    animation-delay: 0.3s;
+    background: #FAE8EB;
+}
+.dot:nth-child(4) {
+    animation-delay: 0.4s;
+    background: #edbcc6;
+}
+.dot:nth-child(5) {
+    animation-delay: 0.5s;
+    background: #ef415e;
+}
+
+@-webkit-keyframes slide {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+  
+  

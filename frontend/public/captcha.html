@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <title>Harvester</title>
+    <script src="./js/prevent.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/captcha.css">
+  </head>
+  <body>
+    <div id="titlebar"></div>
+    <img src="./assets/close-captcha.svg" id="close-btn" onclick="window.Bridge.close()" />
+
+    <div class="loader">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <!-- <p>Waiting for captcha...</p> -->
+    </div>
+
+    <form action="/submit" method="post" style="margin-top: 180px;">
+        <div id="captchaFrame"></div>
+        <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
+    </form>
+    <script>
+      const token = document.getElementById('g-recaptcha-response').value;
+      window.Bridge.harvest(token);
+      grecaptcha.reset();
+    </script>
+  </body>
+</html>
