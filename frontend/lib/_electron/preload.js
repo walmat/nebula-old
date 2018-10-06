@@ -1,7 +1,11 @@
 const { remote } = require('electron');
 const { dialog } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
-require('./env').setUpEnvironment();
+const IPCKeys = require('../common/Constants');
+const nebulaEnv = require('../_electron/env');
+
+// setup environment
+nebulaEnv.setUpEnvironment();
 
 // disable zoom
 webFrame.setVisualZoomLevelLimits(1, 1);
@@ -14,40 +18,39 @@ const _sendEvent = (channel, msg) => {
 
 // Send a deactivate window event
 const _deactivate = () => {
-  // add event here as well..
-  _sendEvent('AuthRequestDeactivate');
+  _sendEvent(IPCKeys.AuthRequestDeactivate);
 };
 
 // Send a deactivate window event
 const _authenticate = (key) => {
-  _sendEvent('AuthRequestActivate', key);
+  _sendEvent(IPCKeys.AuthRequestActivate, key);
 };
 
 // Send a close window event
 const _close = () => {
   const { id } = remote.getCurrentWindow();
-  _sendEvent('RequestCloseWindow', id);
+  _sendEvent(IPCKeys.RequestCloseWindow, id);
 };
 
 // Send a launchYoutube window event
 const _launchYoutube = () => {
-  _sendEvent('RequestLaunchYoutube');
+  _sendEvent(IPCKeys.RequestCreateNewWindow, 'youtube');
 };
 
 const _launchHarvester = () => {
-  _sendEvent('RequestLaunchHarvester');
+  _sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha');
 };
 
 const _endSession = () => {
-  _sendEvent('RequestEndSession');
+  _sendEvent(IPCKeys.RequestEndSession);
 };
 
 const _harvest = (token) => {
-  _sendEvent('harvest', token);
+  _sendEvent(IPCKeys.HarvestCaptcha, token);
 };
 
 const _refresh = (window) => {
-  _sendEvent('refresh', window);
+  _sendEvent(IPCKeys.RequestRefresh, window);
 };
 
 const _confirmDialog = async message =>
@@ -73,7 +76,7 @@ process.once('loaded', () => {
   window.Bridge.deactivate = _deactivate;
   window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;
-  if (process.env.NEBULA_ENV === 'development') {
+  if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (evt) => {
       _sendEvent('debug', evt);
     };

@@ -29,6 +29,10 @@ const IPCKeys = {
   RequestLaunchHarvester: 'RequestLaunchHarvester',
   RequestLaunchYoutube: 'RequestLaunchYoutube',
   RequestCloseWindow: 'RequestCloseWindow',
+  RequestEndSession: 'RequestEndSession',
+
+  HarvestCaptcha: 'HarvestCaptcha',
+  RequestRefresh: 'RequestRefresh',
 };
 
 module.exports = IPCKeys;

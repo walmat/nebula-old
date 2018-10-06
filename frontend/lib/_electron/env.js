@@ -25,12 +25,21 @@ function setUpProdEnvironment() {
   }
 }
 
+function isDevelopment() {
+  return process.env.NODE_ENV === 'development';
+}
+
 function setUpEnvironment() {
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment()) {
     setUpDevEnvironment();
   } else {
     setUpProdEnvironment();
   }
 }
 
-module.exports = { setUpDevEnvironment, setUpProdEnvironment, setUpEnvironment };
+module.exports = {
+  setUpDevEnvironment,
+  setUpProdEnvironment,
+  setUpEnvironment,
+  isDevelopment,
+};

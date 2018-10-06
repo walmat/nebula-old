@@ -2,11 +2,11 @@ const electron = require('electron');
 const nebulaEnv = require('./env');
 const nebulaAuth = require('./AuthManager');
 const nebulaDebug = require('./debug');
-const nebulaCheckUpdates = require('./checkUpdates');
+const nebulaCheckUpdates = require('./CheckUpdates');
 const {
   mainWindow, authWindow, captchaWindow, youtubeWindow,
 } = require('../common/windows');
-const { menu } = require('./menu');
+const { menu } = require('./MainMenu');
 
 // Set up nebula environment variables
 nebulaEnv.setUpEnvironment();

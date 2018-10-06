@@ -1,4 +1,5 @@
 const Electron = require('electron');
+const nebulaEnv = require('./env');
 
 const APP_NAME = 'Nebula';
 const HELP_URL = 'https://nebulabots.com/about';
@@ -78,7 +79,7 @@ class MainMenu {
    * @return {Object} Menu data.
    */
   static _menuView() {
-    if (process.env.NODE_ENV === 'development') {
+    if (nebulaEnv.isDevelopment()) {
       const templates = {
         label: 'View',
         submenu: [

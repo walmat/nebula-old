@@ -1,6 +1,4 @@
 const Electron = require('electron');
-const Path = require('path');
-
 const IPCKeys = require('../common/Constants');
 const {
   createAboutWindow,
@@ -8,9 +6,10 @@ const {
   createCaptchaWindow,
   createMainWindow,
   createYouTubeWindow,
+  urls,
 } = require('./Windows');
 
-const isDevelopment = process.env.NEBULA_ENV === 'development';
+const nebulaEnv = require('./env');
 
 /**
  * Manage the window.
@@ -52,19 +51,21 @@ class WindowManager {
      */
     this._auth = null;
 
+    /**
+     * IPC Function Definitions
+     */
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
-    context.ipc.on(IPCKeys.RequestLaunchHarvester, this._onRequestLaunchHarvester.bind(this));
-    context.ipc.on(IPCKeys.RequestLaunchYoutube, this._onRequestLaunchYoutube.bind(this));
   }
 
   /**
    * Reload the focused window, For debug.
+   * @param {BrowserWindow} win Browser Window Reference
    */
-  static reload() {
-    const w = Electron.BrowserWindow.getFocusedWindow();
+  static reload(win) {
+    const w = win || Electron.BrowserWindow.getFocusedWindow();
     if (w) {
       w.reload();
     }
@@ -72,9 +73,10 @@ class WindowManager {
 
   /**
    * Switch the display of the developer tools window at focused window, For debug.
+   * @param {BrowserWindow} win Browser Window Reference
    */
-  static toggleDevTools() {
-    const w = Electron.BrowserWindow.getFocusedWindow();
+  static toggleDevTools(win) {
+    const w = win || Electron.BrowserWindow.getFocusedWindow();
     if (w) {
       w.toggleDevTools();
     }
@@ -82,15 +84,14 @@ class WindowManager {
 
   /**
    * Create the main application window.
-   *
-   * @return {BrowserWindow} Created window.
+   * @param {String} tag String matching window to be created
+   * @return {BrowserWindow} Created window
    */
   async createNewWindow(tag) {
-    let w;
-    let winUrl;
+    let w; // window reference
 
     const session = await this._context._authManager.getSession();
-    
+
     if (session || ['auth', 'about'].includes(tag)) {
       switch (tag) {
         case 'about': {
@@ -98,7 +99,6 @@ class WindowManager {
             return this._aboutDialog;
           }
           w = await createAboutWindow();
-          winUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
           this._aboutDialog = w;
           break;
         }
@@ -107,7 +107,6 @@ class WindowManager {
             return this._auth;
           }
           w = await createAuthWindow();
-          winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
           this._auth = w;
           break;
         }
@@ -116,126 +115,91 @@ class WindowManager {
             return this._main;
           }
           w = await createMainWindow();
-          winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
           this._main = w;
           break;
         }
         case 'youtube': {
           w = await createYouTubeWindow();
-          winUrl = 'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
           break;
         }
         case 'captcha': {
           w = await createCaptchaWindow();
-          winUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
           break;
         }
         default: break;
       }
 
-      w.loadURL(winUrl);
+      w.loadURL(urls.get(tag));
       const { id } = w;
       this._windows.set(id, w);
 
-      w.on('close', () => {
-        if (isDevelopment) {
-          console.log(`Window was closed, id = ${id}`);
-        }
+      w.on('ready-to-show', WindowManager.handleShow(w));
 
-        // Unregister
-        this._windows.delete(id);
-        this._notifyUpdateWindowIDs(id);
-
-        if (this._windows.size === 0 && this._aboutDialog) {
-          this._aboutDialog.close();
-        }
-      });
-
-      w.on('ready-to-show', () => {
-        if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
-          w.webContents.openDevTools();
-        }
-        w.show();
-      });
+      w.on('close', this.handleClose(w));
 
       return w;
     }
     return this.transitionToDeauthedState();
   }
 
-  async transitionToDeauthedState() {
-    this._auth = await createAuthWindow();
-    const winUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
-    this._auth.loadURL(winUrl);
-    const { id } = this._auth;
-    this._windows.set(id, this._auth);
-
-    this._auth.on('ready-to-show', () => {
-      if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
-        this._auth.webContents.openDevTools();
+  static handleShow(win) {
+    return () => {
+      if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
+        win.webContents.openDevTools();
       }
-      this._auth.show();
-    });
+      win.show();
+    };
+  }
 
-    this._auth.on('close', () => {
-      if (isDevelopment) {
-        console.log(`Window was closed, id = ${id}`);
+  handleClose(win) {
+    return () => {
+      if (nebulaEnv.isDevelopment()) {
+        console.log(`Window was closed, id = ${win.id}`);
       }
-
-      this._windows.delete(this._auth.id);
-      this._notifyUpdateWindowIDs(this._auth.id);
+      this._windows.delete(win.id);
+      this._notifyUpdateWindowIDs(win.id);
 
       if (this._windows.size === 0 && this._aboutDialog) {
         this._aboutDialog.close();
       }
-    });
+    };
+  }
+
+  async transitionToDeauthedState() {
+    this._auth = await createAuthWindow();
+    const winUrl = urls.get('auth');
+    this._auth.loadURL(winUrl);
+    const { id } = this._auth;
+    this._windows.set(id, this._auth);
+
+    this._auth.on('ready-to-show', WindowManager.handleShow(this._auth));
+
+    this._auth.on('close', this.handleClose(this._auth));
 
     this._windows.forEach((w) => {
       if (w.id !== this._auth.id) {
         w.close();
       }
     });
-    if (isDevelopment) {
-      this._windows.forEach(w => console.log(w.id));
-    }
     return this._auth;
   }
 
   async transitiontoAuthedState() {
     this._main = await createMainWindow();
-    const winUrl = process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
+    const winUrl = urls.get('main');
     this._main.loadURL(winUrl);
     const { id } = this._main;
     this._windows.set(id, this._main);
 
-    this._main.on('ready-to-show', () => {
-      if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
-        this._main.webContents.openDevTools();
-      }
-      this._main.show();
-    });
+    this._main.on('ready-to-show', WindowManager.handleShow(this._main));
 
-    this._main.on('close', () => {
-      if (isDevelopment) {
-        console.log(`Window was closed, id = ${id}`);
-      }
-
-      this._windows.delete(this._main.id);
-      this._notifyUpdateWindowIDs(this._main.id);
-
-      if (this._windows.size === 0 && this._aboutDialog) {
-        this._aboutDialog.close();
-      }
-    });
+    this._main.on('close', this.handleClose(this._main));
 
     this._windows.forEach((w) => {
       if (w.id !== this._main.id) {
         w.close();
       }
     });
-    if (isDevelopment) {
-      this._windows.forEach(w => console.log(w.id));
-    }
     return this._main;
   }
 
@@ -307,28 +271,14 @@ class WindowManager {
     if (this._main && (this._main.id === id)) {
       // close all windows
       this._windows.forEach((win) => {
+        this.handleClose(win);
         win.close();
       });
     } else {
-      // just close the one window
+      // just close the one window object
+      this.handleClose(w);
       w.close();
     }
-  }
-
-  /**
-   * Occurs when the main window sends the RequestLaunchHarvester event 
-   * @param {IPCEvent} ev Event data.
-   */
-  _onRequestLaunchHarvester(ev) {
-    this.createNewWindow('captcha');
-  }
-
-  /**
-   * Occurs when the main window sends the RequestLaunchHarvester event 
-   * @param {IPCEvent} ev Event data.
-   */
-  _onRequestLaunchYoutube(ev) {
-    this.createNewWindow('youtube');
   }
 }
 

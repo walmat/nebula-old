@@ -3,11 +3,10 @@ const fetch = require('node-fetch');
 
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/Constants');
-const nebulaCheckUpdates = require('./checkUpdates');
+const nebulaCheckUpdates = require('./CheckUpdates');
 
 // Set up nebula environment variables
 nebulaEnv.setUpEnvironment();
-const _isDevelopment = process.env.NEBULA_ENV === 'development';
 
 class AuthManager {
   /**
@@ -35,7 +34,7 @@ class AuthManager {
    * @return {Store} Electron Store.
    */
   get Store() {
-    if (_isDevelopment) {
+    if (nebulaEnv.isDevelopment()) {
       return this._store;
     }
     return null;
@@ -93,7 +92,7 @@ class AuthManager {
   }
 
   async createSession(key) {
-    if (_isDevelopment) {
+    if (nebulaEnv.isDevelopment()) {
       return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
     }
     const session = await this.getSession();

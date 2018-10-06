@@ -2,11 +2,12 @@ const Electron = require('electron');
 const MainMenu = require('./MainMenu');
 const DialogManager = require('./DialogManager');
 const WindowManager = require('./WindowManager');
-const AuthManager = require('../_electron/AuthManager');
-const nebulaEnv = require('../_electron/env');
+const AuthManager = require('./AuthManager');
+const nebulaEnv = require('./env');
+
+console.log(nebulaEnv);
 
 nebulaEnv.setUpEnvironment();
-const isDevelopment = process.env.NEBULA_ENV === 'development';
 
 // Install Dev tools extensions
 const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
@@ -20,7 +21,7 @@ class App {
    */
   constructor() {
     // Compile switch
-    if (isDevelopment) {
+    if (nebulaEnv.isDevelopment()) {
       console.log('Initialize Application');
     }
 
@@ -48,6 +49,10 @@ class App {
      */
     this._dialogManager = new DialogManager(this);
 
+    /**
+     * Manage the auth workflow
+     * @type {AuthManager}
+     */
     this._authManager = new AuthManager(this);
   }
 
@@ -90,34 +95,18 @@ class App {
    */
   async onReady() {
 
-    if (isDevelopment) {
+    if (nebulaEnv.isDevelopment()) {
       await App.installExtensions();
     }
 
-    let win;
-    const session = await this._authManager.getSession();
-
-    if (!session || (session && session.errors)) {
-      win = await this._windowManager.createNewWindow('auth');
-    } else {
-      win = await this._windowManager.createNewWindow('main');
-    }
-    const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
-    Electron.Menu.setApplicationMenu(menu);
-
-    win.on('ready-to-show', () => {
-      if (isDevelopment || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
-        win.webContents.openDevTools();
-      }
-      win.show();
-    });
+    await this._windowManager.createNewWindow('main');
   }
 
   /**
    * Occurs when a window all closed.
    */
   onWindowAllClosed() {
-    if (isDevelopment) {
+    if (nebulaEnv.isDevelopment()) {
       console.log('Quit');
     }
 
@@ -135,7 +124,7 @@ class App {
 
 const app = new App();
 Electron.app.on('ready', () => {
-  if (isDevelopment) {
+  if (nebulaEnv.isDevelopment()) {
     console.log('Application is ready');
   }
 
@@ -143,13 +132,13 @@ Electron.app.on('ready', () => {
 });
 
 Electron.app.on('quit', () => {
-  if (isDevelopment) {
+  if (nebulaEnv.isDevelopment()) {
     console.log('Application is quitting');
   }
 });
 
 Electron.app.on('window-all-closed', () => {
-  if (isDevelopment) {
+  if (nebulaEnv.isDevelopment()) {
     console.log('All of the window was closed.');
   }
 
