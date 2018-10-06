@@ -1,7 +1,7 @@
 const fs = require('fs');
 const dotenv = require('dotenv');
 
-let _isDevelopment;
+let _isDevelopment = process.env.NODE_ENV === 'development';
 
 function _setUpEnvironment(envFname) {
   const envConfig = dotenv.parse(fs.readFileSync(envFname));

@@ -269,12 +269,12 @@ class WindowManager {
     if (this._main && (this._main.id === id)) {
       // close all windows
       this._windows.forEach((win) => {
-        this.handleClose(win)();
+        this.handleClose(win);
         win.close();
       });
     } else {
       // just close the one window object
-      this.handleClose(w)();
+      this.handleClose(w);
       w.close();
     }
   }
