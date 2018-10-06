@@ -1,7 +1,7 @@
 const Electron = require('electron');
-const DialogManager = require('./DialogManager');
-const WindowManager = require('./WindowManager');
-const AuthManager = require('./AuthManager');
+const DialogManager = require('./dialogManager');
+const WindowManager = require('./windowManager');
+const AuthManager = require('./authManager');
 const nebulaEnv = require('./env');
 
 nebulaEnv.setUpEnvironment();

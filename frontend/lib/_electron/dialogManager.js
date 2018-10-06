@@ -1,5 +1,5 @@
 const Electron = require('electron');
-const IPCKeys = require('../common/Constants');
+const IPCKeys = require('../common/constants');
 
 /**
  * Manage the dialog.

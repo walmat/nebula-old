@@ -1,5 +1,5 @@
 const Electron = require('electron');
-const IPCKeys = require('../common/Constants');
+const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 const {
   createAboutWindow,
@@ -8,7 +8,7 @@ const {
   createMainWindow,
   createYouTubeWindow,
   urls,
-} = require('./Windows');
+} = require('./windows');
 
 
 /**
@@ -266,12 +266,10 @@ class WindowManager {
     if (this._main && (this._main.id === id)) {
       // close all windows
       this._windows.forEach((win) => {
-        // this.handleClose(win);
         win.close();
       });
     } else {
       // just close the one window object
-      // this.handleClose(w);
       w.close();
     }
   }

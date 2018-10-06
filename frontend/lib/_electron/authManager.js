@@ -2,8 +2,8 @@ const Store = require('electron-store');
 const fetch = require('node-fetch');
 
 const nebulaEnv = require('./env');
-const IPCKeys = require('../common/Constants');
-const nebulaCheckUpdates = require('./CheckUpdates');
+const IPCKeys = require('../common/constants');
+const nebulaCheckUpdates = require('./checkUpdates');
 
 // Set up nebula environment variables
 nebulaEnv.setUpEnvironment();

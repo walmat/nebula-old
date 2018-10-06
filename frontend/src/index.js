@@ -10,3 +10,7 @@ ReactDOM.render(
   document.getElementById('root'),
 );
 // registerServiceWorker();
+
+/**
+ * do some research whether or not we need a service worker
+ */
