@@ -1,6 +1,5 @@
 const Electron = require('electron');
 const Path = require('path');
-const nebulaEnv = require('./env');
 
 const urls = new Map();
 

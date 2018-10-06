@@ -140,7 +140,7 @@ class WindowManager {
     return this.transitionToDeauthedState();
   }
 
-  static handleShow(win) {
+  handleShow(win) {
     return () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         win.webContents.openDevTools();
