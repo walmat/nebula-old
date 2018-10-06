@@ -27,6 +27,7 @@ describe('<Profiles />', () => {
       onDestroyProfile={renderProps.onDestroyProfile}
       onSelectProfile={renderProps.onSelectProfile}
       onUpdateProfile={renderProps.onUpdateProfile}
+      onKeyPress={renderProps.onKeyPress}
     />);
   };
 
@@ -57,6 +58,7 @@ describe('<Profiles />', () => {
     expect(wrapper.find('#profile-save')).toHaveLength(1);
     expect(wrapper.find('#submit-profile')).toHaveLength(1);
     expect(wrapper.find('#delete-profile')).toHaveLength(1);
+    wrapper.find('#billing-match-shipping').parent().simulate('keyPress');
   });
 
   describe('should render correct values for', () => {
@@ -352,19 +354,10 @@ describe('<Profiles />', () => {
 
   test('responds to a key press event', () => {
     const keyPressHandler = jest.fn();
-    const wrapper = shallow(<ProfilesPrimitive
-      profiles={defaultProps.profiles}
-      currentProfile={defaultProps.currentProfile}
-      selectedProfile={defaultProps.selectedProfile}
-      onClickBillingMatchesShipping={defaultProps.onClickBillingMatchesShipping}
-      onProfileNameChange={defaultProps.onProfileNameChange}
-      onAddNewProfile={defaultProps.onAddNewProfile}
-      onLoadProfile={defaultProps.onLoadProfile}
-      onDestroyProfile={defaultProps.onDestroyProfile}
-      onSelectProfile={defaultProps.onSelectProfile}
-      onUpdateProfile={defaultProps.onUpdateProfile}
-      onKeyPress={keyPressHandler}
-    />);
+    const customProps = {
+      onKeyPress: keyPressHandler,
+    };
+    const wrapper = renderShallowWithProps(customProps);
     const checkbox = wrapper.find('#billing-match-shipping');
     const div = checkbox.parent();
     div.simulate('keyPress');

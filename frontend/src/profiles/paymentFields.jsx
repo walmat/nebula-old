@@ -5,28 +5,16 @@ import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
+import limit from '../utils/limit';
 
 import info from '../_assets/info.svg';
 
 import './profiles.css';
 
 export class PaymentFieldsPrimitive extends Component {
-  static limit(val, max) {
-    if (val.length === 1 && val[0] >= max[0]) {
-      return `0${val}`;
-    }
-
-    if (Number(val) <= 0) {
-      return '01';
-    } else if (val.length === 2 && val > max) { // this can happen when user paste number
-      return max;
-    }
-    return val;
-  }
-
   static cardExpiry(val) {
     const split = val.split('/', 2);
-    const month = PaymentFieldsPrimitive.limit(split[0], '12');
+    const month = limit(split[0], '12');
     const yearPart = split[1] || '';
     const year = yearPart.slice(0, 2);
 
