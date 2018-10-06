@@ -41,6 +41,10 @@ class AuthManager {
   }
 
   async getSession() {
+    if (nebulaEnv.isDevelopment()) {
+      return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
+    }
+
     let session = this._store.get('session');
 
     if (session) {

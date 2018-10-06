@@ -1,5 +1,6 @@
 const Electron = require('electron');
 const IPCKeys = require('../common/Constants');
+const nebulaEnv = require('./env');
 const {
   createAboutWindow,
   createAuthWindow,
@@ -9,7 +10,6 @@ const {
   urls,
 } = require('./Windows');
 
-const nebulaEnv = require('./env');
 
 /**
  * Manage the window.
@@ -89,13 +89,7 @@ class WindowManager {
    */
   async createNewWindow(tag) {
     let w; // window reference
-
-    console.log(tag);
-
     const session = await this._context._authManager.getSession();
-
-    console.log(session);
-
     if (session || ['auth', 'about'].includes(tag)) {
       switch (tag) {
         case 'about': {
@@ -275,12 +269,12 @@ class WindowManager {
     if (this._main && (this._main.id === id)) {
       // close all windows
       this._windows.forEach((win) => {
-        this.handleClose(win);
+        this.handleClose(win)();
         win.close();
       });
     } else {
       // just close the one window object
-      this.handleClose(w);
+      this.handleClose(w)();
       w.close();
     }
   }

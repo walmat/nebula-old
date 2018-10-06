@@ -1,6 +1,8 @@
 const fs = require('fs');
 const dotenv = require('dotenv');
 
+let _isDevelopment;
+
 function _setUpEnvironment(envFname) {
   const envConfig = dotenv.parse(fs.readFileSync(envFname));
   if (envConfig) {
@@ -9,6 +11,7 @@ function _setUpEnvironment(envFname) {
         process.env[k] = envConfig[k];
       }
     });
+    _isDevelopment = process.env.NEBULA_ENV === 'development';
     process.env.NEBULA_ENV_LOADED = true;
   }
 }
@@ -26,7 +29,7 @@ function setUpProdEnvironment() {
 }
 
 function isDevelopment() {
-  return process.env.NODE_ENV === 'development';
+  return _isDevelopment;
 }
 
 function setUpEnvironment() {

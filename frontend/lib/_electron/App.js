@@ -5,8 +5,6 @@ const WindowManager = require('./WindowManager');
 const AuthManager = require('./AuthManager');
 const nebulaEnv = require('./env');
 
-console.log(nebulaEnv);
-
 nebulaEnv.setUpEnvironment();
 
 // Install Dev tools extensions
