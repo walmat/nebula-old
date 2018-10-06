@@ -90,7 +90,11 @@ class WindowManager {
   async createNewWindow(tag) {
     let w; // window reference
 
+    console.log(tag);
+
     const session = await this._context._authManager.getSession();
+
+    console.log(session);
 
     if (session || ['auth', 'about'].includes(tag)) {
       switch (tag) {
