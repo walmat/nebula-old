@@ -90,9 +90,7 @@ class WindowManager {
     let winUrl;
 
     const session = await this._context._authManager.getSession();
-
-    console.log(`[DEBUG]: ${session}`);
-
+    
     if (session || ['auth', 'about'].includes(tag)) {
       switch (tag) {
         case 'about': {

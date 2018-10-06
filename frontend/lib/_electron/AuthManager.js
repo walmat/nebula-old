@@ -43,7 +43,6 @@ class AuthManager {
 
   async getSession() {
     let session = this._store.get('session');
-    console.log(session);
 
     if (session) {
       session = JSON.parse(session);
@@ -138,7 +137,6 @@ async function clearSession() {
   }
 
   async _onAuthRequestActivate(event, key) {
-    console.log(key);
     let session = await this.getSession();
     if (!session) {
       session = await this.createSession(key);
