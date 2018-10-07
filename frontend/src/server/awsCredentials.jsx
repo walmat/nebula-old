@@ -3,8 +3,9 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
+import addTestId from '../utils/addTestId';
 
-class AWSCredentials extends Component {
+export class AWSCredentialsPrimitive extends Component {
   constructor(props) {
     super(props);
     this.logoutAws = this.logoutAws.bind(this);
@@ -22,7 +23,7 @@ class AWSCredentials extends Component {
   }
 
   createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
+    return event => this.props.onEditServerInfo(field, event.target.value);
   }
 
   validateAws(e) {
@@ -47,6 +48,7 @@ class AWSCredentials extends Component {
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={serverInfo.credentials.AWSAccessKey}
                   required
+                  data-testid={addTestId('AWSCredentials.accessKeyInput')}
                 />
               </div>
             </div>
@@ -63,6 +65,7 @@ class AWSCredentials extends Component {
                 onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                 value={serverInfo.credentials.AWSSecretKey}
                 required
+                data-testid={addTestId('AWSCredentials.secretKeyInput')}
               />
             </div>
           </div>
@@ -72,8 +75,9 @@ class AWSCredentials extends Component {
             <button
               className="server-credentials__submit"
               tabIndex={0}
-              onKeyPress={() => {}}
+              onKeyPress={this.props.onKeyPress}
               onClick={loggedInAws ? this.logoutAws : this.validateAws}
+              data-testid={addTestId('AWSCredentials.submitButton')}
             >
               {loggedInAws ? 'Log out' : 'Submit'}
             </button>
@@ -84,19 +88,23 @@ class AWSCredentials extends Component {
   }
 }
 
-AWSCredentials.propTypes = {
+AWSCredentialsPrimitive.propTypes = {
   onEditServerInfo: PropTypes.func.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   onValidateAws: PropTypes.func.isRequired,
   onLogoutAws: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
 };
 
+AWSCredentialsPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
 
-const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   serverInfo: state.serverInfo,
 });
 
-const mapDispatchToProps = dispatch => ({
+export const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
@@ -108,4 +116,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(AWSCredentials);
+export default connect(mapStateToProps, mapDispatchToProps)(AWSCredentialsPrimitive);

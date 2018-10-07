@@ -9,24 +9,26 @@ import destroy from '../_assets/destroy.svg';
 import defns from '../utils/definitions/serverDefinitions';
 import { serverActions } from '../state/actions/server/serverActions';
 import './server';
+import addTestId from '../utils/addTestId';
 
-class ServerRow extends Component {
-  static renderTableRowActionButton(desc, src, className, onClick) {
+export class ServerRowPrimitive extends Component {
+  renderTableRowActionButton(tag, desc, src, className, onClick) {
     return (
       <div className="server-row__actions__button">
-        {ServerRow.renderTableRowButton(desc, src, className, onClick)}
+        {this.renderTableRowButton(`action.${tag}`, desc, src, className, onClick)}
       </div>
     );
   }
 
-  static renderTableRowButton(desc, src, className, onClick) {
+  renderTableRowButton(tag, desc, src, className, onClick) {
     return (
       <div
         role="button"
         tabIndex={0}
         title={desc}
-        onKeyPress={() => {}}
+        onKeyPress={this.props.onKeyPress}
         onClick={onClick}
+        data-testid={addTestId(`ServerRow.tableRowButton.${tag}`)}
       >
         <img
           src={src}
@@ -40,7 +42,8 @@ class ServerRow extends Component {
 
   renderTableRowStartActionButton() {
     const { server, serverInfo } = this.props;
-    return ServerRow.renderTableRowButton(
+    return this.renderTableRowActionButton(
+      'start',
       'Start Server',
       start,
       server.status === 'running' ? 'active' : '',
@@ -50,7 +53,8 @@ class ServerRow extends Component {
 
   renderTableRowStopActionButton() {
     const { server, serverInfo } = this.props;
-    return ServerRow.renderTableRowActionButton(
+    return this.renderTableRowActionButton(
+      'stop',
       'Stop Server',
       stop,
       server.status === 'stopped' ? 'active' : '',
@@ -60,7 +64,8 @@ class ServerRow extends Component {
 
   renderTableRowDestroyActionButton() {
     const { server, serverInfo } = this.props;
-    return ServerRow.renderTableRowActionButton(
+    return this.renderTableRowActionButton(
+      'destroy',
       'Destroy Server',
       destroy,
       '',
@@ -73,7 +78,7 @@ class ServerRow extends Component {
     return (
       <div key={server.id} className="server-row row">
         <div className="col col--no-gutter server-row__type">{server.type.label}</div>
-        <div className="col col--no-gutter server-row__size">{server.sizes.label}</div>
+        <div className="col col--no-gutter server-row__size">{server.size.label}</div>
         <div className="col col--no-gutter server-row__location">{server.location.label}</div>
         <div className="col col--no-gutter server-row__charges">{server.charges}</div>
         <div className="col col--no-gutter server-row__status">{server.status}</div>
@@ -97,20 +102,25 @@ class ServerRow extends Component {
   }
 }
 
-ServerRow.propTypes = {
+ServerRowPrimitive.propTypes = {
   server: defns.server.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   onStartServer: PropTypes.func.isRequired,
   onStopServer: PropTypes.func.isRequired,
   onDestroyServer: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
 };
 
-const mapStateToProps = (state, ownProps) => ({
+ServerRowPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
+
+export const mapStateToProps = (state, ownProps) => ({
   server: ownProps.server,
   serverInfo: state.serverInfo,
 });
 
-const mapDispatchToProps = dispatch => ({
+export const mapDispatchToProps = dispatch => ({
   onStartServer: (serverOptions, awsCredentials) => {
     dispatch(serverActions.start(serverOptions, awsCredentials));
   },
@@ -122,4 +132,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ServerRow);
+export default connect(mapStateToProps, mapDispatchToProps)(ServerRowPrimitive);
