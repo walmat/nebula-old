@@ -46,31 +46,36 @@ let task = {
 	},
 	sizes: ['8', '8.5', '9'],
 	status: 'idle',
-	delay: 2000,
+	errorDelay: 2000,
+	monitorDelay: 2000,
 }
 
 let proxies = [];
 let index = 0;
 
-// module.exports = async function(task) {
+const runTask = async () => {
+	const product = await findProduct(task, proxies[index]);
+	console.log(product);
+}
 
-   
-// };
+runTask();
 
-findProduct(task, proxies[index], function(err, delay, res) {
+// findProduct(task, proxies[index], function(error, delay, products) {
 
-	if (err) {
-		console.log(res);
-	} else {
-		getVariantsBySize(task, res, (matches, productUrl) => {
-			pay(task, matches, productUrl, (err) => {
+// 	if (err) {
+// 		console.log(res);
+// 	} else {
+// 		getVariantsBySize(task, res, (matches, productUrl) => {
+// 			pay(task, matches, productUrl, (err) => {
 
-				//TODO -- handle moving onto the next user desired size and all that
+// 				//TODO -- handle moving onto the next user desired size and all that
 
-				if (err === 'sold out') {
-					return run(config);
-				}
-			});
-		});
-	}
-});
+// 				if (err === 'sold out') {
+// 					return run(config);
+// 				}
+// 			});
+// 		});
+// 	}
+// });
+
+module.exports.runTask = runTask;
