@@ -2,9 +2,9 @@ import awsCredentials, { initialAwsCredentialsState } from './server/awsCredenti
 import proxyOptions, { initialProxyOptionsState } from './server/proxyOptions';
 import serverInfo, { initialServerInfoState } from './server/serverInfo';
 import coreServer, { initialCoreServerState } from './server/coreServer';
-import { serverList, serverRow, initialServerListState } from './server/serverList';
+import { serverList, server, initialServerListState, initialServerState } from './server/serverList';
 import serverListOptions from './server/serverListOptions';
-import serverProperty from './server/serverProperty';
+import serverProperty, { initialServerPropertyState } from './server/serverProperty';
 import serverOptions, { initialServerOptionsState } from './server/serverOptions';
 
 export const initialServerStates = {
@@ -14,6 +14,8 @@ export const initialServerStates = {
   serverInfo: initialServerInfoState,
   serverOptions: initialServerOptionsState,
   serverList: initialServerListState,
+  serverProperty: initialServerPropertyState,
+  server: initialServerState,
 };
 
 export default {
@@ -25,5 +27,5 @@ export default {
   serverListOptions,
   serverProperty,
   serverOptions,
-  serverRow,
+  server,
 };

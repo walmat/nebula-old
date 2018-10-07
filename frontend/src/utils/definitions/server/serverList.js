@@ -1,10 +1,19 @@
 import PropTypes from 'prop-types';
 
-import serverProperty from './serverProperty';
+import serverProperty, { initialServerPropertyState } from './serverProperty';
 
 export const initialServerListState = [];
 
-export const serverRow = PropTypes.shape({
+export const initialServerState = {
+  type: initialServerPropertyState,
+  size: initialServerPropertyState,
+  location: initialServerPropertyState,
+  charges: '',
+  status: '',
+  action: '',
+};
+
+export const server = PropTypes.shape({
   type: serverProperty,
   size: serverProperty,
   location: serverProperty,
@@ -13,6 +22,6 @@ export const serverRow = PropTypes.shape({
   action: PropTypes.string,
 });
 
-export const serverList = PropTypes.arrayOf(serverRow);
+export const serverList = PropTypes.arrayOf(server);
 
 export default serverList;

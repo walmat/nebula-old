@@ -10,8 +10,8 @@ describe('serverList definitions', () => {
       keyName,
       valid,
       invalid,
-      sDefns.serverRow,
-      initialServerStates.serverRow,
+      sDefns.server,
+      initialServerStates.server,
       spy,
     );
 

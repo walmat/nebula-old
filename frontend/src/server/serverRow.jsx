@@ -98,7 +98,7 @@ class ServerRow extends Component {
 }
 
 ServerRow.propTypes = {
-  server: defns.serverRow.isRequired,
+  server: defns.server.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   onStartServer: PropTypes.func.isRequired,
   onStopServer: PropTypes.func.isRequired,
