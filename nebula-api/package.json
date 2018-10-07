@@ -23,6 +23,7 @@
     "phone-formatter": "0.0.2",
     "recaptcha-verify": "^0.1.1",
     "request": "^2.87.0",
+    "request-promise": "^4.2.2",
     "shortid": "^2.2.8",
     "underscore": "^1.9.1"
   },
