@@ -1,10 +1,11 @@
 node_modules/*
 package-lock.json
 build/
+public/
+_design-files/
+_dynamodb_local/
 dynamodb_local/
 _legal/
-_dynamodb_local/
-_design-files/
 .DS_Store
 .vscode/
 
