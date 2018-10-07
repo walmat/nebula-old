@@ -69,51 +69,34 @@ async function findProductFromVariant(task, proxy) {
  * @param {String} proxy 
  */
 async function findProductFromURL(task, proxy) {
-    request(
-        {
-            method: 'GET',
-            uri: `${task.product.url}.json`,
-            proxy: formatProxy(proxy),
-            gzip: false,
-            json: true,
-            simple: false,
-            headers: {
-                'User-Agent': userAgent,
-            }
-        }, 
-        function (err, res, body) {
-            if (err) {
-                // keep in mind – 404 error COULD & SHOULD happen before product is loaded
-                return cb(true, task.delay, err);
-            }
-            try {
-                // gather essentials needed for checking out
-                const products = JSON.parse(body);
-                if (products.product.length === 0) {
-                    // item not loaded yet, or not found, or something?
-                } else {
-                    let product = [];
-                    // find matching sizes
-                    products.product.variants.map(variant => {
-                        if (task.sizes.some(s => (s === variant.option1 || s === variant.option2 || s === variant.option3))) {
-                            product.push(variant);
-                        }
-                    });
-                    return cb(false, null, product);
-                }
-            } catch (e) {
-                console.log(e);
-                if (res.statusCode === 430) {
-                    return cb(true, task.error_delay, null);
-                } else if (res.statusCode === 401) {
-                    return cb(true, task.delay, null);
-                } else {
-                    // unknown error, handle it
-                    return cb(true, null, res.statusCode);
-                }
-            }
+    return rp({
+        method: 'GET',
+        uri: `${task.product.url}.json`,
+        proxy: formatProxy(proxy),
+        gzip: false,
+        json: true,
+        simple: false,
+        headers: {
+            'User-Agent': userAgent,
         }
-    )
+    }).then (async function(body) {
+        let products = JSON.parse(JSON.stringify(body));
+        new Promise(async (resolve) => {
+            // gather essentials needed for checking out
+            if (products.product.length === 0) {
+                // item not loaded yet, or not found, or something?
+            } else {
+                let product = [];
+                // find matching sizes
+                products.product.variants.map(variant => {
+                    if (task.sizes.some(s => (s === variant.option1 || s === variant.option2 || s === variant.option3))) {
+                        product.push(variant);
+                    }
+                });
+                return resolve({error: false, delay: task.monitorDelay, products: product});
+            }
+        });
+    });
 }
 
 /**
@@ -137,51 +120,66 @@ async function findProductFromKeywords(task, proxy) {
         }
     }).then(async function(body) {
 
-        let r = await parseString(body, async (error, res) => {
-            if (error) {
-                //parsing error
-                return JSON.parse(JSON.stringify({ error: error, delay: task.errorDelay, products: null }));
-            }
-
-            const start = now();
-            let products = _.sortBy(res['urlset']['url'], async function(product) {
-                return product.lastmod; // sort by most recent products
-            });
-            products.map(product => {
-                if (product) { // null check
-                    if (product['image:image']) { // null check
-                        title = product['image:image'][0]['image:title'];
-                        /**
-                         * make the product matching work like so:
-                         * 1. if ALL pos_keywords found in word A, consider A matched.
-                         * 2. if ANY neg_keywords found in word A, consider A not matched.
-                         * 
-                         * if 1 === true, and 2 === false, consider A "matched"
-                         */
-                        // https://underscorejs.org/#every
-                        let pos = _.every(trimKeywords(task.product.pos_keywords), function(keyword) {
-                            return title[0].indexOf(keyword) > -1;
-                        });
-                        // https://underscorejs.org/#some
-                        let neg = _.some(trimKeywords(task.product.neg_keywords), function(keyword) {
-                            return title[0].indexOf(keyword) > -1;
-                        });
-                        if (pos && !neg) {
-                            matchedProducts.push(product.loc);
+        new Promise((resolve) => {
+            parseString(body, async (error, res) => {
+                if (error) {
+                    //parsing error
+                    return resolve({ error: error, delay: task.errorDelay, products: null });
+                }
+    
+                const start = now();
+                let products = _.sortBy(res['urlset']['url'], async function(product) {
+                    return product.lastmod; // sort by most recent products
+                });
+                products.map(product => {
+                    if (product) { // null check
+                        if (product['image:image']) { // null check
+                            title = product['image:image'][0]['image:title'];
+                            /**
+                             * make the product matching work like so:
+                             * 1. if ALL pos_keywords found in word A, consider A matched.
+                             * 2. if ANY neg_keywords found in word A, consider A not matched.
+                             * 
+                             * if 1 === true, and 2 === false, consider A "matched"
+                             */
+                            // https://underscorejs.org/#every
+                            let pos = _.every(trimKeywords(task.product.pos_keywords), function(keyword) {
+                                return title[0].indexOf(keyword) > -1;
+                            });
+                            // https://underscorejs.org/#some
+                            let neg = _.some(trimKeywords(task.product.neg_keywords), function(keyword) {
+                                return title[0].indexOf(keyword) > -1;
+                            });
+                            if (pos && !neg) {
+                                matchedProducts.push(product.loc);
+                            }
                         }
                     }
+                });
+    
+                console.log(`\n[DEBUG]: Found product(s): ${matchedProducts} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
+    
+                if (matchedProducts.length > 0) { // found a product or products!
+                    return resolve({ error: null, delay: task.monitorDelay, products: matchedProducts });
+                } else { // keep monitoring
+                    return resolve({ error: null, delay: task.monitorDelay, products: null });
                 }
             });
-
-            console.log(`\n[DEBUG]: Found product(s): ${matchedProducts} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
-
-            if (matchedProducts.length > 0) { // found a product or products!
-                return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: matchedProducts }));
-            } else { // keep monitoring
-                return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: null }));
+        }).then(async (res) => {
+            if (res.error) {
+                console.log(res.error);
             }
-        });
-        return r;
+
+            task.product.url = res.products[0];
+
+            return new Promise(async (resolve) => {
+                await findProductFromURL(task, proxy).then((res) => {
+                    return resolve(res);
+                });
+            })
+            
+        })
+        
     });
 }
 
