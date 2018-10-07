@@ -32,15 +32,15 @@ module.exports = {};
  * @param {String} proxy 
  */
 async function findProduct(task, proxy,) {
-    return task.product.url !== null ? findProductFromURL(task, proxy) :
-    task.product.variant !== null ? findProductFromVariant(task, proxy) :
-    task.product.pos_keywords !== null ? findProductFromKeywords(task, proxy) :
+    return task.product.url !== null ? await findProductFromURL(task, proxy) :
+    task.product.variant !== null ? await findProductFromVariant(task, proxy) :
+    task.product.pos_keywords !== null ? await findProductFromKeywords(task, proxy) :
     null;
 }
 
 module.exports.findProduct = findProduct;
 
-function findProductFromVariant(task, proxy) {
+async function findProductFromVariant(task, proxy) {
     rp(
         {
             method: 'GET',
@@ -125,7 +125,7 @@ async function findProductFromKeywords(task, proxy) {
 
     let matchedProducts = []; // ideally only one product...
 
-    return rp(
+    await rp(
         {
             method: 'GET',
             uri: `${task.site}/sitemap_products_1.xml`,
@@ -137,9 +137,9 @@ async function findProductFromKeywords(task, proxy) {
                 'User-Agent': userAgent,
             }
         }
-    ).then((html) => {
+    ).then(async (html) => {
         const body = JSON.parse(JSON.stringify(html));
-        parseString(body, (error, res) => {
+        await parseString(body, (error, res) => {
             if (error) {
                 //parsing error
                 return { error: true, delay: task.errorDelay, products: null };
@@ -173,10 +173,9 @@ async function findProductFromKeywords(task, proxy) {
                     }
                 }
             });
-            
-            console.log(`found product(s): ${matchedProducts}`);
-            console.log(`finding products for: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms`);
-        
+
+            console.log(`\n[DEBUG]: Found product(s): ${matchedProducts} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
+
             if (matchedProducts.length > 0) { // found a product or products!
                 return JSON.stringify({ error: null, delay: task.monitorDelay, products: matchedProducts });
             } else { // keep monitoring
