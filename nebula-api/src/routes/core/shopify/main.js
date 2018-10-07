@@ -54,8 +54,8 @@ let proxies = [];
 let index = 0;
 
 const runTask = async () => {
-	await findProduct(task, proxies[index]).then(async (body) => {
-		console.log(body);
+	await findProduct(task, proxies[index]).then(async (res) => {
+		console.log(JSON.parse(JSON.stringify(res)));
 	});
 }
 
