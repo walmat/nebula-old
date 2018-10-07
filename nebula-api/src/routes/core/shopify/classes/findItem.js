@@ -69,7 +69,7 @@ async function findProductFromVariant(task, proxy) {
  * @param {String} proxy 
  */
 async function findProductFromURL(task, proxy) {
-    rp(
+    request(
         {
             method: 'GET',
             uri: `${task.product.url}.json`,
@@ -125,28 +125,26 @@ async function findProductFromKeywords(task, proxy) {
 
     let matchedProducts = []; // ideally only one product...
 
-    await rp(
-        {
-            method: 'GET',
-            uri: `${task.site}/sitemap_products_1.xml`,
-            proxy: formatProxy(proxy),
-            simple: false,
-            json: true,
-            gzip: true,
-            headers: {
-                'User-Agent': userAgent,
-            }
+    await rp({
+        method: 'GET',
+        url: `${task.site}/sitemap_products_1.xml`,
+        proxy: formatProxy(proxy),
+        json: true,
+        simple: true,
+        gzip: true,
+        headers: {
+            'User-Agent': userAgent,
         }
-    ).then(async (html) => {
-        const body = JSON.parse(JSON.stringify(html));
-        await parseString(body, (error, res) => {
+    }).then(async function(body) {
+
+        await parseString(body, async (error, res) => {
             if (error) {
                 //parsing error
-                return { error: true, delay: task.errorDelay, products: null };
+                return { error: error, delay: task.errorDelay, products: null };
             }
 
             const start = now();
-            let products = _.sortBy(res['urlset']['url'], function(product) {
+            let products = _.sortBy(res['urlset']['url'], async function(product) {
                 return product.lastmod; // sort by most recent products
             });
             products.map(product => {
@@ -164,6 +162,7 @@ async function findProductFromKeywords(task, proxy) {
                         let pos = _.every(trimKeywords(task.product.pos_keywords), function(keyword) {
                             return title[0].indexOf(keyword) > -1;
                         });
+                        // https://underscorejs.org/#some
                         let neg = _.some(trimKeywords(task.product.neg_keywords), function(keyword) {
                             return title[0].indexOf(keyword) > -1;
                         });
@@ -177,9 +176,9 @@ async function findProductFromKeywords(task, proxy) {
             console.log(`\n[DEBUG]: Found product(s): ${matchedProducts} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
 
             if (matchedProducts.length > 0) { // found a product or products!
-                return JSON.stringify({ error: null, delay: task.monitorDelay, products: matchedProducts });
+                return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: matchedProducts }));
             } else { // keep monitoring
-                return { error: null, delay: task.monitorDelay, products: null };
+                return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: null }));
             }
         });
     });
