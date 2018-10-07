@@ -32,9 +32,9 @@ module.exports = {};
  * @param {String} proxy 
  */
 async function findProduct(task, proxy,) {
-    return task.product.url !== null ? await findProductFromURL(task, proxy) :
-    task.product.variant !== null ? await findProductFromVariant(task, proxy) :
-    task.product.pos_keywords !== null ? await findProductFromKeywords(task, proxy) :
+    return task.product.url !== null ? findProductFromURL(task, proxy) :
+    task.product.variant !== null ? findProductFromVariant(task, proxy) :
+    task.product.pos_keywords !== null ? findProductFromKeywords(task, proxy) :
     null;
 }
 
@@ -125,7 +125,7 @@ async function findProductFromKeywords(task, proxy) {
 
     let matchedProducts = []; // ideally only one product...
 
-    await rp({
+    return rp({
         method: 'GET',
         url: `${task.site}/sitemap_products_1.xml`,
         proxy: formatProxy(proxy),
@@ -137,10 +137,10 @@ async function findProductFromKeywords(task, proxy) {
         }
     }).then(async function(body) {
 
-        await parseString(body, async (error, res) => {
+        let r = await parseString(body, async (error, res) => {
             if (error) {
                 //parsing error
-                return { error: error, delay: task.errorDelay, products: null };
+                return JSON.parse(JSON.stringify({ error: error, delay: task.errorDelay, products: null }));
             }
 
             const start = now();
@@ -181,6 +181,7 @@ async function findProductFromKeywords(task, proxy) {
                 return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: null }));
             }
         });
+        return r;
     });
 }
 
