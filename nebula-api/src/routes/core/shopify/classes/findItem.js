@@ -171,9 +171,9 @@ async function findProductFromKeywords(task, proxy) {
         console.log(`\n[DEBUG]: Found product(s): ${matchedProducts} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
 
         if (matchedProducts.length > 0) { // found a product or products!
-            resolve({ error: null, delay: task.monitorDelay, products: matchedProducts });
+            return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: matchedProducts }));
         } else { // keep monitoring
-            resolve({ error: null, delay: task.monitorDelay, products: null });
+            return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: null }));
         }
     })
     .then((res) => {
