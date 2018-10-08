@@ -44,7 +44,7 @@ function trimKeywords(input) {
 }
 module.exports.trimKeywords = trimKeywords;
 
-async function getRegionSizes(size) {
+function getRegionSizes(size) {
     return sizes.forEach(s => {
         if (s.US === size) {
             return s;

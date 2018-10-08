@@ -47,7 +47,7 @@ async function findProductFromVariant(task, proxy) {
             uri: `${task.site}/cart/add.js`,
             followAllRedirects: true,
             method: 'post',
-            proxy: formatProxy(proxy);
+            proxy: formatProxy(proxy),
             headers: {
                 Origin: task.site,
                 'User-Agent': userAgent,
