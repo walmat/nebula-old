@@ -2,31 +2,34 @@ const fs = require('fs');
 const open = require('open');
 const cheerio = require('cheerio');
 const phoneFormatter = require('phone-formatter');
+const now = require("performance-now");
 const j = require('request').jar();
 const request = require('request').defaults({
     timeout: 10000,
     jar: j,
 });
 
-const userAgent = require('../utils/common').userAgent;
+const { userAgent } = require('../utils/common');
 const log = require('../utils/log');
 
 let price, storeID, url, checkoutHost, checkoutID;
 let matches;
+let start;
 
 module.exports = {};
 
-function pay(task, _matches, productUrl, cb) {
+function pay(task, _matches) {
+    start = now();
     matches = _matches;
     let styleID = matches[0].id;
     request(
         {
-            url: `${productUrl[0]}`,
+            url: `${task.product.url}`,
             followAllRedirects: true,
             method: 'get',
             headers: {
                 'User-Agent': userAgent,
-                Origin: task.site,
+                Origin: task.product.url,
                 'User-Agent': userAgent,
                 'Content-Type': 'application/x-www-form-urlencoded',
                 Accept:
@@ -38,9 +41,10 @@ function pay(task, _matches, productUrl, cb) {
         function(err, res) {
             if (err) {
                 console.log(err);
-            } else {
-                console.log(res.body);
             }
+            // } else {
+            // console.log(res.body);
+            //
         }
     );
 
@@ -55,7 +59,7 @@ function pay(task, _matches, productUrl, cb) {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 Accept:
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: productUrl,
+                Referer: task.product.url,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
             formData: {
@@ -82,7 +86,7 @@ function pay(task, _matches, productUrl, cb) {
                     }
                     request(
                         {
-                            url: `${task.site}/cart`,
+                            url: `${task.site}/cart.js`,
                             followAllRedirects: true,
                             method: 'post',
                             headers: {
@@ -98,9 +102,10 @@ function pay(task, _matches, productUrl, cb) {
                                 log(err, 'error');
                             }
                             checkoutHost = 'https://' + res.request.originalHost;
-
+                            console.log(checkoutHost);
                             if (res.request.href.indexOf('stock_problems') > -1) {
-                                // sold out
+                                // out of stock
+                                console.log('out of stock');
                                 process.exit(1);
                             }
 
@@ -370,8 +375,8 @@ function submitShipping(config, res) {
             );
         }, parseInt(config.shipping_pole_timeout));
     } else if (res.type === 'direct') {
-        log(`Shipping Method Value: ${res.value}`);
-        log('Card information sending...');
+        console.log(`Shipping Method Value: ${res.value}`);
+        console.log('Card information sending...');
 
         request(
             {
@@ -401,16 +406,16 @@ function submitShipping(config, res) {
                     'form[data-payment-form=""] input[name="authenticity_token"]'
                 ).attr('value');
 
-                log(`Price: ${price}`);
-                log(`Payment Gateway ID: ${payment_gateway}`);
+                console.log(`Price: ${price}`);
+                console.log(`Payment Gateway ID: ${payment_gateway}`);
 
-                submitCC(config, discordBot, new_auth_token, price, payment_gateway);
+                submitCC(config, new_auth_token, price, payment_gateway);
             }
         );
     }
 }
 
-function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
+function submitCC(config, new_auth_token, price, payment_gateway) {
     //TODO – this info will be pulled from dynamo and stored locally
     const ccInfo = {
         credit_card: {
@@ -459,17 +464,17 @@ function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
                         'checkout[payment_gateway]': payment_gateway,
                         'checkout[credit_card][vault]': 'false',
                         'checkout[different_billing_address]': 'false',
-                        'checkout[billing_address][first_name]': config.firstName,
-                        'checkout[billing_address][last_name]': config.lastName,
+                        'checkout[billing_address][first_name]': config.profile.billing.firstName,
+                        'checkout[billing_address][last_name]': config.profile.billing.lastName,
                         'checkout[billing_address][company]': '',
-                        'checkout[billing_address][address1]': config.address1,
-                        'checkout[billing_address][address2]': config.address2,
-                        'checkout[billing_address][city]': config.city,
-                        'checkout[billing_address][country]': config.country,
-                        'checkout[billing_address][province]': config.state,
-                        'checkout[billing_address][zip]': config.zipCode,
+                        'checkout[billing_address][address1]': config.profile.billing.address,
+                        'checkout[billing_address][address2]': config.profile.billing.apt,
+                        'checkout[billing_address][city]': config.profile.billing.city,
+                        'checkout[billing_address][country]': config.profile.billing.country,
+                        'checkout[billing_address][province]': config.profile.billing.state,
+                        'checkout[billing_address][zip]': config.profile.billing.zipCode,
                         'checkout[billing_address][phone]': phoneFormatter.format(
-                            config.phoneNumber,
+                            config.profile.billing.phone,
                             '(NNN) NNN-NNNN'
                         ),
                         'checkout[total_price]': price,
@@ -485,48 +490,29 @@ function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
                             if (err) {
                                 log(err, 'error');
                             }
-                            log(
+                            console.log(
                                 'The file debug.html was saved the root of the project file.'
                             );
                         });
                     }
                     const $ = cheerio.load(body);
                     if ($('input[name="step"]').val() === 'processing') {
-                        log(
-                            'Payment is processing, go check your email for a confirmation.'
-                        );
-                        notify(
-                            config,
-                            discordBot,
-                            '#36a64f',
+                        console.log(
                             'Payment is processing, go check your email for a confirmation.'
                         );
                         setTimeout(function() {
                             return process.exit(1);
                         }, 4500);
                     } else if ($('title').text().indexOf('Processing') > -1) {
-                        log(
-                            'Payment is processing, go check your email for a confirmation.'
-                        );
-                        notify(
-                            config,
-                            discordBot,
-                            '#36a64f',
+                        console.log(
                             'Payment is processing, go check your email for a confirmation.'
                         );
                         setTimeout(function() {
                             return process.exit(1);
                         }, 4500);
                     } else if (res.request.href.indexOf('paypal.com') > -1) {
-                        notify(
-                            config,
-                            discordBot,
-                            '#4FC3F7',
-                            `This website only supports PayPal, sorry for the inconvenience. <${res
-                                .request.href}|Click Here>`
-                        );
                         const open = require('open');
-                        log(
+                        console.log(
                             'This website only supports PayPal, sorry for the inconvenience.'
                         );
                         open(res.request.href);
@@ -535,26 +521,19 @@ function submitCC(config, discordBot, new_auth_token, price, payment_gateway) {
                         }, 3000);
                     } else if ($('div.notice--warning p.notice__text')) {
                         if ($('div.notice--warning p.notice__text') == '') {
-                            notify(
-                                config,
-                                discordBot,
-                                '#ef5350',
-                                'An unknown error has occurred.'
-                            );
-                            log(`An unknown error has occurred please try again.`, 'error');
+                            console.log(`checkout took: ${(now() - start).toFixed(3)}ms`)
+                            console.log(`An unknown error has occurred please try again.`, 'error');
                             setTimeout(function() {
                                 return process.exit(1);
                             }, 4500);
                         } else {
-                            notify(config, discordBot, '#ef5350', `${$('div.notice--warning p.notice__text').eq(0).text()}`);
-                            log(`${$('div.notice--warning p.notice__text').eq(0).text()}`, 'error');
+                            console.log(`${$('div.notice--warning p.notice__text').eq(0).text()}`, 'error');
                             setTimeout(function() {
                                 return process.exit(1);
                             }, 4500);
                         }
                     } else {
-                        notify(config, discordBot, '#ef5350', 'An unknown error has occurred.');
-                        log(`An unknown error has occurred please try again.`, 'error');
+                        console.log(`An unknown error has occurred please try again.`, 'error');
                         setTimeout(function() {
                             return process.exit(1);
                         }, 4500);

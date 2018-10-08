@@ -22,6 +22,7 @@ const {
     formatProxy,
     trimKeywords,
     userAgent,
+    getRegionSizes,
 } = require('../utils/common');
 
 module.exports = {};
@@ -43,13 +44,23 @@ module.exports.findProduct = findProduct;
 async function findProductFromVariant(task, proxy) {
     rp(
         {
-            method: 'GET',
-            url: `${task.site}/cart/${task.product.variant}:1`,
-            proxy: formatProxy(proxy),
-            gzip: false,
+            uri: `${task.site}/cart/add.js`,
+            followAllRedirects: true,
+            method: 'post',
+            proxy: formatProxy(proxy);
             headers: {
+                Origin: task.site,
                 'User-Agent': userAgent,
-            }
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Accept:
+                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                Referer: task.product.url,
+                'Accept-Language': 'en-US,en;q=0.8',
+            },
+            formData: {
+                id: task.product.variant,
+                qty: '1',
+            },
         }, function (err, res, body) {
             if (err) {
                 return cb(true, task.delay, err);
@@ -58,7 +69,7 @@ async function findProductFromVariant(task, proxy) {
             if (res.statusCode === 200) {
                 const $ = cheerio.load(body);
                 // todo
-            } 
+            }
         }
     )
 }
@@ -79,24 +90,35 @@ async function findProductFromURL(task, proxy) {
         headers: {
             'User-Agent': userAgent,
         }
-    }).then (async function(body) {
-        let products = JSON.parse(JSON.stringify(body));
-        return new Promise(async (resolve) => {
-            // gather essentials needed for checking out
-            if (products.product.length === 0) {
-                // item not loaded yet, or not found, or something?
+    }).then((products) => {
+        let variants = JSON.parse(JSON.stringify(products.product.variants));
+        return new Promise((resolve, reject) => {
+            if (variants) {
+                resolve(variants);
             } else {
-                let product = [];
-                // find matching sizes
-                products.product.variants.map(variant => {
-                    if (task.sizes.some(s => (s === variant.option1 || s === variant.option2 || s === variant.option3))) {
-                        product.push(variant);
-                    }
-                });
-                resolve({error: false, delay: task.monitorDelay, products: product});
+                reject(null);
             }
         });
-    });
+    }).then((variants) => {
+        let matches = [];
+
+        // find matching sizes
+        _.each(variants, (variant) => {
+            let match = _.some(task.sizes, async (size) => {
+                const allSizes = await getRegionSizes(size);
+                console.log(allSizes);
+                const options = [variant.option1, variant.option2, variant.option3];
+                
+                // check that any of the options exists in the allSizes object
+                return _.findWhere(options, allSizes.US) || options.indexOf(allSizes.UK) || options.indexOf(allSizes.EU);
+            });
+            if (match) {
+                matches.push(variant);
+            }
+        });
+        // console.log(matches);
+        return {error: false, delay: task.monitorDelay, products: matches};
+    })
 }
 
 /**
@@ -106,12 +128,15 @@ async function findProductFromURL(task, proxy) {
  */
 async function findProductFromKeywords(task, proxy) {
 
-    let matchedProducts = []; // ideally only one product...
-
     /**
      * Send request to the sitemap
      * @param {String} method 'GET'
      * @param {String} url e.g. - https://blendsus.com/sitemap_products_1.xml
+     * @param {String} proxy - tasks proxy
+     * @param {Boolean} json - whether or not to return the json parsed data
+     * @param {Boolean} simple - keep the response "simple" and don't include the entire response, just the body
+     * @param {Boolean} gzip - gzip the response, reduce file size
+     * @param {Object} headers - any headers to pass along
      */
     return rp({
         method: 'GET',
@@ -139,89 +164,51 @@ async function findProductFromKeywords(task, proxy) {
     })
     .then((res) => {
         const start = now();
-        let products = _.sortBy(res['urlset']['url'], (product) => {
+        let sortedProducts = _.sortBy(res['urlset']['url'], (product) => {
             return product.lastmod;
         });
-        products.forEach(product => {
-            if (product) { // null check
-                if (product['image:image']) { // null check
-                    title = product['image:image'][0]['image:title'];
-                    /**
-                     * make the product matching work like so:
-                     * 1. if ALL pos_keywords found in word A, consider A matched.
-                     * 2. if ANY neg_keywords found in word A, consider A not matched.
-                     * 
-                     * if 1 === true, and 2 === false, consider A "matched"
-                     */
-                    // https://underscorejs.org/#every
-                    let pos = _.every(trimKeywords(task.product.pos_keywords), function(keyword) {
-                        return title[0].indexOf(keyword) > -1;
+        
+        // we want to filter the results based on keywords
+        let matchedProducts = _.filter(sortedProducts, function(product) {
+            if (product && product['image:image']) {
+                const title = product['image:image'][0]['image:title'];
+
+                // match every keyword in the positive array
+                let pos = _.every(task.product.pos_keywords, function(keyword) {
+                    return title[0].toUpperCase().indexOf(keyword) > -1;
+                });
+                let neg = false; // defaults
+                if (task.product.neg_keywords.length > 0) {
+                    // match none of the keywords in the negative array
+                    // todo.. this won't work with multiple negative keywords I don't think..?
+                    neg = _.some(task.product.neg_keywords, function(keyword) {
+                        return title[0].toUpperCase().indexOf(keyword) > -1;
                     });
-                    // https://underscorejs.org/#some
-                    let neg = _.some(trimKeywords(task.product.neg_keywords), function(keyword) {
-                        return title[0].indexOf(keyword) > -1;
-                    });
-                    if (pos && !neg) {
-                        matchedProducts.push(product.loc);
-                    }
                 }
+                return pos && !neg;
             }
         });
 
-        console.log(`\n[DEBUG]: Found product(s): ${matchedProducts} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
-
+        console.log(`\n[DEBUG]: Matched ${matchedProducts.length} products..`)
+        console.log(`\n[DEBUG]: Found product at: ${matchedProducts[0].loc} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
         if (matchedProducts.length > 0) { // found a product or products!
-            return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: matchedProducts }));
-        } else { // keep monitoring
-            return JSON.parse(JSON.stringify({ error: null, delay: task.monitorDelay, products: null }));
+            if (matchedProducts.length > 1) {
+                // handle this case soon..
+                // maybe choose the first option based on lastmod?
+                // either that or display a list of products that matched somehow..
+            } else {
+                task.product.url = matchedProducts[0].loc;
+                return findProductFromURL(task, proxy);
+            }
+        } else {
+            // no products found, show some error to the user.
         }
     })
-    .then((res) => {
-        if (res.error) {
-            console.log(res.error);
-        }
-
-        task.product.url = res.products[0];
-
-        return new Promise((resolve) => {
-            findProductFromURL(task, proxy).then((res) => {
-                resolve(res);
-            });
-        })
+    .catch((err) => {
+        // todo..
+        console.log(err);
     });
 }
-
-const findvariantstock = function(config, handle, id, cb) {
-    request(
-        {
-            url: `${config.base_url}/products/` + handle + '.json',
-            followAllRedirects: true,
-            method: 'get',
-            headers: {
-                'User-Agent': userAgent,
-            },
-        },
-        function(err, res, body) {
-            try {
-                const variants = JSON.parse(body).product.variants;
-
-                const constiant = _.findWhere(variants, {
-                    id: id,
-                });
-
-                // console.log(constiant);
-
-                if (constiant.inventory_quantity) {
-                    return cb(null, constiant.inventory_quantity);
-                } else {
-                    return cb(null, 'Unavailable');
-                }
-            } catch (e) {
-                return cb(true, 'Unavailable');
-            }
-        }
-    );
-};
 
 function getVariantsBySize(task, productUrl, onSuccess) {
     let styleID;

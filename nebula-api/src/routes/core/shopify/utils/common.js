@@ -1,3 +1,4 @@
+const sizes = require('./sizes');
 /**
  * a class that contains global common elements
  * @type {Functions}
@@ -42,3 +43,13 @@ function trimKeywords(input) {
     return ret;
 }
 module.exports.trimKeywords = trimKeywords;
+
+async function getRegionSizes(size) {
+    return sizes.forEach(s => {
+        if (s.US === size) {
+            return s;
+        }
+    });
+}
+
+module.exports.getRegionSizes = getRegionSizes;
