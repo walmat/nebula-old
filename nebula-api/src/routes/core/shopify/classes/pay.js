@@ -249,11 +249,8 @@ function ship(task, auth_token) {
             form: form,
         },
         function(err, res, body) {
-            console.log(body);
             const $ = cheerio.load(body);
-            const shipping_pole_url = $(
-                'div[data-poll-refresh="[data-step=shipping_method]"]'
-            ).attr('data-poll-target');
+            const shipping_pole_url = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
             console.log(`Shipping Poll URL: ${shipping_pole_url}`)
             if (shipping_pole_url === undefined) {
                 const firstShippingOption = $(
