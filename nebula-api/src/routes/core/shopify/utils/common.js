@@ -1,4 +1,6 @@
+const _ = require('underscore');
 const sizes = require('./sizes');
+
 /**
  * a class that contains global common elements
  * @type {Functions}
@@ -44,14 +46,13 @@ function trimKeywords(input) {
 }
 module.exports.trimKeywords = trimKeywords;
 
+/**
+ * Compares a US sizing to UK/EU sizing to return the proper data
+ * @param {String} size size from US to compare the data to
+ */
 async function getRegionSizes(size) {
-    let ret;
-    sizes.forEach(s => {
-        if (s.US === size) {
-            ret = s;
-        }
+    return _.find(sizes, s => {
+        return s.US === size
     });
-    return ret;
 }
-
 module.exports.getRegionSizes = getRegionSizes;

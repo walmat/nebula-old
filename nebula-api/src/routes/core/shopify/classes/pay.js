@@ -22,31 +22,6 @@ function pay(task, _matches) {
     start = now();
     matches = _matches;
     let styleID = matches[0].id;
-    request(
-        {
-            url: `${task.product.url}`,
-            followAllRedirects: true,
-            method: 'get',
-            headers: {
-                'User-Agent': userAgent,
-                Origin: task.product.url,
-                'User-Agent': userAgent,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept:
-                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: task.site,
-                'Accept-Language': 'en-US,en;q=0.8',
-            },
-        },
-        function(err, res) {
-            if (err) {
-                console.log(err);
-            }
-            // } else {
-            // console.log(res.body);
-            //
-        }
-    );
 
     request(
         {
@@ -73,57 +48,43 @@ function pay(task, _matches) {
             }
             request(
                 {
-                    url: `${task.site}/cart`,
+                    url: `${task.site}/cart.js`,
                     followAllRedirects: true,
-                    method: 'get',
+                    method: 'post',
                     headers: {
                         'User-Agent': userAgent,
                     },
+                    formData: {
+                        quantity: '1',
+                        checkout: 'Checkout',
+                    },
                 },
-                function(err) {
+                function(err, res, body) {
                     if (err) {
                         log(err, 'error');
                     }
-                    request(
-                        {
-                            url: `${task.site}/cart.js`,
-                            followAllRedirects: true,
-                            method: 'post',
-                            headers: {
-                                'User-Agent': userAgent,
-                            },
-                            formData: {
-                                quantity: '1',
-                                checkout: 'Checkout',
-                            },
-                        },
-                        function(err, res, body) {
-                            if (err) {
-                                log(err, 'error');
-                            }
-                            checkoutHost = 'https://' + res.request.originalHost;
-                            console.log(checkoutHost);
-                            if (res.request.href.indexOf('stock_problems') > -1) {
-                                // out of stock
-                                console.log('out of stock');
-                                process.exit(1);
-                            }
+                    checkoutHost = 'https://' + res.request.originalHost;
+                    console.log(checkoutHost);
+                    if (res.request.href.indexOf('stock_problems') > -1) {
+                        // out of stock
+                        console.log('out of stock');
+                        process.exit(1);
+                    }
 
-                            const $ = cheerio.load(body);
-                            url = res.request.href;
-                            checkoutID = url.split('checkouts/')[1];
-                            storeID = url.split('/')[3];
-                            const auth_token = $(
-                                'form.edit_checkout input[name=authenticity_token]'
-                            ).attr('value');
-                            console.log(`Store ID: ${storeID}`);
-                            console.log(`Checkout ID: ${checkoutID}`);
-                            price = $('#checkout_total_price').text();
-                            // notify(task, discordBot, '#36a64f', 'Added to Cart');
+                    const $ = cheerio.load(body);
+                    url = res.request.href;
+                    checkoutID = url.split('checkouts/')[1];
+                    storeID = url.split('/')[3];
+                    const auth_token = $(
+                        'form.edit_checkout input[name=authenticity_token]'
+                    ).attr('value');
+                    console.log(`Store ID: ${storeID}`);
+                    console.log(`Checkout ID: ${checkoutID}`);
+                    console.log(`Auth token: ${auth_token}`);
+                    price = $('#checkout_total_price').text();
+                    // notify(task, discordBot, '#36a64f', 'Added to Cart');
 
-                            return input(task, auth_token);
-                        }
-                    );
+                    return input(task, auth_token);
                 }
             );
         }
@@ -288,10 +249,12 @@ function ship(task, auth_token) {
             form: form,
         },
         function(err, res, body) {
+            console.log(body);
             const $ = cheerio.load(body);
             const shipping_pole_url = $(
                 'div[data-poll-refresh="[data-step=shipping_method]"]'
             ).attr('data-poll-target');
+            console.log(`Shipping Poll URL: ${shipping_pole_url}`)
             if (shipping_pole_url === undefined) {
                 const firstShippingOption = $(
                     'div.content-box__row .radio-wrapper'

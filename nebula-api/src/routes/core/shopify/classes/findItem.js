@@ -20,7 +20,6 @@ const cheerio = require('cheerio');
 const now = require("performance-now");
 const {
     formatProxy,
-    trimKeywords,
     userAgent,
     getRegionSizes,
 } = require('../utils/common');
@@ -74,6 +73,42 @@ async function findProductFromVariant(task, proxy) {
     )
 }
 
+// /**
+//  * Grabs product data from a direct link
+//  * @param {TaskObject} task encapsulates the entire user data for the task
+//  * @param {String} proxy 
+//  */
+// async function findProductFromURL(task, proxy) {
+//     return rp({
+//         method: 'GET',
+//         uri: `${task.product.url}.json`,
+//         proxy: formatProxy(proxy),
+//         gzip: false,
+//         json: true,
+//         simple: false,
+//         headers: {
+//             'User-Agent': userAgent,
+//         }
+//     }).then (async function(body) {
+//         let products = JSON.parse(JSON.stringify(body));
+//         return new Promise(async (resolve) => {
+//             // gather essentials needed for checking out
+//             if (products.product.length === 0) {
+//                 // item not loaded yet, or not found, or something?
+//             } else {
+//                 let product = [];
+//                 // find matching sizes
+//                 products.product.variants.map(variant => {
+//                     if (task.sizes.some(s => (s === variant.option1 || s === variant.option2 || s === variant.option3))) {
+//                         product.push(variant);
+//                     }
+//                 });
+//                 return resolve({error: false, delay: task.monitorDelay, products: product});
+//             }
+//         });
+//     });
+// }
+
 /**
  * Grabs product data from a direct link
  * @param {TaskObject} task encapsulates the entire user data for the task
@@ -100,25 +135,18 @@ async function findProductFromURL(task, proxy) {
             }
         });
     }).then((variants) => {
-        let matches = [];
-
+        let products = [];
         // find matching sizes
-        _.each(variants, (variant) => {
-            let match = _.some(task.sizes, async (size) => {
-                const allSizes = await getRegionSizes(size);
-                console.log(allSizes);
-                const options = [variant.option1, variant.option2, variant.option3];
-                
-                // check that any of the options exists in the allSizes object
-                return _.findWhere(options, allSizes.US) || options.indexOf(allSizes.UK) || options.indexOf(allSizes.EU);
-            });
-            if (match) {
-                matches.push(variant);
+        variants.map(variant => {
+            if (task.sizes.some(s => (s === variant.option1 || s === variant.option2 || s === variant.option3))) {
+                products.push(variant);
             }
         });
-        // console.log(matches);
-        return {error: false, delay: task.monitorDelay, products: matches};
-    })
+
+        return {error: false, delay: task.monitorDelay, products: products};
+    }).catch((err) => {
+        console.log(err);
+    });
 }
 
 /**
