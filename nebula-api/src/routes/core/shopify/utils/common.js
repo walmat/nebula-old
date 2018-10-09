@@ -44,12 +44,14 @@ function trimKeywords(input) {
 }
 module.exports.trimKeywords = trimKeywords;
 
-function getRegionSizes(size) {
-    return sizes.forEach(s => {
+async function getRegionSizes(size) {
+    let ret;
+    sizes.forEach(s => {
         if (s.US === size) {
-            return s;
+            ret = s;
         }
     });
+    return ret;
 }
 
 module.exports.getRegionSizes = getRegionSizes;

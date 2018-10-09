@@ -6,12 +6,12 @@ let task = {
 	id: '01',
 	product: {
 		raw: '+yeezy',
-		pos_keywords: ['YEEZY', '110MM'],
-		neg_keywords: ['LIGHT'],
+		pos_keywords: ['YEEZY'],
+		neg_keywords: ['700'],
 		variant: null,
 		url: null,
 	},
-	site: 'https://kith.com',
+	site: 'https://blendsus.com',
 	profile: {
 		id: '0',
 		profileName: 'test profile',
