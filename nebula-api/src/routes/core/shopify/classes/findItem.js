@@ -32,7 +32,7 @@ module.exports = {};
  * @param {TaskObject} task encapsulates the entire user data for the task
  * @param {String} proxy 
  */
-async function findProduct(task, proxy,) {
+async function findProduct(task, proxy) {
     return task.product.url !== null ? findProductFromURL(task, proxy) :
     task.product.variant !== null ? findProductFromVariant(task, proxy) :
     task.product.pos_keywords !== null ? findProductFromKeywords(task, proxy) :
