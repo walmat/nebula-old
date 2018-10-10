@@ -1,13 +1,12 @@
 const { pay } = require('./classes/pay');
-const { findProduct, getVariantsBySize } = require('./classes/findItem');
-const now = require("performance-now");
+const { findProduct } = require('./classes/findItem');
 
 let task = {
 	id: '01',
 	product: {
 		raw: '+yeezy',
-		pos_keywords: ['YEEZY'],
-		neg_keywords: ['700'],
+		pos_keywords: ['ADIDAS', 'BYW'],
+		neg_keywords: ['BLACK'],
 		variant: null,
 		url: null,
 	},

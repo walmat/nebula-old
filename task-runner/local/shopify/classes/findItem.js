@@ -159,7 +159,7 @@ async function findProductFromKeywords(task, proxy) {
     /**
      * Send request to the sitemap
      * @param {String} method 'GET'
-     * @param {String} url e.g. - https://blendsus.com/sitemap_products_1.xml
+     * @param {String} url e.g. - https://blendsus.com/products.json
      * @param {String} proxy - tasks proxy
      * @param {Boolean} json - whether or not to return the json parsed data
      * @param {Boolean} simple - keep the response "simple" and don't include the entire response, just the body
@@ -168,7 +168,7 @@ async function findProductFromKeywords(task, proxy) {
      */
     return rp({
         method: 'GET',
-        url: `${task.site}/sitemap_products_1.xml`,
+        url: `${task.site}/products.json`,
         proxy: formatProxy(proxy),
         json: true,
         simple: true,
@@ -176,66 +176,72 @@ async function findProductFromKeywords(task, proxy) {
         headers: {
             'User-Agent': userAgent,
         }
-    }).then((body) => {
-        /**
-         * Attempt to parse the body {XML} with xml2js
-         */
-        return new Promise((resolve, reject) => {
-            parseString(body, (err, res) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-            })
-        });
     })
     .then((res) => {
         const start = now();
-        let sortedProducts = _.sortBy(res['urlset']['url'], (product) => {
-            return product.lastmod;
-        });
         
-        // we want to filter the results based on keywords
-        let matchedProducts = _.filter(sortedProducts, function(product) {
-            if (product && product['image:image']) {
-                const title = product['image:image'][0]['image:title'];
+        // if products are loaded, let's parse through them
+        if (res.products.length > 0) {
+            // products loaded, let's parse through them.
+            const sortedProducts = _.sortBy(res.products, (product) => {
+                return product.updated_at;
+            });
+
+            // we want to filter the results based on keywords
+            const matchedProducts = _.filter(sortedProducts, function(product) {
+                const regex = new RegExp('-', 'g');
+                const title = product.title;
+                const handle = product.handle.replace(regex, ' ');
 
                 // match every keyword in the positive array
                 let pos = _.every(task.product.pos_keywords, function(keyword) {
-                    return title[0].toUpperCase().indexOf(keyword) > -1;
+                    return title.toUpperCase().indexOf(keyword) > -1 || handle.toUpperCase().indexOf(keyword) > -1;
                 });
                 let neg = false; // defaults
                 if (task.product.neg_keywords.length > 0) {
                     // match none of the keywords in the negative array
                     // todo.. this won't work with multiple negative keywords I don't think..?
                     neg = _.some(task.product.neg_keywords, function(keyword) {
-                        return title[0].toUpperCase().indexOf(keyword) > -1;
+                        return title.toUpperCase().indexOf(keyword) > -1 || handle.toUpperCase().indexOf(keyword) > -1;
                     });
                 }
                 return pos && !neg;
-            }
-        });
+            });
+            console.log(`\n[DEBUG]: Matched ${matchedProducts.length} products..`)
+            console.log(`\n[DEBUG]: Found product: ${matchedProducts[0].title} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
+            if (matchedProducts.length > 0) { // found a product or products!
+                if (matchedProducts.length > 1) {
+                    // handle this case soon..
+                    // maybe choose the first option based on lastmod?
+                    // either that or display a list of products that matched somehow..
+                    return findProductFromURL(task, proxy);
+                } else {
 
-        console.log(`\n[DEBUG]: Matched ${matchedProducts.length} products..`)
-        console.log(`\n[DEBUG]: Found product at: ${matchedProducts[0].loc} \n         Process finding: "${task.product.pos_keywords} ${task.product.neg_keywords}" took ${(now() - start).toFixed(3)}ms\n`);
-        if (matchedProducts.length > 0) { // found a product or products!
-            if (matchedProducts.length > 1) {
-                // handle this case soon..
-                // maybe choose the first option based on lastmod?
-                // either that or display a list of products that matched somehow..
+                    return parseVariants(task, matchedProducts);
+                }
             } else {
-                task.product.url = matchedProducts[0].loc;
-                return findProductFromURL(task, proxy);
+                // no products found, show some error to the user.
             }
         } else {
-            // no products found, show some error to the user.
+            // let's handle the case where no products are loaded..
         }
     })
     .catch((err) => {
         // todo..
         console.log(err);
     });
+}
+
+function parseVariants(task, prod) {
+    const variants = prod[0].variants;
+
+    return _.each(task.sizes, async (size) => {
+        const sizes = await getRegionSizes(size);
+        return _.filter(variants, (variant) => {
+            const options = [variant.option1, variant.option2, variant.option3];
+            return _.contains(options, sizes.US) || _.contains(options, sizes.UK) || _.contains(options, sizes.EU);
+        });
+    });  
 }
 
 function getVariantsBySize(task, productUrl, onSuccess) {
