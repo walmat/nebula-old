@@ -16,18 +16,10 @@ app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.urlencoded({extended: true})); // to support URL-encoded bodies
 
 /*SETUP ROUTES*/
-let tasks = require('./routes/tasks/tasks');
-// let shopify = require('./routes/core/shopify/main');
-// let harvester = require('./routes/core/shopify/harvester');
-let profiles = require('./routes/profiles/profiles');
-let server = require('./routes/server/server');
-let settings = require('./routes/settings/settings');
 let auth = require('./routes/auth/auth');
 let discord = require('./routes/auth/discord');
 
 // wrap the app
-tasks(app); profiles(app);
-server(app); settings(app);
 auth(app); discord(app);
 
 app.listen(port, () => console.log(`Nebula API started on port ${port}`));
