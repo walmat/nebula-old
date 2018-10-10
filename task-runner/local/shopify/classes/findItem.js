@@ -21,8 +21,8 @@ const now = require("performance-now");
 const {
     formatProxy,
     userAgent,
-    getRegionSizes,
 } = require('../utils/common');
+const urlToSize = require('../utils/urlToSize');
 
 module.exports = {};
 
@@ -43,7 +43,7 @@ module.exports.findProduct = findProduct;
 async function findProductFromVariant(task, proxy) {
     rp(
         {
-            uri: `${task.site}/cart/add.js`,
+            uri: `${task.site.url}/cart/add.js`,
             followAllRedirects: true,
             method: 'post',
             proxy: formatProxy(proxy),
@@ -168,7 +168,7 @@ async function findProductFromKeywords(task, proxy) {
      */
     return rp({
         method: 'GET',
-        url: `${task.site}/products.json`,
+        url: `${task.site.url}/products.json`,
         proxy: formatProxy(proxy),
         json: true,
         simple: true,
@@ -216,7 +216,6 @@ async function findProductFromKeywords(task, proxy) {
                     // either that or display a list of products that matched somehow..
                     return findProductFromURL(task, proxy);
                 } else {
-
                     return parseVariants(task, matchedProducts);
                 }
             } else {
@@ -235,13 +234,14 @@ async function findProductFromKeywords(task, proxy) {
 function parseVariants(task, prod) {
     const variants = prod[0].variants;
 
-    return _.each(task.sizes, async (size) => {
-        const sizes = await getRegionSizes(size);
-        return _.filter(variants, (variant) => {
-            const options = [variant.option1, variant.option2, variant.option3];
-            return _.contains(options, sizes.US) || _.contains(options, sizes.UK) || _.contains(options, sizes.EU);
-        });
-    });  
+    return _.filter(variants, (variant) => {
+        const size = getSizeOption(variant, task.site.url);
+        return _.contains(task.sizes, size);
+    });
+}
+
+function getSizeOption(v, url) {
+    return v[urlToSize[url]];
 }
 
 function getVariantsBySize(task, productUrl, onSuccess) {

@@ -10,7 +10,10 @@ let task = {
 		variant: null,
 		url: null,
 	},
-	site: 'https://blendsus.com',
+	site: {
+		url: 'https://blendsus.com',
+		name: 'Blends'
+	},
 	profile: {
 		id: '0',
 		profileName: 'test profile',
@@ -56,7 +59,7 @@ let index = 0;
 const runTask = async () => {
 	await findProduct(task, proxies[index])
 	.then((res) => {
-		pay(task, res.products, (err) => {
+		pay(task, res, (err) => {
 			console.log(err);
 		})
 	});

@@ -19,17 +19,18 @@ let start;
 module.exports = {};
 
 function pay(task, _matches) {
+
     start = now();
     matches = _matches;
     let styleID = matches[0].id;
 
     request(
         {
-            url: `${task.site}/cart/add.js`,
+            url: `${task.site.url}/cart/add.js`,
             followAllRedirects: true,
             method: 'post',
             headers: {
-                Origin: task.site,
+                Origin: task.site.url,
                 'User-Agent': userAgent,
                 'Content-Type': 'application/x-www-form-urlencoded',
                 Accept:
@@ -44,11 +45,11 @@ function pay(task, _matches) {
         },
         function(err) {
             if (err) {
-                log(err, 'error');
+                console.log(err, 'error');
             }
             request(
                 {
-                    url: `${task.site}/cart.js`,
+                    url: `${task.site.url}/cart.js`,
                     followAllRedirects: true,
                     method: 'post',
                     headers: {
@@ -260,7 +261,7 @@ function ship(task, auth_token) {
                 ).attr('data-shipping-method');
                 console.log(firstShippingOption);
                 if (firstShippingOption === undefined) {
-                    console.log(`${task.site} is Incompatible, sorry for the inconvenience. A browser checkout session will be opened momentarily.`);
+                    console.log(`${task.site.url} is Incompatible, sorry for the inconvenience. A browser checkout session will be opened momentarily.`);
                     open(url);
                     process.exit(1);
                 } else {
