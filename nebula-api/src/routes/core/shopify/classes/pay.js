@@ -147,6 +147,8 @@ function input(task, auth_token) {
         };
     }
 
+    // console.log(form);
+    console.log(checkoutHost);
     request(
         {
             url: url,
@@ -243,7 +245,7 @@ function ship(task, auth_token) {
                 Accept:
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.8',
-                Referer: `${checkoutHost}/${storeID}/checkouts/${checkoutID}`,
+                Referer: `${checkoutHost}/${storeID}/checkout/${checkoutID}`,
                 'User-Agent': userAgent,
             },
             form: form,
