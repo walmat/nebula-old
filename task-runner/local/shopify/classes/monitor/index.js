@@ -79,6 +79,9 @@ class Monitor {
         })
     }
 
+    /**
+     * Parses given site's `collections/all.atom` for the desired product
+     */
     parseAtom() {
         rp({
             method: 'GET',
@@ -156,10 +159,9 @@ class Monitor {
                 
                 if (matchedProducts.length > 0) { // found a product or products!
                     if (matchedProducts.length > 1) {
-                        // handle this case soon..
-                        // maybe choose the first option based on lastmod?
+                        // handle this case..
+                        // maybe choose the first option based on last modified?
                         // either that or display a list of products that matched somehow..
-                        return findProductFromURL(task, proxy);
                     } else {
                         return parseVariants(task, matchedProducts[0].variants);
                     }

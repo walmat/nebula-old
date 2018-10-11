@@ -167,7 +167,7 @@ function input(task, auth_token) {
         },
         function(err, res, body) {
             if (err) {
-                consolelog(err, 'error');
+                console.log(err, 'error');
             }
             const $ = cheerio.load(body);
             return ship(
