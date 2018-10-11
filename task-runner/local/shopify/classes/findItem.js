@@ -22,7 +22,7 @@ const {
     formatProxy,
     userAgent,
 } = require('../utils/common');
-const urlToSize = require('../utils/urlToSize');
+const urlToSize = require('./utils/urlToSize');
 
 module.exports = {};
 
@@ -73,42 +73,6 @@ async function findProductFromVariant(task, proxy) {
     )
 }
 
-// /**
-//  * Grabs product data from a direct link
-//  * @param {TaskObject} task encapsulates the entire user data for the task
-//  * @param {String} proxy 
-//  */
-// async function findProductFromURL(task, proxy) {
-//     return rp({
-//         method: 'GET',
-//         uri: `${task.product.url}.json`,
-//         proxy: formatProxy(proxy),
-//         gzip: false,
-//         json: true,
-//         simple: false,
-//         headers: {
-//             'User-Agent': userAgent,
-//         }
-//     }).then (async function(body) {
-//         let products = JSON.parse(JSON.stringify(body));
-//         return new Promise(async (resolve) => {
-//             // gather essentials needed for checking out
-//             if (products.product.length === 0) {
-//                 // item not loaded yet, or not found, or something?
-//             } else {
-//                 let product = [];
-//                 // find matching sizes
-//                 products.product.variants.map(variant => {
-//                     if (task.sizes.some(s => (s === variant.option1 || s === variant.option2 || s === variant.option3))) {
-//                         product.push(variant);
-//                     }
-//                 });
-//                 return resolve({error: false, delay: task.monitorDelay, products: product});
-//             }
-//         });
-//     });
-// }
-
 /**
  * Grabs product data from a direct link
  * @param {TaskObject} task encapsulates the entire user data for the task
@@ -135,15 +99,7 @@ async function findProductFromURL(task, proxy) {
             }
         });
     }).then((variants) => {
-        let products = [];
-        // find matching sizes
-        variants.map(variant => {
-            if (task.sizes.some(s => (s === variant.option1 || s === variant.option2 || s === variant.option3))) {
-                products.push(variant);
-            }
-        });
-
-        return {error: false, delay: task.monitorDelay, products: products};
+        return parseVariants(task, variants);
     }).catch((err) => {
         console.log(err);
     });
@@ -216,7 +172,7 @@ async function findProductFromKeywords(task, proxy) {
                     // either that or display a list of products that matched somehow..
                     return findProductFromURL(task, proxy);
                 } else {
-                    return parseVariants(task, matchedProducts);
+                    return parseVariants(task, matchedProducts[0].variants);
                 }
             } else {
                 // no products found, show some error to the user.
@@ -231,9 +187,7 @@ async function findProductFromKeywords(task, proxy) {
     });
 }
 
-function parseVariants(task, prod) {
-    const variants = prod[0].variants;
-
+function parseVariants(task, variants) {
     return _.filter(variants, (variant) => {
         const size = getSizeOption(variant, task.site.url);
         return _.contains(task.sizes, size);
@@ -243,38 +197,3 @@ function parseVariants(task, prod) {
 function getSizeOption(v, url) {
     return v[urlToSize[url]];
 }
-
-function getVariantsBySize(task, productUrl, onSuccess) {
-    let styleID;
-
-    console.log(productUrl);
-    request(
-        {
-            url: `${productUrl}.json`,
-            followAllRedirects: true,
-            method: 'get',
-            headers: {
-                'User-Agent': userAgent,
-            },
-        },
-        function(err, res, body) {
-            try {
-                let matches = [];
-                const variants = JSON.parse(body).product.variants;
-                _.filter(variants, function(variant) {
-                    let match = _.some(task.sizes, function(size) {
-                        return variant.option1 === size || variant.option2 === size || variant.option3 === size;
-                    });
-                    if (match) {
-                        matches.push(variant);
-                    }
-                });
-                return onSuccess(matches, productUrl);
-            } catch (e) {
-                console.log(e);
-            }
-        }
-    );
-}
-
-module.exports.getVariantsBySize = getVariantsBySize;

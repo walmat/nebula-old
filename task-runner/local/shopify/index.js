@@ -5,13 +5,13 @@ let task = {
 	id: '01',
 	product: {
 		raw: '+yeezy',
-		pos_keywords: ['ADIDAS', 'BYW'],
+		pos_keywords: ['POD', 'WHITE'],
 		neg_keywords: ['BLACK'],
 		variant: null,
 		url: null,
 	},
 	site: {
-		url: 'https://blendsus.com',
+		url: 'https://kith.com',
 		name: 'Blends'
 	},
 	profile: {

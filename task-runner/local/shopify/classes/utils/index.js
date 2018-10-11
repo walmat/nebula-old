@@ -2,10 +2,6 @@ const _ = require('underscore');
 const sizes = require('./sizes');
 const urlToSize = require('./urlToSize');
 
-/**
- * a class that contains global common elements
- * @type {Functions}
- */
 module.exports = {};
 
 const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
@@ -48,12 +44,27 @@ function trimKeywords(input) {
 module.exports.trimKeywords = trimKeywords;
 
 /**
- * Compares a US sizing to UK/EU sizing to return the proper data
- * @param {String} size size from US to compare the data to
+ * Attempts to get the variants that corresponsds to the given user's sizes
+ * @param {TaskObject} task - the task being run
+ * @param {Object} variants - variant options for the given product
+ * 
+ * @return {Object} variants that correspond to the correct US sizes
  */
-function getRegionSizes(size) {
-    return _.find(sizes, s => {
-        return s.US === size
+function getProductVariantsForSize(task, variants) {
+    return _.filter(variants, (variant) => {
+        const size = getSizeOption(variant, task.site.url);
+        return _.contains(task.sizes, size);
     });
 }
-module.exports.getRegionSizes = getRegionSizes;
+module.exports.getProductVariantsForSize = getProductVariantsForSize;
+
+/**
+ * Maps the proper option for the given URL for each variant
+ * e.g - For https://www.blendsus.com/collections/adidas/products/adidas-womens-falcon-cloud-white-blue.json
+ *       the `option1` entry is used to tell the size
+ * @param {Object} v - variant objects
+ * @param {String} url - URL that the task is being ran on
+ */
+function getSizeOption(v, url) {
+    return v[urlToSize[url]];
+}
