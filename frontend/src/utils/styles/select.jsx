@@ -3,16 +3,14 @@ import React from 'react';
 import DDD from '../../_assets/dropdown-down.svg';
 import DDU from '../../_assets/dropdown-up.svg';
 
-export const DropdownIndicator = (props) => {
-  return components.DropdownIndicator && (
-    <components.DropdownIndicator {...props}>
-      <img src={props.selectProps.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
-    </components.DropdownIndicator>
-  );
-};
+export const DropdownIndicator = props => components.DropdownIndicator && (
+  <components.DropdownIndicator {...props}>
+    <img src={props.selectProps.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
+  </components.DropdownIndicator>
+);
 
 export const colourStyles = {
-  control: (styles, { isDisabled, isFocused, isSelected }) => ({
+  control: (styles, { isDisabled }) => ({
     ...styles,
     border: '1px solid #F0405E',
     backgroundColor: isDisabled ? 'rgb(229, 229, 229)' : '#f4f4f4',
@@ -52,7 +50,7 @@ export const colourStyles = {
       cursor: 'pointer',
     },
   }),
-  placeholder: (styles, { isDisabled, isFocused, isSelected }) => ({
+  placeholder: (styles, { isDisabled }) => ({
     ...styles,
     fontFamily: 'AvenirNext-Medium',
     textTransform: 'capitalize',
