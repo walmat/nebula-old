@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const sizes = require('./sizes');
 const urlToSize = require('./urlToSize');
 
 module.exports = {};

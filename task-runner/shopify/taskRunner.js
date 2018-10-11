@@ -1,4 +1,5 @@
 const { Monitor } = require('./classes/monitor');
+const task = require('./testTask');
 
 class TaskRunner {
     
@@ -16,3 +17,5 @@ class TaskRunner {
         
     }
 }
+
+const t = new TaskRunner(task, null);
