@@ -13,34 +13,26 @@ import destroyAll from '../_assets/destroy-all.svg';
 import '../app.css';
 import './tasks.css';
 import { taskActions } from '../state/actions';
+import sDefns from '../utils/definitions/settingsDefinitions';
+import tDefns from '../utils/definitions/taskDefinitions';
 
-import defns from '../utils/definitions/taskDefinitions';
+import addTestId from '../utils/addTestId';
 
-class Tasks extends Component {
-  onTaskChange(event) {
-    const taskId = event.target.value;
-    const { tasks } = this.props;
-    const selectedTask = tasks.find(t => t.id === taskId);
-    this.props.onSelectTask(selectedTask);
-  }
-
+export class TasksPrimitive extends Component {
   startAllTasks() {
-    for (let i = 0; i < this.props.tasks.length; i += 1) {
-      this.props.onStartTask(this.props.tasks[i], this.props.proxies);
-    }
+    const { tasks, proxies, onStartTask } = this.props;
+    tasks.forEach(t => onStartTask(t, proxies));
   }
 
   stopAllTasks() {
-    for (let i = 0; i < this.props.tasks.length; i += 1) {
-      this.props.onStopTask(this.props.tasks[i]);
-    }
+    const { tasks, onStopTask } = this.props;
+    tasks.forEach(t => onStopTask(t));
   }
 
   destroyAllTasks() {
     // if user clicks the large `garbage can` button, erase all tasks
-    for (let i = 0; i < this.props.tasks.length; i += 1) {
-      this.props.onDestroyTasks(this.props.tasks[i]);
-    }
+    const { tasks, onDestroyTask } = this.props;
+    tasks.forEach(t => onDestroyTask(t));
   }
 
   render() {
@@ -150,8 +142,9 @@ class Tasks extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={() => {}}
+                    onKeyPress={this.props.onKeyPress}
                     onClick={() => { this.startAllTasks(); }}
+                    data-testid={addTestId('Tasks.bulkActionButton.start')}
                   >
                     <img src={startAll} alt="start all tasks" draggable="false" />
                   </div>
@@ -161,8 +154,9 @@ class Tasks extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={() => {}}
+                    onKeyPress={this.props.onKeyPress}
                     onClick={() => { this.stopAllTasks(); }}
+                    data-testid={addTestId('Tasks.bulkActionButton.stop')}
                   >
                     <img src={stopAll} alt="stop all tasks" draggable="false" />
                   </div>
@@ -172,8 +166,9 @@ class Tasks extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={() => {}}
+                    onKeyPress={this.props.onKeyPress}
                     onClick={() => { this.destroyAllTasks(); }}
+                    data-testid={addTestId('Tasks.bulkActionButton.destroy')}
                   >
                     <img src={destroyAll} alt="destroy all tasks" draggable="false" />
                   </div>
@@ -187,34 +182,29 @@ class Tasks extends Component {
   }
 }
 
-Tasks.propTypes = {
-  tasks: defns.taskList.isRequired,
-  newTask: defns.task.isRequired,
-  onSelectTask: PropTypes.func.isRequired,
-  onDestroyTasks: PropTypes.func.isRequired,
+TasksPrimitive.propTypes = {
+  newTask: tDefns.task.isRequired,
+  tasks: tDefns.taskList.isRequired,
+  proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
+  onDestroyTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
 };
 
-const mapStateToProps = state => ({
+TasksPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
+
+export const mapStateToProps = state => ({
+  newTask: state.newTask,
   tasks: state.tasks,
   proxies: state.settings.proxies,
-  newTask: state.newTask,
-  selectedTask: state.selectedTask,
 });
 
-const mapDispatchToProps = dispatch => ({
-  onLoadTask: (task) => {
-    dispatch(taskActions.load(task));
-  },
-  onSelectTask: (task) => {
-    dispatch(taskActions.select(task));
-  },
-  onUpdateTask: (task) => {
-    dispatch(taskActions.update(task.editId, task));
-  },
-  onDestroyTasks: () => {
-    dispatch(taskActions.destroy(null));
+export const mapDispatchToProps = dispatch => ({
+  onDestroyTask: (task) => {
+    dispatch(taskActions.destroy(task));
   },
   onStartTask: (task, proxies) => {
     dispatch(taskActions.start(task, proxies));
@@ -222,9 +212,6 @@ const mapDispatchToProps = dispatch => ({
   onStopTask: (task) => {
     dispatch(taskActions.stop(task));
   },
-  onChangeField: (change, field, event) => {
-    dispatch(taskActions.edit(null, field, event.target.value));
-  },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Tasks);
+export default connect(mapStateToProps, mapDispatchToProps)(TasksPrimitive);

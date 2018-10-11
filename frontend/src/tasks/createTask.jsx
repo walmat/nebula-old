@@ -11,15 +11,9 @@ import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import addTestId from '../utils/addTestId';
 
-class CreateTask extends Component {
-  static formatPairs(val) {
-    if (val.length === 0) {
-      return 1;
-    }
-    return val <= 5 && val > 0 ? val : null;
-  }
-
+export class CreateTaskPrimitive extends Component {
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
@@ -42,27 +36,29 @@ class CreateTask extends Component {
       case TASK_FIELDS.EDIT_SITE:
         return (event) => {
           const site = { name: event.label, url: event.value, auth: event.auth };
-          this.props.onChange({ field, value: site });
+          this.props.onFieldChange({ field, value: site });
         };
       case TASK_FIELDS.EDIT_PROFILE:
         return (event) => {
           const change = this.props.profiles.find(p => p.id === event.value);
-          this.props.onChange({ field, value: change });
+          if (change) {
+            this.props.onFieldChange({ field, value: change });
+          }
         };
       case TASK_FIELDS.EDIT_SIZES:
         return (event) => {
           const values = event.map(s => s.value);
-          this.props.onChange({ field, value: values });
+          this.props.onFieldChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
         return (event) => {
-          this.props.onChange({ field, value: event.target.value });
+          this.props.onFieldChange({ field, value: event.target.value });
         };
       default:
         // should never be called, but nice to have just in case
         return (event) => {
-          this.props.onChange({ field, value: event.target.value });
+          this.props.onFieldChange({ field, value: event.target.value });
         };
     }
   }
@@ -76,12 +72,9 @@ class CreateTask extends Component {
         label: task.profile.profileName,
       };
     }
-    let sizes = [];
-    if (task.sizes !== '') {
-      sizes = task.sizes.map(size => ({ value: size, label: `${size}` }));
-    }
+    const sizes = task.sizes.map(size => ({ value: size, label: `${size}` }));
     let newTaskSiteValue = null;
-    if (task.site !== null) {
+    if (task.site && task.site.name !== null) {
       newTaskSiteValue = {
         value: task.site.url,
         label: task.site.name,
@@ -105,6 +98,7 @@ class CreateTask extends Component {
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
                   value={task.product.raw}
                   required
+                  data-testid={addTestId('CreateTask.productInput')}
                 />
               </div>
               <div className="col col--no-gutter tasks-create__input-group--site">
@@ -119,6 +113,7 @@ class CreateTask extends Component {
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
                   options={getAllSites()}
+                  data-testid={addTestId('CreateTask.siteSelect')}
                 />
               </div>
             </div>
@@ -137,6 +132,7 @@ class CreateTask extends Component {
                 value={newTaskProfileValue}
                 options={this.buildProfileOptions()}
                 className="tasks-create__input tasks-create__input--field"
+                data-testid={addTestId('CreateTask.profileSelect')}
               />
             </div>
             <div className="col col--no-gutter tasks-create__input-group--site">
@@ -152,6 +148,7 @@ class CreateTask extends Component {
                 value={sizes}
                 options={getAllSizes()}
                 className="tasks-create__input tasks-create__input--field"
+                data-testid={addTestId('CreateTask.sizesSelect')}
               />
             </div>
           </div>
@@ -167,8 +164,9 @@ class CreateTask extends Component {
                   placeholder="johndoe@example.com"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
                   value={task.username || ''}
-                  required={accountFieldsDisabled}
+                  required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
+                  data-testid={addTestId('CreateTask.usernameInput')}
                 />
               </div>
               <div className="col col--no-gutter tasks-create__input-group--site">
@@ -179,8 +177,9 @@ class CreateTask extends Component {
                   placeholder="***********"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
                   value={task.password || ''} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
-                  required={accountFieldsDisabled}
+                  required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
+                  data-testid={addTestId('CreateTask.passwordInput')}
                 />
               </div>
             </div>
@@ -191,8 +190,9 @@ class CreateTask extends Component {
             <button
               className="tasks-create__submit"
               tabIndex={0}
-              onKeyPress={() => {}}
+              onKeyPress={this.props.onKeyPress}
               onClick={this.saveTask}
+              data-testid={addTestId('CreateTask.submitButton')}
             >
             Submit
             </button>
@@ -203,21 +203,25 @@ class CreateTask extends Component {
   }
 }
 
-CreateTask.propTypes = {
-  onChange: PropTypes.func.isRequired,
+CreateTaskPrimitive.propTypes = {
+  onFieldChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   task: tDefns.task.isRequired,
   onAddNewTask: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
 };
 
+CreateTaskPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
 
-const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   task: ownProps.taskToEdit,
 });
 
-const mapDispatchToProps = dispatch => ({
-  onChange: (changes) => {
+export const mapDispatchToProps = dispatch => ({
+  onFieldChange: (changes) => {
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
   onAddNewTask: (newTask) => {
@@ -225,4 +229,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateTask);
+export default connect(mapStateToProps, mapDispatchToProps)(CreateTaskPrimitive);

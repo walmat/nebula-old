@@ -1,22 +1,7 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import React from 'react';
 
-import './tasks.css';
-
-class LogTask extends Component {
-  render() {
-    return (
-      <div>
-      </div>
-    );
-  }
-}
+const LogTask = () => (<div />);
 
 LogTask.propTypes = {};
 
-
-const mapStateToProps = (state, ownProps) => ({});
-
-const mapDispatchToProps = dispatch => ({});
-
-export default connect(mapStateToProps, mapDispatchToProps)(LogTask);
+export default LogTask;
