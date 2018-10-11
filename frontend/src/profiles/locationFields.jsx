@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
-import getAllCountries from '../getAllCountries';
-import getAllStates from '../getAllStates';
+import getAllCountries from '../constants/getAllCountries';
+import getAllStates from '../constants/getAllStates';
 import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/actions';
 import './profiles.css';
 

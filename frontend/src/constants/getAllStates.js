@@ -59,5 +59,5 @@ export default function getAllStates() {
 }
 
 export function getState(statevalue) {
-  return Object.assign({}, states.find(state => state.value === statevalue));
+  return states.find(state => state.value === statevalue);
 }

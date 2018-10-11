@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, taskActions } from '../state/actions';
-import getAllSizes from '../getSizes';
-import getAllSites from '../getSites';
+import getAllSizes from '../constants/getAllSizes';
+import getAllSites from '../constants/getAllSites';
 
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';

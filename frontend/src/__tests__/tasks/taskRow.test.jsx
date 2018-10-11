@@ -6,8 +6,8 @@ import { TaskRowPrimitive, mapStateToProps, mapDispatchToProps } from '../../tas
 import { TASK_FIELDS, taskActions } from '../../state/actions';
 import { initialTaskStates } from '../../utils/definitions/taskDefinitions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
-import getAllSites from '../../getSites';
-import getAllSizes from '../../getSizes';
+import getAllSites from '../../constants/getAllSites';
+import getAllSizes from '../../constants/getAllSizes';
 
 import getByTestId from '../../__testUtils__/getByTestId';
 

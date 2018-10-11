@@ -1,7 +1,7 @@
 import regexes from '../validation';
 import { LOCATION_FIELDS } from '../../state/actions';
-import getAllCountries from '../../getAllCountries';
-import getAllStates from '../../getAllStates';
+import getAllCountries from '../../constants/getAllCountries';
+import getAllStates from '../../constants/getAllStates';
 
 function validateAddress(address) {
   // TODO: Create regex for addresses (or use google location api)

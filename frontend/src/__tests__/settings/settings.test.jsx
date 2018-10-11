@@ -6,7 +6,7 @@ import { SettingsPrimitive, mapStateToProps, mapDispatchToProps } from '../../se
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
 import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
-import getAllSizes from '../../getSizes';
+import getAllSizes from '../../constants/getAllSizes';
 
 describe('<Settings />', () => {
   let defaultProps;

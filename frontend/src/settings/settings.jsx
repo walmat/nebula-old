@@ -9,7 +9,7 @@ import ProxyList from './proxyList';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
-import getAllSizes from '../getSizes';
+import getAllSizes from '../constants/getAllSizes';
 import { settingsActions, SETTINGS_FIELDS } from '../state/actions';
 
 export class SettingsPrimitive extends Component {
