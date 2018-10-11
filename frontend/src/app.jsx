@@ -7,7 +7,6 @@ import Tasks from './tasks/tasks';
 import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
-import Auth from './auth/auth';
 
 import { ROUTES } from './state/actions';
 
@@ -93,7 +92,6 @@ class App extends PureComponent {
                 <Route component={Profiles} path={ROUTES.PROFILES} />
                 <Route component={Server} path={ROUTES.SERVER} />
                 <Route component={Settings} path={ROUTES.SETTINGS} />
-                <Route component={Auth} path="/auth" />
                 <Route path="/">
                   <Redirect to={ROUTES.TASKS} />
                 </Route>
