@@ -23,7 +23,7 @@ const {
     userAgent,
     trimKeywords,
     getProductVariantsForSize,
-} = require('../utils');
+} = require('./utils');
 
 class Monitor {
 

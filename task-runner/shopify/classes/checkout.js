@@ -10,7 +10,7 @@ const rp = require('request-promise').defaults({
 const {
     formatProxy,
     userAgent,
-} = require('../utils');
+} = require('./utils');
 
 class Checkout {
 
