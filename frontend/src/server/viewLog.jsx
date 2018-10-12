@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import ServerRow from './serverRow';
 import defns from '../utils/definitions/serverDefinitions';
 
-class ViewLog extends Component {
+export class ViewLogPrimitive extends Component {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
@@ -24,12 +24,12 @@ class ViewLog extends Component {
   }
 }
 
-const mapStateToProps = state => ({
+export const mapStateToProps = state => ({
   servers: state.servers,
 });
 
-ViewLog.propTypes = {
+ViewLogPrimitive.propTypes = {
   servers: defns.serverList.isRequired,
 };
 
-export default connect(mapStateToProps)(ViewLog);
+export default connect(mapStateToProps)(ViewLogPrimitive);

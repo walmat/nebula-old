@@ -5,7 +5,7 @@ import { taskActions } from '../state/actions';
 
 import defns from '../utils/definitions/taskDefinitions';
 
-class ViewTask extends Component {
+export class ViewTaskPrimitive extends Component {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
@@ -25,18 +25,12 @@ class ViewTask extends Component {
   }
 }
 
-const mapStateToProps = state => ({
-  tasks: state.tasks,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onChange: (task, changes) => {
-    dispatch(taskActions.edit(task.id, changes.field, changes.value));
-  },
-});
-
-ViewTask.propTypes = {
+ViewTaskPrimitive.propTypes = {
   tasks: defns.taskList.isRequired,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ViewTask);
+export const mapStateToProps = state => ({
+  tasks: state.tasks,
+});
+
+export default connect(mapStateToProps)(ViewTaskPrimitive);

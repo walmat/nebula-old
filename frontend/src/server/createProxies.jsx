@@ -4,26 +4,11 @@ import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
+import addTestId from '../utils/addTestId';
 
-class CreateProxies extends Component {
-
-  static limit(val, max) {
-    if (val.length === 1 && val[0] > max[0]) {
-      val = `0${val}`;
-    }
-
-    if (val.length === 2) {
-      if (Number(val) === 0) {
-        val = '01';
-      } else if (val > max) { // this can happen when user paste number
-        val = max;
-      }
-    }
-    return val;
-  }
-
+export class CreateProxiesPrimitive extends Component {
   createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
+    return event => this.props.onEditServerInfo(field, event.target.value);
   }
 
   render() {
@@ -43,6 +28,7 @@ class CreateProxies extends Component {
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
                   required
+                  data-testid={addTestId('CreateProxies.numProxiesInput')}
                 />
               </div>
             </div>
@@ -60,6 +46,7 @@ class CreateProxies extends Component {
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
                   value={serverInfo.proxyOptions.username}
                   required
+                  data-testid={addTestId('CreateProxies.usernameInput')}
                 />
               </div>
             </div>
@@ -72,11 +59,12 @@ class CreateProxies extends Component {
                 <p className="proxy-options__label">Password</p>
                 <input
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
-                  type="test"
+                  type="text"
                   placeholder="Desired Password"
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
                   value={serverInfo.proxyOptions.password}
                   required
+                  data-testid={addTestId('CreateProxies.passwordInput')}
                 />
               </div>
             </div>
@@ -90,22 +78,23 @@ class CreateProxies extends Component {
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={() => {}}
-              onClick={() => { this.props.onDestroyProxies(); }}
+              onKeyPress={this.props.onKeyPress}
+              onClick={() => loggedInAws && this.props.onDestroyProxies()}
+              data-testid={addTestId('CreateProxies.destroyProxiesButton')}
             >
               Destroy All
             </button>
           </div>
           <div className="col">
-          
             <button
               className="proxy-options__generate"
               tabIndex={0}
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={() => {}}
-              onClick={() => { this.props.onGenerateProxies(this.props.serverInfo.proxyOptions); }}
+              onKeyPress={this.props.onKeyPress}
+              onClick={() => loggedInAws && this.props.onGenerateProxies(this.props.serverInfo.proxyOptions)}
+              data-testid={addTestId('CreateProxies.generateProxiesButton')}
             >
               Generate
             </button>
@@ -116,21 +105,23 @@ class CreateProxies extends Component {
   }
 }
 
-CreateProxies.propTypes = {
+CreateProxiesPrimitive.propTypes = {
   onEditServerInfo: PropTypes.func.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   onGenerateProxies: PropTypes.func.isRequired,
   onDestroyProxies: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
 };
 
+CreateProxiesPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
 
-const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   serverInfo: state.serverInfo,
-  onDestroyProxies: PropTypes.func.isRequired,
-  onGenerateProxies: PropTypes.func.isRequired,
 });
 
-const mapDispatchToProps = dispatch => ({
+export const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
@@ -142,4 +133,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateProxies);
+export default connect(mapStateToProps, mapDispatchToProps)(CreateProxiesPrimitive);

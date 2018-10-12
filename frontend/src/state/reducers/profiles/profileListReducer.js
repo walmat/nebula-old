@@ -1,25 +1,17 @@
 import uuidv4 from 'uuid/v4';
 
 import { PROFILE_ACTIONS } from '../../actions';
-import { profileReducer, initialProfileState } from './profileReducer';
+import { profileReducer } from './profileReducer';
+import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
-export const initialProfileListState = [
-  Object.assign({}, initialProfileState, JSON.parse('{"id":1,"profileName":"Full Profile 1","errors":{"profileName":false,"billingMatchesShipping":false},"billingMatchesShipping":true,"shipping":{"firstName":"test","lastName":"test","address":"test","apt":"test","city":"test","country":{"label":"United States","value":"US"},"state":{"value":"AK","label":"Alaska"},"zipCode":"12345","phone":"1234567890","errors":{"firstName":false,"lastName":false,"address":false,"apt":false,"city":false,"country":false,"state":false,"zipCode":false,"phone":false}},"billing":{"firstName":"test","lastName":"test","address":"test","apt":"test","city":"test","country":{"label":"United States","value":"US"},"state":{"value":"AK","label":"Alaska"},"zipCode":"12345","phone":"1234567890","errors":{"firstName":false,"lastName":false,"address":false,"apt":false,"city":false,"country":false,"state":false,"zipCode":false,"phone":false}},"payment":{"email":"test@test.com","cardNumber":"4111111111111","exp":"12/34","cvv":"123","errors":{"email":false,"cardNumber":false,"exp":false,"cvv":false}}}')),
-  Object.assign({}, initialProfileState, JSON.parse('{"id":2,"profileName":"Full Profile 2","errors":{"profileName":false,"billingMatchesShipping":false},"billingMatchesShipping":true,"shipping":{"firstName":"test","lastName":"test","address":"test","apt":"test","city":"test","country":{"label":"United States","value":"US"},"state":{"value":"AK","label":"Alaska"},"zipCode":"12345","phone":"1234567890","errors":{"firstName":false,"lastName":false,"address":false,"apt":false,"city":false,"country":false,"state":false,"zipCode":false,"phone":false}},"billing":{"firstName":"test","lastName":"test","address":"test","apt":"test","city":"test","country":{"label":"United States","value":"US"},"state":{"value":"AK","label":"Alaska"},"zipCode":"12345","phone":"1234567890","errors":{"firstName":false,"lastName":false,"address":false,"apt":false,"city":false,"country":false,"state":false,"zipCode":false,"phone":false}},"payment":{"email":"test@test.com","cardNumber":"4111111111111","exp":"12/34","cvv":"123","errors":{"email":false,"cardNumber":false,"exp":false,"cvv":false}}}')),
-  Object.assign({}, initialProfileState, JSON.parse('{"id":3,"profileName":"Full Profile 3","errors":{"profileName":false,"billingMatchesShipping":false},"billingMatchesShipping":true,"shipping":{"firstName":"test","lastName":"test","address":"test","apt":"test","city":"test","country":{"label":"United States","value":"US"},"state":{"value":"AK","label":"Alaska"},"zipCode":"12345","phone":"1234567890","errors":{"firstName":false,"lastName":false,"address":false,"apt":false,"city":false,"country":false,"state":false,"zipCode":false,"phone":false}},"billing":{"firstName":"test","lastName":"test","address":"test","apt":"test","city":"test","country":{"label":"United States","value":"US"},"state":{"value":"AK","label":"Alaska"},"zipCode":"12345","phone":"1234567890","errors":{"firstName":false,"lastName":false,"address":false,"apt":false,"city":false,"country":false,"state":false,"zipCode":false,"phone":false}},"payment":{"email":"test@test.com","cardNumber":"4111111111111","exp":"12/34","cvv":"123","errors":{"email":false,"cardNumber":false,"exp":false,"cvv":false}}}')),
-  Object.assign({}, initialProfileState, JSON.parse('{"id":4,"profileName":"Full Profile 4","errors":{"profileName":false,"billingMatchesShipping":false},"billingMatchesShipping":true,"shipping":{"firstName":"test","lastName":"test","address":"test","apt":"test","city":"test","country":{"label":"United States","value":"US"},"state":{"value":"AK","label":"Alaska"},"zipCode":"12345","phone":"1234567890","errors":{"firstName":false,"lastName":false,"address":false,"apt":false,"city":false,"country":false,"state":false,"zipCode":false,"phone":false}},"billing":{"firstName":"test","lastName":"test","address":"test","apt":"test","city":"test","country":{"label":"United States","value":"US"},"state":{"value":"AK","label":"Alaska"},"zipCode":"12345","phone":"1234567890","errors":{"firstName":false,"lastName":false,"address":false,"apt":false,"city":false,"country":false,"state":false,"zipCode":false,"phone":false}},"payment":{"email":"test@test.com","cardNumber":"4111111111111","exp":"12/34","cvv":"123","errors":{"email":false,"cardNumber":false,"exp":false,"cvv":false}}}')),
-];
-
-export function profileListReducer(state = initialProfileListState, action) {
+export default function profileListReducer(state = initialProfileStates.list, action) {
   // perform deep copy of given state
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
     case PROFILE_ACTIONS.ADD: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE ADD');
-        console.log(action.response);
+      // If profile is not defined, do nothing
+      if (!action.profile) {
         break;
       }
 
@@ -29,14 +21,12 @@ export function profileListReducer(state = initialProfileListState, action) {
         newProfile.billing = newProfile.shipping;
       }
 
-      // assign new id
-      let newId = uuidv4();
-
-      // check if generated id already exists
+      // assign new id and check if generated id already exists
+      let newId;
       const idCheck = p => p.id === newId;
-      while (nextState.some(idCheck)) {
+      do {
         newId = uuidv4();
-      }
+      } while (nextState.some(idCheck));
 
       // add new profile
       newProfile.id = newId;
@@ -44,13 +34,6 @@ export function profileListReducer(state = initialProfileListState, action) {
       break;
     }
     case PROFILE_ACTIONS.REMOVE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE REMOVE');
-        console.log(action.response);
-        break;
-      }
-
       // perform a deep copy of given state
       nextState = JSON.parse(JSON.stringify(state));
 
@@ -77,15 +60,9 @@ export function profileListReducer(state = initialProfileListState, action) {
       break;
     }
     case PROFILE_ACTIONS.UPDATE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with PROFILE UPDATE');
-        console.log(action.response);
-        break;
-      }
-
       // check if id is given (we only change the state on a non-null id)
-      if (action.id == null) {
+      // check if profile is given (we only change the state if profile is given)
+      if (!action.id || !action.profile) {
         break;
       }
 

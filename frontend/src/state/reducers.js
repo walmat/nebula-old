@@ -3,30 +3,34 @@
  * files, this is just a shared import point.
  */
 // import { combineReducers } from 'redux';
-import { newTaskReducer, initialTaskState, selectedTaskReducer } from './reducers/tasks/taskReducer';
-import { initialTaskListState, taskListReducer } from './reducers/tasks/taskListReducer';
-import { currentProfileReducer, initialProfileState, selectedProfileReducer } from './reducers/profiles/profileReducer';
-import { profileListReducer, initialProfileListState } from './reducers/profiles/profileListReducer';
-import { serverReducer, serverListReducer, initialServerState, initialServerListState } from './reducers/server/serverReducer';
-import { settingsReducer, initialSettingsState } from './reducers/settings/settingsReducer';
+import { newTaskReducer, selectedTaskReducer } from './reducers/tasks/taskReducer';
+import taskListReducer from './reducers/tasks/taskListReducer';
+import { currentProfileReducer, selectedProfileReducer } from './reducers/profiles/profileReducer';
+import profileListReducer from './reducers/profiles/profileListReducer';
+import { serverReducer, serverListReducer } from './reducers/server/serverReducer';
+import settingsReducer from './reducers/settings/settingsReducer';
 import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
 
 import serverListOptions from '../utils/servers';
+import { initialProfileStates } from '../utils/definitions/profileDefinitions';
+import { initialTaskStates } from '../utils/definitions/taskDefinitions';
+import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
+import { initialServerStates } from '../utils/definitions/serverDefinitions';
 
 /**
  * Application State
  */
 export const initialState = {
-  profiles: initialProfileListState,
-  selectedProfile: initialProfileState,
-  currentProfile: initialProfileState,
-  tasks: initialTaskListState,
-  newTask: initialTaskState,
+  profiles: initialProfileStates.list,
+  selectedProfile: initialProfileStates.profile,
+  currentProfile: initialProfileStates.profile,
+  tasks: initialTaskStates.list,
+  newTask: initialTaskStates.task,
   navbar: initialNavbarState,
-  selectedTask: initialTaskState,
-  settings: initialSettingsState,
-  serverInfo: initialServerState,
-  servers: initialServerListState,
+  selectedTask: initialTaskStates.task,
+  settings: initialSettingsStates.settings,
+  serverInfo: initialServerStates.serverInfo,
+  servers: initialServerStates.serverList,
   serverListOptions,
 };
 

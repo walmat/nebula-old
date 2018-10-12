@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
-import getAllCountries from '../getAllCountries';
-import getAllStates from '../getAllStates';
+import getAllCountries from '../constants/getAllCountries';
+import getAllStates from '../constants/getAllStates';
 import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/actions';
 import './profiles.css';
 
@@ -15,7 +15,7 @@ const errorStyle = {
   borderColor: 'red',
 };
 
-class LocationFields extends Component {
+export class LocationFieldsPrimitive extends Component {
   static buildCountryOptions() {
     return getAllCountries();
   }
@@ -30,10 +30,6 @@ class LocationFields extends Component {
       { backgroundColor: disabled ? '#e5e5e5' : '#F5F5F5' },
       validationStatus(errors),
     );
-  }
-
-  static setBorderColor(validationErrors) {
-    return validationErrors ? errorStyle : {};
   }
 
   createOnChangeHandler(field) {
@@ -64,11 +60,11 @@ class LocationFields extends Component {
     const { errors, disabled } = this.props;
     return (
       <div>
-        <input id={`${this.props.id}-first-name`} required placeholder="First Name" onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)} value={this.props.value.firstName} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])} disabled={disabled} />
-        <input id={`${this.props.id}-last-name`} required placeholder="Last Name" onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)} value={this.props.value.lastName} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])} disabled={disabled} />
-        <input id={`${this.props.id}-address-one`} required placeholder="Address Line 1" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)} value={this.props.value.address} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])} disabled={disabled} />
-        <input id={`${this.props.id}-address-two`} placeholder="Address Line 2" onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)} value={this.props.value.apt} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.APT])} disabled={disabled} />
-        <input id={`${this.props.id}-city`} required placeholder="City" onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)} value={this.props.value.city} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.CITY])} disabled={disabled} />
+        <input id={`${this.props.id}-first-name`} required placeholder="First Name" onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)} value={this.props.value.firstName} style={LocationFieldsPrimitive.buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])} disabled={disabled} />
+        <input id={`${this.props.id}-last-name`} required placeholder="Last Name" onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)} value={this.props.value.lastName} style={LocationFieldsPrimitive.buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])} disabled={disabled} />
+        <input id={`${this.props.id}-address-one`} required placeholder="Address Line 1" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)} value={this.props.value.address} style={LocationFieldsPrimitive.buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])} disabled={disabled} />
+        <input id={`${this.props.id}-address-two`} placeholder="Address Line 2" onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)} value={this.props.value.apt} style={LocationFieldsPrimitive.buildStyle(disabled, errors[LOCATION_FIELDS.APT])} disabled={disabled} />
+        <input id={`${this.props.id}-city`} required placeholder="City" onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)} value={this.props.value.city} style={LocationFieldsPrimitive.buildStyle(disabled, errors[LOCATION_FIELDS.CITY])} disabled={disabled} />
         <Select
           required
           placeholder="State"
@@ -76,13 +72,13 @@ class LocationFields extends Component {
           id={`${this.props.id}-state`}
           styles={colourStyles}
           classNamePrefix="select"
-          options={LocationFields.buildStateOptions()}
+          options={LocationFieldsPrimitive.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
           value={this.props.value.state}
           // style={LocationFields.buildStyle(this.isStatesDisabled(), errors[LOCATION_FIELDS.STATE])}
           isDisabled={this.isStatesDisabled()}
         />
-        <input id={`${this.props.id}-zip-code`} required placeholder="Zip Code" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)} value={this.props.value.zipCode} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])} disabled={disabled} />
+        <input id={`${this.props.id}-zip-code`} required placeholder="Zip Code" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)} value={this.props.value.zipCode} style={LocationFieldsPrimitive.buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])} disabled={disabled} />
         <Select
           required
           placeholder="Country"
@@ -90,19 +86,19 @@ class LocationFields extends Component {
           id={`${this.props.id}-country`}
           styles={colourStyles}
           classNamePrefix="select"
-          options={LocationFields.buildCountryOptions()}
+          options={LocationFieldsPrimitive.buildCountryOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
           value={this.props.value.country}
-          style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])}
+          style={LocationFieldsPrimitive.buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])}
           isDisabled={disabled}
         />
-        <input id={`${this.props.id}-phone`} required placeholder="Phone" onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)} value={this.props.value.phone} style={LocationFields.buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])} disabled={disabled} />
+        <input id={`${this.props.id}-phone`} required placeholder="Phone" onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)} value={this.props.value.phone} style={LocationFieldsPrimitive.buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])} disabled={disabled} />
       </div>
     );
   }
 }
 
-LocationFields.propTypes = {
+LocationFieldsPrimitive.propTypes = {
   errors: defns.locationStateErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
@@ -110,14 +106,14 @@ LocationFields.propTypes = {
   value: defns.locationState.isRequired,
 };
 
-const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
   disabled: ownProps.disabled,
   errors: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]].errors,
   value: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]],
 });
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+export const mapDispatchToProps = (dispatch, ownProps) => ({
   onChange: (changes) => {
     dispatch(profileActions.edit(
       ownProps.profileToEdit.id,
@@ -131,4 +127,4 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(LocationFields);
+)(LocationFieldsPrimitive);

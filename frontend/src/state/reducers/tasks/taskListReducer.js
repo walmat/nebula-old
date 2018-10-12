@@ -1,7 +1,7 @@
 import { TASK_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
+import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 
-export const initialTaskListState = [];
 let _num = 1;
 
 function _getId(taskList) {
@@ -23,15 +23,13 @@ function _getId(taskList) {
   return newId;
 }
 
-export function taskListReducer(state = initialTaskListState, action) {
+export default function taskListReducer(state = initialTaskStates.list, action) {
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
     case TASK_ACTIONS.ADD: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with TASK ADD');
-        console.log(action.response);
+      // Check for valid payload structure
+      if (!action.response || (action.response && !action.response.task)) {
         break;
       }
 
@@ -55,10 +53,8 @@ export function taskListReducer(state = initialTaskListState, action) {
       break;
     }
     case TASK_ACTIONS.REMOVE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with TASK REMOVE');
-        console.log(action.response);
+      // Check for valid payload structure
+      if (!action.response || (action.response && action.response.id === undefined)) {
         break;
       }
 
@@ -79,13 +75,10 @@ export function taskListReducer(state = initialTaskListState, action) {
       break;
     }
     case TASK_ACTIONS.UPDATE: {
-      // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        console.log('ERROR with TASK UPDATE');
-        console.log(action.response);
+      // Check if payload has correct structure
+      if (!action.response || (action.response && (!action.response.task || !action.response.id))) {
         break;
       }
-
       const updateId = action.response.id;
       const updateTask = JSON.parse(JSON.stringify(action.response.task));
 
@@ -99,24 +92,33 @@ export function taskListReducer(state = initialTaskListState, action) {
       const idxToUpdate = nextState.indexOf(foundTask);
 
       // Check if current task has been setup properly
-      if ((updateTask.edits.profile || updateTask.edits.pairs || updateTask.edits.sizes)) {
+      if (updateTask.edits) {
         // Set it up properly
         updateTask.profile = updateTask.edits.profile || updateTask.profile;
         updateTask.product = updateTask.edits.product || updateTask.product;
         updateTask.site = updateTask.edits.site || updateTask.site;
         updateTask.sizes = updateTask.edits.sizes || updateTask.sizes;
-        updateTask.username = updateTask.edits.username || updateTask.edits.password;
-        // copy over to edits
-        updateTask.edits = {
-          ...updateTask.edits,
-          profile: updateTask.profile,
-          product: updateTask.product,
-          sizes: updateTask.sizes,
-          site: updateTask.site,
-          username: updateTask.username,
-          password: updateTask.password,
-        };
+        updateTask.username = updateTask.edits.username || updateTask.username;
+        updateTask.password = updateTask.edits.password || updateTask.password;
       }
+      // copy over to edits
+      updateTask.edits = {
+        ...updateTask.edits,
+        profile: updateTask.profile,
+        product: updateTask.product,
+        sizes: updateTask.sizes,
+        site: updateTask.site,
+        username: updateTask.username,
+        password: updateTask.password,
+        errors: {
+          profile: null,
+          product: null,
+          sizes: null,
+          site: null,
+          username: null,
+          password: null,
+        },
+      };
 
       // Update the task
       nextState[idxToUpdate] = updateTask;
@@ -142,7 +144,7 @@ export function taskListReducer(state = initialTaskListState, action) {
       break;
     }
     case TASK_ACTIONS.START: {
-      if (action.response.task.id === null) {
+      if (!action.response || (action.response && !action.response.task)) {
         break;
       }
 
@@ -161,7 +163,7 @@ export function taskListReducer(state = initialTaskListState, action) {
       break;
     }
     case TASK_ACTIONS.STOP: {
-      if (action.response.task.id === null) {
+      if (!action.response || (action.response && !action.response.task)) {
         break;
       }
 

@@ -1,6 +1,7 @@
 import {
   PROFILE_ACTIONS,
   PROFILE_FIELDS,
+  profileActions,
   mapProfileFieldToKey,
 } from '../../actions';
 import profileAttributeValidatorMap from '../../../utils/validation/profileAttributeValidators';
@@ -9,6 +10,11 @@ const profileFormValidationMiddleware = store => next => (action) => {
   switch (action.type) {
     case PROFILE_ACTIONS.ADD:
     case PROFILE_ACTIONS.UPDATE:
+      // Check for valid payload structure and dispatch an error if not
+      if (!action.profile) {
+        return store.dispatch(profileActions.error(action.type, 'invalid action structure!'));
+      }
+
       // We are updating or adding a new profile, we need to validate all fields
       // and update errors map to make sure we have no errors.
 

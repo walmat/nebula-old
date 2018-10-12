@@ -1,112 +1,81 @@
-import { initialProfileState } from '../profiles/profileReducer';
-
 import {
   TASK_ACTIONS,
   TASK_FIELDS,
   mapTaskFieldsToKey,
 } from '../../actions';
+import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 
-export const initialTaskState = {
-  id: '',
-  product: {
-    raw: '',
-    variant: null,
-    pos_keywords: null,
-    neg_keywords: null,
-    url: null,
-  },
-  site: null,
-  profile: initialProfileState,
-  sizes: [],
-  username: null,
-  password: null,
-  status: 'idle',
-  error_delay: null,
-  refresh_delay: null,
-  errors: {
-    method: null,
-    product: {
-      raw: null,
-      variant: null,
-      pos_keywords: null,
-      neg_keywords: null,
-      url: null,
-    },
-    site: null,
-    profile: null,
-    sizes: null,
-    username: '',
-    password: '',
-    status: null,
-    error_delay: null,
-    refresh_delay: null,
-  },
-  edits: {
-    product: null,
-    sizes: null,
-    profile: null,
-    username: null,
-    password: null,
-    site: null,
-    errors: {
-      sizes: null,
-      profile: null,
-    },
-  },
-};
-
-export function taskReducer(state = initialTaskState, action) {
+export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
   if (action.type === TASK_ACTIONS.EDIT) {
     // Check if we are editing a new task or an existing one
-    if (action.id === null) {
+    if (!action.id) {
+      if (!action.field) {
+        return Object.assign({}, state);
+      }
       switch (action.field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
-          change = {
-            product: {
-              raw: action.value,
-            },
-          };
+          if (action.value) {
+            change = {
+              product: {
+                raw: action.value,
+              },
+            };
+          }
           break;
         }
         case TASK_FIELDS.EDIT_SITE: {
-          change = {
-            site: action.value,
-            username: null,
-            password: null,
-          };
+          if (action.value) {
+            change = {
+              site: action.value,
+              username: null,
+              password: null,
+            };
+          }
           break;
         }
         default: {
+          if (!mapTaskFieldsToKey[action.field]) {
+            break;
+          }
           change = {
-            [mapTaskFieldsToKey[action.field]]: action.value,
+            [mapTaskFieldsToKey[action.field]]: action.value || state[mapTaskFieldsToKey[action.field]],
             errors: Object.assign({}, state.errors, action.errors),
           };
         }
       }
     } else {
+      if (!action.field) {
+        return Object.assign({}, state);
+      }
       // If we are editing an existing task, only perform the change on valid edit fields
       switch (action.field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
-          change = {
-            edits: {
-              ...state.edits,
-              product: {
-                raw: action.value,
+          if (action.value) {
+            change = {
+              edits: {
+                ...state.edits,
+                errors: Object.assign({}, state.edits.errors, action.errors),
+                product: {
+                  raw: action.value,
+                },
               },
-            },
-          };
+            };
+          }
           break;
         }
         case TASK_FIELDS.EDIT_SITE: {
-          change = {
-            edits: {
-              ...state.edits,
-              site: action.value,
-              username: null,
-              password: null,
-            },
-          };
+          if (action.value) {
+            change = {
+              edits: {
+                ...state.edits,
+                errors: Object.assign({}, state.edits.errors, action.errors),
+                site: action.value,
+                username: null,
+                password: null,
+              },
+            };
+          }
           break;
         }
         case TASK_FIELDS.EDIT_PAIRS:
@@ -117,8 +86,8 @@ export function taskReducer(state = initialTaskState, action) {
           change = {
             edits: {
               ...state.edits,
-              [mapTaskFieldsToKey[action.field]]: action.value,
-              errors: Object.assign({}, state.errors, action.errors),
+              [mapTaskFieldsToKey[action.field]]: action.value || state.edits[mapTaskFieldsToKey[action.field]],
+              errors: Object.assign({}, state.edits.errors, action.errors),
             },
           };
           break;
@@ -131,22 +100,22 @@ export function taskReducer(state = initialTaskState, action) {
   return Object.assign({}, state, change);
 }
 
-export function newTaskReducer(state = initialTaskState, action) {
+export function newTaskReducer(state = initialTaskStates.task, action) {
   switch (action.type) {
     case TASK_ACTIONS.EDIT: {
       // only modify the current task if the action id is null
-      if (action.id == null) {
+      if (!action.id) {
         return taskReducer(state, action);
       }
       break;
     }
     case TASK_ACTIONS.ADD: {
       // If we have a response error, we should do nothing
-      if (action.response !== undefined && action.response.error !== undefined) {
-        return Object.assign({}, action.task);
+      if (!action.response || (action.response && !action.response.task)) {
+        return Object.assign({}, state);
       }
       // If adding a new task, we should reset the current task to default values
-      return Object.assign({}, initialTaskState);
+      return Object.assign({}, initialTaskStates.task);
     }
     default:
       break;
@@ -155,12 +124,12 @@ export function newTaskReducer(state = initialTaskState, action) {
   return Object.assign({}, state);
 }
 
-export function selectedTaskReducer(state = initialTaskState, action) {
+export function selectedTaskReducer(state = initialTaskStates.task, action) {
   switch (action.type) {
     case TASK_ACTIONS.SELECT: {
       // if the user is toggling
-      if (action.task === null) {
-        return Object.assign({}, []);
+      if (!action.task) {
+        break;
       }
       // Set the next state to the selected profile
       return Object.assign({}, action.task);

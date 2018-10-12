@@ -1,47 +1,42 @@
 import {
   SETTINGS_ACTIONS,
   mapSettingsFieldToKey,
+  SETTINGS_FIELDS,
 } from '../../actions';
 
-import { initialProfileState } from '../profiles/profileReducer';
+import { initialSettingsStates } from '../../../utils/definitions/settingsDefinitions';
 
-export const initialSettingsState = {
-  proxies: [],
-  defaultProfile: initialProfileState,
-  defaultSizes: [],
-  discord: '',
-  slack: '',
-  errors: {
-    proxies: [],
-    defaultProfile: null,
-    defaultSizes: null,
-    discord: null,
-    slack: null,
-  },
-};
-
-export function settingsReducer(state = initialSettingsState, action) {
+export default function settingsReducer(state = initialSettingsStates.settings, action) {
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
+      case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
+      case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES:
+        change = {
+          defaults: {
+            ...state.defaults,
+            [mapSettingsFieldToKey[action.field]]: action.value,
+          },
+        };
+        break;
       default:
         change = {
           [mapSettingsFieldToKey[action.field]]: action.value,
-          errors: action.errors,
         };
     }
   } else if (action.type === SETTINGS_ACTIONS.SAVE) {
     change = {
-      defaults: { profile: action.defaults.defaultProfile, sizes: action.defaults.defaultSizes },
-      errors: action.errors,
+      defaults: {
+        ...state.defaults,
+        profile: action.defaults.profile,
+        sizes: action.defaults.sizes,
+      },
     };
   } else if (action.type === SETTINGS_ACTIONS.CLEAR) {
     change = {
-      defaults: {},
-      defaultProfile: initialProfileState,
-      defaultSizes: [],
-      errors: action.errors,
+      defaults: initialSettingsStates.defaults,
     };
   }
+  change.errors = action.errors || state.errors;
   return Object.assign({}, state, change);
 }

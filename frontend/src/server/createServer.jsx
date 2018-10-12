@@ -5,16 +5,19 @@ import PropTypes from 'prop-types';
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import addTestId from '../utils/addTestId';
 
-class CreateServer extends Component {
+export class CreateServerPrimitive extends Component {
   static changeServerChoice(options, onChange) {
     return (event) => {
       const change = options.find(o => o.id === event.value);
-      onChange(change);
+      if (change) {
+        onChange(change);
+      }
     };
   }
 
-  static buildServerTypeChoices(options, onFilter) {
+  static buildServerOptionChoices(options, onFilter) {
     return () => {
       if (!options) {
         return options;
@@ -30,19 +33,11 @@ class CreateServer extends Component {
   }
 
   createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event.target ? event.target.value : event);
-  }
-
-  createServer(e) {
-    e.preventDefault();
-    this.props.onCreateServer(
-      this.props.serverInfo.serverOptions,
-      this.props.serverInfo.credentials,
-    );
+    return event => this.props.onEditServerInfo(field, event);
   }
 
   static renderServerOptionComponent(
-    type, label, defaultOption, value,
+    tag, label, defaultOption, value,
     disabled, onChange, optionGenerator,
   ) {
     return (
@@ -62,6 +57,7 @@ class CreateServer extends Component {
                 isDisabled={disabled}
                 value={value}
                 options={optionGenerator()}
+                data-testid={addTestId(`CreateServer.serverOption.${tag}`)}
               />
             </div>
           </div>
@@ -71,32 +67,32 @@ class CreateServer extends Component {
   }
 
   renderServerTypeComponent() {
-    return CreateServer.renderServerOptionComponent(
+    return CreateServerPrimitive.renderServerOptionComponent(
       'type',
       'Type',
       'Choose Server',
       this.props.serverType,
       false,
-      CreateServer.changeServerChoice(
+      CreateServerPrimitive.changeServerChoice(
         this.props.serverListOptions.types,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_TYPE),
       ),
-      CreateServer.buildServerTypeChoices(this.props.serverListOptions.types),
+      CreateServerPrimitive.buildServerOptionChoices(this.props.serverListOptions.types),
     );
   }
 
   renderServerSizeComponent() {
-    return CreateServer.renderServerOptionComponent(
+    return CreateServerPrimitive.renderServerOptionComponent(
       'size',
       'Size',
       'Choose Size',
       this.props.serverSize,
       !this.props.serverType,
-      CreateServer.changeServerChoice(
+      CreateServerPrimitive.changeServerChoice(
         this.props.serverListOptions.sizes,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE),
       ),
-      CreateServer.buildServerTypeChoices(
+      CreateServerPrimitive.buildServerOptionChoices(
         this.props.serverListOptions.sizes,
         (s => (this.props.serverType
           ? s.types.some(t => t === this.props.serverType.id)
@@ -106,17 +102,17 @@ class CreateServer extends Component {
   }
 
   renderServerLocationComponent() {
-    return CreateServer.renderServerOptionComponent(
+    return CreateServerPrimitive.renderServerOptionComponent(
       'location',
       'Location',
       'Choose Location',
       this.props.serverLocation,
       false,
-      CreateServer.changeServerChoice(
+      CreateServerPrimitive.changeServerChoice(
         this.props.serverListOptions.locations,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_LOCATION),
       ),
-      CreateServer.buildServerTypeChoices(this.props.serverListOptions.locations),
+      CreateServerPrimitive.buildServerOptionChoices(this.props.serverListOptions.locations),
     );
   }
 
@@ -135,13 +131,14 @@ class CreateServer extends Component {
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={() => {}}
+              onKeyPress={this.props.onKeyPress}
               onClick={() => {
                 this.props.onDestroyServers(
                   this.props.servers,
                   this.props.serverInfo.credentials,
                 );
               }}
+              data-testid={addTestId('CreateServer.serversButton.destroy')}
             >
               Destroy All
             </button>
@@ -153,13 +150,14 @@ class CreateServer extends Component {
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={() => {}}
+              onKeyPress={this.props.onKeyPress}
               onClick={() => {
                 this.props.onCreateServer(
                   this.props.serverInfo.serverOptions,
                   this.props.serverInfo.credentials,
                 );
               }}
+              data-testid={addTestId('CreateServer.serversButton.create')}
             >
               Create
             </button>
@@ -170,32 +168,36 @@ class CreateServer extends Component {
   }
 }
 
-CreateServer.propTypes = {
+CreateServerPrimitive.propTypes = {
   servers: defns.serverList.isRequired,
+  serverType: defns.serverProperty,
+  serverSize: defns.serverProperty,
+  serverLocation: defns.serverProperty,
+  serverListOptions: defns.serverListOptions.isRequired,
+  serverInfo: defns.serverInfo.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
   onCreateServer: PropTypes.func.isRequired,
   onDestroyServers: PropTypes.func.isRequired,
-  serverType: defns.serverType,
-  serverSize: defns.serverSize,
-  serverLocation: defns.serverLocation,
-  serverListOptions: defns.serverListOptions.isRequired,
-  serverInfo: defns.serverInfo.isRequired,
+  onKeyPress: PropTypes.func,
 };
 
+CreateServerPrimitive.defaultProps = {
+  onKeyPress: () => {},
+  serverType: null,
+  serverSize: null,
+  serverLocation: null,
+};
 
-const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   servers: state.servers,
   serverInfo: state.serverInfo,
   serverType: state.serverInfo.serverOptions.type || null,
   serverSize: state.serverInfo.serverOptions.size || null,
   serverLocation: state.serverInfo.serverOptions.location || null,
   serverListOptions: state.serverListOptions,
-  onCreateServer: PropTypes.func.isRequired,
-  onEditServerInfo: PropTypes.func.isRequired,
-  onDestroyServers: PropTypes.func.isRequired,
 });
 
-const mapDispatchToProps = dispatch => ({
+export const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
@@ -207,4 +209,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateServer);
+export default connect(mapStateToProps, mapDispatchToProps)(CreateServerPrimitive);

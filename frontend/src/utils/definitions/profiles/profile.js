@@ -1,7 +1,19 @@
 import PropTypes from 'prop-types';
 
-import locationState from './locationState';
-import paymentState from './paymentState';
+import locationState, { initialLocationState } from './locationState';
+import paymentState, { initialPaymentState } from './paymentState';
+
+export const initialProfileState = {
+  id: null,
+  profileName: '',
+  errors: {
+    profileName: null,
+  },
+  billingMatchesShipping: false,
+  shipping: initialLocationState,
+  billing: initialLocationState,
+  payment: initialPaymentState,
+};
 
 const profile = PropTypes.shape({
   id: PropTypes.oneOfType([

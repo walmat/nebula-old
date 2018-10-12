@@ -1,0 +1,13 @@
+language: node_js
+node_js:
+  - "lts/carbon"
+cache:
+  directories:
+    - "frontend/node_modules"
+install:
+  - cd "$TRAVIS_BUILD_DIR"/frontend
+  - npm install
+script:
+  - cd "$TRAVIS_BUILD_DIR"/frontend
+  - npm test
+

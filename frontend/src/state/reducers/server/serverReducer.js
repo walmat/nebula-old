@@ -4,35 +4,9 @@ import {
   mapServerFieldToKey,
   subMapToKey,
 } from '../../actions';
+import { initialServerStates } from '../../../utils/definitions/serverDefinitions';
 
-export const initialServerListState = [];
-
-export const initialServerState = {
-  credentials: {
-    AWSAccessKey: '',
-    AWSSecretKey: '',
-    accessToken: null,
-  },
-  proxyOptions: {
-    numProxies: 0,
-    username: '',
-    password: '',
-  },
-  serverOptions: {
-    type: null,
-    size: null,
-    location: null,
-  },
-  proxies: [],
-  coreServer: {
-    path: null,
-    serverOptions: null,
-    awsCredentials: null,
-  },
-};
-
-
-export function serverReducer(state = initialServerState, action) {
+export function serverReducer(state = initialServerStates.serverInfo, action) {
   // initialize change object
   let change = {};
   // Deep copy the current state
@@ -52,7 +26,9 @@ export function serverReducer(state = initialServerState, action) {
       case SERVER_FIELDS.EDIT_PROXY_NUMBER:
         const intValue = parseInt(action.value, 10);
         change = {
-          numProxies: Number.isNaN(intValue) ? '' : intValue,
+          numProxies: Number.isNaN(intValue) ?
+            initialServerStates.proxyOptions.numProxies :
+            intValue,
         };
         break;
       default:
@@ -81,24 +57,25 @@ export function serverReducer(state = initialServerState, action) {
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
     nextState.proxies = action.proxies;
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
-    nextState.proxies = null;
+    nextState.proxies = initialServerStates.serverInfo.proxies;
   } else if (action.type === SERVER_ACTIONS.DESTROY_ALL) {
     // todo
     // nextState = nextState.filter(s => s.id !== action);
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     nextState.credentials.accessToken = action.token;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
-    nextState.credentials = initialServerState.credentials;
+    nextState.credentials = initialServerStates.awsCredentials;
   }
 
   return nextState;
 }
 
-export function serverListReducer(state = initialServerListState, action) {
+export function serverListReducer(state = initialServerStates.serverList, action) {
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
     case SERVER_ACTIONS.CONNECT:
+      // TODO: Implement this
       break;
     case SERVER_ACTIONS.CREATE:
       // perform a deep copy of given profile
@@ -106,7 +83,7 @@ export function serverListReducer(state = initialServerListState, action) {
       const newServer = {
         id: action.serverInfo.path,
         type: serverOptions.type,
-        sizes: serverOptions.size,
+        size: serverOptions.size,
         location: serverOptions.location,
         charges: '0',
         status: 'Pending...',
@@ -114,7 +91,8 @@ export function serverListReducer(state = initialServerListState, action) {
       nextState.push(newServer);
       break;
     case SERVER_ACTIONS.DESTROY:
-      nextState = nextState.filter(s => s.id !== action.serverPath.TerminatingInstances[0].InstanceId);
+      nextState = nextState.filter(s =>
+        s.id !== action.serverPath.TerminatingInstances[0].InstanceId);
       break;
     case SERVER_ACTIONS.DESTROY_ALL:
       nextState = [];

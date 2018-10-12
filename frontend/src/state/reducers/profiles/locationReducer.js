@@ -1,38 +1,21 @@
 import { mapLocationFieldToKey } from '../../actions';
+import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
-export const initialLocationState = {
-  firstName: '',
-  lastName: '',
-  address: '',
-  apt: '',
-  city: '',
-  country: null,
-  state: null,
-  zipCode: '',
-  phone: '',
-  errors: {
-    firstName: null,
-    lastName: null,
-    address: null,
-    apt: null,
-    city: null,
-    country: null,
-    state: null,
-    zipCode: null,
-    phone: null,
-  },
-};
-
-export const locationReducer = (state = initialLocationState, action) => {
+const locationReducer = (state = initialProfileStates.location, action) => {
   let change = {};
+  if (!mapLocationFieldToKey[action.type]) {
+    // If we can't map the field to a location key, don't change anything
+    return Object.assign({}, state);
+  }
   switch (action.type) {
     default: {
       change = {
-        [mapLocationFieldToKey[action.type]]: action.value,
+        [mapLocationFieldToKey[action.type]]: action.value || state[mapLocationFieldToKey[action.type]],
+        errors: action.errors || state.errors,
       };
       break;
     }
   }
-  change.errors = action.errors;
   return Object.assign({}, state, change);
 };
+export default locationReducer;

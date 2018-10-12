@@ -1,13 +1,19 @@
 import PropTypes from 'prop-types';
 
-import serverLocation from './serverLocation';
-import serverSize from './serverSize';
-import serverType from './serverType';
+import serverProperty from './serverProperty';
+
+export const initialServerOptionsState = {
+  type: null,
+  size: null,
+  location: null,
+  errors: {}, // TODO: Replace with initialServerOptionsErrorState (when it gets defined)
+};
 
 const serverOptions = PropTypes.shape({
-  type: serverType,
-  size: serverSize,
-  location: serverLocation,
+  type: serverProperty,
+  size: serverProperty,
+  location: serverProperty,
+  errors: PropTypes.objectOf(PropTypes.any), // TODO: Define this!
 });
 
 export default serverOptions;

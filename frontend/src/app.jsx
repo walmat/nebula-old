@@ -7,16 +7,16 @@ import Tasks from './tasks/tasks';
 import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
-import Auth from './auth/auth';
-
 import { ROUTES } from './state/actions';
+
+import addTestId from './utils/addTestId';
 
 import close from './_assets/close.svg';
 import deactivate from './_assets/logout.svg';
 
 import './app.css';
 
-class App extends PureComponent {
+export class App extends PureComponent {
   static close(e) {
     e.preventDefault();
     if (window.Bridge) {
@@ -42,9 +42,10 @@ class App extends PureComponent {
                 role="button"
                 tabIndex={0}
                 title="deactivate"
-                onKeyPress={() => {}}
-                onClick={(e) => { App.deactivate(e); }}
+                onKeyPress={this.props.onKeyPress}
+                onClick={App.deactivate}
                 draggable="false"
+                data-testid={addTestId('App.button.deactivate')}
               >
                 <img
                   src={deactivate}
@@ -66,9 +67,10 @@ class App extends PureComponent {
                 role="button"
                 tabIndex={0}
                 title="close"
-                onKeyPress={() => {}}
-                onClick={(e) => { App.close(e); }}
+                onKeyPress={this.props.onKeyPress}
+                onClick={App.close}
                 draggable="false"
+                data-testid={addTestId('App.button.close')}
               >
                 <img
                   src={close}
@@ -93,7 +95,6 @@ class App extends PureComponent {
                 <Route component={Profiles} path={ROUTES.PROFILES} />
                 <Route component={Server} path={ROUTES.SERVER} />
                 <Route component={Settings} path={ROUTES.SETTINGS} />
-                <Route component={Auth} path="/auth" />
                 <Route path="/">
                   <Redirect to={ROUTES.TASKS} />
                 </Route>
@@ -108,8 +109,13 @@ class App extends PureComponent {
 
 App.propTypes = {
   store: PropTypes.objectOf(PropTypes.any).isRequired,
+  onKeyPress: PropTypes.func,
 };
 
-const createApp = store => (<App store={store} />);
+App.defaultProps = {
+  onKeyPress: () => {},
+};
+
+const createApp = (store, props) => (<App store={store} {...props} />);
 
 export default createApp;

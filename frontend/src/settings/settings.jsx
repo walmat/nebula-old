@@ -9,11 +9,10 @@ import ProxyList from './proxyList';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
-import getAllSizes from '../getSizes';
+import getAllSizes from '../constants/getAllSizes';
 import { settingsActions, SETTINGS_FIELDS } from '../state/actions';
 
-class Settings extends Component {
-
+export class SettingsPrimitive extends Component {
   /*
   * Launch a new browser window that opens a sign-in google window
   * and then redirects to youtube.
@@ -65,8 +64,8 @@ class Settings extends Component {
   buildProfileOptions() {
     const { profiles } = this.props;
     const opts = [];
-    profiles.forEach(profile => {
-      opts.push({ value: profile.id, label: profile.profileName })
+    profiles.forEach((profile) => {
+      opts.push({ value: profile.id, label: profile.profileName });
     });
     return opts;
   }
@@ -82,15 +81,6 @@ class Settings extends Component {
         return (event) => {
           this.props.onSettingsChange({ field, value: event });
         };
-      case SETTINGS_FIELDS.EDIT_DISCORD:
-      case SETTINGS_FIELDS.EDIT_SLACK:
-        return (event) => {
-          this.props.onSettingsChange({
-            field,
-            value: event.target.value,
-          });
-        };
-      // should never be called, but just in case, treat it as a normal field input
       default:
         return (event) => {
           this.props.onSettingsChange({
@@ -103,11 +93,7 @@ class Settings extends Component {
 
   saveDefaults(e) {
     e.preventDefault();
-    this.props.onSaveDefaults(
-      SETTINGS_FIELDS.SAVE_DEFAULTS,
-      this.props.defaultProfile,
-      this.props.defaultSizes,
-    );
+    this.props.onSaveDefaults(this.props.settings.defaults);
   }
 
   clearDefaults(e) {
@@ -117,10 +103,10 @@ class Settings extends Component {
 
   render() {
     let defaultProfileValue = null;
-    if (this.props.defaultProfile.id !== null) {
+    if (this.props.settings.defaults.profile.id !== null) {
       defaultProfileValue = {
-        value: this.props.defaultProfile.id,
-        label: this.props.defaultProfile.profileName,
+        value: this.props.settings.defaults.profile.id,
+        label: this.props.settings.defaults.profile.profileName,
       };
     }
     return (
@@ -130,9 +116,9 @@ class Settings extends Component {
         <p className="body-text" id="proxy-list-label">Proxy List</p>
         <div id="proxy-list-box" />
         <ProxyList id="proxy-list-text" />
-        <button id="proxy-button-youtube" onClick={Settings.launchYoutube} >YouTube</button>
-        <button id="proxy-button-captcha" onClick={Settings.harvester} >Captcha</button>
-        <button id="proxy-button-close-session" onClick={Settings.closeSession} >End Session</button>
+        <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button>
+        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha</button>
+        <button id="proxy-button-close-session" onClick={SettingsPrimitive.closeSession} >End Session</button>
 
         {/* EXTRAS */}
         <p id="discord-label">Discord URL</p>
@@ -140,14 +126,14 @@ class Settings extends Component {
           id="discord-input"
           placeholder="https://discordapp.com/api/webhooks/..."
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
-          value={this.props.discord}
+          value={this.props.settings.discord}
         />
         <p id="slack-label">Slack URL</p>
         <input
           id="slack-input"
           placeholder="https://hooks.slack.com/services/..."
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
-          value={this.props.slack}
+          value={this.props.settings.slack}
         />
 
         {/* DEFAULTS */}
@@ -177,13 +163,14 @@ class Settings extends Component {
           classNamePrefix="select"
           styles={colourStyles}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
-          value={this.props.defaultSizes.map(size => ({ value: size.value, label: size.label }))}
-          options={Settings.buildSizeOptions()}
+          value={this.props.settings.defaults.sizes.map(size =>
+            ({ value: size.value, label: size.label }))}
+          options={SettingsPrimitive.buildSizeOptions()}
         />
         <button
           id="save-defaults"
           tabIndex={0}
-          onKeyPress={() => {}}
+          onKeyPress={this.props.onKeyPress}
           onClick={this.saveDefaults}
         >
         Save
@@ -192,7 +179,7 @@ class Settings extends Component {
         <button
           id="clear-defaults"
           tabIndex={0}
-          onKeyPress={() => {}}
+          onKeyPress={this.props.onKeyPress}
           onClick={this.clearDefaults}
         >
         Clear
@@ -202,38 +189,37 @@ class Settings extends Component {
   }
 }
 
-Settings.propTypes = {
+SettingsPrimitive.propTypes = {
   onSettingsChange: PropTypes.func.isRequired,
   onSaveDefaults: PropTypes.func.isRequired,
   onClearDefaults: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
   profiles: pDefns.profileList.isRequired,
-  defaultProfile: sDefns.defaultProfile.isRequired,
-  defaultSizes: sDefns.defaultSizes.isRequired,
-  discord: sDefns.discord.isRequired,
-  slack: sDefns.slack.isRequired,
+  settings: sDefns.settings.isRequired,
 };
 
-const mapStateToProps = state => ({
+SettingsPrimitive.defaultProps = {
+  onKeyPress: () => {},
+};
+
+export const mapStateToProps = state => ({
   profiles: state.profiles,
-  defaultProfile: state.settings.defaultProfile,
-  defaultSizes: state.settings.defaultSizes,
-  slack: state.settings.slack,
-  discord: state.settings.discord,
+  settings: state.settings,
 });
 
-const mapDispatchToProps = dispatch => ({
+export const mapDispatchToProps = dispatch => ({
   onSettingsChange: (changes) => {
     dispatch(settingsActions.edit(
       changes.field,
       changes.value,
     ));
   },
-  onSaveDefaults: (opt, defaultProfile, defaultSizes) => {
-    dispatch(settingsActions.save({ defaultProfile, defaultSizes }));
+  onSaveDefaults: (defaults) => {
+    dispatch(settingsActions.save(defaults));
   },
   onClearDefaults: (changes) => {
     dispatch(settingsActions.clear(changes));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);
+export default connect(mapStateToProps, mapDispatchToProps)(SettingsPrimitive);

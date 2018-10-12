@@ -100,7 +100,7 @@ const _updateTaskRequest = async (id, task) =>
 const _startTaskRequest = async (task, proxies) =>
   // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
-    console.log(task, proxies);
+    // console.log(task, proxies);
     if (task.status === 'running') {
       reject(new Error('Already running'));
     } else {
@@ -202,10 +202,11 @@ export const taskActions = {
   edit: editTask,
   clearEdits,
   select: selectTask,
-  load: loadTask,
+  // load: loadTask,
   update: updateTask,
   start: startTask,
   stop: stopTask,
+  error: handleError,
 };
 
 export const mapTaskFieldsToKey = {

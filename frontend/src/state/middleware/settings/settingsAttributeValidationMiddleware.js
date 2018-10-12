@@ -10,20 +10,24 @@ const settingsAttributeValidationMiddleware = store => next => (action) => {
     return next(action);
   }
 
-  // Get the state
-  const state = store.getState();
-
   // Copy the action object
   const newAction = JSON.parse(JSON.stringify(action));
-  
-  // Copy over the settings errors map
-  newAction.errors = Object.assign({}, state.settings.errors);
 
   // Validate the field in question
   if (newAction.field === 'EDIT_PROXIES') {
+    // Get the state
+    const state = store.getState();
+
+    // Copy over the settings errors map
+    newAction.errors = Object.assign({}, state.settings.errors);
+
     // TODO - remove this later when validation is finalized
-    newAction.errors[mapSettingsFieldToKey[newAction.field]] =
-      settingsAttributeValidatorMap[newAction.field](newAction.value);
+    const proxyErrors = settingsAttributeValidatorMap[newAction.field](newAction.value);
+    newAction.errors[mapSettingsFieldToKey[newAction.field]] = proxyErrors;
+
+    if (!proxyErrors.length) {
+      delete newAction.errors;
+    }
   }
 
   // Continue on to next middleware/reducer with errors map filled in

@@ -9,8 +9,7 @@ function validateName(name) {
 }
 
 function validateBillingMatchesShipping(billingMatchesShipping) {
-  // No need to validate this
-  return true;
+  return billingMatchesShipping || billingMatchesShipping === false;
 }
 
 const profileAttributeValidatorMap = {
