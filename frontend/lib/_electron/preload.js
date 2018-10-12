@@ -3,7 +3,9 @@ const { dialog, app } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
+const TaskRunner = require('task-runner/shopify/taskRunner');
 
+const t = new TaskRunner(null, null);
 // setup environment
 nebulaEnv.setUpEnvironment();
 

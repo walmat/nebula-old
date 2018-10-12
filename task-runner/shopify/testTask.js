@@ -1,7 +1,7 @@
 let task = {
 	id: '01',
 	product: {
-		raw: '+yeezy',
+		raw: '',
 		pos_keywords: ['POD', 'WHITE'],
 		neg_keywords: ['BLACK'],
 		variant: null,

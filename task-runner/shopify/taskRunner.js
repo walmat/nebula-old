@@ -1,5 +1,6 @@
 const { Monitor } = require('./classes/monitor');
 const task = require('./testTask');
+const EventEmitter = require('events');
 
 class TaskRunner {
     
@@ -18,4 +19,4 @@ class TaskRunner {
     }
 }
 
-const t = new TaskRunner(task, null);
+module.exports = TaskRunner;

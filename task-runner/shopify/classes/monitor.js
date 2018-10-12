@@ -174,6 +174,10 @@ class Monitor {
         });
     }
 
+    run() {
+        
+    }
+
 }
 
 module.exports = Monitor;
