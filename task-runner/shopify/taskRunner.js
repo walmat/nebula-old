@@ -1,4 +1,5 @@
-const { Monitor } = require('./classes/monitor');
+const Monitor = require('./classes/monitor');
+const Checkout = require('./classes/checkout');
 const task = require('./testTask');
 const EventEmitter = require('events');
 

@@ -414,7 +414,7 @@ class Checkout {
             credit_card: {
                 number: this._task.profile.payment.cardNumber,
                 verification_value: this._task.profile.payment.cvv,
-                name: `${this._task.profile.billing.firstName} ${this._task.profile.billing.lastName}`
+                name: `${this._task.profile.billing.firstName} ${this._task.profile.billing.lastName}`,
                 month: parseInt(this._task.profile.payment.exp.slice(0,2)),
                 year: parseInt(this._task.profile.payment.exp.slice(3,5)),
             }
@@ -513,3 +513,5 @@ class Checkout {
         })
     }
 }
+
+module.exports = Checkout;

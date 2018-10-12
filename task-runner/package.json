@@ -1,7 +1,8 @@
 {
-  "name": "nebula-api",
+  "name": "task-runner",
   "version": "0.0.1",
   "private": true,
+  "main": "./shopify/taskRunner.js",
   "devDependencies": {
     "eslint-config-google": "^0.9.1",
     "nodemon": "^1.17.3"
@@ -14,6 +15,7 @@
     "phone-formatter": "0.0.2",
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
-    "underscore": "^1.9.1"
+    "underscore": "^1.9.1",
+    "xml2js": "^0.4.19"
   }
 }
