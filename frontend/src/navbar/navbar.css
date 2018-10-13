@@ -103,3 +103,29 @@
     height:12px;
     cursor: pointer;
 }
+
+.appName {
+    position:absolute;
+    bottom: 32px;
+    width:110px;
+    height:12px;
+    text-transform: capitalize;
+    text-align: center;
+}
+.appName > p {
+    opacity: 0.75;
+    color: #46ADB4;
+}
+
+.appVersion > p {
+    opacity: 0.75;
+    color: #F0405E;
+}
+
+.appVersion {
+    position:absolute;
+    bottom: 16px;
+    width:110px;
+    height:12px;
+    text-align: center;
+}

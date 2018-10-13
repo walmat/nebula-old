@@ -13,7 +13,6 @@ const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = req
  * Application entry point.
  */
 class App {
-
   /**
    * Initialize instance.
    */
