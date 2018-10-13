@@ -1,7 +1,7 @@
 const { remote } = require('electron');
-const { dialog } = require('electron').remote;
+const { dialog, app } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
-const IPCKeys = require('../common/Constants');
+const IPCKeys = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
 
 // setup environment
@@ -14,7 +14,7 @@ webFrame.setLayoutZoomLevelLimits(0, 0);
 /**
  * Sends IPCMain an event trigger
  * @param {String} channel definition for which trigger to look for
- * @param {*} msg any object to send along with the event
+ * @param {*} msg any object to send along with the event || null
  */
 const _sendEvent = (channel, msg) => {
   ipcRenderer.send(channel, msg);
@@ -79,6 +79,10 @@ const _refresh = (window) => {
   _sendEvent(IPCKeys.RequestRefresh, window);
 };
 
+const _getAppData = () => {
+  return { name: app.getName(), version: app.getVersion() };
+};
+
 /**
  * ... TODO!
  * Sends the confirmation dialog trigger to windowManager.js
@@ -105,6 +109,7 @@ process.once('loaded', () => {
   window.Bridge.refresh = _refresh;
   window.Bridge.harvest = _harvest;
   window.Bridge.endSession = _endSession;
+  window.Bridge.getAppData = _getAppData;
   window.Bridge.deactivate = _deactivate;
   window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;

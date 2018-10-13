@@ -17,7 +17,7 @@ export const TASK_ACTIONS = {
 const _addTaskRequest = async task =>
   new Promise((resolve, reject) => {
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/i;
-    const keywordRegex = /^[+-][A-Za-z0-9]+$/;
+    const keywordRegex = /^[+-][A-Za-z0-9&]+$/;
     const variantRegex = /^\d+$/;
     const copy = JSON.parse(JSON.stringify(task));
     const kws = task.product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
@@ -40,7 +40,7 @@ const _addTaskRequest = async task =>
             return copy.product.pos_keywords.push(kw.slice(1, kw.length));
           }
           // negative keywords
-          return copy.product.neg_keyword.push(kw.slice(1, kw.length));
+          return copy.product.neg_keywords.push(kw.slice(1, kw.length));
         });
         resolve({ task: copy });
       }

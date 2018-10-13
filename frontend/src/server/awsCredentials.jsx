@@ -44,7 +44,7 @@ export class AWSCredentialsPrimitive extends Component {
                 <input
                   className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                   type="text"
-                  placeholder="CHANGE THIS"
+                  placeholder="IAM User Access"
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={serverInfo.credentials.AWSAccessKey}
                   required
@@ -61,7 +61,7 @@ export class AWSCredentialsPrimitive extends Component {
               <input
                 className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                 type="password"
-                placeholder="CHANGE THIS"
+                placeholder="IAM User Secret"
                 onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                 value={serverInfo.credentials.AWSSecretKey}
                 required
