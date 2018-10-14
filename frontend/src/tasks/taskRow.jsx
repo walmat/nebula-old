@@ -292,7 +292,7 @@ export class TaskRowPrimitive extends Component {
   }
 
   renderTableRowEditButton() {
-    const { task, isEditing } = this.props;
+    const { isEditing } = this.props;
     return this.renderTableRowButton(
       'edit',
       'Edit Task',

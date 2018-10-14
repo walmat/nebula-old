@@ -19,11 +19,11 @@ export const SERVER_ACTIONS = {
 };
 
 // Private API Requests
-  /**
-   * see:
-   * exmaples - https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/javascript/example_code/ec2/ec2_createinstances.js
-   * docs - https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
-   */
+/**
+ * see:
+ * exmaples - https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/javascript/example_code/ec2/ec2_createinstances.js
+ * docs - https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
+ */
 const _createServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
     if (serverOptions && awsCredentials) {

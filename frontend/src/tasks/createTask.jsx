@@ -142,6 +142,7 @@ export class CreateTaskPrimitive extends Component {
                 isMulti
                 isClearable={false}
                 placeholder="Choose Sizes"
+                classNamePrefix="select"
                 components={{ DropdownIndicator }}
                 styles={colourStyles}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}

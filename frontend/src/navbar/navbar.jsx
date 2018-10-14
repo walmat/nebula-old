@@ -92,10 +92,10 @@ export class NavbarPrimitive extends PureComponent {
             <img src={settings} className="main-icons" id="icon-settings" alt="settings" draggable="false" />
           </div>
           <div className="appName">
-            <p>{ name.replace('-', ' ')}</p>
+            <p>{name.replace('-', ' ')}</p>
           </div>
           <div className="appVersion">
-            <p>{ version }</p>
+            <p>{version}</p>
           </div>
         </div>
       </div>
