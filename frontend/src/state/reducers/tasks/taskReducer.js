@@ -154,11 +154,12 @@ export function newTaskReducer(state = initialTaskStates.task, action) {
 }
 
 export function selectedTaskReducer(state = initialTaskStates.task, action) {
+  let nextState = JSON.parse(JSON.stringify(state));
   switch (action.type) {
     case TASK_ACTIONS.SELECT: {
       // if the user is toggling
       if (!action.task) {
-        console.log(action);
+        nextState = [];
         break;
       }
       // Set the next state to the selected profile
@@ -168,5 +169,5 @@ export function selectedTaskReducer(state = initialTaskStates.task, action) {
       break;
   }
 
-  return Object.assign({}, state);
+  return Object.assign({}, nextState);
 }
