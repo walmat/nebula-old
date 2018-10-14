@@ -128,7 +128,7 @@ const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 // Public Actions
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
 const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
-const loadTask = makeActionCreator(TASK_ACTIONS.LOAD, 'task');
+// const loadTask = makeActionCreator(TASK_ACTIONS.LOAD, 'task');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks

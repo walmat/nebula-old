@@ -129,6 +129,7 @@ export function selectedTaskReducer(state = initialTaskStates.task, action) {
     case TASK_ACTIONS.SELECT: {
       // if the user is toggling
       if (!action.task) {
+        console.log(action);
         break;
       }
       // Set the next state to the selected profile

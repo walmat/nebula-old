@@ -27,7 +27,7 @@ export const colourStyles = {
   }),
   option: (styles, { isDisabled, isFocused, isSelected }) => ({
     ...styles,
-    backgroundColor: isFocused ? '#EDBCC6' : isDisabled ? '#ccc' : isSelected ? '#EDBCC6' : '#fff',
+    backgroundColor: isFocused ? '#EDBCC6' : isDisabled ? '#ccc' : isSelected ? '#fff' : '#fff',
     color: '#161318',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
     outline: 'none',
@@ -35,6 +35,8 @@ export const colourStyles = {
   }),
   valueContainer: styles => ({
     ...styles,
+    width: 'auto',
+    overflowX: 'scroll',
     maxHeight: '29px',
     height: '29px',
     cursor: 'pointer',
@@ -42,11 +44,30 @@ export const colourStyles = {
   multiValue: styles => ({
     ...styles,
     backgroundColor: '#B8D9D2',
+    display: 'flex',
     border: '0.5px solid #46ADB4',
     cursor: 'pointer',
     ':hover': {
       backgroundColor: '#B8D9D2',
       border: '0.5px solid #46ADB4',
+      cursor: 'pointer',
+    },
+  }),
+  multiValueLabel: styles => ({
+    ...styles,
+    cursor: 'pointer',
+    paddingRight: '5px',
+    paddingLeft: '5px',
+    ':hover': {
+      cursor: 'pointer',
+    },
+  }),
+  multiValueRemove: styles => ({
+    ...styles,
+    cursor: 'pointer',
+    ':hover': {
+      backgroundColor: '#46ADB4',
+      color: '#f4f4f4',
       cursor: 'pointer',
     },
   }),
@@ -67,26 +88,6 @@ export const colourStyles = {
     color: '#161318',
     letterSpacing: 0,
     cursor: 'pointer',
-  }),
-  multiValueLabel: styles => ({
-    ...styles,
-    cursor: 'pointer',
-    paddingRight: '5px',
-    paddingLeft: '5px',
-    ':hover': {
-      cursor: 'pointer',
-    },
-  }),
-  multiValueRemove: styles => ({
-    ...styles,
-    cursor: 'pointer',
-    marginTop: '-1px',
-    ':hover': {
-      backgroundColor: '#46ADB4',
-      marginTop: '1px',
-      color: '#f4f4f4',
-      cursor: 'pointer',
-    },
   }),
   menu: styles => ({
     ...styles,

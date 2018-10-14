@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import TaskRow from './taskRow';
-import { taskActions } from '../state/actions';
 
 import defns from '../utils/definitions/taskDefinitions';
 
