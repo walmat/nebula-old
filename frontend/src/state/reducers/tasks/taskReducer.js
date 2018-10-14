@@ -16,11 +16,28 @@ export function taskReducer(state = initialTaskStates.task, action) {
       switch (action.field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
           if (action.value) {
-            change = {
-              product: {
-                raw: action.value,
-              },
-            };
+            if (action.value.startsWith('http')) {
+              const site = action.value.split('/')[2];
+              const name = site.split('.')[0];
+              console.log(site, name);
+              change = {
+                product: {
+                  raw: action.value,
+                },
+                site: {
+                  url: `https://${site}`,
+                  name,
+                },
+                username: null,
+                password: null,
+              };
+            } else {
+              change = {
+                product: {
+                  raw: action.value,
+                },
+              };
+            }
           }
           break;
         }
@@ -96,7 +113,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
       }
     }
   }
-
+  console.log(change);
   return Object.assign({}, state, change);
 }
 

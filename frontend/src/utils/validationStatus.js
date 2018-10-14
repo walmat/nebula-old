@@ -4,19 +4,25 @@ import valid from '../_assets/Symbol_check-01.png';
 import invalid from '../_assets/Symbol_check-02.png';
 
 const errorStyle = {
-  backgroundImage: `url(${invalid})`,
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right center',
-  backgroundOrigin: 'content-box',
-  backgroundSize: '15px 15px',
+  borderColor: '#EF415E',
+  // backgroundImage: `url(${invalid})`,
+  // backgroundRepeat: 'no-repeat',
+  // backgroundPosition: 'right center',
+  // backgroundOrigin: 'content-box',
+  // backgroundSize: '15px 15px',
+};
+
+const neutralStyle = {
+  borderColor: '#6D6E70',
 };
 
 const validStyle = {
-  backgroundImage: `url(${valid})`,
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right center',
-  backgroundOrigin: 'content-box',
-  backgroundSize: '15px 15px',
+  borderColor: '#46ADB4',
+  // backgroundImage: `url(${valid})`,
+  // backgroundRepeat: 'no-repeat',
+  // backgroundPosition: 'right center',
+  // backgroundOrigin: 'content-box',
+  // backgroundSize: '15px 15px',
 };
 
 function validationStatus(validationErrors) {
