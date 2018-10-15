@@ -49,7 +49,6 @@ export function profileReducer(state = initialProfileStates.profile, action) {
         break;
     }
   }
-
   return Object.assign({}, state, change);
 }
 

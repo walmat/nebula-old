@@ -238,3 +238,37 @@ input::placeholder, input {
     color: #EFEFEF;
     letter-spacing: 0;
 }
+
+#monitor-label {
+    position: absolute;
+    top: 425px;
+    left: 522px;
+    margin: 0;
+}
+
+#monitor-input {
+    position: absolute;
+    top: 444px;
+    left: 522px;
+    width: 204px;
+    height: 29px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+}
+
+#error-label {
+    position: absolute;
+    top: 425px;
+    left: 743px;
+    margin: 0;
+}
+
+#error-input {
+    position: absolute;
+    top: 444px;
+    left: 743px;
+    width: 204px;
+    height: 29px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+}

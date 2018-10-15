@@ -386,7 +386,9 @@
   padding-bottom: 3px;
   width: 16px;
 }
-
+.server .server-table .server-row-container .server-row__actions__button:nth-child(1) {
+  margin-left: 2px;
+}
 .view-line {
   margin: 0;
   border: 1px solid #EDBCC6;

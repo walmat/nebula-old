@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-
+import NumberFormat from 'react-number-format';
 import '../app.css';
 import './settings.css';
 import ProxyList from './proxyList';
@@ -55,12 +55,6 @@ export class SettingsPrimitive extends Component {
     return getAllSizes();
   }
 
-  constructor(props) {
-    super(props);
-    this.saveDefaults = this.saveDefaults.bind(this);
-    this.clearDefaults = this.clearDefaults.bind(this);
-  }
-
   buildProfileOptions() {
     const { profiles } = this.props;
     const opts = [];
@@ -91,16 +85,6 @@ export class SettingsPrimitive extends Component {
     }
   }
 
-  saveDefaults(e) {
-    e.preventDefault();
-    this.props.onSaveDefaults(this.props.settings.defaults);
-  }
-
-  clearDefaults(e) {
-    e.preventDefault();
-    this.props.onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
-  }
-
   render() {
     let defaultProfileValue = null;
     if (this.props.settings.defaults.profile.id !== null) {
@@ -112,10 +96,13 @@ export class SettingsPrimitive extends Component {
     return (
       <div className="container">
         <h1 className="text-header" id="task-header">Settings</h1>
-        {/* LOGIN */}
+
+        {/* Proxy List */}
         <p className="body-text" id="proxy-list-label">Proxy List</p>
         <div id="proxy-list-box" />
         <ProxyList id="proxy-list-text" />
+
+        {/* CAPTCHA Window */}
         <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button>
         <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha</button>
         <button id="proxy-button-close-session" onClick={SettingsPrimitive.closeSession} >End Session</button>
@@ -171,7 +158,7 @@ export class SettingsPrimitive extends Component {
           id="save-defaults"
           tabIndex={0}
           onKeyPress={this.props.onKeyPress}
-          onClick={this.saveDefaults}
+          onClick={() => { this.props.onSaveDefaults(this.props.settings.defaults); }}
         >
         Save
         </button>
@@ -180,10 +167,29 @@ export class SettingsPrimitive extends Component {
           id="clear-defaults"
           tabIndex={0}
           onKeyPress={this.props.onKeyPress}
-          onClick={this.clearDefaults}
+          onClick={() => { this.props.onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS); }}
         >
         Clear
         </button>
+
+        {/* Delays */}
+        <p id="monitor-label">Monitor Delay</p>
+        <NumberFormat
+          value={this.props.settings.monitorDelay}
+          placeholder="1500"
+          id="monitor-input"
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_MONITOR_DELAY)}
+          required
+        />
+
+        <p id="error-label">Error Delay</p>
+        <NumberFormat
+          value={this.props.settings.errorDelay}
+          placeholder="1500"
+          id="error-input"
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_ERROR_DELAY)}
+          required
+        />
       </div>
     );
   }
