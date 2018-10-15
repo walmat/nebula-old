@@ -8,6 +8,8 @@ import settingsErrors, { initialSettingsErrorState } from './settingsErrors';
 export const initialSettingsState = {
   proxies: [],
   defaults: initialDefaultState,
+  monitorDelay: 1500,
+  errorDelay: 1500,
   discord: '',
   slack: '',
   errors: initialSettingsErrorState,
@@ -17,6 +19,8 @@ const settings = PropTypes.shape({
   proxies: PropTypes.arrayOf(proxy),
   proxyErrors,
   defaults,
+  monitordelay: PropTypes.number,
+  errorDelay: PropTypes.number,
   discord: PropTypes.string,
   slack: PropTypes.string,
   errors: settingsErrors,

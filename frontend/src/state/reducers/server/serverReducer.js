@@ -65,6 +65,19 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
     nextState.credentials.accessToken = action.token;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
     nextState.credentials = initialServerStates.awsCredentials;
+  } else if (action.type === SERVER_ACTIONS.CONNECT) {
+    nextState.coreServer = {
+      serverOptions: {
+        type: action.serverInfo.type,
+        size: action.serverInfo.size,
+        location: action.serverInfo.location,
+      },
+      awsCredentials: {
+        AWSAccessKey: action.credentials.AWSAccessKey,
+        AWSSecretKey: action.credentials.AWSSecretKey,
+        accessToken: action.credentials.accessToken,
+      },
+    };
   }
 
   return nextState;
@@ -74,9 +87,6 @@ export function serverListReducer(state = initialServerStates.serverList, action
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
-    case SERVER_ACTIONS.CONNECT:
-      // TODO: Implement this
-      break;
     case SERVER_ACTIONS.CREATE:
       // perform a deep copy of given profile
       const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));

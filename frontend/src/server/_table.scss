@@ -141,7 +141,16 @@
 
           &__button {
             padding-bottom: 3px;
+            padding-left: 4px;
             width: 16px;
+          }
+
+          &__button:nth-child(1) {
+            margin-left: 2px;
+          }
+
+          &__button:nth-child(2) {
+            margin-bottom: 2px;
           }
         }
       }
