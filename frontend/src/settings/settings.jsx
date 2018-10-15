@@ -104,8 +104,8 @@ export class SettingsPrimitive extends Component {
 
         {/* CAPTCHA Window */}
         {/* <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
-        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha Window</button>
-        {/* <button id="proxy-button-close-session" onClick={SettingsPrimitive.closeSession} >End Session</button> */}
+        {/* <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha Window</button> */}
+        {/* <button id="proxy-button-captcha-close" onClick={SettingsPrimitive.closeSession} >End Session</button> */}
 
         {/* EXTRAS */}
         <p id="discord-label">Discord URL</p>
