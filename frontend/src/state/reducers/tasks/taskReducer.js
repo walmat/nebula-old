@@ -113,7 +113,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
       }
     }
   }
-  console.log(change);
   return Object.assign({}, state, change);
 }
 

@@ -167,7 +167,11 @@
     border: 1px solid #F0405E;
   }
   .server .proxy-options__input--number {
-    width: 106px;
+    width: 56px;
+    height: 29px;
+  }
+  .server .proxy-options__input--location {
+    width: 162px;
     height: 29px;
   }
   .server .proxy-options__input--field {
