@@ -95,7 +95,7 @@ export class SettingsPrimitive extends Component {
     }
     return (
       <div className="container">
-        <h1 className="text-header" id="task-header">Settings</h1>
+        <h1 className="text-header" id="setting-header">Settings</h1>
 
         {/* Proxy List */}
         <p className="body-text" id="proxy-list-label">Proxy List</p>
@@ -103,9 +103,9 @@ export class SettingsPrimitive extends Component {
         <ProxyList id="proxy-list-text" />
 
         {/* CAPTCHA Window */}
-        <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button>
-        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha</button>
-        <button id="proxy-button-close-session" onClick={SettingsPrimitive.closeSession} >End Session</button>
+        {/* <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
+        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha Window</button>
+        {/* <button id="proxy-button-close-session" onClick={SettingsPrimitive.closeSession} >End Session</button> */}
 
         {/* EXTRAS */}
         <p id="discord-label">Discord URL</p>
