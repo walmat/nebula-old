@@ -143,8 +143,10 @@ describe('getAllSizes', () => {
   });
 
   it('should lookup the correct sizes', () => {
-    expectedSizes.forEach((size) => {
-      expect(getSize(size.value)).toEqual(size);
+    expectedSizes.forEach((category) => {
+      category.options.forEach((size) => {
+        expect(getSize(size)).toEqual(size);
+      });
     });
   });
 });

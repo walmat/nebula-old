@@ -157,11 +157,11 @@ describe('Custom Select', () => {
         backgroundColor: '#B8D9D2',
         border: '0.5px solid #46ADB4',
         cursor: 'pointer',
+        display: 'flex',
         ':hover': {
           backgroundColor: '#B8D9D2',
           border: '0.5px solid #46ADB4',
           cursor: 'pointer',
-          display: 'flex',
         },
       });
     });
@@ -224,7 +224,6 @@ describe('Custom Select', () => {
         paddingLeft: '5px',
         ':hover': {
           cursor: 'pointer',
-          marginTop: '1px',
         },
       });
     });
@@ -236,10 +235,8 @@ describe('Custom Select', () => {
       const actualStyle = colourStyles.multiValueRemove(initialStyle);
       expect(actualStyle).toEqual({
         cursor: 'pointer',
-        marginTop: '-1px',
         ':hover': {
           backgroundColor: '#46ADB4',
-          marginTop: '1px',
           color: '#f4f4f4',
           cursor: 'pointer',
         },

@@ -8,10 +8,6 @@
   align-items: stretch;
 }
 
-::-webkit-scrollbar { 
-  display: none; 
-}
-
 .row {
   display: flex;
   flex-direction: row;
