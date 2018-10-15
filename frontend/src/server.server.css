@@ -387,8 +387,8 @@
   width: 50px;
 }
 .server .server-table .server-row-container .server-row__actions__button {
-  padding-bottom: 3px;
-  padding-left: 4px;
+  padding-bottom: 2px;
+  margin-right: 4px;
   width: 16px;
 }
 .server .server-table .server-row-container .server-row__actions__button:nth-child(1) {

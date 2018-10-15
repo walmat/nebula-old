@@ -87,6 +87,10 @@ export function serverListReducer(state = initialServerStates.serverList, action
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
+    case SERVER_ACTIONS.CONNECT:
+      const server = nextState.find(s => s.id);
+      server.status = 'connected';
+      break;
     case SERVER_ACTIONS.CREATE:
       // perform a deep copy of given profile
       const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
@@ -96,7 +100,7 @@ export function serverListReducer(state = initialServerStates.serverList, action
         size: serverOptions.size,
         location: serverOptions.location,
         charges: '0',
-        status: 'Pending...',
+        status: 'Initializing...',
       };
       nextState.push(newServer);
       break;
