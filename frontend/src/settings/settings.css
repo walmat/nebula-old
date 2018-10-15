@@ -2,17 +2,26 @@ input::placeholder, input {
     text-transform: none;
 }
 
+#setting-header {
+    margin: 0;
+    position: absolute;
+    top: 26px;
+    left: 138.5px;
+    width: 118px;
+    height: 66px;
+}
+
 #proxy-list-label {
     margin: 0;
     position: absolute;
     top: 101px;
-    left: 140px;
+    left: 139px;
 }
 
 #proxy-list-box {
     position: absolute;
     top: 124px;
-    left: 140px;
+    left: 139px;
     width: 351px;
     height: 286px;
     border: 1px solid #F0405E;
@@ -57,7 +66,7 @@ input::placeholder, input {
 #proxy-button-youtube {
     position: absolute;
     top: 450px;
-    left: 140px;
+    left: 139px;
     width: 83px;
     height: 29px;
     cursor: pointer;
@@ -72,8 +81,8 @@ input::placeholder, input {
 
 #proxy-button-captcha {
     position: absolute;
-    top: 450px;
-    left: 246px;
+    top: 444px;
+    left: 139px;
     width: 111px;
     height: 29px;
     cursor: pointer;

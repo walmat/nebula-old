@@ -43,7 +43,7 @@ input, select {
     margin: 0;
     position: absolute;
     top: 26px;
-    left: 140px;
+    left: 139px;
     width: 118px;
     height: 66px;
 }
@@ -52,7 +52,7 @@ input, select {
     margin: 0;
     position: absolute;
     top: 101px;
-    left: 140px;
+    left: 139px;
     width: 66px;
     height: 16px;
 }
@@ -62,7 +62,7 @@ input, select {
     border-radius: 3px;
     position: absolute;
     top: 124px;
-    left: 140px;
+    left: 139px;
     width: 277px;
     height: 112px;
 }
@@ -71,7 +71,7 @@ input, select {
     margin: 0;
     position: absolute;
     top: 134px;
-    left: 153px;
+    left: 151px;
     width: 54px;
     height: 12px;
     font-family: AvenirNext-Medium;
@@ -83,9 +83,9 @@ input, select {
 #profile-load {
     border-radius: 3px;
     position: absolute;
-    top: 150px;
-    left: 153px;
-    width: 252px;
+    top: 149px;
+    left: 151px;
+    width: 254px;
     height: 29px;
     font-family: AvenirNext-Medium;
     font-size: 9px;
@@ -142,7 +142,7 @@ input, select {
     margin: 0;
     position: absolute;
     top: 264px;
-    left: 140px;
+    left: 139px;
     width: 50px;
     height: 16px;
 }
@@ -150,7 +150,7 @@ input, select {
 #shipping-first-name {
     position: absolute;
     top: 287px;
-    left: 140px;
+    left: 139px;
     width: 249px;
     height: 29px;
     border: 1px solid #F0405E;
@@ -160,7 +160,7 @@ input, select {
 #shipping-last-name {
     position: absolute;
     top: 333px;
-    left: 140px;
+    left: 139px;
     width: 249px;
     height: 29px;
     border: 1px solid #F0405E;
@@ -170,7 +170,7 @@ input, select {
 #shipping-address-one {
     position: absolute;
     top: 379px;
-    left: 140px;
+    left: 139px;
     width: 249px;
     height: 29px;
     border: 1px solid #F0405E;
@@ -180,7 +180,7 @@ input, select {
 #shipping-address-two {
     position: absolute;
     top: 425px;
-    left: 140px;
+    left: 139px;
     width: 249px;
     height: 29px;
     border: 1px solid #F0405E;
@@ -190,7 +190,7 @@ input, select {
 #shipping-city {
     position: absolute;
     top: 471px;
-    left: 140px;
+    left: 139px;
     width: 147px;
     height: 29px;
     border: 1px solid #F0405E;
@@ -213,7 +213,7 @@ input, select {
 #shipping-zip-code {
     position: absolute;
     top: 516px;
-    left: 140px;
+    left: 139px;
     width: 78px;
     height: 29px;
     border: 1px solid #F0405E;
@@ -236,7 +236,7 @@ input, select {
 #shipping-phone {
     position: absolute;
     top: 561px;
-    left: 140px;
+    left: 139px;
     width: 147px;
     height: 29px;
     border: 1px solid #F0405E;
