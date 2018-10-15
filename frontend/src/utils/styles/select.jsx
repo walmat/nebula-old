@@ -32,11 +32,10 @@ export const colourStyles = {
     cursor: isDisabled ? 'not-allowed' : 'pointer',
     outline: 'none',
     boxShadow: 'none',
+    overflow: 'hidden',
   }),
   valueContainer: styles => ({
     ...styles,
-    width: 'auto',
-    overflowX: 'scroll',
     maxHeight: '29px',
     height: '29px',
     cursor: 'pointer',
@@ -91,12 +90,9 @@ export const colourStyles = {
   }),
   menu: styles => ({
     ...styles,
-    maxHeight: '175px',
-    overflowY: 'scroll',
   }),
   menuList: styles => ({
     ...styles,
     maxHeight: '175px',
-    overflowY: 'scroll',
   }),
 };
