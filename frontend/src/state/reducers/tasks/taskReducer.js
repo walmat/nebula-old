@@ -15,29 +15,28 @@ export function taskReducer(state = initialTaskStates.task, action) {
       }
       switch (action.field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
-          if (action.value) {
-            if (action.value.startsWith('http')) {
-              const site = action.value.split('/')[2];
-              const name = site.split('.')[0];
-              console.log(site, name);
-              change = {
-                product: {
-                  raw: action.value,
-                },
-                site: {
-                  url: `https://${site}`,
-                  name,
-                },
-                username: null,
-                password: null,
-              };
-            } else {
-              change = {
-                product: {
-                  raw: action.value,
-                },
-              };
-            }
+          console.log(action);
+          // todo -- handle the case where the user types the url like a madman
+          if (action.value && action.value.startsWith('http')) {
+            const site = action.value.split('/')[2];
+            const name = site.split('.')[0];
+            change = {
+              product: {
+                raw: action.value,
+              },
+              site: {
+                url: `https://${site}`,
+                name,
+              },
+              username: null,
+              password: null,
+            };
+          } else {
+            change = {
+              product: {
+                raw: action.value,
+              },
+            };
           }
           break;
         }
