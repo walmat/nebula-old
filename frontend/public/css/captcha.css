@@ -19,6 +19,38 @@ body {
     cursor: pointer;
 }
 
+#launch-youtube {
+    background: #F0405E;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+    border-radius: 3px;
+    border: none;
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    width: 83px;
+    height: 29px;
+    cursor: pointer;
+}
+
+#end-session {
+    background: #46ADB4;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+    border-radius: 3px;
+    border: none;
+    position: absolute;
+    bottom: 15px;
+    left: 55%;
+    width: 83px;
+    height: 29px;
+    cursor: pointer;
+}
+
 #titlebar {
     user-select: none;
     position: absolute;
