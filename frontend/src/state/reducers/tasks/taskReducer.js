@@ -9,7 +9,6 @@ import getAllSites from '../../../constants/getAllSites';
 
 export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
-  console.log(action);
   if (action.type === TASK_ACTIONS.EDIT) {
     // Check if we are editing a new task or an existing one
     if (!action.id) {
