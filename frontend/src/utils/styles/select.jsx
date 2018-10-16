@@ -3,7 +3,7 @@ import React from 'react';
 import DDD from '../../_assets/dropdown-down.svg';
 import DDU from '../../_assets/dropdown-up.svg';
 
-export const DropdownIndicator = props => components.DropdownIndicator && (
+export const DropdownIndicator = props => (
   <components.DropdownIndicator {...props}>
     <img src={props.selectProps.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
   </components.DropdownIndicator>
@@ -34,16 +34,28 @@ export const colourStyles = {
     boxShadow: 'none',
     overflow: 'hidden',
   }),
-  valueContainer: styles => ({
-    ...styles,
-    maxHeight: '29px',
-    height: '29px',
-    cursor: 'pointer',
-  }),
+  valueContainer: (styles, { isMulti }) => {
+    let multiStyle = {};
+    if (isMulti) {
+      multiStyle = {
+        'overflow-x': 'scroll',
+        'overflow-y': 'hidden',
+        'flex-wrap': 'nowrap',
+      };
+    }
+    return {
+      ...styles,
+      ...multiStyle,
+      maxHeight: '29px',
+      height: '29px',
+      cursor: 'pointer',
+    };
+  },
   multiValue: styles => ({
     ...styles,
     backgroundColor: '#B8D9D2',
     display: 'flex',
+    'flex-shrink': 0,
     border: '0.5px solid #46ADB4',
     cursor: 'pointer',
     ':hover': {
