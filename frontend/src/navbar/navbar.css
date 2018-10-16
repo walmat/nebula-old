@@ -77,33 +77,6 @@
     cursor: pointer;
 }
 
-#icon-information {
-    position:absolute;
-    top:692px;
-    left: 26px;
-    width: 12px;
-    height: 12px;
-    cursor: pointer;
-}
-
-#icon-deactivate {
-    position:absolute;
-    top:692px;
-    left:48px;
-    width:17px;
-    height:12px;
-    cursor: pointer;
-}
-
-#icon-logout {
-    position:absolute;
-    top:692px;
-    left:72px;
-    width:12px;
-    height:12px;
-    cursor: pointer;
-}
-
 .appName {
     position:absolute;
     bottom: 32px;

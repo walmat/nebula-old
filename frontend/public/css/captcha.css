@@ -1,5 +1,4 @@
 html, body {
-    /* Rectangle: */
     background: #f5f5f5;
     border-radius: 3px;
     border: none;
@@ -10,6 +9,14 @@ html, body {
 body {
     max-width: 450px;
     margin: auto;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+button:focus {
+    outline: none;
 }
 
 #close-btn {
@@ -25,29 +32,37 @@ body {
     font-size: 12px;
     color: #EFEFEF;
     letter-spacing: 0;
-    border-radius: 3px;
     border: none;
+    border-top: 2px #d0d0d0 solid;
+    border-left: 1px #d0d0d0 solid;
     position: absolute;
-    bottom: 15px;
-    left: 50%;
-    width: 83px;
-    height: 29px;
+    bottom: 0;
+    left: 200px;
+    width: 200px;
+    height: 39px;
     cursor: pointer;
+}
+
+#captcha {
+    position: absolute;
+    top: 285px;
+    left: 50px;
 }
 
 #end-session {
     background: #46ADB4;
     font-family: AvenirNext-Medium;
     font-size: 12px;
-    color: #EFEFEF;
+    color: #dddddd;
     letter-spacing: 0;
-    border-radius: 3px;
     border: none;
+    border-top: 2px #d0d0d0 solid;
+    border-right: 1px #d0d0d0 solid;
     position: absolute;
-    bottom: 15px;
-    left: 55%;
-    width: 83px;
-    height: 29px;
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    height: 39px;
     cursor: pointer;
 }
 

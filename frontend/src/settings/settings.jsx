@@ -14,22 +14,10 @@ import { settingsActions, SETTINGS_FIELDS } from '../state/actions';
 
 export class SettingsPrimitive extends Component {
   /*
-  * Launch a new browser window that opens a sign-in google window
-  * and then redirects to youtube.
-  */
-  static async launchYoutube() {
-    if (window.Bridge) {
-      window.Bridge.launchYoutube();
-    } else {
-      console.error('Unable to launch youtube!');
-    }
-  }
-
-  /*
   * Launch a sub-window with built in AI for image recognition
   * and capabilities of one-click harvesting
   */
-  static async harvester() {
+  static harvester() {
     if (window.Bridge) {
       window.Bridge.launchHarvester();
     } else {
@@ -41,9 +29,9 @@ export class SettingsPrimitive extends Component {
   /*
     * Signs current google user out. Will clear cookies as well
     */
-  static async closeSession() {
+  static closeAllWindows() {
     if (window.Bridge) {
-      window.Bridge.endSession();
+      window.Bridge.closeAllWindows();
       console.log('session ended');
     } else {
       // TODO - error handling
@@ -104,8 +92,8 @@ export class SettingsPrimitive extends Component {
 
         {/* CAPTCHA Window */}
         {/* <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
-        {/* <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha Window</button> */}
-        {/* <button id="proxy-button-captcha-close" onClick={SettingsPrimitive.closeSession} >End Session</button> */}
+        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha Window</button>
+        <button id="proxy-button-captcha-close" onClick={SettingsPrimitive.closeAllWindows} >Close All Windows</button>
 
         {/* EXTRAS */}
         <p id="discord-label">Discord URL</p>

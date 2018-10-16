@@ -65,9 +65,9 @@ input::placeholder, input {
 
 #proxy-button-captcha {
     position: absolute;
-    top: 444px;
-    left: 754px;
-    width: 111px;
+    top: 500px;
+    left: 522px;
+    width: 205px;
     height: 29px;
     cursor: pointer;
     background: #F0405E;
@@ -81,12 +81,12 @@ input::placeholder, input {
 
 #proxy-button-captcha-close {
     position: absolute;
-    top: 444px;
-    left: 879px;
-    width: 111px;
+    top: 500px;
+    left: 741px;
+    width: 205px;
     height: 29px;
     cursor: pointer;
-    background: #F0405E;
+    background: #46ADB4;
     border: none;
     border-radius: 3px;
     font-family: AvenirNext-Medium;
