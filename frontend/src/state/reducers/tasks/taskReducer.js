@@ -29,7 +29,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (!URL || !URL.path) {
             break;
           }
-          const site = getAllSites().filter(s => s.value === `${URL.scheme}://${URL.host}`);
+          const site = getAllSites().filter(s => s.value.split('/')[2] === URL.host);
           if (site.length === 0) {
             break;
           }
