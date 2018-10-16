@@ -161,14 +161,14 @@ class TaskRunner {
 
     // MARK: State Machine Step Logic
 
-    _handleStarted() {
+    async _handleStarted() {
         this._emitTaskEvent({
             message: 'Task is Starting...',
         });
         return TaskRunner.States.GenQueueBypass;
     }
 
-    _handleGenQueueBypass() {
+    async _handleGenQueueBypass() {
         const res = await this._checkout.generateQueueBypassUrl();
         if(res.errors) {
             this._emitTaskEvent({
@@ -179,7 +179,7 @@ class TaskRunner {
         return TaskRunner.States.Monitor;
     }
 
-    _handleMonitor() {
+    async _handleMonitor() {
         const res = await this._monitor.run();
         if(res.errors) {
             this._emitTaskEvent({
@@ -191,7 +191,7 @@ class TaskRunner {
         return res.nextState;
     }
 
-    _handleSwapProxies() {
+    async _handleSwapProxies() {
         const res = await this._taskManager.swapProxies(this._proxy);
         if (res.errors) {
             this._emitTaskEvent({
@@ -203,7 +203,7 @@ class TaskRunner {
         return res.nextState;
     }
 
-    _handleCheckout() {
+    async _handleCheckout() {
         const res = await this._checkout.run();
         if (res.errors) {
             this._emitTaskEvent({
@@ -215,22 +215,22 @@ class TaskRunner {
         return res.nextState;
     }
 
-    _handleFinished() {
+    async _handleFinished() {
         this._emitTaskEvent({
             message: 'Task has finished!',
         });
         return TaskRunner.States.Stopped;
     }
 
-    _handleAborted() {
+    async _handleAborted() {
         this._emitTaskEvent({
             message: 'Task has aborted!',
         });
         return TaskRunner.States.Stopped;
     }
 
-    _handleStepLogic(currentState) {
-        function defaultHandler() {
+    async _handleStepLogic(currentState) {
+        async function defaultHandler() {
             return currentState;
         }
         const stepMap = {
@@ -243,7 +243,7 @@ class TaskRunner {
             [TaskRunner.States.Aborted]: this._handleAborted,
         }
         const handler = stepMap[currentState] || defaultHandler;
-        return handler();
+        return await handler();
     }
 
     // MARK: State Machine Run Loop
@@ -251,7 +251,7 @@ class TaskRunner {
     async start() {
         this._state = TaskRunner.Started;
         while(this._state !== TaskRunner.States.Stopped) {
-            this._state = this._handleStepLogic(this._state);
+            this._state = await this._handleStepLogic(this._state);
         }
         this._emitTaskEvent({
             message: 'Task has stopped.',
