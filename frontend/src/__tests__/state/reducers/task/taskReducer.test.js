@@ -137,11 +137,77 @@ describe('task reducer', () => {
             { id: 1, value: 'test', label: 'test' },
           );
         });
+      });
 
-        test('pairs', () => {
+      describe('when editing empty', () => {
+        test('product', () => {
+          const start = {
+            ...initialTaskStates.task,
+            product: {
+              raw: '+off, +white',
+              pos_keywords: ['off', 'white'],
+            },
+          };
+          const expected = {
+            ...initialTaskStates.task,
+            product: initialTaskStates.product,
+          };
+          const actual = taskReducer(
+            start,
+            {
+              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: '',
+            },
+          );
+          expect(actual).toEqual(expected);
+        });
+
+        test('username', () => {
           checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_PAIRS,
-            { id: 1, value: 'test', label: 'test' },
+            TASK_FIELDS.EDIT_USERNAME,
+            '',
+          );
+        });
+
+        test('password', () => {
+          checkGeneralFieldEdit(
+            TASK_FIELDS.EDIT_PASSWORD,
+            '',
+          );
+        });
+
+        test('site', () => {
+          const start = {
+            ...initialTaskStates.task,
+            site: 'something else',
+            username: 'username',
+            password: 'password',
+          };
+          const expected = {
+            ...initialTaskStates.task,
+            site: initialTaskStates.site,
+            username: initialTaskStates.task.username,
+            password: initialTaskStates.task.password,
+          };
+          const actual = taskReducer(
+            start,
+            {
+              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_SITE, value: '',
+            },
+          );
+          expect(actual).toEqual(expected);
+        });
+
+        test('profile', () => {
+          checkGeneralFieldEdit(
+            TASK_FIELDS.EDIT_PROFILE,
+            { id: 1 },
+          );
+        });
+
+        test('sizes', () => {
+          checkGeneralFieldEdit(
+            TASK_FIELDS.EDIT_SIZES,
+            [],
           );
         });
       });
@@ -169,10 +235,6 @@ describe('task reducer', () => {
 
         test('sizes', () => {
           checkInvalidFieldEdit(TASK_FIELDS.EDIT_SIZES);
-        });
-
-        test('pairs', () => {
-          checkInvalidFieldEdit(TASK_FIELDS.EDIT_PAIRS);
         });
       });
 
@@ -248,9 +310,94 @@ describe('task reducer', () => {
         test('sizes', () => {
           checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, { id: 1, value: 'test', label: 'test' }, 1);
         });
+      });
 
-        test('pairs', () => {
-          checkExistingFieldEdit(TASK_FIELDS.EDIT_PAIRS, { id: 1, value: 'test', label: 'test' }, 1);
+      describe('when editing empty', () => {
+        test('product', () => {
+          const start = {
+            ...initialTaskStates.task,
+            id: 1,
+            edits: {
+              ...initialTaskStates.edit,
+              product: {
+                raw: '+off, +white',
+                pos_keywords: ['off', 'white'],
+              },
+            },
+          };
+          const expected = {
+            ...initialTaskStates.task,
+            id: 1,
+          };
+          const actual = taskReducer(
+            start,
+            {
+              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: '', id: 1,
+            },
+          );
+          expect(actual).toEqual(expected);
+        });
+
+        test('username', () => {
+          checkGeneralFieldEdit(
+            TASK_FIELDS.EDIT_USERNAME,
+            '',
+            1,
+          );
+        });
+
+        test('password', () => {
+          checkGeneralFieldEdit(
+            TASK_FIELDS.EDIT_PASSWORD,
+            '',
+            1,
+          );
+        });
+
+        test('site', () => {
+          const start = {
+            ...initialTaskStates.task,
+            id: 1,
+            edits: {
+              ...initialTaskStates.edit,
+              site: 'something else',
+              username: 'username',
+              password: 'password',
+            },
+          };
+          const expected = {
+            ...initialTaskStates.task,
+            id: 1,
+            edits: {
+              ...initialTaskStates.edit,
+              site: initialTaskStates.edit.site,
+              username: initialTaskStates.edit.username,
+              password: initialTaskStates.edit.password,
+            },
+          };
+          const actual = taskReducer(
+            start,
+            {
+              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_SITE, value: null, id: 1,
+            },
+          );
+          expect(actual).toEqual(expected);
+        });
+
+        test('profile', () => {
+          checkGeneralFieldEdit(
+            TASK_FIELDS.EDIT_PROFILE,
+            { id: 1 },
+            1,
+          );
+        });
+
+        test('sizes', () => {
+          checkGeneralFieldEdit(
+            TASK_FIELDS.EDIT_SIZES,
+            [],
+            1,
+          );
         });
       });
 
@@ -277,10 +424,6 @@ describe('task reducer', () => {
 
         test('sizes', () => {
           checkInvalidFieldEdit(TASK_FIELDS.EDIT_SIZES, 1);
-        });
-
-        test('pairs', () => {
-          checkInvalidFieldEdit(TASK_FIELDS.EDIT_PAIRS, 1);
         });
       });
 

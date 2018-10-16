@@ -73,8 +73,8 @@ const _updateTaskRequest = async (id, task) =>
           copy.username = copy.edits.username;
           copy.password = copy.edits.password;
         } else if (!(useAuth && copy.site)) {
-          copy.username = null;
-          copy.password = null;
+          copy.username = '';
+          copy.password = '';
         }
       }
       copy.edits = {
