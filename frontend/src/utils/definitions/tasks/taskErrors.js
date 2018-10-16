@@ -11,8 +11,8 @@ export const initialTaskErrorState = {
   username: null,
   password: null,
   status: null,
-  error_delay: null,
-  refresh_delay: null,
+  errorDelay: null,
+  monitorDelay: null,
 };
 
 const taskErrors = PropTypes.shape({
@@ -24,8 +24,8 @@ const taskErrors = PropTypes.shape({
   sizes: PropTypes.bool,
   username: PropTypes.bool,
   password: PropTypes.bool,
-  error_delay: PropTypes.bool,
-  refresh_delay: PropTypes.bool,
+  errorDelay: PropTypes.bool,
+  monitorDelay: PropTypes.bool,
 });
 
 export default taskErrors;

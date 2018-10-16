@@ -4,7 +4,7 @@ import taskEdit, { initialTaskEditState } from './taskEdit';
 import taskErrors, { initialTaskErrorState } from './taskErrors';
 import taskProduct, { initialTaskProductState } from './taskProduct';
 import taskSite, { initialTaskSiteState } from './taskSite';
-
+import { initialSettingsState } from '../settings/settings'
 import pDefns, { initialProfileStates } from '../profileDefinitions';
 
 export const initialTaskState = {
@@ -16,8 +16,8 @@ export const initialTaskState = {
   username: null,
   password: null,
   status: 'idle',
-  error_delay: null,
-  refresh_delay: null,
+  errorDelay: initialSettingsState.errorDelay,
+  monitorDelay: initialSettingsState.monitorDelay,
   errors: initialTaskErrorState,
   edits: initialTaskEditState,
 };
@@ -33,8 +33,8 @@ const task = PropTypes.shape({
   username: PropTypes.string,
   password: PropTypes.string,
   status: PropTypes.string,
-  error_delay: PropTypes.number,
-  refresh_delay: PropTypes.number,
+  errorDelay: PropTypes.number,
+  monitorDelay: PropTypes.number,
   sizes: PropTypes.arrayOf(PropTypes.string),
   edits: taskEdit,
   errors: taskErrors,

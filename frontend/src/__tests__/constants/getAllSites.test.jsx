@@ -57,7 +57,7 @@ describe('getAllSites', () => {
         auth: false,
       },
       {
-        value: 'https://www.funko-shop.com',
+        value: 'https://funko-shop.com',
         label: 'Funko Shop',
         supported: true,
         auth: false,
