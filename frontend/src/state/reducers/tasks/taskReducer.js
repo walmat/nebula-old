@@ -38,10 +38,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
                   product: {
                     raw: action.value,
                   },
-                  site: {
-                    url: null,
-                    name: null,
-                  }
                 };
               }
             } else {
