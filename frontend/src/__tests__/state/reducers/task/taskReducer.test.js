@@ -54,12 +54,14 @@ describe('task reducer', () => {
         ...initialTaskStates.task,
         id: id || initialTaskStates.task.id,
       };
+      console.log(start);
       const actual = taskReducer(
         start,
         {
           type: TASK_ACTIONS.EDIT, id, field,
         },
       );
+      console.log(actual);
       expect(actual).toEqual(start);
     };
 
@@ -134,7 +136,7 @@ describe('task reducer', () => {
         test('sizes', () => {
           checkGeneralFieldEdit(
             TASK_FIELDS.EDIT_SIZES,
-            { id: 1, value: 'test', label: 'test' },
+            [{ id: 1, value: 'test', label: 'test' }],
           );
         });
       });
@@ -308,7 +310,7 @@ describe('task reducer', () => {
         });
 
         test('sizes', () => {
-          checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, { id: 1, value: 'test', label: 'test' }, 1);
+          checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, [{ id: 1, value: 'test', label: 'test' }], 1);
         });
       });
 
@@ -422,7 +424,7 @@ describe('task reducer', () => {
           checkInvalidFieldEdit(TASK_FIELDS.EDIT_PROFILE, 1);
         });
 
-        test('sizes', () => {
+        test.only('sizes', () => {
           checkInvalidFieldEdit(TASK_FIELDS.EDIT_SIZES, 1);
         });
       });

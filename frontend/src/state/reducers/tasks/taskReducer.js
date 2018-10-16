@@ -62,7 +62,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
         }
         case TASK_FIELDS.EDIT_SIZES: {
           let nextSizes = JSON.parse(JSON.stringify(state.sizes));
-          if (action.value.length > state.sizes.length) {
+          if (action && action.value && action.value !== undefined && action.value.length > state.sizes.length) {
             nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
           } else {
             nextSizes = state.sizes.filter(s => action.value.includes(s));
@@ -137,9 +137,12 @@ export function taskReducer(state = initialTaskStates.task, action) {
           break;
         }
         case TASK_FIELDS.EDIT_SIZES: {
-          const nextSizes = JSON.parse(JSON.stringify(state.sizes));
-          nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
-          console.log(nextSizes);
+          let nextSizes = JSON.parse(JSON.stringify(state.sizes));
+          if (action && action.value && action.value !== undefined && action.value.length > state.sizes.length) {
+            nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
+          } else {
+            nextSizes = state.sizes.filter(s => action.value.includes(s));
+          }
           change = {
             edits: {
               ...state.edits,
@@ -200,7 +203,7 @@ export function selectedTaskReducer(state = initialTaskStates.task, action) {
     case TASK_ACTIONS.SELECT: {
       // if the user is toggling
       if (!action.task) {
-        nextState = [];
+        nextState = initialTaskStates.task;
         break;
       }
       // Set the next state to the selected profile
