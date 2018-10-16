@@ -9,112 +9,60 @@ describe('location reducer', () => {
     expect(actual).toEqual(initialProfileStates.location);
   });
 
-  it('should handle edit first name action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      firstName: 'testing',
-    };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.FIRST_NAME, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+  describe('when editing', () => {
+    const _testEditField = (field) => {
+      it('should update when using a non-null value', () => {
+        const expected = {
+          ...initialProfileStates.location,
+          [field]: 'testing',
+        };
+        const actual = locationReducer(
+          initialProfileStates.location,
+          { type: field, value: 'testing' },
+        );
+        expect(actual).toEqual(expected);
+      });
 
-  it('should handle edit last name action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      lastName: 'testing',
-    };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.LAST_NAME, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+      it('should update when using an empty value', () => {
+        const expected = {
+          ...initialProfileStates.location,
+        };
+        const actual = locationReducer(
+          initialProfileStates.location,
+          { type: field, value: '' },
+        );
+        expect(actual).toEqual(expected);
+      });
 
-  it('should handle edit address action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      address: 'testing',
+      it('should clear the state when using a null value', () => {
+        const expected = {
+          ...initialProfileStates.location,
+        };
+        const actual = locationReducer(
+          initialProfileStates.location,
+          { type: field, value: null },
+        );
+        expect(actual).toEqual(expected);
+      });
     };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.ADDRESS, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
 
-  it('should handle edit apt action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      apt: 'testing',
-    };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.APT, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+    describe('first name', () => _testEditField(LOCATION_FIELDS.FIRST_NAME));
 
-  it('should handle edit city action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      city: 'testing',
-    };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.CITY, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+    describe('last name', () => _testEditField(LOCATION_FIELDS.LAST_NAME));
 
-  it('should handle edit zip code action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      zipCode: 'testing',
-    };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.ZIP_CODE, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+    describe('address', () => _testEditField(LOCATION_FIELDS.ADDRESS));
 
-  it('should handle edit phone action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      phone: 'testing',
-    };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.PHONE_NUMBER, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+    describe('apt', () => _testEditField(LOCATION_FIELDS.APT));
 
-  it('should handle edit country action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      country: 'testing',
-    };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.COUNTRY, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+    describe('city', () => _testEditField(LOCATION_FIELDS.CITY));
 
-  it('should handle edit state action', () => {
-    const expected = {
-      ...initialProfileStates.location,
-      state: 'testing',
-    };
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.STATE, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
+    describe('zip code', () => _testEditField(LOCATION_FIELDS.ZIP_CODE));
+
+    describe('phone number', () => _testEditField(LOCATION_FIELDS.PHONE_NUMBER));
+
+    describe('state', () => _testEditField(LOCATION_FIELDS.STATE));
+
+    describe('country', () => _testEditField(LOCATION_FIELDS.COUNTRY));
   });
 
   it('should not respond to invalid action type', () => {

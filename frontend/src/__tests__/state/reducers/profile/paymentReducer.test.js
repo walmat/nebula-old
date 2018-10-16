@@ -9,52 +9,50 @@ describe('payment reducer', () => {
     expect(actual).toEqual(initialProfileStates.payment);
   });
 
-  it('should handle edit email action', () => {
-    const expected = {
-      ...initialProfileStates.payment,
-      email: 'testing',
-    };
-    const actual = paymentReducer(
-      initialProfileStates.payment,
-      { type: PAYMENT_FIELDS.EMAIL, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+  describe('when editing', () => {
+    const _testEditField = (field) => {
+      it('should update when using a non-null value', () => {
+        const expected = {
+          ...initialProfileStates.payment,
+          [field]: 'testing',
+        };
+        const actual = paymentReducer(
+          initialProfileStates.payment,
+          { type: field, value: 'testing' },
+        );
+        expect(actual).toEqual(expected);
+      });
 
-  it('should handle edit card number action', () => {
-    const expected = {
-      ...initialProfileStates.payment,
-      cardNumber: 'testing',
-    };
-    const actual = paymentReducer(
-      initialProfileStates.payment,
-      { type: PAYMENT_FIELDS.CARD_NUMBER, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
+      it('should update when using an empty value', () => {
+        const expected = {
+          ...initialProfileStates.payment,
+        };
+        const actual = paymentReducer(
+          initialProfileStates.payment,
+          { type: field, value: '' },
+        );
+        expect(actual).toEqual(expected);
+      });
 
-  it('should handle edit expiration action', () => {
-    const expected = {
-      ...initialProfileStates.payment,
-      exp: 'testing',
+      it('should clear the state when using a null value', () => {
+        const expected = {
+          ...initialProfileStates.payment,
+        };
+        const actual = paymentReducer(
+          initialProfileStates.payment,
+          { type: field, value: null },
+        );
+        expect(actual).toEqual(expected);
+      });
     };
-    const actual = paymentReducer(
-      initialProfileStates.payment,
-      { type: PAYMENT_FIELDS.EXP, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
-  });
 
-  it('should handle edit cvv action', () => {
-    const expected = {
-      ...initialProfileStates.payment,
-      cvv: 'testing',
-    };
-    const actual = paymentReducer(
-      initialProfileStates.payment,
-      { type: PAYMENT_FIELDS.CVV, value: 'testing' },
-    );
-    expect(actual).toEqual(expected);
+    describe('email', () => _testEditField(PAYMENT_FIELDS.EMAIL));
+
+    describe('card number', () => _testEditField(PAYMENT_FIELDS.CARD_NUMBER));
+
+    describe('expiration', () => _testEditField(PAYMENT_FIELDS.EXP));
+
+    describe('cvv', () => _testEditField(PAYMENT_FIELDS.CVV));
   });
 
   it('should not respond to invalid actions', () => {
