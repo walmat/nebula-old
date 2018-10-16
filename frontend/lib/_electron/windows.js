@@ -78,7 +78,7 @@ const createCaptchaWindow = async () => new Electron.BrowserWindow({
   },
 });
 
-const captchaUrl = `file:///${Path.join(__dirname, '../../public/captcha.html')}`;
+const captchaUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
 urls.set('captcha', captchaUrl);
 
 /**
