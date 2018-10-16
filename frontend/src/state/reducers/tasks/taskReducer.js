@@ -21,11 +21,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (action.value && action.value.startsWith('http')) {
             const URL = parseURL(action.value);
             if (URL && URL.path) {
-              console.log(URL);
               const site = getAllSites().filter(s => s.value === `${URL.scheme}://${URL.host}`);
-              console.log(site);
-              if (site) {
-                
+              if (site.length > 0) {
                 change = {
                   product: {
                     raw: action.value,
@@ -42,9 +39,12 @@ export function taskReducer(state = initialTaskStates.task, action) {
                   product: {
                     raw: action.value,
                   },
+                  site: {
+                    url: null,
+                    name: null,
+                  }
                 };
               }
-              console.log(change);
             } else {
               change = {
                 product: {
