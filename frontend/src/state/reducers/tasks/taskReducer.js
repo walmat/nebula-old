@@ -1,9 +1,11 @@
+import { parseURL } from 'whatwg-url';
 import {
   TASK_ACTIONS,
   TASK_FIELDS,
   mapTaskFieldsToKey,
 } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
+import getAllSites from '../../../constants/getAllSites';
 
 export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
@@ -16,22 +18,39 @@ export function taskReducer(state = initialTaskStates.task, action) {
       }
       switch (action.field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
-          console.log(action);
-          // todo -- handle the case where the user types the url like a madman
           if (action.value && action.value.startsWith('http')) {
-            const site = action.value.split('/')[2];
-            const name = site.split('.')[0];
-            change = {
-              product: {
-                raw: action.value,
-              },
-              site: {
-                url: `https://${site}`,
-                name,
-              },
-              username: null,
-              password: null,
-            };
+            const URL = parseURL(action.value);
+            if (URL && URL.path) {
+              console.log(URL);
+              const site = getAllSites().filter(s => s.value === `${URL.scheme}://${URL.host}`);
+              console.log(site);
+              if (site) {
+                change = {
+                  product: {
+                    raw: action.value,
+                  },
+                  site: {
+                    url: site[0].value,
+                    name: site[0].label,
+                  },
+                  username: null,
+                  password: null,
+                };
+              } else {
+                change = {
+                  product: {
+                    raw: action.value,
+                  },
+                };
+              }
+              console.log(change);
+            } else {
+              change = {
+                product: {
+                  raw: action.value,
+                },
+              };
+            }
           } else {
             change = {
               product: {
