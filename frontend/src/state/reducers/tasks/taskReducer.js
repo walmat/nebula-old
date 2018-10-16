@@ -25,6 +25,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
               const site = getAllSites().filter(s => s.value === `${URL.scheme}://${URL.host}`);
               console.log(site);
               if (site) {
+                
                 change = {
                   product: {
                     raw: action.value,
