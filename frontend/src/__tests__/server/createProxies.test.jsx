@@ -41,7 +41,7 @@ describe('<CreateProxies />', () => {
     const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
     const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
     expect(numProxiesInput).toHaveLength(1);
-    expect(numProxiesInput.prop('value')).toBe(0);
+    expect(numProxiesInput.prop('value')).toBe('');
     expect(usernameInput).toHaveLength(1);
     expect(usernameInput.prop('value')).toBe('');
     expect(passwordInput).toHaveLength(1);
