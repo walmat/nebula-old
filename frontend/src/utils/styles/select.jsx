@@ -41,6 +41,11 @@ export const colourStyles = {
         'overflow-x': 'scroll',
         'overflow-y': 'hidden',
         'flex-wrap': 'nowrap',
+        '::-webkit-scrollbar': {
+          width: '0px',
+          height: '0px',
+          background: 'transparent',
+        },
       };
     }
     return {

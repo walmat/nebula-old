@@ -19,9 +19,9 @@
       
     </div>
     <div id="captcha">
-      <form action="/submit" method="post" style="margin-top: 180px;">
+      <form action="/submit" method="post">
         <div id="captchaFrame">
-          <div class="g-recaptcha" data-sitekey="${window.Bridge.getSitekey()}" data-callback="submitCaptcha"></div>
+          <div class="g-recaptcha" data-sitekey="window.Bridge.getSitekey()" data-callback="submitCaptcha"></div>
         </div>
         <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
     </form>

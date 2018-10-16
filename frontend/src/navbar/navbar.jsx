@@ -33,6 +33,13 @@ export class NavbarPrimitive extends PureComponent {
     }
     return null;
   }
+  
+  static _launchHarvester() {
+    if (window.Bridge) {
+      console.log('here');
+      window.Bridge.launchHarvester();
+    }
+  }
 
   render() {
     const { history, navbar, onKeyPress } = this.props;
