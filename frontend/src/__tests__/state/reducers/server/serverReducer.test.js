@@ -170,6 +170,26 @@ describe('server reducer', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('when proxy number is empty', () => {
+        const expected = {
+          ...initialServerStates.serverInfo,
+          proxyOptions: {
+            ...initialServerStates.proxyOptions,
+            numProxies: 0,
+          },
+        };
+        const actual = serverReducer(
+          initialServerStates.serverInfo,
+          {
+            type: SERVER_ACTIONS.EDIT,
+            id: null,
+            field: SERVER_FIELDS.EDIT_PROXY_NUMBER,
+            value: '',
+          },
+        );
+        expect(actual).toEqual(expected);
+      });
+
       it('when proxy number is invalid', () => {
         const actual = serverReducer(
           initialServerStates.serverInfo,

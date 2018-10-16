@@ -37,6 +37,38 @@ describe('profile reducer', () => {
         );
         expect(actual).toEqual(expected);
       });
+
+      test(`${message} when empty`, () => {
+        const expected = {
+          ...initialProfileStates.profile,
+          [mapProfileFieldToKey[field]]: {
+            ...initialFieldState,
+          },
+        };
+        const actual = profileReducer(
+          initialProfileStates.profile,
+          {
+            type: PROFILE_ACTIONS.EDIT, field, value: '', subField,
+          },
+        );
+        expect(actual).toEqual(expected);
+      });
+
+      test(`${message} when null`, () => {
+        const expected = {
+          ...initialProfileStates.profile,
+          [mapProfileFieldToKey[field]]: {
+            ...initialFieldState,
+          },
+        };
+        const actual = profileReducer(
+          initialProfileStates.profile,
+          {
+            type: PROFILE_ACTIONS.EDIT, field, value: null, subField,
+          },
+        );
+        expect(actual).toEqual(expected);
+      });
     };
 
     test('action when field is invalid', () => {
@@ -365,16 +397,42 @@ describe('profile reducer', () => {
       expect(actual2).toEqual(start);
     });
 
-    test('name action', () => {
-      const expected = {
-        ...initialProfileStates.profile,
-        profileName: 'testing',
-      };
-      const actual = profileReducer(
-        initialProfileStates.profile,
-        { type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_NAME, value: 'testing' },
-      );
-      expect(actual).toEqual(expected);
+    describe('name action', () => {
+      test('when valid', () => {
+        const expected = {
+          ...initialProfileStates.profile,
+          profileName: 'testing',
+        };
+        const actual = profileReducer(
+          initialProfileStates.profile,
+          { type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_NAME, value: 'testing' },
+        );
+        expect(actual).toEqual(expected);
+      });
+
+      test('when empty', () => {
+        const expected = {
+          ...initialProfileStates.profile,
+          profileName: '',
+        };
+        const actual = profileReducer(
+          initialProfileStates.profile,
+          { type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_NAME, value: '' },
+        );
+        expect(actual).toEqual(expected);
+      });
+
+      test('when null', () => {
+        const expected = {
+          ...initialProfileStates.profile,
+          profileName: '',
+        };
+        const actual = profileReducer(
+          initialProfileStates.profile,
+          { type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_NAME, value: null },
+        );
+        expect(actual).toEqual(expected);
+      });
     });
   });
 
