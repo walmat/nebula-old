@@ -17,43 +17,31 @@ export function taskReducer(state = initialTaskStates.task, action) {
       }
       switch (action.field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
-          if (action.value && action.value.startsWith('http')) {
-            const URL = parseURL(action.value);
-            if (URL && URL.path) {
-              const site = getAllSites().filter(s => s.value === `${URL.scheme}://${URL.host}`);
-              if (site.length > 0) {
-                change = {
-                  product: {
-                    raw: action.value,
-                  },
-                  site: {
-                    url: site[0].value,
-                    name: site[0].label,
-                  },
-                  username: null,
-                  password: null,
-                };
-              } else {
-                change = {
-                  product: {
-                    raw: action.value,
-                  },
-                };
-              }
-            } else {
-              change = {
-                product: {
-                  raw: action.value,
-                },
-              };
-            }
-          } else {
-            change = {
-              product: {
-                raw: action.value,
-              },
-            };
+          change = {
+            product: {
+              raw: action.value,
+            },
+          };
+          if (!action.value || !action.value.startsWith('http')) {
+            break;
           }
+          const URL = parseURL(action.value);
+          if (!URL || !URL.path) {
+            break;
+          }
+          const site = getAllSites().filter(s => s.value === `${URL.scheme}://${URL.host}`);
+          if (site.length === 0) {
+            break;
+          }
+          change = {
+            ...change,
+            site: {
+              url: site[0].value,
+              name: site[0].label,
+            },
+            username: null,
+            password: null,
+          };
           break;
         }
         case TASK_FIELDS.EDIT_SITE: {
