@@ -7,6 +7,7 @@ import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 
 export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
+  console.log(action);
   if (action.type === TASK_ACTIONS.EDIT) {
     // Check if we are editing a new task or an existing one
     if (!action.id) {
@@ -48,6 +49,19 @@ export function taskReducer(state = initialTaskStates.task, action) {
               password: null,
             };
           }
+          break;
+        }
+        case TASK_FIELDS.EDIT_SIZES: {
+          let nextSizes = JSON.parse(JSON.stringify(state.sizes));
+          if (action.value.length > state.sizes.length) {
+            nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
+          } else {
+            nextSizes = state.sizes.filter(s => action.value.includes(s));
+          }
+          change = {
+            sizes: nextSizes,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
           break;
         }
         default: {
@@ -94,9 +108,21 @@ export function taskReducer(state = initialTaskStates.task, action) {
           }
           break;
         }
+        case TASK_FIELDS.EDIT_SIZES: {
+          const nextSizes = JSON.parse(JSON.stringify(state.sizes));
+          nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
+          console.log(nextSizes);
+          change = {
+            edits: {
+              ...state.edits,
+              sizes: nextSizes,
+              errors: Object.assign({}, state.edits.errors, action.errors),
+            },
+          };
+          break;
+        }
         case TASK_FIELDS.EDIT_PAIRS:
         case TASK_FIELDS.EDIT_PROFILE:
-        case TASK_FIELDS.EDIT_SIZES:
         case TASK_FIELDS.EDIT_PASSWORD:
         case TASK_FIELDS.EDIT_USERNAME: {
           change = {
