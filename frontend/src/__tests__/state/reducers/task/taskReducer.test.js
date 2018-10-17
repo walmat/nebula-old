@@ -54,14 +54,12 @@ describe('task reducer', () => {
         ...initialTaskStates.task,
         id: id || initialTaskStates.task.id,
       };
-      console.log(start);
       const actual = taskReducer(
         start,
         {
           type: TASK_ACTIONS.EDIT, id, field,
         },
       );
-      console.log(actual);
       expect(actual).toEqual(start);
     };
 
@@ -277,7 +275,7 @@ describe('task reducer', () => {
           checkInvalidFieldEdit(TASK_FIELDS.EDIT_PROFILE, 1);
         });
 
-        test.only('sizes', () => {
+        test('sizes', () => {
           checkInvalidFieldEdit(TASK_FIELDS.EDIT_SIZES, 1);
         });
 

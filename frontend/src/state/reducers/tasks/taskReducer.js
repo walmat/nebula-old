@@ -56,11 +56,15 @@ export function taskReducer(state = initialTaskStates.task, action) {
         }
         case TASK_FIELDS.EDIT_SIZES: {
           let nextSizes = JSON.parse(JSON.stringify(state.sizes));
-          if (action && action.value && action.value !== undefined && action.value.length > state.sizes.length) {
+          console.log(nextSizes);
+          if (nextSizes === null) {
+            nextSizes = [];
+          } else if (action && action.value && action.value !== undefined && action.value.length > state.sizes.length) {
             nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
           } else {
             nextSizes = state.sizes.filter(s => action.value.includes(s));
           }
+
           change = {
             sizes: nextSizes,
             errors: Object.assign({}, state.errors, action.errors),
@@ -112,12 +116,15 @@ export function taskReducer(state = initialTaskStates.task, action) {
           break;
         }
         case TASK_FIELDS.EDIT_SIZES: {
-          let nextSizes = JSON.parse(JSON.stringify(state.sizes));
-          if (action && action.value && action.value !== undefined && action.value.length > state.sizes.length) {
-            nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
+          let nextSizes = JSON.parse(JSON.stringify(state.edits.sizes));
+          if (nextSizes === null) {
+            nextSizes = [];
+          } else if (action && action.value && action.value !== undefined && action.value.length > nextSizes.length) {
+            nextSizes.unshift(...(action.value.filter(s => !state.edits.sizes.includes(s))));
           } else {
-            nextSizes = state.sizes.filter(s => action.value.includes(s));
+            nextSizes = state.edits.sizes.filter(s => action.value.includes(s));
           }
+
           change = {
             edits: {
               ...state.edits,
