@@ -52,6 +52,11 @@ class WindowManager {
     this._auth = null;
 
     /**
+     * Captcha Windows
+     */
+    this._captchas = new Map();
+
+    /**
      * IPC Function Definitions
      */
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
@@ -121,7 +126,10 @@ class WindowManager {
           break;
         }
         case 'captcha': {
-          w = await createCaptchaWindow();
+          if (this._captchas.size < 5) {
+            w = await createCaptchaWindow();
+            this._captchas.set(this._captchas.size + 1, w);
+          }
           break;
         }
         default: break;
@@ -291,8 +299,15 @@ class WindowManager {
       this._windows.forEach((win) => {
         win.close();
       });
+    } else if (this._captchas.size > 0) {
+      console.log(this._captchas);
+      this._captchas.forEach((win) => {
+        if (win.id === w.id) {
+          console.log('ids matched');
+          win.close();
+        }
+      });
     } else {
-      // just close the one window object
       w.close();
     }
   }
