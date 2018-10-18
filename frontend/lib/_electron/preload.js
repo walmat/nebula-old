@@ -52,21 +52,23 @@ const _closeAllCaptchaWindows = () => {
  * Sends the launch youtube window trigger to windowManager.js
  */
 const _launchYoutube = () => {
-  _sendEvent(IPCKeys.RequestCreateNewWindow, 'youtube');
+  const { id } = remote.getCurrentWindow();
+  _sendEvent(IPCKeys.RequestCreateNewWindow, { type: 'youtube', id });
 };
 
 /**
  * Sends the launch captcha window trigger to windowManager.js
  */
 const _launchHarvester = () => {
-  _sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha');
+  _sendEvent(IPCKeys.RequestCreateNewWindow, { type: 'captcha' });
 };
 
 /**
  * Sends the end session trigger to windowManager.js
  */
 const _endSession = () => {
-  _sendEvent(IPCKeys.RequestEndSession);
+  const { id } = remote.getCurrentWindow();
+  _sendEvent(IPCKeys.RequestEndSession, id);
 };
 
 /**

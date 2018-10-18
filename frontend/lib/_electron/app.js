@@ -38,6 +38,12 @@ class App {
     this._shell = Electron.shell;
 
     /**
+     * The application's session storage
+     * @type {session}
+     */
+    this._session = Electron.session;
+
+    /**
      * Manage the window.
      * @type {WindowManager}
      */
@@ -73,6 +79,14 @@ class App {
   }
 
   /**
+   * Get the session module.
+   * @return {session} Application session
+   */
+  get session() {
+    return this._session;
+  }
+
+  /**
    * Get the window manager.
    *
    * @return {WindowManager} Instance of the window manager.
@@ -99,7 +113,7 @@ class App {
       await App.installExtensions();
     }
 
-    await this._windowManager.createNewWindow('main');
+    await this._windowManager.createNewWindow({ type: 'main' });
   }
 
   /**
