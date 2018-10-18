@@ -44,6 +44,10 @@ const _close = () => {
   _sendEvent(IPCKeys.RequestCloseWindow, id);
 };
 
+const _closeAllCaptchaWindows = () => {
+  _sendEvent(IPCKeys.RequestCloseAllCaptchaWindows);
+};
+
 /**
  * Sends the launch youtube window trigger to windowManager.js
  */
@@ -105,6 +109,7 @@ process.once('loaded', () => {
   /* BRIDGED EVENTS */
   window.Bridge.launchYoutube = _launchYoutube;
   window.Bridge.launchHarvester = _launchHarvester;
+  window.Bridge.closeAllCaptchaWindows = _closeAllCaptchaWindows;
   window.Bridge.close = _close;
   window.Bridge.refresh = _refresh;
   window.Bridge.harvest = _harvest;

@@ -29,9 +29,9 @@ export class SettingsPrimitive extends Component {
   /*
     * Signs current google user out. Will clear cookies as well
     */
-  static closeAllWindows() {
+  static closeAllCaptchaWindows() {
     if (window.Bridge) {
-      window.Bridge.closeAllWindows();
+      window.Bridge.closeAllCaptchaWindows();
       console.log('session ended');
     } else {
       // TODO - error handling
@@ -93,7 +93,7 @@ export class SettingsPrimitive extends Component {
         {/* CAPTCHA Window */}
         {/* <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
         <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha Window</button>
-        <button id="proxy-button-captcha-close" onClick={SettingsPrimitive.closeAllWindows} >Close All Windows</button>
+        <button id="proxy-button-captcha-close" onClick={SettingsPrimitive.closeAllCaptchaWindows} >Close All Windows</button>
 
         {/* EXTRAS */}
         <p id="discord-label">Discord URL</p>

@@ -63,6 +63,7 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
+    context.ipc.on(IPCKeys.RequestCloseAllCaptchaWindows, this._onRequestCloseAllCaptchaWindows.bind(this));
   }
 
   /**
@@ -128,7 +129,7 @@ class WindowManager {
         case 'captcha': {
           if (this._captchas.size < 5) {
             w = await createCaptchaWindow();
-            this._captchas.set(this._captchas.size + 1, w);
+            this._captchas.set(w.id, w);
           }
           break;
         }
@@ -185,6 +186,12 @@ class WindowManager {
         this._main = null;
       } else if (this._auth && win.id === this._auth.id) {
         this._auth = null;
+      } else if (this._captchas.size > 0) {
+        this._captchas.forEach((w) => {
+          if (win.id === w.id) {
+            this._captchas.delete(w.id);
+          }
+        });
       }
     };
   }
@@ -300,15 +307,19 @@ class WindowManager {
         win.close();
       });
     } else if (this._captchas.size > 0) {
-      console.log(this._captchas);
       this._captchas.forEach((win) => {
         if (win.id === w.id) {
-          console.log('ids matched');
           win.close();
         }
       });
     } else {
       w.close();
+    }
+  }
+
+  _onRequestCloseAllCaptchaWindows(ev) {
+    if (this._captchas.size > 0) {
+      this._captchas.forEach(win => win.close());
     }
   }
 }
