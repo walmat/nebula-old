@@ -10,7 +10,6 @@ const {
   urls,
 } = require('./windows');
 
-
 /**
  * Manage the window.
  */
@@ -57,6 +56,16 @@ class WindowManager {
     this._captchas = new Map();
 
     /**
+     * YouTube Windows
+     */
+    this._youtubes = new Map();
+
+    /**
+     * Captcha -> YouTube ID Pairing
+     */
+    this._captchaYTPairs = new Map();
+
+    /**
      * IPC Function Definitions
      */
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
@@ -64,6 +73,7 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
     context.ipc.on(IPCKeys.RequestCloseAllCaptchaWindows, this._onRequestCloseAllCaptchaWindows.bind(this));
+    context.ipc.on(IPCKeys.RequestEndSession, this._onRequestEndSession.bind(this));
   }
 
   /**
@@ -88,16 +98,41 @@ class WindowManager {
     }
   }
 
+  checkIfWindowIsIn(map, id, type) {
+    map.forEach((w) => {
+      if (id === null) {
+        w.close(); // short circuit for closing all windows
+      } else if (id === w.id) {
+        if (type === 'captcha') {
+          // check pairing for youtube
+          const ytPair = this._captchaYTPairs.get(id);
+          if (ytPair) {
+            const ytWin = this._youtubes.get(ytPair);
+            console.log(ytWin);
+            if (ytWin) {
+              ytWin.close();
+            }
+          }
+          w.close();
+        } else if (type === 'youtube') {
+          w.close();
+        } else {
+          w.close();
+        }
+      }
+    });
+  }
+
   /**
    * Create the main application window.
    * @param {String} tag String matching window to be created
    * @return {BrowserWindow} Created window
    */
-  async createNewWindow(tag) {
+  async createNewWindow(windowInformation) {
     let w; // window reference
     const session = await this._context._authManager.getSession();
-    if (session || ['auth', 'about'].includes(tag)) {
-      switch (tag) {
+    if (session || ['auth', 'about'].includes(windowInformation.type)) {
+      switch (windowInformation.type) {
         case 'about': {
           if (this._aboutDialog) {
             return this._aboutDialog;
@@ -124,11 +159,16 @@ class WindowManager {
         }
         case 'youtube': {
           w = await createYouTubeWindow();
+          this._youtubes.set(w.id, w);
+          this._captchaYTPairs.set(windowInformation.id, w.id); // captcha -> youtube
           break;
         }
         case 'captcha': {
           if (this._captchas.size < 5) {
             w = await createCaptchaWindow();
+            console.log(this._context._session);
+            this._context._session.fromPartition(`${w.id}`);
+            console.log(this._context._session.fromPartition(`${w.id}`));
             this._captchas.set(w.id, w);
           }
           break;
@@ -136,7 +176,7 @@ class WindowManager {
         default: break;
       }
 
-      w.loadURL(urls.get(tag));
+      w.loadURL(urls.get(windowInformation.type));
 
       w.on('ready-to-show', this.handleShow(w));
 
@@ -190,8 +230,22 @@ class WindowManager {
         this._captchas.forEach((w) => {
           if (win.id === w.id) {
             this._captchas.delete(w.id);
+            const ytPair = this._captchaYTPairs.get(w.id);
+            if (ytPair) {
+              this._youtubes.delete(ytPair);
+              this._captchaYTPairs.delete(w.id);
+            }
           }
         });
+      } else if (this._youtubes.size > 0) {
+        this._youtubes.forEach((w) => {
+          if (win.id === w.id) {
+            this._youtubes.delete(w.id);
+          }
+        });
+      }
+      if (nebulaEnv.isDevelopment()) {
+        console.log(`::Windows After Close::\n\n   yt: ${this._youtubes.size}\n   cap: ${this._captchas.size}\n   pairs: ${this._captchaYTPairs.size}\n   all: ${this._windows.size}`);
       }
     };
   }
@@ -300,26 +354,35 @@ class WindowManager {
    * @param {Number} id corresponding window id
    */
   _onRequestWindowClose(ev, id) {
-    const w = this._windows.get(id);
     if (this._main && (this._main.id === id)) {
       // close all windows
-      this._windows.forEach((win) => {
-        win.close();
-      });
-    } else if (this._captchas.size > 0) {
-      this._captchas.forEach((win) => {
-        if (win.id === w.id) {
-          win.close();
-        }
-      });
-    } else {
-      w.close();
+      this.checkIfWindowIsIn(this._windows, null, 'main');
+    }
+    if (this._auth && (this._auth.id === id)) {
+      this.checkIfWindowIsIn(this._windows, null, 'auth');
+    }
+    if (this._captchas.size > 0) {
+      this.checkIfWindowIsIn(this._captchas, id, 'captcha');
+    } else if (this._youtubes.size > 0) {
+      this.checkIfWindowIsIn(this._youtubes, id, 'youtube');
     }
   }
 
   _onRequestCloseAllCaptchaWindows(ev) {
     if (this._captchas.size > 0) {
-      this._captchas.forEach(win => win.close());
+      this.checkIfWindowIsIn(this._captchas, null, 'captchas');
+    }
+    if (this._youtubes.size > 0) {
+      this.checkIfWindowIsIn(this._youtubes, null, 'youtube');
+    }
+  }
+
+  _onRequestEndSession(ev, id) {
+    const ytPair = this._captchaYTPairs.get(id);
+    if (ytPair) {
+      const w = this._youtubes.get(ytPair);
+      const session = this._context._session.fromPartition(`${w.id}`);
+      session.clearStorageData([], () => {});
     }
   }
 }
