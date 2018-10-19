@@ -19,7 +19,7 @@ export class SettingsPrimitive extends Component {
   */
   static harvester() {
     if (window.Bridge) {
-      window.Bridge.launchHarvester();
+      window.Bridge.launchCaptchaHarvester();
     } else {
       // TODO - error handling
       console.error('Unable to launch harvester!');

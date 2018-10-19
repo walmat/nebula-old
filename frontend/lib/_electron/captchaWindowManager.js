@@ -1,12 +1,14 @@
-const Electron = require('electron');
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 const moment = require('moment');
+const _ = require('underscore');
 
-const Token = require('../common/token');
+const { createYouTubeWindow, urls } = require('./windows');
+
+const Token = require('../common/classes/token');
 
 class CaptchaWindowManager {
-  constructor(context, main) {
+  constructor(context, main, captchaWindow, session) {
     /**
      * Application context
      */
@@ -18,9 +20,9 @@ class CaptchaWindowManager {
     this._main = main;
 
     /**
-    * Captcha window that the manager takes care of
-    */
-    this._captchaWindow = null;
+     * Captcha window that the manager takes care of
+     */
+    this._captchaWindow = captchaWindow;
 
     /**
      * YouTube window that the manager takes care of
@@ -33,15 +35,38 @@ class CaptchaWindowManager {
     this._tokens = [];
 
     /**
-    * Session that the captcha window will use / YouTube window will set
-    */
-    this._session = this._context._session.fromPartition();
+     * Session that the captcha window will use / YouTube window will set
+     */
+    this._session = session;
 
     /**
-     * IPC Listeners
+     * IPC Function Definitions
      */
+    context.ipc.on(IPCKeys.RequestLaunchYoutube, this._onRequestLaunchYoutube.bind(this));
     context.ipc.on(IPCKeys.RequestEndSession, this._onRequestEndSession.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
+    context.ipc.on(IPCKeys.RequestHarvestToken, this._onRequestHarvestToken.bind(this));
+    context.ipc.on(
+      IPCKeys.RequestRefreshCaptchaWindow,
+      this._onRequestRefreshCaptchaWindow.bind(this),
+    );
+
+    if (nebulaEnv.isDevelopment()) {
+      console.log(`context: ${this._context}\ncaptcha: ${this._captchaWindow}\nmain: ${this._main}`);
+    }
+
+    this._captchaWindow.on('close', () => {
+      this._context._windowManager.handleClose(this._captchaWindow);
+      this._youtubeWindow.close();
+    });
+    this._captchaWindow.on('closed', () => { this._captchaWindow = null; this._youtubeWindow = null; });
+  }
+
+  static isTokenExpired(token) {
+    // if token has existed for > 110 seconds
+    if (moment().diff(moment(token.timestamp), 'seconds') > 110) {
+      return true;
+    } return false;
   }
 
   /**
@@ -68,15 +93,15 @@ class CaptchaWindowManager {
   }
 
   /**
-    * Sets the proxy for the window's session
-    *
-    * @param {String} proxy proxyRules = schemeProxies[";"<schemeProxies>]
+   * Sets the proxy for the window's session
+   *
+   * @param {String} proxy proxyRules = schemeProxies[";"<schemeProxies>]
                            schemeProxies = [<urlScheme>"="]<proxyURIList>
                            urlScheme = "http" | "https" | "ftp" | "socks"
                            proxyURIList = <proxyURL>[","<proxyURIList>]
                            proxyURL = [<proxyScheme>"://"]<proxyHost>[":"<proxyPort>]
-    *
-    *
+   *
+   *
    */
   setProxy(proxy) {
     this._session.setProxy({
@@ -106,17 +131,8 @@ class CaptchaWindowManager {
     return this._session.getUserAgent();
   }
 
-  isTokenExpired(token) {
-    // if token has existed for > 110 seconds
-    if (moment().diff(moment(token.timestamp), 'seconds') > 110) {
-        return true;
-    } return false;
-  }
-
   removeExpiredToken(token) {
-    this._tokens = _.reject(this._tokens, (el) => {
-        return el.token === token;
-    });
+    this._tokens = _.reject(this._tokens, el => el.token === token);
   }
 
   /**
@@ -128,29 +144,46 @@ class CaptchaWindowManager {
     this._session.clearCache(() => {});
   }
 
-  _onRequestHavestToken(ev, token, host, sitekey) {
+  _onRequestHarvestToken(ev, token, host, sitekey) {
     this._tokens.push(new Token(token, moment(), host, sitekey));
   }
 
   /**
-  * Constantly check for expired tokens every second
+   * Refresh window object
   */
-  setInterval(
-    () => {
-      this._tokens.forEach(token => {
-        token.setTimestamp(110 - moment().diff(moment(token.getTimestamp(), 'seconds')));
-
-        if (isTokenExpired(token)) {
-            removeExpiredToken(token);
-        }
-      });
-    }, 1000);
-
-  /**
-     * Refresh window object
-     */
   _onRequestRefreshCaptchaWindow() {
     this._captchaWindow.reload();
   }
+
+  _onRequestWindowClose() {
+    this._captchaWindow.close();
+  }
+
+  async _onRequestLaunchYoutube() {
+    if (this._youtubeWindow === null) {
+      const w = await createYouTubeWindow();
+      w.loadURL(urls.get('youtube'));
+      w.on('ready-to-show', this._context._windowManager.handleShow(w));
+      w.on('close', this._context._windowManager.handleClose(w));
+      w.on('closed', () => { this._youtubeWindow = null; });
+      this._youtubeWindow = w;
+    } else {
+      this._youtubeWindow.show();
+    }
+  }
+
+  // /**
+  // * Constantly check for expired tokens every second
+  // */
+  // setInterval(
+  //   () => {
+  //     this._tokens.forEach(token => {
+  //       token.setTimestamp(110 - moment().diff(moment(token.getTimestamp(), 'seconds')));
+
+  //       if (isTokenExpired(token)) {
+  //           removeExpiredToken(token);
+  //       }
+  //     });
+  //   }, 1000);
 }
 module.exports = CaptchaWindowManager;

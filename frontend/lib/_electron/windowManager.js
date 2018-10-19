@@ -10,6 +10,8 @@ const {
   urls,
 } = require('./windows');
 
+const CaptchaWindowManager = require('./captchaWindowManager');
+
 /**
  * Manage the window.
  */
@@ -56,16 +58,6 @@ class WindowManager {
     this._captchas = new Map();
 
     /**
-     * YouTube Windows
-     */
-    this._youtubes = new Map();
-
-    /**
-     * Captcha -> YouTube ID Pairing
-     */
-    this._captchaYTPairs = new Map();
-
-    /**
      * IPC Function Definitions
      */
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
@@ -73,7 +65,6 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
     context.ipc.on(IPCKeys.RequestCloseAllCaptchaWindows, this._onRequestCloseAllCaptchaWindows.bind(this));
-    context.ipc.on(IPCKeys.RequestEndSession, this._onRequestEndSession.bind(this));
   }
 
   /**
@@ -96,31 +87,6 @@ class WindowManager {
     if (w) {
       w.toggleDevTools();
     }
-  }
-
-  checkIfWindowIsIn(map, id, type) {
-    map.forEach((w) => {
-      if (id === null) {
-        w.close(); // short circuit for closing all windows
-      } else if (id === w.id) {
-        if (type === 'captcha') {
-          // check pairing for youtube and close it if open
-          const ytPair = this._captchaYTPairs.get(id);
-          if (ytPair) {
-            const ytWin = this._youtubes.get(ytPair);
-            console.log(ytWin);
-            if (ytWin) {
-              ytWin.close();
-            }
-          }
-          w.close();
-        } else if (type === 'youtube') {
-          w.close();
-        } else {
-          w.close();
-        }
-      }
-    });
   }
 
   /**
@@ -157,19 +123,11 @@ class WindowManager {
           this._main = w;
           break;
         }
-        case 'youtube': {
-          w = await createYouTubeWindow();
-          this._youtubes.set(w.id, w);
-          this._captchaYTPairs.set(windowInformation.id, w.id); // captcha -> youtube
-          break;
-        }
         case 'captcha': {
           if (this._captchas.size < 5) {
             w = await createCaptchaWindow();
-            console.log(this._context._session);
-            this._context._session.fromPartition(`${w.id}`);
-            console.log(this._context._session.fromPartition(`${w.id}`));
-            this._captchas.set(w.id, w);
+            this._captchas.set(w.id, new CaptchaWindowManager(this._context, this._main, w, this._context._session.fromPartition(`${w.id}`)));
+            console.log(this._captchas.size);
           }
           break;
         }
@@ -228,24 +186,13 @@ class WindowManager {
         this._auth = null;
       } else if (this._captchas.size > 0) {
         this._captchas.forEach((w) => {
-          if (win.id === w.id) {
-            this._captchas.delete(w.id);
-            const ytPair = this._captchaYTPairs.get(w.id);
-            if (ytPair) {
-              this._youtubes.delete(ytPair);
-              this._captchaYTPairs.delete(w.id);
-            }
-          }
-        });
-      } else if (this._youtubes.size > 0) {
-        this._youtubes.forEach((w) => {
-          if (win.id === w.id) {
-            this._youtubes.delete(w.id);
+          if (win.id === w._captchaWindow.id) {
+            this._captchas.delete(win.id);
           }
         });
       }
       if (nebulaEnv.isDevelopment()) {
-        console.log(`::Windows After Close::\n\n   yt: ${this._youtubes.size}\n   cap: ${this._captchas.size}\n   pairs: ${this._captchaYTPairs.size}\n   all: ${this._windows.size}`);
+        console.log(`::Windows After Close::\n\n   cap: ${this._captchas.size}\n   all: ${this._windows.size}`);
       }
     };
   }
@@ -356,33 +303,27 @@ class WindowManager {
   _onRequestWindowClose(ev, id) {
     if (this._main && (this._main.id === id)) {
       // close all windows
-      this.checkIfWindowIsIn(this._windows, null, 'main');
+      this._windows.forEach((w) => {
+        w.close();
+      });
     }
     if (this._auth && (this._auth.id === id)) {
-      this.checkIfWindowIsIn(this._windows, null, 'auth');
-    }
-    if (this._captchas.size > 0) {
-      this.checkIfWindowIsIn(this._captchas, id, 'captcha');
-    } else if (this._youtubes.size > 0) {
-      this.checkIfWindowIsIn(this._youtubes, id, 'youtube');
+      this._windows.forEach((w) => {
+        w.close();
+      });
     }
   }
 
+  /**
+   * Request to close all open captcha windows
+   * @param {EventEmitter} ev - close event
+   * BUG: closes one at a time..
+   */
   _onRequestCloseAllCaptchaWindows(ev) {
     if (this._captchas.size > 0) {
-      this.checkIfWindowIsIn(this._captchas, null, 'captchas');
-    }
-    if (this._youtubes.size > 0) {
-      this.checkIfWindowIsIn(this._youtubes, null, 'youtube');
-    }
-  }
-
-  _onRequestEndSession(ev, id) {
-    const ytPair = this._captchaYTPairs.get(id);
-    if (ytPair) {
-      const w = this._youtubes.get(ytPair);
-      const session = this._context._session.fromPartition(`${w.id}`);
-      session.clearStorageData([], () => {});
+      this._captchas.forEach((captchaWindowManager) => {
+        captchaWindowManager._captchaWindow.close();
+      });
     }
   }
 }
