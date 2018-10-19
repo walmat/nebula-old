@@ -127,7 +127,6 @@ class WindowManager {
           if (this._captchas.size < 5) {
             w = await createCaptchaWindow();
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, this._main, w, this._context._session.fromPartition(`${w.id}`)));
-            console.log(this._captchas.size);
           }
           break;
         }
@@ -188,6 +187,7 @@ class WindowManager {
         this._captchas.forEach((w) => {
           if (win.id === w._captchaWindow.id) {
             this._captchas.delete(win.id);
+            console.log(`size after deleting: ${this._captchas.size}`);
           }
         });
       }

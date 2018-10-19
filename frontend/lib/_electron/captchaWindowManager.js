@@ -55,10 +55,9 @@ class CaptchaWindowManager {
       console.log(`context: ${this._context}\ncaptcha: ${this._captchaWindow}\nmain: ${this._main}`);
     }
 
-    this._captchaWindow.on('close', () => {
-      this._context._windowManager.handleClose(this._captchaWindow);
-      this._youtubeWindow.close();
-    });
+    console.log(this._captchaWindow);
+
+    this._captchaWindow.on('close', this._context._windowManager.handleClose(this._captchaWindow));
     this._captchaWindow.on('closed', () => { this._captchaWindow = null; this._youtubeWindow = null; });
   }
 
@@ -156,6 +155,7 @@ class CaptchaWindowManager {
   }
 
   _onRequestWindowClose() {
+    console.log(this._captchaWindow);
     this._captchaWindow.close();
   }
 
