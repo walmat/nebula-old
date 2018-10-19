@@ -104,7 +104,7 @@ class WindowManager {
         w.close(); // short circuit for closing all windows
       } else if (id === w.id) {
         if (type === 'captcha') {
-          // check pairing for youtube
+          // check pairing for youtube and close it if open
           const ytPair = this._captchaYTPairs.get(id);
           if (ytPair) {
             const ytWin = this._youtubes.get(ytPair);
