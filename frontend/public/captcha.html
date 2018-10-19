@@ -28,13 +28,14 @@
     </div>
     <div class="footer">
       <button id="launch-youtube" onclick="window.Bridge.launchYoutube()" >Account</button>
-      <button id="end-session" onclick="window.Bridge.endSession()" >End Session</button>
+      <button id="end-session" onclick="window.Bridge.endCaptchaSession()" >End Session</button>
     </div>
     <script>
       function submitCaptcha() {
         const token = document.getElementById('g-recaptcha-response').value;
-        window.Bridge.harvest(token);
+        window.Bridge.harvestCaptchaToken(token);
         grecaptcha.reset();
+        window.Bridge.refreshCaptchaWindow();
       }
     </script>
   </body>

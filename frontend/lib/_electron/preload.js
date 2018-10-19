@@ -52,8 +52,7 @@ const _closeAllCaptchaWindows = () => {
  * Sends the launch youtube window trigger to windowManager.js
  */
 const _launchYoutube = () => {
-  const { id } = remote.getCurrentWindow();
-  _sendEvent(IPCKeys.RequestCreateNewWindow, { type: 'youtube', id });
+  _sendEvent(IPCKeys.RequestLaunchYoutube);
 };
 
 /**
