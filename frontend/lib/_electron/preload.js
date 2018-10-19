@@ -59,14 +59,14 @@ const _launchYoutube = () => {
 /**
  * Sends the launch captcha window trigger to windowManager.js
  */
-const _launchHarvester = () => {
+const _launchCaptchaHarvester = () => {
   _sendEvent(IPCKeys.RequestCreateNewWindow, { type: 'captcha' });
 };
 
 /**
  * Sends the end session trigger to windowManager.js
  */
-const _endSession = () => {
+const _endCaptchaSession = () => {
   const { id } = remote.getCurrentWindow();
   _sendEvent(IPCKeys.RequestEndSession, id);
 };
@@ -74,20 +74,21 @@ const _endSession = () => {
 /**
  * Sends the harvest captcha trigger to windowManager.js
  */
-const _harvest = (token) => {
+const _harvestCaptchaToken = (token) => {
   _sendEvent(IPCKeys.HarvestCaptcha, token);
 };
 
 /**
  * Sends the refresh window trigger to windowManager.js
  */
-const _refresh = (window) => {
-  _sendEvent(IPCKeys.RequestRefresh, window);
+const _refreshCaptchaWindow = () => {
+  _sendEvent(IPCKeys.RequestRefresh);
 };
 
-const _getAppData = () => {
-  return { name: app.getName(), version: app.getVersion() };
-};
+/**
+ * Send app name/version to the renderer
+ */
+const _getAppData = () => ({ name: app.getName(), version: app.getVersion() });
 
 /**
  * ... TODO!
@@ -110,12 +111,12 @@ process.once('loaded', () => {
   window.Bridge = window.Bridge || {};
   /* BRIDGED EVENTS */
   window.Bridge.launchYoutube = _launchYoutube;
-  window.Bridge.launchHarvester = _launchHarvester;
+  window.Bridge.launchCaptchaHarvester = _launchCaptchaHarvester;
   window.Bridge.closeAllCaptchaWindows = _closeAllCaptchaWindows;
   window.Bridge.close = _close;
-  window.Bridge.refresh = _refresh;
-  window.Bridge.harvest = _harvest;
-  window.Bridge.endSession = _endSession;
+  window.Bridge.refreshCaptchaWindow = _refreshCaptchaWindow;
+  window.Bridge.harvestCaptchaToken = _harvestCaptchaToken;
+  window.Bridge.endCaptchaSession = _endCaptchaSession;
   window.Bridge.getAppData = _getAppData;
   window.Bridge.deactivate = _deactivate;
   window.Bridge.authenticate = _authenticate;
