@@ -49,10 +49,6 @@ class CaptchaWindowManager {
       IPCKeys.RequestRefreshCaptchaWindow,
       this._onRequestRefreshCaptchaWindow.bind(this),
     );
-
-    if (nebulaEnv.isDevelopment()) {
-      console.log(`context: ${this._context}\ncaptcha: ${this._captchaWindow}\nmain: ${this._main}`);
-    }
   }
 
   static isTokenExpired(token) {
