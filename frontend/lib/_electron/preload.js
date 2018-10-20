@@ -28,6 +28,22 @@ const _deactivate = () => {
 };
 
 /**
+ * Prevent dragover events globally
+ */
+window.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  return false;
+}, false);
+
+/**
+ * Prevent drop events globally
+ */
+window.addEventListener('drop', (event) => {
+  event.preventDefault();
+  return false;
+}, false);
+
+/**
  * Sends the deactivate trigger to authManager.js
  *
  * @param {String} key user's license key (XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)

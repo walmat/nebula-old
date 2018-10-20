@@ -3,12 +3,10 @@ const nebulaEnv = require('./env');
 const moment = require('moment');
 const _ = require('underscore');
 
-const { createYouTubeWindow, urls } = require('./windows');
-
 const Token = require('../common/classes/token');
 
 class CaptchaWindowManager {
-  constructor(context, main, captchaWindow, session) {
+  constructor(context, captchaWindow, session) {
     /**
      * Application context
      */
@@ -17,12 +15,14 @@ class CaptchaWindowManager {
     /**
      * Main window reference
      */
-    this._main = main;
+    this._main = this._context._windowManager._main;
 
     /**
      * Captcha window that the manager takes care of
      */
     this._captchaWindow = captchaWindow;
+
+    this._windowManager = this._context._windowManager;
 
     /**
      * YouTube window that the manager takes care of
@@ -54,11 +54,6 @@ class CaptchaWindowManager {
     if (nebulaEnv.isDevelopment()) {
       console.log(`context: ${this._context}\ncaptcha: ${this._captchaWindow}\nmain: ${this._main}`);
     }
-
-    console.log(this._captchaWindow);
-
-    this._captchaWindow.on('close', this._context._windowManager.handleClose(this._captchaWindow));
-    this._captchaWindow.on('closed', () => { this._captchaWindow = null; this._youtubeWindow = null; });
   }
 
   static isTokenExpired(token) {
@@ -66,6 +61,18 @@ class CaptchaWindowManager {
     if (moment().diff(moment(token.timestamp), 'seconds') > 110) {
       return true;
     } return false;
+  }
+
+  getYouTubeWindow() {
+    return this._youtubeWindow;
+  }
+
+  setYouTubeWindow(win) {
+    this._youtubeWindow = win;
+  }
+
+  setCaptchaWindow(win) {
+    this._captchaWindow = win;
   }
 
   /**
@@ -154,18 +161,16 @@ class CaptchaWindowManager {
     this._captchaWindow.reload();
   }
 
-  _onRequestWindowClose() {
-    console.log(this._captchaWindow);
+  _onRequestWindowClose(ev, id) {
     this._captchaWindow.close();
+    if (this._youtubeWindow) {
+      this._youtubeWindow.close();
+    }
   }
 
   async _onRequestLaunchYoutube() {
     if (this._youtubeWindow === null) {
-      const w = await createYouTubeWindow();
-      w.loadURL(urls.get('youtube'));
-      w.on('ready-to-show', this._context._windowManager.handleShow(w));
-      w.on('close', this._context._windowManager.handleClose(w));
-      w.on('closed', () => { this._youtubeWindow = null; });
+      const w = await this._windowManager.createNewWindow({ type: 'youtube' });
       this._youtubeWindow = w;
     } else {
       this._youtubeWindow.show();

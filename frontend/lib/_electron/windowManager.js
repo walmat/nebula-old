@@ -64,7 +64,10 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
-    context.ipc.on(IPCKeys.RequestCloseAllCaptchaWindows, this._onRequestCloseAllCaptchaWindows.bind(this));
+    context.ipc.on(
+      IPCKeys.RequestCloseAllCaptchaWindows,
+      this._onRequestCloseAllCaptchaWindows.bind(this),
+    );
   }
 
   /**
@@ -126,8 +129,13 @@ class WindowManager {
         case 'captcha': {
           if (this._captchas.size < 5) {
             w = await createCaptchaWindow();
-            this._captchas.set(w.id, new CaptchaWindowManager(this._context, this._main, w, this._context._session.fromPartition(`${w.id}`)));
+            this._captchas.set(w.id, new CaptchaWindowManager(this._context, w, this._context._session.fromPartition(`${w.id}`)));
+            console.log(`size after creating: ${this._captchas.size}`);
           }
+          break;
+        }
+        case 'youtube': {
+          w = await createYouTubeWindow();
           break;
         }
         default: break;
@@ -170,6 +178,7 @@ class WindowManager {
   handleClose(win) {
     return () => {
       if (nebulaEnv.isDevelopment()) {
+        console.log(`window: ${win}`);
         console.log(`Window was closed, id = ${win.id}`);
       }
       this._windows.delete(win.id);
@@ -184,15 +193,14 @@ class WindowManager {
       } else if (this._auth && win.id === this._auth.id) {
         this._auth = null;
       } else if (this._captchas.size > 0) {
-        this._captchas.forEach((w) => {
-          if (win.id === w._captchaWindow.id) {
+        this._captchas.forEach((captchaWindowManager) => {
+          if (win.id === captchaWindowManager._captchaWindow.id) {
             this._captchas.delete(win.id);
-            console.log(`size after deleting: ${this._captchas.size}`);
+            captchaWindowManager.setCaptchaWindow(null);
+          } else if (win.id === captchaWindowManager._youtubeWindow.id) {
+            captchaWindowManager.setYouTubeWindow(null);
           }
         });
-      }
-      if (nebulaEnv.isDevelopment()) {
-        console.log(`::Windows After Close::\n\n   cap: ${this._captchas.size}\n   all: ${this._windows.size}`);
       }
     };
   }
