@@ -342,6 +342,9 @@ class WindowManager {
     if (this._captchas.size > 0) {
       this._captchas.forEach((captchaWindowManager) => {
         captchaWindowManager._captchaWindow.close();
+        if (captchaWindowManager._youtubeWindow) {
+          captchaWindowManager._youtubeWindow.close();
+        }
       });
     }
   }
