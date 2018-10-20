@@ -143,14 +143,18 @@ class WindowManager {
 
       w.loadURL(urls.get(windowInformation.type));
 
-      w.on('ready-to-show', this.handleShow(w));
-
-      w.on('close', this.handleClose(w));
-      w.on('closed', () => { w = null; });
+      this.addWindowEventListeners(w);
 
       return w;
     }
     return this.transitionToDeauthedState();
+  }
+
+
+  addWindowEventListeners(win) {
+    win.on('ready-to-show', this.handleShow(win));
+    win.on('close', this.handleClose(win));
+    win.on('closed', () => { win = null; });
   }
 
   /**
@@ -196,9 +200,8 @@ class WindowManager {
         this._captchas.forEach((captchaWindowManager) => {
           if (win.id === captchaWindowManager._captchaWindow.id) {
             this._captchas.delete(win.id);
-            captchaWindowManager.setCaptchaWindow(null);
           } else if (win.id === captchaWindowManager._youtubeWindow.id) {
-            captchaWindowManager.setYouTubeWindow(null);
+            captchaWindowManager._youtubeWindow = null;
           }
         });
       }
@@ -320,6 +323,9 @@ class WindowManager {
         w.close();
       });
     }
+    const w = this._windows.get(id);
+    console.log(w);
+    w.close();
   }
 
   /**
