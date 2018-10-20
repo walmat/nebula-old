@@ -44,7 +44,6 @@ class CaptchaWindowManager {
      */
     context.ipc.on(IPCKeys.RequestLaunchYoutube, this._onRequestLaunchYoutube.bind(this));
     context.ipc.on(IPCKeys.RequestEndSession, this._onRequestEndSession.bind(this));
-    context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
     context.ipc.on(IPCKeys.RequestHarvestToken, this._onRequestHarvestToken.bind(this));
     context.ipc.on(
       IPCKeys.RequestRefreshCaptchaWindow,
@@ -61,18 +60,6 @@ class CaptchaWindowManager {
     if (moment().diff(moment(token.timestamp), 'seconds') > 110) {
       return true;
     } return false;
-  }
-
-  getYouTubeWindow() {
-    return this._youtubeWindow;
-  }
-
-  setYouTubeWindow(win) {
-    this._youtubeWindow = win;
-  }
-
-  setCaptchaWindow(win) {
-    this._captchaWindow = win;
   }
 
   /**
@@ -159,13 +146,6 @@ class CaptchaWindowManager {
   */
   _onRequestRefreshCaptchaWindow() {
     this._captchaWindow.reload();
-  }
-
-  _onRequestWindowClose(ev, id) {
-    this._captchaWindow.close();
-    if (this._youtubeWindow) {
-      this._youtubeWindow.close();
-    }
   }
 
   async _onRequestLaunchYoutube() {
