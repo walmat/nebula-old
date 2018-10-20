@@ -321,9 +321,15 @@ class WindowManager {
       this._windows.forEach((w) => {
         w.close();
       });
-    } else {
-      const w = this._windows.get(id);
-      w.close();
+    } else if (this._captchas.size > 0) {
+      this._captchas.forEach((w) => {
+        if (id === w._captchaWindow.id) {
+          w._captchaWindow.close();
+          if (w._youtubeWindow) {
+            w._youtubeWindow.close();
+          }
+        }
+      });
     }
   }
 
