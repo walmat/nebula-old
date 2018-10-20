@@ -317,15 +317,14 @@ class WindowManager {
       this._windows.forEach((w) => {
         w.close();
       });
-    }
-    if (this._auth && (this._auth.id === id)) {
+    } else if (this._auth && (this._auth.id === id)) {
       this._windows.forEach((w) => {
         w.close();
       });
+    } else {
+      const w = this._windows.get(id);
+      w.close();
     }
-    const w = this._windows.get(id);
-    console.log(w);
-    w.close();
   }
 
   /**
