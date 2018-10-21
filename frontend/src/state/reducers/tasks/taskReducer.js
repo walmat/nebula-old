@@ -120,12 +120,12 @@ export function taskReducer(state = initialTaskStates.task, action) {
           let nextSizes = JSON.parse(JSON.stringify(state.edits.sizes));
           if (nextSizes === null) {
             if (action.value) {
-              nextSizes = {
+              nextSizes = [{
                 ...initialTaskStates.task.sizes,
                 id: action.value[0].id,
                 label: action.value[0].label,
                 value: action.value[0].value,
-              };
+              }];
             }
           } else if (action && action.value && action.value !== undefined && action.value.length > nextSizes.length) {
             nextSizes.unshift(...(action.value.filter(s => !state.edits.sizes.includes(s))));

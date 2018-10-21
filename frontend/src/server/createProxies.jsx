@@ -21,7 +21,7 @@ export class CreateProxiesPrimitive extends Component {
   }
 
   render() {
-    const { serverInfo } = this.props;
+    const { serverInfo, serverListOptions, onKeyPress } = this.props;
     const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
     return (
       <div className="proxy-options col col--start col--no-gutter">
@@ -50,7 +50,7 @@ export class CreateProxiesPrimitive extends Component {
                   className="proxy-options__input--location"
                   styles={colourStyles}
                   value={serverInfo.proxyOptions.location}
-                  options={this.props.serverListOptions.locations}
+                  options={serverListOptions.locations}
                   data-testid={addTestId('CreateProxies.location')}
                   onChange={this.createProxyLocationChangeHandle(SERVER_FIELDS.EDIT_PROXY_LOCATION)}
                 />
@@ -116,8 +116,8 @@ export class CreateProxiesPrimitive extends Component {
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={this.props.onKeyPress}
-              onClick={() => loggedInAws && this.props.onGenerateProxies(this.props.serverInfo.proxyOptions)}
+              onKeyPress={onKeyPress}
+              onClick={() => loggedInAws && this.props.onGenerateProxies(serverInfo.proxyOptions)}
               data-testid={addTestId('CreateProxies.generateProxiesButton')}
             >
               Generate
