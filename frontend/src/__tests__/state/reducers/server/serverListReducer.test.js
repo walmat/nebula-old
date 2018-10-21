@@ -29,7 +29,7 @@ describe('server list reducer', () => {
       size: { id: 1, value: 'test_size', label: 'test_size_label' },
       location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
       charges: '0',
-      status: 'Pending...',
+      status: 'Initializing...',
     }];
     const actual = serverListReducer(
       initialServerStates.serverList,

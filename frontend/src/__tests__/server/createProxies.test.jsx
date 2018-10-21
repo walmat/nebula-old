@@ -17,6 +17,7 @@ describe('<CreateProxies />', () => {
     };
     return shallow(<CreateProxiesPrimitive
       serverInfo={renderProps.serverInfo}
+      serverListOptions={renderProps.serverListOptions}
       onEditServerInfo={renderProps.onEditServerInfo}
       onGenerateProxies={renderProps.onGenerateProxies}
       onDestroyProxies={renderProps.onDestroyProxies}
@@ -27,6 +28,7 @@ describe('<CreateProxies />', () => {
   beforeEach(() => {
     defaultProps = {
       serverInfo: { ...initialServerStates.serverInfo },
+      serverListOptions: { ...initialServerStates.serverListOptions },
       onEditServerInfo: () => {},
       onGenerateProxies: () => {},
       onDestroyProxies: () => {},

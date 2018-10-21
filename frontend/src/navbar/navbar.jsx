@@ -26,19 +26,11 @@ const bodymovinOptions = {
 
 
 export class NavbarPrimitive extends PureComponent {
-
   static _getAppData() {
     if (window.Bridge) {
       return window.Bridge.getAppData();
     }
-    return null;
-  }
-  
-  static _launchHarvester() {
-    if (window.Bridge) {
-      console.log('here');
-      window.Bridge.launchHarvester();
-    }
+    return { name: 'Nebula-Orion', version: null };
   }
 
   render() {
