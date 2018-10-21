@@ -11,10 +11,6 @@ import './profiles.css';
 
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
-// const errorStyle = {
-//   borderColor: 'red',
-// };
-
 export class LocationFieldsPrimitive extends Component {
   static buildCountryOptions() {
     return getAllCountries();

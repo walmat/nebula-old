@@ -97,11 +97,11 @@ class WindowManager {
    * @param {String} tag String matching window to be created
    * @return {BrowserWindow} Created window
    */
-  async createNewWindow(windowInformation) {
+  async createNewWindow(tag) {
     let w; // window reference
     const session = await this._context._authManager.getSession();
-    if (session || ['auth', 'about'].includes(windowInformation.type)) {
-      switch (windowInformation.type) {
+    if (session || ['auth', 'about'].includes(tag)) {
+      switch (tag) {
         case 'about': {
           if (this._aboutDialog) {
             return this._aboutDialog;
@@ -141,7 +141,7 @@ class WindowManager {
         default: break;
       }
 
-      w.loadURL(urls.get(windowInformation.type));
+      w.loadURL(urls.get(tag));
 
       this.addWindowEventListeners(w);
 
@@ -150,11 +150,9 @@ class WindowManager {
     return this.transitionToDeauthedState();
   }
 
-
   addWindowEventListeners(win) {
     win.on('ready-to-show', this.handleShow(win));
     win.on('close', this.handleClose(win));
-    win.on('closed', () => { win = null; });
   }
 
   /**
@@ -182,7 +180,6 @@ class WindowManager {
   handleClose(win) {
     return () => {
       if (nebulaEnv.isDevelopment()) {
-        console.log(`window: ${win}`);
         console.log(`Window was closed, id = ${win.id}`);
       }
       this._windows.delete(win.id);

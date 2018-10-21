@@ -146,7 +146,7 @@ class CaptchaWindowManager {
 
   async _onRequestLaunchYoutube() {
     if (this._youtubeWindow === null) {
-      const w = await this._windowManager.createNewWindow({ type: 'youtube' });
+      const w = await this._windowManager.createNewWindow('youtube');
       this._youtubeWindow = w;
     } else {
       this._youtubeWindow.show();

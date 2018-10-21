@@ -42,7 +42,6 @@
     "jsonfile": "^4.0.0",
     "moment": "^2.22.2",
     "node-fetch": "^2.2.0",
-    "npm": "^6.4.1",
     "prop-types": "^15.6.2",
     "qs": "^6.5.2",
     "query-string": "^6.1.0",

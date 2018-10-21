@@ -113,7 +113,7 @@ class App {
       await App.installExtensions();
     }
 
-    await this._windowManager.createNewWindow({ type: 'main' });
+    await this._windowManager.createNewWindow('main');
   }
 
   /**

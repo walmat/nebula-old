@@ -7,8 +7,6 @@ const locationReducer = (state = initialProfileStates.location, action) => {
     // If we can't map the field to a location key, don't change anything
     return Object.assign({}, state);
   }
-  console.log(action);
-  console.log(mapLocationFieldToKey[action.type], state[mapLocationFieldToKey[action.type]]);
   switch (action.type) {
     default: {
       change = {
