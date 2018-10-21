@@ -76,6 +76,7 @@ describe('task reducer', () => {
           const expected = {
             ...initialTaskStates.task,
             product: {
+              ...initialTaskStates.product,
               raw: 'test',
             },
           };

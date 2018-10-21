@@ -134,8 +134,10 @@ export default function getAllSizes() {
   return sizes;
 }
 
-export function getSize(size) {
-  return sizes.forEach((category) => {
-    return category.options.forEach(s => s.value === size);
-  });
+export function getCategory(category) {
+  return sizes.filter(c => c.label === category);
+}
+
+export function getSize(size, category) {
+  return getCategory(category).find(s => s.label === size);
 }
