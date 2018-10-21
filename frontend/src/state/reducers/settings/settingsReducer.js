@@ -30,7 +30,6 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         change = {
           [mapSettingsFieldToKey[action.field]]: action.value,
         };
-        break;
     }
   } else if (action.type === SETTINGS_ACTIONS.SAVE) {
     change = {

@@ -6,7 +6,6 @@ export const TASK_ACTIONS = {
   REMOVE: 'REMOVE_TASK',
   EDIT: 'EDIT_TASK',
   SELECT: 'SELECT_TASK',
-  LOAD: 'LOAD_TASK',
   UPDATE: 'UPDATE_TASK',
   START: 'START_TASK',
   STOP: 'STOP_TASK',
@@ -128,7 +127,6 @@ const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 // Public Actions
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
 const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
-// const loadTask = makeActionCreator(TASK_ACTIONS.LOAD, 'task');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
@@ -202,7 +200,6 @@ export const taskActions = {
   edit: editTask,
   clearEdits,
   select: selectTask,
-  // load: loadTask,
   update: updateTask,
   start: startTask,
   stop: stopTask,

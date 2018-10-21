@@ -75,7 +75,7 @@ const _launchYoutube = () => {
  * Sends the launch captcha window trigger to windowManager.js
  */
 const _launchCaptchaHarvester = () => {
-  _sendEvent(IPCKeys.RequestCreateNewWindow, { type: 'captcha' });
+  _sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha');
 };
 
 /**
