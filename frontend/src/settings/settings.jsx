@@ -32,10 +32,8 @@ export class SettingsPrimitive extends Component {
   static closeAllCaptchaWindows() {
     if (window.Bridge) {
       window.Bridge.closeAllCaptchaWindows();
-      console.log('session ended');
     } else {
-      // TODO - error handling
-      console.error('Unable to end current session');
+      console.error('Unable to close all windows');
     }
   }
 

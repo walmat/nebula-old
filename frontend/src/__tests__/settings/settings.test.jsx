@@ -42,15 +42,16 @@ describe('<Settings />', () => {
 
   it('renders with required props', () => {
     const wrapper = renderShallowWithProps();
-    expect(wrapper.find('#proxy-button-youtube')).toHaveLength(1);
     expect(wrapper.find('#proxy-button-captcha')).toHaveLength(1);
-    expect(wrapper.find('#proxy-button-close-session')).toHaveLength(1);
+    expect(wrapper.find('#proxy-button-captcha-close')).toHaveLength(1);
     expect(wrapper.find('#discord-input')).toHaveLength(1);
     expect(wrapper.find('#slack-input')).toHaveLength(1);
     expect(wrapper.find('#default-profile')).toHaveLength(1);
     expect(wrapper.find('#default-sizes')).toHaveLength(1);
     expect(wrapper.find('#save-defaults')).toHaveLength(1);
     expect(wrapper.find('#clear-defaults')).toHaveLength(1);
+    expect(wrapper.find('#monitor-input')).toHaveLength(1);
+    expect(wrapper.find('#error-input')).toHaveLength(1);
   });
 
   it('renders with non-default props', () => {
@@ -70,15 +71,16 @@ describe('<Settings />', () => {
       },
     };
     const wrapper = renderShallowWithProps(customProps);
-    expect(wrapper.find('#proxy-button-youtube')).toHaveLength(1);
     expect(wrapper.find('#proxy-button-captcha')).toHaveLength(1);
-    expect(wrapper.find('#proxy-button-close-session')).toHaveLength(1);
+    expect(wrapper.find('#proxy-button-captcha-close')).toHaveLength(1);
     expect(wrapper.find('#discord-input')).toHaveLength(1);
     expect(wrapper.find('#slack-input')).toHaveLength(1);
     expect(wrapper.find('#default-profile')).toHaveLength(1);
     expect(wrapper.find('#default-sizes')).toHaveLength(1);
     expect(wrapper.find('#save-defaults')).toHaveLength(1);
     expect(wrapper.find('#clear-defaults')).toHaveLength(1);
+    expect(wrapper.find('#monitor-input')).toHaveLength(1);
+    expect(wrapper.find('#error-input')).toHaveLength(1);
 
     expect(wrapper.find('#discord-input').prop('value')).toBe('discordTest');
     expect(wrapper.find('#slack-input').prop('value')).toBe('slackTest');
@@ -205,9 +207,7 @@ describe('<Settings />', () => {
       const saveButton = wrapper.find('#save-defaults');
       saveButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
-      const ev = { preventDefault: jest.fn() };
-      saveButton.simulate('click', ev);
-      expect(ev.preventDefault).toHaveBeenCalled();
+      saveButton.simulate('click');
       expect(customProps.onSaveDefaults).toHaveBeenCalledWith(customProps.settings.defaults);
     });
 
@@ -220,9 +220,7 @@ describe('<Settings />', () => {
       const clearButton = wrapper.find('#clear-defaults');
       clearButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
-      const ev = { preventDefault: jest.fn() };
-      clearButton.simulate('click', ev);
-      expect(ev.preventDefault).toHaveBeenCalled();
+      clearButton.simulate('click');
       expect(customProps.onClearDefaults).toHaveBeenCalledWith(SETTINGS_FIELDS.CLEAR_DEFAULTS);
     });
   });
@@ -233,9 +231,8 @@ describe('<Settings />', () => {
 
     beforeEach(() => {
       Bridge = {
-        launchYoutube: jest.fn(),
-        launchHarvester: jest.fn(),
-        endSession: jest.fn(),
+        closeAllCaptchaWindows: jest.fn(),
+        launchCaptchaHarvester: jest.fn(),
       };
       global.window.Bridge = Bridge;
       wrapper = renderShallowWithProps();
@@ -245,22 +242,16 @@ describe('<Settings />', () => {
       delete global.window.Bridge;
     });
 
-    test('launch youtube button calls correct function', () => {
-      const button = wrapper.find('#proxy-button-youtube');
-      button.simulate('click');
-      expect(Bridge.launchYoutube).toHaveBeenCalled();
-    });
-
-    test('launch harvester button calls correct function', () => {
+    test('launch captcha button calls correct function', () => {
       const button = wrapper.find('#proxy-button-captcha');
       button.simulate('click');
-      expect(Bridge.launchHarvester).toHaveBeenCalled();
+      expect(Bridge.launchCaptchaHarvester).toHaveBeenCalled();
     });
 
-    test('end session button calls correct function', () => {
-      const button = wrapper.find('#proxy-button-close-session');
+    test('close all harvester button calls correct function', () => {
+      const button = wrapper.find('#proxy-button-captcha-close');
       button.simulate('click');
-      expect(Bridge.endSession).toHaveBeenCalled();
+      expect(Bridge.closeAllCaptchaWindows).toHaveBeenCalled();
     });
   });
 
@@ -278,19 +269,13 @@ describe('<Settings />', () => {
     });
 
     test('launch youtube button displays error', () => {
-      const button = wrapper.find('#proxy-button-youtube');
-      button.simulate('click');
-      expect(consoleSpy).toHaveBeenCalled();
-    });
-
-    test('launch harvester button displays error', () => {
       const button = wrapper.find('#proxy-button-captcha');
       button.simulate('click');
       expect(consoleSpy).toHaveBeenCalled();
     });
 
-    test('end session button displays error', () => {
-      const button = wrapper.find('#proxy-button-close-session');
+    test('launch harvester button displays error', () => {
+      const button = wrapper.find('#proxy-button-captcha-close');
       button.simulate('click');
       expect(consoleSpy).toHaveBeenCalled();
     });
