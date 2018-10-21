@@ -6,6 +6,7 @@ import {
 } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 import getAllSites from '../../../constants/getAllSites';
+import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
 
 export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
@@ -19,7 +20,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
         case TASK_FIELDS.EDIT_PRODUCT: {
           change = {
             product: {
-              raw: action.value,
+              ...initialTaskStates.product,
+              raw: action.value || '',
             },
           };
           if (!action.value || !action.value.startsWith('http')) {
@@ -62,9 +64,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
         }
         case TASK_FIELDS.EDIT_SIZES: {
           let nextSizes = JSON.parse(JSON.stringify(state.sizes));
-          console.log(nextSizes);
           if (nextSizes === null) {
-            nextSizes = [];
+            nextSizes = initialTaskStates.task.sizes;
           } else if (action && action.value && action.value !== undefined && action.value.length > state.sizes.length) {
             nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
           } else {
@@ -143,7 +144,14 @@ export function taskReducer(state = initialTaskStates.task, action) {
         case TASK_FIELDS.EDIT_SIZES: {
           let nextSizes = JSON.parse(JSON.stringify(state.edits.sizes));
           if (nextSizes === null) {
-            nextSizes = [];
+            if (action.value) {
+              nextSizes = [{
+                ...initialTaskStates.task.sizes,
+                id: action.value[0].id,
+                label: action.value[0].label,
+                value: action.value[0].value,
+              }];
+            }
           } else if (action && action.value && action.value !== undefined && action.value.length > nextSizes.length) {
             nextSizes.unshift(...(action.value.filter(s => !state.edits.sizes.includes(s))));
           } else {

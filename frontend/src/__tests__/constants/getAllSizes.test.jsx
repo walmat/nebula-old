@@ -1,5 +1,5 @@
 /* global describe it expect beforeEach */
-import getAllSizes, { getSize } from '../../constants/getAllSizes';
+import getAllSizes, { getSize, getCategory } from '../../constants/getAllSizes';
 
 describe('getAllSizes', () => {
   let expectedSizes;
@@ -145,7 +145,7 @@ describe('getAllSizes', () => {
   it('should lookup the correct sizes', () => {
     expectedSizes.forEach((category) => {
       category.options.forEach((size) => {
-        expect(getSize(size)).toEqual(size);
+        expect(getSize(size.label, category.label)).toEqual(size.label);
       });
     });
   });

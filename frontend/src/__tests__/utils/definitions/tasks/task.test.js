@@ -20,6 +20,6 @@ describe('task definitions', () => {
   testTaskKey('username', [null, '', 'testing'], [{}, false, 3]);
   testTaskKey('password', [null, '', 'testing'], [{}, false, 3]);
   testTaskKey('status', [null, '', 'testing'], [{}, false, 3]);
-  testTaskKey('error_delay', [null, 1, 2.3], [{}, 'testing', false]);
-  testTaskKey('refresh_delay', [null, 1, 2.3], [{}, 'testing', false]);
+  testTaskKey('errorDelay', [null, 1, 2.3], [{}, 'testing', false]);
+  testTaskKey('monitorDelay', [null, 1, 2.3], [{}, 'testing', false]);
 });
