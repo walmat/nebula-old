@@ -32,31 +32,38 @@ class TaskRunner {
         };
     }
     
-    constructor(id, task, proxy) {
+    constructor(id, task, proxy, manager) {
         /**
-         * The id of this task runner
+         * The manager of this task runner
          */
-        this._id = id;
+        this._taskManager = manager;
 
         /**
-         * The task that should be run
+         * Internal Task Runner State
          */
-        this._task = task;
+        this._state = TaskRunner.States.Initialized;
 
-         /**
-          * The proxy that will be used
-          */
-        this._proxy = proxy;
+        /**
+         * The context of this task runner
+         * 
+         * This is a wrapper that contains all data about the task runner.
+         */
+        this._context = {
+            runner_id: id,
+            task,
+            proxy,
+            aborted: false,
+        };
 
         /**
          * Create a new monitor object to be used for the task
          */
-        this._monitor = new Monitor(task, proxy);
+        this._monitor = new Monitor(this._context);
 
         /**
          * Create a new checkout object to be used for this task
          */
-        this._checkout = new Checkout(task, proxy);
+        this._checkout = new Checkout(this._context);
 
         /**
          * Create a new event emitter to handle all IPC communication
@@ -65,10 +72,14 @@ class TaskRunner {
          */
         this._events = new EventEmitter();
 
-        /**
-         * Internal Task Runner State
-         */
-        this._state = TaskRunner.States.Initialized;
+        // Register for events from the task manager
+        // TEMPORARY - This is a potential stub of what this event will look like!
+        // TODO Change the event name and parameters if necessary
+        manager.registerForEvent('abort', (id) => {
+            if (id === this._context.id) {
+                this._context.aborted = true;
+            }
+        });
     }
 
     // MARK: Event Registration
@@ -130,15 +141,15 @@ class TaskRunner {
     _emitEvent(event, message) {
         switch(event) {
             case TaskRunner.Events.TaskStatus: {
-                this._events.emit(TaskRunner.Events.TaskStatus, this._id, message, TaskRunner.Events.TaskStatus);
+                this._events.emit(TaskRunner.Events.TaskStatus, this._context.id, message, TaskRunner.Events.TaskStatus);
                 break;
             }
             case TaskRunner.Events.MonitorStatus: {
-                this._events.emit(TaskRunner.Events.MonitorStatus, this._id, message, TaskRunner.Events.MonitorStatus);
+                this._events.emit(TaskRunner.Events.MonitorStatus, this._context.id, message, TaskRunner.Events.MonitorStatus);
                 break;
             }
             case TaskRunner.Events.CheckoutStatus: {
-                this._events.emit(TaskRunner.Events.CheckoutStatus, this._id, message, TaskRunner.Events.CheckoutStatus);
+                this._events.emit(TaskRunner.Events.CheckoutStatus, this._context.id, message, TaskRunner.Events.CheckoutStatus);
                 break;
             }
             default: {
@@ -192,7 +203,7 @@ class TaskRunner {
     }
 
     async _handleSwapProxies() {
-        const res = await this._taskManager.swapProxies(this._proxy);
+        const res = await this._taskManager.swapProxies(this._context.proxy);
         if (res.errors) {
             this._emitTaskEvent({
                 message: 'Error Swapping Proxies! Retrying Monitor...',
@@ -252,6 +263,9 @@ class TaskRunner {
         this._state = TaskRunner.Started;
         while(this._state !== TaskRunner.States.Stopped) {
             this._state = await this._handleStepLogic(this._state);
+            if (this._context.aborted) {
+                this._state = TaskRunner.States.Aborted;
+            }
         }
         this._emitTaskEvent({
             message: 'Task has stopped.',
