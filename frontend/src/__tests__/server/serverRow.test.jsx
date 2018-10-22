@@ -17,6 +17,7 @@ describe('<ServerRow />', () => {
     return shallow(<ServerRowPrimitive
       server={renderProps.server}
       serverInfo={renderProps.serverInfo}
+      onConnectServer={renderProps.onConnectServer}
       onStartServer={renderProps.onStartServer}
       onStopServer={renderProps.onStopServer}
       onDestroyServer={renderProps.onDestroyServer}
@@ -28,6 +29,7 @@ describe('<ServerRow />', () => {
     defaultProps = {
       server: { ...initialServerStates.server },
       serverInfo: { ...initialServerStates.serverInfo },
+      onConnectServer: () => {},
       onStartServer: () => {},
       onStopServer: () => {},
       onDestroyServer: () => {},
@@ -44,6 +46,7 @@ describe('<ServerRow />', () => {
     expect(wrapper.find('.server-row__charges')).toHaveLength(1);
     expect(wrapper.find('.server-row__status')).toHaveLength(1);
     expect(wrapper.find('.server-row__actions')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ServerRow.tableRowButton.action.connect')).toHaveLength(1);
     expect(getByTestId(wrapper, 'ServerRow.tableRowButton.action.start')).toHaveLength(1);
     expect(getByTestId(wrapper, 'ServerRow.tableRowButton.action.stop')).toHaveLength(1);
     expect(getByTestId(wrapper, 'ServerRow.tableRowButton.action.destroy')).toHaveLength(1);
@@ -150,6 +153,10 @@ describe('<ServerRow />', () => {
     });
   };
 
+  describe('connect button', () => {
+    testActionButton('connect', 'Connect Server', '', '', 'onConnectServer');
+  });
+
   describe('start button', () => {
     testActionButton('start', 'Start Server', '', 'active', 'onStartServer');
   });
@@ -189,15 +196,17 @@ describe('<ServerRow />', () => {
     // Call the handlers with generic objects because we don't
     // Have a way of verifying the args inside the thunk
     // TODO: figure out a way to explicitly test args
+    actual.onConnectServer({}, {});
     actual.onStartServer({}, {});
     actual.onStopServer({}, {});
     actual.onDestroyServer({}, {});
-    expect(dispatch).toHaveBeenCalledTimes(3);
+    expect(dispatch).toHaveBeenCalledTimes(4);
     // Since these actions generate a thunk, we can't test for
     // exact equality, only that a function (i.e. thunk) was
     // dispatched.
     expect(dispatch).toHaveBeenNthCalledWith(1, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(2, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(3, expect.any(Function));
+    expect(dispatch).toHaveBeenNthCalledWith(4, expect.any(Function));
   });
 });
