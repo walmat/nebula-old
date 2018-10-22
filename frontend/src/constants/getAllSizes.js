@@ -135,9 +135,9 @@ export default function getAllSizes() {
 }
 
 export function getCategory(category) {
-  return sizes.filter(c => c.label === category);
+  return sizes.find(c => c.label === category);
 }
 
 export function getSize(size, category) {
-  return getCategory(category).find(s => s.label === size);
+  return getCategory(category).options.find(s => s.label === size).label;
 }
