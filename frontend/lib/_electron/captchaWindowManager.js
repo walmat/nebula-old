@@ -1,5 +1,4 @@
 const IPCKeys = require('../common/constants');
-const nebulaEnv = require('./env');
 const moment = require('moment');
 const _ = require('underscore');
 
@@ -22,6 +21,9 @@ class CaptchaWindowManager {
      */
     this._captchaWindow = captchaWindow;
 
+    /**
+     * Window Manager reference
+     */
     this._windowManager = this._context._windowManager;
 
     /**
@@ -49,6 +51,28 @@ class CaptchaWindowManager {
       IPCKeys.RequestRefreshCaptchaWindow,
       this._onRequestRefreshCaptchaWindow.bind(this),
     );
+
+    /**
+    * Constantly check for expired tokens every second
+    */
+    this._checkTokens = setInterval(this.checkTokens, 1000);
+  }
+
+  /**
+   * Check harvested captcha tokens to see if they're expired or not
+   */
+  static checkTokens() {
+    if (this._tokens.length > 0) {
+      this._tokens.forEach((token) => {
+        token.setTimestamp(110 - moment().diff(moment(token.timestamp, 'seconds')));
+        if (this.isTokenExpired(token)) {
+          this.removeExpiredToken(token);
+        }
+      });
+    } else {
+      // don't run the interval check if no tokens are present
+      clearInterval(this._checkTokens);
+    }
   }
 
   static isTokenExpired(token) {
@@ -152,19 +176,5 @@ class CaptchaWindowManager {
       this._youtubeWindow.show();
     }
   }
-
-  // /**
-  // * Constantly check for expired tokens every second
-  // */
-  // setInterval(
-  //   () => {
-  //     this._tokens.forEach(token => {
-  //       token.setTimestamp(110 - moment().diff(moment(token.getTimestamp(), 'seconds')));
-
-  //       if (isTokenExpired(token)) {
-  //           removeExpiredToken(token);
-  //       }
-  //     });
-  //   }, 1000);
 }
 module.exports = CaptchaWindowManager;
