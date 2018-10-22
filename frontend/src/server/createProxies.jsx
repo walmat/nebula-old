@@ -15,7 +15,6 @@ export class CreateProxiesPrimitive extends Component {
 
   createProxyLocationChangeHandle(field) {
     return (event) => {
-      console.log(event);
       this.props.onEditServerInfo(field, event);
     };
   }

@@ -10,7 +10,32 @@ describe('server list reducer', () => {
   });
 
   it.skip('should handle connect action', () => {
-    // TODO: Test this once it has been implemented
+    const newServerInfo = {
+      id: 2,
+      type: { id: 1, value: 'test_type', label: 'test_type_label' },
+      size: { id: 1, value: 'test_size', label: 'test_size_label' },
+      location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+      charges: 0,
+      status: 'Initializing...',
+    };
+
+    const expected = {
+      servers: [
+        newServerInfo,
+      ],
+      coreServer: {
+        type: { id: 1, value: 'test_type', label: 'test_type_label' },
+        size: { id: 1, value: 'test_size', label: 'test_size_label' },
+        location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+        errors: {},
+      },
+      path: 'testing...',
+    };
+    const actual = serverListReducer(
+      initialServerStates.serverList,
+      { type: SERVER_ACTIONS.CONNECT, serverInfo: expected },
+    );
+    expect(actual).toEqual(expected);
   });
 
   it('should handle create action', () => {

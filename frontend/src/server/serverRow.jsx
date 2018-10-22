@@ -42,46 +42,46 @@ export class ServerRowPrimitive extends Component {
   }
 
   renderTableRowConnectActionButton() {
-    const { server, serverInfo } = this.props;
+    const { server, serverInfo, onConnectServer } = this.props;
     return this.renderTableRowActionButton(
       'connect',
       'Connect Server',
       conn,
       server.status === 'connected' ? 'active' : '',
-      () => { this.props.onConnectServer(server, serverInfo.credentials); },
+      () => { onConnectServer(server, serverInfo.credentials); },
     );
   }
 
   renderTableRowStartActionButton() {
-    const { server, serverInfo } = this.props;
+    const { server, serverInfo, onStartServer } = this.props;
     return this.renderTableRowActionButton(
       'start',
       'Start Server',
       start,
       server.status === 'running' ? 'active' : '',
-      () => { this.props.onStartServer(server, serverInfo.credentials); },
+      () => { onStartServer(server, serverInfo.credentials); },
     );
   }
 
   renderTableRowStopActionButton() {
-    const { server, serverInfo } = this.props;
+    const { server, serverInfo, onStopServer } = this.props;
     return this.renderTableRowActionButton(
       'stop',
       'Stop Server',
       stop,
       server.status === 'stopped' ? 'active' : '',
-      () => { this.props.onStopServer(server, serverInfo.credentials); },
+      () => { onStopServer(server, serverInfo.credentials); },
     );
   }
 
   renderTableRowDestroyActionButton() {
-    const { server, serverInfo } = this.props;
+    const { server, serverInfo, onDestroyServer } = this.props;
     return this.renderTableRowActionButton(
       'destroy',
       'Destroy Server',
       destroy,
       '',
-      () => { this.props.onDestroyServer(server, serverInfo.credentials); },
+      () => { onDestroyServer(server, serverInfo.credentials); },
     );
   }
 
