@@ -62,7 +62,7 @@ class CaptchaWindowManager {
    * Check harvested captcha tokens to see if they're expired or not
    */
   checkTokens() {
-    if (this._tokens.length > 0) {
+    if (this._tokens && this._tokens.length > 0) {
       this._tokens.forEach((token) => {
         token.setTimestamp(110 - moment().diff(moment(token.timestamp, 'seconds')));
         if (this.isTokenExpired(token)) {

@@ -196,6 +196,8 @@ class WindowManager {
       } else if (this._captchas.size > 0) {
         this._captchas.forEach((captchaWindowManager) => {
           if (win.id === captchaWindowManager._captchaWindow.id) {
+            // deregister the interval from the captcha window
+            WindowManager.handleCloseCaptcha(this._captchas.get(win.id));
             this._captchas.delete(win.id);
           } else if (win.id === captchaWindowManager._youtubeWindow.id) {
             captchaWindowManager._youtubeWindow = null;
@@ -203,6 +205,12 @@ class WindowManager {
         });
       }
     };
+  }
+
+  static handleCloseCaptcha(win) {
+    win._tokens = [];
+    clearInterval(win._checkTokens);
+    win._checkTokens = null;
   }
 
   /**
