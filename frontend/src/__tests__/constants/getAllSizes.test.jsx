@@ -143,10 +143,7 @@ describe('getAllSizes', () => {
   });
 
   it('should return correct category', () => {
-    expect(getCategory('Clothing')).toEqual(expectedSizes[0]);
-    expect(getCategory('US Men\'s')).toEqual(expectedSizes[1]);
-    expect(getCategory('UK Men\'s')).toEqual(expectedSizes[2]);
-    expect(getCategory('EU Men\'s')).toEqual(expectedSizes[3]);
+    expectedSizes.forEach(category => expect(getCategory(category.label)).toEqual(category));
   });
 
   it('should lookup the correct sizes', () => {
