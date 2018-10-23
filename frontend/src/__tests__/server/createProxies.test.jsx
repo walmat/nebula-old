@@ -32,6 +32,7 @@ describe('<CreateProxies />', () => {
       onEditServerInfo: () => {},
       onGenerateProxies: () => {},
       onDestroyProxies: () => {},
+      onKeyPress: () => {},
     };
   });
 

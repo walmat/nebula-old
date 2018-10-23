@@ -53,6 +53,12 @@ export function taskReducer(state = initialTaskStates.task, action) {
               username: null,
               password: null,
             };
+          } else {
+            change = {
+              site: initialTaskStates.site,
+              username: initialTaskStates.task.username,
+              password: initialTaskStates.task.password,
+            };
           }
           break;
         }
@@ -77,7 +83,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
             break;
           }
           change = {
-            [mapTaskFieldsToKey[action.field]]: action.value || state[mapTaskFieldsToKey[action.field]],
+            [mapTaskFieldsToKey[action.field]]: action.value ||
+              initialTaskStates.task[mapTaskFieldsToKey[action.field]],
             errors: Object.assign({}, state.errors, action.errors),
           };
         }
@@ -99,6 +106,14 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 },
               },
             };
+          } else {
+            change = {
+              edits: {
+                ...state.edits,
+                errors: Object.assign({}, state.edits.errors, action.errors),
+                product: initialTaskStates.edit.product,
+              },
+            };
           }
           break;
         }
@@ -111,6 +126,16 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 site: action.value,
                 username: null,
                 password: null,
+              },
+            };
+          } else {
+            change = {
+              edits: {
+                ...state.edits,
+                errors: Object.assign({}, state.edits.errors, action.errors),
+                site: initialTaskStates.edit.site,
+                username: initialTaskStates.edit.site,
+                password: initialTaskStates.edit.site,
               },
             };
           }
@@ -149,7 +174,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
           change = {
             edits: {
               ...state.edits,
-              [mapTaskFieldsToKey[action.field]]: action.value || state.edits[mapTaskFieldsToKey[action.field]],
+              [mapTaskFieldsToKey[action.field]]: action.value ||
+                initialTaskStates.task.edits[mapTaskFieldsToKey[action.field]],
               errors: Object.assign({}, state.edits.errors, action.errors),
             },
           };

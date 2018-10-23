@@ -43,7 +43,8 @@ export function profileReducer(state = initialProfileStates.profile, action) {
         break;
       default:
         change = {
-          [mapProfileFieldToKey[action.field]]: action.value || state[mapProfileFieldToKey[action.field]],
+          [mapProfileFieldToKey[action.field]]: action.value ||
+            initialProfileStates.profile[mapProfileFieldToKey[action.field]],
           errors: Object.assign({}, state.errors, action.errors),
         };
         break;
