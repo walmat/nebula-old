@@ -88,8 +88,10 @@ export function serverListReducer(state = initialServerStates.serverList, action
 
   switch (action.type) {
     case SERVER_ACTIONS.CONNECT:
-      const server = nextState.find(s => s.id);
-      server.status = 'Connected';
+      const server = nextState.find(s => s.id === action.id);
+      if (server) {
+        server.status = 'Connected';
+      }
       break;
     case SERVER_ACTIONS.CREATE:
       // perform a deep copy of given profile

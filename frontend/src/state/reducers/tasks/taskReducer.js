@@ -96,39 +96,49 @@ export function taskReducer(state = initialTaskStates.task, action) {
       // If we are editing an existing task, only perform the change on valid edit fields
       switch (action.field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
-          change = {
-            ...state.edits,
-            edits: {
-              errors: Object.assign({}, state.edits.errors, action.errors),
-              product: {
-                raw: action.value,
+          if (action.value) {
+            change = {
+              edits: {
+                ...state.edits,
+                errors: Object.assign({}, state.edits.errors, action.errors),
+                product: {
+                  raw: action.value,
+                },
               },
-            },
-          };
-          if (!action.value || !action.value.startsWith('http')) {
-            break;
-          }
-          const URL = parseURL(action.value);
-          if (!URL || !URL.path) {
-            break;
-          }
-          const site = getAllSites().filter(s => s.value.split('/')[2] === URL.host);
-          if (site.length === 0) {
-            break;
-          }
-          console.log(change);
-          change = {
-            ...change,
-            edits: {
-              ...change.edits,
-              site: {
-                url: site[0].value,
-                name: site[0].label,
+            };
+            if (!action.value || !action.value.startsWith('http')) {
+              break;
+            }
+            const URL = parseURL(action.value);
+            if (!URL || !URL.path) {
+              break;
+            }
+            const site = getAllSites().filter(s => s.value.split('/')[2] === URL.host);
+            if (site.length === 0) {
+              break;
+            }
+            change = {
+              ...change,
+              edits: {
+                ...change.edits,
+                site: {
+                  url: site[0].value,
+                  name: site[0].label,
+                },
+                username: null,
+                password: null,
               },
-              username: null,
-              password: null,
-            },
-          };
+            };
+          } else {
+            console.log('here');
+            change = {
+              edits: {
+                ...state.edits,
+                errors: Object.assign({}, state.edits.errors, action.errors),
+                product: initialTaskStates.edit.product,
+              },
+            };
+          }
           console.log(change);
           break;
         }

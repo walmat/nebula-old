@@ -9,9 +9,17 @@ describe('server list reducer', () => {
     expect(actual).toEqual(initialServerStates.serverList);
   });
 
-  it('should handle connect action', () => {
+  it('should handle connect action when id is valid', () => {
     const initial = [{
       id: 1,
+      type: { id: 1, value: 'test_type', label: 'test_type_label' },
+      size: { id: 1, value: 'test_size', label: 'test_size_label' },
+      location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+      charges: '0',
+      status: 'Initializing...',
+    },
+    {
+      id: 3,
       type: { id: 1, value: 'test_type', label: 'test_type_label' },
       size: { id: 1, value: 'test_size', label: 'test_size_label' },
       location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
@@ -26,10 +34,59 @@ describe('server list reducer', () => {
       location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
       charges: '0',
       status: 'Connected',
+    },
+    {
+      id: 3,
+      type: { id: 1, value: 'test_type', label: 'test_type_label' },
+      size: { id: 1, value: 'test_size', label: 'test_size_label' },
+      location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+      charges: '0',
+      status: 'Initializing...',
     }];
     const actual = serverListReducer(
       initial,
-      { type: SERVER_ACTIONS.CONNECT, action: null },
+      { type: SERVER_ACTIONS.CONNECT, id: 1 },
+    );
+    expect(actual).toEqual(expected);
+  });
+
+  it('should handle connect action id is invalid', () => {
+    const initial = [{
+      id: 1,
+      type: { id: 1, value: 'test_type', label: 'test_type_label' },
+      size: { id: 1, value: 'test_size', label: 'test_size_label' },
+      location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+      charges: '0',
+      status: 'Initializing...',
+    },
+    {
+      id: 3,
+      type: { id: 1, value: 'test_type', label: 'test_type_label' },
+      size: { id: 1, value: 'test_size', label: 'test_size_label' },
+      location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+      charges: '0',
+      status: 'Initializing...',
+    }];
+
+    const expected = [{
+      id: 1,
+      type: { id: 1, value: 'test_type', label: 'test_type_label' },
+      size: { id: 1, value: 'test_size', label: 'test_size_label' },
+      location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+      charges: '0',
+      status: 'Initializing...',
+    },
+    {
+      id: 3,
+      type: { id: 1, value: 'test_type', label: 'test_type_label' },
+      size: { id: 1, value: 'test_size', label: 'test_size_label' },
+      location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+      charges: '0',
+      status: 'Initializing...',
+    }];
+    const actual = serverListReducer(
+      initial,
+      { type: SERVER_ACTIONS.CONNECT, id: null },
     );
     expect(actual).toEqual(expected);
   });
