@@ -50,8 +50,8 @@ describe('<Navbar />', () => {
     delete global.window.Bridge;
   });
 
-  describe('when window Bridge is defined', () => {
-    it('should return name and version correctly', () => {
+  describe('should render name and version correctly', () => {
+    test('when window Bridge is defined', () => {
       Bridge = {
         getAppData: jest.fn(() => ({ name: 'Nebula Orion', version: '1.0.0' })),
       };
@@ -63,10 +63,7 @@ describe('<Navbar />', () => {
       expect(appName).toEqual('Nebula Orion');
       expect(version).toEqual('1.0.0');
     });
-  });
-
-  describe('when window Bridge is undefined', () => {
-    it('should return name and version correctly', () => {
+    test('when window Bridge is undefined', () => {
       const wrapper = renderShallowWithProps();
       const appName = wrapper.find('.appName').text();
       const version = wrapper.find('.appVersion').text();

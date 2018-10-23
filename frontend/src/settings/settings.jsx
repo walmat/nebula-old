@@ -33,6 +33,7 @@ export class SettingsPrimitive extends Component {
     if (window.Bridge) {
       window.Bridge.closeAllCaptchaWindows();
     } else {
+      // TODO - error handling
       console.error('Unable to close all windows');
     }
   }

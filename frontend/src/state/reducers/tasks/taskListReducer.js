@@ -94,7 +94,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       // Check if current task has been setup properly
       if (updateTask.edits) {
         // Set it up properly
-        console.log(updateTask.edits.product, updateTask.product);
         updateTask.profile = updateTask.edits.profile || updateTask.profile;
         updateTask.product = updateTask.edits.product || updateTask.product;
         updateTask.site = updateTask.edits.site || updateTask.site;
