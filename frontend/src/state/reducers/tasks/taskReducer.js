@@ -116,6 +116,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (site.length === 0) {
             break;
           }
+          console.log(change);
           change = {
             ...change,
             edits: {
@@ -128,6 +129,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
               password: null,
             },
           };
+          console.log(change);
           break;
         }
         case TASK_FIELDS.EDIT_SITE: {

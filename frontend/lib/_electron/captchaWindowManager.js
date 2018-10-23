@@ -2,7 +2,7 @@ const IPCKeys = require('../common/constants');
 const moment = require('moment');
 const _ = require('underscore');
 
-const Token = require('../common/classes/token');
+const TokenContainer = require('../common/classes/tokenContainer');
 
 class CaptchaWindowManager {
   constructor(context, captchaWindow, session) {
@@ -159,7 +159,7 @@ class CaptchaWindowManager {
   }
 
   _onRequestHarvestToken(ev, token, host, sitekey) {
-    this._tokens.push(new Token(token, moment(), host, sitekey));
+    this._tokens.push(new TokenContainer(token, moment(), host, sitekey));
     if (this._checkTokens === null) {
       this._checkTokens = setInterval(this.checkTokens, 1000);
     }
