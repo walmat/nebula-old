@@ -30,7 +30,7 @@ export class CreateProxiesPrimitive extends Component {
               <div className="col col--no-gutter">
                 <p className="proxy-options__label">Number</p>
                 <NumberFormat
-                  value={serverInfo.proxyOptions.numProxies || ''}
+                  value={serverInfo.proxyOptions.numProxies}
                   format="##"
                   placeholder="00"
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"

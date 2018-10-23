@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 export const initialProxyOptionsState = {
-  numProxies: '',
+  numProxies: 0,
   location: null,
   username: '',
   password: '',
