@@ -24,7 +24,7 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
         };
         break;
       case SERVER_FIELDS.EDIT_PROXY_NUMBER:
-        const intValue = parseInt(action.value, 10);
+        const intValue = action.value === '' ? 0 : parseInt(action.value, 10);
         change = {
           numProxies: Number.isNaN(intValue) ?
             initialServerStates.proxyOptions.numProxies :
@@ -89,7 +89,7 @@ export function serverListReducer(state = initialServerStates.serverList, action
   switch (action.type) {
     case SERVER_ACTIONS.CONNECT:
       const server = nextState.find(s => s.id);
-      server.status = 'connected';
+      server.status = 'Connected';
       break;
     case SERVER_ACTIONS.CREATE:
       // perform a deep copy of given profile

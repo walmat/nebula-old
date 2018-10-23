@@ -9,31 +9,27 @@ describe('server list reducer', () => {
     expect(actual).toEqual(initialServerStates.serverList);
   });
 
-  it.skip('should handle connect action', () => {
-    const newServerInfo = {
-      id: 2,
+  it('should handle connect action', () => {
+    const initial = [{
+      id: 1,
       type: { id: 1, value: 'test_type', label: 'test_type_label' },
       size: { id: 1, value: 'test_size', label: 'test_size_label' },
       location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
-      charges: 0,
+      charges: '0',
       status: 'Initializing...',
-    };
+    }];
 
-    const expected = {
-      servers: [
-        newServerInfo,
-      ],
-      coreServer: {
-        type: { id: 1, value: 'test_type', label: 'test_type_label' },
-        size: { id: 1, value: 'test_size', label: 'test_size_label' },
-        location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
-        errors: {},
-      },
-      path: 'testing...',
-    };
+    const expected = [{
+      id: 1,
+      type: { id: 1, value: 'test_type', label: 'test_type_label' },
+      size: { id: 1, value: 'test_size', label: 'test_size_label' },
+      location: { id: 1, value: 'test_loc', label: 'test_loc_label' },
+      charges: '0',
+      status: 'Connected',
+    }];
     const actual = serverListReducer(
-      initialServerStates.serverList,
-      { type: SERVER_ACTIONS.CONNECT, serverInfo: expected },
+      initial,
+      { type: SERVER_ACTIONS.CONNECT, action: null },
     );
     expect(actual).toEqual(expected);
   });

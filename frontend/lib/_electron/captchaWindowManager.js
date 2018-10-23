@@ -72,6 +72,7 @@ class CaptchaWindowManager {
     } else {
       // don't run the interval check if no tokens are present
       clearInterval(this._checkTokens);
+      this._checkTokens = null;
     }
   }
 
@@ -159,6 +160,9 @@ class CaptchaWindowManager {
 
   _onRequestHarvestToken(ev, token, host, sitekey) {
     this._tokens.push(new Token(token, moment(), host, sitekey));
+    if (this._checkTokens === null) {
+      this._checkTokens = setInterval(this.checkTokens, 1000);
+    }
   }
 
   /**
