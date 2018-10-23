@@ -106,7 +106,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 },
               },
             };
-            if (!action.value || !action.value.startsWith('http')) {
+            if (!action.value.startsWith('http')) {
               break;
             }
             const URL = parseURL(action.value);
@@ -118,7 +118,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
               break;
             }
             change = {
-              ...change,
               edits: {
                 ...change.edits,
                 site: {
@@ -130,7 +129,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
               },
             };
           } else {
-            console.log('here');
             change = {
               edits: {
                 ...state.edits,
@@ -139,7 +137,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
               },
             };
           }
-          console.log(change);
           break;
         }
         case TASK_FIELDS.EDIT_SITE: {
