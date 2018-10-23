@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
+import Select from 'react-select';
+import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import addTestId from '../utils/addTestId';
@@ -11,8 +13,14 @@ export class CreateProxiesPrimitive extends Component {
     return event => this.props.onEditServerInfo(field, event.target.value);
   }
 
+  createProxyLocationChangeHandle(field) {
+    return (event) => {
+      this.props.onEditServerInfo(field, event);
+    };
+  }
+
   render() {
-    const { serverInfo } = this.props;
+    const { serverInfo, serverListOptions, onKeyPress } = this.props;
     const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
     return (
       <div className="proxy-options col col--start col--no-gutter">
@@ -22,13 +30,28 @@ export class CreateProxiesPrimitive extends Component {
               <div className="col col--no-gutter">
                 <p className="proxy-options__label">Number</p>
                 <NumberFormat
-                  value={serverInfo.proxyOptions.numProxies || ''}
+                  value={serverInfo.proxyOptions.numProxies}
                   format="##"
                   placeholder="00"
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
                   required
                   data-testid={addTestId('CreateProxies.numProxiesInput')}
+                />
+              </div>
+              <div className="col">
+                <p className="proxy-options__label">Location</p>
+                <Select
+                  required
+                  placeholder="AWS Location"
+                  components={{ DropdownIndicator }}
+                  classNamePrefix="select"
+                  className="proxy-options__input--location"
+                  styles={colourStyles}
+                  value={serverInfo.proxyOptions.location}
+                  options={serverListOptions.locations}
+                  data-testid={addTestId('CreateProxies.location')}
+                  onChange={this.createProxyLocationChangeHandle(SERVER_FIELDS.EDIT_PROXY_LOCATION)}
                 />
               </div>
             </div>
@@ -92,8 +115,8 @@ export class CreateProxiesPrimitive extends Component {
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={this.props.onKeyPress}
-              onClick={() => loggedInAws && this.props.onGenerateProxies(this.props.serverInfo.proxyOptions)}
+              onKeyPress={onKeyPress}
+              onClick={() => loggedInAws && this.props.onGenerateProxies(serverInfo.proxyOptions)}
               data-testid={addTestId('CreateProxies.generateProxiesButton')}
             >
               Generate
@@ -107,6 +130,7 @@ export class CreateProxiesPrimitive extends Component {
 
 CreateProxiesPrimitive.propTypes = {
   onEditServerInfo: PropTypes.func.isRequired,
+  serverListOptions: defns.serverListOptions.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   onGenerateProxies: PropTypes.func.isRequired,
   onDestroyProxies: PropTypes.func.isRequired,
@@ -119,6 +143,7 @@ CreateProxiesPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   serverInfo: state.serverInfo,
+  serverListOptions: state.serverListOptions,
 });
 
 export const mapDispatchToProps = dispatch => ({

@@ -1,9 +1,12 @@
+import { parseURL } from 'whatwg-url';
 import {
   TASK_ACTIONS,
   TASK_FIELDS,
   mapTaskFieldsToKey,
 } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
+import getAllSites from '../../../constants/getAllSites';
+import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
 
 export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
@@ -15,17 +18,32 @@ export function taskReducer(state = initialTaskStates.task, action) {
       }
       switch (action.field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
-          if (action.value) {
-            change = {
-              product: {
-                raw: action.value,
-              },
-            };
-          } else {
-            change = {
-              product: initialTaskStates.product,
-            };
+          change = {
+            product: {
+              ...initialTaskStates.product,
+              raw: action.value || '',
+            },
+          };
+          if (!action.value || !action.value.startsWith('http')) {
+            break;
           }
+          const URL = parseURL(action.value);
+          if (!URL || !URL.path) {
+            break;
+          }
+          const site = getAllSites().filter(s => s.value.split('/')[2] === URL.host);
+          if (site.length === 0) {
+            break;
+          }
+          change = {
+            ...change,
+            site: {
+              url: site[0].value,
+              name: site[0].label,
+            },
+            username: null,
+            password: null,
+          };
           break;
         }
         case TASK_FIELDS.EDIT_SITE: {
@@ -42,6 +60,22 @@ export function taskReducer(state = initialTaskStates.task, action) {
               password: initialTaskStates.task.password,
             };
           }
+          break;
+        }
+        case TASK_FIELDS.EDIT_SIZES: {
+          let nextSizes = JSON.parse(JSON.stringify(state.sizes));
+          if (nextSizes === null) {
+            nextSizes = initialTaskStates.task.sizes;
+          } else if (action && action.value && action.value !== undefined && action.value.length > state.sizes.length) {
+            nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
+          } else {
+            nextSizes = state.sizes.filter(s => action.value.includes(s));
+          }
+
+          change = {
+            sizes: nextSizes,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
           break;
         }
         default: {
@@ -70,6 +104,28 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 product: {
                   raw: action.value,
                 },
+              },
+            };
+            if (!action.value.startsWith('http')) {
+              break;
+            }
+            const URL = parseURL(action.value);
+            if (!URL || !URL.path) {
+              break;
+            }
+            const site = getAllSites().filter(s => s.value.split('/')[2] === URL.host);
+            if (site.length === 0) {
+              break;
+            }
+            change = {
+              edits: {
+                ...change.edits,
+                site: {
+                  url: site[0].value,
+                  name: site[0].label,
+                },
+                username: null,
+                password: null,
               },
             };
           } else {
@@ -107,8 +163,34 @@ export function taskReducer(state = initialTaskStates.task, action) {
           }
           break;
         }
+        case TASK_FIELDS.EDIT_SIZES: {
+          let nextSizes = JSON.parse(JSON.stringify(state.edits.sizes));
+          if (nextSizes === null) {
+            if (action.value) {
+              nextSizes = [{
+                ...initialTaskStates.task.sizes,
+                id: action.value[0].id,
+                label: action.value[0].label,
+                value: action.value[0].value,
+              }];
+            }
+          } else if (action && action.value && action.value !== undefined && action.value.length > nextSizes.length) {
+            nextSizes.unshift(...(action.value.filter(s => !state.edits.sizes.includes(s))));
+          } else {
+            nextSizes = state.edits.sizes.filter(s => action.value.includes(s));
+          }
+
+          change = {
+            edits: {
+              ...state.edits,
+              sizes: nextSizes,
+              errors: Object.assign({}, state.edits.errors, action.errors),
+            },
+          };
+          break;
+        }
+        case TASK_FIELDS.EDIT_PAIRS:
         case TASK_FIELDS.EDIT_PROFILE:
-        case TASK_FIELDS.EDIT_SIZES:
         case TASK_FIELDS.EDIT_PASSWORD:
         case TASK_FIELDS.EDIT_USERNAME: {
           change = {
@@ -125,7 +207,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
       }
     }
   }
-
   return Object.assign({}, state, change);
 }
 
@@ -158,7 +239,7 @@ export function selectedTaskReducer(state = initialTaskStates.task, action) {
     case TASK_ACTIONS.SELECT: {
       // if the user is toggling
       if (!action.task) {
-        break;
+        return Object.assign({}, initialTaskStates.task);
       }
       // Set the next state to the selected profile
       return Object.assign({}, action.task);

@@ -6,7 +6,6 @@ export const TASK_ACTIONS = {
   REMOVE: 'REMOVE_TASK',
   EDIT: 'EDIT_TASK',
   SELECT: 'SELECT_TASK',
-  LOAD: 'LOAD_TASK',
   UPDATE: 'UPDATE_TASK',
   START: 'START_TASK',
   STOP: 'STOP_TASK',
@@ -17,7 +16,7 @@ export const TASK_ACTIONS = {
 const _addTaskRequest = async task =>
   new Promise((resolve, reject) => {
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/i;
-    const keywordRegex = /^[+-][A-Za-z0-9]+$/;
+    const keywordRegex = /^[+-][A-Za-z0-9&]+$/;
     const variantRegex = /^\d+$/;
     const copy = JSON.parse(JSON.stringify(task));
     const kws = task.product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
@@ -40,7 +39,7 @@ const _addTaskRequest = async task =>
             return copy.product.pos_keywords.push(kw.slice(1, kw.length));
           }
           // negative keywords
-          return copy.product.neg_keyword.push(kw.slice(1, kw.length));
+          return copy.product.neg_keywords.push(kw.slice(1, kw.length));
         });
         resolve({ task: copy });
       }
@@ -128,7 +127,6 @@ const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 // Public Actions
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
 const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
-const loadTask = makeActionCreator(TASK_ACTIONS.LOAD, 'task');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
@@ -202,7 +200,6 @@ export const taskActions = {
   edit: editTask,
   clearEdits,
   select: selectTask,
-  // load: loadTask,
   update: updateTask,
   start: startTask,
   stop: stopTask,

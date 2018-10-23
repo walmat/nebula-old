@@ -24,9 +24,19 @@ const bodymovinOptions = {
   },
 };
 
+
 export class NavbarPrimitive extends PureComponent {
+  static _getAppData() {
+    if (window.Bridge) {
+      return window.Bridge.getAppData();
+    }
+    return { name: 'Nebula-Orion', version: null };
+  }
+
   render() {
     const { history, navbar, onKeyPress } = this.props;
+    const { name, version } = NavbarPrimitive._getAppData();
+
     return (
       <div className="nav-container">
         <div className="flex-column">
@@ -79,6 +89,12 @@ export class NavbarPrimitive extends PureComponent {
             }}
           >
             <img src={settings} className="main-icons" id="icon-settings" alt="settings" draggable="false" />
+          </div>
+          <div className="appName">
+            <p>{name.replace('-', ' ')}</p>
+          </div>
+          <div className="appVersion">
+            <p>{version}</p>
           </div>
         </div>
       </div>

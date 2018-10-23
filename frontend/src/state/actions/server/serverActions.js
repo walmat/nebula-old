@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 export const SERVER_ACTIONS = {
   EDIT: 'EDIT_SERVER_OPTIONS',
   CREATE: 'CREATE_SERVER',
+  CONNECT: 'CONNECT_SERVER',
   START: 'START_SERVER',
   STOP: 'STOP_SERVER',
   DESTROY: 'DESTROY_SERVER',
@@ -19,11 +20,11 @@ export const SERVER_ACTIONS = {
 };
 
 // Private API Requests
-  /**
-   * see:
-   * exmaples - https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/javascript/example_code/ec2/ec2_createinstances.js
-   * docs - https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
-   */
+/**
+ * see:
+ * exmaples - https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/javascript/example_code/ec2/ec2_createinstances.js
+ * docs - https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
+ */
 const _createServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
     if (serverOptions && awsCredentials) {
@@ -75,8 +76,11 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
 const _connectServerRequest = async (serverOptions, awsCredentials) =>
   new Promise((resolve, reject) => {
-    // TODO - finalize this API request internally
-    resolve(serverOptions);
+    if (serverOptions && awsCredentials) {
+      resolve({ server: serverOptions, credentials: awsCredentials });
+    } else {
+      reject(new Error('invalid parameters'));
+    }
   });
 
 const _destroyServerRequest = async (serverOptions, awsCredentials) =>
@@ -246,7 +250,7 @@ const _stopServer = makeActionCreator(SERVER_ACTIONS.STOP, 'serverPath');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
 const _destroyAllServers = makeActionCreator(SERVER_ACTIONS.DESTROY_ALL, 'credentials');
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
-const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'credentials');
+const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'serverInfo', 'credentials');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS);
@@ -293,8 +297,8 @@ const generateProxies = proxyOptions =>
   );
 
 const connectServer = (serverOptions, awsCredentials) =>
-  dispatch => _connectServerRequest((serverOptions, awsCredentials)).then(
-    res => dispatch(_connectServer(res)),
+  dispatch => _connectServerRequest(serverOptions, awsCredentials).then(
+    res => dispatch(_connectServer(res.server, res.credentials)),
     error => dispatch(handleError(SERVER_ACTIONS.CONNECT, error)),
   );
 
@@ -319,6 +323,7 @@ const logoutAws = (serverOptions, awsCredentials) =>
 export const serverActions = {
   edit: editServer,
   create: createServer,
+  connect: connectServer,
   start: startServer,
   stop: stopServer,
   destroy: destroyServer,
@@ -336,6 +341,7 @@ export const SERVER_FIELDS = {
   EDIT_SERVER_SIZE: 'EDIT_SERVER_SIZE',
   EDIT_SERVER_LOCATION: 'EDIT_SERVER_LOCATION',
   EDIT_PROXY_NUMBER: 'EDIT_PROXY_NUMBER',
+  EDIT_PROXY_LOCATION: 'EDIT_PROXY_LOCATION',
   EDIT_PROXY_USERNAME: 'EDIT_PROXY_USERNAME',
   EDIT_PROXY_PASSWORD: 'EDIT_PROXY_PASSWORD',
   EDIT_AWS_ACCESS_KEY: 'EDIT_AWS_ACCESS_KEY',
@@ -347,6 +353,7 @@ export const mapServerFieldToKey = {
   [SERVER_FIELDS.EDIT_SERVER_SIZE]: 'serverOptions',
   [SERVER_FIELDS.EDIT_SERVER_LOCATION]: 'serverOptions',
   [SERVER_FIELDS.EDIT_PROXY_NUMBER]: 'proxyOptions',
+  [SERVER_FIELDS.EDIT_PROXY_LOCATION]: 'proxyOptions',
   [SERVER_FIELDS.EDIT_PROXY_USERNAME]: 'proxyOptions',
   [SERVER_FIELDS.EDIT_PROXY_PASSWORD]: 'proxyOptions',
   [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'credentials',
@@ -357,6 +364,7 @@ export const subMapToKey = {
   [SERVER_FIELDS.EDIT_SERVER_TYPE]: 'type',
   [SERVER_FIELDS.EDIT_SERVER_SIZE]: 'size',
   [SERVER_FIELDS.EDIT_SERVER_LOCATION]: 'location',
+  [SERVER_FIELDS.EDIT_PROXY_LOCATION]: 'location',
   [SERVER_FIELDS.EDIT_PROXY_USERNAME]: 'username',
   [SERVER_FIELDS.EDIT_PROXY_PASSWORD]: 'password',
   [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'AWSAccessKey',

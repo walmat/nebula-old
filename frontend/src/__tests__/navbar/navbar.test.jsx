@@ -1,4 +1,4 @@
-/* global describe it expect beforeEach jest test */
+/* global describe it expect beforeEach afterEach jest test */
 import React from 'react';
 import { shallow } from 'enzyme';
 import createMemoryHistory from 'history/createMemoryHistory';
@@ -10,24 +10,29 @@ import { initialNavbarState } from '../../state/reducers/navbar/navbarReducer';
 import { ROUTES } from '../../state/actions';
 
 describe('<Navbar />', () => {
+  let Bridge;
   let history;
   let props;
 
-  const renderWrapperWithLocation = (loc) => {
-    props.navbar = { location: loc };
-    const wrapper = shallow(<NavbarPrimitive
-      history={props.history}
-      navbar={props.navbar}
-      onRouteTasks={props.onRouteTasks}
-      onRouteProfiles={props.onRouteProfiles}
-      onRouteServer={props.onRouteServer}
-      onRouteSettings={props.onRouteSettings}
-      onKeyPress={props.onKeyPress}
+  const renderShallowWithProps = (customProps) => {
+    const renderProps = {
+      ...props,
+      ...customProps,
+    };
+
+    return shallow(<NavbarPrimitive
+      history={renderProps.history}
+      navbar={renderProps.navbar}
+      onRouteTasks={renderProps.onRouteTasks}
+      onRouteProfiles={renderProps.onRouteProfiles}
+      onRouteServer={renderProps.onRouteServer}
+      onRouteSettings={renderProps.onRouteSettings}
+      onKeyPress={renderProps.onKeyPress}
     />);
-    expect(wrapper.find(NavbarPrimitive)).toBeDefined();
-    return wrapper;
   };
 
+  const renderWrapperWithLocation = loc => renderShallowWithProps({ navbar: { location: loc } });
+  
   beforeEach(() => {
     history = createMemoryHistory();
     props = {
@@ -39,6 +44,32 @@ describe('<Navbar />', () => {
       onRouteSettings: jest.fn(),
       onKeyPress: jest.fn(),
     };
+  });
+
+  afterEach(() => {
+    delete global.window.Bridge;
+  });
+
+  describe('should render name and version correctly', () => {
+    test('when window Bridge is defined', () => {
+      Bridge = {
+        getAppData: jest.fn(() => ({ name: 'Nebula Orion', version: '1.0.0' })),
+      };
+      global.window.Bridge = Bridge;
+      const wrapper = renderShallowWithProps();
+      expect(Bridge.getAppData).toHaveBeenCalled();
+      const appName = wrapper.find('.appName').text();
+      const version = wrapper.find('.appVersion').text();
+      expect(appName).toEqual('Nebula Orion');
+      expect(version).toEqual('1.0.0');
+    });
+    test('when window Bridge is undefined', () => {
+      const wrapper = renderShallowWithProps();
+      const appName = wrapper.find('.appName').text();
+      const version = wrapper.find('.appVersion').text();
+      expect(appName).toEqual('Nebula Orion');
+      expect(version).toEqual('');
+    });
   });
 
   it('should render with required props', () => {

@@ -13,7 +13,6 @@ const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = req
  * Application entry point.
  */
 class App {
-
   /**
    * Initialize instance.
    */
@@ -37,6 +36,12 @@ class App {
      * @type {shell}
      */
     this._shell = Electron.shell;
+
+    /**
+     * The application's session storage
+     * @type {session}
+     */
+    this._session = Electron.session;
 
     /**
      * Manage the window.
@@ -71,6 +76,14 @@ class App {
    */
   get shell() {
     return this._shell;
+  }
+
+  /**
+   * Get the session module.
+   * @return {session} Application session
+   */
+  get session() {
+    return this._session;
   }
 
   /**

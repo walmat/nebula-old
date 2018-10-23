@@ -77,29 +77,28 @@
     cursor: pointer;
 }
 
-#icon-information {
+.appName {
     position:absolute;
-    top:692px;
-    left: 26px;
-    width: 12px;
-    height: 12px;
-    cursor: pointer;
+    bottom: 32px;
+    width:110px;
+    height:12px;
+    text-transform: capitalize;
+    text-align: center;
+}
+.appName > p {
+    opacity: 0.75;
+    color: #46ADB4;
 }
 
-#icon-deactivate {
-    position:absolute;
-    top:692px;
-    left:48px;
-    width:17px;
-    height:12px;
-    cursor: pointer;
+.appVersion > p {
+    opacity: 0.75;
+    color: #F0405E;
 }
 
-#icon-logout {
+.appVersion {
     position:absolute;
-    top:692px;
-    left:72px;
-    width:12px;
+    bottom: 16px;
+    width:110px;
     height:12px;
-    cursor: pointer;
+    text-align: center;
 }

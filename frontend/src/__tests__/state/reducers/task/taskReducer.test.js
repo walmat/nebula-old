@@ -76,6 +76,7 @@ describe('task reducer', () => {
           const expected = {
             ...initialTaskStates.task,
             product: {
+              ...initialTaskStates.product,
               raw: 'test',
             },
           };
@@ -134,7 +135,7 @@ describe('task reducer', () => {
         test('sizes', () => {
           checkGeneralFieldEdit(
             TASK_FIELDS.EDIT_SIZES,
-            { id: 1, value: 'test', label: 'test' },
+            [{ id: 1, value: 'test', label: 'test' }],
           );
         });
       });
@@ -308,7 +309,7 @@ describe('task reducer', () => {
         });
 
         test('sizes', () => {
-          checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, { id: 1, value: 'test', label: 'test' }, 1);
+          checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, [{ id: 1, value: 'test', label: 'test' }], 1);
         });
       });
 

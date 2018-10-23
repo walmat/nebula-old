@@ -1,5 +1,4 @@
 html, body {
-    /* Rectangle: */
     background: #f5f5f5;
     border-radius: 3px;
     border: none;
@@ -12,10 +11,58 @@ body {
     margin: auto;
 }
 
+button:hover {
+    opacity: 0.85;
+}
+
+button:focus {
+    outline: none;
+}
+
 #close-btn {
     position: absolute;
     top: 7px;
     right: 7px;
+    cursor: pointer;
+}
+
+#launch-youtube {
+    background: #F0405E;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #EFEFEF;
+    letter-spacing: 0;
+    border: none;
+    border-top: 2px #d0d0d0 solid;
+    border-left: 1px #d0d0d0 solid;
+    position: absolute;
+    bottom: 0;
+    left: 200px;
+    width: 200px;
+    height: 39px;
+    cursor: pointer;
+}
+
+#captcha {
+    position: absolute;
+    top: 285px;
+    left: 50px;
+}
+
+#end-session {
+    background: #46ADB4;
+    font-family: AvenirNext-Medium;
+    font-size: 12px;
+    color: #dddddd;
+    letter-spacing: 0;
+    border: none;
+    border-top: 2px #d0d0d0 solid;
+    border-right: 1px #d0d0d0 solid;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    height: 39px;
     cursor: pointer;
 }
 

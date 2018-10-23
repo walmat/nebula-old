@@ -115,7 +115,7 @@ export class TaskRowPrimitive extends Component {
     }
     const testIdBase = 'TaskRow.edit';
     const { edits } = this.props;
-    let editProduct = 'None';
+    let editProduct = null;
     let editProfile = null;
     let editSizes = [];
     let editSite = null;
@@ -292,7 +292,7 @@ export class TaskRowPrimitive extends Component {
   }
 
   renderTableRowEditButton() {
-    const { task, isEditing } = this.props;
+    const { isEditing } = this.props;
     return this.renderTableRowButton(
       'edit',
       'Edit Task',

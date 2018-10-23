@@ -7,24 +7,35 @@
   <body>
     <div id="titlebar"></div>
     <img src="./assets/close-captcha.svg" id="close-btn" onclick="window.Bridge.close()" />
-
-    <div class="loader">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <!-- <p>Waiting for captcha...</p> -->
+    <div id="waiting">
+      <div class="loader">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      
     </div>
-
-    <form action="/submit" method="post" style="margin-top: 180px;">
-        <div id="captchaFrame"></div>
+    <div id="captcha">
+      <form action="/submit" method="post">
+        <div id="captchaFrame">
+          <div class="g-recaptcha" data-sitekey="window.Bridge.getSitekey()" data-callback="submitCaptcha"></div>
+        </div>
         <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
     </form>
+    </div>
+    <div class="footer">
+      <button id="launch-youtube" onclick="window.Bridge.launchYoutube()" >Account</button>
+      <button id="end-session" onclick="window.Bridge.endCaptchaSession()" >End Session</button>
+    </div>
     <script>
-      const token = document.getElementById('g-recaptcha-response').value;
-      window.Bridge.harvest(token);
-      grecaptcha.reset();
+      function submitCaptcha() {
+        const token = document.getElementById('g-recaptcha-response').value;
+        window.Bridge.harvestCaptchaToken(token);
+        grecaptcha.reset();
+        window.Bridge.refreshCaptchaWindow();
+      }
     </script>
   </body>
 </html>

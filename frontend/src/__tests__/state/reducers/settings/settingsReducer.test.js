@@ -59,6 +59,38 @@ describe('settings reducer', () => {
       expect(actual).toEqual(expected);
     });
 
+    test('monitor delay action', () => {
+      const expected = {
+        ...initialSettingsStates.settings,
+        monitorDelay: 1500,
+      };
+      const actual = settingsReducer(
+        undefined,
+        {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: '1500',
+        },
+      );
+      expect(actual).toEqual(expected);
+    });
+
+    test('error delay action', () => {
+      const expected = {
+        ...initialSettingsStates.settings,
+        errorDelay: 1500,
+      };
+      const actual = settingsReducer(
+        undefined,
+        {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: '1500',
+        },
+      );
+      expect(actual).toEqual(expected);
+    });
+
     test('default profile settings action', () => {
       const expected = {
         ...initialSettingsStates.settings,

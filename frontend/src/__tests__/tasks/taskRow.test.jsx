@@ -112,7 +112,7 @@ describe('<TaskRow />', () => {
   const testEditMenuValues = (wrapper, {
     product, site, profile, sizes, username, password,
   }) => {
-    expect(getByTestId(wrapper, 'TaskRow.edit.productInput').prop('value')).toBe(product || 'None');
+    expect(getByTestId(wrapper, 'TaskRow.edit.productInput').prop('value')).toBe(product || null);
     expect(getByTestId(wrapper, 'TaskRow.edit.siteSelect').prop('value')).toEqual(site || null);
     expect(getByTestId(wrapper, 'TaskRow.edit.profileSelect').prop('value')).toEqual(profile || null);
     expect(getByTestId(wrapper, 'TaskRow.edit.sizesSelect').prop('value')).toEqual(sizes || []);
@@ -504,7 +504,7 @@ describe('<TaskRow />', () => {
         const wrapper = renderShallowWithProps(customProps);
         initialTests(wrapper);
         testTableRowValues(wrapper, {});
-        testEditMenuValues(wrapper, { product: 'None' });
+        testEditMenuValues(wrapper, { product: null });
       });
 
       test('product is given with valid raw', () => {

@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import stop from '../_assets/stop.svg';
 import start from '../_assets/run.svg';
 import destroy from '../_assets/destroy.svg';
+import conn from '../_assets/connect.svg';
 
 import defns from '../utils/definitions/serverDefinitions';
 import { serverActions } from '../state/actions/server/serverActions';
@@ -40,36 +41,47 @@ export class ServerRowPrimitive extends Component {
     );
   }
 
+  renderTableRowConnectActionButton() {
+    const { server, serverInfo, onConnectServer } = this.props;
+    return this.renderTableRowActionButton(
+      'connect',
+      'Connect Server',
+      conn,
+      server.status === 'connected' ? 'active' : '',
+      () => { onConnectServer(server, serverInfo.credentials); },
+    );
+  }
+
   renderTableRowStartActionButton() {
-    const { server, serverInfo } = this.props;
+    const { server, serverInfo, onStartServer } = this.props;
     return this.renderTableRowActionButton(
       'start',
       'Start Server',
       start,
       server.status === 'running' ? 'active' : '',
-      () => { this.props.onStartServer(server, serverInfo.credentials); },
+      () => { onStartServer(server, serverInfo.credentials); },
     );
   }
 
   renderTableRowStopActionButton() {
-    const { server, serverInfo } = this.props;
+    const { server, serverInfo, onStopServer } = this.props;
     return this.renderTableRowActionButton(
       'stop',
       'Stop Server',
       stop,
       server.status === 'stopped' ? 'active' : '',
-      () => { this.props.onStopServer(server, serverInfo.credentials); },
+      () => { onStopServer(server, serverInfo.credentials); },
     );
   }
 
   renderTableRowDestroyActionButton() {
-    const { server, serverInfo } = this.props;
+    const { server, serverInfo, onDestroyServer } = this.props;
     return this.renderTableRowActionButton(
       'destroy',
       'Destroy Server',
       destroy,
       '',
-      () => { this.props.onDestroyServer(server, serverInfo.credentials); },
+      () => { onDestroyServer(server, serverInfo.credentials); },
     );
   }
 
@@ -84,6 +96,7 @@ export class ServerRowPrimitive extends Component {
         <div className="col col--no-gutter server-row__status">{server.status}</div>
         <div className="col col--no-gutter server-row__actions">
           <div className="row row--gutter">
+            {this.renderTableRowConnectActionButton()}
             {this.renderTableRowStartActionButton()}
             {this.renderTableRowStopActionButton()}
             {this.renderTableRowDestroyActionButton()}
@@ -105,6 +118,7 @@ export class ServerRowPrimitive extends Component {
 ServerRowPrimitive.propTypes = {
   server: defns.server.isRequired,
   serverInfo: defns.serverInfo.isRequired,
+  onConnectServer: PropTypes.func.isRequired,
   onStartServer: PropTypes.func.isRequired,
   onStopServer: PropTypes.func.isRequired,
   onDestroyServer: PropTypes.func.isRequired,
@@ -121,6 +135,9 @@ export const mapStateToProps = (state, ownProps) => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
+  onConnectServer: (serverOptions, awsCredentials) => {
+    dispatch(serverActions.connect(serverOptions, awsCredentials));
+  },
   onStartServer: (serverOptions, awsCredentials) => {
     dispatch(serverActions.start(serverOptions, awsCredentials));
   },

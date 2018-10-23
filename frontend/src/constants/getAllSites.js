@@ -13,7 +13,7 @@ const s = [
     value: 'https://yeezysupply.com', label: 'Yeezy Supply', supported: true, auth: false,
   },
   {
-    value: 'https://www.funko-shop.com', label: 'Funko Shop', supported: true, auth: false,
+    value: 'https://funko-shop.com', label: 'Funko Shop', supported: true, auth: false,
   },
   { value: 'https://shop-usa.palaceskateboards.com/', label: 'Palace US' },
   { value: 'https://12amrun.com', label: '12AM:Run' },
@@ -23,7 +23,6 @@ const s = [
   {
     value: 'https://thedarksideinitiative.com', label: 'Dark Side Initiative', supported: true, auth: false,
   },
-  { value: 'https://www.us.ateaze.com', label: 'At Eaze US' },
   { value: 'https://unknwn.com', label: 'Unknwn' },
   { value: 'https://thesurestore.com', label: 'Sure!' },
   { value: 'https://theclosetinc.com', label: 'Closet Clothing Co.' },
@@ -38,7 +37,6 @@ const s = [
   {
     value: 'https://burnrubbersneakers.com', label: 'Burn Rubber', supported: true, auth: false,
   },
-  { value: 'https://www.ca.ateaze.com', label: 'At Eaze CA' },
   { value: 'https://ca.octobersveryown.com', label: 'OVO CA' },
   { value: 'https://us.octobersveryown.com', label: 'OVO US' },
   { value: 'https://centre214.com', label: 'Centre' },
@@ -93,15 +91,15 @@ const s = [
   {
     value: 'https://wishatl.com', label: 'Wish Atlanta', supported: true, auth: false,
   },
-  { value: 'https://www.abovethecloudsstore.com', label: 'Above the Cloud' },
-  { value: 'https://www.addictmiami.com', label: 'Addict' },
+  { value: 'https://abovethecloudsstore.com', label: 'Above the Cloud' },
+  { value: 'https://addictmiami.com', label: 'Addict' },
   {
     value: 'https://amongstfew.com', label: 'Amongst Few', supported: true, auth: false,
   },
   { value: 'https://apbstore.com', label: 'A.P.B. Store' },
   { value: 'https://bbbranded.com', label: 'Big Baller Brand' },
   { value: 'https://bbcicecream.com', label: 'Billionaire Boys Club' },
-  { value: 'https://www.blkmkt.us', label: 'Black Market US' },
+  { value: 'http://blkmkt.us', label: 'Black Market US' },
   { value: 'https://bowsandarrowsberkeley.com', label: 'Bows & Arrows' },
   { value: 'https://capsuletoronto.com', label: 'Capsule' },
   { value: 'https://cityblueshop.com', label: 'City Blue' },
@@ -130,11 +128,10 @@ const s = [
   {
     value: 'https://minishopmadrid.com', label: 'Mini Shop Madrid', supported: true, auth: false,
   },
-  { value: 'https://www.notre-shop.com', label: 'Notre' },
+  { value: 'https://notre-shop.com', label: 'Notre' },
   { value: 'https://oipolloi.com', label: 'Oipolloi' },
-  { value: 'https://www.oneness287.com', label: 'Oneness' },
-  { value: 'https://www.pampamlondon.com', label: 'Pam Pam' },
-  { value: 'https://www.philipbrownemenswear.co.uk', label: 'Philip Browne' },
+  { value: 'http://oneness287.com', label: 'Oneness' },
+  { value: 'https://pampamlondon.com', label: 'Pam Pam' },
   { value: 'https://www.rooneyshop.com', label: 'Rooney' },
   { value: 'https://saintalfred.com', label: 'Saint Alfred' },
   {
@@ -154,7 +151,7 @@ const s = [
   { value: 'https://solefly.com', label: 'Solefly' },
   { value: 'https://soleheaven.com', label: 'Sole Heaven' },
   { value: 'https://solestop.com', label: 'Sole Stop' },
-  { value: 'http://www.usgstore.com.au', label: 'Urban Street Gear' },
+  { value: 'http://usgstore.com.au', label: 'Urban Street Gear' },
 ];
 
 export default function getAllSupportedSitesSorted() {

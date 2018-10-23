@@ -27,9 +27,11 @@ const IPCKeys = {
   AuthRequestStatus: 'AuthRequestStatus',
 
   RequestLaunchHarvester: 'RequestLaunchHarvester',
+  RequestCloseAllCaptchaWindows: 'RequestCloseAllCaptchaWindows',
   RequestLaunchYoutube: 'RequestLaunchYoutube',
   RequestCloseWindow: 'RequestCloseWindow',
   RequestEndSession: 'RequestEndSession',
+  RequestGetAppVersion: 'RequestGetAppVersion',
 
   HarvestCaptcha: 'HarvestCaptcha',
   RequestRefresh: 'RequestRefresh',

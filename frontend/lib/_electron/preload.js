@@ -1,7 +1,7 @@
 const { remote } = require('electron');
-const { dialog } = require('electron').remote;
+const { dialog, app } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
-const IPCKeys = require('../common/Constants');
+const IPCKeys = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
 
 // setup environment
@@ -14,7 +14,7 @@ webFrame.setLayoutZoomLevelLimits(0, 0);
 /**
  * Sends IPCMain an event trigger
  * @param {String} channel definition for which trigger to look for
- * @param {*} msg any object to send along with the event
+ * @param {*} msg any object to send along with the event || null
  */
 const _sendEvent = (channel, msg) => {
   ipcRenderer.send(channel, msg);
@@ -26,6 +26,22 @@ const _sendEvent = (channel, msg) => {
 const _deactivate = () => {
   _sendEvent(IPCKeys.AuthRequestDeactivate);
 };
+
+/**
+ * Prevent dragover events globally
+ */
+window.addEventListener('dragover', (event) => {
+  event.preventDefault();
+  return false;
+}, false);
+
+/**
+ * Prevent drop events globally
+ */
+window.addEventListener('drop', (event) => {
+  event.preventDefault();
+  return false;
+}, false);
 
 /**
  * Sends the deactivate trigger to authManager.js
@@ -44,40 +60,50 @@ const _close = () => {
   _sendEvent(IPCKeys.RequestCloseWindow, id);
 };
 
+const _closeAllCaptchaWindows = () => {
+  _sendEvent(IPCKeys.RequestCloseAllCaptchaWindows);
+};
+
 /**
  * Sends the launch youtube window trigger to windowManager.js
  */
 const _launchYoutube = () => {
-  _sendEvent(IPCKeys.RequestCreateNewWindow, 'youtube');
+  _sendEvent(IPCKeys.RequestLaunchYoutube);
 };
 
 /**
  * Sends the launch captcha window trigger to windowManager.js
  */
-const _launchHarvester = () => {
+const _launchCaptchaHarvester = () => {
   _sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha');
 };
 
 /**
  * Sends the end session trigger to windowManager.js
  */
-const _endSession = () => {
-  _sendEvent(IPCKeys.RequestEndSession);
+const _endCaptchaSession = () => {
+  const { id } = remote.getCurrentWindow();
+  _sendEvent(IPCKeys.RequestEndSession, id);
 };
 
 /**
  * Sends the harvest captcha trigger to windowManager.js
  */
-const _harvest = (token) => {
+const _harvestCaptchaToken = (token) => {
   _sendEvent(IPCKeys.HarvestCaptcha, token);
 };
 
 /**
  * Sends the refresh window trigger to windowManager.js
  */
-const _refresh = (window) => {
-  _sendEvent(IPCKeys.RequestRefresh, window);
+const _refreshCaptchaWindow = () => {
+  _sendEvent(IPCKeys.RequestRefresh);
 };
+
+/**
+ * Send app name/version to the renderer
+ */
+const _getAppData = () => ({ name: app.getName(), version: app.getVersion() });
 
 /**
  * ... TODO!
@@ -100,11 +126,13 @@ process.once('loaded', () => {
   window.Bridge = window.Bridge || {};
   /* BRIDGED EVENTS */
   window.Bridge.launchYoutube = _launchYoutube;
-  window.Bridge.launchHarvester = _launchHarvester;
+  window.Bridge.launchCaptchaHarvester = _launchCaptchaHarvester;
+  window.Bridge.closeAllCaptchaWindows = _closeAllCaptchaWindows;
   window.Bridge.close = _close;
-  window.Bridge.refresh = _refresh;
-  window.Bridge.harvest = _harvest;
-  window.Bridge.endSession = _endSession;
+  window.Bridge.refreshCaptchaWindow = _refreshCaptchaWindow;
+  window.Bridge.harvestCaptchaToken = _harvestCaptchaToken;
+  window.Bridge.endCaptchaSession = _endCaptchaSession;
+  window.Bridge.getAppData = _getAppData;
   window.Bridge.deactivate = _deactivate;
   window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;

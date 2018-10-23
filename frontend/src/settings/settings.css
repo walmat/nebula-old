@@ -2,19 +2,28 @@ input::placeholder, input {
     text-transform: none;
 }
 
+#setting-header {
+    margin: 0;
+    position: absolute;
+    top: 26px;
+    left: 138.5px;
+    width: 118px;
+    height: 66px;
+}
+
 #proxy-list-label {
     margin: 0;
     position: absolute;
     top: 101px;
-    left: 140px;
+    left: 139px;
 }
 
 #proxy-list-box {
     position: absolute;
     top: 124px;
-    left: 140px;
+    left: 139px;
     width: 351px;
-    height: 286px;
+    height: 558px;
     border: 1px solid #F0405E;
     padding-bottom: 3px;
     border-radius: 3px;
@@ -30,7 +39,7 @@ input::placeholder, input {
     top:135px;
     left:151px;
     width:330px;
-    height:270px;
+    height:545px;
     background: #f4f4f4;
     border-radius: 3px;
     border: none;
@@ -54,27 +63,11 @@ input::placeholder, input {
     cursor: pointer;
 }
 
-#proxy-button-youtube {
-    position: absolute;
-    top: 450px;
-    left: 140px;
-    width: 83px;
-    height: 29px;
-    cursor: pointer;
-    background: #F0405E;
-    border: none;
-    border-radius: 3px;
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
-    color: #EFEFEF;
-    letter-spacing: 0;
-}
-
 #proxy-button-captcha {
     position: absolute;
-    top: 450px;
-    left: 246px;
-    width: 111px;
+    top: 500px;
+    left: 522px;
+    width: 205px;
     height: 29px;
     cursor: pointer;
     background: #F0405E;
@@ -86,14 +79,14 @@ input::placeholder, input {
     letter-spacing: 0;
 }
 
-#proxy-button-close-session {
+#proxy-button-captcha-close {
     position: absolute;
-    top: 450px;
-    left: 380px;
-    width: 110px;
+    top: 500px;
+    left: 741px;
+    width: 205px;
     height: 29px;
     cursor: pointer;
-    background: #F0405E;
+    background: #46ADB4;
     border: none;
     border-radius: 3px;
     font-family: AvenirNext-Medium;
@@ -237,4 +230,38 @@ input::placeholder, input {
     font-size: 12px;
     color: #EFEFEF;
     letter-spacing: 0;
+}
+
+#monitor-label {
+    position: absolute;
+    top: 425px;
+    left: 522px;
+    margin: 0;
+}
+
+#monitor-input {
+    position: absolute;
+    top: 444px;
+    left: 522px;
+    width: 205px;
+    height: 29px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
+}
+
+#error-label {
+    position: absolute;
+    top: 425px;
+    left: 741px;
+    margin: 0;
+}
+
+#error-input {
+    position: absolute;
+    top: 444px;
+    left: 741px;
+    width: 205px;
+    height: 29px;
+    border: 1px solid #F0405E;
+    border-radius: 3px;
 }

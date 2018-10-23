@@ -20,7 +20,8 @@
 .server {
   .server-table-container {
     width: 823px;
-    height: 333px;
+    height: 323px;
+    margin-left: -1px !important;
     border: 1px solid #F0405E;
     border-radius: 3px;
     margin: 0 !important;
@@ -80,6 +81,7 @@
 
     &__section-header {
       margin-top: -9px;
+      margin-left: -1px !important;
     }
 
     .blank {
@@ -140,8 +142,17 @@
           width: 50px;
 
           &__button {
-            padding-bottom: 3px;
+            padding-bottom: 2px;
+            margin-right: 4px;
             width: 16px;
+          }
+
+          &__button:nth-child(1) {
+            margin-left: 2px;
+          }
+
+          &__button:nth-child(2) {
+            margin-bottom: 2px;
           }
         }
       }

@@ -17,6 +17,7 @@ describe('<CreateProxies />', () => {
     };
     return shallow(<CreateProxiesPrimitive
       serverInfo={renderProps.serverInfo}
+      serverListOptions={renderProps.serverListOptions}
       onEditServerInfo={renderProps.onEditServerInfo}
       onGenerateProxies={renderProps.onGenerateProxies}
       onDestroyProxies={renderProps.onDestroyProxies}
@@ -27,21 +28,26 @@ describe('<CreateProxies />', () => {
   beforeEach(() => {
     defaultProps = {
       serverInfo: { ...initialServerStates.serverInfo },
+      serverListOptions: { ...initialServerStates.serverListOptions },
       onEditServerInfo: () => {},
       onGenerateProxies: () => {},
       onDestroyProxies: () => {},
+      onKeyPress: () => {},
     };
   });
 
   it('should render with required props', () => {
     const wrapper = renderShallowWithProps();
     const numProxiesInput = getByTestId(wrapper, 'CreateProxies.numProxiesInput');
+    const locationSelect = getByTestId(wrapper, 'CreateProxies.location');
     const usernameInput = getByTestId(wrapper, 'CreateProxies.usernameInput');
     const passwordInput = getByTestId(wrapper, 'CreateProxies.passwordInput');
     const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
     const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
     expect(numProxiesInput).toHaveLength(1);
-    expect(numProxiesInput.prop('value')).toBe('');
+    expect(numProxiesInput.prop('value')).toBe(0);
+    expect(locationSelect).toHaveLength(1);
+    expect(locationSelect.prop('value')).toBe(null);
     expect(usernameInput).toHaveLength(1);
     expect(usernameInput.prop('value')).toBe('');
     expect(passwordInput).toHaveLength(1);
@@ -65,6 +71,11 @@ describe('<CreateProxies />', () => {
         proxyOptions: {
           ...initialServerStates.proxyOptions,
           numProxies: 10,
+          location: {
+            id: 1,
+            value: 'us-east-2',
+            label: 'US East (Ohio)',
+          },
           username: 'testUsername',
           password: 'testPassword',
         },
@@ -77,12 +88,15 @@ describe('<CreateProxies />', () => {
     };
     const wrapper = renderShallowWithProps(customProps);
     const numProxiesInput = getByTestId(wrapper, 'CreateProxies.numProxiesInput');
+    const locationSelect = getByTestId(wrapper, 'CreateProxies.location');
     const usernameInput = getByTestId(wrapper, 'CreateProxies.usernameInput');
     const passwordInput = getByTestId(wrapper, 'CreateProxies.passwordInput');
     const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
     const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
     expect(numProxiesInput).toHaveLength(1);
     expect(numProxiesInput.prop('value')).toBe(10);
+    expect(locationSelect).toHaveLength(1);
+    expect(locationSelect.prop('value')).toEqual({ id: 1, label: 'US East (Ohio)', value: 'us-east-2' });
     expect(usernameInput).toHaveLength(1);
     expect(usernameInput.prop('value')).toBe('testUsername');
     expect(passwordInput).toHaveLength(1);
@@ -112,6 +126,20 @@ describe('<CreateProxies />', () => {
       expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
         SERVER_FIELDS.EDIT_PROXY_NUMBER,
         14,
+      );
+    });
+
+    test('location of proxies', () => {
+      const customProps = {
+        onEditServerInfo: jest.fn(),
+      };
+      const wrapper = renderShallowWithProps(customProps);
+      const locationSelect = getByTestId(wrapper, 'CreateProxies.location');
+      locationSelect.simulate('change', { id: 1, label: 'US East (Ohio)', value: 'us-east-2' });
+      expect(customProps.onEditServerInfo).toHaveBeenCalledTimes(1);
+      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
+        SERVER_FIELDS.EDIT_PROXY_LOCATION,
+        { id: 1, label: 'US East (Ohio)', value: 'us-east-2' },
       );
     });
 

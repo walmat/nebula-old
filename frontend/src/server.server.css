@@ -233,7 +233,11 @@
   border: 1px solid #F0405E;
 }
 .server .proxy-options__input--number {
-  width: 106px;
+  width: 56px;
+  height: 29px;
+}
+.server .proxy-options__input--location {
+  width: 162px;
   height: 29px;
 }
 .server .proxy-options__input--field {
@@ -291,7 +295,8 @@
 
 .server .server-table-container {
   width: 823px;
-  height: 333px;
+  height: 323px;
+  margin-left: -1px !important;
   border: 1px solid #F0405E;
   border-radius: 3px;
   margin: 0 !important;
@@ -336,6 +341,7 @@
 }
 .server .server-table__section-header {
   margin-top: -9px;
+  margin-left: -1px !important;
 }
 .server .server-table .blank {
   padding-left: 10px;
@@ -383,12 +389,17 @@
   width: 50px;
 }
 .server .server-table .server-row-container .server-row__actions__button {
-  padding-bottom: 3px;
+  padding-bottom: 2px;
+  margin-right: 4px;
   width: 16px;
 }
 .server .server-table .server-row-container .server-row__actions__button:nth-child(1) {
   margin-left: 2px;
 }
+.server .server-table .server-row-container .server-row__actions__button:nth-child(2) {
+  margin-bottom: 2px;
+}
+
 .view-line {
   margin: 0;
   border: 1px solid #EDBCC6;

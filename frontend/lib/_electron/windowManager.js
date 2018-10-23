@@ -10,6 +10,7 @@ const {
   urls,
 } = require('./windows');
 
+const CaptchaWindowManager = require('./captchaWindowManager');
 
 /**
  * Manage the window.
@@ -52,12 +53,21 @@ class WindowManager {
     this._auth = null;
 
     /**
+     * Captcha Windows
+     */
+    this._captchas = new Map();
+
+    /**
      * IPC Function Definitions
      */
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
+    context.ipc.on(
+      IPCKeys.RequestCloseAllCaptchaWindows,
+      this._onRequestCloseAllCaptchaWindows.bind(this),
+    );
   }
 
   /**
@@ -116,12 +126,16 @@ class WindowManager {
           this._main = w;
           break;
         }
-        case 'youtube': {
-          w = await createYouTubeWindow();
+        case 'captcha': {
+          if (this._captchas.size < 5) {
+            w = await createCaptchaWindow();
+            this._captchas.set(w.id, new CaptchaWindowManager(this._context, w, this._context._session.fromPartition(`${w.id}`)));
+            console.log(`size after creating: ${this._captchas.size}`);
+          }
           break;
         }
-        case 'captcha': {
-          w = await createCaptchaWindow();
+        case 'youtube': {
+          w = await createYouTubeWindow();
           break;
         }
         default: break;
@@ -129,14 +143,16 @@ class WindowManager {
 
       w.loadURL(urls.get(tag));
 
-      w.on('ready-to-show', this.handleShow(w));
-
-      w.on('close', this.handleClose(w));
-      w.on('closed', () => { w = null; });
+      this.addWindowEventListeners(w);
 
       return w;
     }
     return this.transitionToDeauthedState();
+  }
+
+  addWindowEventListeners(win) {
+    win.on('ready-to-show', this.handleShow(win));
+    win.on('close', this.handleClose(win));
   }
 
   /**
@@ -177,8 +193,24 @@ class WindowManager {
         this._main = null;
       } else if (this._auth && win.id === this._auth.id) {
         this._auth = null;
+      } else if (this._captchas.size > 0) {
+        this._captchas.forEach((captchaWindowManager) => {
+          if (win.id === captchaWindowManager._captchaWindow.id) {
+            // deregister the interval from the captcha window
+            WindowManager.handleCloseCaptcha(this._captchas.get(win.id));
+            this._captchas.delete(win.id);
+          } else if (win.id === captchaWindowManager._youtubeWindow.id) {
+            captchaWindowManager._youtubeWindow = null;
+          }
+        });
       }
     };
+  }
+
+  static handleCloseCaptcha(win) {
+    win._tokens = [];
+    clearInterval(win._checkTokens);
+    win._checkTokens = null;
   }
 
   /**
@@ -285,15 +317,40 @@ class WindowManager {
    * @param {Number} id corresponding window id
    */
   _onRequestWindowClose(ev, id) {
-    const w = this._windows.get(id);
     if (this._main && (this._main.id === id)) {
       // close all windows
-      this._windows.forEach((win) => {
-        win.close();
+      this._windows.forEach((w) => {
+        w.close();
       });
-    } else {
-      // just close the one window object
-      w.close();
+    } else if (this._auth && (this._auth.id === id)) {
+      this._windows.forEach((w) => {
+        w.close();
+      });
+    } else if (this._captchas.size > 0) {
+      this._captchas.forEach((w) => {
+        if (id === w._captchaWindow.id) {
+          w._captchaWindow.close();
+          if (w._youtubeWindow) {
+            w._youtubeWindow.close();
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Request to close all open captcha windows
+   * @param {EventEmitter} ev - close event
+   * BUG: closes one at a time..
+   */
+  _onRequestCloseAllCaptchaWindows(ev) {
+    if (this._captchas.size > 0) {
+      this._captchas.forEach((captchaWindowManager) => {
+        captchaWindowManager._captchaWindow.close();
+        if (captchaWindowManager._youtubeWindow) {
+          captchaWindowManager._youtubeWindow.close();
+        }
+      });
     }
   }
 }

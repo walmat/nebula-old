@@ -106,7 +106,6 @@ export class CreateTaskPrimitive extends Component {
                 <Select
                   required
                   className="tasks-create__input tasks-create__input--field"
-                  classNamePrefix="select"
                   placeholder="Choose Site"
                   components={{ DropdownIndicator }}
                   styles={colourStyles}

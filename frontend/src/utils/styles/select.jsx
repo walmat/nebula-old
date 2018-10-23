@@ -3,7 +3,7 @@ import React from 'react';
 import DDD from '../../_assets/dropdown-down.svg';
 import DDU from '../../_assets/dropdown-up.svg';
 
-export const DropdownIndicator = props => components.DropdownIndicator && (
+export const DropdownIndicator = props => (
   <components.DropdownIndicator {...props}>
     <img src={props.selectProps.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
   </components.DropdownIndicator>
@@ -27,26 +27,63 @@ export const colourStyles = {
   }),
   option: (styles, { isDisabled, isFocused, isSelected }) => ({
     ...styles,
-    backgroundColor: isFocused ? '#EDBCC6' : isDisabled ? '#ccc' : isSelected ? '#EDBCC6' : '#fff',
+    backgroundColor: isFocused ? '#EDBCC6' : isDisabled ? '#ccc' : isSelected ? '#fff' : '#fff',
     color: '#161318',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
     outline: 'none',
     boxShadow: 'none',
+    overflow: 'hidden',
   }),
-  valueContainer: styles => ({
-    ...styles,
-    maxHeight: '29px',
-    height: '29px',
-    cursor: 'pointer',
-  }),
+  valueContainer: (styles, { isMulti }) => {
+    let multiStyle = {};
+    if (isMulti) {
+      multiStyle = {
+        'overflow-x': 'scroll',
+        'overflow-y': 'hidden',
+        'flex-wrap': 'nowrap',
+        '::-webkit-scrollbar': {
+          width: '0px',
+          height: '0px',
+          background: 'transparent',
+        },
+      };
+    }
+    return {
+      ...styles,
+      ...multiStyle,
+      maxHeight: '29px',
+      height: '29px',
+      cursor: 'pointer',
+    };
+  },
   multiValue: styles => ({
     ...styles,
     backgroundColor: '#B8D9D2',
+    display: 'flex',
+    'flex-shrink': 0,
     border: '0.5px solid #46ADB4',
     cursor: 'pointer',
     ':hover': {
       backgroundColor: '#B8D9D2',
       border: '0.5px solid #46ADB4',
+      cursor: 'pointer',
+    },
+  }),
+  multiValueLabel: styles => ({
+    ...styles,
+    cursor: 'pointer',
+    paddingRight: '5px',
+    paddingLeft: '5px',
+    ':hover': {
+      cursor: 'pointer',
+    },
+  }),
+  multiValueRemove: styles => ({
+    ...styles,
+    cursor: 'pointer',
+    ':hover': {
+      backgroundColor: '#46ADB4',
+      color: '#f4f4f4',
       cursor: 'pointer',
     },
   }),
@@ -68,34 +105,11 @@ export const colourStyles = {
     letterSpacing: 0,
     cursor: 'pointer',
   }),
-  multiValueLabel: styles => ({
-    ...styles,
-    cursor: 'pointer',
-    paddingRight: '5px',
-    paddingLeft: '5px',
-    ':hover': {
-      cursor: 'pointer',
-    },
-  }),
-  multiValueRemove: styles => ({
-    ...styles,
-    cursor: 'pointer',
-    marginTop: '-1px',
-    ':hover': {
-      backgroundColor: '#46ADB4',
-      marginTop: '1px',
-      color: '#f4f4f4',
-      cursor: 'pointer',
-    },
-  }),
   menu: styles => ({
     ...styles,
-    maxHeight: '175px',
-    overflowY: 'scroll',
   }),
   menuList: styles => ({
     ...styles,
     maxHeight: '175px',
-    overflowY: 'scroll',
   }),
 };

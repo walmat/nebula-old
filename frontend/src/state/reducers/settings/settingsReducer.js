@@ -19,6 +19,13 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
           },
         };
         break;
+      case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
+      case SETTINGS_FIELDS.EDIT_MONITOR_DELAY:
+        const intValue = parseInt(action.value, 10);
+        change = {
+          [mapSettingsFieldToKey[action.field]]: intValue,
+        };
+        break;
       default:
         change = {
           [mapSettingsFieldToKey[action.field]]: action.value,

@@ -88,6 +88,7 @@ describe('Custom Select', () => {
           cursor: 'pointer',
           outline: 'none',
           boxShadow: 'none',
+          overflow: 'hidden',
         });
       });
 
@@ -102,6 +103,7 @@ describe('Custom Select', () => {
           cursor: 'not-allowed',
           outline: 'none',
           boxShadow: 'none',
+          overflow: 'hidden',
         });
       });
 
@@ -116,6 +118,7 @@ describe('Custom Select', () => {
           cursor: 'pointer',
           outline: 'none',
           boxShadow: 'none',
+          overflow: 'hidden',
         });
       });
 
@@ -125,12 +128,33 @@ describe('Custom Select', () => {
         };
         const actualStyle = colourStyles.option(initialStyle, { isSelected: true });
         expect(actualStyle).toEqual({
-          backgroundColor: '#EDBCC6',
+          backgroundColor: '#fff',
           color: '#161318',
           cursor: 'pointer',
           outline: 'none',
+          overflow: 'hidden',
           boxShadow: 'none',
         });
+      });
+    });
+
+    test('value container should return correct style when isMulti', () => {
+      const initialStyle = {
+        height: 'invalid', // invalid key to make sure it gets overwritten
+      };
+      const actualStyle = colourStyles.valueContainer(initialStyle, { isMulti: true });
+      expect(actualStyle).toEqual({
+        maxHeight: '29px',
+        height: '29px',
+        cursor: 'pointer',
+        'overflow-x': 'scroll',
+        'overflow-y': 'hidden',
+        'flex-wrap': 'nowrap',
+        '::-webkit-scrollbar': {
+          width: '0px',
+          height: '0px',
+          background: 'transparent',
+        },
       });
     });
 
@@ -138,7 +162,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         height: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles.valueContainer(initialStyle);
+      const actualStyle = colourStyles.valueContainer(initialStyle, { isMulti: false });
       expect(actualStyle).toEqual({
         maxHeight: '29px',
         height: '29px',
@@ -155,6 +179,8 @@ describe('Custom Select', () => {
         backgroundColor: '#B8D9D2',
         border: '0.5px solid #46ADB4',
         cursor: 'pointer',
+        display: 'flex',
+        'flex-shrink': 0,
         ':hover': {
           backgroundColor: '#B8D9D2',
           border: '0.5px solid #46ADB4',
@@ -232,10 +258,8 @@ describe('Custom Select', () => {
       const actualStyle = colourStyles.multiValueRemove(initialStyle);
       expect(actualStyle).toEqual({
         cursor: 'pointer',
-        marginTop: '-1px',
         ':hover': {
           backgroundColor: '#46ADB4',
-          marginTop: '1px',
           color: '#f4f4f4',
           cursor: 'pointer',
         },
@@ -243,14 +267,8 @@ describe('Custom Select', () => {
     });
 
     test('menu should return correct style', () => {
-      const initialStyle = {
-        maxHeight: 'invalid', // invalid key to make sure it gets overwritten
-      };
-      const actualStyle = colourStyles.menu(initialStyle);
-      expect(actualStyle).toEqual({
-        maxHeight: '175px',
-        overflowY: 'scroll',
-      });
+      const actualStyle = colourStyles.menu({});
+      expect(actualStyle).toEqual({});
     });
 
     test('menu list should return correct style', () => {
@@ -260,7 +278,6 @@ describe('Custom Select', () => {
       const actualStyle = colourStyles.menuList(initialStyle);
       expect(actualStyle).toEqual({
         maxHeight: '175px',
-        overflowY: 'scroll',
       });
     });
   });

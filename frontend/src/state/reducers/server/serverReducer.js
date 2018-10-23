@@ -24,7 +24,7 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
         };
         break;
       case SERVER_FIELDS.EDIT_PROXY_NUMBER:
-        const intValue = parseInt(action.value, 10);
+        const intValue = action.value === '' ? 0 : parseInt(action.value, 10);
         change = {
           numProxies: Number.isNaN(intValue) ?
             initialServerStates.proxyOptions.numProxies :
@@ -65,6 +65,19 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
     nextState.credentials.accessToken = action.token;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
     nextState.credentials = initialServerStates.awsCredentials;
+  } else if (action.type === SERVER_ACTIONS.CONNECT) {
+    nextState.coreServer = {
+      serverOptions: {
+        type: action.serverInfo.type,
+        size: action.serverInfo.size,
+        location: action.serverInfo.location,
+      },
+      awsCredentials: {
+        AWSAccessKey: action.credentials.AWSAccessKey,
+        AWSSecretKey: action.credentials.AWSSecretKey,
+        accessToken: action.credentials.accessToken,
+      },
+    };
   }
 
   return nextState;
@@ -75,7 +88,10 @@ export function serverListReducer(state = initialServerStates.serverList, action
 
   switch (action.type) {
     case SERVER_ACTIONS.CONNECT:
-      // TODO: Implement this
+      const server = nextState.find(s => s.id === action.id);
+      if (server) {
+        server.status = 'Connected';
+      }
       break;
     case SERVER_ACTIONS.CREATE:
       // perform a deep copy of given profile
@@ -86,7 +102,7 @@ export function serverListReducer(state = initialServerStates.serverList, action
         size: serverOptions.size,
         location: serverOptions.location,
         charges: '0',
-        status: 'Pending...',
+        status: 'Initializing...',
       };
       nextState.push(newServer);
       break;
