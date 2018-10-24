@@ -7,6 +7,8 @@ const rp = require('request-promise').defaults({
     jar: jar,
 });
 
+const AddToCart = require('./addToCart');
+
 const {
     formatProxy,
     userAgent,
@@ -14,99 +16,58 @@ const {
 
 class Checkout {
 
-    constructor(task, proxy) {
+    constructor(context) {
+        /**
+         * All data needed for monitor to run
+         * This includes:
+         * - current runner id
+         * - current task
+         * - current proxy
+         * - whether or not we should abort
+         * @type {TaskRunnerContext}
+         */
+        this._context = context;
+
+        /**
+         * Add to cart module for handling adding a product to cart.
+         */
+        this._addToCart = new AddToCart(this._context);
+
+        this.retries = {
+            ADD_TO_CART: 5,
+            CHECKOUT: 5,
+        };
+
+        /**
+         * ID of the given task runner
+         */
+        this._id = this._context.runner_id;
 
          /**
          * Task Data for the running task
          * @type {TaskObject}
          */
-        this._task = task;
+        this._task = this._context.task;
 
         /**
          * Proxy to run the task with
          * @type {String}
          */
-        this._proxy = proxy;
+        this._proxy = this._context.proxy;
 
         /**
          * Price for the product
          * @type {String}
          */
-        this._price = null;
+        this._aborted = this._context.aborted;
 
-        /**
-         * Store ID for the task running this checkout
-         * @type {String}
-         */
-        this._storeID = null;
-
-        /**
-         * Checkout URL for the task running
-         * @type {String}
-         */
-        this._checkoutUrl = null;
-
-        /**
-         * Checkout host for the task running
-         * @type {String}
-         */
-        this._checkoutHost = null;
-
-        /**
-         * Checkout ID for the task running
-         * @type {String}
-         */
-        this._checkoutID = null;
-
-        /**
-         * All matched variants for the given product
-         */
-        this._matchedVariants = null;
-
-        /**
-         * Authorization token for the checkout
-         */
-        this._authToken = null;
-
-        /**
-         * Payment gateway for the given checkout session
-         */
-        this._paymentGateway = null;
     }
 
-    addToCart() {
-
-        const styleID = this._matchedVariants[0].id;
-
-        rp({
-            uri: `${this._task.site.url}/cart/add.js`,
-            followAllRedirects: true,
-            method: 'post',
-            headers: {
-                Origin: this._task.site.url,
-                'User-Agent': userAgent,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept:
-                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: this._task.product.url,
-                'Accept-Language': 'en-US,en;q=0.8',
-            },
-            formData: {
-                id: styleID,
-                qty: '1',
-            },
-        })
-        .then((res) => {
-            // check response for successful add to cart
-            if (res.length > 0) {
-                return goToCheckout();
-            }   
-        }).catch((err) => {
-            // error adding to cart
-        });
-    }
-
-    goToCheckout() {
+    getCheckoutData() {
+        if (this._context.aborted) {
+            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+            return States.Aborted;
+        }
         rp({
             uri: `${this._task.site.url}/cart.js`,
             followAllRedirects: true,
@@ -121,52 +82,55 @@ class Checkout {
             },
         })
         .then((res) => {
-            this._checkoutHost = `https://${res.request.originalHost}`;
-
+            // break early if out of stock already...
             if (res.request.href.indexOf('stock_problems') > -1) {
-                // out of stock, run for restocks
+                console.log('[ERROR]: CHECKOUT: Out of Stock...');
+                return States.Restock;
             } else {
-                const $ = cheerio.load(body);
-                this._checkoutUrl = res.request.href;
-                this._checkoutID = this._checkoutUrl.split('checkouts/')[1];
-                this._storeID = this._checkoutUrl.split('/')[3];
-                this._authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-                console.log(`Store ID: ${this._storeID}`);
-                console.log(`Checkout ID: ${this._checkoutID}`);
-                console.log(`Auth token: ${this._authToken}`);
-                this._price = $('#checkout_total_price').text();
-
-                return inputShipping();
+                console.log(`DEBUG]: CHECKOUT: body=${res.body}`)
+                return {
+                    checkoutHost: `https://${res.request.originalHost}`,
+                    checkoutUrl: res.request.href,
+                    checkoutId: res.request.href.split('checkouts/')[1],
+                    storeId: res.request.href.split('/')[3],
+                    authToken: $('form.edit_checkout input[name=authenticity_token]').attr('value'),
+                    price: $('#checkout_total_price').text(),
+                };
             }
-
         })
         .catch((err) => {
-            // error going to checkout
+            console.log(`[ERROR]: CHECKOUT: Error: ${err} while proceeding to checking...`);
+            // TODO - error handling
+            return null;
         });
     }
 
-    inputShipping() {
-        let form;
+    inputShipping(checkoutHost, checkoutUrl, authToken) {
+        if (this._context.aborted) {
+            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+            return States.Aborted;
+        }
 
-        if (this._checkoutUrl.indexOf('checkout.shopify.com') > -1) {
+        let form;
+        if (checkoutUrl.indexOf('checkout.shopify.com') > -1) {
             form = {
                 utf8: '✓',
                 _method: 'patch',
-                authenticity_token: auth_token,
+                authenticity_token: authToken,
                 previous_step: 'contact_information',
                 step: 'shipping_method',
-                'checkout[email]': task.payment.email,
+                'checkout[email]': this._task.payment.email,
                 'checkout[buyer_accepts_marketing]': '1',
-                'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
+                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
+                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
                 'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': task.profile.shipping.address,
-                'checkout[shipping_address][address2]': task.profile.shipping.apt,
-                'checkout[shipping_address][city]': task.profile.shipping.city,
-                'checkout[shipping_address][country]': task.profile.shipping.country,
-                'checkout[shipping_address][province]': task.profile.shipping.state,
-                'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': task.profile.shipping.phone,
+                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
+                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
+                'checkout[shipping_address][city]': this._task.profile.shipping.city,
+                'checkout[shipping_address][country]': this._task.profile.shipping.country,
+                'checkout[shipping_address][province]': this._task.profile.shipping.state,
+                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
+                'checkout[shipping_address][phone]': this._task.profile.shipping.phone,
                 'checkout[remember_me]': '0',
                 button: '',
                 'checkout[client_details][browser_width]': '979',
@@ -176,19 +140,19 @@ class Checkout {
             form = {
                 utf8: '✓',
                 _method: 'patch',
-                authenticity_token: auth_token,
+                authenticity_token: authToken,
                 previous_step: 'contact_information',
-                'checkout[email]': task.profile.payment.email,
-                'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
+                'checkout[email]': this._task.profile.payment.email,
+                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
+                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
                 'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': task.profile.shipping.address,
-                'checkout[shipping_address][address2]': task.profile.shipping.apt,
-                'checkout[shipping_address][city]': task.profile.shipping.city,
-                'checkout[shipping_address][country]': task.profile.shipping.country,
-                'checkout[shipping_address][province]': task.profile.shipping.state,
-                'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': task.profile.shipping.phone,
+                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
+                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
+                'checkout[shipping_address][city]': this._task.profile.shipping.city,
+                'checkout[shipping_address][country]': this._task.profile.shipping.country,
+                'checkout[shipping_address][province]': this._task.profile.shipping.state,
+                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
+                'checkout[shipping_address][phone]': this._task.profile.shipping.phone,
                 'checkout[remember_me]': '0',
                 'checkout[client_details][browser_width]': '979',
                 'checkout[client_details][browser_height]': '631',
@@ -198,50 +162,52 @@ class Checkout {
         }
 
         rp({
-            uri: this._checkoutUrl,
+            method: 'GET',
+            uri: checkoutUrl,
             followAllRedirects: true,
             headers: {
-                Origin: `${this._checkoutHost}`,
+                Origin: `${checkoutHost}`,
                 'User-Agent': userAgent,
                 Accept:
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: `${this._checkoutHost}/`,
+                Referer: `${checkoutHost}/`,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
-            method: 'get',
             qs: form,
         })
         .then((body) => {
             const $ = cheerio.load(body);
-            this._authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-            return requestShipping();
+            return {
+                authToken: $('form.edit_checkout input[name=authenticity_token]').attr('value'),
+            }
         })
         .catch((err) => {
-            // error filling out form for some reason..
+            console.log('[ERROR]: CHECKOUT: Unable to fill in shipping information...');
+            return null;
         });
     }
 
-    requestShipping() {
+    requestShipping(checkoutHost, checkoutUrl, checkoutId, storeId, authToken) {
         let form;
 
-        if (this._checkoutUrl.indexOf('checkout.shopify.com') > -1) {
+        if (checkoutUrl.indexOf('checkout.shopify.com') > -1) {
             form = {
                 _method: 'patch',
-                authenticity_token: auth_token,
+                authenticity_token: authToken,
                 button: '',
                 'checkout[client_details][browser_width]': '979',
                 'checkout[client_details][browser_height]': '631',
                 'checkout[client_details][javascript_enabled]': '1',
-                'checkout[email]': task.profile.payment.email,
-                'checkout[shipping_address][address1]': task.profile.shipping.address,
-                'checkout[shipping_address][address2]': task.profile.shipping.apt,
-                'checkout[shipping_address][city]': task.profile.shipping.city,
-                'checkout[shipping_address][country]': task.profile.shipping.country,
-                'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
-                'checkout[shipping_address][phone]': task.profile.shipping.phone,
-                'checkout[shipping_address][province]': task.profile.shipping.state,
-                'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
+                'checkout[email]': this._task.profile.payment.email,
+                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
+                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
+                'checkout[shipping_address][city]': this._task.profile.shipping.city,
+                'checkout[shipping_address][country]': this._task.profile.shipping.country,
+                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
+                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
+                'checkout[shipping_address][phone]': this._task.profile.shipping.phone,
+                'checkout[shipping_address][province]': this._task.profile.shipping.state,
+                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
                 previous_step: 'contact_information',
                 remember_me: 'false',
                 step: 'shipping_method',
@@ -251,20 +217,20 @@ class Checkout {
             form = {
                 utf8: '✓',
                 _method: 'patch',
-                authenticity_token: auth_token,
+                authenticity_token: authToken,
                 button: '',
-                'checkout[email]': task.profile.payment.email,
-                'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
+                'checkout[email]': this._task.profile.payment.email,
+                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
+                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
                 'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': task.profile.shipping.address,
-                'checkout[shipping_address][address2]': task.profile.shipping.apt,
-                'checkout[shipping_address][city]': task.profile.shipping.city,
-                'checkout[shipping_address][country]': task.profile.shipping.country,
-                'checkout[shipping_address][province]': task.profile.shipping.state,
-                'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
+                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
+                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
+                'checkout[shipping_address][city]': this._task.profile.shipping.city,
+                'checkout[shipping_address][country]': this._task.profile.shipping.country,
+                'checkout[shipping_address][province]': this._task.profile.shipping.state,
+                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
                 'checkout[shipping_address][phone]': phoneFormatter.format(
-                    task.profile.shipping.phone,
+                    this._task.profile.shipping.phone,
                     '(NNN) NNN-NNNN'
                 ),
                 'checkout[remember_me]': '0',
@@ -277,16 +243,16 @@ class Checkout {
         }
 
         rp({
-            uri: this._checkoutUrl,
+            uri: checkoutUrl,
             followAllRedirects: true,
             method: 'post',
             headers: {
-                Origin: `${this._checkoutHost}`,
+                Origin: `${checkoutHost}`,
                 'Content-Type': 'application/x-www-form-urlencoded',
                 Accept:
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.8',
-                Referer: `${this._checkoutHost}/${this._storeID}/checkout/${this._checkoutID}`,
+                Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
                 'User-Agent': userAgent,
             },
             form: form,
@@ -298,24 +264,91 @@ class Checkout {
                 const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
                 console.log(`Shipping method: ${firstShippingOption}`);
                 if (firstShippingOption === undefined) {
-                    console.log(`Unable to find checkout option for ${this._checkoutUrl}`);
+                    console.log(`Unable to find checkout option for ${checkoutUrl}`);
                     process.exit(1);
                 } else {
-                    return submitShipping({
+                    return {
                         type: 'direct',
                         value: firstShippingOption,
                         authToken: $('input[name="authenticity_token"]').val(),
-                    });
+                    };
                 }
             }
-            return submitShipping({
+            return {
                 type: 'poll',
                 value: shippingPollUrl,
-            });
+            };
         })
         .catch((err) => {
-            // error getting shipping options
+            return null;
         });
+    }
+
+    async run () {
+        // abort early if signaled
+        if (this._context.aborted) {
+            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+            return States.Aborted;
+        }
+        // add to cart...
+        let added = false;
+        while (this.retries.ADD_TO_CART > 0 || added) {
+            try {
+                added = await this._addToCart.run();
+            } catch (errors) {
+                console.log(`[DEBUG]: CHECKOUT: Add to cart errored out!\n${errors}`);
+                this.retries.ADD_TO_CART--;
+            }
+        }
+        if (!added) {
+            console.log('[ERROR]: CHECKOUT: Unable to add to cart...');
+            return States.Aborted;
+        }
+        // added! generate checkout URL
+        let checkoutData = null;
+        while (this.retries.CHECKOUT > 0 || checkoutData) {
+            try {
+                checkoutData = await this.getCheckoutData();
+            } catch (errors) {
+                console.log(`[DEBUG]: CHECKOUT: Unable to generate checkout URL\n${errors}`);
+                this.retries.CHECKOUT--;
+            }
+        }
+        if (!checkoutData) {
+            console.log('[ERROR]: CHECKOUT: Unable to find checkout URL...');
+            return States.Aborted;
+        }
+        // got checkout data, proceed to filling out shipping information
+        let newAuthToken = null;
+        try {
+            newAuthToken = await this.inputShipping(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.checkoutId, checkoutData.storeId, checkoutData.authToken, checkoutData.price);
+        } catch (errors) {
+            console.log(`[ERROR]: CHECKOUT: Unable to proceed to shipping...\n${errors}`);
+            // TODO - error handling here..
+            return States.Aborted;
+        }
+
+        if (!newAuthToken) {
+            console.log(`[ERROR]: CHECKOUT: Unable to complete shipping information...\n${errors}`);
+            return States.Aborted;
+        }
+
+        // shipping information completed, proceed to the next step: shipping method
+        let shippingMethod = null;
+        try {
+            shippingMethod = await this.requestShipping(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.checkoutId, checkoutData.storeId, newAuthToken.authToken, checkoutData.price);
+        } catch (errors) {
+            console.log(`[ERROR]: CHECKOUT: Error parsing to find shipping method...\n${errors}`);
+            // TODO - error handling here..
+            return States.Aborted;
+        }
+
+        if (!shippingMethod) {
+            console.log(`[ERROR]: CHECKOUT: Unable to find shipping method...\n${}`);
+            return States.Aborted;
+        }
+        // shipping method found, let's proceed to payment
+
     }
 
     submitShipping(res) {

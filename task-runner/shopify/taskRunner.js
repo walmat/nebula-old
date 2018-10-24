@@ -24,6 +24,7 @@ class TaskRunner {
             Started: 'STARTED',
             GenQueueBypass: 'GEN_QUEUE_BYPASS',
             Monitor: 'MONITOR',
+            Restock: 'RESTOCK',
             SwapProxies: 'SWAP_PROXIES',
             Checkout: 'CHECKOUT',
             Finished: 'FINISHED',
