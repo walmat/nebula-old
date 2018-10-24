@@ -5,6 +5,26 @@ const _ = require('underscore');
 const parseString = require('xml2js').parseString;
 const cheerio = require('cheerio');
 
+/**
+ * generic includes
+ */
+const jar = require('request-promise').jar();
+const rp = require('request-promise').defaults({
+    timeout: 10000,
+    jar: jar,
+});
+
+/**
+ * utils includes
+ */
+const now = require("performance-now");
+const {
+    formatProxy,
+    userAgent,
+    trimKeywords,
+    getProductVariantsForSize,
+} = require('./utils');
+
 const parseStringPromisified = (body) => new Promise((resolve, reject) => {
     parseString(body, (err, res) => {
         if (err) {
@@ -36,7 +56,7 @@ const parseOembed = async (res) => {
  * Fastest way to parse by directly looking at the products file
  * -- may not be available on each site though --
  */
-const parseProduct = async (res) => {
+const parseProducts = async (res) => {
     if (res.products.length > 0) {
         const sortedProducts = _.sortBy(res.products, (product) => {
             return product.updated_at;
@@ -93,9 +113,107 @@ const parseSitemap = async (body) => {
     return parseProduct(product);
 };
 
+/**
+ * Parses given site's sitemap for the given product
+ */
+function parseSitemapXml() {
+    rp({
+        method: 'GET',
+        uri: `${this._task.site.url}/sitemap_products_1.xml`,
+        proxy: formatProxy(this._proxy),
+        json: false,
+        simple: true,
+        gzip: true,
+        headers: {
+            'User-Agent': userAgent,
+        }
+    })
+    .then((body) => {
+        const start = now();
+        return parseSitemap(body);
+    })
+    .then((res) => {
+        console.log(res);
+    })
+}
+
+/**
+ * Parses given site's `collections/all.atom` for the desired product
+ */
+function parseAtomCollection() {
+    rp({
+        method: 'GET',
+        uri: `${this._task.site.url}/collections/all.atom`,
+        proxy: formatProxy(this._proxy),
+        json: false,
+        simple: true,
+        gzip: true,
+        headers: {
+            'User-Agent': userAgent,
+        }
+    })
+    .then((body) => {
+        const start = now();
+        return parseAtom(body);
+    })
+    .then((res) => {
+        console.log(res);
+    });
+}
+
+/**
+ * Fastest way to parse by directly looking at the products file
+ * -- may not be available on each site though --
+ */
+function parseProductsJSON() {
+    rp({
+        method: 'GET',
+        uri: `${this._task.site.url}/products.json`,
+        proxy: formatProxy(this._proxy),
+        json: false,
+        simple: true,
+        gzip: true,
+        headers: {
+            'User-Agent': userAgent,
+        }
+    })
+    .then((res) => {
+        const start = now();
+        return parseProducts(res);
+    });
+}
+
+/**
+ * Same as products.json, but uses ombed (same format)
+ * -- may not be available on each site though --
+ * -- THIS IS NOT POSSIBLE GIVEN THE CURRENT TASK DATA --
+ * The current task data has no way to get to the product site, so we can't create the oembed link.
+ * 
+ * This should be removed until it is supported
+ */
+// parseProductsOembed() {
+//     // TODO construct product link...
+//     const uri = `${this._task.site.url}/products.oembed TODO`;
+//     rp({
+//         method: 'GET',
+//         uri: uri,
+//         proxy: formatProxy(this._proxy),
+//         json: false,
+//         simple: true,
+//         gzip: true,
+//         headers: {
+//             'User-Agent': userAgent,
+//         }
+//     })
+//     .then((res) => {
+//         const start = now();
+//         return parse.oembed(res);
+//     });
+// }
+
 module.exports = {
     atom: parseAtom,
     oembed: parseOembed,
-    product: parseProduct,
+    products: parseProducts,
     sitemap: parseSitemap,
 };
