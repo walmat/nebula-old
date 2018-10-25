@@ -12,6 +12,7 @@ const AddToCart = require('./addToCart');
 const {
     formatProxy,
     userAgent,
+    buildForm,
 } = require('./utils');
 
 class Checkout {
@@ -113,52 +114,23 @@ class Checkout {
 
         let form;
         if (checkoutUrl.indexOf('checkout.shopify.com') > -1) {
-            form = {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: authToken,
-                previous_step: 'contact_information',
-                step: 'shipping_method',
-                'checkout[email]': this._task.payment.email,
-                'checkout[buyer_accepts_marketing]': '1',
-                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
-                'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
-                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
-                'checkout[shipping_address][city]': this._task.profile.shipping.city,
-                'checkout[shipping_address][country]': this._task.profile.shipping.country,
-                'checkout[shipping_address][province]': this._task.profile.shipping.state,
-                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': this._task.profile.shipping.phone,
-                'checkout[remember_me]': '0',
-                button: '',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-            };
+            form = buildForm(
+                this._task,
+                true,
+                authToken,
+                'shippingInput',
+                'shipping_method',
+                'contact_information'
+            );
         } else {
-            form = {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: authToken,
-                previous_step: 'contact_information',
-                'checkout[email]': this._task.profile.payment.email,
-                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
-                'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
-                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
-                'checkout[shipping_address][city]': this._task.profile.shipping.city,
-                'checkout[shipping_address][country]': this._task.profile.shipping.country,
-                'checkout[shipping_address][province]': this._task.profile.shipping.state,
-                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': this._task.profile.shipping.phone,
-                'checkout[remember_me]': '0',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-                step: 'contact_information',
-            };
+            form = buildForm(
+                this._task,
+                true,
+                authToken,
+                'shippingInput',
+                'contact_information',
+                'contact_information'
+            );
         }
 
         rp({
@@ -191,55 +163,23 @@ class Checkout {
         let form;
 
         if (checkoutUrl.indexOf('checkout.shopify.com') > -1) {
-            form = {
-                _method: 'patch',
-                authenticity_token: authToken,
-                button: '',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-                'checkout[email]': this._task.profile.payment.email,
-                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
-                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
-                'checkout[shipping_address][city]': this._task.profile.shipping.city,
-                'checkout[shipping_address][country]': this._task.profile.shipping.country,
-                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
-                'checkout[shipping_address][phone]': this._task.profile.shipping.phone,
-                'checkout[shipping_address][province]': this._task.profile.shipping.state,
-                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
-                previous_step: 'contact_information',
-                remember_me: 'false',
-                step: 'shipping_method',
-                utf8: '✓',
-            };
+            form = buildForm(
+                this._task,
+                true,
+                authToken,
+                'shippingRequest',
+                'shipping_method',
+                'contact_information'
+            );
         } else {
-            form = {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: authToken,
-                button: '',
-                'checkout[email]': this._task.profile.payment.email,
-                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
-                'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
-                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
-                'checkout[shipping_address][city]': this._task.profile.shipping.city,
-                'checkout[shipping_address][country]': this._task.profile.shipping.country,
-                'checkout[shipping_address][province]': this._task.profile.shipping.state,
-                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': phoneFormatter.format(
-                    this._task.profile.shipping.phone,
-                    '(NNN) NNN-NNNN'
-                ),
-                'checkout[remember_me]': '0',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-                previous_step: 'contact_information',
-                step: 'shipping_method',
-            };
+            form = buildForm(
+                this._task,
+                false,
+                authToken,
+                'shippingRequest',
+                'shipping_method',
+                'contact_information'
+            );
         }
 
         rp({
@@ -282,6 +222,182 @@ class Checkout {
         .catch((err) => {
             return null;
         });
+    }
+
+    pollForShipping(res, checkoutHost, checkoutUrl) {
+        rp({
+            uri: `${checkoutHost}${res.value}`,
+            method: 'GET',
+            headers: {
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'User-Agent': userAgent,
+            },
+        })
+        .then((body) => {
+            const $ = cheerio.load(body);
+            return {
+                shippingMethod: $('.radio-wrapper').attr('data-shipping-method'),
+                authToken: $('form[data-shipping-method-form="true"] input[name="authenticity_token"]').attr('value'),
+            }
+        })
+        .then((data) => {
+            return rp({
+                uri: checkoutUrl,
+                followAllRedirects: true,
+                method: 'POST',
+                headers: {
+                    'User-Agent': userAgent,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                formData: buildForm(
+                    null,
+                    null,
+                    data.authToken,
+                    'submitShipping',
+                    'payment_method',
+                    data.shippingMethod,
+                )
+            });
+        })
+        .then((body) => {
+            const $ = cheerio.load(body);
+            return {
+                price: $('input[name="checkout[total_price]"]').attr('value'),
+                gateway: $('input[name="checkout[payment_gateway]"]').attr('value'),
+                authToken: $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value'),
+            };
+        })
+        .catch((err) => {
+            // todo - error polling for shipping..
+        })
+    }
+
+    submitShipping(res, checkoutHost, checkoutUrl) {
+        if (res.type === 'poll') {
+            console.log(`Shipping Poll URL: ${checkoutHost}${res.value}`);
+            // TODO - handle this case better...
+            setTimeout(() => {
+                await this.pollForShipping(res, checkoutHost, checkoutUrl);
+            }, parseInt(this._task.shippingPollTimeout));
+        } else if (res.type === 'direct') {
+            console.log(`Shipping Method Value: ${res.value}`);
+            console.log('Card information sending...');
+    
+            rp({
+                uri: checkoutUrl,
+                followAllRedirects: true,
+                method: 'POST',
+                headers: {
+                    'User-Agent': userAgent,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                formData: buildForm(
+                    this._task,
+                    null,
+                    res.authToken,
+                    'submitShipping',
+                    'payment_method',
+                    'shipping_method',
+                    res.value,
+                    null,
+                    null,
+                    null,
+                ),
+            })
+            .then((body) => {
+                const $ = cheerio.load(body);
+                return {
+                    paymentGateway: $('input[name="checkout[payment_gateway]"]').attr('value'),
+                    authToken: $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value'),
+                }
+            })
+            .catch((err) => {
+                // error submitting payment
+            });
+        }
+    }
+
+    submitPayment() {
+        const paymentInfo = buildForm(
+            this._task,
+            null,
+            null,
+            'payment',
+            null,
+            null,
+            null,
+        );
+
+        rp({
+            uri: `https://elb.deposit.shopifycs.com/sessions`,
+            followAllRedirects: true,
+            method: 'post',
+            headers: {
+                'User-Agent': userAgent,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(paymentInfo),
+        })
+        .then((res) => {
+            return {
+                sessionValue: JSON.parse(res).id             
+            }
+        })
+        .catch((err) => {
+            // error creating payment session
+        });
+    }
+
+    submitBilling(sValue, checkoutHost, checkoutUrl, storeId, checkoutId, authToken, paymentGateway, price) {
+        rp({
+            uri: this._checkoutUrl,
+            followAllRedirects: true,
+            method: 'post',
+            headers: {
+                Origin: this._checkoutHost,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Accept:
+                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.8',
+                Referer: `${this._checkoutHost}/${this._storeID}/checkouts/${this._checkoutID}`,
+                'User-Agent': userAgent,
+            },
+            formData: buildForm(
+                this._task,
+                null,
+                authToken,
+                'submitBilling',
+                null,
+                'payment_method',
+                null,
+                paymentGateway,
+                price,
+                sValue,
+            ),
+        })
+        .then((body) => {
+            const $ = cheerio.load(body);
+            // TODO - handle this A LOT better...
+            if ($('input[name="step"]').val() === 'processing' || $('title').text().indexOf('Processing') > -1) {
+                return {
+                    message: 'Payment is processing, go check your email for a confirmation.'
+                };
+            } else if ($('div.notice--warning p.notice__text')) {
+                if ($('div.notice--warning p.notice__text') == '') {
+                    return {
+                        error: 'An unknown error has occurred please try again.'
+                    };
+                } else {
+                    return {
+                        error: `${$('div.notice--warning p.notice__text').eq(0).text()}`
+                    };
+                }
+            } else {
+                return {
+                    error: 'An unknown error has occurred please try again.'
+                };
+            }
+        })
     }
 
     async run () {
@@ -344,206 +460,64 @@ class Checkout {
         }
 
         if (!shippingMethod) {
-            console.log(`[ERROR]: CHECKOUT: Unable to find shipping method...\n${}`);
+            console.log(`[ERROR]: CHECKOUT: Unable to find shipping method...\n`);
             return States.Aborted;
         }
         // shipping method found, let's proceed to payment
-
-    }
-
-    submitShipping(res) {
-        if (res.type === 'poll') {
-            console.log(`Shipping Poll URL: ${this._checkoutHost}${res.value}`);
-            setTimeout(() => {
-                rp({
-                    uri: this._checkoutHost + res.value,
-                    method: 'GET',
-                    headers: {
-                        Accept:
-                            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                            'User-Agent': userAgent,
-                    },
-                })
-                .then((body) => {
-                    const $ = cheerio.load(body);
-                    const shippingMethodValue = $('.radio-wrapper').attr('data-shipping-method');
-                    this._authToken = $('form[data-shipping-method-form="true"] input[name="authenticity_token"]').attr('value');
-
-                    console.log(`Shipping Method Value: ${shippingMethodValue}`);
-                    console.log('Card information sending...');
-
-                    return shippingMethodValue;
-
-                })
-                .then((shippingMethodValue) => {
-                    return rp({
-                        uri: this._checkoutUrl,
-                        followAllRedirects: true,
-                        method: 'POST',
-                        headers: {
-                            'User-Agent': userAgent,
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        formData: {
-                            utf8: '✓',
-                            _method: 'patch',
-                            authenticity_token: this._authToken,
-                            button: '',
-                            previous_step: 'shipping_method',
-                            step: 'payment_method',
-                            'checkout[shipping_rate][id]': shippingMethodValue,
-                        },
-                    });
-                })
-                .then((body) => {
-                    const $ = cheerio.load(body);
-                    this._price = $('input[name="checkout[total_price]"]').attr('value');
-                    this._paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-                    this._authToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
-
-                    return submitPayment();
-                })
-                .catch((err) => {
-                    // error submitting payment
-                });
-            }, parseInt(this._task.shippingPollTimeout));
-        } else if (res.type === 'direct') {
-            console.log(`Shipping Method Value: ${res.value}`);
-            console.log('Card information sending...');
-    
-            rp({
-                uri: this._checkoutUrl,
-                followAllRedirects: true,
-                method: 'POST',
-                headers: {
-                    'User-Agent': userAgent,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                formData: {
-                    utf8: '✓',
-                    _method: 'patch',
-                    authenticity_token: res.authToken,
-                    button: '',
-                    previous_step: 'shipping_method',
-                    step: 'payment_method',
-                    'checkout[shipping_rate][id]': res.value,
-                },
-            })
-            .then((body) => {
-                const $ = cheerio.load(body);
-                this._paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-                this._authToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
-
-                return submitPayment();
-            })
-            .catch((err) => {
-                // error submitting payment
-            });
-        }
-    }
-
-    submitPayment() {
-        const paymentInfo = {
-            credit_card: {
-                number: this._task.profile.payment.cardNumber,
-                verification_value: this._task.profile.payment.cvv,
-                name: `${this._task.profile.billing.firstName} ${this._task.profile.billing.lastName}`,
-                month: parseInt(this._task.profile.payment.exp.slice(0,2)),
-                year: parseInt(this._task.profile.payment.exp.slice(3,5)),
-            }
+        let paymentData = null;
+        try {
+            paymentData = await this.submitShipping(shippingMethod, checkoutData.checkoutHost, checkoutData.checkoutUrl)
+        } catch (errors) {
+            console.log(`[ERROR]: CHECKOUT: Error submitting payment information...\n${errors}`);
+            return States.Aborted;
         }
 
-        rp({
-            uri: `https://elb.deposit.shopifycs.com/sessions`,
-            followAllRedirects: true,
-            method: 'post',
-            headers: {
-                'User-Agent': userAgent,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(paymentInfo),
-        })
-        .then((res) => {
-            return submitBilling(JSON.parse(res).id);
-        })
-        .catch((err) => {
-            // error creating payment session
-        });
-    }
+        if (!paymentData) {
+            console.log(`[ERROR]: CHECKOUT: Unable to find payment information...\n`);
+            return States.Aborted;
+        }
 
-    submitBilling(sValue) {
-        rp({
-            uri: this._checkoutUrl,
-            followAllRedirects: true,
-            method: 'post',
-            headers: {
-                Origin: this._checkoutHost,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept:
-                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.8',
-                Referer: `${this._checkoutHost}/${this._storeID}/checkouts/${this._checkoutID}`,
-                'User-Agent': userAgent,
-            },
-            formData: {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: this._authToken,
-                previous_step: 'payment_method',
-                step: '',
-                s: sValue,
-                'checkout[payment_gateway]': this._paymentGateway,
-                'checkout[credit_card][vault]': 'false',
-                'checkout[different_billing_address]': 'false',
-                'checkout[billing_address][first_name]': this._task.profile.billing.firstName,
-                'checkout[billing_address][last_name]': this._task.profile.billing.lastName,
-                'checkout[billing_address][company]': '',
-                'checkout[billing_address][address1]': this._task.profile.billing.address,
-                'checkout[billing_address][address2]': this._task.profile.billing.apt,
-                'checkout[billing_address][city]': this._task.profile.billing.city,
-                'checkout[billing_address][country]': this._task.profile.billing.country,
-                'checkout[billing_address][province]': this._task.profile.billing.state,
-                'checkout[billing_address][zip]': this._task.profile.billing.zipCode,
-                'checkout[billing_address][phone]': phoneFormatter.format(
-                    this._task.profile.billing.phone,
-                    '(NNN) NNN-NNNN'
-                ),
-                'checkout[total_price]': this._price,
-                complete: '1',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-            },
-        })
-        .then((body) => {
-            const $ = cheerio.load(body);
-            if ($('input[name="step"]').val() === 'processing') {
-                console.log(
-                    'Payment is processing, go check your email for a confirmation.'
-                );
-            } else if ($('title').text().indexOf('Processing') > -1) {
-                console.log(
-                    'Payment is processing, go check your email for a confirmation.'
-                );
-            } else if ($('div.notice--warning p.notice__text')) {
-                if ($('div.notice--warning p.notice__text') == '') {
-                    console.log(`An unknown error has occurred please try again.`, 'error');
-                    setTimeout(function() {
-                        return process.exit(1);
-                    }, 4500);
-                } else {
-                    console.log(`${$('div.notice--warning p.notice__text').eq(0).text()}`, 'error');
-                    setTimeout(function() {
-                        return process.exit(1);
-                    }, 4500);
-                }
-            } else {
-                console.log(`An unknown error has occurred please try again.`, 'error');
-                setTimeout(function() {
-                    return process.exit(1);
-                }, 4500);
+        let didSubmitPayment = null;
+        try {
+            didSubmitPayment = await this.submitPayment();
+        } catch (errors) {
+            console.log(`[ERROR]: CHECKOUT: Unable to submit payment information...\n${errors}`);
+            return States.Aborted;
+        }
+
+        if (!didSubmitPayment) {
+            console.log(`[ERROR]: CHECKOUT: Unable to submit payment information...\n`);
+            return States.Aborted;
+        }
+        let didCheckout = null;
+
+        while (this.retries.CHECKOUT > 0 || didCheckout.message)
+            try {
+                didCheckout = 
+                    await this.submitBilling(
+                        didSubmitPayment.sessionValue,
+                        checkoutData.checkoutHost,
+                        checkoutData.checkoutUrl,
+                        checkoutData.checkoutId,
+                        paymentData.paymentGateway,
+                        paymentData.price
+                    );
+            } catch (errors) {
+                console.log(`[ERROR]: CHECKOUT: Unable to successfully checkout...\n${errors}`);
+                this.retries.CHECKOUT--;
             }
-        })
+
+        if (!didCheckout.message) {
+            console.log(`[ERROR]: CHECKOUT: Unable to successfully checkout...\n`);
+            return States.Restock;
+        } else {
+            console.log(`[INFO]: CHECKOUT: Successfully checkout out!...\n`);
+            /**
+             * TODO - call Notification Module to send discord/slack webhook
+             * a rich embed with the successful checkout information.
+             */
+            return States.Aborted; // temporary stop after first size..
+        }
     }
 }
 
