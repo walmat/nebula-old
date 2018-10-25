@@ -17,8 +17,8 @@ files:
   - node_modules/
 
 dmg:
-  background: "public/assets/background.png"
-  icon: "public/assets/icons/mac/logo.icns"
+  background: "build/assets/background.png"
+  icon: "build/assets/icons/mac/icon.icns"
   iconSize: 128
   contents:
     - type: link
@@ -32,14 +32,14 @@ dmg:
 mac:
   target: dmg
   category: public.app-category.productivity
-  icon: "build/icons/icon.icns"
+  icon: "build/assets/icons/mac/icon.icns"
 
 win:
   target: nsis
-  icon: "public/assets/icons/win/logo.ico"
+  icon: "build/assets/icons/win/icon.ico"
 
 linux:
-  icon: "public/assets/icons/png"
+  icon: "build/assets/icons/png"
   target:
     - deb
     - AppImage
