@@ -24,7 +24,7 @@ function getParseType(product) {
     return ParseType.Unknown;
   }
 
-  if (product.variant && product.site) {
+  if (product.variant) {
     console.log(`[TRACE]: Parse Type Determined as: ${ParseType.Variant}`);
     return ParseType.Variant;
   }
@@ -34,7 +34,7 @@ function getParseType(product) {
     return ParseType.Url;
   }
 
-  if (product.site && product.pos_keywords && product.neg_keywords) {
+  if (product.pos_keywords && product.neg_keywords) {
     console.log(`[TRACE]: Parse Type Determined as: ${ParseType.Keywords}`);
     return ParseType.Keywords;
   }
@@ -71,10 +71,10 @@ function filterAndLimit(list, sorter, limit) {
     return [];
   }
   console.log(`[TRACE]: List Detected with ${list.length} elements. Proceeding to sorting now...`);
-  let sorted = products;
+  let sorted = list;
   if (sorter) {
     console.log('[TRACE]: Sorter detected, sorting...');
-    sorted = _.sortBy(products, sorter);
+    sorted = _.sortBy(list, sorter);
   }
 
   const _limit = limit || 0;
@@ -167,7 +167,7 @@ function matchKeywords(products, keywords, filter) {
     console.log('[TRACE]: No keywords object given! Returning null');
     return null;
   }
-  if (!keywords.pos || keywords.neg) {
+  if (!keywords.pos || !keywords.neg) {
     console.log('[TRACE]: Malformed keywords object! Returning null');
     return null;
   }
@@ -182,14 +182,14 @@ function matchKeywords(products, keywords, filter) {
 
     // match every keyword in the positive array
     if (keywords.pos.length > 0) {
-      pos = _.every(pos_keywords.map(k => k.toUpperCase()), (keyword) => {
+      pos = _.every(keywords.pos.map(k => k.toUpperCase()), (keyword) => {
         return title.indexOf(keyword.toUpperCase()) > -1 || handle.indexOf(keyword) > -1;
       });
     }
     
     // match none of the keywords in the negative array
     if (keywords.neg.length > 0) {
-        neg = _.some(neg_keywords.map(k => k.toUpperCase()), (keyword) => {
+        neg = _.some(keywords.neg.map(k => k.toUpperCase()), (keyword) => {
             return title.indexOf(keyword) > -1 || handle.indexOf(keyword) > -1;
         });
     }
