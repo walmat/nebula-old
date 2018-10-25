@@ -1,20 +1,25 @@
 appId: com.nebula.orion
-copyright: Nebula Automation, LLC
+copyright: 2018 © Nebula Automation, LLC
 productName: Nebula Orion
-
 asar: true
+compression: maximum
+extends: null
 
 directories:
   buildResources: _assets/
-  output: dist/
+  output: orion/
 
 files:
   - package.json
   - lib/
   - build/
+  - .env.prod
   - node_modules/
 
 dmg:
+  background: "public/assets/background.png"
+  icon: "public/assets/icons/mac/logo.icns"
+  iconSize: 128
   contents:
     - type: link
       path: /Applications
@@ -31,10 +36,16 @@ mac:
 
 win:
   target: nsis
-  icon: "build/icon.ico"
+  icon: "public/assets/icons/win/logo.ico"
 
 linux:
+  icon: "public/assets/icons/png"
   target:
     - deb
     - AppImage
   category: linux.category.productivity
+nsis:
+  perMachine: true
+  oneClick: true
+npmRebuild: true
+nodeGypRebuild: false

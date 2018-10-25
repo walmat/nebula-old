@@ -2,7 +2,7 @@
   "name": "nebula-orion",
   "version": "1.0.0",
   "private": true,
-  "main": "lib/_electron/Electron.js",
+  "main": "./lib/_electron/electron.js",
   "homepage": "./",
   "build": {
     "appId": "com.nebulabots.orion",

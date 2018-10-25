@@ -8,8 +8,8 @@ node_modules/*
 
 # production
 build/
-orion/
 logs/
+orion/
 
 # private files
 package-lock.json
