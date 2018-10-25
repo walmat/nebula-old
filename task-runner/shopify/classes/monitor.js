@@ -126,6 +126,8 @@ class Monitor {
             return States.Aborted;
         }
 
+        // TODO: Check the parsing type before running parseAll
+
         let parsed;
         try {
             // Try parsing all files and wait for the first response
