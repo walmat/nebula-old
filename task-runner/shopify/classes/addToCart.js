@@ -1,4 +1,4 @@
-const { States } = require('../taskRunner');
+const { States } = require('../taskRunner').States;
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
@@ -40,8 +40,7 @@ class AddToCart {
             return States.Aborted;
         }
 
-        const id = this._task.product.variant.id;
-        rp({
+        return rp({
             uri: `${this._task.site.url}/cart/add.js`,
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
@@ -56,11 +55,12 @@ class AddToCart {
                 'Accept-Language': 'en-US,en;q=0.8',
             },
             formData: {
-                id: id,
+                id: this._task.product.variant,
                 qty: '1',
             },
         })
         .then((res) => {
+            console.log(res);
             // check response
             console.log('[INFO]: CHECKOUT: Checking if add to cart was valid...');
             return res.status !== 404;
@@ -68,6 +68,7 @@ class AddToCart {
         .catch((err) => {
             console.log('[ERROR]: CHECKOUT: Unable to submit add to cart request...');
             // TODO - error handling
+            return false;
         });
     }
 }

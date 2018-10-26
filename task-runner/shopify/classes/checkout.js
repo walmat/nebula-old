@@ -1,19 +1,27 @@
-const cheerio = require('cheerio');
-const phoneFormatter = require('phone-formatter');
-const now = require("performance-now");
+/**
+ * Parse includes
+ */
+const $ = require('cheerio');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
     jar: jar,
 });
 
+/**
+ * Local class includes
+ */
 const AddToCart = require('./addToCart');
-
+const { States } = require('../taskRunner');
+/**
+ * Utils includes
+ */
 const {
     formatProxy,
     userAgent,
-    buildForm,
 } = require('./utils');
+const buildForm = require('./utils/buildForm');
+const now = require('performance-now');
 
 class Checkout {
 
@@ -32,7 +40,7 @@ class Checkout {
         /**
          * Add to cart module for handling adding a product to cart.
          */
-        this._addToCart = new AddToCart(this._context);
+        this._addToCart = new AddToCart(context);
 
         this.retries = {
             ADD_TO_CART: 5,
@@ -69,26 +77,30 @@ class Checkout {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
-        rp({
+        return rp({
             uri: `${this._task.site.url}/cart.js`,
             followAllRedirects: true,
             resolveWithFullResponse: true,
+            proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {
                 'User-Agent': userAgent,
             },
-            formData: {
+            qs: {
                 quantity: '1',
                 checkout: 'Checkout',
             },
         })
         .then((res) => {
             // break early if out of stock already...
+            // console.log(res);
             if (res.request.href.indexOf('stock_problems') > -1) {
                 console.log('[ERROR]: CHECKOUT: Out of Stock...');
+                if (this._task.sizes.length > 1) {
+                    return States.SwapSizes;
+                }
                 return States.Restock;
             } else {
-                console.log(`DEBUG]: CHECKOUT: body=${res.body}`)
                 return {
                     checkoutHost: `https://${res.request.originalHost}`,
                     checkoutUrl: res.request.href,
@@ -136,6 +148,7 @@ class Checkout {
         rp({
             method: 'GET',
             uri: checkoutUrl,
+            proxy: formatProxy(this._proxy),
             followAllRedirects: true,
             headers: {
                 Origin: `${checkoutHost}`,
@@ -185,6 +198,7 @@ class Checkout {
         rp({
             uri: checkoutUrl,
             followAllRedirects: true,
+            proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {
                 Origin: `${checkoutHost}`,
@@ -228,6 +242,7 @@ class Checkout {
         rp({
             uri: `${checkoutHost}${res.value}`,
             method: 'GET',
+            proxy: formatProxy(this._proxy),
             headers: {
                 Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'User-Agent': userAgent,
@@ -244,6 +259,7 @@ class Checkout {
             return rp({
                 uri: checkoutUrl,
                 followAllRedirects: true,
+                proxy: formatProxy(this._proxy),
                 method: 'POST',
                 headers: {
                     'User-Agent': userAgent,
@@ -276,7 +292,7 @@ class Checkout {
         if (res.type === 'poll') {
             console.log(`Shipping Poll URL: ${checkoutHost}${res.value}`);
             // TODO - handle this case better...
-            setTimeout(() => {
+            setTimeout(async () => {
                 await this.pollForShipping(res, checkoutHost, checkoutUrl);
             }, parseInt(this._task.shippingPollTimeout));
         } else if (res.type === 'direct') {
@@ -286,6 +302,7 @@ class Checkout {
             rp({
                 uri: checkoutUrl,
                 followAllRedirects: true,
+                proxy: formatProxy(this._proxy),
                 method: 'POST',
                 headers: {
                     'User-Agent': userAgent,
@@ -331,6 +348,7 @@ class Checkout {
         rp({
             uri: `https://elb.deposit.shopifycs.com/sessions`,
             followAllRedirects: true,
+            proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {
                 'User-Agent': userAgent,
@@ -352,6 +370,7 @@ class Checkout {
         rp({
             uri: this._checkoutUrl,
             followAllRedirects: true,
+            proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {
                 Origin: this._checkoutHost,
@@ -406,13 +425,19 @@ class Checkout {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
+        const start = now();
         // add to cart...
         let added = false;
-        while (this.retries.ADD_TO_CART > 0 || added) {
+        while (this.retries.ADD_TO_CART > 0) {
             try {
-                added = await this._addToCart.run();
+                added = await this._addToCart.addToCart();
+                if (added) {
+                    break;
+                }
             } catch (errors) {
                 console.log(`[DEBUG]: CHECKOUT: Add to cart errored out!\n${errors}`);
+                console.log(`Retrying ${this.retries.ADD_TO_CART} more times before moving on..`);
+
                 this.retries.ADD_TO_CART--;
             }
         }
@@ -420,11 +445,15 @@ class Checkout {
             console.log('[ERROR]: CHECKOUT: Unable to add to cart...');
             return States.Aborted;
         }
+        console.log(`Took ${(now()-start).toFixed(3)}ms to add to cart!`)
         // added! generate checkout URL
         let checkoutData = null;
-        while (this.retries.CHECKOUT > 0 || checkoutData) {
+        while (this.retries.CHECKOUT > 0) {
             try {
                 checkoutData = await this.getCheckoutData();
+                if (checkoutData) {
+                    break;
+                }
             } catch (errors) {
                 console.log(`[DEBUG]: CHECKOUT: Unable to generate checkout URL\n${errors}`);
                 this.retries.CHECKOUT--;
@@ -434,6 +463,7 @@ class Checkout {
             console.log('[ERROR]: CHECKOUT: Unable to find checkout URL...');
             return States.Aborted;
         }
+        console.log(checkoutData);
         // got checkout data, proceed to filling out shipping information
         let newAuthToken = null;
         try {
@@ -445,7 +475,7 @@ class Checkout {
         }
 
         if (!newAuthToken) {
-            console.log(`[ERROR]: CHECKOUT: Unable to complete shipping information...\n${errors}`);
+            console.log(`[ERROR]: CHECKOUT: Unable to complete shipping information...\n`);
             return States.Aborted;
         }
 

@@ -1,4 +1,4 @@
-module.exports = function (task, isCheckoutPage, authToken, type, currentStep, previousStep, shippingMethod, paymentGateway, price, sessionValue) {
+function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousStep, shippingMethod, paymentGateway, price, sessionValue) {
 
     switch (type) {
         case 'payment': {
@@ -197,53 +197,6 @@ module.exports = function (task, isCheckoutPage, authToken, type, currentStep, p
             break;
         }
     }
-    let form;
-        if (checkoutUrl.indexOf('checkout.shopify.com') > -1) {
-            form = {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: authToken,
-                previous_step: 'contact_information',
-                step: 'shipping_method',
-                'checkout[email]': this._task.payment.email,
-                'checkout[buyer_accepts_marketing]': '1',
-                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
-                'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
-                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
-                'checkout[shipping_address][city]': this._task.profile.shipping.city,
-                'checkout[shipping_address][country]': this._task.profile.shipping.country,
-                'checkout[shipping_address][province]': this._task.profile.shipping.state,
-                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': this._task.profile.shipping.phone,
-                'checkout[remember_me]': '0',
-                button: '',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-            };
-        } else {
-            form = {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: authToken,
-                previous_step: 'contact_information',
-                'checkout[email]': this._task.profile.payment.email,
-                'checkout[shipping_address][first_name]': this._task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': this._task.profile.shipping.lastName,
-                'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': this._task.profile.shipping.address,
-                'checkout[shipping_address][address2]': this._task.profile.shipping.apt,
-                'checkout[shipping_address][city]': this._task.profile.shipping.city,
-                'checkout[shipping_address][country]': this._task.profile.shipping.country,
-                'checkout[shipping_address][province]': this._task.profile.shipping.state,
-                'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': this._task.profile.shipping.phone,
-                'checkout[remember_me]': '0',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-                step: 'contact_information',
-            };
-        }
 }
+
+module.exports = buildForm;

@@ -31,7 +31,7 @@ class Monitor {
 
     // ASSUMPTION: this method is only called when we know we have to 
     // delay and start the monitor again...
-    _delay() {
+    async _delay() {
         let delay = this._waitForRefreshDelay;
         switch (parsed.response.status) {
             case 401:
