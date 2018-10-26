@@ -5,7 +5,8 @@ const limit = (val, max) => {
 
   if (Number(val) <= 0) {
     return '01';
-  } else if (val.length === 2 && val > max) { // this can happen when user paste number
+  } else if (val.length === 2 && val > max) {
+    // this can happen when user paste number
     return max;
   }
   return val;

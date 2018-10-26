@@ -12,7 +12,7 @@ const sizes = [
     ],
   },
   {
-    label: 'US Men\'s',
+    label: "US Men's",
     options: [
       { value: 'US Random', label: 'Random' },
       { value: 'US FSR', label: 'Full Size Run' },
@@ -39,7 +39,7 @@ const sizes = [
     ],
   },
   {
-    label: 'UK Men\'s',
+    label: "UK Men's",
     options: [
       { value: 'UK Random', label: 'Random' },
       { value: 'UK FSR', label: 'Full Size Run' },
@@ -66,7 +66,7 @@ const sizes = [
     ],
   },
   {
-    label: 'EU Men\'s',
+    label: "EU Men's",
     options: [
       { value: 'EU Random', label: 'Random' },
       { value: 'EU FSR', label: 'Full Size Run' },

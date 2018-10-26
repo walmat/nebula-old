@@ -1,6 +1,12 @@
 /* global describe */
-import sDefns, { initialServerStates } from '../../../../utils/definitions/serverDefinitions';
-import { setupConsoleErrorSpy, testKey, testArray } from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, {
+  initialServerStates,
+} from '../../../../utils/definitions/serverDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+  testArray,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('serverList definitions', () => {
   const spy = setupConsoleErrorSpy();

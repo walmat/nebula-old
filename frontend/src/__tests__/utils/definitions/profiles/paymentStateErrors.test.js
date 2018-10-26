@@ -1,6 +1,11 @@
 /* global describe */
-import pDefns, { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import pDefns, {
+  initialProfileStates,
+} from '../../../../utils/definitions/profileDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('paymentStateErrors definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -8,7 +13,8 @@ describe('paymentStateErrors definitions', () => {
   const testErrorKey = (keyName, valid, invalid) =>
     testKey(
       keyName,
-      valid, invalid,
+      valid,
+      invalid,
       pDefns.paymentStateErrors,
       initialProfileStates.paymentErrors,
       spy,

@@ -38,7 +38,7 @@ export const PROFILE_ACTIONS = {
 // }
 const _addProfileRequest = async profile =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
+  new Promise(resolve => {
     const copy = JSON.parse(JSON.stringify(profile));
     resolve(copy);
     // console.log('trying for request');
@@ -98,7 +98,7 @@ const _addProfileRequest = async profile =>
 // }
 const _updateProfileRequest = async (id, profile) =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
+  new Promise(resolve => {
     const copy = JSON.parse(JSON.stringify(profile));
     copy.id = id;
     resolve(copy);
@@ -130,40 +130,50 @@ const _updateProfileRequest = async (id, profile) =>
 // }
 const _removeProfileRequest = async id =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
+  new Promise(resolve => {
     resolve(id);
   });
 
 // Private Actions
 const _addProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
 const _removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
-const _updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE, 'id', 'profile');
+const _updateProfile = makeActionCreator(
+  PROFILE_ACTIONS.UPDATE,
+  'id',
+  'profile',
+);
 
 // Public Actions
-const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
+const editProfile = makeActionCreator(
+  PROFILE_ACTIONS.EDIT,
+  'id',
+  'field',
+  'value',
+  'subField',
+);
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
 const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
-const addProfile = profile =>
-  dispatch => _addProfileRequest(profile).then(
+const addProfile = profile => dispatch =>
+  _addProfileRequest(profile).then(
     newProfile => dispatch(_addProfile(newProfile)),
     error => dispatch(handleError(PROFILE_ACTIONS.ADD, error)),
   );
 
-const removeProfile = id =>
-  dispatch => _removeProfileRequest(id).then(
+const removeProfile = id => dispatch =>
+  _removeProfileRequest(id).then(
     removedId => dispatch(_removeProfile(removedId)),
     error => dispatch(handleError(PROFILE_ACTIONS.REMOVE, error)),
   );
 
-const updateProfile = (id, profile) =>
-  dispatch => _updateProfileRequest(id, profile).then(
-    updatedProfile => dispatch(_updateProfile(updatedProfile.id, updatedProfile)),
+const updateProfile = (id, profile) => dispatch =>
+  _updateProfileRequest(id, profile).then(
+    updatedProfile =>
+      dispatch(_updateProfile(updatedProfile.id, updatedProfile)),
     error => dispatch(handleError(PROFILE_ACTIONS.UPDATE, error)),
   );
-
 
 export const profileActions = {
   add: addProfile,
@@ -231,4 +241,3 @@ export const mapPaymentFieldToKey = {
   [PAYMENT_FIELDS.EXP]: 'exp',
   [PAYMENT_FIELDS.CVV]: 'cvv',
 };
-

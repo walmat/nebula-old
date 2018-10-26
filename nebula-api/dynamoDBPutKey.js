@@ -9,6 +9,7 @@ const { salt, algo, output } = require('./hashConfig.json');
 const keys = []; // add these here when we need to add keys
 AWS.config.update(config);
 var dynamodb = new AWS.DynamoDB();
+console.log(config);
 
 function storeKey(key) {
   keyHash = hash(algo, key, salt, output);
@@ -33,7 +34,7 @@ async function getAllKeys() {
 			TableName: "Keys"
 		}
 		let result = await dynamodb.scan(params).promise();
-    console.log(result);
+    console.log(result.Items.forEach(key => console.log(key)));
   } catch (err) {
     console.log(`Couldn't read the table Keys.`);
   }
@@ -45,7 +46,7 @@ async function getAllDiscord() {
 			TableName: "Discord"
 		}
 		let result = await dynamodb.scan(params).promise();
-    console.log(result);
+    console.log(result.Items.forEach(discord => console.log(discord)));
   } catch (err) {
     console.log(`Couldn't read the table Discord.`);
   }
@@ -57,7 +58,7 @@ async function getAllUsers() {
 			TableName: "Users"
 		}
 		let result = await dynamodb.scan(params).promise();
-    console.log(result);
+    console.log(result.Items.forEach(user => console.log(user)));
   } catch (err) {
     console.log(`Couldn't read the table Users.`);
   }

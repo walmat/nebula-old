@@ -21,10 +21,10 @@ describe('selected profile reducer', () => {
         id: 2,
         profileName: 'test2',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.SELECT, profile: expected },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.SELECT,
+        profile: expected,
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -34,10 +34,9 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'testing',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.SELECT },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.SELECT,
+      });
       expect(actual).toEqual(start);
     });
   });
@@ -49,10 +48,10 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'testing',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.REMOVE, id: 1 },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 1,
+      });
       expect(actual).toEqual(initialProfileStates.profile);
     });
 
@@ -62,10 +61,10 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'testing',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.REMOVE, id: 2 },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 2,
+      });
       expect(actual).toEqual(start);
     });
 
@@ -75,10 +74,9 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'testing',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.REMOVE },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.REMOVE,
+      });
       expect(actual).toEqual(start);
     });
   });
@@ -95,10 +93,11 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'new test',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.UPDATE, id: 1, profile: expected },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+        id: 1,
+        profile: expected,
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -113,10 +112,10 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'new test',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.UPDATE, profile },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+        profile,
+      });
       expect(actual).toEqual(profile);
     });
 
@@ -131,10 +130,11 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'new test',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.UPDATE, profile, id: 3 },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+        profile,
+        id: 3,
+      });
       expect(actual).toEqual(start);
     });
 
@@ -144,10 +144,10 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'test',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.UPDATE, profile: {} },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+        profile: {},
+      });
       expect(actual).toEqual(start);
     });
 
@@ -157,10 +157,9 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'test',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.UPDATE },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+      });
       expect(actual).toEqual(start);
     });
 
@@ -170,20 +169,19 @@ describe('selected profile reducer', () => {
         id: 1,
         profileName: 'test',
       };
-      const actual = selectedProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.UPDATE, id: 1 },
-      );
+      const actual = selectedProfileReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+        id: 1,
+      });
       expect(actual).toEqual(start);
     });
   });
 
   describe('should not respond to', () => {
-    const _testNoopResponse = (type) => {
-      const actual = selectedProfileReducer(
-        initialProfileStates.profile,
-        { type },
-      );
+    const _testNoopResponse = type => {
+      const actual = selectedProfileReducer(initialProfileStates.profile, {
+        type,
+      });
       expect(actual).toEqual(initialProfileStates.profile);
     };
 

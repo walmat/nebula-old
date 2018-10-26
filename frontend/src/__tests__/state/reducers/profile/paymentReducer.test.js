@@ -10,16 +10,16 @@ describe('payment reducer', () => {
   });
 
   describe('when editing', () => {
-    const _testEditField = (field) => {
+    const _testEditField = field => {
       it('should update when using a non-null value', () => {
         const expected = {
           ...initialProfileStates.payment,
           [field]: 'testing',
         };
-        const actual = paymentReducer(
-          initialProfileStates.payment,
-          { type: field, value: 'testing' },
-        );
+        const actual = paymentReducer(initialProfileStates.payment, {
+          type: field,
+          value: 'testing',
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -27,10 +27,10 @@ describe('payment reducer', () => {
         const expected = {
           ...initialProfileStates.payment,
         };
-        const actual = paymentReducer(
-          initialProfileStates.payment,
-          { type: field, value: '' },
-        );
+        const actual = paymentReducer(initialProfileStates.payment, {
+          type: field,
+          value: '',
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -38,10 +38,10 @@ describe('payment reducer', () => {
         const expected = {
           ...initialProfileStates.payment,
         };
-        const actual = paymentReducer(
-          initialProfileStates.payment,
-          { type: field, value: null },
-        );
+        const actual = paymentReducer(initialProfileStates.payment, {
+          type: field,
+          value: null,
+        });
         expect(actual).toEqual(expected);
       });
     };
@@ -56,10 +56,9 @@ describe('payment reducer', () => {
   });
 
   it('should not respond to invalid actions', () => {
-    const actual = paymentReducer(
-      initialProfileStates.payment,
-      { type: 'INVALID' },
-    );
+    const actual = paymentReducer(initialProfileStates.payment, {
+      type: 'INVALID',
+    });
     expect(actual).toEqual(initialProfileStates.payment);
   });
 });

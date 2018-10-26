@@ -3,13 +3,25 @@
  * files, this is just a shared import point.
  */
 // import { combineReducers } from 'redux';
-import { newTaskReducer, selectedTaskReducer } from './reducers/tasks/taskReducer';
+import {
+  newTaskReducer,
+  selectedTaskReducer,
+} from './reducers/tasks/taskReducer';
 import taskListReducer from './reducers/tasks/taskListReducer';
-import { currentProfileReducer, selectedProfileReducer } from './reducers/profiles/profileReducer';
+import {
+  currentProfileReducer,
+  selectedProfileReducer,
+} from './reducers/profiles/profileReducer';
 import profileListReducer from './reducers/profiles/profileListReducer';
-import { serverReducer, serverListReducer } from './reducers/server/serverReducer';
+import {
+  serverReducer,
+  serverListReducer,
+} from './reducers/server/serverReducer';
 import settingsReducer from './reducers/settings/settingsReducer';
-import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
+import {
+  navbarReducer,
+  initialNavbarState,
+} from './reducers/navbar/navbarReducer';
 
 import serverListOptions from '../utils/servers';
 import { initialProfileStates } from '../utils/definitions/profileDefinitions';

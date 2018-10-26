@@ -1,10 +1,7 @@
 /* global describe expect it test jest */
 import { selectedTaskReducer } from '../../../../state/reducers/tasks/taskReducer';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import {
-  TASK_ACTIONS,
-  TASK_FIELDS,
-} from '../../../../state/actions';
+import { TASK_ACTIONS, TASK_FIELDS } from '../../../../state/actions';
 
 describe('selected task reducer', () => {
   it('should return initial state', () => {
@@ -19,30 +16,24 @@ describe('selected task reducer', () => {
         id: 1,
         username: 'test',
       };
-      const actual = selectedTaskReducer(
-        initialTaskStates.task,
-        {
-          type: TASK_ACTIONS.SELECT, task: expected,
-        },
-      );
+      const actual = selectedTaskReducer(initialTaskStates.task, {
+        type: TASK_ACTIONS.SELECT,
+        task: expected,
+      });
       expect(actual).toEqual(expected);
     });
 
     test('when task is not given', () => {
-      const actual = selectedTaskReducer(
-        initialTaskStates.task,
-        { type: TASK_ACTIONS.SELECT },
-      );
+      const actual = selectedTaskReducer(initialTaskStates.task, {
+        type: TASK_ACTIONS.SELECT,
+      });
       expect(actual).toEqual(initialTaskStates.task);
     });
   });
 
   describe('should not respond to', () => {
-    const _testNoopResponse = (type) => {
-      const actual = selectedTaskReducer(
-        initialTaskStates.task,
-        { type },
-      );
+    const _testNoopResponse = type => {
+      const actual = selectedTaskReducer(initialTaskStates.task, { type });
       expect(actual).toEqual(initialTaskStates.task);
     };
 

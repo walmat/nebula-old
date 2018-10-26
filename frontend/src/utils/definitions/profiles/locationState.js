@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 
-import locationStateErrors, { initialLocationErrorState } from './locationStateErrors';
+import locationStateErrors, {
+  initialLocationErrorState,
+} from './locationStateErrors';
 
 export const initialLocationState = {
   firstName: '',
@@ -21,7 +23,10 @@ const locationState = PropTypes.shape({
   address: PropTypes.string,
   apt: PropTypes.string,
   city: PropTypes.string,
-  country: PropTypes.shape({ value: PropTypes.string, label: PropTypes.string }),
+  country: PropTypes.shape({
+    value: PropTypes.string,
+    label: PropTypes.string,
+  }),
   state: PropTypes.shape({ value: PropTypes.string, label: PropTypes.string }),
   zipCode: PropTypes.string,
   phone: PropTypes.string,

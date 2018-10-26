@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 async function bind(licenseKey, discordId, cb) {
 
     // call the nebula api endpoint
-    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/auth/discord`,
+    let result = await fetch(`https://nebula-orion-api.herokuapp.com/auth/discord`,
         {
             method: "POST",
             headers: {
@@ -27,7 +27,7 @@ async function bind(licenseKey, discordId, cb) {
 async function deactivate(licenseKey, discordId, cb) {
 
     // call the nebula api endpoint
-    let result = await fetch(`${process.env.NEBULA_API_ENDPOINT}/auth/discord`,
+    let result = await fetch(`https://nebula-orion-api.herokuapp.com/auth/discord`,
         {
             method: "DELETE",
             headers: {
@@ -41,7 +41,6 @@ async function deactivate(licenseKey, discordId, cb) {
         });
 
     const body = await result.json();
-    console.log(body);
     return cb(body.message);
 }
 

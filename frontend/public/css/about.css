@@ -1,0 +1,62 @@
+#bodymovin {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: #edbcc6;
+  top: 20px;
+  left: 36%;
+}
+body, html {
+  height: 100%;
+  width:100%;
+  background: #edbcc6;
+  overflow: hidden;
+}
+#titlebar {
+  user-select: none;
+  position: absolute;
+  top:0;
+  left:0;
+  right:16px;
+  height:25px;
+  background: transparent;
+  -webkit-user-select: none;
+  -webkit-app-region: drag;
+}
+::-webkit-scrollbar { 
+  display: none; 
+}
+#close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  height: 11px;
+  width: 11px;
+}
+#body-text {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #EFEFEF;
+  letter-spacing: 0;
+  position: absolute;
+  margin: 0;
+}
+#title {
+  font-family: AvenirNext-Medium;
+  position: absolute;
+  color: #161318;
+  font-size: 12px;
+  top: 115px;
+  left: 87px;
+  margin: 0;
+}
+
+#version {
+  font-family: AvenirNext-Medium;
+  position: absolute;
+  color: #161318;
+  font-size: 9px;
+  top: 145px;
+  left: 115px;
+  margin: 0;
+}

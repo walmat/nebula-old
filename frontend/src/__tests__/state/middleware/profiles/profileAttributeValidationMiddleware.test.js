@@ -17,7 +17,8 @@ describe('profile attribute validation middleware', () => {
     };
     const next = jest.fn();
 
-    const invoke = action => profileAttributeValidationMiddleware(store)(next)(action);
+    const invoke = action =>
+      profileAttributeValidationMiddleware(store)(next)(action);
 
     return { store, next, invoke };
   };
@@ -38,7 +39,7 @@ describe('profile attribute validation middleware', () => {
     expect(store.getState).not.toHaveBeenCalled();
   });
 
-  it('should pass through actions that aren\'t a profile edit type', () => {
+  it("should pass through actions that aren't a profile edit type", () => {
     const { store, next, invoke } = create();
     const action = { type: 'NOT_A_PROFILE_ACTION' };
     invoke(action);
@@ -55,14 +56,16 @@ describe('profile attribute validation middleware', () => {
         ...initialProfileStates.profile,
         id: null,
       },
-      profiles: [{
-        ...initialProfileStates.profile,
-        id: 1,
-      },
-      {
-        ...initialProfileStates.profile,
-        id: 2,
-      }],
+      profiles: [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+        },
+        {
+          ...initialProfileStates.profile,
+          id: 2,
+        },
+      ],
     }));
     const action = { type: PROFILE_ACTIONS.EDIT, id: 3 };
     invoke(action);
@@ -79,7 +82,7 @@ describe('profile attribute validation middleware', () => {
       ...payload,
     });
 
-    const testNoop = (payload) => {
+    const testNoop = payload => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         currentProfile: {
@@ -97,39 +100,45 @@ describe('profile attribute validation middleware', () => {
       expect(nextAction.type).toBe(PROFILE_ACTIONS.ERROR);
     };
 
-    const testNoopSubfield = (subField) => {
-      test('for edit payment', () => testNoop({
-        field: PROFILE_FIELDS.EDIT_PAYMENT,
-        value: 'test',
-        subField,
-      }));
+    const testNoopSubfield = subField => {
+      test('for edit payment', () =>
+        testNoop({
+          field: PROFILE_FIELDS.EDIT_PAYMENT,
+          value: 'test',
+          subField,
+        }));
 
-      test('for edit shipping', () => testNoop({
-        field: PROFILE_FIELDS.EDIT_SHIPPING,
-        value: 'test',
-        subField,
-      }));
+      test('for edit shipping', () =>
+        testNoop({
+          field: PROFILE_FIELDS.EDIT_SHIPPING,
+          value: 'test',
+          subField,
+        }));
 
-      test('for edit billing', () => testNoop({
-        field: PROFILE_FIELDS.EDIT_BILLING,
-        value: 'test',
-        subField,
-      }));
+      test('for edit billing', () =>
+        testNoop({
+          field: PROFILE_FIELDS.EDIT_BILLING,
+          value: 'test',
+          subField,
+        }));
     };
 
-    test('null field given', () => testNoop({
-      field: null,
-      value: 'test',
-    }));
+    test('null field given', () =>
+      testNoop({
+        field: null,
+        value: 'test',
+      }));
 
-    test('no field given', () => testNoop({
-      value: 'test',
-    }));
+    test('no field given', () =>
+      testNoop({
+        value: 'test',
+      }));
 
-    test('null value given', () => testNoop({
-      field: PROFILE_FIELDS.EDIT_NAME,
-      value: null,
-    }));
+    test('null value given', () =>
+      testNoop({
+        field: PROFILE_FIELDS.EDIT_NAME,
+        value: null,
+      }));
 
     test('no value given', () => testNoop({}));
 
@@ -145,10 +154,12 @@ describe('profile attribute validation middleware', () => {
         ...initialProfileStates.profile,
         id: null,
       },
-      profiles: [{
-        ...initialProfileStates.profile,
-        id: 1,
-      }],
+      profiles: [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+        },
+      ],
     }));
     invoke(action);
     expect(next).toHaveBeenCalledWith(expectedAction);
@@ -176,9 +187,10 @@ describe('profile attribute validation middleware', () => {
   });
 
   const generateSubFieldActions = (id, field, subField, value, valid) => {
-    const defaultErrors = (field === PROFILE_FIELDS.EDIT_PAYMENT) ?
-      initialProfileStates.paymentErrors :
-      initialProfileStates.locationErrors;
+    const defaultErrors =
+      field === PROFILE_FIELDS.EDIT_PAYMENT
+        ? initialProfileStates.paymentErrors
+        : initialProfileStates.locationErrors;
     return {
       id,
       action: {
@@ -202,9 +214,11 @@ describe('profile attribute validation middleware', () => {
     };
   };
 
-  const testAllFields = (id) => {
-    const testInjection = actionObject => performErrorInjectionTest(actionObject);
-    const getActions = (field, value, valid) => generateActions(id, field, value, valid);
+  const testAllFields = id => {
+    const testInjection = actionObject =>
+      performErrorInjectionTest(actionObject);
+    const getActions = (field, value, valid) =>
+      generateActions(id, field, value, valid);
     const getSubFieldActions = (field, subField, value, valid) =>
       generateSubFieldActions(id, field, subField, value, valid);
 
@@ -217,15 +231,31 @@ describe('profile attribute validation middleware', () => {
       });
 
       test('edit billing matches shipping', () =>
-        testInjection(getActions(PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING, true, true)));
+        testInjection(
+          getActions(PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING, true, true),
+        ));
       test('toggle billing matches shipping', () =>
-        testInjection(getActions(PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, true, true)));
+        testInjection(
+          getActions(
+            PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING,
+            true,
+            true,
+          ),
+        ));
 
       describe('edit payment', () => {
         const testWithField = (subField, value, valid) =>
-          testInjection(getSubFieldActions(PROFILE_FIELDS.EDIT_PAYMENT, subField, value, valid));
+          testInjection(
+            getSubFieldActions(
+              PROFILE_FIELDS.EDIT_PAYMENT,
+              subField,
+              value,
+              valid,
+            ),
+          );
         describe('email field', () => {
-          const testWith = (value, valid) => testWithField(PAYMENT_FIELDS.EMAIL, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(PAYMENT_FIELDS.EMAIL, value, valid);
           test('when valid', () => testWith('test@me.com', true));
           test('when invalid', () => testWith('invalid', false));
         });
@@ -238,13 +268,15 @@ describe('profile attribute validation middleware', () => {
         });
 
         describe('exp field', () => {
-          const testWith = (value, valid) => testWithField(PAYMENT_FIELDS.EXP, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(PAYMENT_FIELDS.EXP, value, valid);
           test('when valid', () => testWith('12/34', true));
           test('when invalid', () => testWith('invalid', false));
         });
 
         describe('cvv field', () => {
-          const testWith = (value, valid) => testWithField(PAYMENT_FIELDS.CVV, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(PAYMENT_FIELDS.CVV, value, valid);
           test('when valid', () => testWith('123', true));
           test('when invalid', () => testWith('invalid', false));
         });
@@ -252,7 +284,14 @@ describe('profile attribute validation middleware', () => {
 
       describe('edit billing', () => {
         const testWithField = (subField, value, valid) =>
-          testInjection(getSubFieldActions(PROFILE_FIELDS.EDIT_BILLING, subField, value, valid));
+          testInjection(
+            getSubFieldActions(
+              PROFILE_FIELDS.EDIT_BILLING,
+              subField,
+              value,
+              valid,
+            ),
+          );
         describe('first name field', () => {
           const testWith = (value, valid) =>
             testWithField(LOCATION_FIELDS.FIRST_NAME, value, valid);
@@ -261,30 +300,35 @@ describe('profile attribute validation middleware', () => {
         });
 
         describe('last name field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.LAST_NAME, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.LAST_NAME, value, valid);
           test('when valid', () => testWith('test', true));
           test('when invalid', () => testWith('', false));
         });
 
         describe('address field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.ADDRESS, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.ADDRESS, value, valid);
           test('when valid', () => testWith('test', true));
           test('when invalid', () => testWith('', false));
         });
 
         describe('apt field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.APT, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.APT, value, valid);
           test('when valid', () => testWith('test', true));
         });
 
         describe('city field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.CITY, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.CITY, value, valid);
           test('when valid', () => testWith('test', true));
           test('when invalid', () => testWith('', false));
         });
 
         describe('zip code field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.ZIP_CODE, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.ZIP_CODE, value, valid);
           test('when valid', () => testWith('12345', true));
           test('when invalid', () => testWith('', false));
         });
@@ -297,13 +341,15 @@ describe('profile attribute validation middleware', () => {
         });
 
         describe('country field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
           test('when valid', () => testWith('US', true));
           test('when invalid', () => testWith('invalid', false));
         });
 
         describe('state field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.STATE, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.STATE, value, valid);
           test('when valid', () => testWith('PR', true));
           test('when invalid', () => testWith('invalid', false));
         });
@@ -311,7 +357,14 @@ describe('profile attribute validation middleware', () => {
 
       describe('edit shipping', () => {
         const testWithField = (subField, value, valid) =>
-          testInjection(getSubFieldActions(PROFILE_FIELDS.EDIT_SHIPPING, subField, value, valid));
+          testInjection(
+            getSubFieldActions(
+              PROFILE_FIELDS.EDIT_SHIPPING,
+              subField,
+              value,
+              valid,
+            ),
+          );
         describe('first name field', () => {
           const testWith = (value, valid) =>
             testWithField(LOCATION_FIELDS.FIRST_NAME, value, valid);
@@ -320,30 +373,35 @@ describe('profile attribute validation middleware', () => {
         });
 
         describe('last name field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.LAST_NAME, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.LAST_NAME, value, valid);
           test('when valid', () => testWith('test', true));
           test('when invalid', () => testWith('', false));
         });
 
         describe('address field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.ADDRESS, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.ADDRESS, value, valid);
           test('when valid', () => testWith('test', true));
           test('when invalid', () => testWith('', false));
         });
 
         describe('apt field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.APT, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.APT, value, valid);
           test('when valid', () => testWith('test', true));
         });
 
         describe('city field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.CITY, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.CITY, value, valid);
           test('when valid', () => testWith('test', true));
           test('when invalid', () => testWith('', false));
         });
 
         describe('zip code field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.ZIP_CODE, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.ZIP_CODE, value, valid);
           test('when valid', () => testWith('12345', true));
           test('when invalid', () => testWith('', false));
         });
@@ -356,13 +414,15 @@ describe('profile attribute validation middleware', () => {
         });
 
         describe('country field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
           test('when valid', () => testWith('US', true));
           test('when invalid', () => testWith('invalid', false));
         });
 
         describe('state field', () => {
-          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.STATE, value, valid);
+          const testWith = (value, valid) =>
+            testWithField(LOCATION_FIELDS.STATE, value, valid);
           test('when valid', () => testWith('PR', true));
           test('when invalid', () => testWith('invalid', false));
         });

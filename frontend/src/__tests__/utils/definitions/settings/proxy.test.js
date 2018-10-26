@@ -1,6 +1,12 @@
 /* global describe */
-import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
-import { setupConsoleErrorSpy, testKey, testValue } from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, {
+  initialSettingsStates,
+} from '../../../../utils/definitions/settingsDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+  testValue,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('proxy definitions', () => {
   const spy = setupConsoleErrorSpy();

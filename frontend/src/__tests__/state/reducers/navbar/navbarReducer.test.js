@@ -1,6 +1,9 @@
 /* global describe it expect */
 import { NAVBAR_ACTIONS, ROUTES } from '../../../../state/actions';
-import { navbarReducer, initialNavbarState } from '../../../../state/reducers/navbar/navbarReducer';
+import {
+  navbarReducer,
+  initialNavbarState,
+} from '../../../../state/reducers/navbar/navbarReducer';
 
 describe('navbar reducer', () => {
   it('should return an initial state', () => {
@@ -27,7 +30,9 @@ describe('navbar reducer', () => {
       ...initialNavbarState,
       location: ROUTES.TASKS,
     };
-    const actual = navbarReducer(undefined, { type: NAVBAR_ACTIONS.ROUTE_TASKS });
+    const actual = navbarReducer(undefined, {
+      type: NAVBAR_ACTIONS.ROUTE_TASKS,
+    });
     expect(actual).toEqual(expected);
   });
 
@@ -36,7 +41,9 @@ describe('navbar reducer', () => {
       ...initialNavbarState,
       location: ROUTES.PROFILES,
     };
-    const actual = navbarReducer(undefined, { type: NAVBAR_ACTIONS.ROUTE_PROFILES });
+    const actual = navbarReducer(undefined, {
+      type: NAVBAR_ACTIONS.ROUTE_PROFILES,
+    });
     expect(actual).toEqual(expected);
   });
 
@@ -45,7 +52,9 @@ describe('navbar reducer', () => {
       ...initialNavbarState,
       location: ROUTES.SERVER,
     };
-    const actual = navbarReducer(undefined, { type: NAVBAR_ACTIONS.ROUTE_SERVER });
+    const actual = navbarReducer(undefined, {
+      type: NAVBAR_ACTIONS.ROUTE_SERVER,
+    });
     expect(actual).toEqual(expected);
   });
 
@@ -54,7 +63,9 @@ describe('navbar reducer', () => {
       ...initialNavbarState,
       location: ROUTES.SETTINGS,
     };
-    const actual = navbarReducer(undefined, { type: NAVBAR_ACTIONS.ROUTE_SETTINGS });
+    const actual = navbarReducer(undefined, {
+      type: NAVBAR_ACTIONS.ROUTE_SETTINGS,
+    });
     expect(actual).toEqual(expected);
   });
 });

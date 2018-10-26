@@ -1,4 +1,8 @@
-import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../actions';
+import {
+  PROFILE_FIELDS,
+  PROFILE_ACTIONS,
+  mapProfileFieldToKey,
+} from '../../actions';
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
 import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
@@ -13,26 +17,29 @@ export function profileReducer(state = initialProfileStates.profile, action) {
     switch (action.field) {
       case PROFILE_FIELDS.EDIT_SHIPPING:
         change = {
-          shipping: locationReducer(
-            state.shipping,
-            { type: action.subField, value: action.value, errors: action.errors },
-          ),
+          shipping: locationReducer(state.shipping, {
+            type: action.subField,
+            value: action.value,
+            errors: action.errors,
+          }),
         };
         break;
       case PROFILE_FIELDS.EDIT_BILLING:
         change = {
-          billing: locationReducer(
-            state.billing,
-            { type: action.subField, value: action.value, errors: action.errors },
-          ),
+          billing: locationReducer(state.billing, {
+            type: action.subField,
+            value: action.value,
+            errors: action.errors,
+          }),
         };
         break;
       case PROFILE_FIELDS.EDIT_PAYMENT:
         change = {
-          payment: paymentReducer(
-            state.payment,
-            { type: action.subField, value: action.value, errors: action.errors },
-          ),
+          payment: paymentReducer(state.payment, {
+            type: action.subField,
+            value: action.value,
+            errors: action.errors,
+          }),
         };
         break;
       case PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING:
@@ -43,7 +50,8 @@ export function profileReducer(state = initialProfileStates.profile, action) {
         break;
       default:
         change = {
-          [mapProfileFieldToKey[action.field]]: action.value ||
+          [mapProfileFieldToKey[action.field]]:
+            action.value ||
             initialProfileStates.profile[mapProfileFieldToKey[action.field]],
           errors: Object.assign({}, state.errors, action.errors),
         };
@@ -53,7 +61,10 @@ export function profileReducer(state = initialProfileStates.profile, action) {
   return Object.assign({}, state, change);
 }
 
-export function currentProfileReducer(state = initialProfileStates.profile, action) {
+export function currentProfileReducer(
+  state = initialProfileStates.profile,
+  action,
+) {
   switch (action.type) {
     case PROFILE_ACTIONS.EDIT: {
       // only modify the current profile if the action id is null
@@ -104,7 +115,10 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
   return Object.assign({}, state);
 }
 
-export function selectedProfileReducer(state = initialProfileStates.profile, action) {
+export function selectedProfileReducer(
+  state = initialProfileStates.profile,
+  action,
+) {
   switch (action.type) {
     case PROFILE_ACTIONS.SELECT: {
       // If profile wasn't passed, don't do anything
@@ -129,7 +143,7 @@ export function selectedProfileReducer(state = initialProfileStates.profile, act
       break;
     }
     case PROFILE_ACTIONS.UPDATE: {
-      if (action.profile && (state.id === (action.id || action.profile.id))) {
+      if (action.profile && state.id === (action.id || action.profile.id)) {
         return Object.assign({}, action.profile);
       }
       break;

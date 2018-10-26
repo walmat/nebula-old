@@ -19,12 +19,11 @@ describe('task reducer', () => {
         ...initialTaskStates.task,
         [mapTaskFieldsToKey[field]]: value,
       };
-      const actual = taskReducer(
-        initialTaskStates.task,
-        {
-          type: TASK_ACTIONS.EDIT, field, value,
-        },
-      );
+      const actual = taskReducer(initialTaskStates.task, {
+        type: TASK_ACTIONS.EDIT,
+        field,
+        value,
+      });
       expect(actual).toEqual(expected);
     };
 
@@ -43,7 +42,10 @@ describe('task reducer', () => {
           id,
         },
         {
-          type: TASK_ACTIONS.EDIT, id, field, value,
+          type: TASK_ACTIONS.EDIT,
+          id,
+          field,
+          value,
         },
       );
       expect(actual).toEqual(expected);
@@ -54,12 +56,11 @@ describe('task reducer', () => {
         ...initialTaskStates.task,
         id: id || initialTaskStates.task.id,
       };
-      const actual = taskReducer(
-        start,
-        {
-          type: TASK_ACTIONS.EDIT, id, field,
-        },
-      );
+      const actual = taskReducer(start, {
+        type: TASK_ACTIONS.EDIT,
+        id,
+        field,
+      });
       expect(actual).toEqual(start);
     };
 
@@ -81,12 +82,11 @@ describe('task reducer', () => {
                 raw: 'test',
               },
             };
-            const actual = taskReducer(
-              start,
-              {
-                type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'test',
-              },
-            );
+            const actual = taskReducer(start, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_PRODUCT,
+              value: 'test',
+            });
             expect(actual).toEqual(expected);
           });
 
@@ -112,12 +112,11 @@ describe('task reducer', () => {
                 username: null,
                 password: null,
               };
-              const actual = taskReducer(
-                start,
-                {
-                  type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'https://kith.com',
-                },
-              );
+              const actual = taskReducer(start, {
+                type: TASK_ACTIONS.EDIT,
+                field: TASK_FIELDS.EDIT_PRODUCT,
+                value: 'https://kith.com',
+              });
               expect(actual).toEqual(expected);
             });
 
@@ -136,12 +135,11 @@ describe('task reducer', () => {
                   raw: 'https://www.thisshouldcauseanoop.com',
                 },
               };
-              const actual = taskReducer(
-                start,
-                {
-                  type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'https://www.thisshouldcauseanoop.com',
-                },
-              );
+              const actual = taskReducer(start, {
+                type: TASK_ACTIONS.EDIT,
+                field: TASK_FIELDS.EDIT_PRODUCT,
+                value: 'https://www.thisshouldcauseanoop.com',
+              });
               expect(actual).toEqual(expected);
             });
 
@@ -160,29 +158,22 @@ describe('task reducer', () => {
                   raw: 'http',
                 },
               };
-              const actual = taskReducer(
-                start,
-                {
-                  type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'http',
-                },
-              );
+              const actual = taskReducer(start, {
+                type: TASK_ACTIONS.EDIT,
+                field: TASK_FIELDS.EDIT_PRODUCT,
+                value: 'http',
+              });
               expect(actual).toEqual(expected);
             });
           });
         });
 
         test('username', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_USERNAME,
-            'test',
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_USERNAME, 'test');
         });
 
         test('password', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_PASSWORD,
-            'test',
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_PASSWORD, 'test');
         });
 
         test('site', () => {
@@ -198,32 +189,29 @@ describe('task reducer', () => {
             username: null,
             password: null,
           };
-          const actual = taskReducer(
-            start,
-            {
-              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_SITE, value: 'test',
-            },
-          );
+          const actual = taskReducer(start, {
+            type: TASK_ACTIONS.EDIT,
+            field: TASK_FIELDS.EDIT_SITE,
+            value: 'test',
+          });
           expect(actual).toEqual(expected);
         });
 
         test('profile', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_PROFILE,
-            { id: 1 },
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_PROFILE, { id: 1 });
         });
 
         test('sizes', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_SIZES,
-            [{ id: 1, value: 'test', label: 'test' }],
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, [
+            { id: 1, value: 'test', label: 'test' },
+          ]);
         });
 
         describe('sizes', () => {
           test('when adding sizes to an empty list', () => {
-            checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, [{ id: 1, value: 'test', label: 'test' }]);
+            checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, [
+              { id: 1, value: 'test', label: 'test' },
+            ]);
           });
 
           test('when resetting sizes to an empty list', () => {
@@ -235,14 +223,11 @@ describe('task reducer', () => {
               ...initialState,
               sizes: [],
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: null,
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: null,
+            });
             expect(actual).toEqual(expected);
           });
 
@@ -259,17 +244,14 @@ describe('task reducer', () => {
                 { id: 1, value: 'test', label: 'test' },
               ],
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: [
-                  { id: 2, value: 'test2', label: 'test2' },
-                  { id: 3, value: 'test3', label: 'test3' },
-                ],
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: [
+                { id: 2, value: 'test2', label: 'test2' },
+                { id: 3, value: 'test3', label: 'test3' },
+              ],
+            });
             expect(actual).toEqual(expected);
           });
 
@@ -289,17 +271,14 @@ describe('task reducer', () => {
                 { id: 3, value: 'test3', label: 'test3' },
               ],
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: [
-                  { id: 2, value: 'test2', label: 'test2' },
-                  { id: 3, value: 'test3', label: 'test3' },
-                ],
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: [
+                { id: 2, value: 'test2', label: 'test2' },
+                { id: 3, value: 'test3', label: 'test3' },
+              ],
+            });
             expect(actual).toEqual(expected);
           });
         });
@@ -318,27 +297,20 @@ describe('task reducer', () => {
             ...initialTaskStates.task,
             product: initialTaskStates.product,
           };
-          const actual = taskReducer(
-            start,
-            {
-              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: '',
-            },
-          );
+          const actual = taskReducer(start, {
+            type: TASK_ACTIONS.EDIT,
+            field: TASK_FIELDS.EDIT_PRODUCT,
+            value: '',
+          });
           expect(actual).toEqual(expected);
         });
 
         test('username', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_USERNAME,
-            '',
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_USERNAME, '');
         });
 
         test('password', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_PASSWORD,
-            '',
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_PASSWORD, '');
         });
 
         test('site', () => {
@@ -354,27 +326,20 @@ describe('task reducer', () => {
             username: initialTaskStates.task.username,
             password: initialTaskStates.task.password,
           };
-          const actual = taskReducer(
-            start,
-            {
-              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_SITE, value: '',
-            },
-          );
+          const actual = taskReducer(start, {
+            type: TASK_ACTIONS.EDIT,
+            field: TASK_FIELDS.EDIT_SITE,
+            value: '',
+          });
           expect(actual).toEqual(expected);
         });
 
         test('profile', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_PROFILE,
-            { id: 1 },
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_PROFILE, { id: 1 });
         });
 
         test('sizes', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_SIZES,
-            [],
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, []);
         });
       });
 
@@ -405,22 +370,17 @@ describe('task reducer', () => {
       });
 
       test('when an invalid field is given', () => {
-        const actual = taskReducer(
-          initialTaskStates.task,
-          {
-            type: TASK_ACTIONS.EDIT, field: 'INVALID',
-          },
-        );
+        const actual = taskReducer(initialTaskStates.task, {
+          type: TASK_ACTIONS.EDIT,
+          field: 'INVALID',
+        });
         expect(actual).toEqual(initialTaskStates.task);
       });
 
       test('when no field is given', () => {
-        const actual = taskReducer(
-          initialTaskStates.task,
-          {
-            type: TASK_ACTIONS.EDIT,
-          },
-        );
+        const actual = taskReducer(initialTaskStates.task, {
+          type: TASK_ACTIONS.EDIT,
+        });
         expect(actual).toEqual(initialTaskStates.task);
       });
     });
@@ -451,12 +411,12 @@ describe('task reducer', () => {
                 },
               },
             };
-            const actual = taskReducer(
-              start,
-              {
-                type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'test',
-              },
-            );
+            const actual = taskReducer(start, {
+              type: TASK_ACTIONS.EDIT,
+              id: 1,
+              field: TASK_FIELDS.EDIT_PRODUCT,
+              value: 'test',
+            });
             expect(actual).toEqual(expected);
           });
 
@@ -488,12 +448,12 @@ describe('task reducer', () => {
                   password: null,
                 },
               };
-              const actual = taskReducer(
-                start,
-                {
-                  type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'https://kith.com',
-                },
-              );
+              const actual = taskReducer(start, {
+                type: TASK_ACTIONS.EDIT,
+                id: 1,
+                field: TASK_FIELDS.EDIT_PRODUCT,
+                value: 'https://kith.com',
+              });
               expect(actual).toEqual(expected);
             });
 
@@ -518,12 +478,12 @@ describe('task reducer', () => {
                   },
                 },
               };
-              const actual = taskReducer(
-                start,
-                {
-                  type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'https://www.thisshouldcauseanoop.com',
-                },
-              );
+              const actual = taskReducer(start, {
+                type: TASK_ACTIONS.EDIT,
+                id: 1,
+                field: TASK_FIELDS.EDIT_PRODUCT,
+                value: 'https://www.thisshouldcauseanoop.com',
+              });
               expect(actual).toEqual(expected);
             });
 
@@ -548,12 +508,12 @@ describe('task reducer', () => {
                   },
                 },
               };
-              const actual = taskReducer(
-                start,
-                {
-                  type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'http',
-                },
-              );
+              const actual = taskReducer(start, {
+                type: TASK_ACTIONS.EDIT,
+                id: 1,
+                field: TASK_FIELDS.EDIT_PRODUCT,
+                value: 'http',
+              });
               expect(actual).toEqual(expected);
             });
           });
@@ -577,7 +537,11 @@ describe('task reducer', () => {
 
         describe('sizes', () => {
           test('when adding sizes to an empty list', () => {
-            checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, [{ id: 1, value: 'test', label: 'test' }], 1);
+            checkExistingFieldEdit(
+              TASK_FIELDS.EDIT_SIZES,
+              [{ id: 1, value: 'test', label: 'test' }],
+              1,
+            );
           });
 
           test('when adding sizes to an existing list', () => {
@@ -599,18 +563,15 @@ describe('task reducer', () => {
                 ],
               },
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                id: 1,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: [
-                  { id: 2, value: 'test2', label: 'test2' },
-                  { id: 3, value: 'test3', label: 'test3' },
-                ],
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              id: 1,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: [
+                { id: 2, value: 'test2', label: 'test2' },
+                { id: 3, value: 'test3', label: 'test3' },
+              ],
+            });
             expect(actual).toEqual(expected);
           });
 
@@ -636,18 +597,15 @@ describe('task reducer', () => {
                 ],
               },
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                id: 1,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: [
-                  { id: 2, value: 'test2', label: 'test2' },
-                  { id: 3, value: 'test3', label: 'test3' },
-                ],
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              id: 1,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: [
+                { id: 2, value: 'test2', label: 'test2' },
+                { id: 3, value: 'test3', label: 'test3' },
+              ],
+            });
             expect(actual).toEqual(expected);
           });
         });
@@ -670,29 +628,21 @@ describe('task reducer', () => {
             ...initialTaskStates.task,
             id: 1,
           };
-          const actual = taskReducer(
-            start,
-            {
-              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: '', id: 1,
-            },
-          );
+          const actual = taskReducer(start, {
+            type: TASK_ACTIONS.EDIT,
+            field: TASK_FIELDS.EDIT_PRODUCT,
+            value: '',
+            id: 1,
+          });
           expect(actual).toEqual(expected);
         });
 
         test('username', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_USERNAME,
-            '',
-            1,
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_USERNAME, '', 1);
         });
 
         test('password', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_PASSWORD,
-            '',
-            1,
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_PASSWORD, '', 1);
         });
 
         test('site', () => {
@@ -716,29 +666,21 @@ describe('task reducer', () => {
               password: initialTaskStates.edit.password,
             },
           };
-          const actual = taskReducer(
-            start,
-            {
-              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_SITE, value: null, id: 1,
-            },
-          );
+          const actual = taskReducer(start, {
+            type: TASK_ACTIONS.EDIT,
+            field: TASK_FIELDS.EDIT_SITE,
+            value: null,
+            id: 1,
+          });
           expect(actual).toEqual(expected);
         });
 
         test('profile', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_PROFILE,
-            { id: 1 },
-            1,
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_PROFILE, { id: 1 }, 1);
         });
 
         test('sizes', () => {
-          checkGeneralFieldEdit(
-            TASK_FIELDS.EDIT_SIZES,
-            [],
-            1,
-          );
+          checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, [], 1);
         });
       });
 
@@ -769,33 +711,27 @@ describe('task reducer', () => {
       });
 
       test('when an invalid field is given', () => {
-        const actual = taskReducer(
-          initialTaskStates.task,
-          {
-            type: TASK_ACTIONS.EDIT, id: 1, field: 'INVALID',
-          },
-        );
+        const actual = taskReducer(initialTaskStates.task, {
+          type: TASK_ACTIONS.EDIT,
+          id: 1,
+          field: 'INVALID',
+        });
         expect(actual).toEqual(initialTaskStates.task);
       });
 
       test('when no field is given', () => {
-        const actual = taskReducer(
-          initialTaskStates.task,
-          {
-            type: TASK_ACTIONS.EDIT, id: 1,
-          },
-        );
+        const actual = taskReducer(initialTaskStates.task, {
+          type: TASK_ACTIONS.EDIT,
+          id: 1,
+        });
         expect(actual).toEqual(initialTaskStates.task);
       });
     });
   });
 
   describe('should not respond to', () => {
-    const _testNoopResponse = (type) => {
-      const actual = taskReducer(
-        initialTaskStates.task,
-        { type },
-      );
+    const _testNoopResponse = type => {
+      const actual = taskReducer(initialTaskStates.task, { type });
       expect(actual).toEqual(initialTaskStates.task);
     };
 

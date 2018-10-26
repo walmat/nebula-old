@@ -24,9 +24,18 @@ class AuthManager {
      */
     this._store = new Store();
 
-    context.ipc.on(IPCKeys.AuthRequestActivate, this._onAuthRequestActivate.bind(this));
-    context.ipc.on(IPCKeys.AuthRequestDeactivate, this._onAuthRequestDeactivate.bind(this));
-    context.ipc.on(IPCKeys.AuthRequestStatus, this._onAuthRequestStatus.bind(this));
+    context.ipc.on(
+      IPCKeys.AuthRequestActivate,
+      this._onAuthRequestActivate.bind(this),
+    );
+    context.ipc.on(
+      IPCKeys.AuthRequestDeactivate,
+      this._onAuthRequestDeactivate.bind(this),
+    );
+    context.ipc.on(
+      IPCKeys.AuthRequestStatus,
+      this._onAuthRequestStatus.bind(this),
+    );
   }
 
   /**
@@ -46,14 +55,18 @@ class AuthManager {
    */
   async getSession() {
     if (nebulaEnv.isDevelopment()) {
-      return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
+      return {
+        accessToken: 'DEVACCESS',
+        refreshToken: 'DEVREFRESH',
+        expiry: null,
+      };
     }
 
     let session = this._store.get('session');
 
     if (session) {
       session = JSON.parse(session);
-      if (session.expiry === null || session.expiry > (Date.now() / 1000)) {
+      if (session.expiry === null || session.expiry > Date.now() / 1000) {
         return session;
       }
 
@@ -63,12 +76,18 @@ class AuthManager {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ grant_type: 'refresh', token: session.refreshToken }),
+        body: JSON.stringify({
+          grant_type: 'refresh',
+          token: session.refreshToken,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
         const { accessToken, refreshToken, expiry } = data;
-        this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
+        this._store.set(
+          'session',
+          JSON.stringify({ accessToken, refreshToken, expiry }),
+        );
         return { accessToken, refreshToken, expiry };
       }
       const { error } = await res.json();
@@ -115,7 +134,11 @@ class AuthManager {
    */
   async createSession(key) {
     if (nebulaEnv.isDevelopment()) {
-      return { accessToken: 'DEVACCESS', refreshToken: 'DEVREFRESH', expiry: null };
+      return {
+        accessToken: 'DEVACCESS',
+        refreshToken: 'DEVREFRESH',
+        expiry: null,
+      };
     }
     const session = await this.getSession();
     if (session) {
@@ -133,7 +156,10 @@ class AuthManager {
     if (res.ok) {
       const data = await res.json();
       const { accessToken, refreshToken, expiry } = data;
-      this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
+      this._store.set(
+        'session',
+        JSON.stringify({ accessToken, refreshToken, expiry }),
+      );
 
       return { accessToken, refreshToken, expiry };
     }
@@ -159,7 +185,8 @@ class AuthManager {
       }
     } else {
       const win = windowManager.transitiontoAuthedState();
-      nebulaCheckUpdates.checkForUpdates(win);
+      // TODO - write proper check for updates functionality
+      // nebulaCheckUpdates.checkForUpdates(win);
     }
   }
 

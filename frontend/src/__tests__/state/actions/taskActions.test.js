@@ -73,7 +73,10 @@ describe('task actions', () => {
     const action = taskActions.edit(1, 'test_field', 'test_value');
     const expectedActions = [
       {
-        type: TASK_ACTIONS.EDIT, id: 1, field: 'test_field', value: 'test_value',
+        type: TASK_ACTIONS.EDIT,
+        id: 1,
+        field: 'test_field',
+        value: 'test_value',
       },
     ];
     simpleTaskTests(action, expectedActions);
@@ -117,7 +120,8 @@ describe('task actions', () => {
     const action = taskActions.select('task_object');
     const expectedActions = [
       {
-        type: TASK_ACTIONS.SELECT, task: 'task_object',
+        type: TASK_ACTIONS.SELECT,
+        task: 'task_object',
       },
     ];
     simpleTaskTests(action, expectedActions);
@@ -177,7 +181,9 @@ describe('task actions', () => {
     const action = taskActions.error(TASK_ACTIONS.STOP, 'error_message');
     const expectedActions = [
       {
-        type: TASK_ACTIONS.ERROR, action: TASK_ACTIONS.STOP, error: 'error_message',
+        type: TASK_ACTIONS.ERROR,
+        action: TASK_ACTIONS.STOP,
+        error: 'error_message',
       },
     ];
     simpleTaskTests(action, expectedActions);

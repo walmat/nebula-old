@@ -24,10 +24,7 @@ export const initialTaskState = {
 };
 
 const task = PropTypes.shape({
-  id: PropTypes.oneOfType([
-    PropTypes.number,
-    PropTypes.string,
-  ]),
+  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   product: taskProduct,
   site: taskSite,
   profile: pDefns.profile,

@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 
-import paymentStateErrors, { initialPaymentErrorState } from './paymentStateErrors';
+import paymentStateErrors, {
+  initialPaymentErrorState,
+} from './paymentStateErrors';
 
 export const initialPaymentState = {
   email: '',

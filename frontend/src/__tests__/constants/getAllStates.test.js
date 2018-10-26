@@ -67,7 +67,7 @@ describe('getAllStates', () => {
   });
 
   it('should lookup the correct states', () => {
-    expectedStates.forEach((state) => {
+    expectedStates.forEach(state => {
       expect(getState(state.value)).toEqual(state);
     });
   });

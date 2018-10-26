@@ -36,9 +36,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
       const ec2 = new AWS.EC2();
       const describeParams = {
-        KeyNames: [
-          'nebula',
-        ],
+        KeyNames: ['nebula'],
       };
       const createParams = {
         KeyName: 'nebula',
@@ -53,22 +51,27 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
 
       const describePromise = ec2.describeKeyPairs(describeParams).promise();
 
-      describePromise.then((data) => {
-        if (data.KeyPairs.some(kp => kp.KeyName === 'nebula')) {
-          return Promise.resolve();
-        }
-        return ec2.createKeyPair(createParams).promise();
-      }, () =>
-        ec2.createKeyPair(createParams).promise()).then(() =>
-        ec2.runInstances(instanceParams).promise()).then((data) => {
-        resolve({
-          path: data.Instances[0].InstanceId,
-          serverOptions,
-          awsCredentials,
+      describePromise
+        .then(
+          data => {
+            if (data.KeyPairs.some(kp => kp.KeyName === 'nebula')) {
+              return Promise.resolve();
+            }
+            return ec2.createKeyPair(createParams).promise();
+          },
+          () => ec2.createKeyPair(createParams).promise(),
+        )
+        .then(() => ec2.runInstances(instanceParams).promise())
+        .then(data => {
+          resolve({
+            path: data.Instances[0].InstanceId,
+            serverOptions,
+            awsCredentials,
+          });
+        })
+        .catch(err => {
+          reject(new Error(err));
         });
-      }).catch((err) => {
-        reject(new Error(err));
-      });
     } else {
       reject(new Error('parameters should not be null!'));
     }
@@ -92,9 +95,7 @@ const _destroyServerRequest = async (serverOptions, awsCredentials) =>
     });
     const ec2 = new AWS.EC2();
     const params = {
-      InstanceIds: [
-        serverOptions.id,
-      ],
+      InstanceIds: [serverOptions.id],
     };
 
     const terminateInstances = ec2.terminateInstances(params).promise();
@@ -110,11 +111,13 @@ const _destroyServerRequest = async (serverOptions, awsCredentials) =>
       64 : stopping
       80 : stopped
     */
-    terminateInstances.then((data) => {
-      resolve(data); // do a window.Bridge fn in preload.js
-    }).catch((error) => {
-      reject(new Error(error));
-    });
+    terminateInstances
+      .then(data => {
+        resolve(data); // do a window.Bridge fn in preload.js
+      })
+      .catch(error => {
+        reject(new Error(error));
+      });
   });
 
 const _destroyAllServerRequest = async (servers, awsCredentials) =>
@@ -146,11 +149,13 @@ const _destroyAllServerRequest = async (servers, awsCredentials) =>
       64 : stopping
       80 : stopped
     */
-    terminateInstances.then((data) => {
-      resolve(data); // do a window.Bridge fn in preload.js
-    }).catch((error) => {
-      reject(new Error(error));
-    });
+    terminateInstances
+      .then(data => {
+        resolve(data); // do a window.Bridge fn in preload.js
+      })
+      .catch(error => {
+        reject(new Error(error));
+      });
   });
 
 const _generateProxiesRequest = async (serverOptions, awsCredentials) =>
@@ -168,9 +173,7 @@ const _startServerRequest = async (serverOptions, awsCredentials) =>
     });
     const ec2 = new AWS.EC2();
     const params = {
-      InstanceIds: [
-        serverOptions.id,
-      ],
+      InstanceIds: [serverOptions.id],
     };
     const startInstances = ec2.startInstances(params).promise();
 
@@ -185,11 +188,13 @@ const _startServerRequest = async (serverOptions, awsCredentials) =>
       64 : stopping
       80 : stopped
     */
-    startInstances.then((data) => {
-      resolve(data); // do a window.Bridge fn in preload.js
-    }).catch((error) => {
-      reject(new Error(error));
-    });
+    startInstances
+      .then(data => {
+        resolve(data); // do a window.Bridge fn in preload.js
+      })
+      .catch(error => {
+        reject(new Error(error));
+      });
   });
 
 const _stopServerRequest = async (serverOptions, awsCredentials) =>
@@ -201,9 +206,7 @@ const _stopServerRequest = async (serverOptions, awsCredentials) =>
     });
     const ec2 = new AWS.EC2();
     const params = {
-      InstanceIds: [
-        serverOptions.id,
-      ],
+      InstanceIds: [serverOptions.id],
     };
     const stopInstances = ec2.stopInstances(params).promise();
 
@@ -218,11 +221,13 @@ const _stopServerRequest = async (serverOptions, awsCredentials) =>
       64 : stopping
       80 : stopped
     */
-    stopInstances.then((data) => {
-      resolve(data); // do a window.Bridge fn in preload.js
-    }).catch((error) => {
-      reject(new Error(error));
-    });
+    stopInstances
+      .then(data => {
+        resolve(data); // do a window.Bridge fn in preload.js
+      })
+      .catch(error => {
+        reject(new Error(error));
+      });
   });
 
 const _destroyProxiesRequest = async () =>
@@ -236,7 +241,10 @@ const _validateAwsRequest = async awsCredentials =>
     const sKey = awsCredentials.AWSSecretKey;
 
     // test the string inputs
-    if (regexes.aws_access_key.test(aKey) && regexes.aws_secret_key.test(sKey)) {
+    if (
+      regexes.aws_access_key.test(aKey) &&
+      regexes.aws_secret_key.test(sKey)
+    ) {
       resolve('access_token');
     } else {
       reject(new Error('Keys should be valid!'));
@@ -248,74 +256,89 @@ const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
 const _startServer = makeActionCreator(SERVER_ACTIONS.START, 'serverPath');
 const _stopServer = makeActionCreator(SERVER_ACTIONS.STOP, 'serverPath');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
-const _destroyAllServers = makeActionCreator(SERVER_ACTIONS.DESTROY_ALL, 'credentials');
-const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
-const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'serverInfo', 'credentials');
+const _destroyAllServers = makeActionCreator(
+  SERVER_ACTIONS.DESTROY_ALL,
+  'credentials',
+);
+const _generateProxies = makeActionCreator(
+  SERVER_ACTIONS.GEN_PROXIES,
+  'proxies',
+);
+const _connectServer = makeActionCreator(
+  SERVER_ACTIONS.CONNECT,
+  'serverInfo',
+  'credentials',
+);
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS);
 
 // Public Actions
 const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error');
-const editServer = makeActionCreator(SERVER_ACTIONS.EDIT, 'id', 'field', 'value');
+const editServer = makeActionCreator(
+  SERVER_ACTIONS.EDIT,
+  'id',
+  'field',
+  'value',
+);
 
 // Public Thunks
-const createServer = (serverOptions, awsCredentials) =>
-  dispatch => _createServerRequest(serverOptions, awsCredentials).then(
+const createServer = (serverOptions, awsCredentials) => dispatch =>
+  _createServerRequest(serverOptions, awsCredentials).then(
     info => dispatch(_createServer(info)),
     error => dispatch(handleError(SERVER_ACTIONS.CREATE, error)),
   );
 
-const startServer = (serverOptions, awsCredentials) =>
-  dispatch => _startServerRequest(serverOptions, awsCredentials).then(
+const startServer = (serverOptions, awsCredentials) => dispatch =>
+  _startServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_startServer(path)),
     error => dispatch(handleError(SERVER_ACTIONS.START, error)),
   );
 
-const stopServer = (serverOptions, awsCredentials) =>
-  dispatch => _stopServerRequest(serverOptions, awsCredentials).then(
+const stopServer = (serverOptions, awsCredentials) => dispatch =>
+  _stopServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_stopServer(path)),
     error => dispatch(handleError(SERVER_ACTIONS.START, error)),
   );
 
-const destroyServer = (serverOptions, awsCredentials) =>
-  dispatch => _destroyServerRequest(serverOptions, awsCredentials).then(
+const destroyServer = (serverOptions, awsCredentials) => dispatch =>
+  _destroyServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_destroyServer(path)),
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY, error)),
   );
 
-const destroyAllServers = (serverOptions, awsCredentials) =>
-  dispatch => _destroyAllServerRequest(serverOptions, awsCredentials).then(
+const destroyAllServers = (serverOptions, awsCredentials) => dispatch =>
+  _destroyAllServerRequest(serverOptions, awsCredentials).then(
     res => dispatch(_destroyAllServers(res)),
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY_ALL, error)),
   );
 
-const generateProxies = proxyOptions =>
-  dispatch => _generateProxiesRequest(proxyOptions).then(
+const generateProxies = proxyOptions => dispatch =>
+  _generateProxiesRequest(proxyOptions).then(
     proxies => dispatch(_generateProxies(proxies)),
     error => dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error)),
   );
 
-const connectServer = (serverOptions, awsCredentials) =>
-  dispatch => _connectServerRequest(serverOptions, awsCredentials).then(
+const connectServer = (serverOptions, awsCredentials) => dispatch =>
+  _connectServerRequest(serverOptions, awsCredentials).then(
     res => dispatch(_connectServer(res.server, res.credentials)),
     error => dispatch(handleError(SERVER_ACTIONS.CONNECT, error)),
   );
 
-const destroyProxies = () =>
-  dispatch => _destroyProxiesRequest().then(
+const destroyProxies = () => dispatch =>
+  _destroyProxiesRequest().then(
     () => dispatch(_destroyProxies()),
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error)),
   );
 
-const validateAws = awsCredentials =>
-  dispatch => _validateAwsRequest(awsCredentials).then(
+const validateAws = awsCredentials => dispatch =>
+  _validateAwsRequest(awsCredentials).then(
     token => dispatch(_validateAws(token)),
     error => dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error)),
   );
 
-const logoutAws = (serverOptions, awsCredentials) =>
-  dispatch => dispatch(destroyProxies())
+const logoutAws = (serverOptions, awsCredentials) => dispatch =>
+  dispatch(destroyProxies())
     .then(() => dispatch(destroyAllServers(serverOptions, awsCredentials)))
     .then(() => dispatch(_logoutAws()))
     .catch(error => dispatch(handleError(SERVER_ACTIONS.LOGOUT_AWS, error)));

@@ -44,9 +44,7 @@ describe('settings actions', () => {
 
   it('should create an action to clear defaults', () => {
     const action = settingsActions.clear();
-    const expectedActions = [
-      { type: SETTINGS_ACTIONS.CLEAR },
-    ];
+    const expectedActions = [{ type: SETTINGS_ACTIONS.CLEAR }];
     settingsTests(action, expectedActions);
   });
 });

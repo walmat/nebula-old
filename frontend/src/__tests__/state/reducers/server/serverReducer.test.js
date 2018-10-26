@@ -20,15 +20,12 @@ describe('server reducer', () => {
             type: { id: 1, value: 'test', label: 'test_label' },
           },
         };
-        const actual = serverReducer(
-          initialServerStates.serverInfo,
-          {
-            type: SERVER_ACTIONS.EDIT,
-            id: null,
-            field: SERVER_FIELDS.EDIT_SERVER_TYPE,
-            value: { id: 1, value: 'test', label: 'test_label' },
-          },
-        );
+        const actual = serverReducer(initialServerStates.serverInfo, {
+          type: SERVER_ACTIONS.EDIT,
+          id: null,
+          field: SERVER_FIELDS.EDIT_SERVER_TYPE,
+          value: { id: 1, value: 'test', label: 'test_label' },
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -47,15 +44,12 @@ describe('server reducer', () => {
             type: { id: 2, value: 'test2', label: 'test_label2' },
           },
         };
-        const actual = serverReducer(
-          start,
-          {
-            type: SERVER_ACTIONS.EDIT,
-            id: null,
-            field: SERVER_FIELDS.EDIT_SERVER_TYPE,
-            value: { id: 2, value: 'test2', label: 'test_label2' },
-          },
-        );
+        const actual = serverReducer(start, {
+          type: SERVER_ACTIONS.EDIT,
+          id: null,
+          field: SERVER_FIELDS.EDIT_SERVER_TYPE,
+          value: { id: 2, value: 'test2', label: 'test_label2' },
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -68,15 +62,12 @@ describe('server reducer', () => {
             size: { id: 1, value: 'test', label: 'test_label' },
           },
         };
-        const actual = serverReducer(
-          expected,
-          {
-            type: SERVER_ACTIONS.EDIT,
-            id: null,
-            field: SERVER_FIELDS.EDIT_SERVER_TYPE,
-            value: { id: 1, value: 'test', label: 'test_label' },
-          },
-        );
+        const actual = serverReducer(expected, {
+          type: SERVER_ACTIONS.EDIT,
+          id: null,
+          field: SERVER_FIELDS.EDIT_SERVER_TYPE,
+          value: { id: 1, value: 'test', label: 'test_label' },
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -96,15 +87,12 @@ describe('server reducer', () => {
             type: { id: 2, value: 'test2', label: 'test_label2' },
           },
         };
-        const actual = serverReducer(
-          start,
-          {
-            type: SERVER_ACTIONS.EDIT,
-            id: null,
-            field: SERVER_FIELDS.EDIT_SERVER_TYPE,
-            value: { id: 2, value: 'test2', label: 'test_label2' },
-          },
-        );
+        const actual = serverReducer(start, {
+          type: SERVER_ACTIONS.EDIT,
+          id: null,
+          field: SERVER_FIELDS.EDIT_SERVER_TYPE,
+          value: { id: 2, value: 'test2', label: 'test_label2' },
+        });
         expect(actual).toEqual(expected);
       });
     });
@@ -117,15 +105,12 @@ describe('server reducer', () => {
           size: { id: 1, value: 'test', label: 'test_label' },
         },
       };
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        {
-          type: SERVER_ACTIONS.EDIT,
-          id: null,
-          field: SERVER_FIELDS.EDIT_SERVER_SIZE,
-          value: { id: 1, value: 'test', label: 'test_label' },
-        },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.EDIT,
+        id: null,
+        field: SERVER_FIELDS.EDIT_SERVER_SIZE,
+        value: { id: 1, value: 'test', label: 'test_label' },
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -137,15 +122,12 @@ describe('server reducer', () => {
           location: { id: 1, value: 'test', label: 'test_label' },
         },
       };
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        {
-          type: SERVER_ACTIONS.EDIT,
-          id: null,
-          field: SERVER_FIELDS.EDIT_SERVER_LOCATION,
-          value: { id: 1, value: 'test', label: 'test_label' },
-        },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.EDIT,
+        id: null,
+        field: SERVER_FIELDS.EDIT_SERVER_LOCATION,
+        value: { id: 1, value: 'test', label: 'test_label' },
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -158,15 +140,12 @@ describe('server reducer', () => {
             numProxies: 23,
           },
         };
-        const actual = serverReducer(
-          initialServerStates.serverInfo,
-          {
-            type: SERVER_ACTIONS.EDIT,
-            id: null,
-            field: SERVER_FIELDS.EDIT_PROXY_NUMBER,
-            value: '23',
-          },
-        );
+        const actual = serverReducer(initialServerStates.serverInfo, {
+          type: SERVER_ACTIONS.EDIT,
+          id: null,
+          field: SERVER_FIELDS.EDIT_PROXY_NUMBER,
+          value: '23',
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -178,28 +157,22 @@ describe('server reducer', () => {
             numProxies: 0,
           },
         };
-        const actual = serverReducer(
-          initialServerStates.serverInfo,
-          {
-            type: SERVER_ACTIONS.EDIT,
-            id: null,
-            field: SERVER_FIELDS.EDIT_PROXY_NUMBER,
-            value: '',
-          },
-        );
+        const actual = serverReducer(initialServerStates.serverInfo, {
+          type: SERVER_ACTIONS.EDIT,
+          id: null,
+          field: SERVER_FIELDS.EDIT_PROXY_NUMBER,
+          value: '',
+        });
         expect(actual).toEqual(expected);
       });
 
       it('when proxy number is invalid', () => {
-        const actual = serverReducer(
-          initialServerStates.serverInfo,
-          {
-            type: SERVER_ACTIONS.EDIT,
-            id: null,
-            field: SERVER_FIELDS.EDIT_PROXY_NUMBER,
-            value: 'invalid',
-          },
-        );
+        const actual = serverReducer(initialServerStates.serverInfo, {
+          type: SERVER_ACTIONS.EDIT,
+          id: null,
+          field: SERVER_FIELDS.EDIT_PROXY_NUMBER,
+          value: 'invalid',
+        });
         expect(actual).toEqual(initialServerStates.serverInfo);
       });
     });
@@ -212,15 +185,12 @@ describe('server reducer', () => {
           username: 'testing',
         },
       };
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        {
-          type: SERVER_ACTIONS.EDIT,
-          id: null,
-          field: SERVER_FIELDS.EDIT_PROXY_USERNAME,
-          value: 'testing',
-        },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.EDIT,
+        id: null,
+        field: SERVER_FIELDS.EDIT_PROXY_USERNAME,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -232,15 +202,12 @@ describe('server reducer', () => {
           password: 'testing',
         },
       };
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        {
-          type: SERVER_ACTIONS.EDIT,
-          id: null,
-          field: SERVER_FIELDS.EDIT_PROXY_PASSWORD,
-          value: 'testing',
-        },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.EDIT,
+        id: null,
+        field: SERVER_FIELDS.EDIT_PROXY_PASSWORD,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -252,15 +219,12 @@ describe('server reducer', () => {
           AWSAccessKey: 'testing',
         },
       };
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        {
-          type: SERVER_ACTIONS.EDIT,
-          id: null,
-          field: SERVER_FIELDS.EDIT_AWS_ACCESS_KEY,
-          value: 'testing',
-        },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.EDIT,
+        id: null,
+        field: SERVER_FIELDS.EDIT_AWS_ACCESS_KEY,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -272,25 +236,23 @@ describe('server reducer', () => {
           AWSSecretKey: 'testing',
         },
       };
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        {
-          type: SERVER_ACTIONS.EDIT,
-          id: null,
-          field: SERVER_FIELDS.EDIT_AWS_SECRET_KEY,
-          value: 'testing',
-        },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.EDIT,
+        id: null,
+        field: SERVER_FIELDS.EDIT_AWS_SECRET_KEY,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
   });
 
   it('should handle error action', () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const actual = serverReducer(
-      initialServerStates.serverInfo,
-      { type: SERVER_ACTIONS.ERROR, action: SERVER_ACTIONS.CREATE, error: 'testing' },
-    );
+    const actual = serverReducer(initialServerStates.serverInfo, {
+      type: SERVER_ACTIONS.ERROR,
+      action: SERVER_ACTIONS.CREATE,
+      error: 'testing',
+    });
     expect(actual).toEqual(initialServerStates.serverInfo);
     expect(spy).toHaveBeenCalled();
   });
@@ -300,10 +262,10 @@ describe('server reducer', () => {
       ...initialServerStates.serverInfo,
       proxies: [1, 2, 3],
     };
-    const actual = serverReducer(
-      initialServerStates.serverInfo,
-      { type: SERVER_ACTIONS.GEN_PROXIES, proxies: [1, 2, 3] },
-    );
+    const actual = serverReducer(initialServerStates.serverInfo, {
+      type: SERVER_ACTIONS.GEN_PROXIES,
+      proxies: [1, 2, 3],
+    });
     expect(actual).toEqual(expected);
   });
 
@@ -312,7 +274,9 @@ describe('server reducer', () => {
       ...initialServerStates.serverInfo,
       proxies: [1, 2, 3],
     };
-    const actual = serverReducer(start, { type: SERVER_ACTIONS.DESTROY_PROXIES });
+    const actual = serverReducer(start, {
+      type: SERVER_ACTIONS.DESTROY_PROXIES,
+    });
     expect(actual).toEqual(initialServerStates.serverInfo);
   });
 
@@ -324,10 +288,10 @@ describe('server reducer', () => {
         accessToken: 'test_token',
       },
     };
-    const actual = serverReducer(
-      initialServerStates.serverInfo,
-      { type: SERVER_ACTIONS.VALIDATE_AWS, token: 'test_token' },
-    );
+    const actual = serverReducer(initialServerStates.serverInfo, {
+      type: SERVER_ACTIONS.VALIDATE_AWS,
+      token: 'test_token',
+    });
     expect(actual).toEqual(expected);
   });
 
@@ -347,42 +311,37 @@ describe('server reducer', () => {
 
   describe('should not respond to', () => {
     test('create server action', () => {
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        { type: SERVER_ACTIONS.CREATE },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.CREATE,
+      });
       expect(actual).toEqual(initialServerStates.serverInfo);
     });
 
     test('start server action', () => {
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        { type: SERVER_ACTIONS.START },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.START,
+      });
       expect(actual).toEqual(initialServerStates.serverInfo);
     });
 
     test('stop server action', () => {
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        { type: SERVER_ACTIONS.STOP },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.STOP,
+      });
       expect(actual).toEqual(initialServerStates.serverInfo);
     });
 
     test('destroy server action', () => {
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        { type: SERVER_ACTIONS.DESTROY },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.DESTROY,
+      });
       expect(actual).toEqual(initialServerStates.serverInfo);
     });
 
     test('destroy all servers action', () => {
-      const actual = serverReducer(
-        initialServerStates.serverInfo,
-        { type: SERVER_ACTIONS.DESTROY_ALL },
-      );
+      const actual = serverReducer(initialServerStates.serverInfo, {
+        type: SERVER_ACTIONS.DESTROY_ALL,
+      });
       expect(actual).toEqual(initialServerStates.serverInfo);
     });
   });

@@ -28,12 +28,12 @@ global.localStorage = localStorageMock;
 const _supportedCommands = {};
 
 // Helper method to setup supported command
-global.__registerSupportedCommand = (command) => {
+global.__registerSupportedCommand = command => {
   _supportedCommands[command] = true;
 };
 
 // Helper method to disable supported command
-global.__deregisterSupportedCommand = (command) => {
+global.__deregisterSupportedCommand = command => {
   if (_supportedCommands[command]) {
     delete _supportedCommands[command];
   }
@@ -50,7 +50,7 @@ global.document.queryCommandSupported = command => _supportedCommands[command];
 let nextHandler = null;
 
 // Helper method to register the next handler
-global.__registerNextExecCommandHandler = (handler) => {
+global.__registerNextExecCommandHandler = handler => {
   nextHandler = handler;
 };
 

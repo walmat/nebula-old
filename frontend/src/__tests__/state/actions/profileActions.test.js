@@ -39,17 +39,24 @@ describe('profile actions', () => {
 
   it('should create an action to remove a profile', async () => {
     const action = profileActions.remove(42);
-    const expectedActions = [
-      { type: PROFILE_ACTIONS.REMOVE, id: 42 },
-    ];
+    const expectedActions = [{ type: PROFILE_ACTIONS.REMOVE, id: 42 }];
     await asyncProfileTests(action, expectedActions);
   });
 
   it('should create an action to edit a profile', () => {
-    const action = profileActions.edit(23, 'test_field', 'test_value', 'test_subField');
+    const action = profileActions.edit(
+      23,
+      'test_field',
+      'test_value',
+      'test_subField',
+    );
     const expectedActions = [
       {
-        type: PROFILE_ACTIONS.EDIT, id: 23, field: 'test_field', value: 'test_value', subField: 'test_subField',
+        type: PROFILE_ACTIONS.EDIT,
+        id: 23,
+        field: 'test_field',
+        value: 'test_value',
+        subField: 'test_subField',
       },
     ];
     simpleProfileTests(action, expectedActions);

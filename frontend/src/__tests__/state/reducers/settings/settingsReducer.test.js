@@ -16,14 +16,11 @@ describe('settings reducer', () => {
         ...initialSettingsStates.settings,
         proxies: [initialSettingsStates.proxy],
       };
-      const actual = settingsReducer(
-        undefined,
-        {
-          type: SETTINGS_ACTIONS.EDIT,
-          field: SETTINGS_FIELDS.EDIT_PROXIES,
-          value: [initialSettingsStates.proxy],
-        },
-      );
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_PROXIES,
+        value: [initialSettingsStates.proxy],
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -32,14 +29,11 @@ describe('settings reducer', () => {
         ...initialSettingsStates.settings,
         discord: 'discord_test',
       };
-      const actual = settingsReducer(
-        undefined,
-        {
-          type: SETTINGS_ACTIONS.EDIT,
-          field: SETTINGS_FIELDS.EDIT_DISCORD,
-          value: 'discord_test',
-        },
-      );
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_DISCORD,
+        value: 'discord_test',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -48,14 +42,11 @@ describe('settings reducer', () => {
         ...initialSettingsStates.settings,
         slack: 'slack',
       };
-      const actual = settingsReducer(
-        undefined,
-        {
-          type: SETTINGS_ACTIONS.EDIT,
-          field: SETTINGS_FIELDS.EDIT_SLACK,
-          value: 'slack',
-        },
-      );
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SLACK,
+        value: 'slack',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -64,14 +55,11 @@ describe('settings reducer', () => {
         ...initialSettingsStates.settings,
         monitorDelay: 1500,
       };
-      const actual = settingsReducer(
-        undefined,
-        {
-          type: SETTINGS_ACTIONS.EDIT,
-          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
-          value: '1500',
-        },
-      );
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+        value: '1500',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -80,14 +68,11 @@ describe('settings reducer', () => {
         ...initialSettingsStates.settings,
         errorDelay: 1500,
       };
-      const actual = settingsReducer(
-        undefined,
-        {
-          type: SETTINGS_ACTIONS.EDIT,
-          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
-          value: '1500',
-        },
-      );
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+        value: '1500',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -99,14 +84,11 @@ describe('settings reducer', () => {
           profile: { profileName: 'test' },
         },
       };
-      const actual = settingsReducer(
-        undefined,
-        {
-          type: SETTINGS_ACTIONS.EDIT,
-          field: SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
-          value: { profileName: 'test' },
-        },
-      );
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
+        value: { profileName: 'test' },
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -118,14 +100,11 @@ describe('settings reducer', () => {
           sizes: [{ value: 'test', label: 'test_label' }],
         },
       };
-      const actual = settingsReducer(
-        undefined,
-        {
-          type: SETTINGS_ACTIONS.EDIT,
-          field: SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
-          value: [{ value: 'test', label: 'test_label' }],
-        },
-      );
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
+        value: [{ value: 'test', label: 'test_label' }],
+      });
       expect(actual).toEqual(expected);
     });
   });
@@ -139,16 +118,13 @@ describe('settings reducer', () => {
         sizes: [1, 2, 3],
       },
     };
-    const actual = settingsReducer(
-      undefined,
-      {
-        type: SETTINGS_ACTIONS.SAVE,
-        defaults: {
-          profile: { profileName: 'testing' },
-          sizes: [1, 2, 3],
-        },
+    const actual = settingsReducer(undefined, {
+      type: SETTINGS_ACTIONS.SAVE,
+      defaults: {
+        profile: { profileName: 'testing' },
+        sizes: [1, 2, 3],
       },
-    );
+    });
     expect(actual).toEqual(expected);
   });
 
@@ -170,7 +146,12 @@ describe('settings reducer', () => {
   describe('should add errors to state from', () => {
     let expected;
 
-    const _getStateForAction = actionType => settingsReducer(undefined, { type: actionType, defaults: initialSettingsStates.defaults, errors: 'testing' });
+    const _getStateForAction = actionType =>
+      settingsReducer(undefined, {
+        type: actionType,
+        defaults: initialSettingsStates.defaults,
+        errors: 'testing',
+      });
 
     beforeAll(() => {
       expected = {

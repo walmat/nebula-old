@@ -1,6 +1,11 @@
 /* global describe */
-import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, {
+  initialSettingsStates,
+} from '../../../../utils/definitions/settingsDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('defaults definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -15,20 +20,14 @@ describe('defaults definitions', () => {
       spy,
     );
 
-  testDefaultsKey('profile', [{ id: 1, profileName: 'testing' }, { id: 2 }], [{ id: false }, { id: 2, profileName: false }]);
+  testDefaultsKey(
+    'profile',
+    [{ id: 1, profileName: 'testing' }, { id: 2 }],
+    [{ id: false }, { id: 2, profileName: false }],
+  );
   testDefaultsKey(
     'sizes',
-    [
-      null,
-      [],
-      [{ value: 'test_value', label: 'test_label' }],
-    ],
-    [
-      'test',
-      false,
-      {},
-      [false, true],
-      [{ value: true }, { label: true }],
-    ],
+    [null, [], [{ value: 'test_value', label: 'test_label' }]],
+    ['test', false, {}, [false, true], [{ value: true }, { label: true }]],
   );
 });
