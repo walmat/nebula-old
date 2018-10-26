@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const { parseString } = require('xml2js');
 
 module.exports = {};
 
@@ -217,3 +218,23 @@ function matchKeywords(products, keywords, filter) {
   return matches[0];
 }
 module.exports.matchKeywords = matchKeywords;
+
+/**
+ * Convert an XML String to JSON
+ * 
+ * This method proxies the xml2js parseString method,
+ * but converts it to a promisified form.
+ * 
+ * @param {String} xml 
+ */
+function convertToJson(xml) {
+  return new Promise((resolve, reject) => {
+    parseString(xml, (err, result) => {
+      if(err) {
+        reject(err);
+      }
+      resolve(result);
+    });
+  });
+}
+module.exports.convertToJson = convertToJson;

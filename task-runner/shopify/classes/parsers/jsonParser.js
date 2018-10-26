@@ -13,7 +13,6 @@ class JsonParser {
   /**
    * Construct a new JsonParser
    * 
-   * @param {List} products list of products to search
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
