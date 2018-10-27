@@ -77,6 +77,7 @@ class Checkout {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
+        
         return rp({
             uri: `${this._task.site.url}/cart.js`,
             followAllRedirects: true,
@@ -86,7 +87,7 @@ class Checkout {
             headers: {
                 'User-Agent': userAgent,
             },
-            qs: {
+            formData: {
                 quantity: '1',
                 checkout: 'Checkout',
             },
