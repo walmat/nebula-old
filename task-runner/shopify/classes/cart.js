@@ -10,7 +10,7 @@ const {
     userAgent,
 } = require('./utils');
 
-class AddToCart {
+class Cart {
 
     constructor(context) {
         /**
@@ -71,5 +71,31 @@ class AddToCart {
             return false;
         });
     }
+
+    removeFromCart(variant, quantity) {
+        rp({
+            uri: `${this._task.site.url}/cart/change.js`,
+            followAllRedirects: true,
+            method: 'POST',
+            headers: {
+                Origin: this._task.site.url,
+                'User-Agent': userAgent,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                Referer: this._task.product.url,
+                'Accept-Language': 'en-US,en;q=0.8',
+            },
+            qs: {
+                id: variant,
+                quantity: quantity,
+            },
+        })
+        .then((res) => {
+            return res.item_count === 0;
+        })
+        .catch((err) => {
+            return res.item_count; // didn't remove correctly..
+        })
+    }
 }
-module.exports = AddToCart;
+module.exports = Cart;

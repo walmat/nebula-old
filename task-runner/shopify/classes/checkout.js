@@ -11,7 +11,7 @@ const rp = require('request-promise').defaults({
 /**
  * Local class includes
  */
-const AddToCart = require('./addToCart');
+const Cart = require('./cart');
 const { States } = require('../taskRunner');
 /**
  * Utils includes
@@ -40,7 +40,7 @@ class Checkout {
         /**
          * Add to cart module for handling adding a product to cart.
          */
-        this._addToCart = new AddToCart(context);
+        this._cart = new Cart(context);
 
         this.retries = {
             ADD_TO_CART: 5,
@@ -430,7 +430,7 @@ class Checkout {
         let added = false;
         while (this.retries.ADD_TO_CART > 0) {
             try {
-                added = await this._addToCart.addToCart();
+                added = await this._cart.addToCart();
                 if (added) {
                     break;
                 }
