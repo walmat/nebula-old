@@ -193,6 +193,32 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                 }
             }
         }
+        case 'addToCartData': {
+            switch (task.site.name) {
+                case 'DSM US': {
+                    return {
+                        qty: 1,
+                        name: 'add',
+                        id: task.product.variant,
+                        'properties[_HASH]': 256779527127,
+                    }
+                }
+                case 'DSM EU': {
+                    return {
+                        qty: 1,
+
+                        id: task.product.variant,
+                        'properties[_hash]': '',// find this...
+                    }
+                }
+                default: {
+                    return {
+                        qty: 1,
+                        id: task.product.variant,
+                    }
+                }
+            }
+        }
         default: {
             break;
         }

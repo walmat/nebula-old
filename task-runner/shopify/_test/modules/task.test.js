@@ -4,12 +4,12 @@ const task = {
       raw: '',
       pos_keywords: ['POD', 'WHITE'],
       neg_keywords: ['BLACK'],
-      variant: "9554158452783",
-      url: "https://blendsus.com/products/asics-x-atmos-x-solebox-gel-lyte-iii-glacier-grey",
+      variant: "15900740976767",
+      url: "https://eflash-us.doverstreetmarket.com/collections/nike-jordans-11-planium-tint/products/nike-jordans-11-platinum-tint",
     },
     site: {
-      url: 'https://blendsus.com',
-      name: 'Kith',
+      url: 'https://eflash-us.doverstreetmarket.com',
+      name: 'DSM US',
     },
     profile: {
       id: '0',

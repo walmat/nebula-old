@@ -9,6 +9,9 @@ const {
     formatProxy,
     userAgent,
 } = require('./utils');
+const _ = require('underscore');
+const buildForm = require('./utils/buildForm');
+
 
 class Cart {
 
@@ -41,7 +44,7 @@ class Cart {
         }
 
         return rp({
-            uri: `${this._task.site.url}/cart/add.js`,
+            uri: `${this._task.site.url}/cart.js`,
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
             method: 'post',
@@ -54,18 +57,20 @@ class Cart {
                 Referer: this._task.product.url,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
-            formData: {
-                id: this._task.product.variant,
-                qty: '1',
-            },
+            formData: buildForm(
+                this._task,
+                null,
+                null,
+                'addToCartData',
+            ),
         })
         .then((res) => {
-            console.log(res);
             // check response
             console.log('[INFO]: CHECKOUT: Checking if add to cart was valid...');
             return res.status !== 404;
         })
         .catch((err) => {
+            console.log(err);
             console.log('[ERROR]: CHECKOUT: Unable to submit add to cart request...');
             // TODO - error handling
             return false;
@@ -73,7 +78,12 @@ class Cart {
     }
 
     removeFromCart(variant, quantity) {
-        rp({
+        if (this._aborted) {
+            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+            return States.Aborted;
+        }
+
+        return rp({
             uri: `${this._task.site.url}/cart/change.js`,
             followAllRedirects: true,
             method: 'POST',
@@ -96,6 +106,69 @@ class Cart {
         .catch((err) => {
             return res.item_count; // didn't remove correctly..
         })
+    }
+
+    clearCart() {
+        if (this._aborted) {
+            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+            return States.Aborted;
+        }
+
+        return rp({
+            uri: `${this._task.site.url}/cart/clear.js`,
+            followAllRedirects: true,
+            method: 'POST',
+            headers: {
+                Origin: this._task.site.url,
+                'User-Agent': userAgent,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                Referer: this._task.product.url,
+                'Accept-Language': 'en-US,en;q=0.8',
+            },
+        })
+        .then((res) => {
+            return res.item_count === 0;
+        })
+        .catch((err) => {
+            return res.item_count; // didn't remove correctly..
+        })
+    }
+
+    getEstimatedShippingRates() {
+        if (this._aborted) {
+            return States.Aborted;
+        }
+        return rp({
+            uri: `${this._task.site.url}/cart/shipping_rates.json`,
+            followAllRedirects: true,
+            method: 'POST',
+            headers: {
+                Origin: this._task.site.url,
+                'User-Agent': userAgent,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                Referer: this._task.product.url,
+                'Accept-Language': 'en-US,en;q=0.8',
+            },
+            formData: {
+                'shipping_address[zip]': this._task.profile.shipping.zipCode,
+                'shipping_address[country]': this._task.profile.shipping.country,
+                'shipping_address[province]': this._task.profile.shipping.state,
+            }
+        })
+        .then((res) => {
+            const rates = JSON.parse(res);
+            let lowest_rate = Number.MAX_SAFE_INTEGER;
+            rates.shipping_rates.forEach((rate) => {
+                if (rate.source === 'shopify') {
+                    if (rate.price < lowest_rate) {
+                        lowest_rate = rate.price;
+                    }
+                }
+            });
+            return lowest_rate;
+        });
     }
 }
 module.exports = Cart;

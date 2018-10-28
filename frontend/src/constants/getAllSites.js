@@ -144,7 +144,7 @@ const s = [
     value: 'https://eflash-us.doverstreetmarket.com', label: 'DSM US', supported: true, auth: false,
   },
   {
-    value: 'https://eflash.doverstreetmarket.com', label: 'DSM UK', supported: true, auth: false,
+    value: 'https://eflash.doverstreetmarket.com', label: 'DSM EU', supported: true, auth: false,
   },
   { value: 'https://sneakerworldshop.com', label: 'Sneaker World' },
   { value: 'https://socialstatuspgh.com', label: 'Social Status' },

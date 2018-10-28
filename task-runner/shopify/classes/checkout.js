@@ -72,38 +72,58 @@ class Checkout {
 
     }
 
+    autoParse(body, response, resolveWithFullResponse) {
+        // FIXME: The content type string could contain additional values like the charset.
+        // Consider using the `content-type` library for a robust comparison.
+        if (response.headers['content-type'] === 'application/json') {
+            return JSON.parse(body);
+        } else if (response.headers['content-type'] === 'text/html') {
+            return $.load(body);
+        } else {
+            return body;
+        }
+    }
+
+    /**
+     * Gets the checkout session data for the product(s) in the cart
+     */
     getCheckoutData() {
         if (this._context.aborted) {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
-        
+
         return rp({
             uri: `${this._task.site.url}/cart.js`,
-            followAllRedirects: true,
+            followAllRedirects: true, // not working properly.
             resolveWithFullResponse: true,
+            gzip: true,
+            simple: true,
             proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {
                 'User-Agent': userAgent,
             },
-            formData: {
-                quantity: '1',
-                checkout: 'Checkout',
-            },
         })
         .then((res) => {
+            /**
+             * should either be:
+             * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827
+             * or
+             * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827/stock_problems
+             */
             // break early if out of stock already...
-            // console.log(res);
-            if (res.request.href.indexOf('stock_problems') > -1) {
-                console.log('[ERROR]: CHECKOUT: Out of Stock...');
+            if (res.request.uri.href.indexOf('stock_problems') > -1) {
+                console.log('[ERROR]: CHECKOUT: Size out of Stock...');
                 if (this._task.sizes.length > 1) {
+                    console.log('[DEBUG]: CHECKOUT: Changing to next size...');
                     return States.SwapSizes;
                 }
+                console.log('[DEBUG]: CHECKOUT: Running for restocks...');
                 return States.Restock;
             } else {
                 return {
-                    checkoutHost: `https://${res.request.originalHost}`,
+                    checkoutHost: `https://${res.request.uri.host}`,
                     checkoutUrl: res.request.href,
                     checkoutId: res.request.href.split('checkouts/')[1],
                     storeId: res.request.href.split('/')[3],
@@ -113,7 +133,8 @@ class Checkout {
             }
         })
         .catch((err) => {
-            console.log(`[ERROR]: CHECKOUT: Error: ${err} while proceeding to checking...`);
+            console.log(err);
+            console.log(`[ERROR]: CHECKOUT: Error while requesting checkout data...`);
             // TODO - error handling
             return null;
         });
@@ -160,9 +181,10 @@ class Checkout {
                 'Accept-Language': 'en-US,en;q=0.8',
             },
             qs: form,
+            transform2xxOnly: true,
+            transform: this.autoParse,
         })
-        .then((body) => {
-            const $ = cheerio.load(body);
+        .then(($) => {
             return {
                 authToken: $('form.edit_checkout input[name=authenticity_token]').attr('value'),
             }
@@ -369,17 +391,17 @@ class Checkout {
 
     submitBilling(sValue, checkoutHost, checkoutUrl, storeId, checkoutId, authToken, paymentGateway, price) {
         rp({
-            uri: this._checkoutUrl,
+            uri: checkoutUrl,
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {
-                Origin: this._checkoutHost,
+                Origin: checkoutHost,
                 'Content-Type': 'application/x-www-form-urlencoded',
                 Accept:
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.8',
-                Referer: `${this._checkoutHost}/${this._storeID}/checkouts/${this._checkoutID}`,
+                Referer: `${checkoutHost}/${storeId}/checkouts/${checkoutId}`,
                 'User-Agent': userAgent,
             },
             formData: buildForm(
@@ -447,6 +469,7 @@ class Checkout {
             return States.Aborted;
         }
         console.log(`Took ${(now()-start).toFixed(3)}ms to add to cart!`)
+
         // added! generate checkout URL
         let checkoutData = null;
         while (this.retries.CHECKOUT > 0) {
@@ -454,6 +477,8 @@ class Checkout {
                 checkoutData = await this.getCheckoutData();
                 if (checkoutData) {
                     break;
+                } else {
+                    this.retries.CHECKOUT--;
                 }
             } catch (errors) {
                 console.log(`[DEBUG]: CHECKOUT: Unable to generate checkout URL\n${errors}`);
@@ -533,6 +558,12 @@ class Checkout {
                         paymentData.paymentGateway,
                         paymentData.price
                     );
+                if (didCheckout.message) {
+                    break;
+                } else {
+                    console.log(`[ERROR]: CHECKOUT: Unable to successfully checkout...\n${didCheckout.error}`);
+                    this.retries.CHECKOUT--;
+                }
             } catch (errors) {
                 console.log(`[ERROR]: CHECKOUT: Unable to successfully checkout...\n${errors}`);
                 this.retries.CHECKOUT--;
