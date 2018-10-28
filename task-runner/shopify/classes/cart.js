@@ -44,7 +44,7 @@ class Cart {
         }
 
         return rp({
-            uri: `${this._task.site.url}/cart.js`,
+            uri: `${this._task.site.url}/cart/add.js`,
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
             method: 'post',
@@ -61,7 +61,7 @@ class Cart {
                 this._task,
                 null,
                 null,
-                'addToCartData',
+                'addToCartData',                
             ),
         })
         .then((res) => {

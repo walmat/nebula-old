@@ -206,15 +206,24 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                 case 'DSM EU': {
                     return {
                         qty: 1,
-
                         id: task.product.variant,
-                        'properties[_hash]': '',// find this...
+                        'properties[_hash]': '', // find this...
                     }
                 }
                 default: {
                     return {
                         qty: 1,
                         id: task.product.variant,
+                    }
+                }
+            }
+        }
+        case 'getCheckoutData': {
+            switch(task.site.name) {
+                default: {
+                    return {
+                        'updates[]': 1,
+                        'checkout': 'Proceed to Checkout',
                     }
                 }
             }

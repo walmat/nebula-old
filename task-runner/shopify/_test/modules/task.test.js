@@ -4,12 +4,16 @@ const task = {
       raw: '',
       pos_keywords: ['POD', 'WHITE'],
       neg_keywords: ['BLACK'],
-      variant: "15900740976767",
-      url: "https://eflash-us.doverstreetmarket.com/collections/nike-jordans-11-planium-tint/products/nike-jordans-11-platinum-tint",
+      variant: "9034048602159",
+      url: "https://www.blendsus.com/collections/nike/products/nike-moon-racer-string-black-sail-volt",
     },
+    // site: {
+    //   url: 'https://eflash-us.doverstreetmarket.com',
+    //   name: 'DSM US',
+    // },
     site: {
-      url: 'https://eflash-us.doverstreetmarket.com',
-      name: 'DSM US',
+      url: 'https://blendsus.com',
+      name: 'Blends',
     },
     profile: {
       id: '0',

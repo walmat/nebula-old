@@ -3,7 +3,9 @@
  */
 const $ = require('cheerio');
 const jar = require('request-promise').jar();
+const autoParse = require('./utils');
 const rp = require('request-promise').defaults({
+    transform: autoParse,
     timeout: 10000,
     jar: jar,
 });
@@ -72,15 +74,23 @@ class Checkout {
 
     }
 
-    autoParse(body, response, resolveWithFullResponse) {
-        // FIXME: The content type string could contain additional values like the charset.
-        // Consider using the `content-type` library for a robust comparison.
-        if (response.headers['content-type'] === 'application/json') {
-            return JSON.parse(body);
-        } else if (response.headers['content-type'] === 'text/html') {
-            return $.load(body);
+    redirectOn302(body, response, resolveWithFullResponse) {
+        if (response.statusCode === 302) {
+            // Set the new url (this is the options object)
+            console.log(response.request);
+            return rp({
+                uri: response.request.headers.href,
+                resolveWithFullResponse: true,
+                gzip: true,
+                simple: true,
+                proxy: formatProxy(this._proxy),
+                method: 'get',
+                headers: {
+                    'User-Agent': userAgent,
+                },
+            });
         } else {
-            return body;
+            return resolveWithFullResponse ? response : body;
         }
     }
 
@@ -95,7 +105,6 @@ class Checkout {
 
         return rp({
             uri: `${this._task.site.url}/cart.js`,
-            followAllRedirects: true, // not working properly.
             resolveWithFullResponse: true,
             gzip: true,
             simple: true,
@@ -104,6 +113,13 @@ class Checkout {
             headers: {
                 'User-Agent': userAgent,
             },
+            formData: buildForm(
+                this._task,
+                null,
+                null,
+                'getCheckoutData',
+            ),
+            transform: this.redirectOn302,
         })
         .then((res) => {
             /**
@@ -468,9 +484,21 @@ class Checkout {
             console.log('[ERROR]: CHECKOUT: Unable to add to cart...');
             return States.Aborted;
         }
+
+        console.log(added);
         console.log(`Took ${(now()-start).toFixed(3)}ms to add to cart!`)
 
         // added! generate checkout URL
+
+        // TODO -- we can run this method concurrently as it's not necessary but nice to know
+        let shippingRates = null;
+        try {
+            shippingRates = await this._cart.getEstimatedShippingRates();
+        } catch (errors) {
+            console.log(errors);
+        }
+        console.log(shippingRates);
+
         let checkoutData = null;
         while (this.retries.CHECKOUT > 0) {
             try {
