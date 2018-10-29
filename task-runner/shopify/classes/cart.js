@@ -45,7 +45,8 @@ class Cart {
 
         return rp({
             uri: `${this._task.site.url}/cart/add.js`,
-            followAllRedirects: true,
+            followAllRedirects: false,
+            simple: true,
             proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {
@@ -159,6 +160,7 @@ class Cart {
         })
         .then((res) => {
             const rates = JSON.parse(res);
+            // filter this more efficiently
             let lowest_rate = Number.MAX_SAFE_INTEGER;
             rates.shipping_rates.forEach((rate) => {
                 if (rate.source === 'shopify') {

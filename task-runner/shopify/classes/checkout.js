@@ -104,24 +104,43 @@ class Checkout {
         }
 
         return rp({
-            uri: `${this._task.site.url}/cart.js`,
+            uri: `${this._task.site.url}/cart`,
             resolveWithFullResponse: true,
+            followAllRedirects: true,
             gzip: true,
-            simple: true,
+            simple: false,
             proxy: formatProxy(this._proxy),
-            method: 'post',
+            method: 'get',
             headers: {
                 'User-Agent': userAgent,
             },
-            formData: buildForm(
-                this._task,
-                null,
-                null,
-                'getCheckoutData',
-            ),
-            transform: this.redirectOn302,
         })
         .then((res) => {
+            console.log(res.statusCode);
+            if (res.statusCode === 302) {
+                return rp({
+                    uri: `${this._task.site.url}/cart`,
+                    resolveWithFullResponse: true,
+                    followAllRedirects: true,
+                    gzip: true,
+                    proxy: formatProxy(this._proxy),
+                    method: 'post',
+                    headers: {
+                        'User-Agent': userAgent,
+                    },
+                    formData: buildForm(
+                        this._task,
+                        null,
+                        null,
+                        'getCheckoutData',
+                    ),
+                });
+            } else {
+                return res;
+            }
+        })
+        .then((res) => {
+            console.log(res.request.uri.href);
             /**
              * should either be:
              * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827
