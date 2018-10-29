@@ -1,6 +1,5 @@
-
 class Queue {
-    constructor(task, proxy) {
+    constructor(context) {
 
         this._task = task;
 
