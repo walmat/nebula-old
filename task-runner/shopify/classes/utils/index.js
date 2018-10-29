@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const $ = require('cheerio');
 const urlToSize = require('./urlToSize');
 
 module.exports = {};

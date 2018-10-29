@@ -15,7 +15,7 @@ class Monitor {
     }
 
     _waitForDelay(delay) {
-        console.log('[TRACE]: MONITOR: Waiting for ${delay} ms...');
+        console.log(`[TRACE]: MONITOR: Waiting for ${delay}ms...`);
         return new Promise(resolve => setTimeout(resolve, delay));
     };
 
