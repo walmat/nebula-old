@@ -1,5 +1,6 @@
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
+const QueueBypass = require('./classes/queueBypass');
 const EventEmitter = require('events');
 
 class TaskRunner {
@@ -58,6 +59,11 @@ class TaskRunner {
         };
 
         /**
+         * Create a new queue bypass object to be used for the task
+         */
+        this._queueBypass = new QueueBypass(this._context);
+
+        /**
          * Create a new monitor object to be used for the task
          */
         this._monitor = new Monitor(this._context);
@@ -92,6 +98,10 @@ class TaskRunner {
                 this._events.on(TaskRunner.Events.TaskStatus, callback);
                 break;
             }
+            case TaskRunner.Events.QueueBypassStatus: {
+                this._events.on(TaskRunner.Events.QueueBypassStatus, callback);
+                break;
+            }
             case TaskRunner.Events.MonitorStatus: {
                 this._events.on(TaskRunner.Events.MonitorStatus, callback);
                 break;
@@ -102,6 +112,7 @@ class TaskRunner {
             }
             case TaskRunner.Events.All: {
                 this._events.on(TaskRunner.Events.TaskStatus, callback);
+                this._events.on(TaskRunner.Events.QueueBypassStatus, callback);
                 this._events.on(TaskRunner.Events.MonitorStatus, callback);
                 this._events.on(TaskRunner.Events.CheckoutStatus, callback);
             }
@@ -114,6 +125,10 @@ class TaskRunner {
                 this._events.removeListener(TaskRunner.Events.TaskStatus, callback);
                 break;
             }
+            case TaskRunner.Events.QueueBypassStatus: {
+                this._events.removeListener(TaskRunner.Events.QueueBypassStatus, callback);
+                break;
+            }
             case TaskRunner.Events.MonitorStatus: {
                 this._events.removeListener(TaskRunner.Events.MonitorStatus, callback);
                 break;
@@ -124,6 +139,7 @@ class TaskRunner {
             }
             case TaskRunner.Events.All: {
                 this._events.removeListener(TaskRunner.Events.TaskStatus, callback);
+                this._events.removeListener(TaskRunner.Events.QueueBypassStatus, callback);
                 this._events.removeListener(TaskRunner.Events.MonitorStatus, callback);
                 this._events.removeListener(TaskRunner.Events.CheckoutStatus, callback);
             }
@@ -146,6 +162,10 @@ class TaskRunner {
                 this._events.emit(TaskRunner.Events.TaskStatus, this._context.id, message, TaskRunner.Events.TaskStatus);
                 break;
             }
+            case TaskRunner.Events.QueueBypassStatus: {
+                this._events.emit(TaskRunner.Events.QueueBypassStatus, this._context.id, message, TaskRunner.Events.QueueBypassStatus);
+                break;
+            }
             case TaskRunner.Events.MonitorStatus: {
                 this._events.emit(TaskRunner.Events.MonitorStatus, this._context.id, message, TaskRunner.Events.MonitorStatus);
                 break;
@@ -162,6 +182,10 @@ class TaskRunner {
 
     _emitTaskEvent(message) {
         _emitEvent(TaskRunner.Events.TaskStatus, message);
+    }
+
+    _emitMonitorEvent(message) {
+        _emitEvent(TaskRunner.Events.QueueBypassStatus, message);
     }
 
     _emitMonitorEvent(message) {
@@ -182,7 +206,7 @@ class TaskRunner {
     }
 
     async _handleGenQueueBypass() {
-        const res = await this._checkout.generateQueueBypassUrl();
+        const res = await this._queueBypass.generateQueueBypassUrl();
         if(res.errors) {
             this._emitTaskEvent({
                 message: 'Unable to Generate Bypass Queue Url! Continuing on...',

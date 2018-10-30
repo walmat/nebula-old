@@ -7,10 +7,6 @@ const task = {
       variant: "9034048602159",
       url: "https://www.blendsus.com/collections/nike/products/nike-moon-racer-string-black-sail-volt",
     },
-    // site: {
-    //   url: 'https://eflash-us.doverstreetmarket.com',
-    //   name: 'DSM US',
-    // },
     site: {
       url: 'https://blendsus.com',
       name: 'Blends',
@@ -26,7 +22,7 @@ const task = {
         apt: null,
         city: 'Test City',
         country: 'United States',
-        state: 'New York',
+        state: 'Michigan',
         zipCode: '48237',
         phone: '5157206516',
       },

@@ -1,11 +1,9 @@
 /**
  * Parse includes
  */
-const $ = require('cheerio');
+const cheerio = require('cheerio');
 const jar = require('request-promise').jar();
-const autoParse = require('./utils');
 const rp = require('request-promise').defaults({
-    transform: autoParse,
     timeout: 10000,
     jar: jar,
 });
@@ -74,54 +72,30 @@ class Checkout {
 
     }
 
-    redirectOn302(body, response, resolveWithFullResponse) {
-        if (response.statusCode === 302) {
-            // Set the new url (this is the options object)
-            console.log(response.request);
-            return rp({
-                uri: response.request.headers.href,
-                resolveWithFullResponse: true,
-                gzip: true,
-                simple: true,
-                proxy: formatProxy(this._proxy),
-                method: 'get',
-                headers: {
-                    'User-Agent': userAgent,
-                },
-            });
-        } else {
-            return resolveWithFullResponse ? response : body;
-        }
-    }
-
     /**
      * Gets the checkout session data for the product(s) in the cart
      */
-    getCheckoutData() {
+    getCheckoutData(checkoutUrl) {
         if (this._context.aborted) {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
 
         return rp({
-            uri: `${this._task.site.url}/cart.js`,
+            uri: checkoutUrl,
             resolveWithFullResponse: true,
+            followAllRedirects: true,
             gzip: true,
-            simple: true,
+            simple: false,
             proxy: formatProxy(this._proxy),
-            method: 'post',
+            method: 'get',
             headers: {
                 'User-Agent': userAgent,
+                Referer: `${this._task.product.url}`
             },
-            formData: buildForm(
-                this._task,
-                null,
-                null,
-                'getCheckoutData',
-            ),
-            transform: this.redirectOn302,
         })
         .then((res) => {
+            const $ = cheerio.load(res);
             /**
              * should either be:
              * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827
@@ -138,13 +112,14 @@ class Checkout {
                 console.log('[DEBUG]: CHECKOUT: Running for restocks...');
                 return States.Restock;
             } else {
+                console.log($.html('body'));
                 return {
                     checkoutHost: `https://${res.request.uri.host}`,
                     checkoutUrl: res.request.href,
                     checkoutId: res.request.href.split('checkouts/')[1],
                     storeId: res.request.href.split('/')[3],
-                    authToken: $('form.edit_checkout input[name=authenticity_token]').attr('value'),
-                    price: $('#checkout_total_price').text(),
+                    authToken: $('form input[name=authenticity_token]').attr('value'),
+                    price: $('span.payment-due__price').text(),
                 };
             }
         })
@@ -249,9 +224,9 @@ class Checkout {
                 'User-Agent': userAgent,
             },
             form: form,
+            transform: autoParse,
         })
-        .then((body) => {
-            const $ = cheerio.load(body);
+        .then(() => {
             const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
             if (shippingPollUrl === undefined) {
                 const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
@@ -466,11 +441,11 @@ class Checkout {
         }
         const start = now();
         // add to cart...
-        let added = false;
+        let checkoutUrl = false;
         while (this.retries.ADD_TO_CART > 0) {
             try {
-                added = await this._cart.addToCart();
-                if (added) {
+                checkoutUrl = await this._cart.addToCart();
+                if (checkoutUrl) {
                     break;
                 }
             } catch (errors) {
@@ -480,12 +455,12 @@ class Checkout {
                 this.retries.ADD_TO_CART--;
             }
         }
-        if (!added) {
+        if (!checkoutUrl) {
             console.log('[ERROR]: CHECKOUT: Unable to add to cart...');
             return States.Aborted;
         }
 
-        console.log(added);
+        console.log(checkoutUrl);
         console.log(`Took ${(now()-start).toFixed(3)}ms to add to cart!`)
 
         // added! generate checkout URL
@@ -495,14 +470,14 @@ class Checkout {
         try {
             shippingRates = await this._cart.getEstimatedShippingRates();
         } catch (errors) {
-            console.log(errors);
+            // console.log(errors);
         }
-        console.log(shippingRates);
+        // console.log(shippingRates);
 
         let checkoutData = null;
         while (this.retries.CHECKOUT > 0) {
             try {
-                checkoutData = await this.getCheckoutData();
+                checkoutData = await this.getCheckoutData(checkoutUrl);
                 if (checkoutData) {
                     break;
                 } else {

@@ -222,8 +222,8 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
             switch(task.site.name) {
                 default: {
                     return {
-                        'updates[]': 1,
-                        'checkout': 'Proceed to Checkout',
+                        quantity: 1,
+                        'checkout': 'Checkout',
                     }
                 }
             }
