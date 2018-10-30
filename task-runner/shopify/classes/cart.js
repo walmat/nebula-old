@@ -150,6 +150,7 @@ class Cart {
         })
         .then((res) => {
             const rates = JSON.parse(res);
+            console.log(res);
             // filter this more efficiently
             let lowest_rate = Number.MAX_SAFE_INTEGER;
             rates.shipping_rates.forEach((rate) => {
@@ -160,6 +161,9 @@ class Cart {
                 }
             });
             return lowest_rate;
+        })
+        .catch((err) => {
+            return null;
         });
     }
 }

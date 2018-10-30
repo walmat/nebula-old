@@ -2,6 +2,7 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
+const open = require('open');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
@@ -109,16 +110,24 @@ class Checkout {
         }
     }
 
-    inputShipping(checkoutHost, checkoutUrl, checkoutId, storeId, authToken, price) {
+    /**
+     * Fills and submits the shipping information for the customer
+     * @param {String} checkoutHost - the host of the checkout process
+     * @param {String} checkoutUrl - the checkout url in which to send the request
+     * @param {String} checkoutId - the hash checkout id after checkouts/
+     * @param {String} storeId - the 7-digit store id before the /checkouts
+     * @param {String} authToken - the forms authentication token to pass through the process
+     * @return {String} authentication token to use for the next step
+     */
+    submitShippingDetails(checkoutHost, checkoutUrl, checkoutId, storeId, authToken) {
         if (this._context.aborted) {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
 
         let form;
-        console.log(checkoutUrl);
+
         if (checkoutUrl.indexOf('checkout.shopify.com') > -1) {
-            console.log('building form for shopify');
             form = buildForm(
                 this._task,
                 true,
@@ -133,24 +142,23 @@ class Checkout {
                 false,
                 authToken,
                 'shippingInput',
-                'contact_information',
+                'shipping_method',
                 'contact_information'
             );
         }
 
         return rp({
-            method: 'GET',
+            method: 'get',
             uri: checkoutUrl,
             proxy: formatProxy(this._proxy),
             resolveWithFullResponse: true,
-            json: true,
+            followAllRedirects: true,
             gzip: true,
             simple: false,
-            followAllRedirects: true,
             headers: {
                 Origin: `${checkoutHost}`,
                 'User-Agent': userAgent,
-                Accept:
+                Accept: 
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 Referer: `${checkoutHost}/`,
                 'Accept-Language': 'en-US,en;q=0.8',
@@ -158,9 +166,31 @@ class Checkout {
             qs: form,
         })
         .then((res) => {
-            const $ = cheerio.load(res.body);
-            console.log(res.body);
-            return $('form.edit_checkout input[name=authenticity_token]').attr('value');
+            if (res.statusCode === 200) {
+                return rp({
+                    method: 'post',
+                    uri: checkoutUrl,
+                    proxy: formatProxy(this._proxy),
+                    resolveWithFullResponse: true,
+                    followAllRedirects: true,
+                    gzip: true,
+                    simple: false,
+                    headers: {
+                        Origin: `${checkoutHost}`,
+                        'User-Agent': userAgent,
+                        Accept: 
+                            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
+                        'Accept-Language': 'en-US,en;q=0.8',
+                    },
+                    formData: form,
+                })
+                .then((res) => {
+                    const $ = cheerio.load(res.body);
+                    // for debug: open(res.request.href);
+                    return $('form.edit_checkout input[name=authenticity_token]').attr('value');
+                });
+            }
         })
         .catch((err) => {
             console.log('[ERROR]: CHECKOUT: Unable to fill in shipping information...');
@@ -168,7 +198,7 @@ class Checkout {
         });
     }
 
-    requestShipping(checkoutHost, checkoutUrl, checkoutId, storeId, authToken) {
+    getShippingMethod(checkoutHost, checkoutUrl, checkoutId, storeId, authToken) {
         let form;
 
         if (checkoutUrl.indexOf('checkout.shopify.com') > -1) {
@@ -191,11 +221,14 @@ class Checkout {
             );
         }
 
-        rp({
+        return rp({
+            method: 'GET',
             uri: checkoutUrl,
             followAllRedirects: true,
+            resolveWithFullResponse: true,
             proxy: formatProxy(this._proxy),
-            method: 'post',
+            gzip: true,
+            simple: false,
             headers: {
                 Origin: `${checkoutHost}`,
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -205,32 +238,50 @@ class Checkout {
                 Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
                 'User-Agent': userAgent,
             },
-            form: form,
-            transform: autoParse,
+            qs: form,
         })
-        .then(() => {
-            const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
-            if (shippingPollUrl === undefined) {
-                const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
-                console.log(`Shipping method: ${firstShippingOption}`);
-                if (firstShippingOption === undefined) {
-                    console.log(`Unable to find checkout option for ${checkoutUrl}`);
-                    process.exit(1);
-                } else {
-                    return {
-                        type: 'direct',
-                        value: firstShippingOption,
-                        authToken: $('input[name="authenticity_token"]').val(),
-                    };
-                }
+        .then((res) => {
+            const $ = cheerio.load(res.body);
+            if (res.statusCode === 200) {
+                return rp({
+                    method: 'POST',
+                    uri: checkoutUrl,
+                    followAllRedirects: true,
+                    resolveWithFullResponse: true,
+                    proxy: formatProxy(this._proxy),
+                    gzip: true,
+                    simple: false,
+                    headers: {
+                        Origin: `${checkoutHost}`,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        Accept:
+                            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.8',
+                        Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
+                        'User-Agent': userAgent,
+                    },
+                    formData: form,
+                })
+                .then((res) => {
+                    const $ = cheerio.load(res.body);
+                    const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
+                    console.log(`Shipping method: ${firstShippingOption}`);
+                    if (firstShippingOption === undefined) {
+                        console.log(`Unable to find checkout option for ${checkoutUrl}`);
+                        process.exit(1);
+                    } else {
+                        return {
+                            type: 'direct',
+                            value: firstShippingOption,
+                            authToken: $('input[name="authenticity_token"]').val(),
+                        };
+                    }
+                });
             }
-            return {
-                type: 'poll',
-                value: shippingPollUrl,
-            };
         })
         .catch((err) => {
-            return null;
+            console.log(err);
+            return err;
         });
     }
 
@@ -447,12 +498,12 @@ class Checkout {
         // added! generate checkout URL
 
         // TODO -- we can run this method concurrently as it's not necessary but nice to know
-        let shippingRates = null;
-        try {
-            shippingRates = await this._cart.getEstimatedShippingRates();
-        } catch (errors) {
-            // console.log(errors);
-        }
+        // let shippingRates = null;
+        // try {
+        //     shippingRates = await this._cart.getEstimatedShippingRates();
+        // } catch (errors) {
+        //     console.log(errors);
+        // }
         // console.log(shippingRates);
 
         let checkoutData = null;
@@ -473,27 +524,26 @@ class Checkout {
             console.log('[ERROR]: CHECKOUT: Unable to find checkout URL...');
             return States.Aborted;
         }
-        // got checkout data, proceed to filling out shipping information
+
+        // got checkout data, proceed to filling out shipping information and submiting it
         let newAuthToken = null;
         try {
-            newAuthToken = await this.inputShipping(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.checkoutId, checkoutData.storeId, checkoutData.authToken, checkoutData.price);
+            newAuthToken = await this.submitShippingDetails(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.checkoutId, checkoutData.storeId, checkoutData.authToken, checkoutData.price);
         } catch (errors) {
             console.log(`[ERROR]: CHECKOUT: Unable to proceed to shipping...\n${errors}`);
             // TODO - error handling here..
             return States.Aborted;
         }
 
-        console.log(newAuthToken);
-
         if (!newAuthToken) {
             console.log(`[ERROR]: CHECKOUT: Unable to complete shipping information...\n`);
             return States.Aborted;
         }
 
-        // shipping information completed, proceed to the next step: shipping method
+        // shipping information completed, proceed to the next step: getting cheapest shipping method
         let shippingMethod = null;
         try {
-            shippingMethod = await this.requestShipping(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.checkoutId, checkoutData.storeId, newAuthToken.authToken, checkoutData.price);
+            shippingMethod = await this.getShippingMethod(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.checkoutId, checkoutData.storeId, newAuthToken, checkoutData.price);
         } catch (errors) {
             console.log(`[ERROR]: CHECKOUT: Error parsing to find shipping method...\n${errors}`);
             // TODO - error handling here..
@@ -507,7 +557,7 @@ class Checkout {
         // shipping method found, let's proceed to payment
         let paymentData = null;
         try {
-            paymentData = await this.submitShipping(shippingMethod, checkoutData.checkoutHost, checkoutData.checkoutUrl)
+            paymentData = await this.submitPayment(shippingMethod, checkoutData.checkoutHost, checkoutData.checkoutUrl)
         } catch (errors) {
             console.log(`[ERROR]: CHECKOUT: Error submitting payment information...\n${errors}`);
             return States.Aborted;

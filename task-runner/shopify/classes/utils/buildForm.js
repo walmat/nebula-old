@@ -1,3 +1,5 @@
+const phoneFormatter = require('phone-formatter');
+
 function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousStep, shippingMethod, paymentGateway, price, sessionValue) {
 
     switch (type) {
@@ -16,18 +18,18 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
         case 'shippingInput': {
             if (isCheckoutPage) {
                 return {
-                    utf8: '✓',
-                    _method: 'patch',
-                    authenticity_token: authToken,
-                    previous_step: previousStep,
-                    step: currentStep,
+                    'utf8': '✓',
+                    '_method': 'patch',
+                    'authenticity_token': authToken,
+                    'previous_step': previousStep,
+                    'step': currentStep,
                     'checkout[email]': task.profile.payment.email,
                     'checkout[buyer_accepts_marketing]': '1',
                     'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
                     'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
                     'checkout[shipping_address][company]': '',
                     'checkout[shipping_address][address1]': task.profile.shipping.address,
-                    'checkout[shipping_address][address2]': task.profile.shipping.apt,
+                    'checkout[shipping_address][address2]': task.profile.shipping.apt || '',
                     'checkout[shipping_address][city]': task.profile.shipping.city,
                     'checkout[shipping_address][country]': task.profile.shipping.country,
                     'checkout[shipping_address][province]': task.profile.shipping.state,
@@ -37,22 +39,23 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                         '(NNN) NNN-NNNN'
                     ),
                     'checkout[remember_me]': '0',
-                    button: '',
-                    'checkout[client_details][browser_width]': '979',
-                    'checkout[client_details][browser_height]': '631',
+                    'button': '',
+                    'checkout[client_details][browser_width]': '1250',
+                    'checkout[client_details][browser_height]': '689',
                 };
             } else {
                 return {
-                    utf8: '✓',
-                    _method: 'patch',
-                    authenticity_token: authToken,
-                    previous_step: previousStep,
+                    'utf8': '✓',
+                    '_method': 'patch',
+                    'authenticity_token': authToken,
+                    'step': currentStep,
+                    'previous_step': previousStep,
                     'checkout[email]': task.profile.payment.email,
                     'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
                     'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
                     'checkout[shipping_address][company]': '',
                     'checkout[shipping_address][address1]': task.profile.shipping.address,
-                    'checkout[shipping_address][address2]': task.profile.shipping.apt,
+                    'checkout[shipping_address][address2]': task.profile.shipping.apt || '',
                     'checkout[shipping_address][city]': task.profile.shipping.city,
                     'checkout[shipping_address][country]': task.profile.shipping.country,
                     'checkout[shipping_address][province]': task.profile.shipping.state,
@@ -62,23 +65,23 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                         '(NNN) NNN-NNNN'
                     ),
                     'checkout[remember_me]': '0',
-                    'checkout[client_details][browser_width]': '979',
-                    'checkout[client_details][browser_height]': '631',
+                    'checkout[client_details][browser_width]': '1250',
+                    'checkout[client_details][browser_height]': '689',
                     'checkout[client_details][javascript_enabled]': '1',
-                    step: currentStep,
+                    'checkout[buyer_accepts_marketing]': '0',
                 };
             }
         }
         case 'shippingRequest': {
             if (isCheckoutPage) {
                 return {
-                    utf8: '✓',
-                    _method: 'patch',
-                    authenticity_token: authToken,
-                    button: '',
+                    'utf8': '✓',
+                    '_method': 'patch',
+                    'authenticity_token': authToken,
+                    'button': '',
                     'checkout[email]': task.profile.payment.email,
                     'checkout[shipping_address][address1]': task.profile.shipping.address,
-                    'checkout[shipping_address][address2]': task.profile.shipping.apt,
+                    'checkout[shipping_address][address2]': task.profile.shipping.apt || '',
                     'checkout[shipping_address][city]': task.profile.shipping.city,
                     'checkout[shipping_address][country]': task.profile.shipping.country,
                     'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
@@ -87,27 +90,27 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                         task.profile.shipping.phone,
                         '(NNN) NNN-NNNN'
                     ),
-                    'checkout[shipping_address][province]': this._task.profile.shipping.state,
-                    'checkout[shipping_address][zip]': this._task.profile.shipping.zipCode,
+                    'checkout[shipping_address][province]': task.profile.shipping.state,
+                    'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
                     'checkout[remember_me]': '0',
                     'checkout[client_details][browser_width]': '979',
-                    'checkout[client_details][browser_height]': '631',
+                    'checkout[cslient_details][browser_height]': '631',
                     'checkout[client_details][javascript_enabled]': '1',
-                    previous_step: previousStep,
-                    step: currentStep,
+                    'previous_step': previousStep,
+                    'step': currentStep,
                 };
             } else {
                 return {
-                    utf8: '✓',
-                    _method: 'patch',
-                    authenticity_token: authToken,
-                    button: '',
+                    'utf8': '✓',
+                    '_method': 'patch',
+                    'authenticity_token': authToken,
+                    'button': '',
                     'checkout[email]': task.profile.payment.email,
                     'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
                     'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
                     'checkout[shipping_address][company]': '',
                     'checkout[shipping_address][address1]': task.profile.shipping.address,
-                    'checkout[shipping_address][address2]': task.profile.shipping.apt,
+                    'checkout[shipping_address][address2]': task.profile.shipping.apt || '',
                     'checkout[shipping_address][city]': task.profile.shipping.city,
                     'checkout[shipping_address][country]': task.profile.shipping.country,
                     'checkout[shipping_address][province]': task.profile.shipping.state,
@@ -120,8 +123,8 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                     'checkout[client_details][browser_width]': '979',
                     'checkout[client_details][browser_height]': '631',
                     'checkout[client_details][javascript_enabled]': '1',
-                    previous_step: previousStep,
-                    step: currentStep,
+                    'previous_step': previousStep,
+                    'step': currentStep,
                 };
             }
         }
