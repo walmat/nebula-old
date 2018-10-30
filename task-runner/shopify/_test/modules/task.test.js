@@ -4,12 +4,12 @@ const task = {
       raw: '',
       pos_keywords: ['POD', 'WHITE'],
       neg_keywords: ['BLACK'],
-      variant: "9034048602159",
-      url: "https://www.blendsus.com/collections/nike/products/nike-moon-racer-string-black-sail-volt",
+      variant: "16303829483589",
+      url: "https://kith.com/products/kith-x-vasque-sundowner-gtx-mauve",
     },
     site: {
-      url: 'https://blendsus.com',
-      name: 'Blends',
+      url: 'https://kith.com',
+      name: 'Kith',
     },
     profile: {
       id: '0',

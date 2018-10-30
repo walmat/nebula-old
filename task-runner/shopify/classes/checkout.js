@@ -75,70 +75,50 @@ class Checkout {
     /**
      * Gets the checkout session data for the product(s) in the cart
      */
-    getCheckoutData(checkoutUrl) {
+    getCheckoutData(checkoutPage) {
         if (this._context.aborted) {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
 
-        return rp({
-            uri: checkoutUrl,
-            resolveWithFullResponse: true,
-            followAllRedirects: true,
-            gzip: true,
-            simple: false,
-            proxy: formatProxy(this._proxy),
-            method: 'get',
-            headers: {
-                'User-Agent': userAgent,
-                Referer: `${this._task.product.url}`
-            },
-        })
-        .then((res) => {
-            const $ = cheerio.load(res);
-            /**
-             * should either be:
-             * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827
-             * or
-             * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827/stock_problems
-             */
-            // break early if out of stock already...
-            if (res.request.uri.href.indexOf('stock_problems') > -1) {
-                console.log('[ERROR]: CHECKOUT: Size out of Stock...');
-                if (this._task.sizes.length > 1) {
-                    console.log('[DEBUG]: CHECKOUT: Changing to next size...');
-                    return States.SwapSizes;
-                }
-                console.log('[DEBUG]: CHECKOUT: Running for restocks...');
-                return States.Restock;
-            } else {
-                console.log($.html('body'));
-                return {
-                    checkoutHost: `https://${res.request.uri.host}`,
-                    checkoutUrl: res.request.href,
-                    checkoutId: res.request.href.split('checkouts/')[1],
-                    storeId: res.request.href.split('/')[3],
-                    authToken: $('form input[name=authenticity_token]').attr('value'),
-                    price: $('span.payment-due__price').text(),
-                };
+        const $ = cheerio.load(checkoutPage.body);
+        /**
+         * should either be:
+         * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827
+         * or
+         * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827/stock_problems
+         */
+        // break early if out of stock already...
+        if (checkoutPage.res.request.uri.href.indexOf('stock_problems') > -1) {
+            console.log('[ERROR]: CHECKOUT: Size out of Stock...');
+            if (this._task.sizes.length > 1) {
+                console.log('[DEBUG]: CHECKOUT: Changing to next size...');
+                return States.SwapSizes;
             }
-        })
-        .catch((err) => {
-            console.log(err);
-            console.log(`[ERROR]: CHECKOUT: Error while requesting checkout data...`);
-            // TODO - error handling
-            return null;
-        });
+            console.log('[DEBUG]: CHECKOUT: Running for restocks...');
+            return States.Restock;
+        } else {
+            return {
+                checkoutHost: `https://${checkoutPage.res.request.uri.host}`,
+                checkoutUrl: checkoutPage.res.request.href,
+                checkoutId: checkoutPage.res.request.href.split('checkouts/')[1],
+                storeId: checkoutPage.res.request.href.split('/')[3],
+                authToken: $('form input[name=authenticity_token]').attr('value'),
+                price: $('span.payment-due__price').text().trim(),
+            };
+        }
     }
 
-    inputShipping(checkoutHost, checkoutUrl, authToken) {
+    inputShipping(checkoutHost, checkoutUrl, checkoutId, storeId, authToken, price) {
         if (this._context.aborted) {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
 
         let form;
+        console.log(checkoutUrl);
         if (checkoutUrl.indexOf('checkout.shopify.com') > -1) {
+            console.log('building form for shopify');
             form = buildForm(
                 this._task,
                 true,
@@ -150,7 +130,7 @@ class Checkout {
         } else {
             form = buildForm(
                 this._task,
-                true,
+                false,
                 authToken,
                 'shippingInput',
                 'contact_information',
@@ -158,10 +138,14 @@ class Checkout {
             );
         }
 
-        rp({
+        return rp({
             method: 'GET',
             uri: checkoutUrl,
             proxy: formatProxy(this._proxy),
+            resolveWithFullResponse: true,
+            json: true,
+            gzip: true,
+            simple: false,
             followAllRedirects: true,
             headers: {
                 Origin: `${checkoutHost}`,
@@ -172,13 +156,11 @@ class Checkout {
                 'Accept-Language': 'en-US,en;q=0.8',
             },
             qs: form,
-            transform2xxOnly: true,
-            transform: this.autoParse,
         })
-        .then(($) => {
-            return {
-                authToken: $('form.edit_checkout input[name=authenticity_token]').attr('value'),
-            }
+        .then((res) => {
+            const $ = cheerio.load(res.body);
+            console.log(res.body);
+            return $('form.edit_checkout input[name=authenticity_token]').attr('value');
         })
         .catch((err) => {
             console.log('[ERROR]: CHECKOUT: Unable to fill in shipping information...');
@@ -460,7 +442,6 @@ class Checkout {
             return States.Aborted;
         }
 
-        console.log(checkoutUrl);
         console.log(`Took ${(now()-start).toFixed(3)}ms to add to cart!`)
 
         // added! generate checkout URL
@@ -492,7 +473,6 @@ class Checkout {
             console.log('[ERROR]: CHECKOUT: Unable to find checkout URL...');
             return States.Aborted;
         }
-        console.log(checkoutData);
         // got checkout data, proceed to filling out shipping information
         let newAuthToken = null;
         try {
@@ -502,6 +482,8 @@ class Checkout {
             // TODO - error handling here..
             return States.Aborted;
         }
+
+        console.log(newAuthToken);
 
         if (!newAuthToken) {
             console.log(`[ERROR]: CHECKOUT: Unable to complete shipping information...\n`);

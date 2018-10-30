@@ -32,7 +32,10 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                     'checkout[shipping_address][country]': task.profile.shipping.country,
                     'checkout[shipping_address][province]': task.profile.shipping.state,
                     'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-                    'checkout[shipping_address][phone]': task.profile.shipping.phone,
+                    'checkout[shipping_address][phone]': phoneFormatter.format(
+                        task.profile.shipping.phone,
+                        '(NNN) NNN-NNNN'
+                    ),
                     'checkout[remember_me]': '0',
                     button: '',
                     'checkout[client_details][browser_width]': '979',
@@ -54,7 +57,10 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                     'checkout[shipping_address][country]': task.profile.shipping.country,
                     'checkout[shipping_address][province]': task.profile.shipping.state,
                     'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-                    'checkout[shipping_address][phone]': task.profile.shipping.phone,
+                    'checkout[shipping_address][phone]': phoneFormatter.format(
+                        task.profile.shipping.phone,
+                        '(NNN) NNN-NNNN'
+                    ),
                     'checkout[remember_me]': '0',
                     'checkout[client_details][browser_width]': '979',
                     'checkout[client_details][browser_height]': '631',

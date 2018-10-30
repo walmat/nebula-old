@@ -61,7 +61,7 @@ class Cart {
             },
         })
         .then((res) => {
-            return res.request.href;
+            return {res: res, body: res.body};
         })
         .catch((err) => {
             return null;
