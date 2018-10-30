@@ -26,7 +26,7 @@ const task = {
         apt: null,
         city: 'Test City',
         country: 'United States',
-        state: 'New York',
+        state: 'Michigan',
         zipCode: '48237',
         phone: '5157206516',
       },

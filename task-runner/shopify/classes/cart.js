@@ -44,11 +44,12 @@ class Cart {
         }
 
         return rp({
-            uri: `${this._task.site.url}/cart/add.js`,
-            followAllRedirects: false,
-            simple: true,
+            uri: `${this._task.site.url}/cart/${this._task.product.variant}:1`,
+            resolveWithFullResponse: true,
+            followAllRedirects: true,
+            simple: false,
             proxy: formatProxy(this._proxy),
-            method: 'post',
+            method: 'get',
             headers: {
                 Origin: this._task.site.url,
                 'User-Agent': userAgent,
@@ -58,23 +59,12 @@ class Cart {
                 Referer: this._task.product.url,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
-            formData: buildForm(
-                this._task,
-                null,
-                null,
-                'addToCartData',                
-            ),
         })
         .then((res) => {
-            // check response
-            console.log('[INFO]: CHECKOUT: Checking if add to cart was valid...');
-            return res.status !== 404;
+            return res.request.href;
         })
         .catch((err) => {
-            console.log(err);
-            console.log('[ERROR]: CHECKOUT: Unable to submit add to cart request...');
-            // TODO - error handling
-            return false;
+            return null;
         });
     }
 
