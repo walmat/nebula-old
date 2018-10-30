@@ -13,6 +13,7 @@ const rp = require('request-promise').defaults({
  * Local class includes
  */
 const Cart = require('./cart');
+const Timer = require('./timer');
 const { States } = require('../taskRunner');
 /**
  * Utils includes
@@ -70,6 +71,8 @@ class Checkout {
          * @type {String}
          */
         this._aborted = this._context.aborted;
+
+        this._timer = new Timer();
 
     }
 
@@ -187,7 +190,7 @@ class Checkout {
                 })
                 .then((res) => {
                     const $ = cheerio.load(res.body);
-                    // for debug: open(res.request.href);
+                    // open(res.request.href); // for debug
                     return $('form.edit_checkout input[name=authenticity_token]').attr('value');
                 });
             }
@@ -264,6 +267,7 @@ class Checkout {
                 })
                 .then((res) => {
                     const $ = cheerio.load(res.body);
+                    open(res.request.href);
                     const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
                     console.log(`Shipping method: ${firstShippingOption}`);
                     if (firstShippingOption === undefined) {
@@ -472,7 +476,9 @@ class Checkout {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
-        const start = now();
+
+        this._timer.start(now());
+
         // add to cart...
         let checkoutUrl = false;
         while (this.retries.ADD_TO_CART > 0) {
@@ -492,8 +498,10 @@ class Checkout {
             console.log('[ERROR]: CHECKOUT: Unable to add to cart...');
             return States.Aborted;
         }
+        this._timer.stop(now());
 
-        console.log(`Took ${(now()-start).toFixed(3)}ms to add to cart!`)
+        console.log(`Took ${this._timer.getRunTime()}ms to add to cart!`)
+        this._timer.start(now());
 
         // added! generate checkout URL
 

@@ -37,19 +37,19 @@ class Cart {
 
     }
 
-    addToCart() {
+    addToCart(size) {
         if (this._aborted) {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
         }
 
         return rp({
-            uri: `${this._task.site.url}/cart/${this._task.product.variant}:1`,
+            uri: `${this._task.site.url}/cart/add.js`,
             resolveWithFullResponse: true,
             followAllRedirects: true,
             simple: false,
             proxy: formatProxy(this._proxy),
-            method: 'get',
+            method: 'post',
             headers: {
                 Origin: this._task.site.url,
                 'User-Agent': userAgent,
@@ -59,6 +59,19 @@ class Cart {
                 Referer: this._task.product.url,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
+            formData: buildForm(
+                this._task,
+                false,
+                null,
+                'addToCartData',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                size,
+            )
         })
         .then((res) => {
             return {res: res, body: res.body};

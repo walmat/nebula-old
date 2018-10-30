@@ -1,6 +1,6 @@
 const phoneFormatter = require('phone-formatter');
 
-function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousStep, shippingMethod, paymentGateway, price, sessionValue) {
+function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousStep, shippingMethod, paymentGateway, price, sessionValue, size) {
 
     switch (type) {
         case 'payment': {
@@ -221,7 +221,9 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                 }
                 default: {
                     return {
-                        qty: 1,
+                        quantity: 1,
+                        'option-0': size,
+                        'option-1': '',
                         id: task.product.variant,
                     }
                 }
