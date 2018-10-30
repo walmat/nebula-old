@@ -1,14 +1,16 @@
 const { States } = require('../taskRunner');
+const { AtomParser, JsonParser, XmlParser } = require('./parsers');
+const { rfrl } = 
 
 class Monitor {
     constructor(context) {
         /**
          * All data needed for monitor to run
          * This includes:
-         * - current runner id
-         * - current task
-         * - current proxy
-         * - whether or not we should abort
+         * - runner_id: current runner id
+         * - task: current task
+         * - proxy: current proxy
+         * - aborted: whether or not we should abort
          * @type {TaskRunnerContext}
          */
         this._context = context;
@@ -48,66 +50,14 @@ class Monitor {
     }
 
     _parseAll() {
-        return new Promise((resolve, reject) => {
-            const productsRequest = {}; // Request for products.json // TODO Use parse to implement
-            const atomRequest = {}; // Request for collections/all.atom // TODO use parse to implement
-            const sitemapRequest = {}; // Request sitemap_products_1.xml // TODO use parse to implement
-            
-            // Store shared status object
-            const status = {
-                winner: null,
-                errors: {
-                    json: null,
-                    atom: null,
-                    xml: null,
-                    count: 0,
-                },
-            };
-
-            // Order the requests and attach .then handlers
-            [
-                {
-                    request: productsRequest,
-                    response: null,
-                    type: 'json',
-                },
-                {
-                    request: atomRequest,
-                    response: null,
-                    type: 'atom',
-                },
-                {
-                    request: sitemapRequest,
-                    response: null,
-                    type: 'xml',
-                },
-            ].forEach((poll) => {
-                poll.request.then(
-                    (productInfo) => {
-                        console.log(`[TRACE]: MONITOR: ${poll.type} - RESOLVE:\n${productInfo}`);
-                        if (!status.winner) {
-                            console.log(`[TRACE]: MONITOR: ${poll.type} - chosen as winner!`);
-                            status.winner = productInfo;
-                            poll.response = productInfo;
-                            resolve(poll);
-                        } else {
-                            console.log(`[TRACE]: MONITOR: ${poll.type} - not chosen as winner!`);
-                        }
-                    },
-                    (error) => {
-                        console.log(`[TRACE]: MONITOR: ${poll.type} - REJECT:\n${error}`);
-                        status.errors[poll.type] = error;
-                        status.errors.count += 1;
-                        if (status.errors.count >= 3) {
-                            console.log(`[TRACE]: MONITOR: ${poll.type} - final error detected, rejecting...`);
-                            reject(status.errors);
-                        } else {
-                            console.log(`[TRACE]: MONITOR: ${poll.type} - not the final error, there's still hope!`);
-                        }
-                    }
-                );
-            });
-        });
+        // Create the parsers and start the async run methods
+        const parsers = [
+            new AtomParser(this._context.task, this._context.proxy),
+            new JsonParser(this._context.task, this._context.proxy),
+            new XmlParser(this._context.task, this._context.proxy),
+        ].map(p => p.run());
+        // Return the winner of the race
+        return rfrl(parsers);
     }
 
     async _verifyReadyForCheckout(product) {
@@ -143,13 +93,11 @@ class Monitor {
                 return States.SwapProxies;
             }
         }
-        
-
-        console.log(`[DEBUG]: MONITOR: ${parsed.type} chosen as the winner`);
+        console.log(`[DEBUG]: MONITOR: ${parsed} chosen as the winner`);
 
         // Check for ok status
-        if (parsed.response.status < 400) {
-            console.log(`[DEBUG]: MONITOR: Status is OK (${parsed.response.status}, verifying we are ready for checkout)`);
+        if (parsed.status < 400) {
+            console.log(`[DEBUG]: MONITOR: Status is OK (${parsed.status} proceeding to checkout`);
             return this._verifyReadyForCheckout(parsed.response);
         }
         // Status will be a delay status, check which one and wait the correct amount
