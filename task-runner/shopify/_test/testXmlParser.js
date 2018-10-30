@@ -6,13 +6,13 @@ const task1 = {
     name: 'blendsus',
   },
   product: {
-    raw: '+adidas, +X, -micropacer',
+    raw: '+clarks, +gtx, -vans',
     pos_keywords: [
-      'adidas',
-      'X',
+      'clarks',
+      'gtx',
     ],
     neg_keywords: [
-      'micropacer'
+      'vans'
     ],
   },
 };

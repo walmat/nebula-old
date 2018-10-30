@@ -1,4 +1,6 @@
 const utils = require('../utils/parse');
+const { rfrl } = require('../utils/rfrl');
+const _ = require('underscore');
 const {
   formatProxy,
   userAgent,
@@ -10,6 +12,58 @@ const rp = require('request-promise').defaults({
 });
 
 class JsonParser {
+  /**
+   * Retrieve the full product info for a given product
+   * 
+   * This method takes a given single product url and attempts to 
+   * get the full info for the product, filling in the gaps missed 
+   * by xml or atom parsing. This method sends out two requests, 
+   * one for the `.json` file and one for the `.oembed` file. The 
+   * first request to complete returns the full product info. If
+   * both requests error out, a list of errors is returned. 
+   * 
+   * @param {String} productUrl 
+   */
+  static getFullProductInfo(productUrl) {
+    console.log('[TRACE]: JsonParser: Getting Full Product Info...');
+    console.log(`[TRACE]: JsonParser: Requesting ${productUrl}.(json|oembed) in a race`);
+    const genRequestPromise = (uri) => {
+      return rp({
+        method: 'GET',
+        uri,
+        proxy: formatProxy(this._proxy) || undefined,
+        json: false,
+        simple: true,
+        gzip: true,
+        headers: {
+          'User-Agent': userAgent,
+        },
+      });
+    }
+
+    return rfrl([
+      genRequestPromise(`${productUrl}.json`).then((res) => {
+        // product.json contains the format we need -- just return it
+        return JSON.parse(res).product;
+      }),
+      genRequestPromise(`${productUrl}.oembed`).then((res) => {
+        // product.oembed requires a little transformation before returning:
+        const json = JSON.parse(res);
+
+        return {
+          title: json.title,
+          vendor: json.provider,
+          handle: json.product_id,
+          variants: _.map(json.offers, offer => ({
+            title: offer.title,
+            id: offer.offer_id,
+            price: `${offer.price}`
+          })),
+        };
+      }),
+    ]);
+  }
+
   /**
    * Construct a new JsonParser
    * 

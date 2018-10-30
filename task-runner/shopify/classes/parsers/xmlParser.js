@@ -1,6 +1,7 @@
 const JsonParser = require('./jsonParser');
 const _ = require('underscore');
 const utils = require('../utils/parse');
+const rfrl = require('../utils/rfrl');
 const {
   formatProxy,
   userAgent,
@@ -69,8 +70,19 @@ class XmlParser extends JsonParser {
       throw new Error('unable to match the product');
     }
 
-    console.log('[TRACE]: XmlParser: Product Found!');
-    return matchedProduct;
+    console.log('[TRACE]: XmlParser: Product Found! Looking for Variant Info...');
+    let fullProductInfo = null;
+    try {
+      fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url);
+      console.log(`[TRACE]: XmlParser: Full Product Info Found! Merging data and Returning.`)
+      return {
+        ...matchedProduct,
+        ...fullProductInfo,
+      };
+    } catch (errors) {
+      console.log(`[TRACE]: XmlParser: Couldn't Find Variant Info:\n${errors}`);
+      throw new Error('unable to get full product info');
+    }
   }
 }
 module.exports = XmlParser;

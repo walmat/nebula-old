@@ -71,8 +71,19 @@ class AtomParser extends JsonParser {
       throw new Error('unable to match the product');
     }
 
-    console.log('[TRACE]: AtomParser: Product Found!');
-    return matchedProduct;
+    console.log('[TRACE]: AtomParser: Product Found! Looking for Variant Info...');
+    let fullProductInfo = null;
+    try {
+      fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url);
+      console.log(`[TRACE]: AtomParser: Full Product Info Found! Merging data and Returning.`)
+      return {
+        ...matchedProduct,
+        ...fullProductInfo,
+      };
+    } catch (errors) {
+      console.log(`[TRACE]: AtomParser: Couldn't Find Variant Info:\n${errors}`);
+      throw new Error('unable to get full product info');
+    }
   }
 }
 module.exports = AtomParser;
