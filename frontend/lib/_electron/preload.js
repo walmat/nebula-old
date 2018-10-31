@@ -130,6 +130,48 @@ const _confirmDialog = async message =>
   });
 
 /**
+ * Sends a listener for task events to taskManagerWrapper.js
+ */
+const _registerForTaskEvents = (handler) => {
+  _sendEvent(IPCKeys.RequestRegisterTaskEventHandler, handler);
+};
+
+/**
+ * Removes a listener for task events to taskManagerWrapper.js
+ */
+const _deregisterForTaskEvents = (handler) => {
+  _sendEvent(IPCKeys.RequestDeregisterTaskEventHandler, handler);
+};
+
+/**
+ * Sends task(s) that should be started to taskManagerWrapper.js
+ */
+const _startTasks = (tasks) => {
+  _sendEvent(IPCKeys.RequestStartTasks, tasks);
+};
+
+/**
+ * Sends task(s) that should be stopped to taskManagerWrapper.js
+ */
+const _stopTasks = (tasks) => {
+  _sendEvent(IPCKeys.RequestStopTasks, tasks);
+};
+
+/**
+ * Sends proxies(s) that should be add to taskManagerWrapper.js
+ */
+const _addProxies = (proxies) => {
+  _sendEvent(IPCKeys.RequestAddProxies, proxies);
+};
+
+/**
+ * Sends task(s) that should be removed to taskManagerWrapper.js
+ */
+const _removeProxies = (proxies) => {
+  _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
+};
+
+/**
  * On process load, create the Bridge
  */
 process.once('loaded', () => {
@@ -146,6 +188,12 @@ process.once('loaded', () => {
   window.Bridge.deactivate = _deactivate;
   window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;
+  window.Bridge.registerForTaskEvents = _registerForTaskEvents;
+  window.Bridge.deregisterForTaskEvents = _deregisterForTaskEvents;
+  window.Bridge.startTasks = _startTasks;
+  window.Bridge.stopTasks = _stopTasks;
+  window.Bridge.addProxies = _addProxies;
+  window.Bridge.removeProxies = _removeProxies;
   if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (evt) => {
       _sendEvent('debug', evt);
