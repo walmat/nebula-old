@@ -1,7 +1,30 @@
-import React from 'react';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import LogTaskRow from './logTaskRow';
+import tDefns from '../utils/definitions/taskDefinitions';
 
-const LogTask = () => (<div />);
+export class LogTaskPrimitive extends Component {
+  createTable() {
+    const runningTasks = this.props.tasks.filter(task => task.status === 'running');
+    const table = runningTasks.map(task => (<LogTaskRow task={task} />));
+    return table;
+  }
 
-LogTask.propTypes = {};
+  render() {
+    return (
+      <div className="tasks-table">
+        {this.createTable()}
+      </div>
+    );
+  }
+}
 
-export default LogTask;
+LogTaskPrimitive.propTypes = {
+  tasks: tDefns.taskList.isRequired,
+};
+
+export const mapStateToProps = state => ({
+  tasks: state.tasks,
+});
+
+export default connect(mapStateToProps)(LogTaskPrimitive);
