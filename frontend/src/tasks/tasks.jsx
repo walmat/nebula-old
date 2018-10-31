@@ -86,8 +86,10 @@ export class TasksPrimitive extends Component {
                       <hr className="view-line" />
                     </div>
                   </div>
-                  <div className="row row--expand tasks-table__wrapper">
-                    <LogTask />
+                  <div className="row row--expand">
+                    <div className="col tasks-table__wrapper">
+                      <LogTask />
+                    </div>
                   </div>
                 </div>
               </div>

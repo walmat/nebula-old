@@ -13,12 +13,75 @@
 }
 
 .tasks {
-  .tasks-log {
+  .tasks-log-container {
     width: 504px;
     height: 300px;
     border: 1px solid #F0405E;
     border-radius: 3px;
-    margin-left: -1px;
+
+    .tasks-table__wrapper {
+      min-width: 0;
+      width: 100%;
+      overflow: hidden;
+      display: block;
+    }
+  }
+
+  .tasks-table {
+    border-collapse: collapse;
+    border-spacing: 0 10px;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+    &__section-header {
+      padding-top: 1px;
+    }
+
+    .blank {
+      padding-left: 10px;
+    }
+
+    .extend {
+      padding-right: 4px;
+    }
+
+    .pad-left {
+      padding-left: 5px;
+      padding-bottom: 0;
+    }
+
+    .tasks-row-container {
+      border-bottom: #dfdfdf solid 1px;
+
+      .tasks-row {
+        display: flex;
+        height: 30px;
+
+        &__log {
+          &--id {
+            width: 7px;
+            margin-left: -1px;
+            padding-left: 14px;
+          }
+
+          &--site {
+            width: 116px;
+            padding-left: 3px;
+          }
+
+          &--output {
+            width: 440px;
+            padding-left: 5px;
+          }
+        }
+      }
+    }
+  }
+  .tasks-log {
+    width: 504px;
+    height: 300px;
+    border-radius: 3px;
 
     &__section-header {
       padding-top: 1px;
@@ -36,7 +99,7 @@
 
       &__site {
         @extend %tasks-log__header__field;
-        width: 21px;
+        width: 60px;
         padding-left: 18px;
       }
 
@@ -46,6 +109,5 @@
         padding-left: 50px;
       }
     }
-
   }
 }
