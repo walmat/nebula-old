@@ -231,17 +231,20 @@ class Cart {
         })
         .then((res) => {
             const rates = JSON.parse(res);
-            console.log(res);
             // filter this more efficiently
             let lowest_rate = Number.MAX_SAFE_INTEGER;
+            let shippingMethod;
             rates.shipping_rates.forEach((rate) => {
                 if (rate.source === 'shopify') {
                     if (rate.price < lowest_rate) {
+                        shippingMethod = rate;
                         lowest_rate = rate.price;
                     }
                 }
             });
-            return lowest_rate;
+
+            // shipping option to use
+            return `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`
         })
         .catch((err) => {
             return null;

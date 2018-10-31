@@ -2,6 +2,7 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
+const fs = require('fs');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
@@ -75,6 +76,11 @@ class Checkout {
 
     }
 
+    viewDataFromGet(body, response, resolveWithFullResponse) {
+        console.log(response.request);
+        return response;
+    }
+
     /**
      * Fills and submits the shipping information for the customer
      * @param {String} checkoutHost - the host of the checkout process
@@ -113,11 +119,11 @@ class Checkout {
         }
 
         return rp({
-            method: 'post',
             uri: checkoutUrl,
+            method: 'get',
             proxy: formatProxy(this._proxy),
-            resolveWithFullResponse: true,
             followAllRedirects: true,
+            resolveWithFullResponse: true,
             gzip: true,
             simple: false,
             headers: {
@@ -125,20 +131,37 @@ class Checkout {
                 'User-Agent': userAgent,
                 Accept: 
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
+                Referer: `${checkoutHost}/`,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
-            form: form,
+            qs: form,
+            transform: this.viewDataFromGet,
         })
         .then((res) => {
-            const $ = cheerio.load(res.body);
-            return $('form.edit_checkout input[name=authenticity_token]').attr('value');
+            return rp({
+                method: 'post',
+                uri: checkoutUrl,
+                proxy: formatProxy(this._proxy),
+                followAllRedirects: true,
+                resolveWithFullResponse: true,
+                gzip: true,
+                simple: false,
+                headers: {
+                    Origin: `${checkoutHost}`,
+                    'User-Agent': userAgent,
+                    Accept: 
+                        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
+                    'Accept-Language': 'en-US,en;q=0.8',
+                },
+                formData: form,
+            })
+            .then((res) => {
+                const $ = cheerio.load(res.body);
+                fs.writeFileSync('debug.html', res.body);
+                return $('form.edit_checkout input[name=authenticity_token]').attr('value');
+            });
         })
-        .catch((err) => {
-            console.log(err);
-            console.log('[ERROR]: CHECKOUT: Unable to fill in shipping information...');
-            return null;
-        });
     }
 
     getShippingMethod(checkoutHost, checkoutUrl, checkoutId, storeId, authToken) {
@@ -163,8 +186,6 @@ class Checkout {
                 'contact_information'
             );
         }
-
-        console.log(form);
        
         return rp({
             method: 'POST',
@@ -186,7 +207,6 @@ class Checkout {
             formData: form,
         })
         .then((res) => {
-            console.log(res.body);
             const $ = cheerio.load(res.body);
             const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
             console.log(`Shipping method: ${firstShippingOption}`);
