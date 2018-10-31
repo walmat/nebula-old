@@ -1,6 +1,7 @@
 class Timer {
     
     constructor() {
+        this._total = 0;
         this._start = null;
         this._end = null;
     }
@@ -18,6 +19,7 @@ class Timer {
      */
     stop(time) {
         this._end = time;
+        this._total += (this._end - this._start);
     }
 
     /**
@@ -49,6 +51,10 @@ class Timer {
      */
     getRunTime() {
         return (this._end - this._start).toFixed(3);
+    }
+
+    getTotalTime() {
+        return this._total.toFixed(3);
     }
 }
 

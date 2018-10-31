@@ -11,7 +11,9 @@ const {
     userAgent,
 } = require('./utils');
 const _ = require('underscore');
-const buildForm = require('./utils/buildForm');
+const {
+    buildCartForm
+} = require('./utils/forms');
 
 
 class Cart {
@@ -61,11 +63,8 @@ class Cart {
                 Referer: this._task.product.url,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
-            formData: buildForm(
+            formData: buildCartForm(
                 this._task,
-                false,
-                null,
-                'addToCartData',
             ),
         })
         .then((res) => {
@@ -76,7 +75,7 @@ class Cart {
 
             if (Object.keys(res).length > 0) {
                 return rp({
-                    uri: `${this._task.site.url}/cart`,
+                    uri: `${this._task.site.url}//checkout.json`,
                     method: 'get',
                     followAllRedirects: true,
                     simple: false,
@@ -91,50 +90,17 @@ class Cart {
                         console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
                         return States.Aborted;
                     }
-                    
-                    if (res.statusCode === 200) {
-                        return rp({
-                            uri: `${this._task.site.url}/cart`,
-                            method: 'post',
-                            followAllRedirects: true,
-                            resolveWithFullResponse: true,
-                            simple: false,
-                            json: false,
-                            headers: {
-                                'User-Agent': userAgent,
-                            },
-                            formData: buildForm(
-                                this._task,
-                                null,
-                                null,
-                                'getCheckoutData',
-                            )
-                        })
-                        .then((res) => {
-                            if (this._aborted) {
-                                console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
-                                return States.Aborted;
-                            }
 
-                            const $ = cheerio.load(res.body);
-                            console.log(res.statusCode);
-                            if (res.request.href.indexOf('stock_problems') > -1) {
-                                // out of stock, TODO
-                            } else {
-                                return {
-                                    checkoutHost: `https://${res.request.originalHost}`,
-                                    checkoutUrl: res.request.href,
-                                    checkoutId: res.request.href.split('checkouts/')[1],
-                                    storeId: res.request.href.split('/')[3],
-                                    authToken: $('form input[name=authenticity_token]').attr('value'),
-                                    price: $('span.payment-due__price').text().trim(),
-                                };
-                            }
-                        })
-                        .catch((err) => {
-                            console.log('3rd request failed');
-                            // TODO
-                        })
+                    if (res.statusCode === 200) {
+                        const $ = cheerio.load(res.body);
+                        return {
+                            checkoutHost: `https://${res.request.originalHost}`,
+                            checkoutUrl: res.request.href,
+                            checkoutId: res.request.href.split('checkouts/')[1],
+                            storeId: res.request.href.split('/')[3],
+                            authToken: $('form input[name=authenticity_token]').attr('value'),
+                            price: $('span.payment-due__price').text().trim(),
+                        };
                     }
                 })
                 .catch((err) => {
@@ -176,7 +142,7 @@ class Cart {
             return res.item_count === 0;
         })
         .catch((err) => {
-            return res.item_count; // didn't remove correctly..
+            // TODO - didn't remove correctly..
         })
     }
 
@@ -203,7 +169,7 @@ class Cart {
             return res.item_count === 0;
         })
         .catch((err) => {
-            return res.item_count; // didn't remove correctly..
+            return res.item_count; // didn't remove all items correctly..
         })
     }
 
