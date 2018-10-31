@@ -269,6 +269,8 @@ class TaskManager {
       runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
       // Remove from runners map
       delete this._runners[runnerId];
+      // Release proxy
+      this.releaseProxy(runnerId, openProxy.id);
     });
   }
 
