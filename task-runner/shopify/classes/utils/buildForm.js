@@ -1,6 +1,6 @@
 const phoneFormatter = require('phone-formatter');
 
-function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousStep, shippingMethod, paymentGateway, price, sessionValue, size) {
+function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousStep, shippingMethod, paymentGateway, price, sessionValue) {
 
     switch (type) {
         case 'payment': {
@@ -18,11 +18,11 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
         case 'shippingInput': {
             if (isCheckoutPage) {
                 return {
-                    'utf8': '✓',
-                    '_method': 'patch',
-                    'authenticity_token': authToken,
-                    'previous_step': previousStep,
-                    'step': currentStep,
+                    utf8: '✓',
+                    _method: 'patch',
+                    authenticity_token: authToken,
+                    previous_step: previousStep,
+                    step: currentStep,
                     'checkout[email]': task.profile.payment.email,
                     'checkout[buyer_accepts_marketing]': '1',
                     'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
@@ -45,11 +45,11 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                 };
             } else {
                 return {
-                    'utf8': '✓',
-                    '_method': 'patch',
-                    'authenticity_token': authToken,
-                    'step': currentStep,
-                    'previous_step': previousStep,
+                    utf8: '✓',
+                    _method: 'patch',
+                    authenticity_token: authToken,
+                    step: currentStep,
+                    previous_step: previousStep,
                     'checkout[email]': task.profile.payment.email,
                     'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
                     'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
@@ -219,11 +219,15 @@ function buildForm(task, isCheckoutPage, authToken, type, currentStep, previousS
                         'properties[_hash]': '', // find this...
                     }
                 }
+                case 'DSM SG': {
+                    return {
+                        id: task.product.variant,
+                        'add': '',
+                    }
+                }
                 default: {
                     return {
                         quantity: 1,
-                        'option-0': size,
-                        'option-1': '',
                         id: task.product.variant,
                     }
                 }

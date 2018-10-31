@@ -2,7 +2,6 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-const open = require('open');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
@@ -77,43 +76,6 @@ class Checkout {
     }
 
     /**
-     * Gets the checkout session data for the product(s) in the cart
-     */
-    getCheckoutData(checkoutPage) {
-        if (this._context.aborted) {
-            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
-            return States.Aborted;
-        }
-
-        const $ = cheerio.load(checkoutPage.body);
-        /**
-         * should either be:
-         * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827
-         * or
-         * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827/stock_problems
-         */
-        // break early if out of stock already...
-        if (checkoutPage.res.request.uri.href.indexOf('stock_problems') > -1) {
-            console.log('[ERROR]: CHECKOUT: Size out of Stock...');
-            if (this._task.sizes.length > 1) {
-                console.log('[DEBUG]: CHECKOUT: Changing to next size...');
-                return States.SwapSizes;
-            }
-            console.log('[DEBUG]: CHECKOUT: Running for restocks...');
-            return States.Restock;
-        } else {
-            return {
-                checkoutHost: `https://${checkoutPage.res.request.uri.host}`,
-                checkoutUrl: checkoutPage.res.request.href,
-                checkoutId: checkoutPage.res.request.href.split('checkouts/')[1],
-                storeId: checkoutPage.res.request.href.split('/')[3],
-                authToken: $('form input[name=authenticity_token]').attr('value'),
-                price: $('span.payment-due__price').text().trim(),
-            };
-        }
-    }
-
-    /**
      * Fills and submits the shipping information for the customer
      * @param {String} checkoutHost - the host of the checkout process
      * @param {String} checkoutUrl - the checkout url in which to send the request
@@ -151,7 +113,7 @@ class Checkout {
         }
 
         return rp({
-            method: 'get',
+            method: 'post',
             uri: checkoutUrl,
             proxy: formatProxy(this._proxy),
             resolveWithFullResponse: true,
@@ -163,39 +125,17 @@ class Checkout {
                 'User-Agent': userAgent,
                 Accept: 
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: `${checkoutHost}/`,
+                Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
-            qs: form,
+            form: form,
         })
         .then((res) => {
-            if (res.statusCode === 200) {
-                return rp({
-                    method: 'post',
-                    uri: checkoutUrl,
-                    proxy: formatProxy(this._proxy),
-                    resolveWithFullResponse: true,
-                    followAllRedirects: true,
-                    gzip: true,
-                    simple: false,
-                    headers: {
-                        Origin: `${checkoutHost}`,
-                        'User-Agent': userAgent,
-                        Accept: 
-                            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                        Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
-                        'Accept-Language': 'en-US,en;q=0.8',
-                    },
-                    formData: form,
-                })
-                .then((res) => {
-                    const $ = cheerio.load(res.body);
-                    // open(res.request.href); // for debug
-                    return $('form.edit_checkout input[name=authenticity_token]').attr('value');
-                });
-            }
+            const $ = cheerio.load(res.body);
+            return $('form.edit_checkout input[name=authenticity_token]').attr('value');
         })
         .catch((err) => {
+            console.log(err);
             console.log('[ERROR]: CHECKOUT: Unable to fill in shipping information...');
             return null;
         });
@@ -224,8 +164,10 @@ class Checkout {
             );
         }
 
+        console.log(form);
+       
         return rp({
-            method: 'GET',
+            method: 'POST',
             uri: checkoutUrl,
             followAllRedirects: true,
             resolveWithFullResponse: true,
@@ -241,46 +183,22 @@ class Checkout {
                 Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
                 'User-Agent': userAgent,
             },
-            qs: form,
+            formData: form,
         })
         .then((res) => {
+            console.log(res.body);
             const $ = cheerio.load(res.body);
-            if (res.statusCode === 200) {
-                return rp({
-                    method: 'POST',
-                    uri: checkoutUrl,
-                    followAllRedirects: true,
-                    resolveWithFullResponse: true,
-                    proxy: formatProxy(this._proxy),
-                    gzip: true,
-                    simple: false,
-                    headers: {
-                        Origin: `${checkoutHost}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        Accept:
-                            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                        'Accept-Language': 'en-US,en;q=0.8',
-                        Referer: `${checkoutHost}/${storeId}/checkout/${checkoutId}`,
-                        'User-Agent': userAgent,
-                    },
-                    formData: form,
-                })
-                .then((res) => {
-                    const $ = cheerio.load(res.body);
-                    open(res.request.href);
-                    const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
-                    console.log(`Shipping method: ${firstShippingOption}`);
-                    if (firstShippingOption === undefined) {
-                        console.log(`Unable to find checkout option for ${checkoutUrl}`);
-                        process.exit(1);
-                    } else {
-                        return {
-                            type: 'direct',
-                            value: firstShippingOption,
-                            authToken: $('input[name="authenticity_token"]').val(),
-                        };
-                    }
-                });
+            const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
+            console.log(`Shipping method: ${firstShippingOption}`);
+            if (firstShippingOption === undefined) {
+                console.log(`Unable to find checkout option for ${checkoutUrl}`);
+                process.exit(1);
+            } else {
+                return {
+                    type: 'direct',
+                    value: firstShippingOption,
+                    authToken: $('input[name="authenticity_token"]').val(),
+                };
             }
         })
         .catch((err) => {
@@ -480,11 +398,12 @@ class Checkout {
         this._timer.start(now());
 
         // add to cart...
-        let checkoutUrl = false;
+        let checkoutData = null;
         while (this.retries.ADD_TO_CART > 0) {
             try {
-                checkoutUrl = await this._cart.addToCart();
-                if (checkoutUrl) {
+                checkoutData = await this._cart.addToCart();
+                console.log(checkoutData);
+                if (checkoutData) {
                     break;
                 }
             } catch (errors) {
@@ -494,7 +413,7 @@ class Checkout {
                 this.retries.ADD_TO_CART--;
             }
         }
-        if (!checkoutUrl) {
+        if (!checkoutData) {
             console.log('[ERROR]: CHECKOUT: Unable to add to cart...');
             return States.Aborted;
         }
@@ -504,36 +423,6 @@ class Checkout {
         this._timer.start(now());
 
         // added! generate checkout URL
-
-        // TODO -- we can run this method concurrently as it's not necessary but nice to know
-        // let shippingRates = null;
-        // try {
-        //     shippingRates = await this._cart.getEstimatedShippingRates();
-        // } catch (errors) {
-        //     console.log(errors);
-        // }
-        // console.log(shippingRates);
-
-        let checkoutData = null;
-        while (this.retries.CHECKOUT > 0) {
-            try {
-                checkoutData = await this.getCheckoutData(checkoutUrl);
-                if (checkoutData) {
-                    break;
-                } else {
-                    this.retries.CHECKOUT--;
-                }
-            } catch (errors) {
-                console.log(`[DEBUG]: CHECKOUT: Unable to generate checkout URL\n${errors}`);
-                this.retries.CHECKOUT--;
-            }
-        }
-        if (!checkoutData) {
-            console.log('[ERROR]: CHECKOUT: Unable to find checkout URL...');
-            return States.Aborted;
-        }
-
-        // got checkout data, proceed to filling out shipping information and submiting it
         let newAuthToken = null;
         try {
             newAuthToken = await this.submitShippingDetails(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.checkoutId, checkoutData.storeId, checkoutData.authToken, checkoutData.price);
@@ -547,6 +436,10 @@ class Checkout {
             console.log(`[ERROR]: CHECKOUT: Unable to complete shipping information...\n`);
             return States.Aborted;
         }
+        this._timer.stop(now());
+
+        console.log(`Took ${this._timer.getRunTime()}ms to submit shipping details!`)
+        this._timer.start(now());
 
         // shipping information completed, proceed to the next step: getting cheapest shipping method
         let shippingMethod = null;

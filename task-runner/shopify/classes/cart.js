@@ -1,5 +1,6 @@
 const { States } = require('../taskRunner').States;
 const jar = require('request-promise').jar();
+const cheerio = require('cheerio');
 const rp = require('request-promise').defaults({
     timeout: 10000,
     jar: jar,
@@ -37,7 +38,7 @@ class Cart {
 
     }
 
-    addToCart(size) {
+    addToCart() {
         if (this._aborted) {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return States.Aborted;
@@ -48,6 +49,7 @@ class Cart {
             resolveWithFullResponse: true,
             followAllRedirects: true,
             simple: false,
+            json: true,
             proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {
@@ -64,20 +66,86 @@ class Cart {
                 false,
                 null,
                 'addToCartData',
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                size,
-            )
+            ),
         })
         .then((res) => {
-            return {res: res, body: res.body};
+            if (this._aborted) {
+                console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+                return States.Aborted;
+            }
+
+            if (Object.keys(res).length > 0) {
+                return rp({
+                    uri: `${this._task.site.url}/cart`,
+                    method: 'get',
+                    followAllRedirects: true,
+                    simple: false,
+                    json: false,
+                    resolveWithFullResponse: true,
+                    headers: {
+                        'User-Agent': userAgent,
+                    }
+                })
+                .then((res) => {
+                    if (this._aborted) {
+                        console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+                        return States.Aborted;
+                    }
+                    
+                    if (res.statusCode === 200) {
+                        return rp({
+                            uri: `${this._task.site.url}/cart`,
+                            method: 'post',
+                            followAllRedirects: true,
+                            resolveWithFullResponse: true,
+                            simple: false,
+                            json: false,
+                            headers: {
+                                'User-Agent': userAgent,
+                            },
+                            formData: buildForm(
+                                this._task,
+                                null,
+                                null,
+                                'getCheckoutData',
+                            )
+                        })
+                        .then((res) => {
+                            if (this._aborted) {
+                                console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+                                return States.Aborted;
+                            }
+
+                            const $ = cheerio.load(res.body);
+                            console.log(res.statusCode);
+                            if (res.request.href.indexOf('stock_problems') > -1) {
+                                // out of stock, TODO
+                            } else {
+                                return {
+                                    checkoutHost: `https://${res.request.originalHost}`,
+                                    checkoutUrl: res.request.href,
+                                    checkoutId: res.request.href.split('checkouts/')[1],
+                                    storeId: res.request.href.split('/')[3],
+                                    authToken: $('form input[name=authenticity_token]').attr('value'),
+                                    price: $('span.payment-due__price').text().trim(),
+                                };
+                            }
+                        })
+                        .catch((err) => {
+                            console.log('3rd request failed');
+                            // TODO
+                        })
+                    }
+                })
+                .catch((err) => {
+                    console.log('2nd request failed');
+                    // TODO
+                })
+            }
         })
         .catch((err) => {
-            return null;
+            console.log('1st request failed');
+            // TODO
         });
     }
 
