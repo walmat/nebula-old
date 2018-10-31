@@ -35,6 +35,13 @@ const IPCKeys = {
 
   HarvestCaptcha: 'HarvestCaptcha',
   RequestRefresh: 'RequestRefresh',
+
+  RequestRegisterTaskEventHandler: 'RequestRegisterTaskEventHandler',
+  RequestDeregisterTaskEventHandler: 'RequestDeregisterTaskEventhandler',
+  RequestStartTasks: 'RequestStartTasks',
+  RequestStopTasks: 'RequestStopTasks',
+  RequestAddProxies: 'RequestAddProxies',
+  RequestRemoveProxies: 'RequestRemoveProxies',
 };
 
 module.exports = IPCKeys;
