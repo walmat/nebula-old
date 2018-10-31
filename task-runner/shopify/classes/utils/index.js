@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const urlToSize = require('./urlToSize');
 
 module.exports = {};
 
@@ -41,29 +40,3 @@ function trimKeywords(input) {
     return ret;
 }
 module.exports.trimKeywords = trimKeywords;
-
-/**
- * Attempts to get the variants that corresponsds to the given user's sizes
- * @param {TaskObject} task - the task being run
- * @param {Object} variants - variant options for the given product
- * 
- * @return {Object} variants that correspond to the correct US sizes
- */
-function getProductVariantsForSize(task, variants) {
-    return _.filter(variants, (variant) => {
-        const size = getSizeOption(variant, task.site.url);
-        return _.contains(task.sizes, size);
-    });
-}
-module.exports.getProductVariantsForSize = getProductVariantsForSize;
-
-/**
- * Maps the proper option for the given URL for each variant
- * e.g - For https://www.blendsus.com/collections/adidas/products/adidas-womens-falcon-cloud-white-blue.json
- *       the `option1` entry is used to tell the size
- * @param {Object} v - variant objects
- * @param {String} url - URL that the task is being ran on
- */
-function getSizeOption(v, url) {
-    return v[urlToSize[url]];
-}
