@@ -3,17 +3,7 @@ const { dialog, app } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
-const TaskRunner = require('task-runner/shopify/taskRunner');
-const testTask = require('./testTask');
 
-const taskRunner = new TaskRunner(testTask, null);
-
-taskRunner.emitEvent();
-
-taskRunner.registerForEvent('monitor-status', (status) => {
-  console.log(`Monitor Status: ${status}`);
-  // Do something with this...
-});
 // setup environment
 nebulaEnv.setUpEnvironment();
 
