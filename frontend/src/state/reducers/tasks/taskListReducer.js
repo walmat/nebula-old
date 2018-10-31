@@ -60,6 +60,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
       // this we'll use to remove all tasks
       if (action.response.id === null) {
+        console.log('here');
         nextState = [];
         break;
       }

@@ -30,7 +30,6 @@ export class TasksPrimitive extends Component {
   }
 
   destroyAllTasks() {
-    // if user clicks the large `garbage can` button, erase all tasks
     const { tasks, onDestroyTask } = this.props;
     tasks.forEach(t => onDestroyTask(t));
   }

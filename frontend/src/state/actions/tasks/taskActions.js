@@ -136,8 +136,8 @@ const addTask = task =>
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
 
-const destroyTask = id =>
-  dispatch => _destroyTaskRequest(id).then(
+const destroyTask = task =>
+  dispatch => _destroyTaskRequest(task.id).then(
     response => dispatch(_destroyTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.DESTROY, error)),
   );
