@@ -76,11 +76,6 @@ class Checkout {
 
     }
 
-    viewDataFromGet(body, response, resolveWithFullResponse) {
-        console.log(response.request);
-        return response;
-    }
-
     /**
      * Fills and submits the shipping information for the customer
      * @param {String} checkoutHost - the host of the checkout process
