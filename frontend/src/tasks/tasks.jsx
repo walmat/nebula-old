@@ -68,7 +68,7 @@ export class TasksPrimitive extends Component {
               </div>
             </div>
             <div className="row">
-              <div className="col col--start">
+              <div className="col col--start tasks-log-container">
                 <div className="tasks-log">
                   <div className="row row--start row--gutter-left row--gutter-right tasks-log__header">
                     <div className="col tasks-log__header__id">
