@@ -1,6 +1,7 @@
 const { States } = require('../taskRunner');
 const { AtomParser, JsonParser, XmlParser } = require('./parsers');
-const { rfrl } = 
+const { rfrl } = require('./utils/rfrl');
+const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
 
 class Monitor {
     constructor(context) {
@@ -33,9 +34,9 @@ class Monitor {
 
     // ASSUMPTION: this method is only called when we know we have to 
     // delay and start the monitor again...
-    _delay() {
+    _delay(status) {
         let delay = this._waitForRefreshDelay;
-        switch (parsed.response.status) {
+        switch (status) {
             case 401:
             case 404: {
 
@@ -60,14 +61,23 @@ class Monitor {
         return rfrl(parsers);
     }
 
-    async _verifyReadyForCheckout(product) {
-        console.log(`[TRACE]: MONITOR: Starting verification for product...\nProduct Info:\n${product}`);
-        // TODO: Implement!
-        console.log(`[ERROR]: MONITOR: Verification has not been implmented, yet! Returning monitor...`);
-        return this._delay();
-
-        // Eventually, we will call this:
-        // return States.Checkout;
+    _generateValidVariants(product) {
+        const { sizes, site } = this._context.task;
+        // Group variants by their size
+        const variantsBySize = _.groupBy(product.variants, (variant) => {
+            // Use the variant option or the title segment
+            return variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
+        });
+        // Get the groups in the same order as the sizes
+        const mappedVariants = sizes.map((size) => {
+            return variantsBySize[size];
+        });
+        // Flatten the groups to a one-level array and remove null elements
+        const validVariants = _.filter(
+            _.flatten(mappedVariants, true),
+            v => v
+        );
+        return validVariants;
     }
 
     async run() {
@@ -93,15 +103,18 @@ class Monitor {
                 return States.SwapProxies;
             }
         }
-        console.log(`[DEBUG]: MONITOR: ${parsed} chosen as the winner`);
-
-        // Check for ok status
-        if (parsed.status < 400) {
-            console.log(`[DEBUG]: MONITOR: Status is OK (${parsed.status} proceeding to checkout`);
-            return this._verifyReadyForCheckout(parsed.response);
+        console.log(`[DEBUG]: MONITOR: ${parsed} retrived as a matched product`);
+        if (status >= 400) {
+            // Status will be a delay status, check which one and wait the correct amount
+            return this._delay(parsed.status);
         }
-        // Status will be a delay status, check which one and wait the correct amount
-        return this._delay();
+
+        console.log('[DEBUG]: MONITOR: Generating variant lists now...')
+        const variants = this._generateValidVariants(parsed);
+        console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
+        this._context.task.product.variants = variants;
+        console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
+        return States.Checkout;
     }
 }
 
