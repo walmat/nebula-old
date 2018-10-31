@@ -49,11 +49,16 @@ class TaskRunner {
          * This is a wrapper that contains all data about the task runner.
          */
         this._context = {
-            runner_id: id,
+            id,
             task,
             proxy,
             aborted: false,
         };
+
+        /**
+         * The id of this task runner
+         */
+        this.id = id;
 
         /**
          * Create a new monitor object to be used for the task
@@ -75,11 +80,17 @@ class TaskRunner {
         // Register for events from the task manager
         // TEMPORARY - This is a potential stub of what this event will look like!
         // TODO Change the event name and parameters if necessary
-        manager.registerForEvent('abort', (id) => {
-            if (id === this._context.id) {
-                this._context.aborted = true;
-            }
-        });
+        manager.registerForEvent('abort', this._handleAbort);
+    }
+
+    _handleAbort(id) {
+        if (id === this._context.id) {
+            this._context.aborted = true;
+        }
+    }
+
+    _cleanup() {
+        this._taskManager.removeListener('abort', this._handleAbort);
     }
 
     // MARK: Event Registration
@@ -142,14 +153,17 @@ class TaskRunner {
         switch(event) {
             case TaskRunner.Events.TaskStatus: {
                 this._events.emit(TaskRunner.Events.TaskStatus, this._context.id, message, TaskRunner.Events.TaskStatus);
+                this._events.emit(TaskRunner.Events.All, this._context.id, message, TaskRunner.Events.TaskStatus);
                 break;
             }
             case TaskRunner.Events.MonitorStatus: {
                 this._events.emit(TaskRunner.Events.MonitorStatus, this._context.id, message, TaskRunner.Events.MonitorStatus);
+                this._events.emit(TaskRunner.Events.All, this._context.id, message, TaskRunner.Events.MonitorStatus);
                 break;
             }
             case TaskRunner.Events.CheckoutStatus: {
                 this._events.emit(TaskRunner.Events.CheckoutStatus, this._context.id, message, TaskRunner.Events.CheckoutStatus);
+                this._events.emit(TaskRunner.Events.All, this._context.id, message, TaskRunner.Events.CheckoutStatus);
                 break;
             }
             default: {
@@ -203,7 +217,7 @@ class TaskRunner {
     }
 
     async _handleSwapProxies() {
-        const res = await this._taskManager.swapProxies(this._context.proxy);
+        const res = await this._taskManager.swapProxies(this._context.id, this._context.proxy);
         if (res.errors) {
             this._emitTaskEvent({
                 message: 'Error Swapping Proxies! Retrying Monitor...',
@@ -270,6 +284,8 @@ class TaskRunner {
         this._emitTaskEvent({
             message: 'Task has stopped.',
         });
+
+        this._cleanup();
     }
 }
 
