@@ -1,12 +1,12 @@
 const uuidv4 = require('uuid/v4');
 const hash = require('object-hash');
-
+const EventEmitter = require('event');
 const TaskRunner = require('./taskRunner');
 
 class TaskManager {
   constructor() {
     // Event Emitter for this manager
-    this._events = new EventEmitter();
+    this._events = new EventEmitter().EventEmitter;
 
     // Runner Map
     this._runners = {};
