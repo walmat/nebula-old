@@ -1,6 +1,6 @@
 const uuidv4 = require('uuid/v4');
 const hash = require('object-hash');
-const EventEmitter = require('event');
+const EventEmitter = require('events');
 const TaskRunner = require('./taskRunner');
 
 class TaskManager {
@@ -23,6 +23,7 @@ class TaskManager {
    * @param {Callback} callback 
    */
   registerForTaskEvents(callback) {
+    console.log(callback);
     this._events.on('status', callback);
   }
 
@@ -32,6 +33,7 @@ class TaskManager {
    * @param {Callback} callback 
    */
   deregisterForTaskEvents(callback) {
+    console.log(callback);
     this._events.removeListener('status', callback);
   }
 

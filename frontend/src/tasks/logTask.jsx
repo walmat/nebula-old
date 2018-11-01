@@ -1,9 +1,17 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+
 import LogTaskRow from './logTaskRow';
+import { taskActions } from '../state/actions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 export class LogTaskPrimitive extends Component {
+  registerTaskHandler(taskId, statusMessage) {
+    const task = this.props.tasks.find(t => t.id === taskId);
+    this.props.onChangeStatus(task.id, statusMessage);
+  }
+
   createTable() {
     const runningTasks = this.props.tasks.filter(task => task.status === 'running');
     const table = runningTasks.map(t => (<LogTaskRow task={t}  />));
@@ -21,10 +29,17 @@ export class LogTaskPrimitive extends Component {
 
 LogTaskPrimitive.propTypes = {
   tasks: tDefns.taskList.isRequired,
+  onChangeStatus: PropTypes.func.isRequired,
 };
 
 export const mapStateToProps = state => ({
   tasks: state.tasks,
+});
+
+export const mapDispatchToProps = dispatch => ({
+  onChangeStatus: (id, message) => {
+    dispatch(taskActions.status(id, message));
+  },
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);
