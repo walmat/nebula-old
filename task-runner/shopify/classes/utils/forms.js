@@ -1,31 +1,31 @@
 const phoneFormatter = require('phone-formatter');
 
-function buildShippingForm(task, authenticity_token, step, prev_step) {
+function buildShippingForm(task, authenticity_token, captchaResponse) {
     return {
-        utf8: '✓',
+        utf8: '%E2%9C%93',
         _method: 'patch',
         authenticity_token: authenticity_token,
-        step: step,
-        previous_step: prev_step,
-        'checkout[email]': task.profile.payment.email,
-        'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-        'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
-        'checkout[shipping_address][company]': '',
-        'checkout[shipping_address][address1]': task.profile.shipping.address,
-        'checkout[shipping_address][address2]': task.profile.shipping.apt === null ? '' : task.profile.shipping.apt,
-        'checkout[shipping_address][city]': task.profile.shipping.city,
-        'checkout[shipping_address][country]': task.profile.shipping.country,
-        'checkout[shipping_address][province]': task.profile.shipping.state,
-        'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-        'checkout[shipping_address][phone]': phoneFormatter.format(
+        'checkout%5Bbuyer_accepts_marketing%5D': '0',
+        'checkout%5Bbuyer_accepts_marketing%5D': '1',
+        'checkout%5Bclient_details%5D%5Bbrowser_height%5D': '714',
+        'checkout%5Bclient_details%5D%5Bbrowser_width%5D': '1251',
+        'checkout%5Bclient_details%5D%5Bjavascript_enabled%5D': '1',
+        'checkout%5Bemail%5D': task.profile.payment.email,
+        'checkout%5Bshipping_address%5D%5Baddress1%5D': task.profile.shipping.address,
+        'checkout%5Bshipping_address%5D%5Baddress2%5D': task.profile.shipping.apt === null ? '' : task.profile.shipping.apt,
+        'checkout%5Bshipping_address%5D%5Bcity%5D': task.profile.shipping.city,
+        'checkout%5Bshipping_address%5D%5Bcountry%5D': task.profile.shipping.country,
+        'checkout%5Bshipping_address%5D%5Bfirst_name%5D': task.profile.shipping.firstName,
+        'checkout%5Bshipping_address%5D%5Blast_name%5D': task.profile.shipping.lastName,
+        'checkout%5Bshipping_address%5D%5Bphone%5D': phoneFormatter.format(
             task.profile.shipping.phone,
             '(NNN) NNN-NNNN'
         ),
-        'checkout[remember_me]': '0',
-        'checkout[client_details][browser_width]': '1250',
-        'checkout[client_details][browser_height]': '689',
-        'checkout[client_details][javascript_enabled]': '1',
-        'checkout[buyer_accepts_marketing]': '0',
+        'checkout%5Bshipping_address%5D%5Bprovince%5D': task.profile.shipping.state,
+        'checkout%5Bshipping_address%5D%5Bzip%5D': task.profile.shipping.zipCode,
+        'g-recaptcha-response': captchaResponse,
+        previous_step: 'contact_information',
+        step: 'contact_information',
     }
 }
 module.exports.buildShippingForm = buildShippingForm;

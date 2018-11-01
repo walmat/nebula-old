@@ -49,6 +49,7 @@ class Cart {
         return rp({
             uri: `${this._task.site.url}/cart/add.js`,
             resolveWithFullResponse: true,
+            rejectUnauthorized: false,
             followAllRedirects: true,
             simple: false,
             json: true,
@@ -78,6 +79,7 @@ class Cart {
                     uri: `${this._task.site.url}//checkout.json`,
                     method: 'get',
                     followAllRedirects: true,
+                    rejectUnauthorized: false,
                     simple: false,
                     json: false,
                     resolveWithFullResponse: true,
@@ -112,6 +114,7 @@ class Cart {
         .catch((err) => {
             console.log('1st request failed');
             // TODO
+            console.log(err);
         });
     }
 

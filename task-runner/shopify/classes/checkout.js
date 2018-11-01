@@ -100,20 +100,22 @@ class Checkout {
             method: 'get',
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
+            rejectUnauthorized: false,
             resolveWithFullResponse: true,
             gzip: true,
             simple: false,
             headers: {
                 Origin: `${checkoutHost}`,
                 'User-Agent': userAgent,
-                Accept: 
-                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 Referer: `${checkoutHost}/`,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
+            qs: buildShippingForm(this._task, authToken, ''),
         })
         .then((res) => {
 
+            fs.writeFileSync('debug_submitShippingDetailsGet.html', res.body);
             // TODO - find if captcha is present and emit the proper event
             
             return rp({
@@ -121,6 +123,7 @@ class Checkout {
                 method: 'post',
                 proxy: formatProxy(this._proxy),
                 followAllRedirects: true,
+                rejectUnauthorized: false,
                 resolveWithFullResponse: true,
                 gzip: true,
                 simple: false,
@@ -158,6 +161,7 @@ class Checkout {
             proxy: formatProxy(this._proxy),
             method: 'get',
             followAllRedirects: true,
+            rejectUnauthorized: false,
             simple: false,
             json: false,
             resolveWithFullResponse: true,
@@ -175,6 +179,7 @@ class Checkout {
                 method: 'post',
                 proxy: formatProxy(this._proxy),
                 followAllRedirects: true,
+                rejectUnauthorized: false,
                 resolveWithFullResponse: true,
                 simple: false,
                 json: false,
@@ -221,6 +226,7 @@ class Checkout {
         return rp({
             uri: `https://elb.deposit.shopifycs.com/sessions`,
             followAllRedirects: true,
+            rejectUnauthorized: false,
             proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {

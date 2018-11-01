@@ -4,7 +4,7 @@ const CheckoutModule = require('../../classes/checkout');
 const context = {
     runner_id: 1,
     task: task,
-    proxy: null,
+    proxy: `127.0.0.1:8888`,
     aborted: false,
 }
 

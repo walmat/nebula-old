@@ -18,9 +18,9 @@ const task = {
       shipping: {
         firstName: 'Matthew',
         lastName: 'Wall',
-        address: '123 Test Blvd',
+        address: '13411 Oak Park Blvd',
         apt: null,
-        city: 'Test City',
+        city: 'Oak Park',
         country: 'United States',
         state: 'Michigan',
         zipCode: '48237',
