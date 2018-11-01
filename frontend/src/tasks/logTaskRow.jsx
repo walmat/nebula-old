@@ -18,3 +18,4 @@ LogTaskRow.propTypes = {
 };
 
 export default (LogTaskRow);
+
