@@ -96,6 +96,11 @@ const _updateTaskRequest = async (id, task) =>
     }, 0);
   });
 
+const _statusTaskRequest = async (id, message) =>
+  new Promise((resolve, reject) => {
+    resolve(id);
+  });
+
 const _startTaskRequest = async (task, proxies) =>
   // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
@@ -154,6 +159,12 @@ const updateTask = (id, task) =>
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 
+const statusTask = (id, message) =>
+  dispatch => _statusTaskRequest(id).then(
+    response => dispatch(_statusTask(response)),
+    error => dispatch(handleError(TASK_ACTIONS.STATUS, error)),
+  );
+
 const clearEdits = (id, task) => {
   // Clear the edits so the update clears them out properly
   const copy = JSON.parse(JSON.stringify(task));
@@ -201,6 +212,7 @@ export const taskActions = {
   clearEdits,
   select: selectTask,
   update: updateTask,
+  status: statusTask,
   start: startTask,
   stop: stopTask,
   error: handleError,
