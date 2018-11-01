@@ -6,7 +6,7 @@ const TaskRunner = require('./taskRunner');
 class TaskManager {
   constructor() {
     // Event Emitter for this manager
-    this._events = new EventEmitter().EventEmitter;
+    this._events = new EventEmitter();
 
     // Runner Map
     this._runners = {};
