@@ -2,7 +2,6 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-const open = require('open');
 const fs = require('fs');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
@@ -199,7 +198,7 @@ class Checkout {
             })
             .then((res) => {
                 fs.writeFileSync('debug_submit_payment.html', res.body);
-                open(res.request.href);
+                // open(res.request.href);
                 return res.body;
             })
             .catch((err) => {
