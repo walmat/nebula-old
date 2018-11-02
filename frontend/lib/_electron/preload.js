@@ -13,11 +13,32 @@ webFrame.setLayoutZoomLevelLimits(0, 0);
 
 /**
  * Sends IPCMain an event trigger
+ *
  * @param {String} channel definition for which trigger to look for
  * @param {*} msg any object to send along with the event || null
  */
 const _sendEvent = (channel, msg) => {
   ipcRenderer.send(channel, msg);
+};
+
+/**
+ * Sets up a listener for an IPC event
+ *
+ * @param {String} channel the channel to attach this handler to
+ * @param {Function} handler the handler to call when a channel event is sent
+ */
+const _handleEvent = (channel, handler) => {
+  ipcRenderer.on(channel, handler);
+};
+
+/**
+ * Remove an Event Listener from an IPC event
+ *
+ * @param {String} channel the channel where this handler should be removed from
+ * @param {Function} handler the same function reference that was used when attaching
+ */
+const _removeEvent = (channel, handler) => {
+  ipcRenderer.removeListener(channel, handler);
 };
 
 /**
@@ -123,14 +144,30 @@ const _confirmDialog = async message =>
  * Sends a listener for task events to taskManagerWrapper.js
  */
 const _registerForTaskEvents = (handler) => {
-  _sendEvent(IPCKeys.RequestRegisterTaskEventHandler, handler);
+  _sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
+  ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to listen on
+    if (eventKey) {
+      _handleEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Register for Task Events!');
+    }
+  });
 };
 
 /**
  * Removes a listener for task events to taskManagerWrapper.js
  */
 const _deregisterForTaskEvents = (handler) => {
-  _sendEvent(IPCKeys.RequestDeregisterTaskEventHandler, handler);
+  _sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
+  ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to deregister from
+    if (eventKey) {
+      _removeEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Deregister from Task Events!');
+    }
+  });
 };
 
 /**
