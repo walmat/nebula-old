@@ -39,11 +39,11 @@ class TaskManagerWrapper {
     );
   }
 
-  _onRegisterEventRequest(handler) {
+  _onRegisterEventRequest(event, handler) {
     this._taskManager.registerForTaskEvents(handler);
   }
 
-  _onDeregisterEventRequest(handler) {
+  _onDeregisterEventRequest(event, handler) {
     this._taskManager.deregisterForTaskEvents(handler);
   }
 

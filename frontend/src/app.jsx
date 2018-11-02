@@ -45,12 +45,13 @@ export class App extends PureComponent {
 
   componentWillUnmount() {
     if (window.Bridge) {
-      window.Bridge.registerForTaskEvents(this.registerTaskHandler);
+      window.Bridge.deregisterForTaskEvents(this.registerTaskHandler);
     }
   }
 
   registerTaskHandler(taskId, statusMessage) {
     const { store } = this.props;
+    console.log(store);
     const task = store.getState().tasks.find(t => t.id === taskId);
     store.dispatch(taskActions.status(task, statusMessage));
   }

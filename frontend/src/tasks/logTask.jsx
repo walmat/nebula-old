@@ -25,7 +25,6 @@ export class LogTaskPrimitive extends Component {
 
 LogTaskPrimitive.propTypes = {
   tasks: tDefns.taskList.isRequired,
-  onChangeStatus: PropTypes.func.isRequired,
 };
 
 export const mapStateToProps = state => ({
