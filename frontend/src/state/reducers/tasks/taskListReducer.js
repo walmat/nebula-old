@@ -54,9 +54,11 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
     }
     case TASK_ACTIONS.REMOVE: {
       // Check for valid payload structure
+      console.log(action);
       if (!action.response || (action.response && action.response.id === undefined)) {
         break;
       }
+
 
       // this we'll use to remove all tasks
       if (action.response.id === null) {

@@ -4,10 +4,10 @@ import task from './task';
 
 export const initialTaskLogState = [];
 
-const taskLog = PropTypes.arrayOf({
+const taskLog = PropTypes.arrayOf(PropTypes.shape({
   id: task.id,
   site: task.site,
   output: task.output,
-});
+}));
 
 export default taskLog;
