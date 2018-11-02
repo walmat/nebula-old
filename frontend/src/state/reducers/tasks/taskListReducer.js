@@ -60,7 +60,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
       // this we'll use to remove all tasks
       if (action.response.id === null) {
-        console.log('here');
         nextState = [];
         break;
       }
@@ -125,6 +124,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       nextState[idxToUpdate] = updateTask;
       break;
     }
+    case TASK_ACTIONS.STATUS: {
+      console.log(action);
+      break;
+    }
     case TASK_ACTIONS.EDIT: {
       // check if id is given (we only change the state on a non-null id)
       if (action.id === null) {
@@ -160,6 +163,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       } else {
         nextState[idx].status = 'running';
+        nextState[idx].output = 'Starting task!';
       }
       break;
     }

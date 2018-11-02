@@ -7,7 +7,7 @@ import Tasks from './tasks/tasks';
 import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
-import { ROUTES } from './state/actions';
+import { ROUTES, taskActions } from './state/actions';
 
 import addTestId from './utils/addTestId';
 
@@ -17,6 +17,7 @@ import deactivate from './_assets/logout.svg';
 import './app.css';
 
 export class App extends PureComponent {
+
   static close(e) {
     e.preventDefault();
     if (window.Bridge) {
@@ -29,6 +30,29 @@ export class App extends PureComponent {
     if (window.Bridge) {
       window.Bridge.deactivate();
     }
+  }
+
+  constructor(props) {
+    super(props);
+    this.registerTaskHandler = this.registerTaskHandler.bind(this);
+  }
+
+  componentWillMount() {
+    if (window.Bridge) {
+      window.Bridge.registerForTaskEvents(this.registerTaskHandler);
+    }
+  }
+
+  componentWillUnmount() {
+    if (window.Bridge) {
+      window.Bridge.registerForTaskEvents(this.registerTaskHandler);
+    }
+  }
+
+  registerTaskHandler(taskId, statusMessage) {
+    const { store } = this.props;
+    const task = store.getState().tasks.find(t => t.id === taskId);
+    store.dispatch(taskActions.status(task, statusMessage));
   }
 
   render() {

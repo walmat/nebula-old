@@ -7,14 +7,10 @@ import { taskActions } from '../state/actions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 export class LogTaskPrimitive extends Component {
-  registerTaskHandler(taskId, statusMessage) {
-    const task = this.props.tasks.find(t => t.id === taskId);
-    this.props.onChangeStatus(task.id, statusMessage);
-  }
 
   createTable() {
     const runningTasks = this.props.tasks.filter(task => task.status === 'running');
-    const table = runningTasks.map(t => (<LogTaskRow task={t}  />));
+    const table = runningTasks.map(t => (<LogTaskRow task={t} />));
     return table;
   }
 
@@ -37,8 +33,8 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onChangeStatus: (id, message) => {
-    dispatch(taskActions.status(id, message));
+  onChangeStatus: (task, message) => {
+    dispatch(taskActions.status(task, message));
   },
 });
 

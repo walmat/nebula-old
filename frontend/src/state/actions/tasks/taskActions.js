@@ -7,6 +7,7 @@ export const TASK_ACTIONS = {
   EDIT: 'EDIT_TASK',
   SELECT: 'SELECT_TASK',
   UPDATE: 'UPDATE_TASK',
+  STATUS: 'UPDATE_STATUS',
   START: 'START_TASK',
   STOP: 'STOP_TASK',
   ERROR: 'TASK_HANDLE_ERROR',
@@ -96,9 +97,13 @@ const _updateTaskRequest = async (id, task) =>
     }, 0);
   });
 
-const _statusTaskRequest = async (id, message) =>
+const _statusTaskRequest = async (task, message) =>
   new Promise((resolve, reject) => {
-    resolve(id);
+    if (task.id) {
+      resolve({ task, message });
+    } else {
+      reject(new Error('Invalid task structure'));
+    }
   });
 
 const _startTaskRequest = async (task, proxies) =>
@@ -126,6 +131,7 @@ const _stopTaskRequest = async task =>
 const _addTask = makeActionCreator(TASK_ACTIONS.ADD, 'response');
 const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
+const _statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 
@@ -159,8 +165,8 @@ const updateTask = (id, task) =>
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 
-const statusTask = (id, message) =>
-  dispatch => _statusTaskRequest(id).then(
+const statusTask = (task, message) =>
+  dispatch => _statusTaskRequest(task, message).then(
     response => dispatch(_statusTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.STATUS, error)),
   );

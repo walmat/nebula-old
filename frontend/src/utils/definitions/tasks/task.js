@@ -16,6 +16,7 @@ export const initialTaskState = {
   username: '',
   password: '',
   status: 'idle',
+  output: '',
   errorDelay: initialSettingsState.errorDelay,
   monitorDelay: initialSettingsState.monitorDelay,
   errors: initialTaskErrorState,

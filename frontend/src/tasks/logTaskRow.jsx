@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 const LogTaskRow = props => (
