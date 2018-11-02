@@ -79,6 +79,33 @@ class Checkout {
 
     }
 
+    login() {
+        rp({
+            uri: `${this._task.site.url}/account/login`,
+            method: 'post',
+            proxy: formatProxy(this._proxy),
+            followAllRedirects: true,
+            resolveWithFullResponse: true,
+            rejectUnauthorized: false,
+            gzip: true,
+            simple: false,
+            headers: {
+                'User-Agent': userAgent,
+            },
+            formData: {
+                'customer[email]': this._task.username,
+                'customer[password]': this._task.password,
+            }
+        })
+        .then((res) => {
+            if (res.statusCode === 200) {
+                return true;
+            } else {
+                return false;
+            }
+        })
+    }
+
     /**
      * Fills and submits the shipping information for the customer
      * @param {String} checkoutHost - the host of the checkout process
@@ -129,6 +156,7 @@ class Checkout {
                 headers: {
                     Origin: `${checkoutHost}`,
                     'User-Agent': userAgent,
+                    'Content-Type': 'application/json',
                     Accept: 
                         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                     Referer: `${checkoutHost}/`,
@@ -137,14 +165,18 @@ class Checkout {
                 formData: buildShippingForm(
                     this._task,
                     authToken,
-                    'shipping_method',
-                    'contact_information'
+                    ''
                 ),
             })
             .then((res) => {
                 const $ = cheerio.load(res.body);
+
                 fs.writeFileSync('debug_submit_shipping.html', res.body);
+                console.log('---old auth token: ' + authToken);
                 return $('form.edit_checkout input[name=authenticity_token]').attr('value');
+            })
+            .catch((err) => {
+                console.log(err);
             })
         })
     }
@@ -184,9 +216,9 @@ class Checkout {
                 json: false,
                 headers: {
                     'User-Agent': userAgent,
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
-                formData: buildPaymentForm(
+                formData: (buildPaymentForm(
                     this._task,
                     authToken !== undefined  ? authToken : '',
                     'payment_method',
@@ -194,7 +226,7 @@ class Checkout {
                     price,
                     shippingValue,
                     captchaResponse !== undefined ? captchaResponse : '',
-                ),
+                )),
             })
             .then((res) => {
                 fs.writeFileSync('debug_submit_payment.html', res.body);
@@ -256,16 +288,24 @@ class Checkout {
         while (this.retries.ADD_TO_CART > 0) {
             try {
                 checkoutData = await this._cart.addToCart();
-                if (checkoutData) {
+                console.log(checkoutData);
+                if (checkoutData === this._cart.CART_STATES.Queue) {
+                    console.log(`[DEBUG]: CHECKOUT: Waiting in queue...!`);
+                    // TODO
+                } else if (checkoutData === this._cart.CART_STATES.OutOfStock) {
+                    console.log(`[DEBUG]: CHECKOUT: Out of stock, swapping sizes!`);
+                    // TODO
+                } else if (checkoutData) {
                     break;
                 }
+                this.retries.ADD_TO_CART--;
             } catch (errors) {
                 console.log(`[DEBUG]: CHECKOUT: Add to cart errored out!\n${errors}`);
                 console.log(`Retrying ${this.retries.ADD_TO_CART} more times before moving on..`);
-
                 this.retries.ADD_TO_CART--;
             }
         }
+
         if (!checkoutData) {
             console.log('[ERROR]: CHECKOUT: Unable to add to cart...');
             return States.Aborted;
@@ -292,12 +332,16 @@ class Checkout {
         // added! generate checkout URL
         let newAuthToken = null;
         try {
-            newAuthToken = await this.submitShippingDetails(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.checkoutId, checkoutData.storeId, checkoutData.authToken, checkoutData.price);
+            newAuthToken = await this.submitShippingDetails(checkoutData.checkoutHost, checkoutData.checkoutUrl, checkoutData.authToken);
         } catch (errors) {
             console.log(`[ERROR]: CHECKOUT: Unable to proceed to shipping...\n${errors}`);
             // TODO - error handling here..
             return States.Aborted;
         }
+
+        console.log('---');
+        console.log(newAuthToken);
+        console.log('---');
 
         if (!newAuthToken) {
             console.log(`[ERROR]: CHECKOUT: Unable to complete shipping information...\n`);
@@ -321,7 +365,7 @@ class Checkout {
         } catch (errors) {
             console.log(errors);
         }
-        console.log(newerAuthToken);
+        // console.log(newerAuthToken);
 
         this._timer.stop(now());
         console.log(`Took ${this._timer.getRunTime()}ms to submit payment!`)

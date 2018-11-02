@@ -38,6 +38,11 @@ class Cart {
         this._proxy = this._context.proxy;
         this._aborted = this._context.aborted;
 
+        this.CART_STATES = {
+            Queue: 'QUEUE',
+            OutOfStock: 'OUT_OF_STOCK',
+        }
+
     }
 
     addToCart() {
@@ -54,7 +59,7 @@ class Cart {
             simple: false,
             json: true,
             proxy: formatProxy(this._proxy),
-            method: 'post',
+            method: 'get',
             headers: {
                 Origin: this._task.site.url,
                 'User-Agent': userAgent,
@@ -64,7 +69,7 @@ class Cart {
                 Referer: this._task.product.url,
                 'Accept-Language': 'en-US,en;q=0.8',
             },
-            formData: buildCartForm(
+            qs: buildCartForm(
                 this._task,
             ),
         })
@@ -93,7 +98,13 @@ class Cart {
                         return States.Aborted;
                     }
 
-                    if (res.statusCode === 200) {
+                    if (res.request.href.indexOf('throttle') > -1) {
+                        // checkout queue detected.. handle waiting...
+                        return this.CART_STATES.Queue;
+                    } else if (res.statusCode === 200 && res.request.href.indexOf('stock_problems') > -1) {
+                        // out of stock detected.. handle this...
+                        return this.CART_STATES.OutOfStock;
+                    } else if (res.statusCode === 200) {
                         const $ = cheerio.load(res.body);
                         return {
                             checkoutHost: `https://${res.request.originalHost}`,
@@ -108,6 +119,7 @@ class Cart {
                 .catch((err) => {
                     console.log('2nd request failed');
                     // TODO
+                    console.log(err);
                 })
             }
         })
@@ -176,7 +188,7 @@ class Cart {
         })
     }
 
-    getEstimatedShippingRates() {
+    async getEstimatedShippingRates() {
         if (this._aborted) {
             return States.Aborted;
         }
@@ -212,7 +224,7 @@ class Cart {
                 }
             });
 
-            // shipping option to use
+            // shipping option to use, meaning we don't have to parse for it later..
             return `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`
         })
         .catch((err) => {
