@@ -49,12 +49,16 @@ const _addTaskRequest = async task =>
     }
   });
 
-const _destroyTaskRequest = async id =>
+const _destroyTaskRequest = async (task, type) =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
     setTimeout(() => {
-      resolve({ id });
-    }, 0);
+      // check to see if the task was stopped or not first..
+      if (window.Bridge) {
+        window.Bridge.stopTasks(task);
+      }
+      resolve({ task, type });
+    }, 1000);
   });
 
 const _updateTaskRequest = async (id, task) =>
@@ -107,22 +111,25 @@ const _statusTaskRequest = async (task, message) =>
   });
 
 const _startTaskRequest = async (task, proxies) =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
-    // console.log(task, proxies);
     if (task.status === 'running') {
       reject(new Error('Already running'));
     } else {
+      if (window.Bridge) {
+        window.Bridge.startTasks(task);
+      }
       resolve({ task });
     }
   });
 
 const _stopTaskRequest = async task =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (task.status === 'stopped') {
       reject(new Error('Already stopped'));
     } else {
+      if (window.Bridge) {
+        window.Bridge.stopTasks(task);
+      }
       resolve({ task });
     }
   });
@@ -147,8 +154,8 @@ const addTask = task =>
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
 
-const destroyTask = task =>
-  dispatch => _destroyTaskRequest(task.id).then(
+const destroyTask = (task, type) =>
+  dispatch => _destroyTaskRequest(task, type).then(
     response => dispatch(_destroyTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.DESTROY, error)),
   );

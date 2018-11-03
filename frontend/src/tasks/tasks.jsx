@@ -205,7 +205,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onDestroyTask: (task) => {
-    dispatch(taskActions.destroy(task));
+    dispatch(taskActions.destroy(task, 'all'));
   },
   onStartTask: (task, proxies) => {
     dispatch(taskActions.start(task, proxies));

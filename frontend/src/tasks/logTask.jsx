@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
-
 import LogTaskRow from './logTaskRow';
 import { taskActions } from '../state/actions';
 import tDefns from '../utils/definitions/taskDefinitions';
