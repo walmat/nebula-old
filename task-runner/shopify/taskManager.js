@@ -9,10 +9,10 @@ class TaskManager {
     this._events = new EventEmitter();
 
     // Runner Map
-    this._runners = {};
+    this._runners = [];
 
     // Proxy Map
-    this._proxies = {};
+    this._proxies = [];
   }
 
   // MARK: Event Related Methods

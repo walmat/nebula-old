@@ -159,11 +159,15 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
       const idx = nextState.indexOf(found);
+      console.log(nextState[idx]);
 
       // do nothing if the task is already running..
       if (nextState[idx].status === 'running') {
         break;
       } else {
+        if (window.Bridge) {
+          window.Bridge.startTasks(nextState[idx]);
+        }
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
       }

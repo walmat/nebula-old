@@ -76,11 +76,6 @@ class TaskRunner {
          * Events will provide the task id, a message, and a message group
          */
         this._events = new EventEmitter();
-
-        // Register for events from the task manager
-        // TEMPORARY - This is a potential stub of what this event will look like!
-        // TODO Change the event name and parameters if necessary
-        manager.registerForEvent('abort', this._handleAbort);
     }
 
     _handleAbort(id) {

@@ -109,7 +109,7 @@ class TaskManagerWrapper {
     }
   }
 
-  _onStartTasksRequest(tasks) {
+  _onStartTasksRequest(event, tasks) {
     if (tasks instanceof Array) {
       this._taskManager.startAll(tasks);
     } else {
@@ -117,7 +117,7 @@ class TaskManagerWrapper {
     }
   }
 
-  _onStopTasksRequest(tasks) {
+  _onStopTasksRequest(event, tasks) {
     if (tasks instanceof Array) {
       this._taskManager.stopAll(tasks);
     } else {
@@ -125,11 +125,11 @@ class TaskManagerWrapper {
     }
   }
 
-  _onAddProxiesRequest(proxies) {
+  _onAddProxiesRequest(event, proxies) {
     this._taskManager.registerProxies(proxies);
   }
 
-  _onRemoveProxiesRequest(proxies) {
+  _onRemoveProxiesRequest(event, proxies) {
     this._taskManager.deregisterProxies(proxies);
   }
 }
