@@ -257,7 +257,7 @@ class TaskRunner {
             [TaskRunner.States.Aborted]: this._handleAborted,
         }
         const handler = stepMap[currentState] || defaultHandler;
-        return await handler();
+        return await handler.call(this);
     }
 
     // MARK: State Machine Run Loop

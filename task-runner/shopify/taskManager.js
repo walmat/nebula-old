@@ -13,6 +13,8 @@ class TaskManager {
 
     // Proxy Map
     this._proxies = [];
+
+    this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }
 
   // MARK: Event Related Methods
@@ -23,7 +25,6 @@ class TaskManager {
    * @param {Callback} callback 
    */
   registerForTaskEvents(callback) {
-    console.log(callback);
     this._events.on('status', callback);
   }
 
@@ -33,7 +34,6 @@ class TaskManager {
    * @param {Callback} callback 
    */
   deregisterForTaskEvents(callback) {
-    console.log(callback);
     this._events.removeListener('status', callback);
   }
 
@@ -221,11 +221,11 @@ class TaskManager {
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(runnerId, message, event) {
-    console.log(`[TRACE]: TaskManager: Runner ${runnerId} posted new event ${event} - ${message}`);
+    console.log(`[TRACE]: TaskManager: Runner ${runnerId} posted new event ${event} - ${message.message}`);
     // For now only re emit Task Status Events
     if (event === TaskRunner.Events.TaskStatus) {
       console.log('[TRACE]: TaskManager: Reemitting this status update...');
-      const taskId = this._runners[runnerId].task.id;
+      const taskId = this._runners[runnerId]._context.task.id;
       this._events.emit('status', taskId, message, event);
     }
   }
@@ -256,7 +256,6 @@ class TaskManager {
       runnerId = uuidv4();
     } while(this._runners[runnerId]);
 
-    console.log(`[TRACE]: TaskManager: `)
     const openProxy = await this.reserveProxy(runnerId);
     const runner = new TaskRunner(runnerId, task, openProxy, this);
     this._runners[runnerId] = runner;
@@ -265,14 +264,25 @@ class TaskManager {
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     
     // Start the runner asynchronously
-    runner.start().finally(() => {
+    runner.start()
+    .then(() => {
+      console.log('success')
+      // Replace this with any success specific callback you want
+    }) 
+    .catch(() => {
+      console.log('error')
+      // Replace this with any error specific callback you want
+    }) 
+    .then(() => {
       console.log(`[TRACE]: Runner ${runnerId} has finished or was stopped`);
       // Cleanup handlers
       runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
       // Remove from runners map
       delete this._runners[runnerId];
       // Release proxy
-      this.releaseProxy(runnerId, openProxy.id);
+      if (openProxy) {
+        this.releaseProxy(runnerId, openProxy.id);
+      }
     });
   }
 
