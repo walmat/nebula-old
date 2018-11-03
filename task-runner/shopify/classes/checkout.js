@@ -143,7 +143,6 @@ class Checkout {
 
             fs.writeFileSync('debug_submitShippingDetailsGet.html', res.body);
             // TODO - find if captcha is present and emit the proper event
-            
             return rp({
                 uri: checkoutUrl,
                 method: 'post',
@@ -156,17 +155,12 @@ class Checkout {
                 headers: {
                     Origin: `${checkoutHost}`,
                     'User-Agent': userAgent,
-                    'Content-Type': 'application/json',
                     Accept: 
                         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    Referer: `${checkoutHost}/`,
+                    Referer: `${checkoutUrl}`,
                     'Accept-Language': 'en-US,en;q=0.8',
                 },
-                formData: buildShippingForm(
-                    this._task,
-                    authToken,
-                    ''
-                ),
+                formData: buildShippingForm(this._task, authToken, '')
             })
             .then((res) => {
                 const $ = cheerio.load(res.body);
@@ -220,18 +214,26 @@ class Checkout {
                 },
                 formData: (buildPaymentForm(
                     this._task,
-                    authToken !== undefined  ? authToken : '',
+                    authToken,
                     'payment_method',
-                    gateway !== undefined ? gateway : '',
+                    gateway,
                     price,
                     shippingValue,
-                    captchaResponse !== undefined ? captchaResponse : '',
-                )),
+                    captchaResponse,
+                ))
             })
             .then((res) => {
                 fs.writeFileSync('debug_submit_payment.html', res.body);
-                // open(res.request.href);
-                return res.body;
+                const $ = cheerio.load(res.body);
+                if ($('input[name="step"]').val() == 'processing') {
+                    return {
+                        message: 'Copped! Check your email.'
+                    }
+                } else {
+                    return {
+                        message: $('div.notice--warning p.notice__text').eq(0).text(),
+                    }
+                }
             })
             .catch((err) => {
                 console.log(err);
@@ -365,7 +367,7 @@ class Checkout {
         } catch (errors) {
             console.log(errors);
         }
-        // console.log(newerAuthToken);
+        console.log(newerAuthToken);
 
         this._timer.stop(now());
         console.log(`Took ${this._timer.getRunTime()}ms to submit payment!`)

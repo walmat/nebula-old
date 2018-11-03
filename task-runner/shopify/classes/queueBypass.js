@@ -43,9 +43,11 @@ class QueueBypass {
     async run() {
         // exit early if the user stops the task
         if (this._context.aborted) {
-            console.log('[INFO]: MONITOR: Abort detected, aborting...');
+            console.log('[INFO]: QUEUE BYPASS: Abort detected, aborting...');
             return States.Aborted;
         }
+
+        console.log('[INFO]: QUEUE BYPASS: Generating alternate checkout link...');
         // get the parsed site data
         let productInfo = null;
         while (this.retries.GET_PROODUCT_DATA > 0) {

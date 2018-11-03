@@ -6,12 +6,10 @@ function buildShippingForm(task, authenticity_token, captchaResponse) {
         "_method": "patch",
         "authenticity_token": authenticity_token,
         "previous_step": "contact_information",
-        "step": "shipping_method",
         "checkout[email]": task.profile.payment.email,
-        "checkout[buyer_accepts_marketing]": "0",
+        "checkout[buyer_accepts_marketing]": 0,
         "checkout[shipping_address][first_name]": task.profile.shipping.firstName,
         "checkout[shipping_address][last_name]": task.profile.shipping.lastName,
-        "checkout[shipping_address][company]": "",
         "checkout[shipping_address][address1]": task.profile.shipping.address,
         "checkout[shipping_address][address2]": task.profile.shipping.apt,
         "checkout[shipping_address][city]": task.profile.shipping.city,
@@ -22,13 +20,21 @@ function buildShippingForm(task, authenticity_token, captchaResponse) {
             task.profile.shipping.phone,
             '(NNN) NNN-NNNN'
         ),
-        "g-recaptcha-response": captchaResponse,
-        "checkout[remember_me]": "0",
-        "checkout[client_details][browser_width]": "1710",
-        "checkout[client_details][browser_height]": "1289",
-        "checkout[client_details][javascript_enabled]": "1",
-        "button": "",
-        "secret": "true"
+        "checkout[shipping_address][first_name]": task.profile.shipping.firstName,
+        "checkout[shipping_address][last_name]": task.profile.shipping.lastName,
+        "checkout[shipping_address][address1]": task.profile.shipping.address,
+        "checkout[shipping_address][address2]": task.profile.shipping.apt,
+        "checkout[shipping_address][city]": task.profile.shipping.city,
+        "checkout[shipping_address][country]": task.profile.shipping.country,
+        "checkout[shipping_address][province]": task.profile.shipping.state,
+        "checkout[shipping_address][zip]": task.profile.shipping.zipCode,
+        "checkout[shipping_address][phone]": phoneFormatter.format(
+            task.profile.shipping.phone,
+            '(NNN) NNN-NNNN'
+        ),
+        "step": "contact_information",
+        "g-captcha-response": captchaResponse,
+        "button": ''
     }
 }
 module.exports.buildShippingForm = buildShippingForm;
