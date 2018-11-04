@@ -2,38 +2,38 @@ const phoneFormatter = require('phone-formatter');
 
 function buildShippingForm(task, authenticity_token, captchaResponse) {
     return {
-        "utf8": "\u2713",
+        "utf8": encodeURIComponent("✓"),
         "_method": "patch",
-        "authenticity_token": authenticity_token,
+        "authenticity_token": encodeURIComponent(authenticity_token),
         "previous_step": "contact_information",
-        "checkout[email]": task.profile.payment.email,
+        "checkout[email]": encodeURIComponent(task.profile.payment.email),
         "checkout[buyer_accepts_marketing]": 0,
-        "checkout[shipping_address][first_name]": task.profile.shipping.firstName,
-        "checkout[shipping_address][last_name]": task.profile.shipping.lastName,
-        "checkout[shipping_address][address1]": task.profile.shipping.address,
-        "checkout[shipping_address][address2]": task.profile.shipping.apt,
-        "checkout[shipping_address][city]": task.profile.shipping.city,
-        "checkout[shipping_address][country]": task.profile.shipping.country,
-        "checkout[shipping_address][province]": task.profile.shipping.state,
-        "checkout[shipping_address][zip]": task.profile.shipping.zipCode,
-        "checkout[shipping_address][phone]": phoneFormatter.format(
+        "checkout[shipping_address][first_name]": encodeURIComponent(task.profile.shipping.firstName),
+        "checkout[shipping_address][last_name]": encodeURIComponent(task.profile.shipping.lastName),
+        "checkout[shipping_address][address1]": encodeURIComponent(task.profile.shipping.address),
+        "checkout[shipping_address][address2]": encodeURIComponent(task.profile.shipping.apt),
+        "checkout[shipping_address][city]": encodeURIComponent(task.profile.shipping.city),
+        "checkout[shipping_address][country]": encodeURIComponent(task.profile.shipping.country),
+        "checkout[shipping_address][province]": encodeURIComponent(task.profile.shipping.state),
+        "checkout[shipping_address][zip]": encodeURIComponent(task.profile.shipping.zipCode),
+        "checkout[shipping_address][phone]": encodeURIComponent(phoneFormatter.format(
             task.profile.shipping.phone,
             '(NNN) NNN-NNNN'
-        ),
-        "checkout[shipping_address][first_name]": task.profile.shipping.firstName,
-        "checkout[shipping_address][last_name]": task.profile.shipping.lastName,
-        "checkout[shipping_address][address1]": task.profile.shipping.address,
-        "checkout[shipping_address][address2]": task.profile.shipping.apt,
-        "checkout[shipping_address][city]": task.profile.shipping.city,
-        "checkout[shipping_address][country]": task.profile.shipping.country,
-        "checkout[shipping_address][province]": task.profile.shipping.state,
-        "checkout[shipping_address][zip]": task.profile.shipping.zipCode,
-        "checkout[shipping_address][phone]": phoneFormatter.format(
+        )),
+        "checkout[shipping_address][first_name]": encodeURIComponent(task.profile.shipping.firstName),
+        "checkout[shipping_address][last_name]": encodeURIComponent(task.profile.shipping.lastName),
+        "checkout[shipping_address][address1]": encodeURIComponent(task.profile.shipping.address),
+        "checkout[shipping_address][address2]": encodeURIComponent(task.profile.shipping.apt),
+        "checkout[shipping_address][city]": encodeURIComponent(task.profile.shipping.city),
+        "checkout[shipping_address][country]": encodeURIComponent(task.profile.shipping.country),
+        "checkout[shipping_address][province]": encodeURIComponent(task.profile.shipping.state),
+        "checkout[shipping_address][zip]": encodeURIComponent(task.profile.shipping.zipCode),
+        "checkout[shipping_address][phone]": encodeURIComponent(phoneFormatter.format(
             task.profile.shipping.phone,
             '(NNN) NNN-NNNN'
-        ),
+        )),
         "step": "contact_information",
-        "g-captcha-response": captchaResponse,
+        "g-captcha-response": encodeURIComponent(captchaResponse),
         "button": ''
     }
 }

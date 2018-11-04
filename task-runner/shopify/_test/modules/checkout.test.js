@@ -1,13 +1,17 @@
 const task = require('./task.test');
-const Cart = require('../../classes/cart');
-const Checkout = require('../../classes/checkout');
 const Account = require('../../classes/account');
+const Cart = require('../../classes/cart');
+const Shipping = require('../../classes/shipping');
+const Payment = require('../../classes/payment');
+const Checkout = require('../../classes/checkout');
+const Timer = require('../../classes/timer');
+
 
 const context = {
     runner_id: 1,
     task: task,
-    // proxy: null,
-    proxy: `127.0.0.1:8888`,
+    proxy: null,
+    // proxy: `127.0.0.1:8888`,
     aborted: false,
 }
 
@@ -17,25 +21,29 @@ const context = {
 const a = new Account(context);
 
 testAccount = async () => {
-    a.login();
-    a.logout();
+    const loggedIn = await a.login();
+    console.log(`Logged in: ${loggedIn}`);
+    const loggedOut = await a.logout();
+    console.log(`Logged out: ${loggedOut}`);
+
 }
-
-testAccount();
-
+// testAccount();
 /**
  * End Account tests
  */
 
+
+
 /**
  * Cart tests
  */
-const cart = new Cart(context);
+const cart = new Cart(context, new Timer());
+let checkout;
 
 testCart = async () => {
     let added = await cart.addToCart();
     console.log('Added status: ' + added);
-    const checkout = await cart.proceedToCheckout();
+    checkout = await cart.proceedToCheckout();
     console.log('Checkout status: ' + checkout);
     added = await cart.addToCart();
     console.log('Added status: ' + added);
@@ -44,13 +52,95 @@ testCart = async () => {
     const cleared = await cart.clearCart();
     console.log('Cleared status: ' + cleared);
 }
-testCart();
+// testCart();
 /**
  * End Cart tests
  */
 
 
 
-// const c = new Checkout(context);
+/**
+ * Shipping tests
+ */
 
-// Checkout.run();
+testShipping = async () => {
+    let added = await cart.addToCart();
+    console.log('Added status: ' + added);
+    const checkout = await cart.proceedToCheckout();
+    const shipping = new Shipping(
+        context,
+        new Timer(),
+        checkout.checkoutHost,
+        checkout.checkoutUrl,
+        checkout.checkoutId,
+        checkout.storeId,
+        checkout.authToken,
+        checkout.price,
+    );
+
+    let authToken = await shipping.submit();
+
+    console.log('Old authentication token: ' + checkout.authToken);
+    console.log('New Authentication token: ' + authToken);
+}
+// testShipping();
+/**
+ * End Shipping tests
+ */
+
+
+/**
+ * Payment tests
+ */
+
+testPayment = async () => {
+    let added = await cart.addToCart();
+    console.log('Added status: ' + added);
+    const checkout = await cart.proceedToCheckout();
+
+    const shipping = new Shipping(
+        context,
+        new Timer(),
+        checkout.checkoutHost,
+        checkout.checkoutUrl,
+        checkout.checkoutId,
+        checkout.storeId,
+        checkout.authToken,
+        checkout.price,
+    );
+
+    let authToken = await shipping.submit();
+
+    const payment = new Payment(
+        context,
+        new Timer(),
+        checkout.checkoutHost,
+        checkout.checkoutUrl,
+        checkout.checkoutId,
+        checkout.storeId,
+        authToken,
+        checkout.price,
+    );
+
+    let state = await payment.submit();
+
+    console.log('Payment state: ' + state);
+}
+// testPayment();
+/**
+ * End Payment tests
+ */
+
+
+/**
+ * Full Checkout test
+ */
+
+testCheckout = async (context) => {
+    let checkout = new Checkout(context);
+    checkout.run();
+}
+testCheckout(context);
+/**
+ * End Checkout tests
+ */

@@ -1,8 +1,6 @@
 /**
  * Parse includes
  */
-const cheerio = require('cheerio');
-const fs = require('fs');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
@@ -21,18 +19,29 @@ const {
 } = require('./utils');
 
 class Account {
-    constructor(context) {
+    constructor(context, timer) {
         this._context = context;
         this._task = this._context.task;
         this._proxy = this._context.proxy;
         this._aborted = this._context.aborted;
+        this._timer = timer;
+
+        this.ACCOUNT_STATES = {
+            LoggedIn: 'LOGGED_IN',
+            LoggedOut: 'LOGGED_OUT',
+        }
     }
 
     /**
      * login to the account given to us by the user
      */
     login() {
-        rp({
+        if (this._context.aborted) {
+            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+            return -1;
+        }
+
+        return rp({
             uri: `${this._task.site.url}/account/login`,
             method: 'post',
             followAllRedirects: true,
@@ -53,15 +62,20 @@ class Account {
         })
         .then((res) => {
             if (res.request.href.indexOf('login') > -1) {
-                return false;
+                return this.ACCOUNT_STATES.LoggedOut;
             }
             console.log('[DEBUG]: ACCOUNT: Logged in! Generating alternative checkouts')
-            return true;
+            return this.ACCOUNT_STATES.LoggedIn;
         })
     }
 
     logout() {
-        rp({
+        if (this._context.aborted) {
+            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+            return -1;
+        }
+
+        return rp({
             uri: `${this._task.site.url}/account/logout`,
             method: 'get',
             followAllRedirects: true,
@@ -76,9 +90,9 @@ class Account {
         .then((res) => {
             if (res.request.href === `${this._task.site.url}/`) {
                 console.log('[DEBUG]: ACCOUNT: Successfully logged out!');
-                return true;
+                return this.ACCOUNT_STATES.LoggedOut;
             }
-            return false;
+            return this.ACCOUNT_STATES.LoggedIn;
         })
     }
 }
