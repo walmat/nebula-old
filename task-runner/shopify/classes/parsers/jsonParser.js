@@ -78,7 +78,7 @@ class JsonParser {
           });
         },
       ),
-    ]);
+    ], `productInfo - ${productUrl}`);
   }
 
   /**

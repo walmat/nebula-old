@@ -1,7 +1,6 @@
 const JsonParser = require('./jsonParser');
 const _ = require('underscore');
 const utils = require('../utils/parse');
-const rfrl = require('../utils/rfrl');
 const {
   formatProxy,
   userAgent,

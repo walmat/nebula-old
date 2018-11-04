@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
@@ -66,7 +67,7 @@ class Monitor {
             new XmlParser(this._context.task, this._context.proxy),
         ].map(p => p.run());
         // Return the winner of the race
-        return rfrl(parsers);
+        return rfrl(parsers, 'parseAll');
     }
 
     _generateValidVariants(product) {
