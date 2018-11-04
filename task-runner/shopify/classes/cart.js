@@ -45,6 +45,7 @@ class Cart {
         this.CART_STATES = {
             CheckoutQueue: 'CHECKOUT_QUEUE',
             OutOfStock: 'OUT_OF_STOCK',
+            Success: 'SUCCESS',
         }
     }
 
@@ -128,10 +129,8 @@ class Cart {
             } else if (res.statusCode === 200) {
                 const $ = cheerio.load(res.body);
                 return {
-                    checkoutHost: `https://${res.request.originalHost}`,
+                    state: this.CART_STATES.Success,
                     checkoutUrl: res.request.href,
-                    checkoutId: res.request.href.split('checkouts/')[1],
-                    storeId: res.request.href.split('/')[3],
                     authToken: $('form input[name=authenticity_token]').attr('value'),
                     price: $('span.payment-due__price').text().trim(),
                 };

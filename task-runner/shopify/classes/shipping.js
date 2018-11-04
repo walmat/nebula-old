@@ -23,7 +23,7 @@ const {
 const now = require('performance-now');
 
 class Shipping {
-    constructor(context, timer, checkoutHost, checkoutUrl, checkoutId, storeId, authToken, price) {
+    constructor(context, timer, checkoutUrl, authToken, price) {
         /**
          * All data needed for monitor to run
          * This includes:
@@ -39,10 +39,7 @@ class Shipping {
         this._aborted = this._context.aborted;
         this._timer = timer;
 
-        this._checkoutHost = checkoutHost;
         this._checkoutUrl = checkoutUrl;
-        this._checkoutId = checkoutId;
-        this._storeId = storeId;
         this._authToken = authToken;
         this._price = price;
     }
@@ -89,7 +86,7 @@ class Shipping {
 
         this._timer.start(now());
         return rp({
-            uri: `${this._checkoutHost}/${this._storeId}/checkouts/${this._checkoutId}`,
+            uri: `${this._checkoutUrl}`,
             method: 'get',
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
@@ -107,7 +104,7 @@ class Shipping {
             // TODO - see if captcha is present and emit the request to solve it
 
             return rp({
-                uri: `${this._checkoutHost}/${this._storeId}/checkouts/${this._checkoutId}`,
+                uri: `${this._checkoutUrl}`,
                 method: 'post',
                 proxy: formatProxy(this._proxy),
                 followAllRedirects: true,
@@ -116,7 +113,7 @@ class Shipping {
                     Origin: `${this._task.site.url}`,
                     Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                     'User-Agent': userAgent,
-                    Referer: `${this._checkoutHost}/${this._storeId}/checkouts/${this._checkoutId}`,
+                    Referer: `${this._checkoutUrl}`,
                 },
                 formData: buildShippingForm(this._task, this._authToken, ''),
                 transform: function(body) {
@@ -126,7 +123,9 @@ class Shipping {
             .then(($) => {
                 this._timer.stop(now());
                 console.log(`[DEBUG]: SHIPPING: Submitted shipping in ${this._timer.getRunTime()}ms`)
-                return $('form.edit_checkout input[name=authenticity_token]').attr('value');
+                return {
+                    authToken: $('form.edit_checkout input[name=authenticity_token]').attr('value')
+                };
             });
         })
     }

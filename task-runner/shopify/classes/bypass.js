@@ -6,6 +6,7 @@ const rp = require('request-promise').defaults({
     jar: jar,
 });
 const Cart = require('./cart');
+const Checkout = require('./checkout');
 
 /**
  * Class to generate an alternative checkout link 5-10 minutes before
@@ -26,6 +27,7 @@ class Bypass {
         this._context = context;
 
         this._cart = new Cart(context);
+        this._checkout = new Checkout(context);
 
         this._task = context.task;
         this._id = context.runner_id;
@@ -33,8 +35,8 @@ class Bypass {
         this._aborted = context.aborted;
     }
 
-    createAlternativeCheckout() {
-        this._cart.addToCart();
+    geenerateAlternativeCheckout() {
+
     }
     
 
