@@ -42,25 +42,42 @@ class JsonParser {
     }
 
     return rfrl([
-      genRequestPromise(`${productUrl}.json`).then((res) => {
-        // product.json contains the format we need -- just return it
-        return JSON.parse(res).product;
-      }),
-      genRequestPromise(`${productUrl}.oembed`).then((res) => {
-        // product.oembed requires a little transformation before returning:
-        const json = JSON.parse(res);
+      genRequestPromise(`${productUrl}.json`).then(
+        (res) => {
+          // product.json contains the format we need -- just return it
+          return JSON.parse(res).product;
+        },
+        (error) => {
+          // Error occured, return a rejection with the status code attached
+          return Promise.reject({
+            status: error.statusCode || 404,
+            message: error.message,
+          });
+        }),
+      genRequestPromise(`${productUrl}.oembed`).then(
+        (res) => {
+          // product.oembed requires a little transformation before returning:
+          const json = JSON.parse(res);
 
-        return {
-          title: json.title,
-          vendor: json.provider,
-          handle: json.product_id,
-          variants: _.map(json.offers, offer => ({
-            title: offer.title,
-            id: offer.offer_id,
-            price: `${offer.price}`
-          })),
-        };
-      }),
+          return {
+            title: json.title,
+            vendor: json.provider,
+            handle: json.product_id,
+            variants: _.map(json.offers, offer => ({
+              title: offer.title,
+              id: offer.offer_id,
+              price: `${offer.price}`
+            })),
+          };
+        },
+        (error) => {
+          // Error occurred, return a rejection with the status code attached
+          return Promise.reject({
+            status: error.statusCode || 404,
+            message: error.message,
+          });
+        },
+      ),
     ]);
   }
 
@@ -97,7 +114,9 @@ class JsonParser {
       products = JSON.parse(response).products;
     } catch (error) {
       console.log(`[TRACE]: JsonParser: ERROR making request! Error:\n${error}`);
-      throw new Error('unable to make request');
+      const rethrow = new Error('unable to make request');
+      rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
+      throw rethrow;
     }
 
     console.log('[TRACE]: JsonParser: Received Response, Attempting to match...');

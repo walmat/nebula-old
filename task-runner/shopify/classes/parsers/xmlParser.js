@@ -48,7 +48,9 @@ class XmlParser extends JsonParser {
       responseJson = await utils.convertToJson(response);
     } catch (error) {
       console.log(`[TRACE]: XmlParser: ERROR making request! Error:\n${error}`);
-      throw new Error('unable to make request');
+      const rethrow = new Error('unable to make request');
+      rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
+      throw rethrow;
     }
 
     console.log('[TRACE]: XmlParser: Received Response, attempting to translate structure...');

@@ -47,7 +47,9 @@ class AtomParser extends JsonParser {
       responseJson = await utils.convertToJson(response);
     } catch (error) {
       console.log(`[TRACE]: AtomParser: ERROR making request! Error:\n${error}`);
-      throw new Error('unable to make request');
+      const rethrow = new Error('unable to make request');
+      rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
+      throw rethrow;
     }
 
     console.log('[TRACE]: AtomParser: Received Response, attempting to translate structure...');
@@ -68,7 +70,9 @@ class AtomParser extends JsonParser {
 
     if(!matchedProduct) {
       console.log('[TRACE]: AtomParser: Could\'t find a match!');
-      throw new Error('unable to match the product');
+      const rethrow = new Error('unable to match the product');
+      rethrow.status = 500; // Use a bad status code
+      throw rethrow;
     }
 
     console.log('[TRACE]: AtomParser: Product Found! Looking for Variant Info...');
@@ -82,7 +86,9 @@ class AtomParser extends JsonParser {
       };
     } catch (errors) {
       console.log(`[TRACE]: AtomParser: Couldn't Find Variant Info:\n${errors}`);
-      throw new Error('unable to get full product info');
+      const rethrow = new Error('unable to get full product info');
+      rethrow.status = 500; // Use a bad status code
+      throw rethrow;
     }
   }
 }
