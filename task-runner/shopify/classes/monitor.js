@@ -1,5 +1,6 @@
 const { States } = require('../taskRunner');
 const { AtomParser, JsonParser, XmlParser } = require('./parsers');
+const { ParseType, getParseType } = require('./utils/parse');
 const { rfrl } = require('./utils/rfrl');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
 
@@ -80,14 +81,7 @@ class Monitor {
         return validVariants;
     }
 
-    async run() {
-        if (this._context.aborted) {
-            console.log('[INFO]: MONITOR: Abort detected, aborting...');
-            return States.Aborted;
-        }
-
-        // TODO: Check the parsing type before running parseAll
-
+    _monitorKeywords() {
         let parsed;
         try {
             // Try parsing all files and wait for the first response
@@ -106,12 +100,44 @@ class Monitor {
             }
         }
         console.log(`[DEBUG]: MONITOR: ${parsed} retrived as a matched product`);
-        console.log('[DEBUG]: MONITOR: Generating variant lists now...')
+        console.log('[DEBUG]: MONITOR: Generating variant lists now...');
         const variants = this._generateValidVariants(parsed);
         console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
         this._context.task.product.variants = variants;
         console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
         return States.Checkout;
+    }
+
+    async run() {
+        if (this._context.aborted) {
+            console.log('[INFO]: MONITOR: Abort detected, aborting...');
+            return States.Aborted;
+        }
+
+        const parseType = getParseType(this._context.task.product);
+        switch(parseType) {
+            case ParseType.Variant: {
+                // TODO: Add a way to determine if variant is correct
+                console.log('[INFO]: MONITOR: Variant Parsing Detected');
+                this._context.task.product.variants = [this._context.task.product.variant];
+                console.log('[INFO]: MONITOR: Skipping Monitor and Going to Checkout Directly...');
+                return States.Checkout;
+            }
+            case ParseType.Url: {
+                console.log('[INFO]: MONITOR: Url Parsing Detected');
+                // TODO: Monitor the URL
+                console.log('[ERROR]: MONITOR: Url Monitoring is not supported at this time!');
+                await this._waitForRefreshDelay();
+                return States.Monitor;
+            }
+            case ParseType.Keywords: {
+                console.log('[INFO]: MONITOR: Keyword Parsing Detected');
+                return this._monitorKeywords();
+            }
+            default: {
+                break;
+            }
+        }
     }
 }
 
