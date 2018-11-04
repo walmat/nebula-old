@@ -1,5 +1,12 @@
+const jar = require('request-promise').jar();
+const rp = require('request-promise').defaults({
+    timeout: 10000,
+    jar: jar,
+});
+
 const { States } = require('../taskRunner');
 const { AtomParser, JsonParser, XmlParser } = require('./parsers');
+const { formatProxy, userAgent } = require('./utils');
 const { ParseType, getParseType } = require('./utils/parse');
 const { rfrl } = require('./utils/rfrl');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
@@ -35,7 +42,7 @@ class Monitor {
 
     // ASSUMPTION: this method is only called when we know we have to 
     // delay and start the monitor again...
-    _delay(status) {
+    async _delay(status) {
         let delay = this._waitForRefreshDelay;
         switch (status) {
             case 401:
@@ -81,7 +88,7 @@ class Monitor {
         return validVariants;
     }
 
-    _monitorKeywords() {
+    async _monitorKeywords() {
         let parsed;
         try {
             // Try parsing all files and wait for the first response
@@ -108,6 +115,41 @@ class Monitor {
         return States.Checkout;
     }
 
+    async _monitorUrl() {
+        const { url } = this._context.task.product;
+        try {
+            const response = await rp({
+                method: 'GET',
+                uri: url,
+                proxy: formatProxy(this._context.proxy),
+                resolveWithFullResponse: true,
+                simple: true,
+                followRedirect: false,
+                gzip: true,
+                headers: {
+                    'User-Agent': userAgent,
+                },
+            });
+            // Response Succeeded -- Get Product Info
+            console.log(`[INFO]: MONITOR: Url ${url} responded with status code ${response.statusCode}. Getting full info...`);
+            const fullProductInfo = await JsonParser.getFullProductInfo(url);
+
+            // Generate Variants
+            console.log(`[DEBUG]: Received Full Product ${fullProductInfo}, Generating Variants List...`);
+            const variants = this._generateValidVariants(fullProductInfo);
+            console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
+            this._context.task.product.variants = variants;
+
+            // Everything is setup -- kick it to checkout
+            console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
+            return States.Checkout;
+        } catch (error) {
+            // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
+            console.log(`[DEBUG]: MONITOR: Monitoring Url ${url} responded with status code ${error.statusCode}. Delaying and retrying...`);
+            return this._delay(error.statusCode);
+        }
+    }
+
     async run() {
         if (this._context.aborted) {
             console.log('[INFO]: MONITOR: Abort detected, aborting...');
@@ -125,17 +167,16 @@ class Monitor {
             }
             case ParseType.Url: {
                 console.log('[INFO]: MONITOR: Url Parsing Detected');
-                // TODO: Monitor the URL
-                console.log('[ERROR]: MONITOR: Url Monitoring is not supported at this time!');
-                await this._waitForRefreshDelay();
-                return States.Monitor;
+                return this._monitorUrl();
             }
             case ParseType.Keywords: {
                 console.log('[INFO]: MONITOR: Keyword Parsing Detected');
                 return this._monitorKeywords();
             }
             default: {
-                break;
+                console.log(`[INFO]: MONITOR: Unable to Monitor Type: ${parseType} -- Delaying and Retrying...`);
+                await this._waitForErrorDelay();
+                return States.Monitor;
             }
         }
     }
