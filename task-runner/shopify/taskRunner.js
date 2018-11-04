@@ -141,6 +141,7 @@ class TaskRunner {
 
     // MARK: Event Emitting
     _emitEvent(event, message) {
+        console.log(event);
         switch(event) {
             case TaskRunner.Events.TaskStatus: {
                 this._events.emit(TaskRunner.Events.TaskStatus, this._context.id, message, TaskRunner.Events.TaskStatus);
@@ -251,7 +252,7 @@ class TaskRunner {
         }
         const stepMap = {
             [TaskRunner.States.Started]: this._handleStarted,
-            [TaskRunner.States.GenQueueBypass]: this._handleGenAltCheckout,
+            [TaskRunner.States.GenAltCheckout]: this._handleGenAltCheckout,
             [TaskRunner.States.Monitor]: this._handleMonitor,
             [TaskRunner.States.SwapProxies]: this._handleSwapProxies,
             [TaskRunner.States.Checkout]: this._handleCheckout,
