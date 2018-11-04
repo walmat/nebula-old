@@ -1,144 +1,186 @@
-/**
- * generic includes
- */
+const _ = require('underscore');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
     jar: jar,
 });
 
-/**
- * utils includes
- */
-const now = require("performance-now");
-const {
-    formatProxy,
-    userAgent,
-    trimKeywords,
-    getProductVariantsForSize,
-} = require('./utils');
-const parse = require('./utils/parse');
+const { States } = require('../taskRunner');
+const { AtomParser, JsonParser, XmlParser } = require('./parsers');
+const { formatProxy, userAgent } = require('./utils');
+const { ParseType, getParseType } = require('./utils/parse');
+const { rfrl } = require('./utils/rfrl');
+const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
 
 class Monitor {
-
-    /**
-     * 
-     * @param {Task Object} task 
-     * @param {String} proxy 
-     */
-    constructor(task, proxy) {
-
+    constructor(context) {
         /**
-         * Task Data for the running task
-         * @type {TaskObject}
+         * All data needed for monitor to run
+         * This includes:
+         * - runner_id: current runner id
+         * - task: current task
+         * - proxy: current proxy
+         * - aborted: whether or not we should abort
+         * @type {TaskRunnerContext}
          */
-        this._task = task;
-
-        /**
-         * Proxy to run the task with
-         * @type {String}
-         */
-        this._proxy = proxy;
+        this._context = context;
     }
 
-    /**
-     * Parses given site's sitemap for the given product
-     */
-    parseSitemap() {
-        rp({
-            method: 'GET',
-            uri: `${this._task.site.url}/sitemap_products_1.xml`,
-            proxy: formatProxy(this._proxy),
-            json: false,
-            simple: true,
-            gzip: true,
-            headers: {
-                'User-Agent': userAgent,
-            }
-        })
-        .then((body) => {
-            const start = now();
-            return parse.sitemap(body);
-        })
-        .then((res) => {
-            console.log(res);
-        })
+    _waitForDelay(delay) {
+        console.log(`[TRACE]: MONITOR: Waiting for ${delay} ms...`);
+        return new Promise(resolve => setTimeout(resolve, delay));
+    };
+
+    _waitForRefreshDelay() {
+        console.log('[DEBUG]: MONITOR: Waiting for monitor delay...');
+        return this._waitForDelay(this._task.monitorDelay);
     }
 
-    /**
-     * Parses given site's `collections/all.atom` for the desired product
-     */
-    parseAtom() {
-        rp({
-            method: 'GET',
-            uri: `${this._task.site.url}/collections/all.atom`,
-            proxy: formatProxy(this._proxy),
-            json: false,
-            simple: true,
-            gzip: true,
-            headers: {
-                'User-Agent': userAgent,
+    _waitForErrorDelay() {
+        console.log('[DEBUG]: MONITOR: Waiting for error delay...');
+        return this._waitForDelay(this._task.errorDelay);
+    }
+
+    // ASSUMPTION: this method is only called when we know we have to 
+    // delay and start the monitor again...
+    async _delay(status) {
+        let delay = this._waitForRefreshDelay;
+        switch (status) {
+            case 401:
+            case 404: {
+
+                delay = this._waitForErrorDelay;
+                break;
             }
-        })
-        .then((body) => {
-            const start = now();
-            return parse.atom(body);
-        })
-        .then((res) => {
-            console.log(res);
+            default: break;
+        }
+        await delay();
+        console.log('[INFO]: MONITOR: Returning Monitor Again State...');
+        return States.Monitor;
+    }
+
+    _parseAll() {
+        // Create the parsers and start the async run methods
+        const parsers = [
+            new AtomParser(this._context.task, this._context.proxy),
+            new JsonParser(this._context.task, this._context.proxy),
+            new XmlParser(this._context.task, this._context.proxy),
+        ].map(p => p.run());
+        // Return the winner of the race
+        return rfrl(parsers, 'parseAll');
+    }
+
+    _generateValidVariants(product) {
+        const { sizes, site } = this._context.task;
+        // Group variants by their size
+        const variantsBySize = _.groupBy(product.variants, (variant) => {
+            // Use the variant option or the title segment
+            return variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
         });
-    }
-
-    /**
-     * Fastest way to parse by directly looking at the products file
-     * -- may not be available on each site though --
-     */
-    parseProductsJSON() {
-        rp({
-            method: 'GET',
-            uri: `${this._task.site.url}/products.json`,
-            proxy: formatProxy(this._proxy),
-            json: false,
-            simple: true,
-            gzip: true,
-            headers: {
-                'User-Agent': userAgent,
-            }
-        })
-        .then((res) => {
-            const start = now();
-            return parse.product(res);
+        // Get the groups in the same order as the sizes
+        const mappedVariants = sizes.map((size) => {
+            return variantsBySize[size];
         });
+        // Flatten the groups to a one-level array and remove null elements
+        const validVariants = _.filter(
+            _.flatten(mappedVariants, true),
+            v => v
+        );
+        return validVariants.map(v => `${v.id}`);
     }
 
-    /**
-     * Same as products.json, but uses ombed (same format)
-     * -- may not be available on each site though --
-     */
-    parseProductsOembed() {
-        // TODO construct product link...
-        const uri = `${this._task.site.url}/products.oembed TODO`;
-        rp({
-            method: 'GET',
-            uri: uri,
-            proxy: formatProxy(this._proxy),
-            json: false,
-            simple: true,
-            gzip: true,
-            headers: {
-                'User-Agent': userAgent,
+    async _monitorKeywords() {
+        let parsed;
+        try {
+            // Try parsing all files and wait for the first response
+            parsed = await this._parseAll();
+        } catch (errors) {
+            console.log(`[DEBUG]: MONITOR: All requests errored out!\n${errors}`);
+            // consolidate statuses
+            const statuses = errors.map(error => error.status);
+            // Check for bans
+            let checkStatus;
+            if (checkStatus = statuses.find(s => s === 403 || s === 429)) {
+                console.log(`[INFO]: MONITOR: Found a ban status: ${checkStatus}, Swapping Proxies...`);
+                return States.SwapProxies;
+            } else if (checkStatus = statuses.find(s => s >= 400)) {
+                return this._delay(checkStatus);
             }
-        })
-        .then((res) => {
-            const start = now();
-            return parse.oembed(res);
-        });
+        }
+        console.log(`[DEBUG]: MONITOR: ${parsed.title} retrieved as a matched product`);
+        console.log('[DEBUG]: MONITOR: Generating variant lists now...');
+        const variants = this._generateValidVariants(parsed);
+        console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
+        this._context.task.product.variants = variants;
+        console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
+        return States.Checkout;
     }
 
-    run() {
-        
+    async _monitorUrl() {
+        const { url } = this._context.task.product;
+        try {
+            const response = await rp({
+                method: 'GET',
+                uri: url,
+                proxy: formatProxy(this._context.proxy),
+                resolveWithFullResponse: true,
+                simple: true,
+                followRedirect: false,
+                gzip: true,
+                headers: {
+                    'User-Agent': userAgent,
+                },
+            });
+            // Response Succeeded -- Get Product Info
+            console.log(`[INFO]: MONITOR: Url ${url} responded with status code ${response.statusCode}. Getting full info...`);
+            const fullProductInfo = await JsonParser.getFullProductInfo(url);
+
+            // Generate Variants
+            console.log(`[DEBUG]: Retrieved Full Product ${fullProductInfo.title}, Generating Variants List...`);
+            const variants = this._generateValidVariants(fullProductInfo);
+            console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
+            this._context.task.product.variants = variants;
+
+            // Everything is setup -- kick it to checkout
+            console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
+            return States.Checkout;
+        } catch (error) {
+            // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
+            console.log(`[DEBUG]: MONITOR: Monitoring Url ${url} responded with status code ${error.statusCode}. Delaying and retrying...`);
+            return this._delay(error.statusCode);
+        }
     }
 
+    async run() {
+        if (this._context.aborted) {
+            console.log('[INFO]: MONITOR: Abort detected, aborting...');
+            return States.Aborted;
+        }
+
+        const parseType = getParseType(this._context.task.product);
+        switch(parseType) {
+            case ParseType.Variant: {
+                // TODO: Add a way to determine if variant is correct
+                console.log('[INFO]: MONITOR: Variant Parsing Detected');
+                this._context.task.product.variants = [this._context.task.product.variant];
+                console.log('[INFO]: MONITOR: Skipping Monitor and Going to Checkout Directly...');
+                return States.Checkout;
+            }
+            case ParseType.Url: {
+                console.log('[INFO]: MONITOR: Url Parsing Detected');
+                return this._monitorUrl();
+            }
+            case ParseType.Keywords: {
+                console.log('[INFO]: MONITOR: Keyword Parsing Detected');
+                return this._monitorKeywords();
+            }
+            default: {
+                console.log(`[INFO]: MONITOR: Unable to Monitor Type: ${parseType} -- Delaying and Retrying...`);
+                await this._waitForErrorDelay();
+                return States.Monitor;
+            }
+        }
+    }
 }
 
 module.exports = Monitor;

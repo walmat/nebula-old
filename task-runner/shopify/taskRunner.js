@@ -47,6 +47,7 @@ class TaskRunner {
          * The context of this task runner
          * 
          * This is a wrapper that contains all data about the task runner.
+         * @type {TaskRunnerContext}
          */
         this._context = {
             id,
