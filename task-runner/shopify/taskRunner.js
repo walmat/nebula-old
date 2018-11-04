@@ -76,6 +76,8 @@ class TaskRunner {
          * Events will provide the task id, a message, and a message group
          */
         this._events = new EventEmitter();
+
+        this._handleAbort = this._handleAbort.bind(this);
     }
 
     _handleAbort(id) {
