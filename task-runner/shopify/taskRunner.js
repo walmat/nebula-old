@@ -22,7 +22,7 @@ class TaskRunner {
         return {
             Initialized: 'INIT',
             Started: 'STARTED',
-            GenQueueBypass: 'GEN_QUEUE_BYPASS',
+            GenAltCheckout: 'GEN_ALT_CHECKOUT',
             Monitor: 'MONITOR',
             SwapProxies: 'SWAP_PROXIES',
             Checkout: 'CHECKOUT',
@@ -78,10 +78,7 @@ class TaskRunner {
          */
         this._events = new EventEmitter();
 
-        // Register for events from the task manager
-        // TEMPORARY - This is a potential stub of what this event will look like!
-        // TODO Change the event name and parameters if necessary
-        manager.registerForEvent('abort', this._handleAbort);
+        this._handleAbort = this._handleAbort.bind(this);
     }
 
     _handleAbort(id) {
@@ -144,13 +141,8 @@ class TaskRunner {
     }
 
     // MARK: Event Emitting
-
-    // TEMPORARY
-    emitEvent() {
-        this._emitEvent(TaskRunner.Events.MonitorStatus, { message: 'initializing...' })
-    }
-
     _emitEvent(event, message) {
+        console.log(event);
         switch(event) {
             case TaskRunner.Events.TaskStatus: {
                 this._events.emit(TaskRunner.Events.TaskStatus, this._context.id, message, TaskRunner.Events.TaskStatus);
@@ -174,31 +166,31 @@ class TaskRunner {
     }
 
     _emitTaskEvent(message) {
-        _emitEvent(TaskRunner.Events.TaskStatus, message);
+        this._emitEvent(TaskRunner.Events.TaskStatus, message);
     }
 
     _emitMonitorEvent(message) {
-        _emitEvent(TaskRunner.Events.MonitorStatus, message);
+        this._emitEvent(TaskRunner.Events.MonitorStatus, message);
     }
 
     _emitCheckoutEvent(message) {
-        _emitEvent(TaskRunner.Events.CheckoutStatus, message);
+        this._emitEvent(TaskRunner.Events.CheckoutStatus, message);
     }
 
     // MARK: State Machine Step Logic
 
     async _handleStarted() {
         this._emitTaskEvent({
-            message: 'Task is Starting...',
+            message: 'Starting task...',
         });
-        return TaskRunner.States.GenQueueBypass;
+        return TaskRunner.States.GenAltCheckout;
     }
 
-    async _handleGenQueueBypass() {
-        const res = await this._checkout.generateQueueBypassUrl();
+    async _handleGenAltCheckout() {
+        const res = await this._checkout.geenerateAlternativeCheckout();
         if(res.errors) {
             this._emitTaskEvent({
-                message: 'Unable to Generate Bypass Queue Url! Continuing on...',
+                message: 'Unable to Generate alternative checkout! Continuing on...',
                 errors: res.errors,
             });
         }
@@ -261,7 +253,7 @@ class TaskRunner {
         }
         const stepMap = {
             [TaskRunner.States.Started]: this._handleStarted,
-            [TaskRunner.States.GenQueueBypass]: this._handleGenQueueBypass,
+            [TaskRunner.States.GenAltCheckout]: this._handleGenAltCheckout,
             [TaskRunner.States.Monitor]: this._handleMonitor,
             [TaskRunner.States.SwapProxies]: this._handleSwapProxies,
             [TaskRunner.States.Checkout]: this._handleCheckout,
@@ -269,13 +261,13 @@ class TaskRunner {
             [TaskRunner.States.Aborted]: this._handleAborted,
         }
         const handler = stepMap[currentState] || defaultHandler;
-        return await handler();
+        return await handler.call(this);
     }
 
     // MARK: State Machine Run Loop
 
     async start() {
-        this._state = TaskRunner.Started;
+        this._state = TaskRunner.States.Started;
         while(this._state !== TaskRunner.States.Stopped) {
             this._state = await this._handleStepLogic(this._state);
             if (this._context.aborted) {

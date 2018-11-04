@@ -30,7 +30,6 @@ export class TasksPrimitive extends Component {
   }
 
   destroyAllTasks() {
-    // if user clicks the large `garbage can` button, erase all tasks
     const { tasks, onDestroyTask } = this.props;
     tasks.forEach(t => onDestroyTask(t));
   }
@@ -68,7 +67,7 @@ export class TasksPrimitive extends Component {
               </div>
             </div>
             <div className="row">
-              <div className="col col--start">
+              <div className="col col--start tasks-log-container">
                 <div className="tasks-log">
                   <div className="row row--start row--gutter-left row--gutter-right tasks-log__header">
                     <div className="col tasks-log__header__id">
@@ -86,8 +85,10 @@ export class TasksPrimitive extends Component {
                       <hr className="view-line" />
                     </div>
                   </div>
-                  <div className="row row--expand tasks-log__table">
-                    <LogTask />
+                  <div className="row row--expand">
+                    <div className="col tasks-table__wrapper">
+                      <LogTask />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -204,7 +205,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onDestroyTask: (task) => {
-    dispatch(taskActions.destroy(task));
+    dispatch(taskActions.destroy(task, 'all'));
   },
   onStartTask: (task, proxies) => {
     dispatch(taskActions.start(task, proxies));

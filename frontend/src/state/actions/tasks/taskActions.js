@@ -7,6 +7,7 @@ export const TASK_ACTIONS = {
   EDIT: 'EDIT_TASK',
   SELECT: 'SELECT_TASK',
   UPDATE: 'UPDATE_TASK',
+  STATUS: 'UPDATE_STATUS',
   START: 'START_TASK',
   STOP: 'STOP_TASK',
   ERROR: 'TASK_HANDLE_ERROR',
@@ -48,12 +49,16 @@ const _addTaskRequest = async task =>
     }
   });
 
-const _destroyTaskRequest = async id =>
+const _destroyTaskRequest = async (task, type) =>
   // TODO: Replace this with an actual API call
   new Promise((resolve) => {
     setTimeout(() => {
-      resolve({ id });
-    }, 0);
+      // check to see if the task was stopped or not first..
+      if (window.Bridge) {
+        window.Bridge.stopTasks(task);
+      }
+      resolve({ task, type });
+    }, 1000);
   });
 
 const _updateTaskRequest = async (id, task) =>
@@ -96,23 +101,35 @@ const _updateTaskRequest = async (id, task) =>
     }, 0);
   });
 
-const _startTaskRequest = async (task, proxies) =>
-  // TODO: Replace this with an actual API call
+const _statusTaskRequest = async (id, message) =>
   new Promise((resolve, reject) => {
-    // console.log(task, proxies);
+    if (id) {
+      resolve({ id, message });
+    } else {
+      reject(new Error('Invalid task structure'));
+    }
+  });
+
+const _startTaskRequest = async (task, proxies) =>
+  new Promise((resolve, reject) => {
     if (task.status === 'running') {
       reject(new Error('Already running'));
     } else {
+      if (window.Bridge) {
+        window.Bridge.startTasks(task);
+      }
       resolve({ task });
     }
   });
 
 const _stopTaskRequest = async task =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (task.status === 'stopped') {
       reject(new Error('Already stopped'));
     } else {
+      if (window.Bridge) {
+        window.Bridge.stopTasks(task);
+      }
       resolve({ task });
     }
   });
@@ -121,6 +138,7 @@ const _stopTaskRequest = async task =>
 const _addTask = makeActionCreator(TASK_ACTIONS.ADD, 'response');
 const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
+const _statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 
@@ -136,8 +154,8 @@ const addTask = task =>
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
 
-const destroyTask = id =>
-  dispatch => _destroyTaskRequest(id).then(
+const destroyTask = (task, type) =>
+  dispatch => _destroyTaskRequest(task, type).then(
     response => dispatch(_destroyTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.DESTROY, error)),
   );
@@ -152,6 +170,12 @@ const updateTask = (id, task) =>
       }
     },
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
+  );
+
+const statusTask = (id, message) =>
+  dispatch => _statusTaskRequest(id, message).then(
+    response => dispatch(_statusTask(response)),
+    error => dispatch(handleError(TASK_ACTIONS.STATUS, error)),
   );
 
 const clearEdits = (id, task) => {
@@ -201,6 +225,7 @@ export const taskActions = {
   clearEdits,
   select: selectTask,
   update: updateTask,
+  status: statusTask,
   start: startTask,
   stop: stopTask,
   error: handleError,
