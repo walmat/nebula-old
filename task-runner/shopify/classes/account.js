@@ -7,9 +7,6 @@ const rp = require('request-promise').defaults({
     jar: jar,
 });
 
-const Timer = require('./timer');
-const now = require('performance-now');
-
 /**
  * Utils includes
  */
@@ -64,7 +61,7 @@ class Account {
             if (res.request.href.indexOf('login') > -1) {
                 return this.ACCOUNT_STATES.LoggedOut;
             }
-            console.log('[DEBUG]: ACCOUNT: Logged in! Generating alternative checkouts')
+            console.log('[INFO]: ACCOUNT: Logged in! Generating alternative checkouts')
             return this.ACCOUNT_STATES.LoggedIn;
         })
     }

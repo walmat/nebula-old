@@ -111,7 +111,7 @@ class Payment {
             })
             .then(($) => {
                 this._timer.stop(now());
-                console.log(`[DEBUG]: PAYMENT: Submitted payment in ${this._timer.getRunTime()}ms`)
+                console.log(`[INFO]: PAYMENT: Submitted payment in ${this._timer.getRunTime()}ms`)
                 if ($('input[name="step"]').val() == 'processing') {
                     return this.PAYMENT_STATES.Processing;
                 } else {

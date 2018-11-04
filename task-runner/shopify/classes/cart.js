@@ -79,11 +79,11 @@ class Cart {
         })
         .then((res) => {
             if (res.body.status === 404) {
-                console.log(`[DEBUG]: CART: Error: ${res.body.description}`);
+                console.log(`[ERROR]: CART: Error: ${res.body.description}`);
                 return false;
             } else {
                 this._timer.stop(now());
-                console.log(`[DEBUG]: CART: Added to cart in ${this._timer.getRunTime()}ms`);
+                console.log(`[INFO]: CART: Added to cart in ${this._timer.getRunTime()}ms`);
                 return true;
             }
         })
@@ -119,7 +119,7 @@ class Cart {
             }
 
             this._timer.stop(now());
-            console.log(`[DEBUG]: CART: Got to checkout in ${this._timer.getRunTime()}ms`);
+            console.log(`[INFO]: CART: Got to checkout in ${this._timer.getRunTime()}ms`);
 
             if (res.request.href.indexOf('throttle') > -1) {
                 return this.CART_STATES.CheckoutQueue;
@@ -207,7 +207,7 @@ class Cart {
             });
 
             this._timer.stop(now());
-            console.log(`[DEBUG]: CART: Got shipping method in ${this._timer.getRunTime()}ms`)
+            console.log(`[INFO]: CART: Got shipping method in ${this._timer.getRunTime()}ms`)
 
             // shipping option to use, meaning we don't have to parse for it later..
             return `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`
@@ -249,7 +249,7 @@ class Cart {
         })
         .then((res) => {
             this._timer.stop(now());
-            console.log(`[DEBUG]: CART: Got payment token in ${this._timer.getRunTime()}ms`)
+            console.log(`[INFO]: CART: Got payment token in ${this._timer.getRunTime()}ms`)
             return JSON.parse(res).id;
         });
     }

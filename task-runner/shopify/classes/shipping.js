@@ -122,7 +122,7 @@ class Shipping {
             })
             .then(($) => {
                 this._timer.stop(now());
-                console.log(`[DEBUG]: SHIPPING: Submitted shipping in ${this._timer.getRunTime()}ms`)
+                console.log(`[INFO]: SHIPPING: Submitted shipping in ${this._timer.getRunTime()}ms`)
                 return {
                     authToken: $('form.edit_checkout input[name=authenticity_token]').attr('value')
                 };
