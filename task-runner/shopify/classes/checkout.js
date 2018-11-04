@@ -6,6 +6,7 @@ const Shipping = require('./shipping');
 const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
+const now = require('performance-now');
 
 class Checkout {
 
@@ -55,8 +56,8 @@ class Checkout {
          */
         this._timer = new Timer();
         this._cart = new Cart(context, this._timer);
-        this._shipping = null;
-        this._payment = null;
+        this._shipping = null; // fix later..
+        this._payment = null; // fix later..
         this._account = new Account(context, this._timer);
     }
 
@@ -65,11 +66,12 @@ class Checkout {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
             return -1;
         }
-        
+
         // add to cart...
         await this._cart.addToCart()
-        .then(async () => {
+        .then(async (res) => {
             // proceed to checkout...
+            // TODO - get shippingValue asynchronously
             let shippingValue = await this._cart.getPaymentToken();
             this._cart.proceedToCheckout()
             .then(async (checkoutData) => {
@@ -104,14 +106,10 @@ class Checkout {
                     );
                     await this._payment.submit()
                     .then(async(state) => {
-                        // TODO - check payment state
-                        console.log(state);
-                    })
-                })
-                .catch((err) => {
-
-                })
-            })
+                        console.log(`[DEBUG]: CHECKOUT: ${state}`);
+                    });
+                });
+            });
         });
     }
 }

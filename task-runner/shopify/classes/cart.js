@@ -59,9 +59,8 @@ class Cart {
         return rp({
             uri: `${this._task.site.url}/cart/add.js`,
             resolveWithFullResponse: true,
-            rejectUnauthorized: false,
             followAllRedirects: true,
-            simple: false,
+            simple: true,
             json: true,
             proxy: formatProxy(this._proxy),
             method: 'get',
@@ -80,7 +79,7 @@ class Cart {
         .then((res) => {
             if (res.body.status === 404) {
                 console.log(`[DEBUG]: CART: Error: ${res.body.description}`);
-                return res.body.description;
+                return false;
             } else {
                 this._timer.stop(now());
                 console.log(`[DEBUG]: CART: Added to cart in ${this._timer.getRunTime()}ms`);
@@ -89,7 +88,8 @@ class Cart {
             }
         })
         .catch((err) => {
-            console.log(`[DEBUG]: CART: Request Error: ${err}`);
+            console.log(`[DEBUG]: CART: ${err}`);
+            return err;
         });
     }
 
@@ -105,7 +105,6 @@ class Cart {
             uri: `${this._task.site.url}//checkout.json`,
             method: 'get',
             followAllRedirects: true,
-            rejectUnauthorized: false,
             simple: false,
             json: false,
             resolveWithFullResponse: true,
@@ -242,7 +241,6 @@ class Cart {
         return rp({
             uri: `https://elb.deposit.shopifycs.com/sessions`,
             followAllRedirects: true,
-            rejectUnauthorized: false,
             proxy: formatProxy(this._proxy),
             method: 'post',
             headers: {

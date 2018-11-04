@@ -16,26 +16,26 @@ const context = {
 }
 
 /**
- * Account tests
+ * Account test
  */
-const a = new Account(context);
+const account = new Account(context);
 
 testAccount = async () => {
-    const loggedIn = await a.login();
+    const loggedIn = await account.login();
     console.log(`Logged in: ${loggedIn}`);
-    const loggedOut = await a.logout();
+    const loggedOut = await account.logout();
     console.log(`Logged out: ${loggedOut}`);
 
 }
 // testAccount();
 /**
- * End Account tests
+ * End Account test
  */
 
 
 
 /**
- * Cart tests
+ * Cart test
  */
 const cart = new Cart(context, new Timer());
 let checkout;
@@ -54,13 +54,13 @@ testCart = async () => {
 }
 // testCart();
 /**
- * End Cart tests
+ * End Cart test
  */
 
 
 
 /**
- * Shipping tests
+ * Shipping test
  */
 
 testShipping = async () => {
@@ -85,12 +85,12 @@ testShipping = async () => {
 }
 // testShipping();
 /**
- * End Shipping tests
+ * End Shipping test
  */
 
 
 /**
- * Payment tests
+ * Payment test
  */
 
 testPayment = async () => {
@@ -128,7 +128,7 @@ testPayment = async () => {
 }
 // testPayment();
 /**
- * End Payment tests
+ * End Payment test
  */
 
 
@@ -142,5 +142,5 @@ testCheckout = async (context) => {
 }
 testCheckout(context);
 /**
- * End Checkout tests
+ * End Checkout test
  */

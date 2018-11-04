@@ -1,6 +1,6 @@
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
-const QueueBypass = require('./classes/queueBypass');
+const QueueBypass = require('./classes/bypass');
 const EventEmitter = require('events');
 
 class TaskRunner {
