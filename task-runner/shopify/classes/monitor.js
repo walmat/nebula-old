@@ -97,18 +97,15 @@ class Monitor {
             // consolidate statuses
             const statuses = errors.map(error => error.status);
             // Check for bans
-            let banStatus;
-            if (banStatus = statuses.find(s => s === 403 || s === 429)) {
-                console.log(`[INFO]: MONITOR: Found a ban status: ${banStatus}, Swapping Proxies...`);
+            let checkStatus;
+            if (checkStatus = statuses.find(s => s === 403 || s === 429)) {
+                console.log(`[INFO]: MONITOR: Found a ban status: ${checkStatus}, Swapping Proxies...`);
                 return States.SwapProxies;
+            } else if (checkStatus = statuses.find(s => s >= 400)) {
+                return this._delay(checkStatus);
             }
         }
         console.log(`[DEBUG]: MONITOR: ${parsed} retrived as a matched product`);
-        if (status >= 400) {
-            // Status will be a delay status, check which one and wait the correct amount
-            return this._delay(parsed.status);
-        }
-
         console.log('[DEBUG]: MONITOR: Generating variant lists now...')
         const variants = this._generateValidVariants(parsed);
         console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
