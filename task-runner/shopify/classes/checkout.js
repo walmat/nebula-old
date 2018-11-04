@@ -161,9 +161,7 @@ class Checkout {
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
             console.log('[INFO]: CHECKOUT: Out of stock...');
             return Checkout.States.OutOfStock;
-        } else if (res.state === this._cart.CART_STATES.Success) {
-            console.log('[INFO]: CHECKOUT: Proceeding to checkout...');            
-            
+        } else if (res.state === this._cart.CART_STATES.Success) {            
             this._checkoutUrl = res.checkoutUrl;
             this._authToken = res.authToken;
             this._price = res.price;
@@ -243,12 +241,12 @@ class Checkout {
         const res = await this._payment.submit();
         if (res === this._payment.PAYMENT_STATES.Error) {
             console.log('[INFO]: CHECKOUT: Error submitting payment...');
-            this._retries.PAYMENT--;
-            if (this._retries.PAYMENT > 0) {
-                return Checkout.States.Payment; 
-            } else {
+            // this._retries.PAYMENT--;
+            // if (this._retries.PAYMENT > 0) {
+            //     return Checkout.States.Payment; 
+            // } else {
                 return Checkout.States.Stopped;
-            }
+            // }
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
             console.log('[INFO]: CHECKOUT: Payment processing, check email...');
             return Checkout.States.PaymentProcessing;
@@ -260,17 +258,17 @@ class Checkout {
             return Checkout.States.PaymentFinished; 
         } else {
             console.log('[INFO]: CHECKOUT: Error submitting payment...');
-            this._retries.PAYMENT--;
-            if (this._retries.PAYMENT > 0) {
-                return Checkout.States.Payment; 
-            } else {
+            // this._retries.PAYMENT--;
+            // if (this._retries.PAYMENT > 0) {
+            //     return Checkout.States.Payment; 
+            // } else {
                 return Checkout.States.Stopped;
-            }
+            // }
         }
     }
 
     async _handleStopped() {
-        console.log('[INFO]: CHECKOUT: Stopping...');
+        console.log('[INFO]: CHECKOUT: Shopping checkout process...');
         process.exit(1);
         // TODO - handle a clean shut down..
     }

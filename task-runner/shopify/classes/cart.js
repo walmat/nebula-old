@@ -84,7 +84,6 @@ class Cart {
             } else {
                 this._timer.stop(now());
                 console.log(`[DEBUG]: CART: Added to cart in ${this._timer.getRunTime()}ms`);
-                console.log(`[DEBUG]: CART: Added to cart, going to checkout!`);
                 return true;
             }
         })
