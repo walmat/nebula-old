@@ -186,7 +186,7 @@ class TaskRunner {
     }
 
     async _handleGenAltCheckout() {
-        const res = await this._checkout.generateQueueBypassUrl();
+        const res = await this._checkout.geenerateAlternativeCheckout();
         if(res.errors) {
             this._emitTaskEvent({
                 message: 'Unable to Generate alternative checkout! Continuing on...',
