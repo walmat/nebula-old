@@ -44,6 +44,8 @@ const task = {
         cvv: '188',
       },
     },
+    username: 'matthew.wallt@gmail.com',
+    password: 'mattwall7',
     sizes: ['8.5', '9', '9.5'],
     status: 'idle',
     errorDelay: 2000,

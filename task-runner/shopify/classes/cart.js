@@ -10,7 +10,6 @@ const {
     formatProxy,
     userAgent,
 } = require('./utils');
-const _ = require('underscore');
 const {
     buildCartForm
 } = require('./utils/forms');
@@ -39,7 +38,7 @@ class Cart {
         this._aborted = this._context.aborted;
 
         this.CART_STATES = {
-            Queue: 'QUEUE',
+            CheckoutQueue: 'CHECKOUT_QUEUE',
             OutOfStock: 'OUT_OF_STOCK',
         }
 
@@ -48,7 +47,7 @@ class Cart {
     addToCart() {
         if (this._aborted) {
             console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
-            return States.Aborted;
+            return; // TODO
         }
 
         return rp({
@@ -78,86 +77,60 @@ class Cart {
                 console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
                 return States.Aborted;
             }
-
-            if (Object.keys(res).length > 0) {
-                return rp({
-                    uri: `${this._task.site.url}//checkout.json`,
-                    method: 'get',
-                    followAllRedirects: true,
-                    rejectUnauthorized: false,
-                    simple: false,
-                    json: false,
-                    resolveWithFullResponse: true,
-                    headers: {
-                        'User-Agent': userAgent,
-                    }
-                })
-                .then((res) => {
-                    if (this._aborted) {
-                        console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
-                        return States.Aborted;
-                    }
-
-                    if (res.request.href.indexOf('throttle') > -1) {
-                        // checkout queue detected.. handle waiting...
-                        return this.CART_STATES.Queue;
-                    } else if (res.statusCode === 200 && res.request.href.indexOf('stock_problems') > -1) {
-                        // out of stock detected.. handle this...
-                        return this.CART_STATES.OutOfStock;
-                    } else if (res.statusCode === 200) {
-                        const $ = cheerio.load(res.body);
-                        return {
-                            checkoutHost: `https://${res.request.originalHost}`,
-                            checkoutUrl: res.request.href,
-                            checkoutId: res.request.href.split('checkouts/')[1],
-                            storeId: res.request.href.split('/')[3],
-                            authToken: $('form input[name=authenticity_token]').attr('value'),
-                            price: $('span.payment-due__price').text().trim(),
-                        };
-                    }
-                })
-                .catch((err) => {
-                    console.log('2nd request failed');
-                    // TODO
-                    console.log(err);
-                })
+            if (res.body.status === 404) {
+                console.log(`[DEBUG]: CART: Error: ${res.body.description}`);
+                return res.body.description;
+            } else {
+                console.log(`[DEBUG]: CART: Added to cart, going to checkout!`);
+                return true;
             }
         })
         .catch((err) => {
-            console.log('1st request failed');
-            // TODO
-            console.log(err);
+            console.log(`[DEBUG]: CART: Request Error: ${err}`);
         });
     }
 
-    removeFromCart(variant, quantity) {
-        if (this._aborted) {
-            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
-            return States.Aborted;
-        }
-
+    proceedToCheckout() {
         return rp({
-            uri: `${this._task.site.url}/cart/change.js`,
+            uri: `${this._task.site.url}//checkout.json`,
+            method: 'get',
             followAllRedirects: true,
-            method: 'POST',
+            rejectUnauthorized: false,
+            simple: false,
+            json: false,
+            resolveWithFullResponse: true,
             headers: {
-                Origin: this._task.site.url,
                 'User-Agent': userAgent,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: this._task.product.url,
-                'Accept-Language': 'en-US,en;q=0.8',
-            },
-            qs: {
-                id: variant,
-                quantity: quantity,
-            },
+            }
         })
         .then((res) => {
-            return res.item_count === 0;
+            if (this._aborted) {
+                console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
+                return States.Aborted;
+            }
+
+            if (res.request.href.indexOf('throttle') > -1) {
+                // checkout queue detected.. handle waiting...
+                return this.CART_STATES.CheckoutQueue;
+            } else if (res.statusCode === 200 && res.request.href.indexOf('stock_problems') > -1) {
+                // out of stock detected.. handle this...
+                return this.CART_STATES.OutOfStock;
+            } else if (res.statusCode === 200) {
+                const $ = cheerio.load(res.body);
+                return {
+                    checkoutHost: `https://${res.request.originalHost}`,
+                    checkoutUrl: res.request.href,
+                    checkoutId: res.request.href.split('checkouts/')[1],
+                    storeId: res.request.href.split('/')[3],
+                    authToken: $('form input[name=authenticity_token]').attr('value'),
+                    price: $('span.payment-due__price').text().trim(),
+                };
+            }
         })
         .catch((err) => {
-            // TODO - didn't remove correctly..
+            console.log('2nd request failed');
+            // TODO
+            console.log(err);
         })
     }
 
@@ -170,6 +143,7 @@ class Cart {
         return rp({
             uri: `${this._task.site.url}/cart/clear.js`,
             followAllRedirects: true,
+            json: true,
             method: 'POST',
             headers: {
                 Origin: this._task.site.url,
@@ -184,7 +158,8 @@ class Cart {
             return res.item_count === 0;
         })
         .catch((err) => {
-            return res.item_count; // didn't remove all items correctly..
+            console.log(`[ERROR]: CART: Request error ${err}`);
+            return false; // didn't remove all items correctly..
         })
     }
 

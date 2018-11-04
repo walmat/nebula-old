@@ -13,8 +13,10 @@ const rp = require('request-promise').defaults({
  * Local class includes
  */
 const Cart = require('./cart');
+const Shipping = require('./shipping');
+const Payment = require('./payment');
+const Account = require('./account');
 const Timer = require('./timer');
-const { States } = require('../taskRunner');
 /**
  * Utils includes
  */
@@ -41,11 +43,6 @@ class Checkout {
          * @type {TaskRunnerContext}
          */
         this._context = context;
-
-        /**
-         * Add to cart module for handling adding a product to cart.
-         */
-        this._cart = new Cart(context);
 
         this.retries = {
             ADD_TO_CART: 5,
@@ -76,7 +73,10 @@ class Checkout {
         this._aborted = this._context.aborted;
 
         this._timer = new Timer();
-
+        this._cart = new Cart(context);
+        this._shipping = new Shipping();
+        this._payment = new Payment();
+        this._account = new Account();
     }
 
     login() {
