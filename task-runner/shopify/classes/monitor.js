@@ -107,7 +107,7 @@ class Monitor {
                 return this._delay(checkStatus);
             }
         }
-        console.log(`[DEBUG]: MONITOR: ${parsed} retrived as a matched product`);
+        console.log(`[DEBUG]: MONITOR: ${parsed.title} retrieved as a matched product`);
         console.log('[DEBUG]: MONITOR: Generating variant lists now...');
         const variants = this._generateValidVariants(parsed);
         console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
@@ -136,7 +136,7 @@ class Monitor {
             const fullProductInfo = await JsonParser.getFullProductInfo(url);
 
             // Generate Variants
-            console.log(`[DEBUG]: Received Full Product ${fullProductInfo}, Generating Variants List...`);
+            console.log(`[DEBUG]: Retrieved Full Product ${fullProductInfo.title}, Generating Variants List...`);
             const variants = this._generateValidVariants(fullProductInfo);
             console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
             this._context.task.product.variants = variants;

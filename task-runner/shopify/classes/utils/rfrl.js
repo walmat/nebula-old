@@ -34,7 +34,7 @@ function resolveFirstRejectLast(promises, tag) {
       p.then(
         (resolved) => {
           console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: RESOLVE`);
-          console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: ${JSON.stringify(resolved, null, 2)}`);
+          // console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: ${JSON.stringify(resolved, null, 2)}`);
           if (!status.winner) {
             console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: Chosen as WINNER`);
             status.winner = resolved;
