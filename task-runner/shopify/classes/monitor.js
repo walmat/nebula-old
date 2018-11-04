@@ -27,7 +27,7 @@ class Monitor {
     }
 
     _waitForDelay(delay) {
-        console.log('[TRACE]: MONITOR: Waiting for ${delay} ms...');
+        console.log(`[TRACE]: MONITOR: Waiting for ${delay} ms...`);
         return new Promise(resolve => setTimeout(resolve, delay));
     };
 
@@ -86,7 +86,7 @@ class Monitor {
             _.flatten(mappedVariants, true),
             v => v
         );
-        return validVariants;
+        return validVariants.map(v => `${v.id}`);
     }
 
     async _monitorKeywords() {
