@@ -1,52 +1,43 @@
 const phoneFormatter = require('phone-formatter');
 
-function buildShippingForm(task, authenticity_token, captchaResponse) {
+function buildShippingForm(task, authenticity_token, captchaResponse, step, previousStep) {
     return {
-        "utf8": encodeURIComponent("✓"),
+        "utf8": "✓",
         "_method": "patch",
-        "authenticity_token": encodeURIComponent(authenticity_token),
-        "previous_step": "contact_information",
-        "checkout[email]": encodeURIComponent(task.profile.payment.email),
+        "authenticity_token": authenticity_token,
+        "previous_step": previousStep,
+        "checkout[email]": task.profile.payment.email,
         "checkout[buyer_accepts_marketing]": 0,
-        "checkout[shipping_address][first_name]": encodeURIComponent(task.profile.shipping.firstName),
-        "checkout[shipping_address][last_name]": encodeURIComponent(task.profile.shipping.lastName),
-        "checkout[shipping_address][address1]": encodeURIComponent(task.profile.shipping.address),
-        "checkout[shipping_address][address2]": encodeURIComponent(task.profile.shipping.apt),
-        "checkout[shipping_address][city]": encodeURIComponent(task.profile.shipping.city),
-        "checkout[shipping_address][country]": encodeURIComponent(task.profile.shipping.country),
-        "checkout[shipping_address][province]": encodeURIComponent(task.profile.shipping.state),
-        "checkout[shipping_address][zip]": encodeURIComponent(task.profile.shipping.zipCode),
-        "checkout[shipping_address][phone]": encodeURIComponent(phoneFormatter.format(
+        "checkout[shipping_address][first_name]": task.profile.shipping.firstName,
+        "checkout[shipping_address][last_name]": task.profile.shipping.lastName,
+        "checkout[shipping_address][address1]": task.profile.shipping.address,
+        "checkout[shipping_address][address2]": task.profile.shipping.apt,
+        "checkout[shipping_address][city]": task.profile.shipping.city,
+        "checkout[shipping_address][country]": task.profile.shipping.country,
+        "checkout[shipping_address][province]": task.profile.shipping.state,
+        "checkout[shipping_address][zip]": task.profile.shipping.zipCode,
+        "checkout[shipping_address][phone]": phoneFormatter.format(
             task.profile.shipping.phone,
             '(NNN) NNN-NNNN'
-        )),
-        "checkout[shipping_address][first_name]": encodeURIComponent(task.profile.shipping.firstName),
-        "checkout[shipping_address][last_name]": encodeURIComponent(task.profile.shipping.lastName),
-        "checkout[shipping_address][address1]": encodeURIComponent(task.profile.shipping.address),
-        "checkout[shipping_address][address2]": encodeURIComponent(task.profile.shipping.apt),
-        "checkout[shipping_address][city]": encodeURIComponent(task.profile.shipping.city),
-        "checkout[shipping_address][country]": encodeURIComponent(task.profile.shipping.country),
-        "checkout[shipping_address][province]": encodeURIComponent(task.profile.shipping.state),
-        "checkout[shipping_address][zip]": encodeURIComponent(task.profile.shipping.zipCode),
-        "checkout[shipping_address][phone]": encodeURIComponent(phoneFormatter.format(
-            task.profile.shipping.phone,
-            '(NNN) NNN-NNNN'
-        )),
-        "step": "contact_information",
-        "g-captcha-response": encodeURIComponent(captchaResponse),
+        ),
+        "step": step,
+        "g-captcha-response": captchaResponse,
+        'checkout[client_details][browser_width]': '979',
+        'checkout[client_details][browser_height]': '631',
+        'checkout[remember_me]': '0',
         "button": ''
     }
 }
 module.exports.buildShippingForm = buildShippingForm;
 
-function buildPaymentForm(task, authenticity_token, prev_step, paymentGateway, price, shippingValue, captchaResponse) {
+function buildPaymentForm(task, authenticity_token, previousStep, paymentGateway, price, shippingValue, captchaResponse) {
 
     if (task.profile.billingMatchesShipping) {
         return {
             utf8: '✓',
             _method: 'patch',
             authenticity_token: authenticity_token,
-            previous_step: prev_step,
+            previous_step: previousStep,
             step: '',
             s: shippingValue,
             'checkout[payment_gateway]': paymentGateway,
@@ -72,13 +63,14 @@ function buildPaymentForm(task, authenticity_token, prev_step, paymentGateway, p
             'checkout[client_details][javascript_enabled]': '1',
             button: '',
             'g-recaptcha-response': captchaResponse,
+            'secret': 'true',
         };
     } else {
         return {
             utf8: '✓',
             _method: 'patch',
             authenticity_token: authenticity_token,
-            previous_step: prev_step,
+            previous_step: previousStep,
             step: '',
             s: shippingValue,
             'checkout[payment_gateway]': paymentGateway,
@@ -104,38 +96,39 @@ function buildPaymentForm(task, authenticity_token, prev_step, paymentGateway, p
             'checkout[client_details][javascript_enabled]': '1',
             button: '',
             'g-recaptcha-response': captchaResponse,
+            'secret': 'true',
         }
     }
 }
 module.exports.buildPaymentForm = buildPaymentForm;
 
-function buildCartForm(task) {
+function buildCartForm(task, variant) {
     switch(task.site.name) {
         case 'DSM US': {
             return {
                 qty: 1,
                 name: 'add',
-                id: task.product.variant,
+                id: variant,
                 'properties[_HASH]': 256779527127,
             }
         }
         case 'DSM EU': {
             return {
                 qty: 1,
-                id: task.product.variant,
+                id: variant,
                 'properties[_hash]': '', // find this...
             }
         }
         case 'DSM SG': {
             return {
-                id: task.product.variant,
+                id: variant,
                 'add': '',
             }
         }
         default: {
             return {
                 quantity: 1,
-                id: task.product.variant,
+                id: variant,
             }
         }
     }

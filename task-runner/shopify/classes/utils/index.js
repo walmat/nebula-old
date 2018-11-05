@@ -7,6 +7,21 @@ module.exports = {};
 const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 module.exports.userAgent = userAgent;
 
+const jar = require('request').jar();
+const request = require('request-promise').defaults({
+    timeout: 10000,
+    jar: jar,
+})
+module.exports.request = request;
+module.exports.cookieJar = jar;
+
+const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+});
+module.exports.formatter = formatter;
+
 /**
  * Formats the proxy correctly to be used in a request
  * @param {*} input - IP:PORT:USER:PASS || IP:PORT

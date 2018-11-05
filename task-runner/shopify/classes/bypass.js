@@ -1,10 +1,8 @@
-const jar = require('request-promise').jar();
-const autoParse = require('./utils');
-const rp = require('request-promise').defaults({
-    transform: autoParse,
-    timeout: 10000,
-    jar: jar,
-});
+const {
+    formatProxy,
+    userAgent,
+    request
+} = require('./utils');
 const Cart = require('./cart');
 const Checkout = require('./checkout');
 
@@ -36,7 +34,7 @@ class Bypass {
     }
 
     geenerateAlternativeCheckout() {
-
+        
     }
     
 

@@ -6,7 +6,6 @@ const Shipping = require('./shipping');
 const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
-const now = require('performance-now');
 
 class Checkout {
 
@@ -19,6 +18,7 @@ class Checkout {
             Stopped: 'STOPPED',
             LoginAccount: 'LOGIN_ACCOUNT',
             AddToCart: 'ADD_TO_CART',
+            GetShippingRates: 'GET_SHIPPING_RATES',
             ProceedToCheckout: 'PROCEED_TO_CHECKOUT',
             CheckoutQueue: 'CHECKOUT_QUEUE',
             OutOfStock: 'OUT_OF_STOCK',
@@ -80,6 +80,8 @@ class Checkout {
             PAYMENT: 5,
         }
 
+        this._variantIndex = 0;
+
         /**
          * Class Instantiations
          */
@@ -121,17 +123,27 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleAddToCart() {
-        const res = await this._cart.addToCart();
+        const res = await this._cart.addToCart(this._task.product.variants[this._variantIndex]);
         if(!res) {
             this._retries.ADD_TO_CART--;
             console.log('[ERROR]: CHECKOUT: Failed adding to cart...');
-            // TODO - failed to add to cart..
             if (this._retries.ADD_TO_CART > 0) {
                 return Checkout.States.AddToCart;
             } else {
                 return Checkout.States.Stopped;
             }
         }
+        this._price = this._cart._price;
+        return Checkout.States.GetShippingRates;
+    }
+
+    async _handleGetShippingRates() {
+        const res = await this._cart.getEstimatedShippingRates();
+        if (!res) {
+            console.log('[ERROR]: CHECKOUT: Unable to find shipping rates...');
+            return Checkout.States.Stopped;
+        }
+        this._price = +this._price + +res.price;
         return Checkout.States.GeneratePaymentToken;
     }
 
@@ -144,6 +156,7 @@ class Checkout {
         if(!paymentToken) {
             console.log('[ERROR]: CHECKOUT: Failed fetching payment token...');
             // TODO - handle failed to get payment token
+            return Checkout.States.Stopped;
         }
         return Checkout.States.ProceedToCheckout;
     }
@@ -182,12 +195,19 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleOutOfStock() {
+        this._variantIndex++;
         if (this._task.sizes.length > 1) {
             // swap sizes?
             console.log('[INFO]: CHECKOUT: Swapping to next size...');
+            const cleared = await this._cart.clearCart();
+            if (cleared) {
+                return Checkout.States.AddToCart
+            }
+            return Checkout.States.Stopped;
         } else {
             // run restocks
             console.log('[INFO]: CHECKOUT: Running for restocks...');
+            return Checkout.States.Restock;
         }
     }
 
@@ -195,7 +215,7 @@ class Checkout {
      * Submit shipping details
      * @returns {STATE} next checkout state
      */
-    async _handelShipping() {
+    async _handleShipping() {
         const res = await this._shipping.submit();
         if (!res) {
             this._retries.SHIPPING--;
@@ -209,7 +229,7 @@ class Checkout {
         if (res.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
             return Checkout.States.SolveCaptcha;
-        } else if (res.authToken) {
+        } else if (!res.captcha && res.authToken) {
             console.log('[INFO]: CHECKOUT: Proceeding to submit payment...');
                 this._payment = new Payment(
                 this._context,
@@ -231,6 +251,7 @@ class Checkout {
     async _handleSolveCaptcha() {
         // TODO - think about how to handle this with captcha and all..
         this._captchaResponse = '';
+        
     }
 
     /**
@@ -240,30 +261,15 @@ class Checkout {
     async _handlePayment() {
         const res = await this._payment.submit();
         if (res === this._payment.PAYMENT_STATES.Error) {
-            console.log('[INFO]: CHECKOUT: Error submitting payment...');
-            // this._retries.PAYMENT--;
-            // if (this._retries.PAYMENT > 0) {
-            //     return Checkout.States.Payment; 
-            // } else {
-                return Checkout.States.Stopped;
-            // }
+            return Checkout.States.Stopped;
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
-            console.log('[INFO]: CHECKOUT: Payment processing, check email...');
             return Checkout.States.PaymentProcessing;
         } else if (res === this._payment.PAYMENT_STATES.Declined) {
-            console.log('[INFO]: CHECKOUT: Error submitting payment...');
             return Checkout.States.PaymentError;
         } else if (res === this._payment.PAYMENT_STATES.Success) {
-            console.log('[INFO]: CHECKOUT: Success, check email...');
             return Checkout.States.PaymentFinished; 
         } else {
-            console.log('[INFO]: CHECKOUT: Error submitting payment...');
-            // this._retries.PAYMENT--;
-            // if (this._retries.PAYMENT > 0) {
-            //     return Checkout.States.Payment; 
-            // } else {
-                return Checkout.States.Stopped;
-            // }
+            return Checkout.States.Stopped;
         }
     }
 
@@ -278,10 +284,11 @@ class Checkout {
             [Checkout.States.Started]: this._handleStarted,
             [Checkout.States.LoginAccount]: this._handleLogin,
             [Checkout.States.AddToCart]: this._handleAddToCart,
+            [Checkout.States.GetShippingRates]: this._handleGetShippingRates,
             [Checkout.States.GeneratePaymentToken]: this._handlePaymentToken,
             [Checkout.States.ProceedToCheckout]: this._handleProceedToCheckout,
             [Checkout.States.OutOfStock]: this._handleOutOfStock,
-            [Checkout.States.Shipping]: this._handelShipping,
+            [Checkout.States.Shipping]: this._handleShipping,
             [Checkout.States.SolveCaptcha]: this._handleSolveCaptcha,
             [Checkout.States.Payment]: this._handlePayment,
             [Checkout.States.Stopped]: this._handleStopped,

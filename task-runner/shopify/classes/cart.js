@@ -2,11 +2,6 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
-});
 
 /**
  * Form includes
@@ -19,6 +14,8 @@ const { buildCartForm } = require('./utils/forms');
 const {
     formatProxy,
     userAgent,
+    request,
+    formatter,
 } = require('./utils');
 const now = require('performance-now');
 
@@ -42,6 +39,8 @@ class Cart {
         this._proxy = this._context.proxy;
         this._aborted = this._context.aborted;
 
+        this._price;
+
         this.CART_STATES = {
             CheckoutQueue: 'CHECKOUT_QUEUE',
             OutOfStock: 'OUT_OF_STOCK',
@@ -49,7 +48,7 @@ class Cart {
         }
     }
 
-    addToCart() {
+    addToCart(variant) {
         if (this._aborted) {
             console.log('[INFO]: CART: Abort detected, aborting...');
             return -1;
@@ -57,7 +56,7 @@ class Cart {
 
         this._timer.start(now());
 
-        return rp({
+        return request({
             uri: `${this._task.site.url}/cart/add.js`,
             resolveWithFullResponse: true,
             followAllRedirects: true,
@@ -75,6 +74,7 @@ class Cart {
             },
             qs: buildCartForm(
                 this._task,
+                variant,
             ),
         })
         .then((res) => {
@@ -82,6 +82,7 @@ class Cart {
                 console.log(`[ERROR]: CART: Error: ${res.body.description}`);
                 return false;
             } else {
+                this._price = Number.parseInt(this.removeTrailingZeros(res.body.line_price));
                 this._timer.stop(now());
                 console.log(`[INFO]: CART: Added to cart in ${this._timer.getRunTime()}ms`);
                 return true;
@@ -101,9 +102,10 @@ class Cart {
 
         this._timer.start(now());
 
-        return rp({
+        return request({
             uri: `${this._task.site.url}//checkout.json`,
             method: 'get',
+            proxy: formatProxy(this._proxy),
             followAllRedirects: true,
             simple: false,
             json: false,
@@ -122,9 +124,13 @@ class Cart {
             console.log(`[INFO]: CART: Got to checkout in ${this._timer.getRunTime()}ms`);
 
             if (res.request.href.indexOf('throttle') > -1) {
-                return this.CART_STATES.CheckoutQueue;
+                return {
+                    state: this.CART_STATES.CheckoutQueue
+                };
             } else if (res.statusCode === 200 && res.request.href.indexOf('stock_problems') > -1) {
-                return this.CART_STATES.OutOfStock;
+                return {
+                    state: this.CART_STATES.OutOfStock
+                };
             } else if (res.statusCode === 200) {
                 const $ = cheerio.load(res.body);
                 return {
@@ -145,8 +151,9 @@ class Cart {
 
         this._timer.start(now());
 
-        return rp({
+        return request({
             uri: `${this._task.site.url}/cart/clear.js`,
+            proxy: formatProxy(this._proxy),
             followAllRedirects: true,
             json: true,
             method: 'POST',
@@ -174,8 +181,9 @@ class Cart {
 
         this._timer.start(now());
 
-        return rp({
+        return request({
             uri: `${this._task.site.url}/cart/shipping_rates.json`,
+            proxy: formatProxy(this._proxy),
             followAllRedirects: true,
             method: 'POST',
             headers: {
@@ -208,9 +216,11 @@ class Cart {
 
             this._timer.stop(now());
             console.log(`[INFO]: CART: Got shipping method in ${this._timer.getRunTime()}ms`)
-
-            // shipping option to use, meaning we don't have to parse for it later..
-            return `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`
+            return {
+                rate: `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`,
+                name: `${shippingMethod.name}`,
+                price: `${shippingMethod.price.split('.')[0]}`,
+            }
         });
     }
 
@@ -236,7 +246,7 @@ class Cart {
 
         this._timer.start(now());
 
-        return rp({
+        return request({
             uri: `https://elb.deposit.shopifycs.com/sessions`,
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
@@ -252,6 +262,18 @@ class Cart {
             console.log(`[INFO]: CART: Got payment token in ${this._timer.getRunTime()}ms`)
             return JSON.parse(res).id;
         });
+    }
+
+    removeTrailingZeros(value) {
+        let price = [];
+        value = value.toString().split('');
+        for (let i = 0; i < value.length; i++) {
+            // remove last two zeroes
+            if (i < value.length - 2) {
+                price.push(value[i])
+            }
+        }
+        return price.join('');
     }
 }
 module.exports = Cart;

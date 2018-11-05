@@ -25,7 +25,6 @@ testAccount = async () => {
     console.log(`Logged in: ${loggedIn}`);
     const loggedOut = await account.logout();
     console.log(`Logged out: ${loggedOut}`);
-
 }
 // testAccount();
 /**

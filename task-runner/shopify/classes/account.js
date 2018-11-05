@@ -1,18 +1,10 @@
 /**
- * Parse includes
- */
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
-});
-
-/**
  * Utils includes
  */
 const {
     formatProxy,
     userAgent,
+    request,
 } = require('./utils');
 
 class Account {
@@ -38,13 +30,12 @@ class Account {
             return -1;
         }
 
-        return rp({
+        return request({
             uri: `${this._task.site.url}/account/login`,
             method: 'post',
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
             resolveWithFullResponse: true,
-            rejectUnauthorized: false,
             headers: {
                 'User-Agent': userAgent,
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -72,12 +63,12 @@ class Account {
             return -1;
         }
 
-        return rp({
+        return request({
             uri: `${this._task.site.url}/account/logout`,
             method: 'get',
+            proxy: formatProxy(this._proxy),
             followAllRedirects: true,
             resolveWithFullResponse: true,
-            rejectUnauthorized: false,
             headers: {
                 'User-Agent': userAgent,
                 Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',

@@ -2,11 +2,7 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
-});
+const fs = require('fs');
 
 /**
  * Form includes
@@ -19,7 +15,9 @@ const { buildShippingForm } = require('./utils/forms');
 const {
     formatProxy,
     userAgent,
+    request,
 } = require('./utils');
+
 const now = require('performance-now');
 
 class Shipping {
@@ -44,40 +42,6 @@ class Shipping {
         this._price = price;
     }
 
-    /**
-     * 
-     * Charles Request QueryStrings::
-     * 
-     * https://www.blendsus.com/1529745/checkouts/d3ea3db83f6ff42b5a7dcfa500aab827
-     * utf8=✓
-     * _method=patch
-     * authenticity_token=RxhEPB652gc6Y+7rJ38Lz1sbCZ1SzlNDSUETmNWGfQy1UK66ofGMDtO6XmufilzfMaQAnux93E6S2GcHzPtpMg==
-     * previous_step=contact_information
-     * checkout[email]=matthew.wallt@gmail.com
-     * checkout[buyer_accepts_marketing]=0
-     * checkout[buyer_accepts_marketing]=1
-     * checkout[shipping_address][first_name]=
-     * checkout[shipping_address][last_name]=
-     * checkout[shipping_address][company]=
-     * checkout[shipping_address][address1]=
-     * checkout[shipping_address][address2]=
-     * checkout[shipping_address][city]=
-     * checkout[shipping_address][country]=
-     * checkout[shipping_address][province]=
-     * checkout[shipping_address][zip]=
-     * checkout[shipping_address][phone]=
-     * checkout[shipping_address][first_name]=this._task.profile.shipping.firstName
-     * checkout[shipping_address][last_name]=this._task.profile.shipping.lastName
-     * checkout[shipping_address][company]= ''
-     * checkout[shipping_address][address1]=this._task.profile.shipping.address
-     * checkout[shipping_address][address2]=this._task.profile.shipping.apt
-     * checkout[shipping_address][city]=this._task.profile.shipping.city
-     * checkout[shipping_address][country]=this._task.profile.shipping.country
-     * checkout[shipping_address][province]=this._task.profile.shipping.state
-     * checkout[shipping_address][zip]=this._task.profile.shipping.zipCode
-     * checkout[shipping_address][phone]=this._task.profile.shipping.phone
-     * step=contact_information
-     */
     submit() {
         if (this._aborted) {
             console.log('[INFO]: SHIPPING: Abort detected, aborting...');
@@ -85,10 +49,12 @@ class Shipping {
         }
 
         this._timer.start(now());
-        return rp({
-            uri: `${this._checkoutUrl}`,
+
+        return request({
+            uri: `${this._checkoutUrl.split('?')[0]}`,
             method: 'get',
             proxy: formatProxy(this._proxy),
+            resolveWithFullResponse: true,
             followAllRedirects: true,
             simple: false,
             headers: {
@@ -97,17 +63,20 @@ class Shipping {
                 'User-Agent': userAgent,
                 Referer: `${this._task.site.url}/cart`,
             },
-            qs: buildShippingForm(this._task, this._authToken, ''),
+            qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
+            transform: function(body) {
+                return cheerio.load(body);
+            }
         })
-        .then((res) => {
-
+        .then(($) => {
             // TODO - see if captcha is present and emit the request to solve it
 
-            return rp({
+            return request({
                 uri: `${this._checkoutUrl}`,
                 method: 'post',
                 proxy: formatProxy(this._proxy),
                 followAllRedirects: true,
+                resolveWithFullResponse: true,
                 simple: false,
                 headers: {
                     Origin: `${this._task.site.url}`,
@@ -115,7 +84,7 @@ class Shipping {
                     'User-Agent': userAgent,
                     Referer: `${this._checkoutUrl}`,
                 },
-                formData: buildShippingForm(this._task, this._authToken, ''),
+                formData: buildShippingForm(this._task, this._authToken, '', 'shipping_method', 'contact_information'),
                 transform: function(body) {
                     return cheerio.load(body);
                 }
