@@ -29,10 +29,4 @@ export const mapStateToProps = state => ({
   tasks: state.tasks,
 });
 
-export const mapDispatchToProps = dispatch => ({
-  onChangeStatus: (task, message) => {
-    dispatch(taskActions.status(task, message));
-  },
-});
-
 export default connect(mapStateToProps)(LogTaskPrimitive);

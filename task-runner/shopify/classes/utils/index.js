@@ -13,7 +13,7 @@ module.exports.userAgent = userAgent;
 function formatProxy(input) {
 
     // safeguard for if it's already formatted or in a format we can't handle
-    if (input === null || input === undefined || input.startsWith('http') || input === 'localhost') {
+    if (!input || input.startsWith('http') || input === 'localhost') {
         return input;
     } else {
         let data = input.split(':');

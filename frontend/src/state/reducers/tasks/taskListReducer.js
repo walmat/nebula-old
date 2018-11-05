@@ -58,7 +58,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
-      const task = JSON.parse(JSON.stringify(action.response.task));
+      const { task } = action.response;
 
       // filter out task from list now
       nextState = nextState.filter(t => t.id !== task.id);
@@ -121,7 +121,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.STATUS: {
-      console.log(action, action.response.message);
       if (!action.response.id || (action.response.id && !action.response.message)) {
         break;
       }

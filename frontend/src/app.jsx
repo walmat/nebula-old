@@ -51,8 +51,7 @@ export class App extends PureComponent {
 
   registerTaskHandler(event, taskId, statusMessage) {
     const { store } = this.props;
-    const task = store.getState().tasks.find(t => t.id === taskId);
-    store.dispatch(taskActions.status(task.id, statusMessage));
+    store.dispatch(taskActions.status(taskId, statusMessage));
   }
 
   render() {

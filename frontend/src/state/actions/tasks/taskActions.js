@@ -49,17 +49,15 @@ const _addTaskRequest = async task =>
     }
   });
 
-const _destroyTaskRequest = async (task, type) =>
-  // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
-    setTimeout(() => {
-      // check to see if the task was stopped or not first..
-      if (window.Bridge) {
-        window.Bridge.stopTasks(task);
-      }
-      resolve({ task, type });
-    }, 1000);
-  });
+const _destroyTaskRequest = async (task, type) => {
+  if (window.Bridge) {
+    window.Bridge.stopTasks(task);
+  }
+  return {
+    task,
+    type,
+  };
+};
 
 const _updateTaskRequest = async (id, task) =>
   // TODO: Replace this with an actual API call
@@ -101,14 +99,15 @@ const _updateTaskRequest = async (id, task) =>
     }, 0);
   });
 
-const _statusTaskRequest = async (id, message) =>
-  new Promise((resolve, reject) => {
-    if (id) {
-      resolve({ id, message });
-    } else {
-      reject(new Error('Invalid task structure'));
-    }
-  });
+const _statusTaskRequest = async (id, message) => {
+  if (id) {
+    return {
+      id,
+      message,
+    };
+  }
+  throw new Error('Invalid task structure');
+};
 
 const _startTaskRequest = async (task, proxies) =>
   new Promise((resolve, reject) => {

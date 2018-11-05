@@ -79,6 +79,8 @@ class TaskRunner {
         this._events = new EventEmitter();
 
         this._handleAbort = this._handleAbort.bind(this);
+
+        this._taskManager.on('abort', this._handleAbort);
     }
 
     _handleAbort(id) {
@@ -142,27 +144,24 @@ class TaskRunner {
 
     // MARK: Event Emitting
     _emitEvent(event, message) {
-        console.log(event);
         switch(event) {
             case TaskRunner.Events.TaskStatus: {
                 this._events.emit(TaskRunner.Events.TaskStatus, this._context.id, message, TaskRunner.Events.TaskStatus);
-                this._events.emit(TaskRunner.Events.All, this._context.id, message, TaskRunner.Events.TaskStatus);
                 break;
             }
             case TaskRunner.Events.MonitorStatus: {
                 this._events.emit(TaskRunner.Events.MonitorStatus, this._context.id, message, TaskRunner.Events.MonitorStatus);
-                this._events.emit(TaskRunner.Events.All, this._context.id, message, TaskRunner.Events.MonitorStatus);
                 break;
             }
             case TaskRunner.Events.CheckoutStatus: {
                 this._events.emit(TaskRunner.Events.CheckoutStatus, this._context.id, message, TaskRunner.Events.CheckoutStatus);
-                this._events.emit(TaskRunner.Events.All, this._context.id, message, TaskRunner.Events.CheckoutStatus);
                 break;
             }
             default: {
                 break;
             }
         }
+        this._events.emit(TaskRunner.Events.All, this._context.id, message, event);
     }
 
     _emitTaskEvent(message) {
@@ -249,7 +248,7 @@ class TaskRunner {
 
     async _handleStepLogic(currentState) {
         async function defaultHandler() {
-            return currentState;
+            throw new Error('Reached Unknown State!');
         }
         const stepMap = {
             [TaskRunner.States.Started]: this._handleStarted,
