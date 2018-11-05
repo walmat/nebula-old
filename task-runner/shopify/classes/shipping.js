@@ -7,7 +7,7 @@ const fs = require('fs');
 /**
  * Form includes
  */
-const { buildShippingForm } = require('./utils/forms');
+const { buildShippingForm, buildShippingMethodForm } = require('./utils/forms');
 
 /**
  * Utils includes
@@ -21,7 +21,7 @@ const {
 const now = require('performance-now');
 
 class Shipping {
-    constructor(context, timer, checkoutUrl, authToken, price) {
+    constructor(context, timer, checkoutUrl, authToken, shippingMethod) {
         /**
          * All data needed for monitor to run
          * This includes:
@@ -39,7 +39,8 @@ class Shipping {
 
         this._checkoutUrl = checkoutUrl;
         this._authToken = authToken;
-        this._price = price;
+        this._shippingMethod = shippingMethod;
+        this._captchaResponse = '';
     }
 
     submit() {
@@ -90,11 +91,63 @@ class Shipping {
                 }
             })
             .then(($) => {
-                this._timer.stop(now());
-                console.log(`[INFO]: SHIPPING: Submitted shipping in ${this._timer.getRunTime()}ms`)
-                return {
-                    authToken: $('form.edit_checkout input[name=authenticity_token]').attr('value')
-                };
+                const authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
+                console.log(authToken, this._shippingMethod);
+                
+                return request({
+                    uri: `${this._checkoutUrl}`,
+                    followAllRedirects: true,
+                    resolveWithFullResponse: true,
+                    method: 'post',
+                    headers: {
+                    'User-Agent': userAgent,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    formData: buildShippingMethodForm(this._task, authToken, this._captchaResponse)
+                    // transform: function(body) {
+                    //     return cheerio.load(body);
+                    // }
+                })
+                .then((res) => {
+                    fs.writeFileSync('debug-shipping-test.html', res.body);
+                    const $ = cheerio.load(res.body);
+                    const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
+                    const newAuthToken = $('input[name="authenticity_token"]').val();
+                    return request({
+                        uri: this._checkoutUrl,
+                        followAllRedirects: true,
+                        resolveWithFullResponse: true,
+                        method: 'post',
+                        headers: {
+                            'User-Agent': userAgent,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        formData: {
+                            utf8: '✓',
+                            _method: 'patch',
+                            authenticity_token: newAuthToken,
+                            button: '',
+                            previous_step: 'shipping_method',
+                            step: 'payment_method',
+                            'checkout[shipping_rate][id]': firstShippingOption,
+                        },
+                    })
+                    .then((res) => {
+                        const $ = cheerio.load(res.body);
+                        fs.writeFileSync('test.html', res.body);
+                        const gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+                        const paymentAuthToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
+                        const price = $('input[name="checkout[total_price]"]').attr('value');
+
+                        console.log(`Price: ${price}`);
+                        console.log(`Payment Gateway ID: ${gateway}`);
+
+                        return {
+                            paymentGateway: gateway,
+                            newAuthToken: paymentAuthToken,
+                        }
+                    })
+                });
             });
         })
     }

@@ -15,7 +15,7 @@ const {
     formatProxy,
     userAgent,
     request,
-    formatter,
+    cookieJar,
 } = require('./utils');
 const now = require('performance-now');
 
@@ -43,6 +43,7 @@ class Cart {
 
         this.CART_STATES = {
             CheckoutQueue: 'CHECKOUT_QUEUE',
+            TooManyAttempts: 'TOO_MANY_ATTEMPTS',
             OutOfStock: 'OUT_OF_STOCK',
             Success: 'SUCCESS',
         }
@@ -60,7 +61,7 @@ class Cart {
             uri: `${this._task.site.url}/cart/add.js`,
             resolveWithFullResponse: true,
             followAllRedirects: true,
-            simple: true,
+            simple: false,
             json: true,
             proxy: formatProxy(this._proxy),
             method: 'get',
@@ -83,14 +84,11 @@ class Cart {
                 return false;
             } else {
                 this._price = Number.parseInt(this.removeTrailingZeros(res.body.line_price));
+                this._task.product.url = `${this._task.site.url}/${res.body.url.split('?')[0]}`;
                 this._timer.stop(now());
                 console.log(`[INFO]: CART: Added to cart in ${this._timer.getRunTime()}ms`);
                 return true;
             }
-        })
-        .catch((err) => {
-            console.log(`[DEBUG]: CART: ${err}`);
-            return err;
         });
     }
 
@@ -119,11 +117,12 @@ class Cart {
                 console.log('[INFO]: CART: Abort detected, aborting...');
                 return -1;
             }
-
-            this._timer.stop(now());
-            console.log(`[INFO]: CART: Got to checkout in ${this._timer.getRunTime()}ms`);
-
-            if (res.request.href.indexOf('throttle') > -1) {
+            if (res.statusCode === 429) {
+                console.log(`[INFO]: CART: Soft banned, swapping proxies`);
+                return {
+                    state: this.CART_STATES.TooManyAttempts,
+                }
+            } else if (res.request.href.indexOf('throttle') > -1) {
                 return {
                     state: this.CART_STATES.CheckoutQueue
                 };
@@ -132,12 +131,13 @@ class Cart {
                     state: this.CART_STATES.OutOfStock
                 };
             } else if (res.statusCode === 200) {
+                this._timer.stop(now());
+                console.log(`[INFO]: CART: Got to checkout in ${this._timer.getRunTime()}ms`);
                 const $ = cheerio.load(res.body);
                 return {
                     state: this.CART_STATES.Success,
                     checkoutUrl: res.request.href,
                     authToken: $('form input[name=authenticity_token]').attr('value'),
-                    price: $('span.payment-due__price').text().trim(),
                 };
             }
         });
@@ -181,24 +181,23 @@ class Cart {
 
         this._timer.start(now());
 
+        const form = {
+            'shipping_address[zip]': this._task.profile.shipping.zipCode,
+            'shipping_address[country]': this._task.profile.shipping.country,
+            'shipping_address[province]': this._task.profile.shipping.state,
+        }
+
         return request({
             uri: `${this._task.site.url}/cart/shipping_rates.json`,
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
-            method: 'POST',
+            method: 'get',
             headers: {
                 Origin: this._task.site.url,
                 'User-Agent': userAgent,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 Referer: this._task.product.url,
-                'Accept-Language': 'en-US,en;q=0.8',
             },
-            formData: {
-                'shipping_address[zip]': this._task.profile.shipping.zipCode,
-                'shipping_address[country]': this._task.profile.shipping.country,
-                'shipping_address[province]': this._task.profile.shipping.state,
-            }
+            qs: form,
         })
         .then((res) => {
             const rates = JSON.parse(res);

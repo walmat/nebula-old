@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="en" dir="ltr" class="no-js mac chrome desktop page--no-banner page--logo-main page--show page--update card-fields">
+<html lang="en" dir="ltr" class="no-js mac chrome desktop page--no-banner page--logo-main page--show page--show card-fields">
   <head>
     
   
@@ -25,7 +25,7 @@
 
 <meta name="shopify-checkout-api-token" content="08430b96c47dd2ac8e17e305db3b71e8">
 
-  <meta name="shopify-checkout-authorization-token" content="93302870f6aae93643d4698c9262449a" />
+  <meta name="shopify-checkout-authorization-token" content="5e20ce3b33608db684d4cdf0a68d142e" />
 
 <meta id="google-autocomplete-sandbox-url" name="google-autocomplete-sandbox-url" content="https://checkout.shopify.com/942252/sandbox/google_autocomplete?locale=en" />
 
@@ -34,11 +34,11 @@
     <link href="//cdn.shopify.com/s/files/1/0094/2252/t/82/assets/checkout_2.css?9885839021806687087" rel="stylesheet" type="text/css" media="all"> 
       
 <!--[if lt IE 9]>
-<link rel="stylesheet" media="all" href="//cdn.shopify.com/app/services/942252/assets/40133656645/checkout_stylesheet/v2-ltr-2018-06-18-a9f5726f2bb9e86f72fb756d912a9adf-5675542853276251155/oldie" />
+<link rel="stylesheet" media="all" href="//cdn.shopify.com/app/services/942252/assets/40133656645/checkout_stylesheet/v2-ltr-2018-06-18-a9f5726f2bb9e86f72fb756d912a9adf-5017862385389994927/oldie" />
 <![endif]-->
 
 <!--[if gte IE 9]><!-->
-  <link rel="stylesheet" media="all" href="//cdn.shopify.com/app/services/942252/assets/40133656645/checkout_stylesheet/v2-ltr-2018-06-18-a9f5726f2bb9e86f72fb756d912a9adf-5675542853276251155" />
+  <link rel="stylesheet" media="all" href="//cdn.shopify.com/app/services/942252/assets/40133656645/checkout_stylesheet/v2-ltr-2018-06-18-a9f5726f2bb9e86f72fb756d912a9adf-5017862385389994927" />
 
 <!--<![endif]-->
 
@@ -59,16 +59,17 @@
 
 <script src="//cdn.shopify.com/s/assets/checkout_2018-06-18-d5c852a93eb1f2e85adf4aabcffe6bb0fd58c40e71f7f9b8585a17973dd8479b.js"></script>
 
+  <script src="https://checkout.shopifycs.com/dist/card_fields.js"></script>
 
 <script>window.ShopifyPaypalV4VisibilityTracking = true;</script>
 
 
 
-  <script src="//cdn.shopify.com/app/services/942252/javascripts/countries/40133656645/en/countries-e366451455e8b1150473453e65e80b19ed2593ab-1539711578.js"></script>
+  <script src="//cdn.shopify.com/app/services/942252/javascripts/countries/40133656645/en/countries-88024e112ee9b7485ed55b9542b824b1bbce2159-1539711578.js"></script>
 
 <script type="text/javascript">
   if (window.opener) {
-    window.opener.postMessage(JSON.stringify({"current_checkout_page": "\/checkout\/shipping"}), "*");
+    window.opener.postMessage(JSON.stringify({"current_checkout_page": "\/checkout\/payment"}), "*");
   }
 
   if (typeof Shopify == 'undefined') { Shopify = {}; }
@@ -77,14 +78,14 @@
   Shopify.Checkout.geolocatedAddress = {"lat":42.53399999999999,"lng":-83.5285};
   Shopify.Checkout.i18n = {"orders":{"orders_updates":{"title":"Order updates"}}};
   Shopify.Checkout.locale = "en";
-  Shopify.Checkout.page = "update";
+  Shopify.Checkout.page = "show";
   Shopify.Checkout.requiresShipping = true;
-  Shopify.Checkout.step = "shipping_method";
-  Shopify.Checkout.token = "d4ccc9ce131b74beaf87ca7c666d4598";
+  Shopify.Checkout.step = "payment_method";
+  Shopify.Checkout.token = "a218f534fbc31b0c64687dbdb12565a8";
 
   if (typeof ShopifyPay == 'undefined') { ShopifyPay = {}; }
   ShopifyPay.apiHost = "pay.shopify.com";
-  ShopifyPay.apiToken = "UlZjZWQvUC9BbXBOdnROZitCWUx3M05sOWFCRy81OG8rVzVvWG85ZExOZz0tLXNjZ2cycHhlbXR2QTNkRm80aVZIRmc9PQ==--6e2abb7cdf34e96a9430d996c7a91cf85ed38ab4";
+  ShopifyPay.apiToken = "YTM1SEQ0MlVBcVZEODZaejk5cUkwSmcxZFJiZVBHbDhYcllHdHZKcFRPTT0tLVU0ZElialZVS2pIZ1RqMHNzdTdqSEE9PQ==--cf250f05c3d3c8e5274acf15f1a2f3ddea73ac7c";
 
   Shopify.Checkout.AddressFormat = {"N_p_c_sc_a_a":[["company"],["last_name","first_name"],["zip"],["country"],["province","city"],["address1"],["address2"],["phone"]],"N_p_c_c_a_a":[["company"],["last_name","first_name"],["zip"],["country"],["city"],["address1"],["address2"],["phone"]],"n_a_a_c_csp":[["first_name","last_name"],["company"],["address1"],["address2"],["city"],["country","province","zip"],["phone"]],"n_a_a_c_cs":[["first_name","last_name"],["company"],["address1"],["address2"],["city"],["country","province"],["phone"]],"n_a_a_c_cp":[["first_name","last_name"],["company"],["address1"],["address2"],["city"],["country","zip"],["phone"]],"n_a_a_c_c":[["first_name","last_name"],["company"],["address1"],["address2"],["city"],["country"],["phone"]]};
 
@@ -104,26 +105,28 @@
 <script type="text/javascript">
   Shopify.clientAttributesCollectionEventName =
     "client_attributes_checkout";
-  var DF_CHECKOUT_TOKEN = "d4ccc9ce131b74beaf87ca7c666d4598";
+  var DF_CHECKOUT_TOKEN = "a218f534fbc31b0c64687dbdb12565a8";
 </script>
 
 
 
 
 
-<script id="__st">var __st={"a":942252,"offset":-18000,"reqid":"d802b234-5908-4890-8bb3-f5c811513483","pageurl":"kith.com\/942252\/checkouts\/d4ccc9ce131b74beaf87ca7c666d4598?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW%2BCm3jtkXq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-G5OmDl9Z044IJ44W4jJWwWTwpIo%3D","u":"66f6851e4bd8","t":"checkout","offsite":1,"cid":6946758791};</script>
+<script id="__st">var __st={"a":942252,"offset":-18000,"reqid":"03824fa0-d764-4db5-8bb0-6e200c7775c1","pageurl":"kith.com\/942252\/checkouts\/a218f534fbc31b0c64687dbdb12565a8?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW%2BC00c0OWq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-3EzcM6kLBoCyvUOOnXuzME0TaZY%3D\u0026previous_step=shipping_method\u0026step=payment_method","u":"8c136ec930b2","t":"checkout","offsite":1,"cid":6946758791};</script>
 
 
 
 
 
 
-  
+      <meta id="in-context-paypal-metadata" data-shop-id="942252" data-environment="production" data-locale="en_US" data-paypal-v4="true" data-currency="USD">
+
+
 
 
     
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
-    <script src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/jquery.alphanum.js?5675542853276251155" type="text/javascript"></script>
+    <script src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/jquery.alphanum.js?5017862385389994927" type="text/javascript"></script>
 
 <script>
   (function($){
@@ -218,7 +221,7 @@
         }
       };
     </script>
-    <script src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/shopify_checkout_autocomplete.js?5675542853276251155" defer="defer"></script>
+    <script src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/shopify_checkout_autocomplete.js?5017862385389994927" defer="defer"></script>
 
     
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAt4zJctaBH5z7WzYrewqQ69PTr8fwMCXo&libraries=places&language=en&callback=setupShopifyCheckoutAutocomplete" defer="defer"></script>
@@ -271,10 +274,10 @@
       <div class="wrap">
           
 <a class="logo logo--left" href="https://kith.com">
-    <img alt="Kith" class="logo__image logo__image--medium" src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/logo.png?5675542853276251155" />
+    <img alt="Kith" class="logo__image logo__image--medium" src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/logo.png?5017862385389994927" />
 </a>
 <h1 class="visually-hidden">
-  Shipping method
+  Payment method
 </h1>
 
 
@@ -298,7 +301,7 @@
         <svg width="11" height="7" xmlns="http://www.w3.org/2000/svg" class="order-summary-toggle__dropdown" fill="#000"><path d="M6.138.876L5.642.438l-.496.438L.504 4.972l.992 1.124L6.138 2l-.496.436 3.862 3.408.992-1.122L6.138.876z" /></svg>
       </span>
       <span class="order-summary-toggle__total-recap total-recap" data-order-summary-section="toggle-total-recap">
-        <span class="total-recap__final-price" data-checkout-payment-due-target="17500">$175.00</span>
+        <span class="total-recap__final-price" data-checkout-payment-due-target="18500">$185.00</span>
       </span>
     </span>
   </span>
@@ -314,10 +317,10 @@
           <div class="main__header">
               
 <a class="logo logo--left" href="https://kith.com">
-    <img alt="Kith" class="logo__image logo__image--medium" src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/logo.png?5675542853276251155" />
+    <img alt="Kith" class="logo__image logo__image--medium" src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/logo.png?5017862385389994927" />
 </a>
 <h1 class="visually-hidden">
-  Shipping method
+  Payment method
 </h1>
 
 
@@ -339,15 +342,15 @@
       </li>
 
       <li class="breadcrumb__item breadcrumb__item--completed">
-        <a class="breadcrumb__link" data-trekkie-id="breadcrumb_contact_information_link" href="/942252/checkouts/d4ccc9ce131b74beaf87ca7c666d4598?step=contact_information">Customer information</a>
-          <svg class="icon-svg icon-svg--size-10 breadcrumb__chevron-icon" aria-hidden="true" focusable="false"> <use xlink:href="#chevron-right" /> </svg>
-      </li>
-      <li class="breadcrumb__item breadcrumb__item--current">
-        <span class="breadcrumb__text" aria-current="step">Shipping method</span>
+        <a class="breadcrumb__link" data-trekkie-id="breadcrumb_contact_information_link" href="/942252/checkouts/a218f534fbc31b0c64687dbdb12565a8?step=contact_information">Customer information</a>
           <svg class="icon-svg icon-svg--size-10 breadcrumb__chevron-icon" aria-hidden="true" focusable="false"> <use xlink:href="#chevron-right" /> </svg>
       </li>
       <li class="breadcrumb__item breadcrumb__item--completed">
-        <a class="breadcrumb__link" data-trekkie-id="breadcrumb_payment_method_link" href="/942252/checkouts/d4ccc9ce131b74beaf87ca7c666d4598?step=payment_method">Payment method</a>
+        <a class="breadcrumb__link" data-trekkie-id="breadcrumb_shipping_method_link" href="/942252/checkouts/a218f534fbc31b0c64687dbdb12565a8?step=shipping_method">Shipping method</a>
+          <svg class="icon-svg icon-svg--size-10 breadcrumb__chevron-icon" aria-hidden="true" focusable="false"> <use xlink:href="#chevron-right" /> </svg>
+      </li>
+      <li class="breadcrumb__item breadcrumb__item--current">
+        <span class="breadcrumb__text" aria-current="step">Payment method</span>
       </li>
   </ul>
 
@@ -389,113 +392,21 @@
   
 
 
-<div class="step" data-step="shipping_method">
-  <form class="edit_checkout" data-shipping-method-form="true" action="/942252/checkouts/d4ccc9ce131b74beaf87ca7c666d4598" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="_method" value="patch" /><input type="hidden" name="authenticity_token" value="yyGue1UmCJGSq/XY4Jqp8u09zhkRgyFG1S4LmRi9NOIUPGLB1jq4cD6lFEhXQz1+j5TMOB/df/LlMmc3sjSeGw==" />
-
-  <input type="hidden" name="previous_step" id="previous_step" value="shipping_method" />
-  <input type="hidden" name="step" value="payment_method" />
-
-  <div class="step__sections">
-      <div class="section">
-  <div class="content-box">
-    <div role="grid" class="content-box__row content-box__row--tight-spacing-vertical">
-      <div role="row" class="review-block">
-  <div class="review-block__inner">
-    <div role="gridcell" class="review-block__label">
-      Contact
-    </div>
-    <div role="gridcell" class="review-block__content">
-      matthew.wallt@gmail.com
-    </div>
-  </div>
-  <div role="gridcell" class="review-block__link">
-    <a data-trekkie-id="change_contact_method_link" class="link--small" href="/942252/checkouts/d4ccc9ce131b74beaf87ca7c666d4598?step=contact_information">
-      <span aria-hidden="true">Change</span>
-      <span class="visually-hidden">Change contact information</span>
-</a>  </div>
+<div class="step" data-step="payment_method">
+    <noscript>
+  <meta http-equiv="refresh" content="1;" />
+</noscript>
+<div class="content-box blank-slate"
+  data-poll-refresh="[data-step=payment_method], [data-order-summary-section=payment-lines], [data-order-summary-section=toggle-total-recap]"
+  data-poll-target="/942252/checkouts/a218f534fbc31b0c64687dbdb12565a8?step=payment_method">
+  <svg class="icon-svg icon-svg--color-accent icon-svg--size-32 icon-svg--spinner blank-slate__icon" aria-hidden="true" focusable="false"> <use xlink:href="#spinner-small" /> </svg>
+  <p>
+    <span class="blank-slate__title emphasis">Calculating taxes</span>
+    If your taxes don't calculate within the next few seconds, <a href='/942252/checkouts/a218f534fbc31b0c64687dbdb12565a8'>refresh&nbsp;the&nbsp;page</a>.
+  </p>
 </div>
 
 
-        
-<div role="row" class="review-block">
-  <div class="review-block__inner">
-    <div role="gridcell" class="review-block__label">
-      Ship to
-    </div>
-    <div role="gridcell" class="review-block__content">
-        <address class="address address--tight">
-          123 Test Street, Test IA 50010, United States
-        <address>
-    </div>
-  </div>
-  <div role="gridcell" class="review-block__link">
-    <a class="link--small" data-trekkie-id="change_shipping_address_link" href="/942252/checkouts/d4ccc9ce131b74beaf87ca7c666d4598?step=contact_information">
-      <span aria-hidden="true">Change</span>
-      <span class="visually-hidden">Change shipping address</span>
-</a>  </div>
-</div>
-
-
-    </div>
-  </div>
-</div>
-
-
-    <div class="section section--shipping-method">
-      <div class="section__header">
-        <h2 class="section__title" id="main-header" tabindex="-1">
-          Shipping method
-        </h2>
-
-      </div>
-
-      <div class="section__content">
-          <div role="alert" data-shipping-warning="" aria-atomic="true" aria-live="polite" class="notice notice--error" tabindex="-1"><svg class="icon-svg icon-svg--size-24 notice__icon" aria-hidden="true" focusable="false"> <use xlink:href="#error" /> </svg><p class="notice__text">Your cart has been modified and the shipping rate you previously selected no longer applies. Please select a new rate.</p></div>
-
-
-              <div class="content-box" data-shipping-methods>
-      
-    <div class="content-box__row">
-      <div class="radio-wrapper" data-shipping-method="shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00">
-        <div class="radio__input">
-          <input class="input-radio" data-checkout-total-shipping="$10.00" data-checkout-total-shipping-cents="1000" data-checkout-shipping-rate="$10.00" data-checkout-original-shipping-rate="$10.00" data-checkout-total-taxes="$0.00" data-checkout-total-taxes-cents="0" data-checkout-total-price="$185.00" data-checkout-total-price-cents="18500" data-checkout-payment-due="$185.00" data-checkout-payment-due-cents="18500" data-checkout-payment-subform="required" data-checkout-subtotal-price="$175.00" data-checkout-subtotal-price-cents="17500" data-backup="shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00" aria-label="UPS GROUND (5-7 business days). $10.00" type="radio" value="shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00" name="checkout[shipping_rate][id]" id="checkout_shipping_rate_id_shopify-ups20ground205-720business20days-1000" />
-        </div>
-        <label class="radio__label" aria-hidden="true" for="checkout_shipping_rate_id_shopify-ups20ground205-720business20days-1000">
-          <span class="radio__label__primary" data-shipping-method-label-title="UPS GROUND (5-7 business days)">
-            UPS GROUND (5-7 business days)
-
-
-          </span>
-          <span class="radio__label__accessory">
-            <span class="content-box__emphasis">
-              $10.00
-            </span>
-          </span>
-</label>      </div> <!-- /radio-wrapper-->
-    </div>
-  
-  </div>
-
-
-      </div> 
-    </div> 
-  </div>
-
-  
-
-<div class="step__footer" data-step-footer>
-
-    <button name="button" type="submit" class="step__footer__continue-btn btn " data-trekkie-id="continue_to_payment_method_button" aria-busy="false">
-  <span class="btn__content">
-    Continue to payment method
-  </span>
-  <svg class="icon-svg icon-svg--size-18 btn__spinner icon-svg--spinner-button" aria-hidden="true" focusable="false"> <use xlink:href="#spinner-button" /> </svg>
-</button>
-  <a class="step__footer__previous-link" data-trekkie-id="previous_step_link" href="/942252/checkouts/d4ccc9ce131b74beaf87ca7c666d4598?step=contact_information"><svg focusable="false" aria-hidden="true" class="icon-svg icon-svg--color-accent icon-svg--size-10 previous-link__icon" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M8 1L7 0 3 4 2 5l1 1 4 4 1-1-4-4"/></svg><span class="step__footer__previous-link-content">Return to customer information</span></a>
-</div>
-
-
-</form>
 </div>
 
 
@@ -545,10 +456,10 @@
           <div class="sidebar__header">
               
 <a class="logo logo--left" href="https://kith.com">
-    <img alt="Kith" class="logo__image logo__image--medium" src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/logo.png?5675542853276251155" />
+    <img alt="Kith" class="logo__image logo__image--medium" src="//cdn.shopify.com/s/files/1/0094/2252/t/130/assets/logo.png?5017862385389994927" />
 </a>
 <h1 class="visually-hidden">
-  Shipping method
+  Payment method
 </h1>
 
 
@@ -575,7 +486,7 @@
           <td class="product__image">
             <div class="product-thumbnail">
   <div class="product-thumbnail__wrapper">
-    <img alt="Nike x Victor Cruz Air Force 1 Mid CMFT - Vachetta Tan - 6" class="product-thumbnail__image" src="//cdn.shopify.com/s/files/1/0094/2252/products/Vachetta_AO9298_200_0923_small.jpg?5675542853276251155" />
+    <img alt="Nike x Victor Cruz Air Force 1 Mid CMFT - Vachetta Tan - 6" class="product-thumbnail__image" src="//cdn.shopify.com/s/files/1/0094/2252/products/Vachetta_AO9298_200_0923_small.jpg?5017862385389994927" />
   </div>
     <span class="product-thumbnail__quantity" aria-hidden="true">1</span>
 </div>
@@ -606,13 +517,13 @@
 
       <div class="order-summary__section order-summary__section--discount" data-reduction-form="update">
         <h3 class="visually-hidden">Gift card or discount code</h3>
-        <form class="edit_checkout" action="/942252/checkouts/d4ccc9ce131b74beaf87ca7c666d4598" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="_method" value="patch" /><input type="hidden" name="authenticity_token" value="TgI0qgDmTxuUkjtKdTaS4yDYnxnMYyENtjaoH8lACdORH/gQg/r/+jic2trC7wZvQnGdOMI9f7mGKsSxY8mjKg==" />
-  <input type="hidden" name="step" value="shipping_method" />
+        <form class="edit_checkout" action="/942252/checkouts/a218f534fbc31b0c64687dbdb12565a8" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="_method" value="patch" /><input type="hidden" name="authenticity_token" value="++go91ZEvOq3FagM1PIun2G7xNkevviL6qDJUHJkkvXrfNqdL8oAotoilLs0bWYm0yl7uufjeJjI4rtzhpjo3g==" />
+  <input type="hidden" name="step" value="payment_method" />
 </form>
 
 
-<form class="edit_checkout" action="/942252/checkouts/d4ccc9ce131b74beaf87ca7c666d4598" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="_method" value="patch" /><input type="hidden" name="authenticity_token" value="nSkZ2TIrwZ7xqiFXvo1JHp3dCX3LkmG8cVmyVugK/4RCNNVjsTdxf12kwMcJVN2S/3QLXMXMPwhBRd74QoNVfQ==" />
-  <input type="hidden" name="step" value="shipping_method" />
+<form class="edit_checkout" action="/942252/checkouts/a218f534fbc31b0c64687dbdb12565a8" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="&#x2713;" /><input type="hidden" name="_method" value="patch" /><input type="hidden" name="authenticity_token" value="ZDyItimzzkVvFcNIk9x+hmRB/OQDNZzni0zQLIneG3t0qHrcUD1yDQIi//9zQzY/1tNDh/poHPSpDqIPfSJhUA==" />
+  <input type="hidden" name="step" value="payment_method" />
   <div class="fieldset">
     <div class="field ">
       <label class="field__label" for="checkout_reduction_code">Gift card or discount code</label>
@@ -660,8 +571,8 @@
         <tr class="total-line total-line--shipping">
           <th class="total-line__name" scope="row">Shipping</th>
           <td class="total-line__price">
-            <span class="order-summary__emphasis" data-checkout-total-shipping-target="0">
-              <span aria-hidden="true">—</span><span class="visually-hidden">Not yet available</span>
+            <span class="order-summary__emphasis" data-checkout-total-shipping-target="1000">
+              $10.00
             </span>
           </td>
         </tr>
@@ -683,8 +594,8 @@
       </th>
       <td class="total-line__price payment-due">
           <span class="payment-due__currency">USD</span>
-        <span class="payment-due__price" data-checkout-payment-due-target="17500">
-          $175.00
+        <span class="payment-due__price" data-checkout-payment-due-target="18500">
+          $185.00
         </span>
       </td>
     </tr>
@@ -693,8 +604,8 @@
 
 <div class="visually-hidden" aria-live="polite" aria-atomic="true" role="status">
   Updated total price:
-  <span data-checkout-payment-due-target="17500">
-    $175.00
+  <span data-checkout-payment-due-target="18500">
+    $185.00
   </span>
 </div>
 
@@ -703,13 +614,12 @@
 </div>
 
 
-  <div id="partial-icon-symbols" data-tg-refresh="partial-icon-symbols" data-tg-refresh-always="true" style="display: none;"><svg xmlns="http://www.w3.org/2000/svg"><symbol id="error"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 24C5.373 24 0 18.627 0 12S5.373 0 12 0s12 5.373 12 12-5.373 12-12 12zm0-2c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-16c.552 0 1 .448 1 1v5c0 .552-.448 1-1 1s-1-.448-1-1V7c0-.552.448-1 1-1zm-1.5 10.5c0-.828.666-1.5 1.5-1.5.828 0 1.5.666 1.5 1.5 0 .828-.666 1.5-1.5 1.5-.828 0-1.5-.666-1.5-1.5z"/></svg></symbol>
-<symbol id="spinner-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M20 10c0 5.523-4.477 10-10 10S0 15.523 0 10 4.477 0 10 0v2c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8h2z"/></svg></symbol>
+  <div id="partial-icon-symbols" class="icon-symbols" data-tg-refresh="partial-icon-symbols" data-tg-refresh-always="true"><svg xmlns="http://www.w3.org/2000/svg"><symbol id="spinner-small"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M32 16c0 8.837-7.163 16-16 16S0 24.837 0 16 7.163 0 16 0v2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14h2z"/></svg></symbol>
 <symbol id="chevron-right"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M2 1l1-1 4 4 1 1-1 1-4 4-1-1 4-4"/></svg></symbol>
 <symbol id="success"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 24C5.373 24 0 18.627 0 12S5.373 0 12 0s12 5.373 12 12-5.373 12-12 12zm0-2c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm3.784-13.198c.386-.396 1.02-.404 1.414-.018.396.386.404 1.02.018 1.414l-5.85 6c-.392.403-1.04.403-1.432 0l-3.15-3.23c-.386-.396-.378-1.03.018-1.415.395-.385 1.028-.377 1.414.018l2.434 2.5 5.134-5.267z"/></svg></symbol>
 <symbol id="arrow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M16 8.1l-8.1 8.1-1.1-1.1L13 8.9H0V7.3h13L6.8 1.1 7.9 0 16 8.1z"/></svg></symbol>
-<symbol id="close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M15.1 2.3L13.7.9 8 6.6 2.3.9.9 2.3 6.6 8 .9 13.7l1.4 1.4L8 9.4l5.7 5.7 1.4-1.4L9.4 8"/></svg></symbol>
-<symbol id="spinner-small"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M32 16c0 8.837-7.163 16-16 16S0 24.837 0 16 7.163 0 16 0v2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14h2z"/></svg></symbol></svg></div>
+<symbol id="spinner-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M20 10c0 5.523-4.477 10-10 10S0 15.523 0 10 4.477 0 10 0v2c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8h2z"/></svg></symbol>
+<symbol id="close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M15.1 2.3L13.7.9 8 6.6 2.3.9.9 2.3 6.6 8 .9 13.7l1.4 1.4L8 9.4l5.7 5.7 1.4-1.4L9.4 8"/></svg></symbol></svg></div>
 
 
           </div>
@@ -721,7 +631,7 @@
     <script>window.ShopifyAnalytics = window.ShopifyAnalytics || {};
 window.ShopifyAnalytics.meta = window.ShopifyAnalytics.meta || {};
 window.ShopifyAnalytics.meta.currency = 'USD';
-var meta = {"page":{"path":"\/checkout\/shipping","search":"?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW+Cm3jtkXq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-G5OmDl9Z044IJ44W4jJWwWTwpIo=","url":"https:\/\/kith.com\/942252\/checkouts\/d4ccc9ce131b74beaf87ca7c666d4598?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW%2BCm3jtkXq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-G5OmDl9Z044IJ44W4jJWwWTwpIo%3D"}};
+var meta = {"page":{"path":"\/checkout\/payment","search":"?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW+C00c0OWq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-3EzcM6kLBoCyvUOOnXuzME0TaZY=","url":"https:\/\/kith.com\/942252\/checkouts\/a218f534fbc31b0c64687dbdb12565a8?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW%2BC00c0OWq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-3EzcM6kLBoCyvUOOnXuzME0TaZY%3D\u0026previous_step=shipping_method\u0026step=payment_method"},"checkout":{"payment_due":18500}};
 for (var attr in meta) {
   window.ShopifyAnalytics.meta[attr] = meta[attr];
 }</script>
@@ -784,7 +694,7 @@ for (var attr in meta) {
     first.parentNode.insertBefore(script, first);
   };
   trekkie.load(
-    {"Trekkie":{"appName":"checkout","development":false,"defaultAttributes":{"shopId":942252,"isMerchantRequest":null,"themeId":40133656645,"themeCityHash":10469448049426205144,"checkoutToken":"d4ccc9ce131b74beaf87ca7c666d4598"}},"Performance":{"navigationTimingApiMeasurementsEnabled":true,"navigationTimingApiMeasurementsSampleRate":1.0},"Google Analytics":{"trackingId":"UA-62344036-1","domain":"auto","siteSpeedSampleRate":"10","enhancedEcommerce":true,"doubleClick":true,"includeSearch":true},"Facebook Pixel":{"pixelIds":["1059291937516902"],"agent":"plshopify1.2"},"Clickstream":{},"Session Attribution":{}}
+    {"Trekkie":{"appName":"checkout","development":false,"defaultAttributes":{"shopId":942252,"isMerchantRequest":null,"themeId":40133656645,"themeCityHash":10469448049426205144,"checkoutToken":"a218f534fbc31b0c64687dbdb12565a8"}},"Performance":{"navigationTimingApiMeasurementsEnabled":true,"navigationTimingApiMeasurementsSampleRate":1.0},"Google Analytics":{"trackingId":"UA-62344036-1","domain":"auto","siteSpeedSampleRate":"10","enhancedEcommerce":true,"doubleClick":true,"includeSearch":true},"Facebook Pixel":{"pixelIds":["1059291937516902"],"agent":"plshopify1.2"},"Clickstream":{},"Session Attribution":{}}
   );
 
   var loaded = false;
@@ -836,8 +746,8 @@ for (var attr in meta) {
 
     
         window.ShopifyAnalytics.lib.page(
-          "Checkout - Shipping",
-          {"path":"\/checkout\/shipping","search":"?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW+Cm3jtkXq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-G5OmDl9Z044IJ44W4jJWwWTwpIo=","url":"https:\/\/kith.com\/942252\/checkouts\/d4ccc9ce131b74beaf87ca7c666d4598?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW%2BCm3jtkXq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-G5OmDl9Z044IJ44W4jJWwWTwpIo%3D"}
+          "Checkout - Payment",
+          {"path":"\/checkout\/payment","search":"?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW+C00c0OWq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-3EzcM6kLBoCyvUOOnXuzME0TaZY=","url":"https:\/\/kith.com\/942252\/checkouts\/a218f534fbc31b0c64687dbdb12565a8?_ctd=BISkcGFzc8OmbWV0aG9kAqplbnRyeV90aW1ly0HW%2BC00c0OWq3RhcmdldF9wYXRori9jaGVja291dC5qc29u-3EzcM6kLBoCyvUOOnXuzME0TaZY%3D\u0026previous_step=shipping_method\u0026step=payment_method"}
         );
       
     

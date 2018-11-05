@@ -52,7 +52,7 @@ class Account {
             if (res.request.href.indexOf('login') > -1) {
                 return this.ACCOUNT_STATES.LoggedOut;
             }
-            console.log('[INFO]: ACCOUNT: Logged in! Generating alternative checkouts')
+            console.log('[INFO]: ACCOUNT: Logged in! Proceeding to add to cart')
             return this.ACCOUNT_STATES.LoggedIn;
         })
     }

@@ -6,6 +6,7 @@ const Shipping = require('./shipping');
 const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
+const { formatter } = require('./utils');
 
 class Checkout {
 
@@ -19,6 +20,7 @@ class Checkout {
             LoginAccount: 'LOGIN_ACCOUNT',
             AddToCart: 'ADD_TO_CART',
             GetShippingRates: 'GET_SHIPPING_RATES',
+            GeneratePaymentToken: 'GENERATE_PAYMENT_TOKEN',
             ProceedToCheckout: 'PROCEED_TO_CHECKOUT',
             CheckoutQueue: 'CHECKOUT_QUEUE',
             OutOfStock: 'OUT_OF_STOCK',
@@ -71,7 +73,9 @@ class Checkout {
         this._authToken;
         this._price;
         this._shippingValue;
-        this._captchaResponse;
+        this._paymentToken;
+        this._paymentGateway;
+        this._captchaResponse = '';
 
         this._retries = {
             LOGIN: 5,
@@ -106,7 +110,7 @@ class Checkout {
     }
 
     async _handleLogin() {
-        console.log('[INFO]: CHECKOUT: Loggnig in...');
+        console.log('[INFO]: CHECKOUT: Logging in...');
         const res = await this._account.login();
         this._retries.LOGIN--;
         if (res === this._account.ACCOUNT_STATES.LoggedIn) {
@@ -134,18 +138,20 @@ class Checkout {
             }
         }
         this._price = this._cart._price;
-        return Checkout.States.GetShippingRates;
-    }
-
-    async _handleGetShippingRates() {
-        const res = await this._cart.getEstimatedShippingRates();
-        if (!res) {
-            console.log('[ERROR]: CHECKOUT: Unable to find shipping rates...');
-            return Checkout.States.Stopped;
-        }
-        this._price = +this._price + +res.price;
         return Checkout.States.GeneratePaymentToken;
     }
+
+    // async _handleGetShippingRates() {
+    //     const res = await this._cart.getEstimatedShippingRates();
+    //     if (!res) {
+    //         console.log('[ERROR]: CHECKOUT: Unable to find shipping rates...');
+    //         return Checkout.States.Stopped;
+    //     }
+    //     this._shippingValue = res.rate;
+    //     this._price = +this._price + +res.price;
+    //     console.log(`[INFO]: CHECKOUT: Cart price is ${formatter.format(this._price)}`);
+    //     return Checkout.States.GeneratePaymentToken;
+    // }
 
     /**
      * Get payment token
@@ -158,6 +164,7 @@ class Checkout {
             // TODO - handle failed to get payment token
             return Checkout.States.Stopped;
         }
+        this._paymentToken = paymentToken;
         return Checkout.States.ProceedToCheckout;
     }
 
@@ -167,7 +174,10 @@ class Checkout {
      */
     async _handleProceedToCheckout() {
         const res = await this._cart.proceedToCheckout();
-        if(res.state === this._cart.CART_STATES.CheckoutQueue) {
+        if (res.state === this._cart.CART_STATES.TooManyAttempts) {
+            // TODO -- handle soft ban
+            return Checkout.States.Stopped;
+        } else if (res.state === this._cart.CART_STATES.CheckoutQueue) {
             console.log('[INFO]: CHECKOUT: Waiting in queue...');
             // TODO - implement a wait of some sort?
             return Checkout.States.ProceedToCheckout;
@@ -175,16 +185,16 @@ class Checkout {
             console.log('[INFO]: CHECKOUT: Out of stock...');
             return Checkout.States.OutOfStock;
         } else if (res.state === this._cart.CART_STATES.Success) {            
+            
             this._checkoutUrl = res.checkoutUrl;
             this._authToken = res.authToken;
-            this._price = res.price;
 
             this._shipping = new Shipping(
                 this._context,
                 this._timer,
                 this._checkoutUrl,
                 this._authToken,
-                this._price,
+                this._shippingValue,
             );
             return Checkout.States.Shipping;
         }
@@ -196,8 +206,11 @@ class Checkout {
      */
     async _handleOutOfStock() {
         this._variantIndex++;
+        if (this._variantIndex >= this._task.sizes.length) {
+            this._variantIndex = 0;
+        }
         if (this._task.sizes.length > 1) {
-            // swap sizes?
+            // create background thread to run for restocks, and check next size?
             console.log('[INFO]: CHECKOUT: Swapping to next size...');
             const cleared = await this._cart.clearCart();
             if (cleared) {
@@ -205,7 +218,7 @@ class Checkout {
             }
             return Checkout.States.Stopped;
         } else {
-            // run restocks
+            // run restocks for the one size..
             console.log('[INFO]: CHECKOUT: Running for restocks...');
             return Checkout.States.Restock;
         }
@@ -217,6 +230,7 @@ class Checkout {
      */
     async _handleShipping() {
         const res = await this._shipping.submit();
+        console.log(res);
         if (!res) {
             this._retries.SHIPPING--;
             if (this._retries.SHIPPING > 0) {
@@ -229,19 +243,25 @@ class Checkout {
         if (res.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
             return Checkout.States.SolveCaptcha;
-        } else if (!res.captcha && res.authToken) {
+        } else if (!res.captcha && res.newAuthToken && res.paymentGateway) {
             console.log('[INFO]: CHECKOUT: Proceeding to submit payment...');
-                this._payment = new Payment(
+            this._authToken = res.newAuthToken;
+            this._paymentGateway = res.paymentGateway;
+            this._payment = new Payment(
                 this._context,
                 this._timer,
                 this._checkoutUrl,
-                res.authToken,
+                this._authToken,
                 this._price,
+                this._paymentGateway,
+                this._paymentToken,
                 this._shippingValue,
                 this._captchaResponse,
             );
             return Checkout.States.Payment;
         }
+        console.log('[ERROR]: CHECKOUT: Unable to submit shipping...');
+        return Checkout.States.Stopped;
     }
 
     /**
@@ -251,7 +271,6 @@ class Checkout {
     async _handleSolveCaptcha() {
         // TODO - think about how to handle this with captcha and all..
         this._captchaResponse = '';
-        
     }
 
     /**
@@ -284,7 +303,6 @@ class Checkout {
             [Checkout.States.Started]: this._handleStarted,
             [Checkout.States.LoginAccount]: this._handleLogin,
             [Checkout.States.AddToCart]: this._handleAddToCart,
-            [Checkout.States.GetShippingRates]: this._handleGetShippingRates,
             [Checkout.States.GeneratePaymentToken]: this._handlePaymentToken,
             [Checkout.States.ProceedToCheckout]: this._handleProceedToCheckout,
             [Checkout.States.OutOfStock]: this._handleOutOfStock,
@@ -295,6 +313,7 @@ class Checkout {
         }
 
         const handler = stateMap[currentState];
+        console.log(handler);
         return await handler.call(this);
     }
 

@@ -2,7 +2,7 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-
+const fs = require('fs');
 /**
  * Form includes
  */
@@ -15,11 +15,12 @@ const {
     formatProxy,
     userAgent,
     request,
+    cookieJar,
 } = require('./utils');
 const now = require('performance-now');
 
 class Payment {
-    constructor(context, timer, checkoutUrl, authToken, price, shippingValue, captchaResponse) {
+    constructor(context, timer, checkoutUrl, authToken, price, paymentGateway, paymentToken, shippingValue, captchaResponse) {
         /**
          * All data needed for monitor to run
          * This includes:
@@ -38,6 +39,8 @@ class Payment {
         this._checkoutUrl = checkoutUrl;
         this._authToken = authToken;
         this._price = price;
+        this._paymentGateway = paymentGateway;
+        this._paymentToken = paymentToken;
         this._shippingValue = shippingValue;
         this._captchaResponse = captchaResponse;
 
@@ -59,9 +62,10 @@ class Payment {
         }
 
         this._timer.start(now());
-
+        // console.log(cookieJar.getCookies(this._checkoutUrl));
+        console.log(`${this._checkoutUrl.split('?')[0]}?step=payment_method`);
         return request({
-            uri: `${this._checkoutUrl}?step=payment_method`,
+            uri: `${this._checkoutUrl.split('?')[0]}?step=payment_method`,
             proxy: formatProxy(this._proxy),
             method: 'get',
             followAllRedirects: true,
@@ -71,14 +75,19 @@ class Payment {
             headers: {
                 'User-Agent': userAgent,
             },
-            transform2xxOnly: true,
-            transform: function(body) {
-                return cheerio.load(body);
-            }
+            // transform2xxOnly: true,
+            // transform: function(body) {
+            //     return cheerio.load(body);
+            // }
         })
-        .then(($) => {
+        .then((res) => {
+            fs.writeFileSync('debug-payment-1.html', res.body);
+            const $ = cheerio.load(res.body);
             const gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
             const authToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
+            
+            console.log(gateway, authToken);
+
             return request({
                 uri: this._checkoutUrl,
                 method: 'post',
@@ -95,14 +104,16 @@ class Payment {
                     this._task,
                     authToken,
                     'payment_method',
-                    gateway,
                     this._price,
+                    this._paymentGateway,
+                    this._paymentToken,
                     this._shippingValue,
                     this._captchaResponse,
                 ),
             })
             .then((res) => {
                 const $ = cheerio.load(res.body);
+                fs.writeFileSync('debug-payment-2.html', res.body);
                 this._timer.stop(now());
                 console.log(`[INFO]: PAYMENT: Submitted payment in ${this._timer.getRunTime()}ms`)
                 
