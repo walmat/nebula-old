@@ -1,7 +1,5 @@
 // Split out into separate file for clarity
-// TODO Restucture this back into utils
 const _ = require('underscore');
-module.exports = {};
 
 /**
  * Resolve the first Promise, Reject when all have failed
@@ -59,4 +57,5 @@ function resolveFirstRejectLast(promises, tag) {
     console.log(`[TRACE]: RFRL${tagStr}: Sync work done, waiting on promises...`);
   });
 }
-module.exports.rfrl = resolveFirstRejectLast;
+
+module.exports = resolveFirstRejectLast;

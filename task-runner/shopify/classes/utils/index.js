@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const rfrl = require('./rfrl');
 
 module.exports = {};
 
@@ -40,3 +41,6 @@ function trimKeywords(input) {
     return ret;
 }
 module.exports.trimKeywords = trimKeywords;
+
+// Add in utils from other files
+module.exports.rfrl = rfrl;

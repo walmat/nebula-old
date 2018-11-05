@@ -1,10 +1,6 @@
 const utils = require('../utils/parse');
-const { rfrl } = require('../utils/rfrl');
 const _ = require('underscore');
-const {
-  formatProxy,
-  userAgent,
-} = require('../utils');
+const { formatProxy, userAgent, rfrl } = require('../utils');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,

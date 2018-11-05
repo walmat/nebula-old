@@ -7,9 +7,8 @@ const rp = require('request-promise').defaults({
 
 const { States } = require('../taskRunner');
 const { AtomParser, JsonParser, XmlParser } = require('./parsers');
-const { formatProxy, userAgent } = require('./utils');
+const { formatProxy, userAgent, rfrl } = require('./utils');
 const { ParseType, getParseType } = require('./utils/parse');
-const { rfrl } = require('./utils/rfrl');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
 
 class Monitor {
