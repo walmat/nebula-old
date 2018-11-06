@@ -113,15 +113,15 @@ class Payment {
                 if ($('input[name="step"]').val() == 'processing') {
                     console.log('[INFO]: PAYMENT: Payment is processing, go check your email for a confirmation.');
                     return this.PAYMENT_STATES.Processing;
-                  } else if ($('title').text().indexOf('Processing') > -1) {
+                } else if ($('title').text().indexOf('Processing') > -1) {
                     console.log('[INFO]: PAYMENT: Payment is processing, go check your email for a confirmation.');
                     return this.PAYMENT_STATES.Processing;
-                  } else if (res.request.href.indexOf('paypal.com') > -1) {
+                } else if (res.request.href.indexOf('paypal.com') > -1) {
                     const open = require('open');
                     console.log('[INFO]: PAYMENT: This website only supports PayPal');
                     open(res.request.href);
                     return this.PAYMENT_STATES.Success;
-                  } else if ($('div.notice--warning p.notice__text')) {
+                } else if ($('div.notice--warning p.notice__text')) {
                     if ($('div.notice--warning p.notice__text') == '') {
                       console.log(`[INFO]: PAYMENT: An unknown error has occured please try again.`);
                         return this.PAYMENT_STATES.Error;
@@ -129,10 +129,10 @@ class Payment {
                       console.log(`[INFO]: PAYMENT: ${$('div.notice--warning p.notice__text').eq(0).text()}`);
                       return this.PAYMENT_STATES.Error;
                     }
-                  } else {
+                } else {
                     console.log(`[INFO]: PAYMENT: An unknown error has occured please try again.`);
                     return this.PAYMENT_STATES.Error;
-                  }
+                }
             });
         });
     }

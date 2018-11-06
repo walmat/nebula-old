@@ -64,7 +64,7 @@ class Cart {
             simple: false,
             json: true,
             proxy: formatProxy(this._proxy),
-            method: 'get',
+            method: 'post',
             headers: {
                 Origin: this._task.site.url,
                 'User-Agent': userAgent,
@@ -73,7 +73,7 @@ class Cart {
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.8',
             },
-            qs: buildCartForm(
+            formData: buildCartForm(
                 this._task,
                 variant,
             ),
