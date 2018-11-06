@@ -50,6 +50,7 @@ const task = {
     status: 'idle',
     errorDelay: 2000,
     monitorDelay: 2000,
+    shippingPoll: 2500,
   };
   
   module.exports = task;

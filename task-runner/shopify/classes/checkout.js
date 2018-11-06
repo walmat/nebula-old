@@ -186,7 +186,7 @@ class Checkout {
             return Checkout.States.OutOfStock;
         } else if (res.state === this._cart.CART_STATES.Success) {            
             
-            this._checkoutUrl = res.checkoutUrl;
+            this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
 
             this._shipping = new Shipping(
@@ -229,24 +229,19 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleShipping() {
-        const res = await this._shipping.submit();
-        console.log(res);
-        if (!res) {
-            this._retries.SHIPPING--;
-            if (this._retries.SHIPPING > 0) {
-                return Checkout.States.Shipping; 
-            } else {
-                return Checkout.States.Stopped;
-            }
+        const opts = await this._shipping.getShippingOptions();
+        if (!opts.type) {
+            return Checkout.States.Stopped;
         }
-
+        const res = await this._shipping.submitShipping(opts.type, opts.value, opts.authToken);
         if (res.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
             return Checkout.States.SolveCaptcha;
-        } else if (!res.captcha && res.newAuthToken && res.paymentGateway) {
+        } else if (!res.captcha && res.paymentGateway && res.newAuthToken) {
             console.log('[INFO]: CHECKOUT: Proceeding to submit payment...');
             this._authToken = res.newAuthToken;
             this._paymentGateway = res.paymentGateway;
+            this._price = res.price;
             this._payment = new Payment(
                 this._context,
                 this._timer,
@@ -282,11 +277,11 @@ class Checkout {
         if (res === this._payment.PAYMENT_STATES.Error) {
             return Checkout.States.Stopped;
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
-            return Checkout.States.PaymentProcessing;
+            return Checkout.States.Stopped;
         } else if (res === this._payment.PAYMENT_STATES.Declined) {
             return Checkout.States.PaymentError;
         } else if (res === this._payment.PAYMENT_STATES.Success) {
-            return Checkout.States.PaymentFinished; 
+            return Checkout.States.Stopped; 
         } else {
             return Checkout.States.Stopped;
         }
@@ -299,6 +294,10 @@ class Checkout {
     }
 
     async _handleStepLogic(currentState) {
+        async function defaultHandler() {
+            return currentState;
+        }
+
         const stateMap = {
             [Checkout.States.Started]: this._handleStarted,
             [Checkout.States.LoginAccount]: this._handleLogin,
@@ -312,8 +311,7 @@ class Checkout {
             [Checkout.States.Stopped]: this._handleStopped,
         }
 
-        const handler = stateMap[currentState];
-        console.log(handler);
+        const handler = stateMap[currentState] || defaultHandler;
         return await handler.call(this);
     }
 

@@ -43,7 +43,7 @@ class Shipping {
         this._captchaResponse = '';
     }
 
-    submit() {
+    getShippingOptions() {
         if (this._aborted) {
             console.log('[INFO]: SHIPPING: Abort detected, aborting...');
             return -1;
@@ -52,7 +52,7 @@ class Shipping {
         this._timer.start(now());
 
         return request({
-            uri: `${this._checkoutUrl.split('?')[0]}`,
+            uri: `${this._checkoutUrl}`,
             method: 'get',
             proxy: formatProxy(this._proxy),
             resolveWithFullResponse: true,
@@ -70,8 +70,10 @@ class Shipping {
             }
         })
         .then(($) => {
-            // TODO - see if captcha is present and emit the request to solve it
 
+            // TODO - captcha solving
+
+            const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
             return request({
                 uri: `${this._checkoutUrl}`,
                 method: 'post',
@@ -85,34 +87,66 @@ class Shipping {
                     'User-Agent': userAgent,
                     Referer: `${this._checkoutUrl}`,
                 },
-                formData: buildShippingForm(this._task, this._authToken, '', 'shipping_method', 'contact_information'),
+                formData: buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information'),
                 transform: function(body) {
                     return cheerio.load(body);
                 }
             })
             .then(($) => {
-                const authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-                console.log(authToken, this._shippingMethod);
-                
+                const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
+                this._timer.stop(now());
+                console.log(`[INFO]: SHIPPING: Got shipping options in ${this._timer.getRunTime()}ms`);
+                if (shippingPollUrl === undefined) {
+                    const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
+                    if (firstShippingOption == undefined) {
+                        console.log(`${this._task.site.url} is Incompatible, sorry for the inconvenience.`);
+                        return null;
+                    } else {
+                        return {
+                            type: 'direct',
+                            value: firstShippingOption,
+                            authToken: $('input[name="authenticity_token"]').val()
+                        };
+                    }
+                }
+                return {
+                    type: 'poll',
+                    value: shippingPollUrl,
+                    authToken: '',
+                }
+            })
+            
+        });
+    }
+
+    submitShipping(type, value, authToken) {
+        if (this._aborted) {
+            console.log('[INFO]: SHIPPING: Abort detected, aborting...');
+            return -1;
+        }
+
+        this._timer.start(now());
+
+        if (type === 'poll') {
+            setTimeout(() => {
                 return request({
-                    uri: `${this._checkoutUrl}`,
+                    uri: this._checkoutUrl + value,
                     followAllRedirects: true,
                     resolveWithFullResponse: true,
-                    method: 'post',
+                    simple: false,
+                    method: 'get',
                     headers: {
-                    'User-Agent': userAgent,
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                        Accept:
+                        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'User-Agent': userAgent,
                     },
-                    formData: buildShippingMethodForm(this._task, authToken, this._captchaResponse)
-                    // transform: function(body) {
-                    //     return cheerio.load(body);
-                    // }
+                    transform: function(body) {
+                        return cheerio.load(body);
+                    }
                 })
-                .then((res) => {
-                    fs.writeFileSync('debug-shipping-test.html', res.body);
-                    const $ = cheerio.load(res.body);
-                    const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
-                    const newAuthToken = $('input[name="authenticity_token"]').val();
+                .then(($) => {
+                    const shippingMethod = $('.radio-wrapper').attr('data-shipping-method');
+                    const authToken = $('form[data-shipping-method-form="true"] input[name="authenticity_token"]').attr('value');
                     return request({
                         uri: this._checkoutUrl,
                         followAllRedirects: true,
@@ -125,31 +159,87 @@ class Shipping {
                         formData: {
                             utf8: '✓',
                             _method: 'patch',
-                            authenticity_token: newAuthToken,
+                            authenticity_token: authToken,
                             button: '',
                             previous_step: 'shipping_method',
                             step: 'payment_method',
-                            'checkout[shipping_rate][id]': firstShippingOption,
+                            'checkout[shipping_rate][id]': shippingMethod,
                         },
-                    })
-                    .then((res) => {
-                        const $ = cheerio.load(res.body);
-                        fs.writeFileSync('test.html', res.body);
-                        const gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-                        const paymentAuthToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
-                        const price = $('input[name="checkout[total_price]"]').attr('value');
-
-                        console.log(`Price: ${price}`);
-                        console.log(`Payment Gateway ID: ${gateway}`);
-
-                        return {
-                            paymentGateway: gateway,
-                            newAuthToken: paymentAuthToken,
+                        transform: function(body) {
+                            return cheerio.load(body);
                         }
                     })
+                    .then(($) => {
+                        const price = $('input[name="checkout[total_price]"]').attr('value');
+                        const paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+                        const newAuthToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
+                
+                        this._timer.stop(now());
+                        console.log(`[INFO]: SHIPPING: Submitted shipping in ${this._timer.getRunTime()}ms`);
+                
+                        return {
+                            price,
+                            paymentGateway,
+                            newAuthToken,
+                        };
+                    }); 
                 });
-            });
-        })
+            }, parseInt(this._task.shippingPoll));
+        } else if (type === 'direct') {
+            
+            return request({
+                uri: this._checkoutUrl,
+                followAllRedirects: true,
+                resolveWithFullResponse: true,
+                method: 'post',
+                headers: {
+                    'User-Agent': userAgent,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                formData: {
+                    utf8: '✓',
+                    _method: 'patch',
+                    authenticity_token: authToken,
+                    button: '',
+                    previous_step: 'shipping_method',
+                    step: 'payment_method',
+                    'checkout[shipping_rate][id]': value,
+                    'checkout[client_details][browser_width]': '1410',
+                    'checkout[client_details][browser_height]': '781',
+                    'checkout[client_details][javascript_enabled]': '1',
+                    'secret': 'true',
+                },
+                transform: function(body) {
+                    return cheerio.load(body);
+                },
+            })
+            .then(() => {
+                
+                return request({
+                    uri: `${this._checkoutUrl}?previous_step=shipping_method&step=payment_method`,
+                    method: 'get',
+                    followAllRedirects: true,
+                    headers: {
+                        'User-Agent': userAgent,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    transform: function(body) {
+                        return cheerio.load(body);
+                    }
+                })
+                .then(($) => {
+                    const price = $('input[name="checkout[total_price]"]').attr('value');
+                    const paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+                    const newAuthToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
+
+                    return {
+                        price,
+                        paymentGateway,
+                        newAuthToken,
+                    };
+                })
+            })
+        }
     }
 }
 module.exports = Shipping;
