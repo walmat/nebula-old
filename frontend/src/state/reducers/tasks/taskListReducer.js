@@ -54,19 +54,27 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
     }
     case TASK_ACTIONS.REMOVE: {
       // Check for valid payload structure
-      if (!action.response || (action.response && !action.response.task)) {
+      if (!action.response) {
         break;
       }
 
       const { task } = action.response;
+      let taskId = -1;
+      // Check if we are removing all tasks or just a single task
+      if (task || task === null) {
+        taskId = (task && task.id);
+      }
 
       // filter out task from list now
-      nextState = nextState.filter(t => t.id !== task.id);
+      nextState = nextState.filter(t => t.id !== (taskId || t.id));
 
-      // adjust the id of each following task to shift down one when a task is deleted
-      for (let i = task.id - 1; i < nextState.length; i += 1) {
-        _num = nextState[i].id;
-        nextState[i].id -= 1;
+      // Check if we have adjusted the array and need to recalculate ids
+      if (nextState.length !== state.length && nextState.length !== 0) {
+        // adjust the id of each following task to shift down one when a task is deleted
+        for (let i = task.id - 1; i < nextState.length; i += 1) {
+          _num = nextState[i].id;
+          nextState[i].id -= 1;
+        }
       }
       break;
     }

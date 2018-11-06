@@ -27,6 +27,12 @@ describe('getAllSites', () => {
         auth: false,
       },
       {
+        value: 'https://eflash.doverstreetmarket.com',
+        label: 'DSM EU',
+        supported: true,
+        auth: false,
+      },
+      {
         value: 'https://eflash-jp.doverstreetmarket.com',
         label: 'DSM JP',
         supported: true,
@@ -35,12 +41,6 @@ describe('getAllSites', () => {
       {
         value: 'https://eflash-sg.doverstreetmarket.com',
         label: 'DSM SG',
-        supported: true,
-        auth: false,
-      },
-      {
-        value: 'https://eflash.doverstreetmarket.com',
-        label: 'DSM UK',
         supported: true,
         auth: false,
       },

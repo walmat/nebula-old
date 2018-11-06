@@ -171,7 +171,7 @@ describe('task list reducer', () => {
         expected[1].id = 2;
         const actual = taskListReducer(start, {
           type: TASK_ACTIONS.REMOVE,
-          response: { id: 2 },
+          response: { task: { id: 2 } },
         });
         expect(actual).toEqual(expected);
       });
@@ -184,7 +184,7 @@ describe('task list reducer', () => {
         const expected = [];
         const actual = taskListReducer(start, {
           type: TASK_ACTIONS.REMOVE,
-          response: { id: null },
+          response: { task: null },
         });
         expect(actual).toEqual(expected);
       });
@@ -204,7 +204,7 @@ describe('task list reducer', () => {
         expect(actual).toEqual(expected);
       };
 
-      test('id is not given', () => {
+      test('task is not given', () => {
         testNoop({
           response: {},
         });
@@ -601,6 +601,7 @@ describe('task list reducer', () => {
       ];
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].status = 'running';
+      expected[0].output = 'Starting task!';
       const actual = taskListReducer(
         start,
         {
@@ -623,6 +624,7 @@ describe('task list reducer', () => {
       ];
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].status = 'running';
+      expected[0].output = 'Starting task!';
       const actual = taskListReducer(
         start,
         {
@@ -705,6 +707,7 @@ describe('task list reducer', () => {
       ];
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].status = 'stopped';
+      expected[0].output = 'Stopping task...';
       const actual = taskListReducer(
         start,
         {
