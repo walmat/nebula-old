@@ -1,516 +1,316 @@
-const cheerio = require('cheerio');
-const phoneFormatter = require('phone-formatter');
-const now = require("performance-now");
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
-});
-
-const {
-    formatProxy,
-    userAgent,
-} = require('./utils');
+/**
+ * Local class includes
+ */
+const Cart = require('./cart');
+const Shipping = require('./shipping');
+const Payment = require('./payment');
+const Account = require('./account');
+const Timer = require('./timer');
+const { States } = require('../taskRunner');
 
 class Checkout {
 
-    constructor(task, proxy) {
+    /**
+     * Task Runner States
+     */
+    static get States() {
+        return {
+            Started: 'STARTED',
+            Stopped: 'STOPPED',
+            LoginAccount: 'LOGIN_ACCOUNT',
+            AddToCart: 'ADD_TO_CART',
+            GetShippingRates: 'GET_SHIPPING_RATES',
+            GeneratePaymentToken: 'GENERATE_PAYMENT_TOKEN',
+            ProceedToCheckout: 'PROCEED_TO_CHECKOUT',
+            CheckoutQueue: 'CHECKOUT_QUEUE',
+            OutOfStock: 'OUT_OF_STOCK',
+            Shipping: 'SHIPPING',
+            SolveCaptcha: 'SOLVE_CAPTCHA',
+            Payment: 'PAYMENT',
+            PaymentError: 'PAYMENT_ERROR',
+            PaymentProcessing: 'PAYMENT_PROCESSING',
+            PaymentFinished: 'PAYMENT_FINISHED',
+        };
+    }
+
+    constructor(context) {
+        /**
+         * All data needed for monitor to run
+         * This includes:
+         * - current runner id
+         * - current task
+         * - current proxy
+         * - whether or not we should abort
+         * @type {TaskRunnerContext}
+         */
+        this._context = context;
+
+        /**
+         * ID of the given task runner
+         */
+        this._id = this._context.runner_id;
 
          /**
          * Task Data for the running task
          * @type {TaskObject}
          */
-        this._task = task;
+        this._task = this._context.task;
 
         /**
          * Proxy to run the task with
          * @type {String}
          */
-        this._proxy = proxy;
+        this._proxy = this._context.proxy;
 
         /**
          * Price for the product
          * @type {String}
          */
-        this._price = null;
+        this._aborted = this._context.aborted;
+        this._state = Checkout.States.Started;
+
+        this._checkoutUrl;
+        this._authToken;
+        this._price;
+        this._shippingValue;
+        this._paymentToken;
+        this._paymentGateway;
+        this._captchaResponse = '';
+
+        this._retries = {
+            LOGIN: 5,
+            ADD_TO_CART: 5,
+            SHIPPING: 5,
+            PAYMENT: 5,
+        }
+
+        this._variantIndex = 0;
 
         /**
-         * Store ID for the task running this checkout
-         * @type {String}
+         * Class Instantiations
          */
-        this._storeID = null;
-
-        /**
-         * Checkout URL for the task running
-         * @type {String}
-         */
-        this._checkoutUrl = null;
-
-        /**
-         * Checkout host for the task running
-         * @type {String}
-         */
-        this._checkoutHost = null;
-
-        /**
-         * Checkout ID for the task running
-         * @type {String}
-         */
-        this._checkoutID = null;
-
-        /**
-         * All matched variants for the given product
-         */
-        this._matchedVariants = null;
-
-        /**
-         * Authorization token for the checkout
-         */
-        this._authToken = null;
-
-        /**
-         * Payment gateway for the given checkout session
-         */
-        this._paymentGateway = null;
+        this._timer = new Timer();
+        this._cart = new Cart(context, this._timer);
+        this._shipping = null;
+        this._payment = null;
+        this._account = new Account(context, this._timer);
     }
 
-    addToCart() {
-
-        const styleID = this._matchedVariants[0].id;
-
-        rp({
-            uri: `${this._task.site.url}/cart/add.js`,
-            followAllRedirects: true,
-            method: 'post',
-            headers: {
-                Origin: this._task.site.url,
-                'User-Agent': userAgent,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept:
-                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: this._task.product.url,
-                'Accept-Language': 'en-US,en;q=0.8',
-            },
-            formData: {
-                id: styleID,
-                qty: '1',
-            },
-        })
-        .then((res) => {
-            // check response for successful add to cart
-            if (res.length > 0) {
-                return goToCheckout();
-            }   
-        }).catch((err) => {
-            // error adding to cart
-        });
+    /**
+     * Checkout process started
+     * @returns {STATE} next checkout state
+     */
+    async _handleStarted() {
+        console.log('[INFO]: CHECKOUT: Starting...');
+        // if the site requires authentication, 
+        if (this._task.username && this._task.password) {
+            return Checkout.States.LoginAccount;
+        }
+        return Checkout.States.AddToCart;
     }
 
-    goToCheckout() {
-        rp({
-            uri: `${this._task.site.url}/cart.js`,
-            followAllRedirects: true,
-            resolveWithFullResponse: true,
-            method: 'post',
-            headers: {
-                'User-Agent': userAgent,
-            },
-            formData: {
-                quantity: '1',
-                checkout: 'Checkout',
-            },
-        })
-        .then((res) => {
-            this._checkoutHost = `https://${res.request.originalHost}`;
-
-            if (res.request.href.indexOf('stock_problems') > -1) {
-                // out of stock, run for restocks
-            } else {
-                const $ = cheerio.load(body);
-                this._checkoutUrl = res.request.href;
-                this._checkoutID = this._checkoutUrl.split('checkouts/')[1];
-                this._storeID = this._checkoutUrl.split('/')[3];
-                this._authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-                console.log(`Store ID: ${this._storeID}`);
-                console.log(`Checkout ID: ${this._checkoutID}`);
-                console.log(`Auth token: ${this._authToken}`);
-                this._price = $('#checkout_total_price').text();
-
-                return inputShipping();
-            }
-
-        })
-        .catch((err) => {
-            // error going to checkout
-        });
-    }
-
-    inputShipping() {
-        let form;
-
-        if (this._checkoutUrl.indexOf('checkout.shopify.com') > -1) {
-            form = {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: auth_token,
-                previous_step: 'contact_information',
-                step: 'shipping_method',
-                'checkout[email]': task.payment.email,
-                'checkout[buyer_accepts_marketing]': '1',
-                'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
-                'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': task.profile.shipping.address,
-                'checkout[shipping_address][address2]': task.profile.shipping.apt,
-                'checkout[shipping_address][city]': task.profile.shipping.city,
-                'checkout[shipping_address][country]': task.profile.shipping.country,
-                'checkout[shipping_address][province]': task.profile.shipping.state,
-                'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': task.profile.shipping.phone,
-                'checkout[remember_me]': '0',
-                button: '',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-            };
+    async _handleLogin() {
+        console.log('[INFO]: CHECKOUT: Logging in...');
+        const res = await this._account.login();
+        this._retries.LOGIN--;
+        if (res === this._account.ACCOUNT_STATES.LoggedIn) {
+            return Checkout.States.AddToCart
+        } else if (this._retries.LOGIN > 0) {
+            return Checkout.States.LoginAccount;
         } else {
-            form = {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: auth_token,
-                previous_step: 'contact_information',
-                'checkout[email]': task.profile.payment.email,
-                'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
-                'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': task.profile.shipping.address,
-                'checkout[shipping_address][address2]': task.profile.shipping.apt,
-                'checkout[shipping_address][city]': task.profile.shipping.city,
-                'checkout[shipping_address][country]': task.profile.shipping.country,
-                'checkout[shipping_address][province]': task.profile.shipping.state,
-                'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': task.profile.shipping.phone,
-                'checkout[remember_me]': '0',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-                step: 'contact_information',
-            };
-        }
-
-        rp({
-            uri: this._checkoutUrl,
-            followAllRedirects: true,
-            headers: {
-                Origin: `${this._checkoutHost}`,
-                'User-Agent': userAgent,
-                Accept:
-                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                Referer: `${this._checkoutHost}/`,
-                'Accept-Language': 'en-US,en;q=0.8',
-            },
-            method: 'get',
-            qs: form,
-        })
-        .then((body) => {
-            const $ = cheerio.load(body);
-            this._authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-            return requestShipping();
-        })
-        .catch((err) => {
-            // error filling out form for some reason..
-        });
-    }
-
-    requestShipping() {
-        let form;
-
-        if (this._checkoutUrl.indexOf('checkout.shopify.com') > -1) {
-            form = {
-                _method: 'patch',
-                authenticity_token: auth_token,
-                button: '',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-                'checkout[email]': task.profile.payment.email,
-                'checkout[shipping_address][address1]': task.profile.shipping.address,
-                'checkout[shipping_address][address2]': task.profile.shipping.apt,
-                'checkout[shipping_address][city]': task.profile.shipping.city,
-                'checkout[shipping_address][country]': task.profile.shipping.country,
-                'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
-                'checkout[shipping_address][phone]': task.profile.shipping.phone,
-                'checkout[shipping_address][province]': task.profile.shipping.state,
-                'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-                previous_step: 'contact_information',
-                remember_me: 'false',
-                step: 'shipping_method',
-                utf8: '✓',
-            };
-        } else {
-            form = {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: auth_token,
-                button: '',
-                'checkout[email]': task.profile.payment.email,
-                'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-                'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
-                'checkout[shipping_address][company]': '',
-                'checkout[shipping_address][address1]': task.profile.shipping.address,
-                'checkout[shipping_address][address2]': task.profile.shipping.apt,
-                'checkout[shipping_address][city]': task.profile.shipping.city,
-                'checkout[shipping_address][country]': task.profile.shipping.country,
-                'checkout[shipping_address][province]': task.profile.shipping.state,
-                'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-                'checkout[shipping_address][phone]': phoneFormatter.format(
-                    task.profile.shipping.phone,
-                    '(NNN) NNN-NNNN'
-                ),
-                'checkout[remember_me]': '0',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-                previous_step: 'contact_information',
-                step: 'shipping_method',
-            };
-        }
-
-        rp({
-            uri: this._checkoutUrl,
-            followAllRedirects: true,
-            method: 'post',
-            headers: {
-                Origin: `${this._checkoutHost}`,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept:
-                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.8',
-                Referer: `${this._checkoutHost}/${this._storeID}/checkout/${this._checkoutID}`,
-                'User-Agent': userAgent,
-            },
-            form: form,
-        })
-        .then((body) => {
-            const $ = cheerio.load(body);
-            const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
-            if (shippingPollUrl === undefined) {
-                const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
-                console.log(`Shipping method: ${firstShippingOption}`);
-                if (firstShippingOption === undefined) {
-                    console.log(`Unable to find checkout option for ${this._checkoutUrl}`);
-                    process.exit(1);
-                } else {
-                    return submitShipping({
-                        type: 'direct',
-                        value: firstShippingOption,
-                        authToken: $('input[name="authenticity_token"]').val(),
-                    });
-                }
-            }
-            return submitShipping({
-                type: 'poll',
-                value: shippingPollUrl,
-            });
-        })
-        .catch((err) => {
-            // error getting shipping options
-        });
-    }
-
-    submitShipping(res) {
-        if (res.type === 'poll') {
-            console.log(`Shipping Poll URL: ${this._checkoutHost}${res.value}`);
-            setTimeout(() => {
-                rp({
-                    uri: this._checkoutHost + res.value,
-                    method: 'GET',
-                    headers: {
-                        Accept:
-                            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                            'User-Agent': userAgent,
-                    },
-                })
-                .then((body) => {
-                    const $ = cheerio.load(body);
-                    const shippingMethodValue = $('.radio-wrapper').attr('data-shipping-method');
-                    this._authToken = $('form[data-shipping-method-form="true"] input[name="authenticity_token"]').attr('value');
-
-                    console.log(`Shipping Method Value: ${shippingMethodValue}`);
-                    console.log('Card information sending...');
-
-                    return shippingMethodValue;
-
-                })
-                .then((shippingMethodValue) => {
-                    return rp({
-                        uri: this._checkoutUrl,
-                        followAllRedirects: true,
-                        method: 'POST',
-                        headers: {
-                            'User-Agent': userAgent,
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        formData: {
-                            utf8: '✓',
-                            _method: 'patch',
-                            authenticity_token: this._authToken,
-                            button: '',
-                            previous_step: 'shipping_method',
-                            step: 'payment_method',
-                            'checkout[shipping_rate][id]': shippingMethodValue,
-                        },
-                    });
-                })
-                .then((body) => {
-                    const $ = cheerio.load(body);
-                    this._price = $('input[name="checkout[total_price]"]').attr('value');
-                    this._paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-                    this._authToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
-
-                    return submitPayment();
-                })
-                .catch((err) => {
-                    // error submitting payment
-                });
-            }, parseInt(this._task.shippingPollTimeout));
-        } else if (res.type === 'direct') {
-            console.log(`Shipping Method Value: ${res.value}`);
-            console.log('Card information sending...');
-    
-            rp({
-                uri: this._checkoutUrl,
-                followAllRedirects: true,
-                method: 'POST',
-                headers: {
-                    'User-Agent': userAgent,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                formData: {
-                    utf8: '✓',
-                    _method: 'patch',
-                    authenticity_token: res.authToken,
-                    button: '',
-                    previous_step: 'shipping_method',
-                    step: 'payment_method',
-                    'checkout[shipping_rate][id]': res.value,
-                },
-            })
-            .then((body) => {
-                const $ = cheerio.load(body);
-                this._paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-                this._authToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
-
-                return submitPayment();
-            })
-            .catch((err) => {
-                // error submitting payment
-            });
+            return Checkout.States.Stopped;
         }
     }
 
-    submitPayment() {
-        const paymentInfo = {
-            credit_card: {
-                number: this._task.profile.payment.cardNumber,
-                verification_value: this._task.profile.payment.cvv,
-                name: `${this._task.profile.billing.firstName} ${this._task.profile.billing.lastName}`,
-                month: parseInt(this._task.profile.payment.exp.slice(0,2)),
-                year: parseInt(this._task.profile.payment.exp.slice(3,5)),
-            }
-        }
-
-        rp({
-            uri: `https://elb.deposit.shopifycs.com/sessions`,
-            followAllRedirects: true,
-            method: 'post',
-            headers: {
-                'User-Agent': userAgent,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(paymentInfo),
-        })
-        .then((res) => {
-            return submitBilling(JSON.parse(res).id);
-        })
-        .catch((err) => {
-            // error creating payment session
-        });
-    }
-
-    submitBilling(sValue) {
-        rp({
-            uri: this._checkoutUrl,
-            followAllRedirects: true,
-            method: 'post',
-            headers: {
-                Origin: this._checkoutHost,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                Accept:
-                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.8',
-                Referer: `${this._checkoutHost}/${this._storeID}/checkouts/${this._checkoutID}`,
-                'User-Agent': userAgent,
-            },
-            formData: {
-                utf8: '✓',
-                _method: 'patch',
-                authenticity_token: this._authToken,
-                previous_step: 'payment_method',
-                step: '',
-                s: sValue,
-                'checkout[payment_gateway]': this._paymentGateway,
-                'checkout[credit_card][vault]': 'false',
-                'checkout[different_billing_address]': 'false',
-                'checkout[billing_address][first_name]': this._task.profile.billing.firstName,
-                'checkout[billing_address][last_name]': this._task.profile.billing.lastName,
-                'checkout[billing_address][company]': '',
-                'checkout[billing_address][address1]': this._task.profile.billing.address,
-                'checkout[billing_address][address2]': this._task.profile.billing.apt,
-                'checkout[billing_address][city]': this._task.profile.billing.city,
-                'checkout[billing_address][country]': this._task.profile.billing.country,
-                'checkout[billing_address][province]': this._task.profile.billing.state,
-                'checkout[billing_address][zip]': this._task.profile.billing.zipCode,
-                'checkout[billing_address][phone]': phoneFormatter.format(
-                    this._task.profile.billing.phone,
-                    '(NNN) NNN-NNNN'
-                ),
-                'checkout[total_price]': this._price,
-                complete: '1',
-                'checkout[client_details][browser_width]': '979',
-                'checkout[client_details][browser_height]': '631',
-                'checkout[client_details][javascript_enabled]': '1',
-            },
-        })
-        .then((body) => {
-            const $ = cheerio.load(body);
-            if ($('input[name="step"]').val() === 'processing') {
-                console.log(
-                    'Payment is processing, go check your email for a confirmation.'
-                );
-            } else if ($('title').text().indexOf('Processing') > -1) {
-                console.log(
-                    'Payment is processing, go check your email for a confirmation.'
-                );
-            } else if ($('div.notice--warning p.notice__text')) {
-                if ($('div.notice--warning p.notice__text') == '') {
-                    console.log(`An unknown error has occurred please try again.`, 'error');
-                    setTimeout(function() {
-                        return process.exit(1);
-                    }, 4500);
-                } else {
-                    console.log(`${$('div.notice--warning p.notice__text').eq(0).text()}`, 'error');
-                    setTimeout(function() {
-                        return process.exit(1);
-                    }, 4500);
-                }
+    /**
+     * Add to cart
+     * @returns {STATE} next checkout state
+     */
+    async _handleAddToCart() {
+        const res = await this._cart.addToCart(this._task.product.variants[this._variantIndex]);
+        if(!res) {
+            this._retries.ADD_TO_CART--;
+            console.log('[ERROR]: CHECKOUT: Failed adding to cart...');
+            if (this._retries.ADD_TO_CART > 0) {
+                return Checkout.States.AddToCart;
             } else {
-                console.log(`An unknown error has occurred please try again.`, 'error');
-                setTimeout(function() {
-                    return process.exit(1);
-                }, 4500);
+                return Checkout.States.Stopped;
             }
-        })
+        }
+        this._price = this._cart._price;
+        return Checkout.States.GeneratePaymentToken;
+    }
+
+    /**
+     * Get payment token
+     * @returns {STATE} next checkout state
+     */
+    async _handlePaymentToken() {
+        const paymentToken = await this._cart.getPaymentToken();
+        if(!paymentToken) {
+            console.log('[ERROR]: CHECKOUT: Failed fetching payment token...');
+            // TODO - handle failed to get payment token
+            return Checkout.States.Stopped;
+        }
+        this._paymentToken = paymentToken;
+        return Checkout.States.ProceedToCheckout;
+    }
+
+    /**
+     * Get checkout data
+     * @returns {STATE} next checkout state
+     */
+    async _handleProceedToCheckout() {
+        const res = await this._cart.proceedToCheckout();
+        if (res.state === this._cart.CART_STATES.TooManyAttempts) {
+            // TODO -- handle soft ban
+            return Checkout.States.Stopped;
+        } else if (res.state === this._cart.CART_STATES.CheckoutQueue) {
+            console.log('[INFO]: CHECKOUT: Waiting in queue...');
+            // TODO - implement a wait of some sort?
+            return Checkout.States.ProceedToCheckout;
+        } else if (res.state === this._cart.CART_STATES.OutOfStock) {
+            console.log('[INFO]: CHECKOUT: Out of stock...');
+            return Checkout.States.OutOfStock;
+        } else if (res.state === this._cart.CART_STATES.Success) {            
+            
+            this._checkoutUrl = res.checkoutUrl.split('?')[0];
+            this._authToken = res.authToken;
+
+            this._shipping = new Shipping(
+                this._context,
+                this._timer,
+                this._checkoutUrl,
+                this._authToken,
+                this._shippingValue,
+            );
+            return Checkout.States.Shipping;
+        }
+    }
+
+    /**
+     * Run restocks/swap sizes
+     * @returns {STATE} next checkout state
+     */
+    async _handleOutOfStock() {
+        this._variantIndex++;
+        if (this._variantIndex >= this._task.sizes.length) {
+            this._variantIndex = 0;
+        }
+        if (this._task.sizes.length > 1) {
+            // create background thread to run for restocks, and check next size?
+            console.log('[INFO]: CHECKOUT: Swapping to next size...');
+            const cleared = await this._cart.clearCart();
+            if (cleared) {
+                return Checkout.States.AddToCart
+            }
+            return Checkout.States.Stopped;
+        } else {
+            // run restocks for the one size..
+            console.log('[INFO]: CHECKOUT: Running for restocks...');
+            return Checkout.States.Restock;
+        }
+    }
+
+    /**
+     * Submit shipping details
+     * @returns {STATE} next checkout state
+     */
+    async _handleShipping() {
+        const opts = await this._shipping.getShippingOptions();
+        if (!opts.type) {
+            return Checkout.States.Stopped;
+        }
+        const res = await this._shipping.submitShipping(opts.type, opts.value, opts.authToken);
+        if (res.captcha) {
+            console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
+            return Checkout.States.SolveCaptcha;
+        } else if (!res.captcha && res.paymentGateway && res.newAuthToken) {
+            console.log('[INFO]: CHECKOUT: Proceeding to submit payment...');
+            this._authToken = res.newAuthToken;
+            this._paymentGateway = res.paymentGateway;
+            this._price = res.price;
+            this._payment = new Payment(
+                this._context,
+                this._timer,
+                this._checkoutUrl,
+                this._authToken,
+                this._price,
+                this._paymentGateway,
+                this._paymentToken,
+                this._shippingValue,
+                this._captchaResponse,
+            );
+            return Checkout.States.Payment;
+        }
+        console.log('[ERROR]: CHECKOUT: Unable to submit shipping...');
+        return Checkout.States.Stopped;
+    }
+
+    /**
+     * Submit shipping details
+     * @returns {STATE} next checkout state
+     */
+    async _handleSolveCaptcha() {
+        // TODO - think about how to handle this with captcha and all..
+        this._captchaResponse = '';
+    }
+
+    /**
+     * Submit shipping details
+     * @returns {STATE} next checkout state
+     */
+    async _handlePayment() {
+        const res = await this._payment.submit();
+        if (res === this._payment.PAYMENT_STATES.Error) {
+            return Checkout.States.Stopped;
+        } else if (res === this._payment.PAYMENT_STATES.Processing) {
+            return Checkout.States.Stopped;
+        } else if (res === this._payment.PAYMENT_STATES.Declined) {
+            return Checkout.States.PaymentError;
+        } else if (res === this._payment.PAYMENT_STATES.Success) {
+            return Checkout.States.Stopped; 
+        } else {
+            return Checkout.States.Stopped;
+        }
+    }
+
+    async _handleStopped() {
+        console.log('[INFO]: CHECKOUT: Shopping checkout process...');
+        return Checkout.States.Stopped;
+        // TODO - handle a clean shut down..
+    }
+
+    async _handleStepLogic(currentState) {
+        async function defaultHandler() {
+            return currentState;
+        }
+
+        const stateMap = {
+            [Checkout.States.Started]: this._handleStarted,
+            [Checkout.States.LoginAccount]: this._handleLogin,
+            [Checkout.States.AddToCart]: this._handleAddToCart,
+            [Checkout.States.GeneratePaymentToken]: this._handlePaymentToken,
+            [Checkout.States.ProceedToCheckout]: this._handleProceedToCheckout,
+            [Checkout.States.OutOfStock]: this._handleOutOfStock,
+            [Checkout.States.Shipping]: this._handleShipping,
+            [Checkout.States.SolveCaptcha]: this._handleSolveCaptcha,
+            [Checkout.States.Payment]: this._handlePayment,
+            [Checkout.States.Stopped]: this._handleStopped,
+        }
+
+        const handler = stateMap[currentState] || defaultHandler;
+        return await handler.call(this);
+    }
+
+    async run() {
+        this._state = await this._handleStepLogic(this._state);
+        if (this._state !== Checkout.States.Stopped ||
+            this._state !== Checkout.States.PaymentProcessing ||
+            this._state !== Checkout.States.Error) {
+            return States.Checkout;
+        }
+        return States.Finished;
     }
 }
 

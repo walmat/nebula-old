@@ -1,10 +1,12 @@
 var AWS = require("aws-sdk");
 
-require('./src/utils/env').setUpEnvironment();
+const nebulaEnv = require('./src/utils/env');
+nebulaEnv.setUpEnvironment();
 var config = require('./src/utils/setupDynamoConfig').getConfig();
 var { hash } = require('./hash');
 const { salt, algo, output } = require('./hashConfig.json');
 
+const keys = []; // add these here when we need to add keys
 AWS.config.update(config);
 var dynamodb = new AWS.DynamoDB();
 
@@ -89,7 +91,5 @@ if (process.argv.length === 3) {
     }
   }
 } else {
-  storeKey('testkey1');
-  storeKey('testkey2');
-  storeKey('testkey3');
+  keys.forEach(key => storeKey(key));
 }

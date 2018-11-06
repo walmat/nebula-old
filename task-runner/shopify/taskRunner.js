@@ -1,5 +1,6 @@
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
+const QueueBypass = require('./classes/bypass');
 const EventEmitter = require('events');
 
 class TaskRunner {
@@ -24,6 +25,7 @@ class TaskRunner {
             Started: 'STARTED',
             GenAltCheckout: 'GEN_ALT_CHECKOUT',
             Monitor: 'MONITOR',
+            Restock: 'RESTOCK',
             SwapProxies: 'SWAP_PROXIES',
             Checkout: 'CHECKOUT',
             Finished: 'FINISHED',
@@ -60,6 +62,8 @@ class TaskRunner {
          * The id of this task runner
          */
         this.id = id;
+
+        this._queueBypass = new QueueBypass(this._context);
 
         /**
          * Create a new monitor object to be used for the task
@@ -101,6 +105,10 @@ class TaskRunner {
                 this._events.on(TaskRunner.Events.TaskStatus, callback);
                 break;
             }
+            case TaskRunner.Events.QueueBypassStatus: {
+                this._events.on(TaskRunner.Events.QueueBypassStatus, callback);
+                break;
+            }
             case TaskRunner.Events.MonitorStatus: {
                 this._events.on(TaskRunner.Events.MonitorStatus, callback);
                 break;
@@ -111,6 +119,7 @@ class TaskRunner {
             }
             case TaskRunner.Events.All: {
                 this._events.on(TaskRunner.Events.TaskStatus, callback);
+                this._events.on(TaskRunner.Events.QueueBypassStatus, callback);
                 this._events.on(TaskRunner.Events.MonitorStatus, callback);
                 this._events.on(TaskRunner.Events.CheckoutStatus, callback);
             }
@@ -123,6 +132,10 @@ class TaskRunner {
                 this._events.removeListener(TaskRunner.Events.TaskStatus, callback);
                 break;
             }
+            case TaskRunner.Events.QueueBypassStatus: {
+                this._events.removeListener(TaskRunner.Events.QueueBypassStatus, callback);
+                break;
+            }
             case TaskRunner.Events.MonitorStatus: {
                 this._events.removeListener(TaskRunner.Events.MonitorStatus, callback);
                 break;
@@ -133,6 +146,7 @@ class TaskRunner {
             }
             case TaskRunner.Events.All: {
                 this._events.removeListener(TaskRunner.Events.TaskStatus, callback);
+                this._events.removeListener(TaskRunner.Events.QueueBypassStatus, callback);
                 this._events.removeListener(TaskRunner.Events.MonitorStatus, callback);
                 this._events.removeListener(TaskRunner.Events.CheckoutStatus, callback);
             }
@@ -147,6 +161,10 @@ class TaskRunner {
         switch(event) {
             case TaskRunner.Events.TaskStatus: {
                 this._events.emit(TaskRunner.Events.TaskStatus, this._context.id, message, TaskRunner.Events.TaskStatus);
+                break;
+            }
+            case TaskRunner.Events.QueueBypassStatus: {
+                this._events.emit(TaskRunner.Events.QueueBypassStatus, this._context.id, message, TaskRunner.Events.QueueBypassStatus);
                 break;
             }
             case TaskRunner.Events.MonitorStatus: {
@@ -169,7 +187,11 @@ class TaskRunner {
     }
 
     _emitMonitorEvent(message) {
-        this._emitEvent(TaskRunner.Events.MonitorStatus, message);
+        _emitEvent(TaskRunner.Events.QueueBypassStatus, message);
+    }
+
+    _emitMonitorEvent(message) {
+        _emitEvent(TaskRunner.Events.MonitorStatus, message);
     }
 
     _emitCheckoutEvent(message) {

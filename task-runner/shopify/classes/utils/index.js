@@ -1,10 +1,25 @@
-const _ = require('underscore');
 const rfrl = require('./rfrl');
+const $ = require('cheerio');
 
 module.exports = {};
 
 const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 module.exports.userAgent = userAgent;
+
+const jar = require('request').jar();
+const request = require('request-promise').defaults({
+    timeout: 10000,
+    jar: jar,
+})
+module.exports.request = request;
+module.exports.cookieJar = jar;
+
+const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2
+});
+module.exports.formatter = formatter;
 
 /**
  * Formats the proxy correctly to be used in a request
@@ -24,6 +39,20 @@ function formatProxy(input) {
     }
 }
 module.exports.formatProxy = formatProxy;
+
+function autoParse(body, response, resolveWithFullResponse) {
+    // FIXME: The content type string could contain additional values like the charset.
+    // Consider using the `content-type` library for a robust comparison.
+    console.log(response);
+    if (response.headers['content-type'] === 'application/json') {
+        return JSON.parse(body);
+    } else if (response.headers['content-type'] === 'text/html') {
+        return $.load(body);
+    } else {
+        return body;
+    }
+}
+module.exports.autoParse = autoParse;
 
 /**
  * Takes in either the pos_keywords/neg_keywords and trims the
