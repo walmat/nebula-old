@@ -2,7 +2,7 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-const fs = require('fs');
+
 /**
  * Form includes
  */
@@ -15,11 +15,11 @@ const {
     formatProxy,
     userAgent,
     request,
-    cookieJar,
 } = require('./utils');
 const now = require('performance-now');
 
 class Payment {
+
     constructor(context, timer, checkoutUrl, authToken, price, paymentGateway, paymentToken, shippingValue, captchaResponse) {
         /**
          * All data needed for monitor to run
@@ -56,15 +56,11 @@ class Payment {
     }
 
     submit() {
-        if (this._aborted) {
-            console.log('[INFO]: PAYMENT: Abort detected, aborting...');
-            return -1;
-        }
 
         this._timer.start(now());
 
         return request({
-            uri: `${this._checkoutUrl.split('?')[0]}?step=payment_method`,
+            uri: `${this._checkoutUrl}?step=payment_method`,
             proxy: formatProxy(this._proxy),
             method: 'get',
             followAllRedirects: true,
@@ -83,7 +79,7 @@ class Payment {
             const authToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
             
             return request({
-                uri: this._checkoutUrl,
+                uri: `${this._checkoutUrl}`,
                 method: 'post',
                 proxy: formatProxy(this._proxy),
                 followAllRedirects: true,
@@ -133,8 +129,18 @@ class Payment {
                     console.log(`[INFO]: PAYMENT: An unknown error has occured please try again.`);
                     return this.PAYMENT_STATES.Error;
                 }
-            });
-        });
+            })
+            .catch((err) => {
+                return {
+                    errors: err,
+                }
+            })
+        })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
+        })
     }
 }
 module.exports = Payment;

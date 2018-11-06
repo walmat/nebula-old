@@ -186,7 +186,7 @@ class TaskRunner {
         this._emitEvent(TaskRunner.Events.TaskStatus, message);
     }
 
-    _emitMonitorEvent(message) {
+    _emitQueueBypassEvent(message) {
         _emitEvent(TaskRunner.Events.QueueBypassStatus, message);
     }
 

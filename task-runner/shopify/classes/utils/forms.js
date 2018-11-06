@@ -24,45 +24,44 @@ function buildShippingForm(task, authenticity_token, captchaResponse, step, prev
         "g-captcha-response": captchaResponse,
         'checkout[client_details][browser_width]': '979',
         'checkout[client_details][browser_height]': '631',
+        'checkout[client_details][javascript_enabled]': '1',
         'checkout[remember_me]': '0',
         "button": ''
     }
 }
 module.exports.buildShippingForm = buildShippingForm;
 
-function buildShippingMethodForm(task, authenticity_token, captchaResponse) {
+function buildPaymentForm(task) {
+    return {
+        'credit_card': {
+            'number': task.profile.payment.cardNumber,
+            'verification_value': task.profile.payment.cvv,
+            'name': `${task.profile.billing.firstName} ${task.profile.billing.lastName}`,
+            'month': parseInt(task.profile.payment.exp.slice(0,2)),
+            'year': parseInt(task.profile.payment.exp.slice(3,5)),
+        }
+    }
+}
+module.exports.buildPaymentForm = buildPaymentForm;
+
+function buildShippingMethodForm(authenticity_token, shippingMethod) {
     return {
         utf8: '✓',
         _method: 'patch',
         authenticity_token: authenticity_token,
         button: '',
-        'checkout[email]': task.profile.payment.email,
-        'checkout[shipping_address][first_name]': task.profile.shipping.firstName,
-        'checkout[shipping_address][last_name]': task.profile.shipping.lastName,
-        'checkout[shipping_address][company]': '',
-        'checkout[shipping_address][address1]': task.profile.shipping.address,
-        'checkout[shipping_address][address2]': '',
-        'checkout[shipping_address][city]': task.profile.shipping.city,
-        'checkout[shipping_address][country]': task.profile.shipping.country,
-        'checkout[shipping_address][province]': task.profile.shipping.state,
-        'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
-        'checkout[shipping_address][phone]': phoneFormatter.format(
-            task.profile.shipping.phone,
-            '(NNN) NNN-NNNN'
-        ),
-        'checkout[remember_me]': '0',
-        'checkout[client_details][browser_width]': '979',
-        'checkout[client_details][browser_height]': '631',
+        previous_step: 'shipping_method',
+        step: 'payment_method',
+        'checkout[shipping_rate][id]': shippingMethod,
+        'checkout[client_details][browser_width]': '1410',
+        'checkout[client_details][browser_height]': '781',
         'checkout[client_details][javascript_enabled]': '1',
-        'g-recaptcha-response': captchaResponse,
-        previous_step: 'contact_information',
-        step: 'shipping_method',
         'secret': 'true',
     }
 }
 module.exports.buildShippingMethodForm = buildShippingMethodForm;
 
-function buildPaymentForm(task, authenticity_token, previousStep, price, paymentGateway, shippingValue, captchaResponse) {
+function buildBillingForm(task, authenticity_token, previousStep, price, paymentGateway, shippingValue, captchaResponse) {
 
     if (task.profile.billingMatchesShipping) {
         return {
@@ -132,7 +131,7 @@ function buildPaymentForm(task, authenticity_token, previousStep, price, payment
         }
     }
 }
-module.exports.buildPaymentForm = buildPaymentForm;
+module.exports.buildBillingForm = buildBillingForm;
 
 function buildCartForm(task, variant) {
     switch(task.site.name) {

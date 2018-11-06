@@ -44,10 +44,6 @@ class Shipping {
     }
 
     getShippingOptions() {
-        if (this._aborted) {
-            console.log('[INFO]: SHIPPING: Abort detected, aborting...');
-            return -1;
-        }
 
         this._timer.start(now());
 
@@ -100,7 +96,9 @@ class Shipping {
                     const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
                     if (firstShippingOption == undefined) {
                         console.log(`${this._task.site.url} is Incompatible, sorry for the inconvenience.`);
-                        return null;
+                        return {
+                            errors: `Site is incompatible.`,
+                        };
                     } else {
                         return {
                             type: 'direct',
@@ -115,15 +113,21 @@ class Shipping {
                     authToken: '',
                 }
             })
+            .catch((err) => {
+                return {
+                    errors: err,
+                }
+            })
             
+        })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
         });
     }
 
     submitShipping(type, value, authToken) {
-        if (this._aborted) {
-            console.log('[INFO]: SHIPPING: Abort detected, aborting...');
-            return -1;
-        }
 
         this._timer.start(now());
 
@@ -156,15 +160,7 @@ class Shipping {
                             'User-Agent': userAgent,
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        formData: {
-                            utf8: '✓',
-                            _method: 'patch',
-                            authenticity_token: authToken,
-                            button: '',
-                            previous_step: 'shipping_method',
-                            step: 'payment_method',
-                            'checkout[shipping_rate][id]': shippingMethod,
-                        },
+                        formData: buildShippingMethodForm(authToken, shippingMethod),
                         transform: function(body) {
                             return cheerio.load(body);
                         }
@@ -182,8 +178,18 @@ class Shipping {
                             paymentGateway,
                             newAuthToken,
                         };
-                    }); 
-                });
+                    })
+                    .catch((err) => {
+                        return {
+                            errors: err,
+                        }
+                    })
+                })
+                .catch((err) => {
+                    return {
+                        errors: err,
+                    }
+                })
             }, parseInt(this._task.shippingPoll));
         } else if (type === 'direct') {
             
@@ -196,19 +202,7 @@ class Shipping {
                     'User-Agent': userAgent,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                formData: {
-                    utf8: '✓',
-                    _method: 'patch',
-                    authenticity_token: authToken,
-                    button: '',
-                    previous_step: 'shipping_method',
-                    step: 'payment_method',
-                    'checkout[shipping_rate][id]': value,
-                    'checkout[client_details][browser_width]': '1410',
-                    'checkout[client_details][browser_height]': '781',
-                    'checkout[client_details][javascript_enabled]': '1',
-                    'secret': 'true',
-                },
+                formData: buildShippingMethodForm(authToken, value),
                 transform: function(body) {
                     return cheerio.load(body);
                 },
@@ -238,7 +232,17 @@ class Shipping {
                         newAuthToken,
                     };
                 })
+                .catch((err) => {
+                    return {
+                        errors: err,
+                    }
+                })
             })
+            .catch((err) => {
+                return {
+                    errors: err,
+                }
+            });
         }
     }
 }

@@ -6,7 +6,7 @@ const cheerio = require('cheerio');
 /**
  * Form includes
  */
-const { buildCartForm } = require('./utils/forms');
+const { buildCartForm, buildPaymentForm } = require('./utils/forms');
 
 /**
  * Utils includes
@@ -15,7 +15,6 @@ const {
     formatProxy,
     userAgent,
     request,
-    cookieJar,
 } = require('./utils');
 const now = require('performance-now');
 
@@ -43,17 +42,12 @@ class Cart {
 
         this.CART_STATES = {
             CheckoutQueue: 'CHECKOUT_QUEUE',
-            TooManyAttempts: 'TOO_MANY_ATTEMPTS',
             OutOfStock: 'OUT_OF_STOCK',
             Success: 'SUCCESS',
         }
     }
 
     addToCart(variant) {
-        if (this._aborted) {
-            console.log('[INFO]: CART: Abort detected, aborting...');
-            return -1;
-        }
 
         this._timer.start(now());
 
@@ -81,7 +75,9 @@ class Cart {
         .then((res) => {
             if (res.body.status === 404) {
                 console.log(`[ERROR]: CART: Error: ${res.body.description}`);
-                return false;
+                return {
+                    errors: res.body.description,
+                };
             } else {
                 this._price = Number.parseInt(this.removeTrailingZeros(res.body.line_price));
                 this._task.product.url = `${this._task.site.url}/${res.body.url.split('?')[0]}`;
@@ -89,14 +85,15 @@ class Cart {
                 console.log(`[INFO]: CART: Added to cart in ${this._timer.getRunTime()}ms`);
                 return true;
             }
-        });
+        })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
+        })
     }
 
     proceedToCheckout() {
-        if (this._aborted) {
-            console.log('[INFO]: CART: Abort detected, aborting...');
-            return -1;
-        }
 
         this._timer.start(now());
 
@@ -105,7 +102,7 @@ class Cart {
             method: 'get',
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
-            simple: false,
+            simple: true,
             json: false,
             resolveWithFullResponse: true,
             headers: {
@@ -113,24 +110,16 @@ class Cart {
             },
         })
         .then((res) => {
-            if (this._aborted) {
-                console.log('[INFO]: CART: Abort detected, aborting...');
-                return -1;
-            }
-            if (res.statusCode === 429) {
-                console.log(`[INFO]: CART: Soft banned, swapping proxies`);
-                return {
-                    state: this.CART_STATES.TooManyAttempts,
-                }
-            } else if (res.request.href.indexOf('throttle') > -1) {
+
+            if (res.request.href.indexOf('throttle') > -1) {
                 return {
                     state: this.CART_STATES.CheckoutQueue
                 };
-            } else if (res.statusCode === 200 && res.request.href.indexOf('stock_problems') > -1) {
+            } else if (res.request.href.indexOf('stock_problems') > -1) {
                 return {
                     state: this.CART_STATES.OutOfStock
                 };
-            } else if (res.statusCode === 200) {
+            } else {
                 this._timer.stop(now());
                 console.log(`[INFO]: CART: Got to checkout in ${this._timer.getRunTime()}ms`);
                 const $ = cheerio.load(res.body);
@@ -140,14 +129,15 @@ class Cart {
                     authToken: $('form input[name=authenticity_token]').attr('value'),
                 };
             }
+        })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
         });
     }
 
     clearCart() {
-        if (this._aborted) {
-            console.log('[INFO]: CART: Abort detected, aborting...');
-            return -1;
-        }
 
         this._timer.start(now());
 
@@ -169,15 +159,19 @@ class Cart {
         .then((res) => {
             this._timer.stop(now());
             console.log(`[DEBUG]: CART: Cleared cart in ${this._timer.getRunTime()}ms`);
-            return res.item_count === 0;
+            return {
+                cleared: res.item_count === 0,
+                errors: null,
+            }
+        })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
         });
     }
 
     async getEstimatedShippingRates() {
-        if (this._aborted) {
-            console.log('[INFO]: CART: Abort detected, aborting...');
-            return -1;
-        }
 
         this._timer.start(now());
 
@@ -202,16 +196,9 @@ class Cart {
         .then((res) => {
             const rates = JSON.parse(res);
             // filter this more efficiently
-            let lowest_rate = Number.MAX_SAFE_INTEGER;
-            let shippingMethod;
-            rates.shipping_rates.forEach((rate) => {
-                if (rate.source === 'shopify') {
-                    if (rate.price < lowest_rate) {
-                        shippingMethod = rate;
-                        lowest_rate = rate.price;
-                    }
-                }
-            });
+            let shippingMethod = _.min(rates.shipping_rates, (rate) => {
+                return rate.price;
+            })
 
             this._timer.stop(now());
             console.log(`[INFO]: CART: Got shipping method in ${this._timer.getRunTime()}ms`)
@@ -228,20 +215,6 @@ class Cart {
      * Can be made asynchronous at any point in the checkout process
      */
     async getPaymentToken() {
-        if (this._aborted) {
-            console.log('[INFO]: CART: Abort detected, aborting...');
-            return -1;
-        }
-
-        const paymentInfo = {
-            'credit_card': {
-                'number': this._task.profile.payment.cardNumber,
-                'verification_value': this._task.profile.payment.cvv,
-                'name': `${this._task.profile.billing.firstName} ${this._task.profile.billing.lastName}`,
-                'month': parseInt(this._task.profile.payment.exp.slice(0,2)),
-                'year': parseInt(this._task.profile.payment.exp.slice(3,5)),
-            }
-        };
 
         this._timer.start(now());
 
@@ -254,12 +227,19 @@ class Cart {
                 'User-Agent': userAgent,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(paymentInfo),
+            body: JSON.stringify(buildPaymentForm(this._task)),
         })
         .then((res) => {
             this._timer.stop(now());
             console.log(`[INFO]: CART: Got payment token in ${this._timer.getRunTime()}ms`)
-            return JSON.parse(res).id;
+            return {
+                paymentToken: JSON.parse(res).id
+            }
+        })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
         });
     }
 

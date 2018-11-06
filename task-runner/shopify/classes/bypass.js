@@ -33,7 +33,7 @@ class Bypass {
         this._aborted = context.aborted;
     }
 
-    geenerateAlternativeCheckout() {
+    generateAlternativeCheckout() {
         
     }
     

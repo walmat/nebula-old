@@ -25,14 +25,11 @@ class Account {
      * login to the account given to us by the user
      */
     login() {
-        if (this._context.aborted) {
-            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
-            return -1;
-        }
 
         return request({
             uri: `${this._task.site.url}/account/login`,
             method: 'post',
+            simple: true,
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
             resolveWithFullResponse: true,
@@ -55,13 +52,14 @@ class Account {
             console.log('[INFO]: ACCOUNT: Logged in! Proceeding to add to cart')
             return this.ACCOUNT_STATES.LoggedIn;
         })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
+        });
     }
 
     logout() {
-        if (this._context.aborted) {
-            console.log('[INFO]: CHECKOUT: Abort detected, aborting...');
-            return -1;
-        }
 
         return request({
             uri: `${this._task.site.url}/account/logout`,
@@ -82,6 +80,11 @@ class Account {
             }
             return this.ACCOUNT_STATES.LoggedIn;
         })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
+        });
     }
 }
 module.exports = Account;

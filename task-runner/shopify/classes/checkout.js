@@ -67,7 +67,7 @@ class Checkout {
          * @type {String}
          */
         this._aborted = this._context.aborted;
-        this._state = Checkout.States.Started;
+        this._state = Checkout.States.ProceedToCheckout;
 
         this._checkoutUrl;
         this._authToken;
@@ -76,13 +76,6 @@ class Checkout {
         this._paymentToken;
         this._paymentGateway;
         this._captchaResponse = '';
-
-        this._retries = {
-            LOGIN: 5,
-            ADD_TO_CART: 5,
-            SHIPPING: 5,
-            PAYMENT: 5,
-        }
 
         this._variantIndex = 0;
 
@@ -112,11 +105,10 @@ class Checkout {
     async _handleLogin() {
         console.log('[INFO]: CHECKOUT: Logging in...');
         const res = await this._account.login();
-        this._retries.LOGIN--;
-        if (res === this._account.ACCOUNT_STATES.LoggedIn) {
+        if (res.errors) {
+            return { errors: res.errors };
+        } else if (res === this._account.ACCOUNT_STATES.LoggedIn) {
             return Checkout.States.AddToCart
-        } else if (this._retries.LOGIN > 0) {
-            return Checkout.States.LoginAccount;
         } else {
             return Checkout.States.Stopped;
         }
@@ -128,14 +120,13 @@ class Checkout {
      */
     async _handleAddToCart() {
         const res = await this._cart.addToCart(this._task.product.variants[this._variantIndex]);
+        if (res.errors) {
+            return { errors: res.errors };
+        }
         if(!res) {
-            this._retries.ADD_TO_CART--;
-            console.log('[ERROR]: CHECKOUT: Failed adding to cart...');
-            if (this._retries.ADD_TO_CART > 0) {
-                return Checkout.States.AddToCart;
-            } else {
-                return Checkout.States.Stopped;
-            }
+            // TODO - rethink this logic a bit? What should happen if we fail the add to cart?
+            // ...but what if the variant isn't live yet?
+            return Checkout.States.AddToCart;
         }
         this._price = this._cart._price;
         return Checkout.States.GeneratePaymentToken;
@@ -146,13 +137,16 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handlePaymentToken() {
-        const paymentToken = await this._cart.getPaymentToken();
-        if(!paymentToken) {
+        const res = await this._cart.getPaymentToken();
+        if (res.errors) {
+            return { errors: res.errors };
+        }
+        if(!res.paymentToken) {
             console.log('[ERROR]: CHECKOUT: Failed fetching payment token...');
             // TODO - handle failed to get payment token
             return Checkout.States.Stopped;
         }
-        this._paymentToken = paymentToken;
+        this._paymentToken = res.paymentToken;
         return Checkout.States.ProceedToCheckout;
     }
 
@@ -162,10 +156,12 @@ class Checkout {
      */
     async _handleProceedToCheckout() {
         const res = await this._cart.proceedToCheckout();
-        if (res.state === this._cart.CART_STATES.TooManyAttempts) {
-            // TODO -- handle soft ban
-            return Checkout.States.Stopped;
-        } else if (res.state === this._cart.CART_STATES.CheckoutQueue) {
+
+        if (res.errors) {
+            return { errors: res.errors }; 
+        }
+
+        if (res.state === this._cart.CART_STATES.CheckoutQueue) {
             console.log('[INFO]: CHECKOUT: Waiting in queue...');
             // TODO - implement a wait of some sort?
             return Checkout.States.ProceedToCheckout;
@@ -198,10 +194,16 @@ class Checkout {
             this._variantIndex = 0;
         }
         if (this._task.sizes.length > 1) {
+            // TODO - make a CartManager that will be able to handle multiple carts
             // create background thread to run for restocks, and check next size?
             console.log('[INFO]: CHECKOUT: Swapping to next size...');
-            const cleared = await this._cart.clearCart();
-            if (cleared) {
+            const res = await this._cart.clearCart();
+            
+            if (res.errors) {
+                return { errors: res.errors };
+            }
+
+            if (res.cleared) {
                 return Checkout.States.AddToCart
             }
             return Checkout.States.Stopped;
@@ -217,15 +219,24 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleShipping() {
-        const opts = await this._shipping.getShippingOptions();
-        if (!opts.type) {
-            return Checkout.States.Stopped;
+        const res = await this._shipping.getShippingOptions();
+
+        if (res.errors) {
+            return { errors: res.errors };
         }
-        const res = await this._shipping.submitShipping(opts.type, opts.value, opts.authToken);
+
         if (res.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
             return Checkout.States.SolveCaptcha;
-        } else if (!res.captcha && res.paymentGateway && res.newAuthToken) {
+        }
+
+        const res = await this._shipping.submitShipping(opts.type, opts.value, opts.authToken);
+        
+        if (res.errors) {
+            return { errors: res.errors };
+        }
+        
+        if (res.paymentGateway && res.newAuthToken) {
             console.log('[INFO]: CHECKOUT: Proceeding to submit payment...');
             this._authToken = res.newAuthToken;
             this._paymentGateway = res.paymentGateway;
@@ -262,6 +273,11 @@ class Checkout {
      */
     async _handlePayment() {
         const res = await this._payment.submit();
+
+        if (res.errors) {
+            return { errors: res.errors };
+        }
+
         if (res === this._payment.PAYMENT_STATES.Error) {
             return Checkout.States.Stopped;
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
@@ -308,9 +324,16 @@ class Checkout {
         if (this._state !== Checkout.States.Stopped ||
             this._state !== Checkout.States.PaymentProcessing ||
             this._state !== Checkout.States.Error) {
-            return States.Checkout;
+            return {
+                nextState: States.Checkout,
+                errors: this._state.errors,
+            }
         }
-        return States.Finished;
+        return {
+            nextState: States.Finished,
+            errors: null,
+        }
+
     }
 }
 
