@@ -6,7 +6,7 @@ const Shipping = require('./shipping');
 const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
-const { formatter } = require('./utils');
+const { States } = require('../taskRunner')
 
 class Checkout {
 
@@ -140,18 +140,6 @@ class Checkout {
         this._price = this._cart._price;
         return Checkout.States.GeneratePaymentToken;
     }
-
-    // async _handleGetShippingRates() {
-    //     const res = await this._cart.getEstimatedShippingRates();
-    //     if (!res) {
-    //         console.log('[ERROR]: CHECKOUT: Unable to find shipping rates...');
-    //         return Checkout.States.Stopped;
-    //     }
-    //     this._shippingValue = res.rate;
-    //     this._price = +this._price + +res.price;
-    //     console.log(`[INFO]: CHECKOUT: Cart price is ${formatter.format(this._price)}`);
-    //     return Checkout.States.GeneratePaymentToken;
-    // }
 
     /**
      * Get payment token
@@ -289,7 +277,7 @@ class Checkout {
 
     async _handleStopped() {
         console.log('[INFO]: CHECKOUT: Shopping checkout process...');
-        process.exit(1);
+        return Checkout.States.Stopped;
         // TODO - handle a clean shut down..
     }
 
@@ -316,18 +304,13 @@ class Checkout {
     }
 
     async run() {
-        this._state = Checkout.States.Started;
-        while(this._state !== Checkout.States.Stopped ||
-              this._state !== Checkout.States.PaymentProcessing ||
-              this._state !== Checkout.States.PaymentFinished
-            ) {
-            this._state = await this._handleStepLogic(this._state);
-            if (this._context.aborted) {
-                this._state = Checkout.States.Stopped;
-            }
+        this._state = await this._handleStepLogic(this._state);
+        if (this._state !== Checkout.States.Stopped ||
+            this._state !== Checkout.States.PaymentProcessing ||
+            this._state !== Checkout.States.Error) {
+            return States.Checkout;
         }
-
-        // TODO - maybe needs some cleanup here?
+        return States.Finished;
     }
 }
 
