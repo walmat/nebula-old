@@ -399,7 +399,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.stop(task));
   },
   onDestroyTask: (task) => {
-    dispatch(taskActions.destroy(task.id));
+    dispatch(taskActions.destroy(task, 'one'));
   },
 });
 

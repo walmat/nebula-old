@@ -4,7 +4,7 @@ import taskEdit, { initialTaskEditState } from './taskEdit';
 import taskErrors, { initialTaskErrorState } from './taskErrors';
 import taskProduct, { initialTaskProductState } from './taskProduct';
 import taskSite, { initialTaskSiteState } from './taskSite';
-import { initialSettingsState } from '../settings/settings'
+import { initialSettingsState } from '../settings/settings';
 import pDefns, { initialProfileStates } from '../profileDefinitions';
 
 export const initialTaskState = {
@@ -16,6 +16,7 @@ export const initialTaskState = {
   username: '',
   password: '',
   status: 'idle',
+  output: '',
   errorDelay: initialSettingsState.errorDelay,
   monitorDelay: initialSettingsState.monitorDelay,
   errors: initialTaskErrorState,

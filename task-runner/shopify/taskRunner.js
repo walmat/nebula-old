@@ -22,7 +22,7 @@ class TaskRunner {
         return {
             Initialized: 'INIT',
             Started: 'STARTED',
-            GenQueueBypass: 'GEN_QUEUE_BYPASS',
+            GenAltCheckout: 'GEN_ALT_CHECKOUT',
             Monitor: 'MONITOR',
             SwapProxies: 'SWAP_PROXIES',
             Checkout: 'CHECKOUT',
@@ -47,13 +47,19 @@ class TaskRunner {
          * The context of this task runner
          * 
          * This is a wrapper that contains all data about the task runner.
+         * @type {TaskRunnerContext}
          */
         this._context = {
-            runner_id: id,
+            id,
             task,
             proxy,
             aborted: false,
         };
+
+        /**
+         * The id of this task runner
+         */
+        this.id = id;
 
         /**
          * Create a new monitor object to be used for the task
@@ -72,14 +78,19 @@ class TaskRunner {
          */
         this._events = new EventEmitter();
 
-        // Register for events from the task manager
-        // TEMPORARY - This is a potential stub of what this event will look like!
-        // TODO Change the event name and parameters if necessary
-        manager.registerForEvent('abort', (id) => {
-            if (id === this._context.id) {
-                this._context.aborted = true;
-            }
-        });
+        this._handleAbort = this._handleAbort.bind(this);
+
+        this._taskManager.on('abort', this._handleAbort);
+    }
+
+    _handleAbort(id) {
+        if (id === this._context.id) {
+            this._context.aborted = true;
+        }
+    }
+
+    _cleanup() {
+        this._taskManager.removeListener('abort', this._handleAbort);
     }
 
     // MARK: Event Registration
@@ -132,12 +143,6 @@ class TaskRunner {
     }
 
     // MARK: Event Emitting
-
-    // TEMPORARY
-    emitEvent() {
-        this._emitEvent(TaskRunner.Events.MonitorStatus, { message: 'initializing...' })
-    }
-
     _emitEvent(event, message) {
         switch(event) {
             case TaskRunner.Events.TaskStatus: {
@@ -156,34 +161,35 @@ class TaskRunner {
                 break;
             }
         }
+        this._events.emit(TaskRunner.Events.All, this._context.id, message, event);
     }
 
     _emitTaskEvent(message) {
-        _emitEvent(TaskRunner.Events.TaskStatus, message);
+        this._emitEvent(TaskRunner.Events.TaskStatus, message);
     }
 
     _emitMonitorEvent(message) {
-        _emitEvent(TaskRunner.Events.MonitorStatus, message);
+        this._emitEvent(TaskRunner.Events.MonitorStatus, message);
     }
 
     _emitCheckoutEvent(message) {
-        _emitEvent(TaskRunner.Events.CheckoutStatus, message);
+        this._emitEvent(TaskRunner.Events.CheckoutStatus, message);
     }
 
     // MARK: State Machine Step Logic
 
     async _handleStarted() {
         this._emitTaskEvent({
-            message: 'Task is Starting...',
+            message: 'Starting task...',
         });
-        return TaskRunner.States.GenQueueBypass;
+        return TaskRunner.States.GenAltCheckout;
     }
 
-    async _handleGenQueueBypass() {
-        const res = await this._checkout.generateQueueBypassUrl();
+    async _handleGenAltCheckout() {
+        const res = await this._checkout.geenerateAlternativeCheckout();
         if(res.errors) {
             this._emitTaskEvent({
-                message: 'Unable to Generate Bypass Queue Url! Continuing on...',
+                message: 'Unable to Generate alternative checkout! Continuing on...',
                 errors: res.errors,
             });
         }
@@ -203,7 +209,7 @@ class TaskRunner {
     }
 
     async _handleSwapProxies() {
-        const res = await this._taskManager.swapProxies(this._context.proxy);
+        const res = await this._taskManager.swapProxies(this._context.id, this._context.proxy);
         if (res.errors) {
             this._emitTaskEvent({
                 message: 'Error Swapping Proxies! Retrying Monitor...',
@@ -242,11 +248,11 @@ class TaskRunner {
 
     async _handleStepLogic(currentState) {
         async function defaultHandler() {
-            return currentState;
+            throw new Error('Reached Unknown State!');
         }
         const stepMap = {
             [TaskRunner.States.Started]: this._handleStarted,
-            [TaskRunner.States.GenQueueBypass]: this._handleGenQueueBypass,
+            [TaskRunner.States.GenAltCheckout]: this._handleGenAltCheckout,
             [TaskRunner.States.Monitor]: this._handleMonitor,
             [TaskRunner.States.SwapProxies]: this._handleSwapProxies,
             [TaskRunner.States.Checkout]: this._handleCheckout,
@@ -254,13 +260,13 @@ class TaskRunner {
             [TaskRunner.States.Aborted]: this._handleAborted,
         }
         const handler = stepMap[currentState] || defaultHandler;
-        return await handler();
+        return await handler.call(this);
     }
 
     // MARK: State Machine Run Loop
 
     async start() {
-        this._state = TaskRunner.Started;
+        this._state = TaskRunner.States.Started;
         while(this._state !== TaskRunner.States.Stopped) {
             this._state = await this._handleStepLogic(this._state);
             if (this._context.aborted) {
@@ -270,6 +276,8 @@ class TaskRunner {
         this._emitTaskEvent({
             message: 'Task has stopped.',
         });
+
+        this._cleanup();
     }
 }
 

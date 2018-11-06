@@ -3,17 +3,7 @@ const { dialog, app } = require('electron').remote;
 const { ipcRenderer, webFrame } = require('electron');
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
-const TaskRunner = require('task-runner/shopify/taskRunner');
-const testTask = require('./testTask');
 
-const taskRunner = new TaskRunner(testTask, null);
-
-taskRunner.emitEvent();
-
-taskRunner.registerForEvent('monitor-status', (status) => {
-  console.log(`Monitor Status: ${status}`);
-  // Do something with this...
-});
 // setup environment
 nebulaEnv.setUpEnvironment();
 
@@ -23,11 +13,32 @@ webFrame.setLayoutZoomLevelLimits(0, 0);
 
 /**
  * Sends IPCMain an event trigger
+ *
  * @param {String} channel definition for which trigger to look for
  * @param {*} msg any object to send along with the event || null
  */
 const _sendEvent = (channel, msg) => {
   ipcRenderer.send(channel, msg);
+};
+
+/**
+ * Sets up a listener for an IPC event
+ *
+ * @param {String} channel the channel to attach this handler to
+ * @param {Function} handler the handler to call when a channel event is sent
+ */
+const _handleEvent = (channel, handler) => {
+  ipcRenderer.on(channel, handler);
+};
+
+/**
+ * Remove an Event Listener from an IPC event
+ *
+ * @param {String} channel the channel where this handler should be removed from
+ * @param {Function} handler the same function reference that was used when attaching
+ */
+const _removeEvent = (channel, handler) => {
+  ipcRenderer.removeListener(channel, handler);
 };
 
 /**
@@ -130,6 +141,64 @@ const _confirmDialog = async message =>
   });
 
 /**
+ * Sends a listener for task events to taskManagerWrapper.js
+ */
+const _registerForTaskEvents = (handler) => {
+  _sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
+  ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to listen on
+    if (eventKey) {
+      _handleEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Register for Task Events!');
+    }
+  });
+};
+
+/**
+ * Removes a listener for task events to taskManagerWrapper.js
+ */
+const _deregisterForTaskEvents = (handler) => {
+  _sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
+  ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to deregister from
+    if (eventKey) {
+      _removeEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Deregister from Task Events!');
+    }
+  });
+};
+
+/**
+ * Sends task(s) that should be started to taskManagerWrapper.js
+ */
+const _startTasks = (tasks) => {
+  _sendEvent(IPCKeys.RequestStartTasks, tasks);
+};
+
+/**
+ * Sends task(s) that should be stopped to taskManagerWrapper.js
+ */
+const _stopTasks = (tasks) => {
+  _sendEvent(IPCKeys.RequestStopTasks, tasks);
+};
+
+/**
+ * Sends proxies(s) that should be add to taskManagerWrapper.js
+ */
+const _addProxies = (proxies) => {
+  _sendEvent(IPCKeys.RequestAddProxies, proxies);
+};
+
+/**
+ * Sends task(s) that should be removed to taskManagerWrapper.js
+ */
+const _removeProxies = (proxies) => {
+  _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
+};
+
+/**
  * On process load, create the Bridge
  */
 process.once('loaded', () => {
@@ -146,6 +215,12 @@ process.once('loaded', () => {
   window.Bridge.deactivate = _deactivate;
   window.Bridge.authenticate = _authenticate;
   window.Bridge.confirmDialog = _confirmDialog;
+  window.Bridge.registerForTaskEvents = _registerForTaskEvents;
+  window.Bridge.deregisterForTaskEvents = _deregisterForTaskEvents;
+  window.Bridge.startTasks = _startTasks;
+  window.Bridge.stopTasks = _stopTasks;
+  window.Bridge.addProxies = _addProxies;
+  window.Bridge.removeProxies = _removeProxies;
   if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (evt) => {
       _sendEvent('debug', evt);
