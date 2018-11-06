@@ -129,7 +129,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.STATUS: {
-      if (!action.response.id || (action.response.id && !action.response.message)) {
+      if (!action.response.id || !action.response.message) {
         break;
       }
       const task = nextState.find(t => t.id === action.response.id);

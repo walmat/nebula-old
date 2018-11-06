@@ -27,10 +27,10 @@ export function taskReducer(state = initialTaskStates.task, action) {
             break;
           }
           const URL = parseURL(action.value);
-          if (!URL || !URL.path) {
+          if (!URL || !URL.host) {
             break;
           }
-          const site = getAllSites().filter(s => s.value.split('/')[2] === URL.host);
+          const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
           if (site.length === 0) {
             break;
           }
@@ -65,10 +65,11 @@ export function taskReducer(state = initialTaskStates.task, action) {
           let nextSizes = JSON.parse(JSON.stringify(state.sizes));
           if (nextSizes === null) {
             nextSizes = initialTaskStates.task.sizes;
-          } else if (action && action.value && action.value !== undefined && action.value.length > state.sizes.length) {
-            nextSizes.unshift(...(action.value.filter(s => !state.sizes.includes(s))));
+          } else if (action.value && action.value.length > state.sizes.length) {
+            nextSizes.unshift(...(action.value.filter(s =>
+              !state.sizes.find(({ id }) => s.id === id))));
           } else {
-            nextSizes = state.sizes.filter(s => action.value.includes(s));
+            nextSizes = state.sizes.filter(s => action.value.find(({ id }) => s.id === id));
           }
 
           change = {
@@ -101,6 +102,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 ...state.edits,
                 errors: Object.assign({}, state.edits.errors, action.errors),
                 product: {
+                  ...initialTaskStates.product,
                   raw: action.value,
                 },
               },
@@ -109,10 +111,10 @@ export function taskReducer(state = initialTaskStates.task, action) {
               break;
             }
             const URL = parseURL(action.value);
-            if (!URL || !URL.path) {
+            if (!URL || !URL.host) {
               break;
             }
-            const site = getAllSites().filter(s => s.value.split('/')[2] === URL.host);
+            const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
             if (site.length === 0) {
               break;
             }
@@ -173,10 +175,11 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 value: action.value[0].value,
               }];
             }
-          } else if (action && action.value && action.value !== undefined && action.value.length > nextSizes.length) {
-            nextSizes.unshift(...(action.value.filter(s => !state.edits.sizes.includes(s))));
+          } else if (action.value && action.value.length > nextSizes.length) {
+            nextSizes.unshift(...(action.value.filter(s =>
+              !state.edits.sizes.find(({ id }) => s.id === id))));
           } else {
-            nextSizes = state.edits.sizes.filter(s => action.value.includes(s));
+            nextSizes = state.edits.sizes.filter(s => action.value.find(({ id }) => s.id === id));
           }
 
           change = {
@@ -188,7 +191,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
           };
           break;
         }
-        case TASK_FIELDS.EDIT_PAIRS:
         case TASK_FIELDS.EDIT_PROFILE:
         case TASK_FIELDS.EDIT_PASSWORD:
         case TASK_FIELDS.EDIT_USERNAME: {

@@ -34,22 +34,22 @@ export class App extends PureComponent {
 
   constructor(props) {
     super(props);
-    this.registerTaskHandler = this.registerTaskHandler.bind(this);
+    this.taskHandler = this.taskHandler.bind(this);
   }
 
   componentWillMount() {
     if (window.Bridge) {
-      window.Bridge.registerForTaskEvents(this.registerTaskHandler);
+      window.Bridge.registerForTaskEvents(this.taskHandler);
     }
   }
 
   componentWillUnmount() {
     if (window.Bridge) {
-      window.Bridge.deregisterForTaskEvents(this.registerTaskHandler);
+      window.Bridge.deregisterForTaskEvents(this.taskHandler);
     }
   }
 
-  registerTaskHandler(event, taskId, statusMessage) {
+  taskHandler(event, taskId, statusMessage) {
     const { store } = this.props;
     store.dispatch(taskActions.status(taskId, statusMessage));
   }

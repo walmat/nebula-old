@@ -1,4 +1,4 @@
-/* global describe it test beforeEach expect jest */
+/* global describe it test beforeEach afterEach expect jest */
 import React from 'react';
 import { shallow } from 'enzyme';
 import configureStore from 'redux-mock-store';
@@ -12,6 +12,7 @@ import Tasks from '../tasks/tasks';
 import Profiles from '../profiles/profiles';
 import Server from '../server/server';
 import Settings from '../settings/settings';
+import { TASK_ACTIONS } from '../state/actions';
 
 import getByTestId from '../__testUtils__/getByTestId';
 
@@ -37,6 +38,7 @@ describe('Top Level App', () => {
       expect(getByTestId(wrapper, 'App.button.close')).toHaveLength(1);
       expect(getByTestId(wrapper, 'App.button.deactivate')).toHaveLength(1);
       getByTestId(wrapper, 'App.button.deactivate').simulate('keyPress');
+      wrapper.unmount();
     });
 
     describe('Deactivate Button', () => {
@@ -118,6 +120,44 @@ describe('Top Level App', () => {
         expect(ev.preventDefault).toHaveBeenCalled();
         expect(Bridge.close).toHaveBeenCalled();
         delete window.Bridge;
+      });
+    });
+
+    describe('Task Event Handler', () => {
+      let Bridge = {};
+
+      beforeEach(() => {
+        Bridge = {
+          registerForTaskEvents: jest.fn(),
+          deregisterForTaskEvents: jest.fn(),
+        };
+        global.window.Bridge = Bridge;
+      });
+
+      afterEach(() => {
+        if (global.window.Bridge) {
+          delete global.window.Bridge;
+        }
+      });
+
+      it('should get [de]registered properly', () => {
+        const wrapper = appProvider();
+        expect(Bridge.registerForTaskEvents).toHaveBeenCalledTimes(1);
+        wrapper.unmount();
+        expect(Bridge.deregisterForTaskEvents).toHaveBeenCalledTimes(1);
+      });
+
+      it('should respond to events', () => {
+        const store = {
+          dispatch: jest.fn(),
+        };
+        const wrapper = appProvider({ store });
+        const appComponent = wrapper.instance();
+        expect(appComponent.taskHandler).toBeDefined();
+
+        appComponent.taskHandler({}, 1, 'test message');
+        expect(store.dispatch).toHaveBeenCalledTimes(1);
+        expect(store.dispatch).toHaveBeenCalledWith(expect.any(Function));
       });
     });
   };

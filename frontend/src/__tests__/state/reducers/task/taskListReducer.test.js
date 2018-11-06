@@ -457,6 +457,130 @@ describe('task list reducer', () => {
     });
   });
 
+  describe('should handle status', () => {
+    test('when valid action is given', () => {
+      const start = [
+        {
+          ...initialTaskStates.task,
+          id: 1,
+          output: 'testOutput',
+        },
+      ];
+      const expected = JSON.parse(JSON.stringify(start));
+      expected[0].output = 'testing...';
+      const actual = taskListReducer(
+        start,
+        {
+          type: TASK_ACTIONS.STATUS,
+          response: {
+            id: 1, message: 'testing...',
+          },
+        },
+      );
+      expect(actual).toEqual(expected);
+    });
+
+    test('when given task is not found', () => {
+      const start = [
+        {
+          ...initialTaskStates.task,
+          id: 1,
+          output: 'testOutput',
+        },
+      ];
+      const actual = taskListReducer(
+        start,
+        {
+          type: TASK_ACTIONS.STATUS,
+          response: {
+            id: 4, message: 'testing...',
+          },
+        },
+      );
+      expect(actual).toEqual(start);
+    });
+
+    test('when null id is given', () => {
+      const start = [
+        {
+          ...initialTaskStates.task,
+          id: 1,
+          output: 'testOutput',
+        },
+      ];
+      const actual = taskListReducer(
+        start,
+        {
+          type: TASK_ACTIONS.STATUS,
+          response: {
+            id: null, message: 'testing...',
+          },
+        },
+      );
+      expect(actual).toEqual(start);
+    });
+
+    test('when no id is given', () => {
+      const start = [
+        {
+          ...initialTaskStates.task,
+          id: 1,
+          output: 'testOutput',
+        },
+      ];
+      const actual = taskListReducer(
+        start,
+        {
+          type: TASK_ACTIONS.STATUS,
+          response: {
+            message: 'testing...',
+          },
+        },
+      );
+      expect(actual).toEqual(start);
+    });
+
+    test('when null message is given', () => {
+      const start = [
+        {
+          ...initialTaskStates.task,
+          id: 1,
+          output: 'testOutput',
+        },
+      ];
+      const actual = taskListReducer(
+        start,
+        {
+          type: TASK_ACTIONS.STATUS,
+          response: {
+            id: 1, message: null,
+          },
+        },
+      );
+      expect(actual).toEqual(start);
+    });
+
+    test('when no message is given', () => {
+      const start = [
+        {
+          ...initialTaskStates.task,
+          id: 1,
+          output: 'testOutput',
+        },
+      ];
+      const actual = taskListReducer(
+        start,
+        {
+          type: TASK_ACTIONS.STATUS,
+          response: {
+            id: 1,
+          },
+        },
+      );
+      expect(actual).toEqual(start);
+    });
+  });
+
   describe('should handle edit', () => {
     test('when valid action is given', () => {
       const start = [
