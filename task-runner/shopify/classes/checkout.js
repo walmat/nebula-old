@@ -326,13 +326,19 @@ class Checkout {
     }
 
     async run() {
-        this._state = await this._handleStepLogic(this._state);
+        const nextState =  await this._handleStepLogic(this._state);
+        if(nextState.errors) {
+            return {
+                nextState: States.Checkout,
+                errors: nextState.errors,
+            }
+        }
+        this._state = nextState;
         if (this._state !== Checkout.States.Stopped ||
             this._state !== Checkout.States.PaymentProcessing ||
             this._state !== Checkout.States.Error) {
             return {
                 nextState: States.Checkout,
-                errors: this._state.errors,
             }
         }
         return {

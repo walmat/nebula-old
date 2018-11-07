@@ -227,6 +227,7 @@ class TaskRunner {
     async _handleCheckout() {
         const res = await this._checkout.run();
         if (res.errors) {
+            console.log(res.errors);
             this._emitTaskEvent({
                 message: 'Errors during Checkout! Retrying Monitor...',
                 errors: res.errors,
