@@ -185,7 +185,9 @@ class TaskRunner {
     }
 
     async _handleGenAltCheckout() {
-        const res = await this._checkout.geenerateAlternativeCheckout();
+        // TODO: Add this back in!
+        // const res = await this._checkout.geenerateAlternativeCheckout();
+        const res = {};
         if(res.errors) {
             this._emitTaskEvent({
                 message: 'Unable to Generate alternative checkout! Continuing on...',
