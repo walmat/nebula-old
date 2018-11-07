@@ -133,7 +133,7 @@ class TaskManager {
       proxy.assignedRunner = runnerId;
     }
     if (!waitForOpenProxy) {
-      console.log('[TRACE]: returning proxy or null');
+      console.log(`[TRACE]: returning proxy or null: ${proxy}`);
       return proxy;
     }
     console.log('[TRACE]: TaskManager: Returning proxy or promise to recursive reserve')
@@ -255,35 +255,38 @@ class TaskManager {
     do {
       runnerId = uuidv4();
     } while(this._runners[runnerId]);
+    console.log(`[TRACE]: TaskManager: Creating new runner ${runnerId} for task ${task.id}`);
 
     const openProxy = await this.reserveProxy(runnerId);
     const runner = new TaskRunner(runnerId, task, openProxy, this);
     this._runners[runnerId] = runner;
 
     // Register for status updates
+    console.log('[TRACE]: TaskManager: Registering for TaskRunner Events...');
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     
     // Start the runner asynchronously
+    console.log('[TRACE]: TaskManager: Starting runner...');
     runner.start()
-    .then(() => {
-      console.log('success')
-      // Replace this with any success specific callback you want
-    }) 
-    .catch(() => {
-      console.log('error')
-      // Replace this with any error specific callback you want
-    }) 
-    .then(() => {
-      console.log(`[TRACE]: Runner ${runnerId} has finished or was stopped`);
-      // Cleanup handlers
-      runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-      // Remove from runners map
-      delete this._runners[runnerId];
-      // Release proxy
-      if (openProxy) {
-        this.releaseProxy(runnerId, openProxy.id);
-      }
-    });
+      .then(() => {
+        console.log(`[DEBUG]: TaskManager: Runner ${runnerId} finished without errors`);
+        // Replace this with any success specific callback you want
+      }) 
+      .catch((error) => {
+        console.log(`[ERROR]: TaskManager: Runner ${runnerId} was stopped due to an error: ${error}`);
+        // Replace this with any error specific callback you want
+      }) 
+      .then(() => {
+        console.log(`[TRACE]: TaskManager: Runner ${runnerId} has finished or was stopped`);
+        // Cleanup handlers
+        runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+        // Remove from runners map
+        delete this._runners[runnerId];
+        // Release proxy
+        if (openProxy) {
+          this.releaseProxy(runnerId, openProxy.id);
+        }
+      });
   }
 
   /**
@@ -296,7 +299,7 @@ class TaskManager {
    * @param {List<Task>} tasks list of tasks to start
    */
   startAll(tasks) {
-    tasks.forEach(t => this.start(t));
+    [...tasks].forEach(t => this.start(t));
   }
 
   /**
@@ -312,14 +315,15 @@ class TaskManager {
    * @param {Task} task the task to stop
    */
   stop(task) {
-    const runner = this._runners.find(r => r.task.id === task.id);
-    if (!runner) {
+    console.log(`[TRACE]: TaskManager: Attempting to stop runner with task id: ${task.id}`);
+    const rId = Object.keys(this._runners).find(k => this._runners[k]._context.task.id === task.id);
+    if (!rId) {
       console.log('[TRACE]: TaskManager: This task was not previously runner or has already been stopped! Skipping stop');
       return;
     }
 
     // Send abort signal
-    this._events.emit('abort', runner.id);
+    this._events.emit('abort', rId);
     console.log('[TRACE]: TaskManager: Stop signal sent');
   }
 
@@ -333,7 +337,7 @@ class TaskManager {
    * @param {List<Task>} tasks list of tasks to stop
    */
   stopAll(tasks) {
-    tasks.forEach(t => this.stop(t));
+    [...tasks].forEach(t => this.stop(t));
   }
 
   /**
