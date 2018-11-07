@@ -301,7 +301,9 @@ class Checkout {
 
     async _handleStepLogic(currentState) {
         async function defaultHandler() {
-            throw new Error('Reached Unknown State!');
+            // throw new Error('Reached Unknown State!');
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            return currentState;
         }
 
         console.log(`[TRACE]: CHECKOUT: Handling State: ${JSON.stringify(currentState, null, 2)} ...`);
