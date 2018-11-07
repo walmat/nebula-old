@@ -24,6 +24,7 @@ class Checkout {
             ProceedToCheckout: 'PROCEED_TO_CHECKOUT',
             CheckoutQueue: 'CHECKOUT_QUEUE',
             OutOfStock: 'OUT_OF_STOCK',
+            Restock: 'RESTOCK',
             Shipping: 'SHIPPING',
             SolveCaptcha: 'SOLVE_CAPTCHA',
             Payment: 'PAYMENT',
@@ -67,7 +68,7 @@ class Checkout {
          * @type {String}
          */
         this._aborted = this._context.aborted;
-        this._state = Checkout.States.ProceedToCheckout;
+        this._state = Checkout.States.Started;
 
         this._checkoutUrl;
         this._authToken;
@@ -300,7 +301,7 @@ class Checkout {
 
     async _handleStepLogic(currentState) {
         async function defaultHandler() {
-            return currentState;
+            throw new Error('Reached Unknown State!');
         }
 
         console.log(`[TRACE]: CHECKOUT: Handling State: ${JSON.stringify(currentState, null, 2)} ...`);
