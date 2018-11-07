@@ -32,12 +32,12 @@ class Monitor {
 
     _waitForRefreshDelay() {
         console.log('[DEBUG]: MONITOR: Waiting for monitor delay...');
-        return this._waitForDelay(this._task.monitorDelay);
+        return this._waitForDelay(this._context.task.monitorDelay);
     }
 
     _waitForErrorDelay() {
         console.log('[DEBUG]: MONITOR: Waiting for error delay...');
-        return this._waitForDelay(this._task.errorDelay);
+        return this._waitForDelay(this._context.task.errorDelay);
     }
 
     // ASSUMPTION: this method is only called when we know we have to 
@@ -153,7 +153,7 @@ class Monitor {
     async run() {
         if (this._context.aborted) {
             console.log('[INFO]: MONITOR: Abort detected, aborting...');
-            return States.Aborted;
+            return { nextState: States.Aborted };
         }
 
         const parseType = getParseType(this._context.task.product);
@@ -163,20 +163,22 @@ class Monitor {
                 console.log('[INFO]: MONITOR: Variant Parsing Detected');
                 this._context.task.product.variants = [this._context.task.product.variant];
                 console.log('[INFO]: MONITOR: Skipping Monitor and Going to Checkout Directly...');
-                return States.Checkout;
+                return { nextState: States.Checkout };
             }
             case ParseType.Url: {
                 console.log('[INFO]: MONITOR: Url Parsing Detected');
-                return this._monitorUrl();
+                const nextState = await this._monitorUrl();
+                return { nextState };
             }
             case ParseType.Keywords: {
                 console.log('[INFO]: MONITOR: Keyword Parsing Detected');
-                return this._monitorKeywords();
+                const nextState = await this._monitorKeywords();
+                return { nextState };
             }
             default: {
                 console.log(`[INFO]: MONITOR: Unable to Monitor Type: ${parseType} -- Delaying and Retrying...`);
                 await this._waitForErrorDelay();
-                return States.Monitor;
+                return { nextState: States.Monitor };
             }
         }
     }
