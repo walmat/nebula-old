@@ -5,9 +5,9 @@ const rp = require('request-promise').defaults({
     jar: jar,
 });
 
-const { States } = require('../taskRunner');
 const { AtomParser, JsonParser, XmlParser } = require('./parsers');
 const { formatProxy, userAgent, rfrl } = require('./utils');
+const { States } = require('./utils/constants').TaskRunner;
 const { ParseType, getParseType } = require('./utils/parse');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
 

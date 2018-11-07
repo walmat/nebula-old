@@ -6,7 +6,7 @@ const Shipping = require('./shipping');
 const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
-const { States } = require('../taskRunner');
+const { States } = require('./utils/constants').TaskRunner;
 
 class Checkout {
 

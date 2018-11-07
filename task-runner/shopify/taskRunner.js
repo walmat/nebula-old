@@ -1,39 +1,11 @@
+const EventEmitter = require('events');
+
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const QueueBypass = require('./classes/bypass');
-const EventEmitter = require('events');
+const { States, Events } = require('./classes/utils/constants').TaskRunner;
 
 class TaskRunner {
-    /**
-     * Event Channel Constants
-     */
-    static get Events() {
-        return {
-            All: 'ALL',
-            TaskStatus: 'TASK_STATUS',
-            MonitorStatus: 'MONITOR_STATUS',
-            CheckoutStatus: 'CHECKOUT_STATUS',
-        };
-    };
-
-    /**
-     * Task Runner States
-     */
-    static get States() {
-        return {
-            Initialized: 'INIT',
-            Started: 'STARTED',
-            GenAltCheckout: 'GEN_ALT_CHECKOUT',
-            Monitor: 'MONITOR',
-            Restock: 'RESTOCK',
-            SwapProxies: 'SWAP_PROXIES',
-            Checkout: 'CHECKOUT',
-            Finished: 'FINISHED',
-            Aborted: 'ABORTED',
-            Stopped: 'STOPPED',
-        };
-    }
-    
     constructor(id, task, proxy, manager) {
         /**
          * The manager of this task runner
@@ -43,7 +15,7 @@ class TaskRunner {
         /**
          * Internal Task Runner State
          */
-        this._state = TaskRunner.States.Initialized;
+        this._state = States.Initialized;
 
         /**
          * The context of this task runner
@@ -101,54 +73,54 @@ class TaskRunner {
 
     registerForEvent(event, callback) {
         switch(event) {
-            case TaskRunner.Events.TaskStatus: {
-                this._events.on(TaskRunner.Events.TaskStatus, callback);
+            case Events.TaskStatus: {
+                this._events.on(Events.TaskStatus, callback);
                 break;
             }
-            case TaskRunner.Events.QueueBypassStatus: {
-                this._events.on(TaskRunner.Events.QueueBypassStatus, callback);
+            case Events.QueueBypassStatus: {
+                this._events.on(Events.QueueBypassStatus, callback);
                 break;
             }
-            case TaskRunner.Events.MonitorStatus: {
-                this._events.on(TaskRunner.Events.MonitorStatus, callback);
+            case Events.MonitorStatus: {
+                this._events.on(Events.MonitorStatus, callback);
                 break;
             }
-            case TaskRunner.Events.CheckoutStatus: {
-                this._events.on(TaskRunner.Events.CheckoutStatus, callback);
+            case Events.CheckoutStatus: {
+                this._events.on(Events.CheckoutStatus, callback);
                 break;
             }
-            case TaskRunner.Events.All: {
-                this._events.on(TaskRunner.Events.TaskStatus, callback);
-                this._events.on(TaskRunner.Events.QueueBypassStatus, callback);
-                this._events.on(TaskRunner.Events.MonitorStatus, callback);
-                this._events.on(TaskRunner.Events.CheckoutStatus, callback);
+            case Events.All: {
+                this._events.on(Events.TaskStatus, callback);
+                this._events.on(Events.QueueBypassStatus, callback);
+                this._events.on(Events.MonitorStatus, callback);
+                this._events.on(Events.CheckoutStatus, callback);
             }
         }
     }
 
     deregisterForEvent(event, callback) {
         switch(event) {
-            case TaskRunner.Events.TaskStatus: {
-                this._events.removeListener(TaskRunner.Events.TaskStatus, callback);
+            case Events.TaskStatus: {
+                this._events.removeListener(Events.TaskStatus, callback);
                 break;
             }
-            case TaskRunner.Events.QueueBypassStatus: {
-                this._events.removeListener(TaskRunner.Events.QueueBypassStatus, callback);
+            case Events.QueueBypassStatus: {
+                this._events.removeListener(Events.QueueBypassStatus, callback);
                 break;
             }
-            case TaskRunner.Events.MonitorStatus: {
-                this._events.removeListener(TaskRunner.Events.MonitorStatus, callback);
+            case Events.MonitorStatus: {
+                this._events.removeListener(Events.MonitorStatus, callback);
                 break;
             }
-            case TaskRunner.Events.CheckoutStatus: {
-                this._events.removeListener(TaskRunner.Events.CheckoutStatus, callback);
+            case Events.CheckoutStatus: {
+                this._events.removeListener(Events.CheckoutStatus, callback);
                 break;
             }
-            case TaskRunner.Events.All: {
-                this._events.removeListener(TaskRunner.Events.TaskStatus, callback);
-                this._events.removeListener(TaskRunner.Events.QueueBypassStatus, callback);
-                this._events.removeListener(TaskRunner.Events.MonitorStatus, callback);
-                this._events.removeListener(TaskRunner.Events.CheckoutStatus, callback);
+            case Events.All: {
+                this._events.removeListener(Events.TaskStatus, callback);
+                this._events.removeListener(Events.QueueBypassStatus, callback);
+                this._events.removeListener(Events.MonitorStatus, callback);
+                this._events.removeListener(Events.CheckoutStatus, callback);
             }
             default: {
                 break;
@@ -159,43 +131,43 @@ class TaskRunner {
     // MARK: Event Emitting
     _emitEvent(event, message) {
         switch(event) {
-            case TaskRunner.Events.TaskStatus: {
-                this._events.emit(TaskRunner.Events.TaskStatus, this._context.id, message, TaskRunner.Events.TaskStatus);
+            case Events.TaskStatus: {
+                this._events.emit(Events.TaskStatus, this._context.id, message, Events.TaskStatus);
                 break;
             }
-            case TaskRunner.Events.QueueBypassStatus: {
-                this._events.emit(TaskRunner.Events.QueueBypassStatus, this._context.id, message, TaskRunner.Events.QueueBypassStatus);
+            case Events.QueueBypassStatus: {
+                this._events.emit(Events.QueueBypassStatus, this._context.id, message, Events.QueueBypassStatus);
                 break;
             }
-            case TaskRunner.Events.MonitorStatus: {
-                this._events.emit(TaskRunner.Events.MonitorStatus, this._context.id, message, TaskRunner.Events.MonitorStatus);
+            case Events.MonitorStatus: {
+                this._events.emit(Events.MonitorStatus, this._context.id, message, Events.MonitorStatus);
                 break;
             }
-            case TaskRunner.Events.CheckoutStatus: {
-                this._events.emit(TaskRunner.Events.CheckoutStatus, this._context.id, message, TaskRunner.Events.CheckoutStatus);
+            case Events.CheckoutStatus: {
+                this._events.emit(Events.CheckoutStatus, this._context.id, message, Events.CheckoutStatus);
                 break;
             }
             default: {
                 break;
             }
         }
-        this._events.emit(TaskRunner.Events.All, this._context.id, message, event);
+        this._events.emit(Events.All, this._context.id, message, event);
     }
 
     _emitTaskEvent(message) {
-        this._emitEvent(TaskRunner.Events.TaskStatus, message);
+        this._emitEvent(Events.TaskStatus, message);
     }
 
     _emitQueueBypassEvent(message) {
-        _emitEvent(TaskRunner.Events.QueueBypassStatus, message);
+        _emitEvent(Events.QueueBypassStatus, message);
     }
 
     _emitMonitorEvent(message) {
-        _emitEvent(TaskRunner.Events.MonitorStatus, message);
+        _emitEvent(Events.MonitorStatus, message);
     }
 
     _emitCheckoutEvent(message) {
-        this._emitEvent(TaskRunner.Events.CheckoutStatus, message);
+        this._emitEvent(Events.CheckoutStatus, message);
     }
 
     // MARK: State Machine Step Logic
@@ -204,7 +176,7 @@ class TaskRunner {
         this._emitTaskEvent({
             message: 'Starting task...',
         });
-        return TaskRunner.States.GenAltCheckout;
+        return States.GenAltCheckout;
     }
 
     async _handleGenAltCheckout() {
@@ -215,7 +187,7 @@ class TaskRunner {
                 errors: res.errors,
             });
         }
-        return TaskRunner.States.Monitor;
+        return States.Monitor;
     }
 
     async _handleMonitor() {
@@ -258,28 +230,31 @@ class TaskRunner {
         this._emitTaskEvent({
             message: 'Task has finished!',
         });
-        return TaskRunner.States.Stopped;
+        return States.Stopped;
     }
 
     async _handleAborted() {
         this._emitTaskEvent({
             message: 'Task has aborted!',
         });
-        return TaskRunner.States.Stopped;
+        return States.Stopped;
     }
 
     async _handleStepLogic(currentState) {
         async function defaultHandler() {
             throw new Error('Reached Unknown State!');
         }
+
+        console.log(`[TRACE]: TaskRunner: Handling state: ${currentState}`);
+
         const stepMap = {
-            [TaskRunner.States.Started]: this._handleStarted,
-            [TaskRunner.States.GenAltCheckout]: this._handleGenAltCheckout,
-            [TaskRunner.States.Monitor]: this._handleMonitor,
-            [TaskRunner.States.SwapProxies]: this._handleSwapProxies,
-            [TaskRunner.States.Checkout]: this._handleCheckout,
-            [TaskRunner.States.Finished]: this._handleFinished,
-            [TaskRunner.States.Aborted]: this._handleAborted,
+            [States.Started]: this._handleStarted,
+            [States.GenAltCheckout]: this._handleGenAltCheckout,
+            [States.Monitor]: this._handleMonitor,
+            [States.SwapProxies]: this._handleSwapProxies,
+            [States.Checkout]: this._handleCheckout,
+            [States.Finished]: this._handleFinished,
+            [States.Aborted]: this._handleAborted,
         }
         const handler = stepMap[currentState] || defaultHandler;
         return await handler.call(this);
@@ -288,19 +263,24 @@ class TaskRunner {
     // MARK: State Machine Run Loop
 
     async start() {
-        this._state = TaskRunner.States.Started;
-        while(this._state !== TaskRunner.States.Stopped) {
-            this._state = await this._handleStepLogic(this._state);
+        this._state = States.Started;
+        while(this._state !== States.Stopped) {
             if (this._context.aborted) {
-                this._state = TaskRunner.States.Aborted;
+                this._state = States.Aborted;
             }
+            this._state = await this._handleStepLogic(this._state);
+            console.log(`[TRACE]: TaskRunner: Run Loop finished, state transitioned to: ${this._state}`);
         }
         this._emitTaskEvent({
             message: 'Task has stopped.',
         });
 
         this._cleanup();
+        return;
     }
 }
+
+TaskRunner.Events = Events;
+TaskRunner.States = States;
 
 module.exports = TaskRunner;
