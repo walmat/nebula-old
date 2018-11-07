@@ -83,12 +83,14 @@ class Shipping {
                     'User-Agent': userAgent,
                     Referer: `${this._checkoutUrl}`,
                 },
-                formData: buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information'),
-                transform: function(body) {
-                    return cheerio.load(body);
-                }
+                formData: JSON.stringify(buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information')),
+                // transform: function(body) {
+                //     return cheerio.load(body);
+                // }
             })
-            .then(($) => {
+            .then((res) => {
+                $ = cheerio.load(res.body);
+                console.log(res.body);
                 const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
                 this._timer.stop(now());
                 console.log(`[INFO]: SHIPPING: Got shipping options in ${this._timer.getRunTime()}ms`);
