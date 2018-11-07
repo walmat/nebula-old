@@ -219,7 +219,7 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleShipping() {
-        const res = await this._shipping.getShippingOptions();
+        let res = await this._shipping.getShippingOptions();
 
         if (res.errors) {
             return { errors: res.errors };
@@ -230,7 +230,7 @@ class Checkout {
             return Checkout.States.SolveCaptcha;
         }
 
-        const res = await this._shipping.submitShipping(opts.type, opts.value, opts.authToken);
+        res = await this._shipping.submitShipping(opts.type, opts.value, opts.authToken);
         
         if (res.errors) {
             return { errors: res.errors };
@@ -275,7 +275,8 @@ class Checkout {
         const res = await this._payment.submit();
 
         if (res.errors) {
-            return { errors: res.errors };
+            console.log(`[ERROR]: CHECKOUT: Payment handler failed: ${res.errors}`);
+            throw new Error(res.errors);
         }
 
         if (res === this._payment.PAYMENT_STATES.Error) {
@@ -301,6 +302,8 @@ class Checkout {
         async function defaultHandler() {
             return currentState;
         }
+
+        console.log(`[TRACE]: CHECKOUT: Handling State: ${JSON.stringify(currentState, null, 2)} ...`);
 
         const stateMap = {
             [Checkout.States.Started]: this._handleStarted,
