@@ -56,7 +56,12 @@ class TaskRunner {
 
         this._handleAbort = this._handleAbort.bind(this);
 
-        this._taskManager.on('abort', this._handleAbort);
+        this._taskManager._events.on('abort', this._handleAbort);
+    }
+
+    _waitForErrorDelay() {
+        console.log('[DEBUG]: TaskRunner: Waiting for error delay...');
+        return new Promise(resolve => setTimeout(resolve, this._context.task.errorDelay));
     }
 
     _handleAbort(id) {
@@ -66,7 +71,7 @@ class TaskRunner {
     }
 
     _cleanup() {
-        this._taskManager.removeListener('abort', this._handleAbort);
+        this._taskManager._events.removeListener('abort', this._handleAbort);
     }
 
     // MARK: Event Registration
@@ -186,6 +191,7 @@ class TaskRunner {
                 message: 'Unable to Generate alternative checkout! Continuing on...',
                 errors: res.errors,
             });
+            await this._waitForErrorDelay();
         }
         return States.Monitor;
     }
@@ -197,6 +203,7 @@ class TaskRunner {
                 message: 'Error with Monitor! Retrying...',
                 errors: res.errors,
             });
+            await this._waitForErrorDelay();
         }
         // Monitor will be in charge of choosing the next state
         return res.nextState;
@@ -209,6 +216,7 @@ class TaskRunner {
                 message: 'Error Swapping Proxies! Retrying Monitor...',
                 errors: res.errors,
             });
+            await this._waitForErrorDelay();
         }
         // Swap Proxies will be in charge of choosing the next state
         return res.nextState;
@@ -221,6 +229,7 @@ class TaskRunner {
                 message: 'Errors during Checkout! Retrying Monitor...',
                 errors: res.errors,
             });
+            await this._waitForErrorDelay();
         }
         // Checkout will be in charge of choosing the next state
         return res.nextState;
