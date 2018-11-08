@@ -2,7 +2,8 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-
+const fs = require('fs');
+const path = require('path');
 /**
  * Form includes
  */
@@ -62,13 +63,15 @@ class Shipping {
                 Referer: `${this._task.site.url}/cart`,
             },
             qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
-            transform: function(body) {
-                return cheerio.load(body);
-            }
+            // transform: function(body) {
+            //     return cheerio.load(body);
+            // }
         })
-        .then(($) => {
+        .then((res) => {
+            const $ = cheerio.load(res.body);
+            fs.writeFileSync(path.join(__dirname, 'shipping-method.html'), res.body);
 
-            // TODO - captcha solving
+            // TODO - select captcha and spit back the sitekey to the captcha harvesters
 
             const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
             return this._request({
@@ -85,12 +88,15 @@ class Shipping {
                     'User-Agent': userAgent,
                     Referer: `${this._checkoutUrl}`,
                 },
-                formData: JSON.stringify(buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information')),
-                transform: function(body) {
-                    return cheerio.load(body);
-                }
+                formData: buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information'),
+                // transform: function(body) {
+                //     return cheerio.load(body);
+                // }
             })
-            .then(($) => {
+            .then((res) => {
+                const $ = cheerio.load(res.body);
+
+                fs.writeFileSync(path.join(__dirname, 'shipping-method.html'), res.body);
 
                 const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
                 this._timer.stop(now());
