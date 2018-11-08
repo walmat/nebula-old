@@ -2,8 +2,6 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-const fs = require('fs');
-const path = require('path');
 
 /**
  * Form includes
@@ -49,8 +47,6 @@ class Shipping {
 
         this._timer.start(now());
 
-        console.log(this._checkoutUrl);
-
         return this._request({
             uri: `${this._checkoutUrl}`,
             method: 'get',
@@ -66,18 +62,15 @@ class Shipping {
                 Referer: `${this._task.site.url}/cart`,
             },
             qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
-            // transform: function(body) {
-            //     return cheerio.load(body);
-            // }
+            transform: function(body) {
+                return cheerio.load(body);
+            }
         })
-        .then((res) => {
-            const $ = cheerio.load(res.body);
+        .then(($) => {
 
             // TODO - captcha solving
-            console.log(this._checkoutUrl, res.request.href);
 
             const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-            console.log(newAuthToken);
             return this._request({
                 uri: `${this._checkoutUrl}`,
                 method: 'post',
@@ -93,15 +86,13 @@ class Shipping {
                     Referer: `${this._checkoutUrl}`,
                 },
                 formData: JSON.stringify(buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information')),
-                // transform: function(body) {
-                //     return cheerio.load(body);
-                // }
+                transform: function(body) {
+                    return cheerio.load(body);
+                }
             })
-            .then((res) => {
-                const $ = cheerio.load(res.body);
-                const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
-                fs.writeFileSync(path.join(__dirname, `${this._context.id}-checkout-2-cookies.txt`), this._request.jar().getCookies(this._checkoutUrl));
+            .then(($) => {
 
+                const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
                 this._timer.stop(now());
                 console.log(`[INFO]: SHIPPING: Got shipping options in ${this._timer.getRunTime()}ms`);
                 if (shippingPollUrl === undefined) {

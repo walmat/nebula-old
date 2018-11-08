@@ -180,8 +180,8 @@ class Cart {
 
         const form = {
             'shipping_address[zip]': this._task.profile.shipping.zipCode,
-            'shipping_address[country]': this._task.profile.shipping.country,
-            'shipping_address[province]': this._task.profile.shipping.state,
+            'shipping_address[country]': this._task.profile.shipping.country.label,
+            'shipping_address[province]': this._task.profile.shipping.state.label,
         }
 
         return this._request({

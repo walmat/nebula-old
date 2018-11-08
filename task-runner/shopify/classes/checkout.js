@@ -143,7 +143,6 @@ class Checkout {
             return Checkout.States.AddToCart;
         }
         this._price = this._cart._price;
-        fs.writeFileSync(path.join(__dirname, `${this._id}-cart-cookies.txt`), this._jar.getCookies(this._task.site.url));
         return Checkout.States.GeneratePaymentToken;
     }
 
@@ -162,7 +161,6 @@ class Checkout {
             return Checkout.States.Stopped;
         }
         this._paymentToken = res.paymentToken;
-        fs.writeFileSync(path.join(__dirname, `${this._id}-token-cookies.txt`), this._jar.getCookies(this._task.site.url));
         return Checkout.States.ProceedToCheckout;
     }
 
@@ -188,7 +186,6 @@ class Checkout {
             
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
-            fs.writeFileSync(path.join(__dirname, `${this._id}-checkout-1-cookies.txt`), this._jar.getCookies(this._checkoutUrl));
 
             this._shipping = new Shipping(
                 this._context,

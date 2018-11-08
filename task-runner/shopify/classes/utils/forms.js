@@ -13,8 +13,8 @@ function buildShippingForm(task, authenticity_token, captchaResponse, step, prev
         "checkout[shipping_address][address1]": task.profile.shipping.address,
         "checkout[shipping_address][address2]": task.profile.shipping.apt,
         "checkout[shipping_address][city]": task.profile.shipping.city,
-        "checkout[shipping_address][country]": task.profile.shipping.country,
-        "checkout[shipping_address][province]": task.profile.shipping.state,
+        "checkout[shipping_address][country]": task.profile.shipping.country.label,
+        "checkout[shipping_address][province]": task.profile.shipping.state.label,
         "checkout[shipping_address][zip]": task.profile.shipping.zipCode,
         "checkout[shipping_address][phone]": phoneFormatter.format(
             task.profile.shipping.phone,
@@ -80,8 +80,8 @@ function buildBillingForm(task, authenticity_token, previousStep, price, payment
             'checkout[billing_address][address1]': task.profile.shipping.address,
             'checkout[billing_address][address2]': task.profile.shipping.apt,
             'checkout[billing_address][city]': task.profile.shipping.city,
-            'checkout[billing_address][country]': task.profile.shipping.country,
-            'checkout[billing_address][province]': task.profile.shipping.state,
+            'checkout[billing_address][country]': task.profile.shipping.country.label,
+            'checkout[billing_address][province]': task.profile.shipping.state.label,
             'checkout[billing_address][zip]': task.profile.shipping.zipCode,
             'checkout[billing_address][phone]': phoneFormatter.format(
                 task.profile.shipping.phone,
@@ -113,8 +113,8 @@ function buildBillingForm(task, authenticity_token, previousStep, price, payment
             'checkout[billing_address][address1]': task.profile.billing.address,
             'checkout[billing_address][address2]': task.profile.billing.apt,
             'checkout[billing_address][city]': task.profile.billing.city,
-            'checkout[billing_address][country]': task.profile.billing.country,
-            'checkout[billing_address][province]': task.profile.billing.state,
+            'checkout[billing_address][country]': task.profile.billing.country.label,
+            'checkout[billing_address][province]': task.profile.billing.state.label,
             'checkout[billing_address][zip]': task.profile.billing.zipCode,
             'checkout[billing_address][phone]': phoneFormatter.format(
                 task.profile.billing.phone,
