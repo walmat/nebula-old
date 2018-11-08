@@ -2,6 +2,7 @@ const Electron = require('electron');
 const DialogManager = require('./dialogManager');
 const WindowManager = require('./windowManager');
 const AuthManager = require('./authManager');
+const TaskManagerWrapper = require('./taskManagerWrapper');
 const nebulaEnv = require('./env');
 
 nebulaEnv.setUpEnvironment();
@@ -60,6 +61,12 @@ class App {
      * @type {AuthManager}
      */
     this._authManager = new AuthManager(this);
+
+    /**
+     * Wrapper for the TaskManager
+     * @type {TaskManagerWrapper}
+     */
+    this._taskManagerWrapper = new TaskManagerWrapper(this);
   }
 
   /**

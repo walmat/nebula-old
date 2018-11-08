@@ -54,23 +54,27 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
     }
     case TASK_ACTIONS.REMOVE: {
       // Check for valid payload structure
-      if (!action.response || (action.response && action.response.id === undefined)) {
+      if (!action.response) {
         break;
       }
 
-      // this we'll use to remove all tasks
-      if (action.response.id === null) {
-        nextState = [];
-        break;
+      const { task } = action.response;
+      let taskId = -1;
+      // Check if we are removing all tasks or just a single task
+      if (task || task === null) {
+        taskId = (task && task.id);
       }
 
-      // filter out given id
-      nextState = nextState.filter(t => t.id !== action.response.id);
+      // filter out task from list now
+      nextState = nextState.filter(t => t.id !== (taskId || t.id));
 
-      // adjust the id of each following task to shift down one when a task is deleted
-      for (let i = action.response.id - 1; i < nextState.length; i += 1) {
-        _num = nextState[i].id;
-        nextState[i].id -= 1;
+      // Check if we have adjusted the array and need to recalculate ids
+      if (nextState.length !== state.length && nextState.length !== 0) {
+        // adjust the id of each following task to shift down one when a task is deleted
+        for (let i = task.id - 1; i < nextState.length; i += 1) {
+          _num = nextState[i].id;
+          nextState[i].id -= 1;
+        }
       }
       break;
     }
@@ -124,6 +128,16 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       nextState[idxToUpdate] = updateTask;
       break;
     }
+    case TASK_ACTIONS.STATUS: {
+      if (!action.response.id || !action.response.message) {
+        break;
+      }
+      const task = nextState.find(t => t.id === action.response.id);
+      if (task) {
+        task.output = action.response.message;
+      }
+      break;
+    }
     case TASK_ACTIONS.EDIT: {
       // check if id is given (we only change the state on a non-null id)
       if (action.id === null) {
@@ -159,6 +173,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       } else {
         nextState[idx].status = 'running';
+        nextState[idx].output = 'Starting task!';
       }
       break;
     }
@@ -178,6 +193,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       } else {
         nextState[idx].status = 'stopped';
+        nextState[idx].output = 'Stopping task...';
       }
       break;
     }

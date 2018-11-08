@@ -65,28 +65,110 @@ describe('task reducer', () => {
 
     describe('when editing a new task', () => {
       describe('when editing valid', () => {
-        test('product', () => {
-          const start = {
-            ...initialTaskStates.task,
-            product: {
-              raw: '+off, +white',
-              pos_keywords: ['off', 'white'],
-            },
-          };
-          const expected = {
-            ...initialTaskStates.task,
-            product: {
-              ...initialTaskStates.product,
-              raw: 'test',
-            },
-          };
-          const actual = taskReducer(
-            start,
-            {
-              type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'test',
-            },
-          );
-          expect(actual).toEqual(expected);
+        describe('product', () => {
+          test('when passing raw value', () => {
+            const start = {
+              ...initialTaskStates.task,
+              product: {
+                raw: '+off, +white',
+                pos_keywords: ['off', 'white'],
+              },
+            };
+            const expected = {
+              ...initialTaskStates.task,
+              product: {
+                ...initialTaskStates.product,
+                raw: 'test',
+              },
+            };
+            const actual = taskReducer(
+              start,
+              {
+                type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'test',
+              },
+            );
+            expect(actual).toEqual(expected);
+          });
+
+          describe('when passing url value', () => {
+            test('which exists', () => {
+              const start = {
+                ...initialTaskStates.task,
+                product: {
+                  raw: '+off, +white',
+                  pos_keywords: ['off', 'white'],
+                },
+              };
+              const expected = {
+                ...initialTaskStates.task,
+                product: {
+                  ...initialTaskStates.product,
+                  raw: 'https://kith.com',
+                },
+                site: {
+                  url: 'https://kith.com',
+                  name: 'Kith',
+                },
+                username: null,
+                password: null,
+              };
+              const actual = taskReducer(
+                start,
+                {
+                  type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'https://kith.com',
+                },
+              );
+              expect(actual).toEqual(expected);
+            });
+
+            test('which does not exist', () => {
+              const start = {
+                ...initialTaskStates.task,
+                product: {
+                  raw: '+off, +white',
+                  pos_keywords: ['off', 'white'],
+                },
+              };
+              const expected = {
+                ...initialTaskStates.task,
+                product: {
+                  ...initialTaskStates.product,
+                  raw: 'https://www.thisshouldcauseanoop.com',
+                },
+              };
+              const actual = taskReducer(
+                start,
+                {
+                  type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'https://www.thisshouldcauseanoop.com',
+                },
+              );
+              expect(actual).toEqual(expected);
+            });
+
+            test('which is not a valid url', () => {
+              const start = {
+                ...initialTaskStates.task,
+                product: {
+                  raw: '+off, +white',
+                  pos_keywords: ['off', 'white'],
+                },
+              };
+              const expected = {
+                ...initialTaskStates.task,
+                product: {
+                  ...initialTaskStates.product,
+                  raw: 'http',
+                },
+              };
+              const actual = taskReducer(
+                start,
+                {
+                  type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_PRODUCT, value: 'http',
+                },
+              );
+              expect(actual).toEqual(expected);
+            });
+          });
         });
 
         test('username', () => {
@@ -137,6 +219,89 @@ describe('task reducer', () => {
             TASK_FIELDS.EDIT_SIZES,
             [{ id: 1, value: 'test', label: 'test' }],
           );
+        });
+
+        describe('sizes', () => {
+          test('when adding sizes to an empty list', () => {
+            checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, [{ id: 1, value: 'test', label: 'test' }]);
+          });
+
+          test('when resetting sizes to an empty list', () => {
+            const initialState = {
+              ...initialTaskStates.task,
+              sizes: null,
+            };
+            const expected = {
+              ...initialState,
+              sizes: [],
+            };
+            const actual = taskReducer(
+              initialState,
+              {
+                type: TASK_ACTIONS.EDIT,
+                field: TASK_FIELDS.EDIT_SIZES,
+                value: null,
+              },
+            );
+            expect(actual).toEqual(expected);
+          });
+
+          test('when adding sizes to an existing list', () => {
+            const initialState = {
+              ...initialTaskStates.task,
+              sizes: [{ id: 1, value: 'test', label: 'test' }],
+            };
+            const expected = {
+              ...initialState,
+              sizes: [
+                { id: 2, value: 'test2', label: 'test2' },
+                { id: 3, value: 'test3', label: 'test3' },
+                { id: 1, value: 'test', label: 'test' },
+              ],
+            };
+            const actual = taskReducer(
+              initialState,
+              {
+                type: TASK_ACTIONS.EDIT,
+                field: TASK_FIELDS.EDIT_SIZES,
+                value: [
+                  { id: 2, value: 'test2', label: 'test2' },
+                  { id: 3, value: 'test3', label: 'test3' },
+                ],
+              },
+            );
+            expect(actual).toEqual(expected);
+          });
+
+          test('when removing sizes from an existing list', () => {
+            const initialState = {
+              ...initialTaskStates.task,
+              sizes: [
+                { id: 1, value: 'test', label: 'test' },
+                { id: 2, value: 'test2', label: 'test2' },
+                { id: 3, value: 'test3', label: 'test3' },
+              ],
+            };
+            const expected = {
+              ...initialState,
+              sizes: [
+                { id: 2, value: 'test2', label: 'test2' },
+                { id: 3, value: 'test3', label: 'test3' },
+              ],
+            };
+            const actual = taskReducer(
+              initialState,
+              {
+                type: TASK_ACTIONS.EDIT,
+                field: TASK_FIELDS.EDIT_SIZES,
+                value: [
+                  { id: 2, value: 'test2', label: 'test2' },
+                  { id: 3, value: 'test3', label: 'test3' },
+                ],
+              },
+            );
+            expect(actual).toEqual(expected);
+          });
         });
       });
 
@@ -262,34 +427,136 @@ describe('task reducer', () => {
 
     describe('when editing an existing task', () => {
       describe('when editing valid', () => {
-        test('product', () => {
-          const start = {
-            ...initialTaskStates.task,
-            id: 1,
-            edits: {
-              ...initialTaskStates.edit,
-              product: {
-                raw: '+off, +white',
-                pos_keywords: ['off', 'white'],
+        describe('product', () => {
+          test('when passing raw value', () => {
+            const start = {
+              ...initialTaskStates.task,
+              id: 1,
+              edits: {
+                ...initialTaskStates.edit,
+                product: {
+                  ...initialTaskStates.product,
+                  raw: '+off, +white',
+                  pos_keywords: ['off', 'white'],
+                },
               },
-            },
-          };
-          const expected = {
-            ...start,
-            edits: {
-              ...start.edits,
-              product: {
-                raw: 'test',
+            };
+            const expected = {
+              ...start,
+              edits: {
+                ...start.edits,
+                product: {
+                  ...initialTaskStates.product,
+                  raw: 'test',
+                },
               },
-            },
-          };
-          const actual = taskReducer(
-            start,
-            {
-              type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'test',
-            },
-          );
-          expect(actual).toEqual(expected);
+            };
+            const actual = taskReducer(
+              start,
+              {
+                type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'test',
+              },
+            );
+            expect(actual).toEqual(expected);
+          });
+
+          describe('when passing url value', () => {
+            test('which exists', () => {
+              const start = {
+                ...initialTaskStates.task,
+                edits: {
+                  ...initialTaskStates.edit,
+                  product: {
+                    raw: '+off, +white',
+                    pos_keywords: ['off', 'white'],
+                  },
+                },
+              };
+              const expected = {
+                ...initialTaskStates.task,
+                edits: {
+                  ...initialTaskStates.edit,
+                  product: {
+                    ...initialTaskStates.product,
+                    raw: 'https://kith.com',
+                  },
+                  site: {
+                    url: 'https://kith.com',
+                    name: 'Kith',
+                  },
+                  username: null,
+                  password: null,
+                },
+              };
+              const actual = taskReducer(
+                start,
+                {
+                  type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'https://kith.com',
+                },
+              );
+              expect(actual).toEqual(expected);
+            });
+
+            test('which does not exist', () => {
+              const start = {
+                ...initialTaskStates.task,
+                edits: {
+                  ...initialTaskStates.edit,
+                  product: {
+                    raw: '+off, +white',
+                    pos_keywords: ['off', 'white'],
+                  },
+                },
+              };
+              const expected = {
+                ...initialTaskStates.task,
+                edits: {
+                  ...initialTaskStates.edit,
+                  product: {
+                    ...initialTaskStates.product,
+                    raw: 'https://www.thisshouldcauseanoop.com',
+                  },
+                },
+              };
+              const actual = taskReducer(
+                start,
+                {
+                  type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'https://www.thisshouldcauseanoop.com',
+                },
+              );
+              expect(actual).toEqual(expected);
+            });
+
+            test('which is not a valid url', () => {
+              const start = {
+                ...initialTaskStates.task,
+                edits: {
+                  ...initialTaskStates.edit,
+                  product: {
+                    raw: '+off, +white',
+                    pos_keywords: ['off', 'white'],
+                  },
+                },
+              };
+              const expected = {
+                ...initialTaskStates.task,
+                edits: {
+                  ...initialTaskStates.edit,
+                  product: {
+                    ...initialTaskStates.product,
+                    raw: 'http',
+                  },
+                },
+              };
+              const actual = taskReducer(
+                start,
+                {
+                  type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_PRODUCT, value: 'http',
+                },
+              );
+              expect(actual).toEqual(expected);
+            });
+          });
         });
 
         test('username', () => {
@@ -308,8 +575,81 @@ describe('task reducer', () => {
           checkExistingFieldEdit(TASK_FIELDS.EDIT_PROFILE, { id: 1 }, 1);
         });
 
-        test('sizes', () => {
-          checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, [{ id: 1, value: 'test', label: 'test' }], 1);
+        describe('sizes', () => {
+          test('when adding sizes to an empty list', () => {
+            checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, [{ id: 1, value: 'test', label: 'test' }], 1);
+          });
+
+          test('when adding sizes to an existing list', () => {
+            const initialState = {
+              ...initialTaskStates.task,
+              edits: {
+                ...initialTaskStates.edit,
+                sizes: [{ id: 1, value: 'test', label: 'test' }],
+              },
+            };
+            const expected = {
+              ...initialState,
+              edits: {
+                ...initialState.edits,
+                sizes: [
+                  { id: 2, value: 'test2', label: 'test2' },
+                  { id: 3, value: 'test3', label: 'test3' },
+                  { id: 1, value: 'test', label: 'test' },
+                ],
+              },
+            };
+            const actual = taskReducer(
+              initialState,
+              {
+                type: TASK_ACTIONS.EDIT,
+                id: 1,
+                field: TASK_FIELDS.EDIT_SIZES,
+                value: [
+                  { id: 2, value: 'test2', label: 'test2' },
+                  { id: 3, value: 'test3', label: 'test3' },
+                ],
+              },
+            );
+            expect(actual).toEqual(expected);
+          });
+
+          test('when removing sizes from an existing list', () => {
+            const initialState = {
+              ...initialTaskStates.task,
+              edits: {
+                ...initialTaskStates.edit,
+                sizes: [
+                  { id: 1, value: 'test', label: 'test' },
+                  { id: 2, value: 'test2', label: 'test2' },
+                  { id: 3, value: 'test3', label: 'test3' },
+                ],
+              },
+            };
+            const expected = {
+              ...initialState,
+              edits: {
+                ...initialState.edits,
+                sizes: [
+                  { id: 2, value: 'test2', label: 'test2' },
+                  { id: 3, value: 'test3', label: 'test3' },
+                ],
+              },
+            };
+            const actual = taskReducer(
+              initialState,
+              {
+                type: TASK_ACTIONS.EDIT,
+                id: 1,
+                field: TASK_FIELDS.EDIT_SIZES,
+                value: [
+                  { id: 2, value: 'test2', label: 'test2' },
+                  { id: 3, value: 'test3', label: 'test3' },
+                ],
+              },
+            );
+            expect(actual).toEqual(expected);
+          });
         });
       });
 

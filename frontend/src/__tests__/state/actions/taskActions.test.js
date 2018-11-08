@@ -56,12 +56,13 @@ describe('task actions', () => {
   });
 
   it('should create an action to destroy a task', async () => {
-    const action = taskActions.destroy(42);
+    const action = taskActions.destroy({ id: 42 }, 'testing');
     const expectedActions = [
       {
         type: TASK_ACTIONS.REMOVE,
         response: {
-          id: 42,
+          task: { id: 42 },
+          type: 'testing',
         },
       },
     ];

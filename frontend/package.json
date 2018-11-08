@@ -56,6 +56,7 @@
     "redux-localstorage": "^0.4.1",
     "redux-thunk": "^2.3.0",
     "sanitize-html": "^1.18.4",
+    "task-runner": "file:../task-runner",
     "threads": "^0.11.0",
     "underscore": "^1.9.1",
     "uuid": "^3.3.2",
