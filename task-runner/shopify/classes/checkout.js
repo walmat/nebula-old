@@ -262,7 +262,8 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Starting Shipping...')
         let opts = await this._shipping.getShippingOptions();
         if (opts.errors) {
-            return { errors: opts.errors };
+            console.log('---------here---------')
+            return { message: opts.errors, nextState: Checkout.States.Stopped };
         }
         this._authToken = opts.newAuthToken;
 
@@ -317,7 +318,7 @@ class Checkout {
         let { type, value, authToken } = this._shippingOpts;
         let res = await this._shipping.submitShipping(type, value, authToken);
         if (res.errors) {
-            return { errors: res.errors };
+            return { message: res.errors, nextState: Checkout.States.Stopped };
         }
         
         if (res.paymentGateway && res.newAuthToken) {
@@ -369,8 +370,7 @@ class Checkout {
 
     async _handleStopped() {
         this._logger.verbose('CHECKOUT: Stopping checkout process...');
-        return Checkout.States.Stopped;
-        // TODO - handle a clean shut down..
+        return { message: 'Stopping task...', nextState: Checkout.States.Stopped };
     }
 
     async _handleStepLogic(currentState) {
@@ -418,9 +418,10 @@ class Checkout {
                 nextState: States.Checkout,
             }
         }
+        
         return {
             message: res.message,
-            nextState: States.Finished,
+            nextState: States.Stopped,
         }
 
     }

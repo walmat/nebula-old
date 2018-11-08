@@ -71,6 +71,7 @@ class Shipping {
             const recaptchaFrame = $('#g-recaptcha');
             const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
             this._logger.verbose('SHIPPING: Finished Getting Shipping Options Form');
+
             if (recaptchaFrame.length) {
                 this._logger.debug('SHIPPING: Captcha Found in Shipping Form');
                 return {
@@ -114,30 +115,30 @@ class Shipping {
         })
         .then(($) => {
             const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
-                this._timer.stop(now());
-                this._logger.info('Submitted shipping options in %d ms', this._timer.getRunTime());
-                if (shippingPollUrl === undefined) {
-                    const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
-                    if (firstShippingOption == undefined) {
-                        this._logger.info('%s is incompatible, sorry for the inconvenience', this._task.site.url);
-                        return {
-                            errors: `Site is incompatible.`,
-                        };
-                    } else {
-                        this._logger.debug('SHIPPING: Direct Shipping Method Chosen');
-                        return {
-                            type: 'direct',
-                            value: firstShippingOption,
-                            authToken: $('input[name="authenticity_token"]').val()
-                        };
-                    }
+            this._timer.stop(now());
+            this._logger.info('Submitted shipping options in %d ms', this._timer.getRunTime());
+            if (shippingPollUrl === undefined) {
+                const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
+                if (firstShippingOption == undefined) {
+                    this._logger.info('%s is incompatible, sorry for the inconvenience', this._task.site.url);
+                    return {
+                        errors: `Unable to find shipping options`,
+                    };
+                } else {
+                    this._logger.debug('SHIPPING: Direct Shipping Method Chosen');
+                    return {
+                        type: 'direct',
+                        value: firstShippingOption,
+                        authToken: $('input[name="authenticity_token"]').val()
+                    };
                 }
-                this._logger.debug('SHIPPING: Poll Shipping Method Chosen');
-                return {
-                    type: 'poll',
-                    value: shippingPollUrl,
-                    authToken: '',
-                }
+            }
+            this._logger.debug('SHIPPING: Poll Shipping Method Chosen');
+            return {
+                type: 'poll',
+                value: shippingPollUrl,
+                authToken: '',
+            }
         })
         .catch((err) => {
             this._logger.debug('Error submitting shipping options: %s', err);

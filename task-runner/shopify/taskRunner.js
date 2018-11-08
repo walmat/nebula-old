@@ -243,7 +243,7 @@ class TaskRunner {
 
     async _handleCheckout() {
         const res = await this._checkout.run();
-        console.log(res.message);
+        console.log(res.message, res.nextState);
         if (res.errors) {
             this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
@@ -298,6 +298,7 @@ class TaskRunner {
     async start() {
         this._state = States.Started;
         while(this._state !== States.Stopped) {
+            console.log(this._state);
             if (this._context.aborted) {
                 this._state = States.Aborted;
             }
