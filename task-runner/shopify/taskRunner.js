@@ -17,6 +17,8 @@ class TaskRunner {
          */
         this._state = States.Initialized;
 
+        this._jar = require('request').jar();
+
         /**
          * The context of this task runner
          * 
@@ -26,6 +28,7 @@ class TaskRunner {
         this._context = {
             id,
             task,
+            jar: this._jar,
             proxy,
             aborted: false,
         };

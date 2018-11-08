@@ -7,6 +7,8 @@ const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
 const { States } = require('./utils/constants').TaskRunner;
+const fs = require('fs');
+const path = require('path');
 
 class Checkout {
 
@@ -49,13 +51,19 @@ class Checkout {
         /**
          * ID of the given task runner
          */
-        this._id = this._context.runner_id;
+        this._id = this._context.id;
 
          /**
          * Task Data for the running task
          * @type {TaskObject}
          */
         this._task = this._context.task;
+
+        /**
+         * Cookie jar to use for the task
+         * @type {CookieJar}
+         */
+        this._jar = this._context.jar;
 
         /**
          * Proxy to run the task with
@@ -80,14 +88,19 @@ class Checkout {
 
         this._variantIndex = 0;
 
+        this._request = require('request-promise').defaults({
+            timeout: 10000,
+            jar: this._jar,
+        })
+
         /**
          * Class Instantiations
          */
         this._timer = new Timer();
-        this._cart = new Cart(context, this._timer);
+        this._cart = new Cart(context, this._timer, this._request);
         this._shipping = null;
         this._payment = null;
-        this._account = new Account(context, this._timer);
+        this._account = new Account(context, this._timer, this._request);
     }
 
     /**
@@ -130,6 +143,7 @@ class Checkout {
             return Checkout.States.AddToCart;
         }
         this._price = this._cart._price;
+        fs.writeFileSync(path.join(__dirname, `${this._id}-cart-cookies.txt`), this._jar.getCookies(this._task.site.url));
         return Checkout.States.GeneratePaymentToken;
     }
 
@@ -148,6 +162,7 @@ class Checkout {
             return Checkout.States.Stopped;
         }
         this._paymentToken = res.paymentToken;
+        fs.writeFileSync(path.join(__dirname, `${this._id}-token-cookies.txt`), this._jar.getCookies(this._task.site.url));
         return Checkout.States.ProceedToCheckout;
     }
 
@@ -173,10 +188,12 @@ class Checkout {
             
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
+            fs.writeFileSync(path.join(__dirname, `${this._id}-checkout-1-cookies.txt`), this._jar.getCookies(this._checkoutUrl));
 
             this._shipping = new Shipping(
                 this._context,
                 this._timer,
+                this._request,
                 this._checkoutUrl,
                 this._authToken,
                 this._shippingValue,
@@ -220,13 +237,13 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleShipping() {
-        let res = await this._shipping.getShippingOptions();
+        let opts = await this._shipping.getShippingOptions();
 
-        if (res.errors) {
-            return { errors: res.errors };
+        if (opts.errors) {
+            return { errors: opts.errors };
         }
 
-        if (res.captcha) {
+        if (opts.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
             return Checkout.States.SolveCaptcha;
         }
@@ -245,6 +262,7 @@ class Checkout {
             this._payment = new Payment(
                 this._context,
                 this._timer,
+                this._request,
                 this._checkoutUrl,
                 this._authToken,
                 this._price,

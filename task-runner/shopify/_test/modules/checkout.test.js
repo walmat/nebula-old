@@ -6,7 +6,6 @@ const Payment = require('../../classes/payment');
 const Checkout = require('../../classes/checkout');
 const Timer = require('../../classes/timer');
 
-
 const context = {
     runner_id: 1,
     task: task,

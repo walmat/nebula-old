@@ -2,7 +2,8 @@
  * Parse includes
  */
 const cheerio = require('cheerio');
-
+const fs = require('fs');
+const path = require('path');
 /**
  * Form includes
  */
@@ -20,7 +21,7 @@ const now = require('performance-now');
 
 class Payment {
 
-    constructor(context, timer, checkoutUrl, authToken, price, paymentGateway, paymentToken, shippingValue, captchaResponse) {
+    constructor(context, timer, request, checkoutUrl, authToken, price, paymentGateway, paymentToken, shippingValue, captchaResponse) {
         /**
          * All data needed for monitor to run
          * This includes:
@@ -31,11 +32,8 @@ class Payment {
          * @type {TaskRunnerContext}
          */
         this._context = context;
-        this._task = this._context.task;
-        this._proxy = this._context.proxy;
-        this._aborted = this._context.aborted;
         this._timer = timer;
-
+        this._request = request;
         this._checkoutUrl = checkoutUrl;
         this._authToken = authToken;
         this._price = price;
@@ -43,6 +41,11 @@ class Payment {
         this._paymentToken = paymentToken;
         this._shippingValue = shippingValue;
         this._captchaResponse = captchaResponse;
+
+        this._task = this._context.task;
+        this._proxy = this._context.proxy;
+        this._aborted = this._context.aborted;
+
 
         /**
          * STATES THAT THE PAYMENT MODULE CAN BE IN
@@ -103,6 +106,8 @@ class Payment {
             })
             .then((res) => {
                 const $ = cheerio.load(res.body);
+                console.log(path.join(__dirname, 'debug.html'));
+                fs.writeFileSync(path.join(__dirname, 'debug.html'), res.body);
                 this._timer.stop(now());
                 console.log(`[INFO]: PAYMENT: Submitted payment in ${this._timer.getRunTime()}ms`)
                 

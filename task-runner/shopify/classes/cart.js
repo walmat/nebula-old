@@ -14,13 +14,12 @@ const { buildCartForm, buildPaymentForm } = require('./utils/forms');
 const {
     formatProxy,
     userAgent,
-    request,
 } = require('./utils');
 const now = require('performance-now');
 
 class Cart {
 
-    constructor(context, timer) {
+    constructor(context, timer, request) {
         /**
          * All data needed for monitor to run
          * This includes:
@@ -32,13 +31,14 @@ class Cart {
          */
         this._context = context;
         this._timer = timer;
+        this._request = request;
 
         this._task = this._context.task;
         this._runnerID = this._context.runner_id;
         this._proxy = this._context.proxy;
         this._aborted = this._context.aborted;
 
-        this._price;
+        this._price = 0;
 
         this.CART_STATES = {
             CheckoutQueue: 'CHECKOUT_QUEUE',
@@ -51,9 +51,10 @@ class Cart {
 
         this._timer.start(now());
 
-        return request({
+        return this._request({
             uri: `${this._task.site.url}/cart/add.js`,
             resolveWithFullResponse: true,
+            rejectUnauthorized: false,
             followAllRedirects: true,
             simple: false,
             json: true,
@@ -97,10 +98,11 @@ class Cart {
 
         this._timer.start(now());
 
-        return request({
+        return this._request({
             uri: `${this._task.site.url}//checkout.json`,
             method: 'get',
             proxy: formatProxy(this._proxy),
+            rejectUnauthorized: false,
             followAllRedirects: true,
             simple: true,
             json: false,
@@ -141,9 +143,10 @@ class Cart {
 
         this._timer.start(now());
 
-        return request({
+        return this._request({
             uri: `${this._task.site.url}/cart/clear.js`,
             proxy: formatProxy(this._proxy),
+            rejectUnauthorized: false,
             followAllRedirects: true,
             json: true,
             method: 'POST',
@@ -181,9 +184,10 @@ class Cart {
             'shipping_address[province]': this._task.profile.shipping.state,
         }
 
-        return request({
+        return this._request({
             uri: `${this._task.site.url}/cart/shipping_rates.json`,
             proxy: formatProxy(this._proxy),
+            rejectUnauthorized: false,
             followAllRedirects: true,
             method: 'get',
             headers: {
@@ -218,10 +222,11 @@ class Cart {
 
         this._timer.start(now());
 
-        return request({
+        return this._request({
             uri: `https://elb.deposit.shopifycs.com/sessions`,
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
+            rejectUnauthorized: false,
             method: 'post',
             headers: {
                 'User-Agent': userAgent,
@@ -245,6 +250,7 @@ class Cart {
 
     removeTrailingZeros(value) {
         let price = [];
+        console.log(value);
         value = value.toString().split('');
         for (let i = 0; i < value.length; i++) {
             // remove last two zeroes

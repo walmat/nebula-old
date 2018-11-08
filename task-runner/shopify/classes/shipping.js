@@ -3,6 +3,7 @@
  */
 const cheerio = require('cheerio');
 const fs = require('fs');
+const path = require('path');
 
 /**
  * Form includes
@@ -15,13 +16,12 @@ const { buildShippingForm, buildShippingMethodForm } = require('./utils/forms');
 const {
     formatProxy,
     userAgent,
-    request,
 } = require('./utils');
 
 const now = require('performance-now');
 
 class Shipping {
-    constructor(context, timer, checkoutUrl, authToken, shippingMethod) {
+    constructor(context, timer, request, checkoutUrl, authToken, shippingMethod) {
         /**
          * All data needed for monitor to run
          * This includes:
@@ -32,14 +32,16 @@ class Shipping {
          * @type {TaskRunnerContext}
          */
         this._context = context;
-        this._task = this._context.task;
-        this._proxy = this._context.proxy;
-        this._aborted = this._context.aborted;
         this._timer = timer;
-
+        this._request = request;
         this._checkoutUrl = checkoutUrl;
         this._authToken = authToken;
         this._shippingMethod = shippingMethod;
+
+        this._task = this._context.task;
+        this._proxy = this._context.proxy;
+        this._aborted = this._context.aborted;
+
         this._captchaResponse = '';
     }
 
@@ -47,10 +49,13 @@ class Shipping {
 
         this._timer.start(now());
 
-        return request({
+        console.log(this._checkoutUrl);
+
+        return this._request({
             uri: `${this._checkoutUrl}`,
             method: 'get',
             proxy: formatProxy(this._proxy),
+            rejectUnauthorized: false,
             resolveWithFullResponse: true,
             followAllRedirects: true,
             simple: false,
@@ -61,19 +66,23 @@ class Shipping {
                 Referer: `${this._task.site.url}/cart`,
             },
             qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
-            transform: function(body) {
-                return cheerio.load(body);
-            }
+            // transform: function(body) {
+            //     return cheerio.load(body);
+            // }
         })
-        .then(($) => {
+        .then((res) => {
+            const $ = cheerio.load(res.body);
 
             // TODO - captcha solving
+            console.log(this._checkoutUrl, res.request.href);
 
             const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-            return request({
+            console.log(newAuthToken);
+            return this._request({
                 uri: `${this._checkoutUrl}`,
                 method: 'post',
                 proxy: formatProxy(this._proxy),
+                rejectUnauthorized: false,
                 followAllRedirects: true,
                 resolveWithFullResponse: true,
                 simple: false,
@@ -89,9 +98,10 @@ class Shipping {
                 // }
             })
             .then((res) => {
-                $ = cheerio.load(res.body);
-                console.log(res.body);
+                const $ = cheerio.load(res.body);
                 const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
+                fs.writeFileSync(path.join(__dirname, `${this._context.id}-checkout-2-cookies.txt`), this._request.jar().getCookies(this._checkoutUrl));
+
                 this._timer.stop(now());
                 console.log(`[INFO]: SHIPPING: Got shipping options in ${this._timer.getRunTime()}ms`);
                 if (shippingPollUrl === undefined) {
@@ -135,10 +145,12 @@ class Shipping {
 
         if (type === 'poll') {
             setTimeout(() => {
-                return request({
+                return this._request({
                     uri: this._checkoutUrl + value,
                     followAllRedirects: true,
                     resolveWithFullResponse: true,
+                    proxy: formatProxy(this._proxy),
+                    rejectUnauthorized: false,
                     simple: false,
                     method: 'get',
                     headers: {
@@ -153,10 +165,12 @@ class Shipping {
                 .then(($) => {
                     const shippingMethod = $('.radio-wrapper').attr('data-shipping-method');
                     const authToken = $('form[data-shipping-method-form="true"] input[name="authenticity_token"]').attr('value');
-                    return request({
+                    return this._request({
                         uri: this._checkoutUrl,
                         followAllRedirects: true,
                         resolveWithFullResponse: true,
+                        proxy: formatProxy(this._proxy),
+                        rejectUnauthorized: false,
                         method: 'post',
                         headers: {
                             'User-Agent': userAgent,
@@ -195,10 +209,12 @@ class Shipping {
             }, parseInt(this._task.shippingPoll));
         } else if (type === 'direct') {
             
-            return request({
+            return this._request({
                 uri: this._checkoutUrl,
                 followAllRedirects: true,
                 resolveWithFullResponse: true,
+                proxy: formatProxy(this._proxy),
+                rejectUnauthorized: false,
                 method: 'post',
                 headers: {
                     'User-Agent': userAgent,
@@ -211,10 +227,12 @@ class Shipping {
             })
             .then(() => {
                 
-                return request({
+                return this._request({
                     uri: `${this._checkoutUrl}?previous_step=shipping_method&step=payment_method`,
                     method: 'get',
                     followAllRedirects: true,
+                    proxy: formatProxy(this._proxy),
+                    rejectUnauthorized: false,
                     headers: {
                         'User-Agent': userAgent,
                         'Content-Type': 'application/x-www-form-urlencoded',

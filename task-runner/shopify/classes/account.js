@@ -8,12 +8,14 @@ const {
 } = require('./utils');
 
 class Account {
-    constructor(context, timer) {
+    constructor(context, timer, request) {
         this._context = context;
+        this._timer = timer;
+        this._request = request;
+
         this._task = this._context.task;
         this._proxy = this._context.proxy;
         this._aborted = this._context.aborted;
-        this._timer = timer;
 
         this.ACCOUNT_STATES = {
             LoggedIn: 'LOGGED_IN',
@@ -26,7 +28,7 @@ class Account {
      */
     login() {
 
-        return request({
+        return this._request({
             uri: `${this._task.site.url}/account/login`,
             method: 'post',
             simple: true,
@@ -61,7 +63,7 @@ class Account {
 
     logout() {
 
-        return request({
+        return this._request({
             uri: `${this._task.site.url}/account/logout`,
             method: 'get',
             proxy: formatProxy(this._proxy),
