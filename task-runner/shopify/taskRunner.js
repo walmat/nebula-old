@@ -190,7 +190,7 @@ class TaskRunner {
 
     async _handleStarted() {
         this._emitTaskEvent({
-            message: 'Starting task...',
+            message: 'Monitoring...',
         });
         return States.GenAltCheckout;
     }
@@ -215,11 +215,14 @@ class TaskRunner {
         if(res.errors) {
             this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
-                message: 'Error with Monitor! Retrying...',
+                message: 'Error finding product..',
                 errors: res.errors,
             });
             await this._waitForErrorDelay();
         }
+        this._emitTaskEvent({
+            message: res.message,
+        });
         // Monitor will be in charge of choosing the next state
         return res.nextState;
     }
@@ -240,6 +243,7 @@ class TaskRunner {
 
     async _handleCheckout() {
         const res = await this._checkout.run();
+        console.log(res.message);
         if (res.errors) {
             this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
@@ -248,6 +252,9 @@ class TaskRunner {
             });
             await this._waitForErrorDelay();
         }
+        this._emitTaskEvent({
+            message: res.message,
+        });
         // Checkout will be in charge of choosing the next state
         return res.nextState;
     }

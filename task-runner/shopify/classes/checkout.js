@@ -124,7 +124,7 @@ class Checkout {
         if (this._task.username && this._task.password) {
             return Checkout.States.LoginAccount;
         }
-        return Checkout.States.AddToCart;
+        return { message: 'Adding to cart...', nextState: Checkout.States.AddToCart };
     }
 
     async _handleLogin() {
@@ -146,6 +146,7 @@ class Checkout {
     async _handleAddToCart() {
         this._logger.verbose('CHECKOUT: Adding to Cart...');
         const res = await this._cart.addToCart(this._task.product.variants[this._variantIndex]);
+        console.log(res);
         if (res.errors) {
             this._logger.verbose('CHECKOUT: Errors in Add to Cart: %s', res.errors);
             return { errors: res.errors };
@@ -154,10 +155,10 @@ class Checkout {
             this._logger.verbose('CHECKOUT: Failed to Add to Cart');
             // TODO - rethink this logic a bit? What should happen if we fail the add to cart?
             // ...but what if the variant isn't live yet?
-            return Checkout.States.AddToCart;
+            return { message: 'Adding to cart', nextState: Checkout.States.AddToCart };
         }
         this._price = this._cart._price;
-        return Checkout.States.GeneratePaymentToken;
+        return { message: 'Proceeding to checkout..', nextState: Checkout.States.GeneratePaymentToken };
     }
 
     /**
@@ -176,7 +177,7 @@ class Checkout {
             return Checkout.States.Stopped;
         }
         this._paymentToken = res.paymentToken;
-        return Checkout.States.ProceedToCheckout;
+        return { message: 'Generating payment token', nextState: Checkout.States.ProceedToCheckout };
     }
 
     /**
@@ -192,9 +193,12 @@ class Checkout {
         }
 
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
-            return Checkout.States.CheckoutQueue;
+            console.log('[INFO]: CHECKOUT: Waiting in queue...');
+            // TODO - implement a wait of some sort?
+            return { message: 'Waiting in queue..', nextState: Checkout.States.ProceedToCheckout };
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
-            return Checkout.States.OutOfStock;
+            console.log('[INFO]: CHECKOUT: Out of stock...');
+            return { message: 'Out of stock', nextState: Checkout.States.OutOfStock };
         } else if (res.state === this._cart.CART_STATES.Success) {            
             
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
@@ -208,7 +212,7 @@ class Checkout {
                 this._authToken,
                 this._shippingValue,
             );
-            return Checkout.States.GetShipping;
+            return { message: 'Submitting shipping', nextState: Checkout.States.Shipping };
         }
     }
 
@@ -246,7 +250,7 @@ class Checkout {
         } else {
             // run restocks for the one size..
             this._logger.info('Running for Restocks');
-            return Checkout.States.Restock;
+            return { message: 'Running for Restocks', nextState: Checkout.States.Restock };
         }
     }
 
@@ -333,7 +337,7 @@ class Checkout {
                 this._shippingValue,
                 this._captchaResponse,
             );
-            return Checkout.States.Payment;
+            return { message: 'Submitting payment', nextState: Checkout.States.Payment };
         }
         this._logger.info('Unable to submit shipping!');
         return Checkout.States.Stopped;
@@ -351,15 +355,15 @@ class Checkout {
         }
 
         if (res === this._payment.PAYMENT_STATES.Error) {
-            return Checkout.States.Stopped;
+            return { message: 'Error submitting payment', nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
-            return Checkout.States.Stopped;
+            return { message: 'Payment Processing, check email.', nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Declined) {
-            return Checkout.States.PaymentError;
+            return { message: 'Payment declined.', nextState: Checkout.States.PaymentError };
         } else if (res === this._payment.PAYMENT_STATES.Success) {
-            return Checkout.States.Stopped; 
+            return { message: 'Copped!', nextState: Checkout.States.Stopped };
         } else {
-            return Checkout.States.Stopped;
+            return { message: 'Unknown error! Stopping task..', nextState: Checkout.States.Stopped };
         }
     }
 
@@ -394,26 +398,29 @@ class Checkout {
     }
 
     async run() {
-        const nextState =  await this._handleStepLogic(this._state);
+        const res = await this._handleStepLogic(this._state);
         this._logger.verbose('CHECKOUT: Next State chosen as: %s', nextState);
-        if(nextState.errors) {
+        if (res.nextState === Checkout.States.Error) {
             this._logger.verbose('CHECKOUT: Completed with errors: %j', nextState.errors);
             return {
-                nextState: States.Checkout,
-                errors: nextState.errors,
+                message: res.errors,
+                nextState: States.Stopped,
             }
+        } else if (res) {
+            this._state = res.nextState;
         }
-        this._state = nextState;
+
         if (this._state !== Checkout.States.Stopped &&
             this._state !== Checkout.States.PaymentProcessing &&
             this._state !== Checkout.States.Error) {
             return {
+                message: res.message,
                 nextState: States.Checkout,
             }
         }
         return {
+            message: res.message,
             nextState: States.Finished,
-            errors: null,
         }
 
     }

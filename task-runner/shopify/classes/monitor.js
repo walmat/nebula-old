@@ -6,7 +6,7 @@ const rp = require('request-promise').defaults({
 });
 
 const { AtomParser, JsonParser, XmlParser } = require('./parsers');
-const { formatProxy, userAgent, rfrl } = require('./utils');
+const { formatProxy, userAgent, rfrl, capitalizeFirstLetter } = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 const { ParseType, getParseType } = require('./utils/parse');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
@@ -110,8 +110,8 @@ class Monitor {
         this._logger.verbose('MONITOR: Variants Generated, updating context...');
         this._context.task.product.variants = variants;
         this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
-        return States.Checkout;
-    }
+        return { product: parsed.title, nextState: States.Checkout };
+        }
 
     async _monitorUrl() {
         const { url } = this._context.task.product;
@@ -120,6 +120,7 @@ class Monitor {
                 method: 'GET',
                 uri: url,
                 proxy: formatProxy(this._context.proxy),
+                rejectUnauthorized: false,
                 resolveWithFullResponse: true,
                 simple: true,
                 followRedirect: false,
@@ -140,7 +141,7 @@ class Monitor {
 
             // Everything is setup -- kick it to checkout
             this._logger.verbose('MONTIR: Status is OK, proceeding to checkout');
-            return States.Checkout;
+            return { product: fullProductInfo.title, nextState: States.Checkout };
         } catch (error) {
             // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
             this._logger.debug('MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...', url, error.statusCode);
@@ -159,24 +160,24 @@ class Monitor {
             case ParseType.Variant: {
                 // TODO: Add a way to determine if variant is correct
                 this._logger.verbose('MONITOR: Variant Parsing Detected');
-                this._context.task.product.variants = [this._context.task.product.variant];
+                this._context.task.product.variants = [this._context.task.product.variant]
                 this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
-                return { nextState: States.Checkout };
+                return { message: 'Adding to cart...', nextState: States.Checkout };
             }
             case ParseType.Url: {
                 this._logger.verbose('MONITOR: Url Parsing Detected');
-                const nextState = await this._monitorUrl();
-                return { nextState };
+                const res = await this._monitorUrl();
+                return { message: `Found product: ${capitalizeFirstLetter(res.product)}`, nextState: res.nextState };
             }
             case ParseType.Keywords: {
                 this._logger.verbose('MONITOR: Keyword Parsing Detected');
-                const nextState = await this._monitorKeywords();
-                return { nextState };
+                const res = await this._monitorKeywords();
+                return { message: `Found product: ${capitalizeFirstLetter(res.product)}`, nextState: res.nextState };
             }
             default: {
                 this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
                 await this._waitForErrorDelay();
-                return { nextState: States.Monitor };
+                return { message: 'Monitoring...', nextState: States.Monitor };
             }
         }
     }

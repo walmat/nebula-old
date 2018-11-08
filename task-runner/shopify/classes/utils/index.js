@@ -62,5 +62,13 @@ function trimKeywords(input) {
 }
 module.exports.trimKeywords = trimKeywords;
 
+function capitalizeFirstLetter(word) {
+    return word.toLowerCase()
+    .split(' ')
+    .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+    .join(' ');
+}
+module.exports.capitalizeFirstLetter = capitalizeFirstLetter;
+
 // Add in utils from other files
 module.exports.rfrl = rfrl;
