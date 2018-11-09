@@ -353,6 +353,48 @@ class WindowManager {
       });
     }
   }
+
+  /**
+   * [Re]allocate captcha windows for harvesting specific tasks
+   *
+   * This method should be used when _adding_ a new task to the pool.
+   * // TODO: Research if this needs to exist!
+   * // TODO: This should be moved to CaptchaWindowManager when issue #97 gets tackled
+   * // https://github.com/walmat/nebula/issues/97
+   */
+  allocateCaptchaWindowsForTask(taskId) {
+    // TODO: Implement
+  }
+
+  /**
+   * (Re|De)allocate captcha windows for harvesting specific tasks
+   *
+   * This methods should be used when _removing_ a task from the pool
+   * // TODO: Research if this needs to exist!
+   * // TODO: This should be moved to CaptchaWindowManager when issue #97 gets tackled
+   * // https://github.com/walmat/nebula/issues/97
+   */
+  deallocateCaptchaWindowsForTask(taskId) {
+    // TODO: Implement
+  }
+
+  /**
+   * Start Harvesting Captchas for a specific task
+   * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
+   * // https://github.com/walmat/nebula/issues/97
+   */
+  onRequestStartHarvestingCaptcha(taskId) {
+    // TODO: Implement
+  }
+
+  /**
+   * Stop Harvesting Captchas for a specific task
+   * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
+   * // https://github.com/walmat/nebula/issues/97
+   */
+  onRequestStopHarvestingCaptcha(taskId) {
+    // TODO: Implement
+  }
 }
 
 module.exports = WindowManager;
