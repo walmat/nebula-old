@@ -63,6 +63,8 @@ module.exports.buildShippingMethodForm = buildShippingMethodForm;
 
 function buildBillingForm(task, authenticity_token, previousStep, price, paymentGateway, shippingValue, captchaResponse) {
 
+    console.log(authenticity_token, previousStep, price, paymentGateway, shippingValue, captchaResponse);
+
     if (task.profile.billingMatchesShipping) {
         return {
             utf8: '✓',

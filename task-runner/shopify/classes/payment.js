@@ -66,6 +66,7 @@ class Payment {
             proxy: formatProxy(this._proxy),
             method: 'get',
             followAllRedirects: true,
+
             simple: false,
             json: false,
             resolveWithFullResponse: true,
