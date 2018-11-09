@@ -40,7 +40,7 @@ const _addTaskRequest = async task =>
       } else {
         copy.product.pos_keywords = [];
         copy.product.neg_keywords = [];
-        kws.map(kw => {
+        kws.map((kw) => {
           if (kw.slice(0, 1) === '+') {
             // positive keywords
             return copy.product.pos_keywords.push(kw.slice(1, kw.length));
@@ -68,7 +68,7 @@ const _destroyTaskRequest = async (task, type) => {
 
 const _updateTaskRequest = async (id, task) =>
   // TODO: Replace this with an actual API call
-  new Promise(resolve => {
+  new Promise((resolve) => {
     setTimeout(() => {
       // API will likely do something like this:
       const copy = JSON.parse(JSON.stringify(task));
@@ -170,7 +170,7 @@ const destroyTask = (task, type) => dispatch =>
 
 const updateTask = (id, task) => (dispatch, getState) =>
   _updateTaskRequest(id, task).then(
-    response => {
+    (response) => {
       dispatch(_updateTask(response));
       const state = getState();
       if (state.selectedTask && state.selectedTask.id === response.id) {
@@ -192,7 +192,7 @@ const clearEdits = (id, task) => {
   copy.edits = null;
   return (dispatch, getState) =>
     _updateTaskRequest(id, copy).then(
-      response => {
+      (response) => {
         dispatch(_updateTask(response));
         const state = getState();
         if (state.selectedTask && state.selectedTask.id === response.id) {
@@ -220,7 +220,6 @@ export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
   EDIT_USERNAME: 'EDIT_USERNAME',
   EDIT_PASSWORD: 'EDIT_PASSWORD',
-  EDIT_METHOD: 'EDIT_METHOD',
   EDIT_SITE: 'EDIT_SITE',
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
@@ -247,5 +246,4 @@ export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZES]: 'sizes',
-  [TASK_FIELDS.EDIT_PAIRS]: 'pairs',
 };
