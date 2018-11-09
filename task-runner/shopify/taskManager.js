@@ -215,15 +215,17 @@ class TaskManager {
     if (queue && queue.size > 0) {
       this._captchaQueues.get(runnerId).pop();
     } else {
-      // TODO - emit event to start harvesting
-      this._events.emit();
+      this._events.emit('START_HARVEST_CAPTCHA', runnerId);   
+      this._events.on('GET_CAPTCHA_TOKEN', (token) => {
+        queue.push(token);
+      });
     }
   }
 
   async deregisterHarvestCaptcha(runnerId) {
 
     // TODO - emit event to stop harvesting
-    this._events.emit();
+    this._events.emit('STOP_HARVEST_CAPTCHA', runnerId);
 
     const queue = this._captchaQueues.get(runnerId);
 
