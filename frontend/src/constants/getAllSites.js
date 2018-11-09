@@ -33,7 +33,9 @@ const s = [
   { value: 'https://stampd.com', label: 'Stampd' },
   { value: 'https://atmosny.com', label: 'Atmos' },
   { value: 'https://biancachandon.com', label: 'Bianca Chandôn' },
-  { value: 'https://blendsus.com', label: 'Blends' },
+  {
+    value: 'https://blendsus.com', label: 'Blends', supported: true, auth: false,
+  },
   {
     value: 'https://burnrubbersneakers.com', label: 'Burn Rubber', supported: true, auth: false,
   },

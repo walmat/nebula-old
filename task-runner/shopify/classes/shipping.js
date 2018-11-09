@@ -44,61 +44,28 @@ class Shipping {
         this._captchaResponse = '';
     }
 
-    getShippingOptions() {
-
-        this._timer.start(now());
-
+    submitShippingOptions(newAuthToken) {
         return this._request({
             uri: `${this._checkoutUrl}`,
-            method: 'get',
+            method: 'post',
             proxy: formatProxy(this._proxy),
             rejectUnauthorized: false,
-            resolveWithFullResponse: true,
             followAllRedirects: true,
+            resolveWithFullResponse: true,
             simple: false,
             headers: {
                 Origin: `${this._task.site.url}`,
                 Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'User-Agent': userAgent,
-                Referer: `${this._task.site.url}/cart`,
+                Referer: `${this._checkoutUrl}`,
             },
-            qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
-            // transform: function(body) {
-            //     return cheerio.load(body);
-            // }
+            formData: buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information'),
+            transform: function(body) {
+                return cheerio.load(body);
+            }
         })
-        .then((res) => {
-            const $ = cheerio.load(res.body);
-            fs.writeFileSync(path.join(__dirname, 'shipping-method.html'), res.body);
-
-            // TODO - select captcha and spit back the sitekey to the captcha harvesters
-
-            const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-            return this._request({
-                uri: `${this._checkoutUrl}`,
-                method: 'post',
-                proxy: formatProxy(this._proxy),
-                rejectUnauthorized: false,
-                followAllRedirects: true,
-                resolveWithFullResponse: true,
-                simple: false,
-                headers: {
-                    Origin: `${this._task.site.url}`,
-                    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'User-Agent': userAgent,
-                    Referer: `${this._checkoutUrl}`,
-                },
-                formData: buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information'),
-                // transform: function(body) {
-                //     return cheerio.load(body);
-                // }
-            })
-            .then((res) => {
-                const $ = cheerio.load(res.body);
-
-                fs.writeFileSync(path.join(__dirname, 'shipping-method.html'), res.body);
-
-                const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
+        .then(($) => {
+            const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
                 this._timer.stop(now());
                 console.log(`[INFO]: SHIPPING: Got shipping options in ${this._timer.getRunTime()}ms`);
                 if (shippingPollUrl === undefined) {
@@ -121,13 +88,45 @@ class Shipping {
                     value: shippingPollUrl,
                     authToken: '',
                 }
-            })
-            .catch((err) => {
+        })
+    }
+
+    getShippingOptions() {
+
+        this._timer.start(now());
+
+        return this._request({
+            uri: `${this._checkoutUrl}`,
+            method: 'get',
+            proxy: formatProxy(this._proxy),
+            rejectUnauthorized: false,
+            resolveWithFullResponse: true,
+            followAllRedirects: true,
+            simple: false,
+            headers: {
+                Origin: `${this._task.site.url}`,
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'User-Agent': userAgent,
+                Referer: `${this._task.site.url}/cart`,
+            },
+            qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
+            transform: function(body) {
+                return cheerio.load(body);
+            }
+        })
+        .then(($) => {
+
+            const recaptchaFrame = $('#g-recaptcha');
+
+            if (recaptchaFrame.length) {
                 return {
-                    errors: err,
+                    captcha: recaptchaFrame,
                 }
-            })
-            
+            } else {
+                return {
+                    newAuthToken: $('form.edit_checkout input[name=authenticity_token]').attr('value')
+                };
+            }
         })
         .catch((err) => {
             return {

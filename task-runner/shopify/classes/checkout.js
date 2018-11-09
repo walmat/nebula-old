@@ -103,6 +103,14 @@ class Checkout {
         this._account = new Account(context, this._timer, this._request);
     }
 
+    requestCaptcha() {
+
+    }
+
+    responseCaptcha() {
+
+    }
+
     /**
      * Checkout process started
      * @returns {STATE} next checkout state
@@ -242,10 +250,16 @@ class Checkout {
 
         if (opts.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
-            return Checkout.States.SolveCaptcha;
+            return {message: 'Waiting for captcha', nextState: Checkout.States.SolveCaptcha };
         }
 
-        res = await this._shipping.submitShipping(opts.type, opts.value, opts.authToken);
+        let sub = await this._shipping.submitShippingOptions(opts.authToken);
+
+        if (sub.errors) {
+            return {message: sub.errors, nextState: Checkout.States.Stopped };
+        }
+        
+        let res = await this._shipping.submitShipping(sub.type, sub.value, sub.authToken);
         
         if (res.errors) {
             return { errors: res.errors };
