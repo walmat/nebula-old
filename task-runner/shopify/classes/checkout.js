@@ -27,8 +27,9 @@ class Checkout {
             CheckoutQueue: 'CHECKOUT_QUEUE',
             OutOfStock: 'OUT_OF_STOCK',
             Restock: 'RESTOCK',
-            Shipping: 'SHIPPING',
-            SolveCaptcha: 'SOLVE_CAPTCHA',
+            GetShipping: 'GET_SHIPPING',
+            RequestCaptcha: 'REQUEST_CAPTCHA',
+            PostShipping: 'POST_SHIPPING',
             Payment: 'PAYMENT',
             PaymentError: 'PAYMENT_ERROR',
             PaymentProcessing: 'PAYMENT_PROCESSING',
@@ -103,13 +104,10 @@ class Checkout {
         this._account = new Account(context, this._timer, this._request);
     }
 
-    requestCaptcha() {
-
-    }
-
-    responseCaptcha() {
-
-    }
+    _waitForDelay(delay) {
+        console.log(`[INFO]: CHECKOUT: Waiting for ${delay} ms...`);
+        return new Promise(resolve => setTimeout(resolve, delay));
+    };
 
     /**
      * Checkout process started
@@ -184,11 +182,8 @@ class Checkout {
         }
 
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
-            console.log('[INFO]: CHECKOUT: Waiting in queue...');
-            // TODO - implement a wait of some sort?
-            return Checkout.States.ProceedToCheckout;
+            return Checkout.States.CheckoutQueue;
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
-            console.log('[INFO]: CHECKOUT: Out of stock...');
             return Checkout.States.OutOfStock;
         } else if (res.state === this._cart.CART_STATES.Success) {            
             
@@ -203,8 +198,13 @@ class Checkout {
                 this._authToken,
                 this._shippingValue,
             );
-            return Checkout.States.Shipping;
+            return Checkout.States.GetShipping;
         }
+    }
+
+    async _handleCheckoutQueue() {
+        this._waitForDelay(500);
+        return Checkout.States.ProceedToCheckout;
     }
 
     /**
@@ -238,10 +238,10 @@ class Checkout {
     }
 
     /**
-     * Submit shipping details
+     * Submit `GET` shipping details
      * @returns {STATE} next checkout state
      */
-    async _handleShipping() {
+    async _handleGetShipping() {
         let opts = await this._shipping.getShippingOptions();
 
         if (opts.errors) {
@@ -250,16 +250,36 @@ class Checkout {
 
         if (opts.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
-            return {message: 'Waiting for captcha', nextState: Checkout.States.SolveCaptcha };
+            return { message: 'Waiting for captcha', nextState: Checkout.States.RequestCaptcha };
+        } else if (opts.newAuthToken) {
+            this._authToken = opts.newAuthToken;
+            return { message: 'Posting Shipping', nextState: Checkout.States.PostShipping };
+        } else {
+            return { message: 'Error posting shipping.', nextState: Checkout.States.GetShipping };
+        }
+    }
+
+    /**
+     * Handle CAPTCHA requests
+     */
+    async _handleRequestCaptcha() {
+        do {
+            this._context
+        } while()
+        this._captchaResponse = '';
+    }
+
+    /**
+     * Submit `POST` Shipping details
+     */
+    async _handlePostShipping() {
+        let opts = await this._shipping.submitShippingOptions(this._authToken);
+
+        if (opts.errors) {
+            return {message: opts.errors, nextState: Checkout.States.Stopped };
         }
 
-        let sub = await this._shipping.submitShippingOptions(opts.authToken);
-
-        if (sub.errors) {
-            return {message: sub.errors, nextState: Checkout.States.Stopped };
-        }
-        
-        let res = await this._shipping.submitShipping(sub.type, sub.value, sub.authToken);
+        let res = await this._shipping.submitShipping(opts.type, opts.value, this._authToken);
         
         if (res.errors) {
             return { errors: res.errors };
@@ -287,14 +307,6 @@ class Checkout {
         console.log('[ERROR]: CHECKOUT: Unable to submit shipping...');
         return Checkout.States.Stopped;
     }
-
-    /**
-     * Submit shipping details
-     * @returns {STATE} next checkout state
-     */
-    async _handleSolveCaptcha() {
-        // TODO - think about how to handle this with captcha and all..
-        this._captchaResponse = '';
     }
 
     /**
@@ -344,8 +356,10 @@ class Checkout {
             [Checkout.States.GeneratePaymentToken]: this._handlePaymentToken,
             [Checkout.States.ProceedToCheckout]: this._handleProceedToCheckout,
             [Checkout.States.OutOfStock]: this._handleOutOfStock,
-            [Checkout.States.Shipping]: this._handleShipping,
-            [Checkout.States.SolveCaptcha]: this._handleSolveCaptcha,
+            [Checkout.States.CheckoutQueue]: this._handleCheckoutQueue,
+            [Checkout.States.GetShipping]: this._handleGetShipping,
+            [Checkout.States.PostShipping]: this._handlePostShipping,
+            [Checkout.States.RequestCaptcha]: this._handleRequestCaptcha,
             [Checkout.States.Payment]: this._handlePayment,
             [Checkout.States.Stopped]: this._handleStopped,
         }

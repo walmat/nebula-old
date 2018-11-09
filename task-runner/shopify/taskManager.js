@@ -11,6 +11,9 @@ class TaskManager {
     // Runner Map
     this._runners = [];
 
+    // Captcha Map
+    this._captchaQueues = new Map();
+
     // Proxy Map
     this._proxies = [];
 
@@ -207,6 +210,17 @@ class TaskManager {
     return await this.reserveProxy(runnerId);
   }
 
+  async registerHarvestCaptcha(runnerId) {
+    if (this._captchaQueues.get(runnerId) && this._captchaQueues.get(runnerId).size > 0) {
+      this._captchaQueues.get(runnerId).pop();
+    } else {
+      
+    }
+  }
+
+  async deregisterHarvestCaptcha(runnerId) {
+
+  }
   // MARK: Task Runner Callback Methods
 
   /**
