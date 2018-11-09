@@ -78,7 +78,10 @@ const createCaptchaWindow = async () => new Electron.BrowserWindow({
   },
 });
 
-const captchaUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
+let captchaUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
+if (nebulaEnv.isDevelopment()) {
+  captchaUrl = `file:///${Path.join(__dirname, '../../public/captcha.html')}`;
+}
 urls.set('captcha', captchaUrl);
 
 /**

@@ -149,6 +149,14 @@ class CaptchaWindowManager {
     this._tokens = _.reject(this._tokens, el => el.token === token);
   }
 
+  startHarvestingCaptcha(runnerId) {
+    this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId);
+  }
+
+  stopHarvestingCaptcha(runnerId) {
+    this._captchaWindow.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId);
+  }
+
   /**
    * Clears the storage data and cache for the session
    */

@@ -114,6 +114,22 @@ const _harvestCaptchaToken = (token) => {
   _sendEvent(IPCKeys.HarvestCaptcha, token);
 };
 
+const _registerForStartHarvestCaptcha = (callback) => {
+  _handleEvent(IPCKeys.StartHarvestCaptcha, callback);
+};
+
+const _deregisterForStartHarvestCaptcha = (callback) => {
+  _removeEvent(IPCKeys.StartHarvestCaptcha, callback);
+};
+
+const _registerForStopHarvestCaptcha = (callback) => {
+  _handleEvent(IPCKeys.StopHarvestCaptcha, callback);
+};
+
+const _deregisterForStopHarvestCaptcha = (callback) => {
+  _removeEvent(IPCKeys.StopHarvestCaptcha, callback);
+};
+
 /**
  * Sends the refresh window trigger to windowManager.js
  */
@@ -210,6 +226,16 @@ process.once('loaded', () => {
   window.Bridge.close = _close;
   window.Bridge.refreshCaptchaWindow = _refreshCaptchaWindow;
   window.Bridge.harvestCaptchaToken = _harvestCaptchaToken;
+  window.Bridge.Captcha = {
+    start: {
+      register: _registerForStartHarvestCaptcha,
+      deregister: _deregisterForStartHarvestCaptcha,
+    },
+    stop: {
+      register: _registerForStopHarvestCaptcha,
+      deregister: _deregisterForStopHarvestCaptcha,
+    },
+  };
   window.Bridge.endCaptchaSession = _endCaptchaSession;
   window.Bridge.getAppData = _getAppData;
   window.Bridge.deactivate = _deactivate;
@@ -221,6 +247,10 @@ process.once('loaded', () => {
   window.Bridge.stopTasks = _stopTasks;
   window.Bridge.addProxies = _addProxies;
   window.Bridge.removeProxies = _removeProxies;
+
+  // TEMPORARY
+  window.Bridge.getSitekey = () => '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
+
   if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (evt) => {
       _sendEvent('debug', evt);

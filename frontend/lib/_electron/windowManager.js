@@ -68,6 +68,20 @@ class WindowManager {
       IPCKeys.RequestCloseAllCaptchaWindows,
       this._onRequestCloseAllCaptchaWindows.bind(this),
     );
+
+    // TEMPORARY
+    if (nebulaEnv.isDevelopment()) {
+      context.ipc.on(
+        'debug',
+        (ev, type) => {
+          if (type === 'testStartHarvest') {
+            this.onRequestStartHarvestingCaptcha(1);
+          } else if (type === 'testStopHarvest') {
+            this.onRequestStopHarvestingCaptcha(1);
+          }
+        },
+      );
+    }
   }
 
   /**
@@ -141,7 +155,23 @@ class WindowManager {
         default: break;
       }
 
-      w.loadURL(urls.get(tag));
+      if (tag !== 'captcha') {
+        w.loadURL(urls.get(tag));
+      } else {
+        // TEMPORARY!
+        w.loadURL('http://127.0.0.1:9200');
+        // console.log('setting captcha proxy...');
+        // this._captchas.get(w.id).setProxy('http://127.0.0.1:9200');
+        // w.webContents.session.setProxy({
+        //   proxyRules: 'http://127.0.0.1:9200',
+        //   pacScript: null,
+        //   proxyBypassRules: null,
+        // }, (r) => {
+        //   console.log('loading captcha window...');
+        //   console.log(r);
+        //   w.loadURL('http://127.0.0.1:9200');
+        // });
+      }
 
       this.addWindowEventListeners(w);
 
@@ -362,7 +392,7 @@ class WindowManager {
    * // TODO: This should be moved to CaptchaWindowManager when issue #97 gets tackled
    * // https://github.com/walmat/nebula/issues/97
    */
-  allocateCaptchaWindowsForTask(taskId) {
+  allocateCaptchaWindowsForTask(runnerId) {
     // TODO: Implement
   }
 
@@ -374,7 +404,7 @@ class WindowManager {
    * // TODO: This should be moved to CaptchaWindowManager when issue #97 gets tackled
    * // https://github.com/walmat/nebula/issues/97
    */
-  deallocateCaptchaWindowsForTask(taskId) {
+  deallocateCaptchaWindowsForTask(runnerId) {
     // TODO: Implement
   }
 
@@ -383,8 +413,12 @@ class WindowManager {
    * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
    * // https://github.com/walmat/nebula/issues/97
    */
-  onRequestStartHarvestingCaptcha(taskId) {
-    // TODO: Implement
+  onRequestStartHarvestingCaptcha(runnerId) {
+    if (this._captchas.size > 0) {
+      this._captchas.forEach((captchaWindowManager) => {
+        captchaWindowManager.startHarvestingCaptcha(runnerId);
+      });
+    }
   }
 
   /**
@@ -392,8 +426,12 @@ class WindowManager {
    * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
    * // https://github.com/walmat/nebula/issues/97
    */
-  onRequestStopHarvestingCaptcha(taskId) {
-    // TODO: Implement
+  onRequestStopHarvestingCaptcha(runnerId) {
+    if (this._captchas.size > 0) {
+      this._captchas.forEach((captchaWindowManager) => {
+        captchaWindowManager.stopHarvestingCaptcha(runnerId);
+      });
+    }
   }
 }
 
