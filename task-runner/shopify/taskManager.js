@@ -211,15 +211,27 @@ class TaskManager {
   }
 
   async registerHarvestCaptcha(runnerId) {
-    if (this._captchaQueues.get(runnerId) && this._captchaQueues.get(runnerId).size > 0) {
+    const queue = this._captchaQueues.get(runnerId);
+    if (queue && queue.size > 0) {
       this._captchaQueues.get(runnerId).pop();
     } else {
-      
+      // TODO - emit event to start harvesting
+      this._events.emit();
     }
   }
 
   async deregisterHarvestCaptcha(runnerId) {
 
+    // TODO - emit event to stop harvesting
+    this._events.emit();
+
+    const queue = this._captchaQueues.get(runnerId);
+
+    if (queue && queue.size > 0) {
+      // clear all stored captchas
+      queue.clear();
+    }
+     
   }
   // MARK: Task Runner Callback Methods
 
@@ -241,7 +253,7 @@ class TaskManager {
       console.log('[TRACE]: TaskManager: Reemitting this status update...');
       const taskId = this._runners[runnerId]._context.task.id;
       this._events.emit('status', taskId, message, event);
-    }
+    } else if (event === TaskRunner.Events.)
   }
 
   // MARK: Task Related Methods

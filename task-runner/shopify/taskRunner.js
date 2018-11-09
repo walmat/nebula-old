@@ -33,6 +33,12 @@ class TaskRunner {
             aborted: false,
         };
 
+        this._checkoutContext = {
+            ...this._context,
+            registerHarvestCaptcha,
+            deregisterHarvestCaptcha,
+        } 
+
         /**
          * The id of this task runner
          */
@@ -78,6 +84,14 @@ class TaskRunner {
     }
 
     // MARK: Event Registration
+
+    registerHarvestCaptcha() {
+        this._taskManager.registerHarvestCaptcha(this.id);
+    }
+
+    deregisterHarvestCaptcha() {
+        this._taskManager.deregisterHarvestCaptcha(this.id);
+    }
 
     registerForEvent(event, callback) {
         switch(event) {
