@@ -47,7 +47,7 @@ const urlToOptionIndex = {
     "https://rockcitykicks.com": 1,
     "https://rsvpgallery.com": 1,
     "https://shoegallerymiami.com": 1,
-    "https://shop.bdgastore.com": 1,
+    "https://shop.bdgastore.com": 2,
     "https://shop.exclucitylife.com": 1,
     "https://shop.extrabutterny.com": 1,
     "https://shop.havenshop.ca": 1,

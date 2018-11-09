@@ -89,7 +89,7 @@ class Cart {
         .catch((err) => {
             this._logger.debug('CART: Error in add to cart: %s', res.body.description);
             return {
-                errors: err,
+                errors: err.message,
             }
         })
     }

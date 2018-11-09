@@ -149,7 +149,7 @@ class Checkout {
         console.log(res);
         if (res.errors) {
             this._logger.verbose('CHECKOUT: Errors in Add to Cart: %s', res.errors);
-            return { errors: res.errors };
+            return { message: res.errors, nextState: Checkout.States.Stopped };
         }
         if(!res) {
             this._logger.verbose('CHECKOUT: Failed to Add to Cart');
@@ -262,7 +262,6 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Starting Shipping...')
         let opts = await this._shipping.getShippingOptions();
         if (opts.errors) {
-            console.log('---------here---------')
             return { message: opts.errors, nextState: Checkout.States.Stopped };
         }
         this._authToken = opts.newAuthToken;
