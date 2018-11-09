@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.315.0",
+    "body-parser": "^1.18.3",
     "bodymovin": "^4.13.0",
     "dotenv": "^6.0.0",
     "electron": "^2.0.6",

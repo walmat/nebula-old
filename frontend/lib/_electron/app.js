@@ -1,4 +1,5 @@
 const Electron = require('electron');
+const CaptchaServerManager = require('./captchaServerManager');
 const DialogManager = require('./dialogManager');
 const WindowManager = require('./windowManager');
 const AuthManager = require('./authManager');
@@ -67,6 +68,12 @@ class App {
      * @type {TaskManagerWrapper}
      */
     this._taskManagerWrapper = new TaskManagerWrapper(this);
+
+    /**
+     * Manage the captcha server
+     * @type {CaptchaServerManager}
+     */
+    this._captchaServerManager = new CaptchaServerManager(this);
   }
 
   /**
@@ -103,19 +110,27 @@ class App {
   }
 
   /**
-   * Get the window manager.
+   * Get the auth manager.
    *
-   * @return {WindowManager} Instance of the window manager.
+   * @return {AuthManager} Instance of the auth manager.
    */
   get authManager() {
     return this._authManager;
   }
 
   /**
+   * Get the captcha server manager.
+   *
+   * @return {CaptchaServerManager} Instance of the captcha server manager
+   */
+  get captchaServerManager() {
+    return this._captchaServerManager;
+  }
+
+  /**
    * Occurs when a application launched.
    */
   async onReady() {
-
     if (nebulaEnv.isDevelopment()) {
       await App.installExtensions();
     }

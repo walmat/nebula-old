@@ -142,9 +142,19 @@ class WindowManager {
         }
         case 'captcha': {
           if (this._captchas.size < 5) {
+            let serverPort = this._context.captchaServerManager.port;
+            if (!this._context.captchaServerManager.isRunning) {
+              console.log('[DEBUG]: Starting captcha server...');
+              this._context.captchaServerManager.start();
+              // TODO: Change to use destructuring?
+              // (Might have to add a public getter to CSM)
+              serverPort = this._context.captchaServerManager.port;
+            }
             w = await createCaptchaWindow();
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, w, this._context._session.fromPartition(`${w.id}`)));
             console.log(`size after creating: ${this._captchas.size}`);
+            console.log(`[DEBUG]: Loading captcha with url: http://127.0.0.1:${serverPort}/captcha.html`);
+            w.loadURL(`http://127.0.0.1:${serverPort}/captcha.html`);
           }
           break;
         }
@@ -157,20 +167,6 @@ class WindowManager {
 
       if (tag !== 'captcha') {
         w.loadURL(urls.get(tag));
-      } else {
-        // TEMPORARY!
-        w.loadURL('http://127.0.0.1:9200');
-        // console.log('setting captcha proxy...');
-        // this._captchas.get(w.id).setProxy('http://127.0.0.1:9200');
-        // w.webContents.session.setProxy({
-        //   proxyRules: 'http://127.0.0.1:9200',
-        //   pacScript: null,
-        //   proxyBypassRules: null,
-        // }, (r) => {
-        //   console.log('loading captcha window...');
-        //   console.log(r);
-        //   w.loadURL('http://127.0.0.1:9200');
-        // });
       }
 
       this.addWindowEventListeners(w);
@@ -233,6 +229,12 @@ class WindowManager {
             captchaWindowManager._youtubeWindow = null;
           }
         });
+
+        if (this._captchas.size === 0) {
+          // Close the server
+          console.log('[DEBUG]: Stopping captcha server...');
+          this._context.captchaServerManager.stop();
+        }
       }
     };
   }
