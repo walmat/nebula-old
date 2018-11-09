@@ -211,7 +211,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onClickBillingMatchesShipping: () => {
-    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
+    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''));
   },
   onProfileNameChange: (event) => {
     dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));

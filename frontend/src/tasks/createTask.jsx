@@ -124,13 +124,13 @@ export class CreateTaskPrimitive extends Component {
               <p className="tasks-create__label">Billing Profile</p>
               <Select
                 required
+                className="tasks-create__input tasks-create__input--field"
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
                 styles={colourStyles}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 value={newTaskProfileValue}
                 options={this.buildProfileOptions()}
-                className="tasks-create__input tasks-create__input--field"
                 data-testid={addTestId('CreateTask.profileSelect')}
               />
             </div>

@@ -1,47 +1,59 @@
+import _ from 'underscore';
 import regexes from '../validation';
 import { TASK_FIELDS } from '../../state/actions';
+import getAllSupportedSitesSorted from '../../constants/getAllSites';
 
-function validateProduct(productRawInput) {
-  const kws = productRawInput.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
-  const validKeywords = kws.map(val => regexes.keywordRegex.test(val));
+function validateProduct(product) {
+  if (typeof (product) === 'object') {
+    product = product.raw;
+  }
 
-  if (regexes.urlRegex.test(productRawInput)) {
+  const kws = product.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
+  const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
+  const validKeywords = _.every(testKeywords, isValid => isValid === true);
+
+  if (regexes.urlRegex.test(product)) {
     return true;
-  } else if (regexes.variantRegex.test(productRawInput)) {
+  } else if (regexes.variantRegex.test(product)) {
     return true;
   } else if (validKeywords) {
     return true;
   }
-  return false;
+  return false; // default to not valid
+}
+
+function validateSite(site) {
+  const sites = getAllSupportedSitesSorted();
+  return site && site.name && sites.some(s => s.label === site.name);
 }
 
 /**
- * Used to validate all single select inputs
- * @param {Object} select - Object (non-null);
+ * We can assume only valid sizes can be added..
+ * @param {Array} sizes - array of sizes
  */
-function validateSingleSelect(select) {
-  return select && select.length === 1;
+function validateSizes(sizes) {
+  return sizes && sizes.length > 0;
 }
 
-function validateRequiredInput(input) {
+function validateProfile(profile) {
+  return profile && profile.id;
+}
+
+/**
+ * Used to validate all basic inputs
+ * @param {String} input - The string input (non empty);
+ */
+function validateInput(input) {
   return input && input !== '';
-}
-
-/**
- * Used to validate the sizes input
- * @param {Object} select - Array of objects - can be one
- */
-function validateMultiSelect(select) {
-  return select && select.length > 0;
 }
 
 const taskAttributeValidators = {
   [TASK_FIELDS.EDIT_PRODUCT]: validateProduct,
-  [TASK_FIELDS.EDIT_SITE]: validateSingleSelect,
-  [TASK_FIELDS.EDIT_PROFILE]: validateSingleSelect,
-  [TASK_FIELDS.EDIT_SIZES]: validateMultiSelect,
-  [TASK_FIELDS.EDIT_USERNAME]: validateRequiredInput,
-  [TASK_FIELDS.EDIT_SIZES]: validateRequiredInput,
+  [TASK_FIELDS.EDIT_SITE]: validateSite,
+  [TASK_FIELDS.EDIT_PROFILE]: validateProfile,
+  [TASK_FIELDS.EDIT_SIZES]: validateSizes,
+  [TASK_FIELDS.EDIT_USERNAME]: validateInput,
+  [TASK_FIELDS.EDIT_PASSWORD]: validateInput,
 };
 
 export default taskAttributeValidators;

@@ -5,23 +5,19 @@ import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
-import limit from '../utils/limit';
 
 import info from '../_assets/info.svg';
 
 import './profiles.css';
 
 export class PaymentFieldsPrimitive extends Component {
-  static cardExpiry(val) {
-    const split = val.split('/', 2);
-    const month = limit(split[0], '12');
-    const yearPart = split[1] || '';
-    const year = yearPart.slice(0, 2);
-
-    return month + (year.length ? `/${year}` : '');
-  }
 
   createOnChangeHandler(field) {
+    if (field === PAYMENT_FIELDS.CARD_NUMBER) {
+      return (event) => {
+        this.props.onChange({ field, value: event.target.value.replace(/\s/g, '') });
+      };
+    }
     return (event) => {
       this.props.onChange({ field, value: event.target.value });
     };
@@ -34,7 +30,7 @@ export class PaymentFieldsPrimitive extends Component {
         <p className="body-text" id="payment-label">Payment</p>
         <input required id="email" placeholder="Email Address" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)} value={this.props.value.email} style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])} />
         <NumberFormat format="#### #### #### ####" placeholder="XXXX XXXX XXXX XXXX" id="card-number" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)} value={this.props.value.cardNumber} style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])} />
-        <NumberFormat id="expiration" placeholder="MM/YY" format={PaymentFieldsPrimitive.cardExpiry} onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)} value={this.props.value.exp} style={validationStatus(errors[PAYMENT_FIELDS.EXP])} mask={['M', 'M', 'Y', 'Y']} />
+        <NumberFormat format="##/##" id="expiration" placeholder="MM/YY" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)} value={this.props.value.exp} style={validationStatus(errors[PAYMENT_FIELDS.EXP])} mask={['M', 'M', 'Y', 'Y']} />
         <input required id="cvv" placeholder="CVV" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)} value={this.props.value.cvv} style={validationStatus(errors[PAYMENT_FIELDS.CVV])} />
         <img src={info} alt="payment info" id="payment-info-btn" />
       </div>

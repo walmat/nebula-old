@@ -5,7 +5,6 @@ import taskProductErrors, {
 } from './taskProductErrors';
 
 export const initialTaskErrorState = {
-  method: null,
   product: initialTaskProductErrorState,
   site: null,
   profile: null,
@@ -18,7 +17,6 @@ export const initialTaskErrorState = {
 };
 
 const taskErrors = PropTypes.shape({
-  method: PropTypes.bool,
   product: taskProductErrors,
   site: PropTypes.bool,
   profile: PropTypes.bool,

@@ -1,15 +1,21 @@
 import {
   TASK_ACTIONS,
-  TASK_FIELDS,
-  taskActions,
   mapTaskFieldsToKey,
 } from '../../actions';
 import taskAttributeValidatorMap from '../../../utils/validation/taskAttributeValidators';
 
-const taskAttributeValidationMiddleware = store => next => (action) => {
+const tasksAttributeValidationMiddleware = () => next => (action) => {
   if (action.type !== TASK_ACTIONS.EDIT) {
     return next(action);
   }
+  const newAction = JSON.parse(JSON.stringify(action));
 
-  const state = store.getState();
+  newAction.errors = {};
+  const { errors } = newAction;
+
+  errors[mapTaskFieldsToKey[newAction.field]] =
+    !taskAttributeValidatorMap[newAction.field](newAction.value);
+  return next(newAction);
 };
+
+export default tasksAttributeValidationMiddleware;

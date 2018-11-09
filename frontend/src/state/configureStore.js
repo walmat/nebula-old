@@ -5,7 +5,8 @@ import topLevelReducer, { initialState } from './reducers';
 import profileAttributeValidationMiddleware from './middleware/profiles/profileAttributeValidationMiddleware';
 import profileFormValidationMiddleware from './middleware/profiles/profileFormValidationMiddleware';
 import settingsAttributeValidationMiddleware from './middleware/settings/settingsAttributeValidationMiddleware';
-import tasksValidationMiddleware from './middleware/tasks/tasksValidationMiddleware';
+import tasksFormValidationMiddleware from './middleware/tasks/tasksFormValidationMiddleware';
+import tasksAttributeValidationMiddleware from './middleware/tasks/tasksAttributeValidationMiddleware';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -16,7 +17,8 @@ export default function configureStore() {
     composeEnhancers(applyMiddleware(
       profileAttributeValidationMiddleware,
       profileFormValidationMiddleware,
-      tasksValidationMiddleware,
+      tasksAttributeValidationMiddleware,
+      tasksFormValidationMiddleware,
       settingsAttributeValidationMiddleware,
       thunk,
     ), persistState()),

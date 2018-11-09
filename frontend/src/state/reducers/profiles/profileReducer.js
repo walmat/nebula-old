@@ -80,6 +80,10 @@ export function currentProfileReducer(
         break;
       }
 
+      if (action.errors) {
+        return Object.assign({}, state, { errors: Object.assign({}, state.errors, action.errors) });
+      }
+
       // If adding a new profile, we should reset the current profile to default values
       return Object.assign({}, initialProfileStates.profile);
     }

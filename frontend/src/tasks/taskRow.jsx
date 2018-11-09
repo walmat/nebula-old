@@ -309,6 +309,7 @@ export class TaskRowPrimitive extends Component {
       id = task.id < 10 ? `0${task.id}` : task.id;
     }
     let sizes = 'None';
+
     if (task.sizes.length) {
       sizes = task.sizes.reduce((acc, cur, idx) => `${idx ? `${acc}, ` : ''}${cur}`, '');
     }

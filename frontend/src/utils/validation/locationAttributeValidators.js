@@ -20,7 +20,7 @@ function validateCity(city) {
 
 function validateCountry(country) {
   const countries = getAllCountries();
-  return country && countries.some(c => c.value === country);
+  return country && countries.some(c => c.value === country.value);
 }
 
 function validateFirstName(firstName) {
@@ -39,7 +39,7 @@ function validatePhoneNumber(phoneNumber) {
 
 function validateState(state) {
   const states = getAllStates();
-  return state && states.some(s => s.value === state);
+  return state && states.some(s => s.value === state.value);
 }
 
 function validateZipCode(zipCode) {

@@ -82,7 +82,7 @@ describe('profile attribute validation middleware', () => {
       ...payload,
     });
 
-    const testNoop = payload => {
+    const testNoop = (payload) => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         currentProfile: {
@@ -100,7 +100,7 @@ describe('profile attribute validation middleware', () => {
       expect(nextAction.type).toBe(PROFILE_ACTIONS.ERROR);
     };
 
-    const testNoopSubfield = subField => {
+    const testNoopSubfield = (subField) => {
       test('for edit payment', () =>
         testNoop({
           field: PROFILE_FIELDS.EDIT_PAYMENT,
@@ -214,7 +214,7 @@ describe('profile attribute validation middleware', () => {
     };
   };
 
-  const testAllFields = id => {
+  const testAllFields = (id) => {
     const testInjection = actionObject =>
       performErrorInjectionTest(actionObject);
     const getActions = (field, value, valid) =>
@@ -231,28 +231,22 @@ describe('profile attribute validation middleware', () => {
       });
 
       test('edit billing matches shipping', () =>
-        testInjection(
-          getActions(PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING, true, true),
-        ));
+        testInjection(getActions(PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING, true, true)));
       test('toggle billing matches shipping', () =>
-        testInjection(
-          getActions(
-            PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING,
-            true,
-            true,
-          ),
-        ));
+        testInjection(getActions(
+          PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING,
+          true,
+          true,
+        )));
 
       describe('edit payment', () => {
         const testWithField = (subField, value, valid) =>
-          testInjection(
-            getSubFieldActions(
-              PROFILE_FIELDS.EDIT_PAYMENT,
-              subField,
-              value,
-              valid,
-            ),
-          );
+          testInjection(getSubFieldActions(
+            PROFILE_FIELDS.EDIT_PAYMENT,
+            subField,
+            value,
+            valid,
+          ));
         describe('email field', () => {
           const testWith = (value, valid) =>
             testWithField(PAYMENT_FIELDS.EMAIL, value, valid);
@@ -284,14 +278,12 @@ describe('profile attribute validation middleware', () => {
 
       describe('edit billing', () => {
         const testWithField = (subField, value, valid) =>
-          testInjection(
-            getSubFieldActions(
-              PROFILE_FIELDS.EDIT_BILLING,
-              subField,
-              value,
-              valid,
-            ),
-          );
+          testInjection(getSubFieldActions(
+            PROFILE_FIELDS.EDIT_BILLING,
+            subField,
+            value,
+            valid,
+          ));
         describe('first name field', () => {
           const testWith = (value, valid) =>
             testWithField(LOCATION_FIELDS.FIRST_NAME, value, valid);
@@ -341,30 +333,26 @@ describe('profile attribute validation middleware', () => {
         });
 
         describe('country field', () => {
-          const testWith = (value, valid) =>
-            testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
-          test('when valid', () => testWith('US', true));
+          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
+          test('when valid', () => testWith({ value: 'US', label: 'United States' }, true));
           test('when invalid', () => testWith('invalid', false));
         });
 
         describe('state field', () => {
-          const testWith = (value, valid) =>
-            testWithField(LOCATION_FIELDS.STATE, value, valid);
-          test('when valid', () => testWith('PR', true));
+          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.STATE, value, valid);
+          test('when valid', () => testWith({ label: 'Puerto Rico', value: 'PR' }, true));
           test('when invalid', () => testWith('invalid', false));
         });
       });
 
       describe('edit shipping', () => {
         const testWithField = (subField, value, valid) =>
-          testInjection(
-            getSubFieldActions(
-              PROFILE_FIELDS.EDIT_SHIPPING,
-              subField,
-              value,
-              valid,
-            ),
-          );
+          testInjection(getSubFieldActions(
+            PROFILE_FIELDS.EDIT_SHIPPING,
+            subField,
+            value,
+            valid,
+          ));
         describe('first name field', () => {
           const testWith = (value, valid) =>
             testWithField(LOCATION_FIELDS.FIRST_NAME, value, valid);
@@ -414,16 +402,14 @@ describe('profile attribute validation middleware', () => {
         });
 
         describe('country field', () => {
-          const testWith = (value, valid) =>
-            testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
-          test('when valid', () => testWith('US', true));
+          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
+          test('when valid', () => testWith({ value: 'US', label: 'United States' }, true));
           test('when invalid', () => testWith('invalid', false));
         });
 
         describe('state field', () => {
-          const testWith = (value, valid) =>
-            testWithField(LOCATION_FIELDS.STATE, value, valid);
-          test('when valid', () => testWith('PR', true));
+          const testWith = (value, valid) => testWithField(LOCATION_FIELDS.STATE, value, valid);
+          test('when valid', () => testWith({ label: 'Puerto Rico', value: 'PR' }, true));
           test('when invalid', () => testWith('invalid', false));
         });
       });

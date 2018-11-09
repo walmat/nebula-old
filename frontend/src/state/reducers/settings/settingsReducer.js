@@ -20,6 +20,7 @@ export default function settingsReducer(
             ...state.defaults,
             [mapSettingsFieldToKey[action.field]]: action.value,
           },
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
@@ -27,11 +28,13 @@ export default function settingsReducer(
         const intValue = parseInt(action.value, 10);
         change = {
           [mapSettingsFieldToKey[action.field]]: intValue,
+          errors: Object.assign({}, state.errors, action.errors),
         };
         break;
       default:
         change = {
           [mapSettingsFieldToKey[action.field]]: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
         };
     }
   } else if (action.type === SETTINGS_ACTIONS.SAVE) {
@@ -41,12 +44,13 @@ export default function settingsReducer(
         profile: action.defaults.profile,
         sizes: action.defaults.sizes,
       },
+      errors: Object.assign({}, state.errors, action.errors),
     };
   } else if (action.type === SETTINGS_ACTIONS.CLEAR) {
     change = {
       defaults: initialSettingsStates.defaults,
+      errors: Object.assign({}, state.errors, action.errors),
     };
   }
-  change.errors = action.errors || state.errors;
   return Object.assign({}, state, change);
 }

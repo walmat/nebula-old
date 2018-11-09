@@ -13,8 +13,8 @@ export default function profileListReducer(
 
   switch (action.type) {
     case PROFILE_ACTIONS.ADD: {
-      // If profile is not defined, do nothing
-      if (!action.profile) {
+      // If errors, no id, or no profile is defined, exit early
+      if (action.errors || !action.profile) {
         break;
       }
 
@@ -63,9 +63,10 @@ export default function profileListReducer(
       break;
     }
     case PROFILE_ACTIONS.UPDATE: {
+      // check if there are any errors
       // check if id is given (we only change the state on a non-null id)
       // check if profile is given (we only change the state if profile is given)
-      if (!action.id || !action.profile) {
+      if (action.errors || !action.id || !action.profile) {
         break;
       }
 
