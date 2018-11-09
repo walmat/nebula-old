@@ -13,6 +13,12 @@ class TaskManagerWrapper {
     this._taskManager = new TaskManager();
 
     this._taskEventHandler = this._taskEventHandler.bind(this);
+    this._captchaEventHandler = this._captchaEventHandler.bind(this);
+
+    // TODO: Research if this should always listened to, or if we can dynamically
+    //       Start/Stop listening like we with task events
+    // TODO: Replace this with the public method from task manager!
+    this._taskManager._events.on('captcha', this._captchaEventHandler);
 
     context.ipc.on(
       IPCKeys.RequestRegisterTaskEventHandler,
@@ -47,6 +53,16 @@ class TaskManagerWrapper {
 
   _taskEventHandler(taskId, statusMessage) {
     this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
+  }
+
+  _captchaEventHandler(eventType, taskId, data) {
+    // TODO: Replace with actual check
+    if (eventType === 'start') {
+      this._context.windowManager.onRequestStartHarvestingCaptcha(taskId, data);
+      // TODO: Replace with actual check
+    } else if (eventType === 'stop') {
+      this._context.windowManager.onRequestStopHarvestingCaptcha(taskId, data);
+    }
   }
 
   _addListener(listener) {
