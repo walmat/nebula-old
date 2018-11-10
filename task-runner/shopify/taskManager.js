@@ -16,6 +16,9 @@ class TaskManager {
     // Captcha Map
     this._captchaQueues = new Map();
 
+    // Token Queue
+    this._tokenReserveQueue = [];
+
     // Proxy Map
     this._proxies = [];
 
@@ -240,7 +243,22 @@ class TaskManager {
    * @param {String} token the captcha token to harvest
    */
   harvestCaptchaToken(runnerId, token) {
-    this._events.emit(Events.Harvest, runnerId, token);
+    // Check if we have tokens to pass through
+    if (this._tokenReserveQueue.length) {
+      // Get the next runner to pass the token
+      const rId = this._tokenReserveQueue.pop();
+      // Use the runner id to get the container
+      const container = this._captchaQueues.get(rId);
+      if(!container) {
+        // The current container no longer exists in the captcha queue, 
+        // Call recursively to get the next runner
+        this.harvestCaptchaToken(rId, token);
+      }
+      // Container exists, run the updater for this runner id
+      container.updater(rId, token);
+      // Add the runner back into the token queue
+      this._tokenReserveQueue.unshift(rId);
+    }
   }
 
   /**
@@ -265,10 +283,11 @@ class TaskManager {
         queue,
         updater,
       };
+      // Store the container on the captcha queue map
       this._captchaQueues.set(runnerId, container);
 
-      // Start listening for updates and start harvesting
-      this._events.on(Events.Harvest, updater);
+      // Add the runner to the token reserve queue
+      this._tokenReserveQueue.unshift(runnerId);
 
       // Emit an event to start harvesting
       this._events.emit(Events.StartHarvest, runnerId);

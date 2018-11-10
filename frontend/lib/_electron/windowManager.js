@@ -213,7 +213,7 @@ class WindowManager {
             // deregister the interval from the captcha window
             WindowManager.handleCloseCaptcha(this._captchas.get(win.id));
             this._captchas.delete(win.id);
-          } else if (win.id === captchaWindowManager._youtubeWindow.id) {
+          } else if (captchaWindowManager._youtubeWindow && win.id === captchaWindowManager._youtubeWindow.id) {
             captchaWindowManager._youtubeWindow = null;
           }
         });
@@ -372,30 +372,6 @@ class WindowManager {
         }
       });
     }
-  }
-
-  /**
-   * [Re]allocate captcha windows for harvesting specific tasks
-   *
-   * This method should be used when _adding_ a new task to the pool.
-   * // TODO: Research if this needs to exist!
-   * // TODO: This should be moved to CaptchaWindowManager when issue #97 gets tackled
-   * // https://github.com/walmat/nebula/issues/97
-   */
-  allocateCaptchaWindowsForTask(runnerId) {
-    // TODO: Implement
-  }
-
-  /**
-   * (Re|De)allocate captcha windows for harvesting specific tasks
-   *
-   * This methods should be used when _removing_ a task from the pool
-   * // TODO: Research if this needs to exist!
-   * // TODO: This should be moved to CaptchaWindowManager when issue #97 gets tackled
-   * // https://github.com/walmat/nebula/issues/97
-   */
-  deallocateCaptchaWindowsForTask(runnerId) {
-    // TODO: Implement
   }
 
   /**
