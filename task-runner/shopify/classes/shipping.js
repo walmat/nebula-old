@@ -70,14 +70,16 @@ class Shipping {
         .then(($) => {
 
             const recaptchaFrame = $('#g-recaptcha');
+            const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
 
             if (recaptchaFrame.length) {
                 return {
                     captcha: recaptchaFrame,
+                    newAuthToken,
                 }
             } else {
                 return {
-                    newAuthToken: $('form.edit_checkout input[name=authenticity_token]').attr('value')
+                    newAuthToken,
                 };
             }
         })
@@ -88,7 +90,7 @@ class Shipping {
         });
     }
 
-    submitShippingOptions(newAuthToken) {
+    submitShippingOptions(newAuthToken, captchaResponse) {
         return this._request({
             uri: `${this._checkoutUrl}`,
             method: 'post',
@@ -103,7 +105,7 @@ class Shipping {
                 'User-Agent': userAgent,
                 Referer: `${this._checkoutUrl}`,
             },
-            formData: buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information'),
+            formData: buildShippingForm(this._task, newAuthToken, captchaResponse || '', 'shipping_method', 'contact_information'),
             transform: function(body) {
                 return cheerio.load(body);
             }

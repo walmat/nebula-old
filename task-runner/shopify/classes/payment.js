@@ -7,7 +7,7 @@ const path = require('path');
 /**
  * Form includes
  */
-const { buildPaymentForm } = require('./utils/forms');
+const { buildBillingForm } = require('./utils/forms');
 
 /**
  * Utils includes
@@ -15,7 +15,6 @@ const { buildPaymentForm } = require('./utils/forms');
 const {
     formatProxy,
     userAgent,
-    request,
 } = require('./utils');
 const now = require('performance-now');
 
@@ -62,7 +61,7 @@ class Payment {
 
         this._timer.start(now());
 
-        return request({
+        return this._request({
             uri: `${this._checkoutUrl}?step=payment_method`,
             proxy: formatProxy(this._proxy),
             method: 'get',
@@ -81,7 +80,7 @@ class Payment {
             const gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
             const authToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
             
-            return request({
+            return this._request({
                 uri: `${this._checkoutUrl}`,
                 method: 'post',
                 proxy: formatProxy(this._proxy),
@@ -93,7 +92,7 @@ class Payment {
                     'User-Agent': userAgent,
                     'Content-Type': 'application/json',
                 },
-                formData: buildPaymentForm(
+                formData: buildBillingForm(
                     this._task,
                     authToken,
                     'payment_method',
