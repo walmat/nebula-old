@@ -60,13 +60,26 @@ class TaskManagerWrapper {
 
     // TEMPORARY
     if (nebulaEnv.isDevelopment()) {
+      this._debugHarvestedTokens = [];
+      this._debugSentTokens = [];
       context.ipc.on(
         'debug',
-        (ev, type, id, key) => {
-          if (type === 'testStartHarvest') {
-            this._startHarvestEventHandler(id, key);
-          } else if (type === 'testStopHarvest') {
-            this._startHarvestEventHandler(id, key);
+        (ev, type, ...params) => {
+          switch (type) {
+            case 'testStartHarvest': {
+              this._startHarvestEventHandler(params[0], params[1]);
+              break;
+            }
+            case 'testStopHarvest': {
+              this._stopHarvestEventHandler(params[0], params[1]);
+              break;
+            }
+            case 'viewHarvestedFrontendTokens': {
+              ev.sender.send('debug', type, this._debugHarvestedTokens);
+              break;
+            }
+            default:
+              break;
           }
         },
       );
@@ -104,8 +117,15 @@ class TaskManagerWrapper {
   }
 
   _onHarvestToken(event, runnerId, token, siteKey, host) {
-    console.log(`Harvesting Token: ${token}\nRunner: ${runnerId}\nhost: ${host}\nkey: ${siteKey}`);
+    console.log(`Harvesting Token: ${token}\nRunner: ${runnerId}\nkey: ${siteKey}`);
     this._taskManager.harvestCaptchaToken(runnerId, token);
+    if (nebulaEnv.isDevelopment()) {
+      this._debugHarvestedTokens.push({
+        runnerId,
+        token,
+        siteKey,
+      });
+    }
   }
 
   _onRegisterEventRequest(event) {

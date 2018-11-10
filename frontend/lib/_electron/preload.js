@@ -252,5 +252,10 @@ process.once('loaded', () => {
     window.Bridge.sendDebugCmd = (...params) => {
       _sendEvent('debug', ...params);
     };
+
+    _handleEvent('debug', (ev, type, ...params) => {
+      console.log(`Received Response for type: ${type}`);
+      console.log(params);
+    });
   }
 });
