@@ -12,6 +12,8 @@ const {
 
 const CaptchaWindowManager = require('./captchaWindowManager');
 
+nebulaEnv.setUpEnvironment();
+
 /**
  * Manage the window.
  */
@@ -68,20 +70,6 @@ class WindowManager {
       IPCKeys.RequestCloseAllCaptchaWindows,
       this._onRequestCloseAllCaptchaWindows.bind(this),
     );
-
-    // TEMPORARY
-    if (nebulaEnv.isDevelopment()) {
-      context.ipc.on(
-        'debug',
-        (ev, type) => {
-          if (type === 'testStartHarvest') {
-            this.onRequestStartHarvestingCaptcha(1);
-          } else if (type === 'testStopHarvest') {
-            this.onRequestStopHarvestingCaptcha(1);
-          }
-        },
-      );
-    }
   }
 
   /**
@@ -415,10 +403,10 @@ class WindowManager {
    * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
    * // https://github.com/walmat/nebula/issues/97
    */
-  onRequestStartHarvestingCaptcha(runnerId) {
+  onRequestStartHarvestingCaptcha(runnerId, siteKey) {
     if (this._captchas.size > 0) {
       this._captchas.forEach((captchaWindowManager) => {
-        captchaWindowManager.startHarvestingCaptcha(runnerId);
+        captchaWindowManager.startHarvestingCaptcha(runnerId, siteKey);
       });
     }
   }
@@ -428,10 +416,10 @@ class WindowManager {
    * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
    * // https://github.com/walmat/nebula/issues/97
    */
-  onRequestStopHarvestingCaptcha(runnerId) {
+  onRequestStopHarvestingCaptcha(runnerId, siteKey) {
     if (this._captchas.size > 0) {
       this._captchas.forEach((captchaWindowManager) => {
-        captchaWindowManager.stopHarvestingCaptcha(runnerId);
+        captchaWindowManager.stopHarvestingCaptcha(runnerId, siteKey);
       });
     }
   }

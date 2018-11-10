@@ -248,9 +248,6 @@ process.once('loaded', () => {
   window.Bridge.addProxies = _addProxies;
   window.Bridge.removeProxies = _removeProxies;
 
-  // TEMPORARY
-  window.Bridge.getSitekey = () => '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
-
   if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (evt) => {
       _sendEvent('debug', evt);

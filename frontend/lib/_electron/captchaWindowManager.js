@@ -149,12 +149,12 @@ class CaptchaWindowManager {
     this._tokens = _.reject(this._tokens, el => el.token === token);
   }
 
-  startHarvestingCaptcha(runnerId) {
-    this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId);
+  startHarvestingCaptcha(runnerId, siteKey) {
+    this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
   }
 
-  stopHarvestingCaptcha(runnerId) {
-    this._captchaWindow.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId);
+  stopHarvestingCaptcha(runnerId, siteKey) {
+    this._captchaWindow.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
   }
 
   /**

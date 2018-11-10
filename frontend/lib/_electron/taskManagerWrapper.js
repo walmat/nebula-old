@@ -1,7 +1,9 @@
 const TaskManager = require('task-runner/shopify/taskManager');
 
 const IPCKeys = require('../common/constants');
+const nebulaEnv = require('./env');
 
+nebulaEnv.setUpEnvironment();
 const _TASK_EVENT_KEY = 'TaskEventKey';
 
 class TaskManagerWrapper {
@@ -49,19 +51,34 @@ class TaskManagerWrapper {
       IPCKeys.RequestRemoveProxies,
       this._onRemoveProxiesRequest.bind(this),
     );
+
+    // TEMPORARY
+    if (nebulaEnv.isDevelopment()) {
+      context.ipc.on(
+        'debug',
+        (ev, type) => {
+          if (type === 'testStartHarvest') {
+            this._captchaEventHandler('start', 1);
+          } else if (type === 'testStopHarvest') {
+            this._captchaEventHandler('stop', 1);
+          }
+        },
+      );
+    }
   }
 
   _taskEventHandler(taskId, statusMessage) {
     this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
   }
 
-  _captchaEventHandler(eventType, taskId, data) {
+  _captchaEventHandler(eventType, taskId, siteKey) {
+    const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
     // TODO: Replace with actual check
     if (eventType === 'start') {
-      this._context.windowManager.onRequestStartHarvestingCaptcha(taskId, data);
+      this._context.windowManager.onRequestStartHarvestingCaptcha(taskId, key);
       // TODO: Replace with actual check
     } else if (eventType === 'stop') {
-      this._context.windowManager.onRequestStopHarvestingCaptcha(taskId, data);
+      this._context.windowManager.onRequestStopHarvestingCaptcha(taskId, key);
     }
   }
 
