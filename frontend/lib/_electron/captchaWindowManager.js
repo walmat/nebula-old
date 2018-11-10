@@ -149,8 +149,14 @@ class CaptchaWindowManager {
     this._tokens = _.reject(this._tokens, el => el.token === token);
   }
 
-  startHarvestingCaptcha(runnerId, siteKey) {
-    this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+  startHarvestingCaptcha(runnerId, siteKey, wait) {
+    if (wait) {
+      this._captchaWindow.webContents.once('did-finish-load', () => {
+        this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+      });
+    } else {
+      this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+    } 
   }
 
   stopHarvestingCaptcha(runnerId, siteKey) {

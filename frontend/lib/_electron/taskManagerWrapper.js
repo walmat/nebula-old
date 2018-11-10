@@ -77,9 +77,9 @@ class TaskManagerWrapper {
     this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
   }
 
-  _startHarvestEventHandler(runnerId, siteKey) {
+  async _startHarvestEventHandler(runnerId, siteKey) {
     const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
-    this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, key);
+    await this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, key);
   }
 
   _stopHarvestEventHandler(runnerId, siteKey) {

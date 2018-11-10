@@ -403,12 +403,15 @@ class WindowManager {
    * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
    * // https://github.com/walmat/nebula/issues/97
    */
-  onRequestStartHarvestingCaptcha(runnerId, siteKey) {
-    if (this._captchas.size > 0) {
-      this._captchas.forEach((captchaWindowManager) => {
-        captchaWindowManager.startHarvestingCaptcha(runnerId, siteKey);
-      });
+  async onRequestStartHarvestingCaptcha(runnerId, siteKey) {
+    let open = false;
+    if (this._captchas.size === 0) {
+      open = true;
+      await this.createNewWindow('captcha');
     }
+    this._captchas.forEach((captchaWindowManager) => {
+      captchaWindowManager.startHarvestingCaptcha(runnerId, siteKey, open);
+    });
   }
 
   /**
