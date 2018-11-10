@@ -263,10 +263,14 @@ class Checkout {
      * Handle CAPTCHA requests
      */
     async _handleRequestCaptcha() {
-        do {
-            this._context
-        } while()
-        this._captchaResponse = '';
+        const token = await this._context.getCaptcha();
+        console.log(`[DEBUG]: CHECKOUT: Received token from captcha harvesting: ${token}`);
+        // TODO: Replace this with an actual test!
+        if (token) {
+            this._context.stopHarvestCaptcha();
+            return Checkout.States.PostShipping;
+        }
+        return Checkout.States.RequestCaptcha;
     }
 
     /**
@@ -306,7 +310,6 @@ class Checkout {
         }
         console.log('[ERROR]: CHECKOUT: Unable to submit shipping...');
         return Checkout.States.Stopped;
-    }
     }
 
     /**
