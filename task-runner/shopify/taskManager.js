@@ -224,11 +224,23 @@ class TaskManager {
    * @param {AsyncQueue} queue the queue to insert tokens into
    */
   _generateHarvestCaptchaHandler(runnerId, queue) {
-    return (token, rId) => {
+    return (rId, token) => {
       if (runnerId === rId) {
         queue.insert(token);
       }
     }
+  }
+
+  /**
+   * Harvest Captcha
+   * 
+   * Harvest a given captcha token for a given runner
+   * 
+   * @param {String} runnerId the runner to update
+   * @param {String} token the captcha token to harvest
+   */
+  harvestCaptchaToken(runnerId, token) {
+    this._events.emit(Events.Harvest, runnerId, token);
   }
 
   /**
@@ -256,7 +268,7 @@ class TaskManager {
       this._captchaQueues.set(runnerId, container);
 
       // Start listening for updates and start harvesting
-      this._events.on(Events.Harvest, queueUpdater);
+      this._events.on(Events.Harvest, updater);
 
       // Emit an event to start harvesting
       this._events.emit(Events.StartHarvest, runnerId);

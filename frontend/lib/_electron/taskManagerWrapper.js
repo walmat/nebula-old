@@ -15,12 +15,13 @@ class TaskManagerWrapper {
     this._taskManager = new TaskManager();
 
     this._taskEventHandler = this._taskEventHandler.bind(this);
-    this._captchaEventHandler = this._captchaEventHandler.bind(this);
+    this._startHarvestEventHandler = this._startHarvestEventHandler.bind(this);
+    this._stopHarvestEventHandler = this._stopHarvestEventHandler.bind(this);
 
     // TODO: Research if this should always listened to, or if we can dynamically
     //       Start/Stop listening like we with task events
-    // TODO: Replace this with the public method from task manager!
-    this._taskManager._events.on('captcha', this._captchaEventHandler);
+    this._taskManager._events.on(TaskManager.Events.StartHarvest, this._startHarvestEventHandler);
+    this._taskManager._events.on(TaskManager.Events.StopHarvest, this._stopHarvestEventHandler);
 
     context.ipc.on(
       IPCKeys.RequestRegisterTaskEventHandler,
@@ -61,11 +62,11 @@ class TaskManagerWrapper {
     if (nebulaEnv.isDevelopment()) {
       context.ipc.on(
         'debug',
-        (ev, type, id) => {
+        (ev, type, id, key) => {
           if (type === 'testStartHarvest') {
-            this._captchaEventHandler('start', id);
+            this._startHarvestEventHandler(id, key);
           } else if (type === 'testStopHarvest') {
-            this._captchaEventHandler('stop', id);
+            this._startHarvestEventHandler(id, key);
           }
         },
       );
@@ -76,15 +77,14 @@ class TaskManagerWrapper {
     this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
   }
 
-  _captchaEventHandler(eventType, runnerId, siteKey) {
+  _startHarvestEventHandler(runnerId, siteKey) {
     const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
-    // TODO: Replace with actual check
-    if (eventType === 'start') {
-      this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, key);
-      // TODO: Replace with actual check
-    } else if (eventType === 'stop') {
-      this._context.windowManager.onRequestStopHarvestingCaptcha(runnerId, key);
-    }
+    this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, key);
+  }
+
+  _stopHarvestEventHandler(runnerId, siteKey) {
+    const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
+    this._context.windowManager.onRequestStopHarvestingCaptcha(runnerId, key);
   }
 
   _addListener(listener) {
@@ -105,8 +105,7 @@ class TaskManagerWrapper {
 
   _onHarvestToken(event, runnerId, token, siteKey, host) {
     console.log(`Harvesting Token: ${token}\nRunner: ${runnerId}\nhost: ${host}\nkey: ${siteKey}`);
-    // TODO: Add this back in
-    // this._taskManager.harvestToken(token, host, sitekey);
+    this._taskManager.harvestCaptchaToken(runnerId, token);
   }
 
   _onRegisterEventRequest(event) {

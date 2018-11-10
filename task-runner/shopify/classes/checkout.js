@@ -248,6 +248,7 @@ class Checkout {
             return { errors: opts.errors };
         }
 
+        // TODO: Replace this correct values -- Objects won't work, it needs to be just a State
         if (opts.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
             return { message: 'Waiting for captcha', nextState: Checkout.States.RequestCaptcha };
@@ -263,6 +264,7 @@ class Checkout {
      * Handle CAPTCHA requests
      */
     async _handleRequestCaptcha() {
+        console.log('waiting for captcha....');
         const token = await this._context.getCaptcha();
         console.log(`[DEBUG]: CHECKOUT: Received token from captcha harvesting: ${token}`);
         // TODO: Replace this with an actual test!
@@ -373,6 +375,7 @@ class Checkout {
 
     async run() {
         const nextState =  await this._handleStepLogic(this._state);
+        console.log('[TRACE]: CHECKOUT: Next State chosen as: ' + nextState);
         if(nextState.errors) {
             return {
                 nextState: States.Checkout,

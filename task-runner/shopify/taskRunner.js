@@ -45,8 +45,8 @@ class TaskRunner {
          */
         this._checkout = new Checkout({
             ...this._context,
-            this.getCaptcha.bind(this),
-            this.stopHarvestCaptcha.bind(this),
+            getCaptcha: this.getCaptcha.bind(this),
+            stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
         });
 
         /**
