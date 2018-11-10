@@ -17,8 +17,8 @@ webFrame.setLayoutZoomLevelLimits(0, 0);
  * @param {String} channel definition for which trigger to look for
  * @param {*} msg any object to send along with the event || null
  */
-const _sendEvent = (channel, msg) => {
-  ipcRenderer.send(channel, msg);
+const _sendEvent = (channel, ...params) => {
+  ipcRenderer.send(channel, ...params);
 };
 
 /**
@@ -110,8 +110,8 @@ const _endCaptchaSession = () => {
 /**
  * Sends the harvest captcha trigger to windowManager.js
  */
-const _harvestCaptchaToken = (token) => {
-  _sendEvent(IPCKeys.HarvestCaptcha, token);
+const _harvestCaptchaToken = (runnerId, token, siteKey) => {
+  _sendEvent(IPCKeys.HarvestCaptcha, runnerId, token, siteKey);
 };
 
 const _registerForStartHarvestCaptcha = (callback) => {
@@ -249,8 +249,8 @@ process.once('loaded', () => {
   window.Bridge.removeProxies = _removeProxies;
 
   if (nebulaEnv.isDevelopment()) {
-    window.Bridge.sendDebugCmd = (evt) => {
-      _sendEvent('debug', evt);
+    window.Bridge.sendDebugCmd = (...params) => {
+      _sendEvent('debug', ...params);
     };
   }
 });

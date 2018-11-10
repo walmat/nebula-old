@@ -52,15 +52,20 @@ class TaskManagerWrapper {
       this._onRemoveProxiesRequest.bind(this),
     );
 
+    context.ipc.on(
+      IPCKeys.HarvestCaptcha,
+      this._onHarvestToken.bind(this),
+    );
+
     // TEMPORARY
     if (nebulaEnv.isDevelopment()) {
       context.ipc.on(
         'debug',
-        (ev, type) => {
+        (ev, type, id) => {
           if (type === 'testStartHarvest') {
-            this._captchaEventHandler('start', 1);
+            this._captchaEventHandler('start', id);
           } else if (type === 'testStopHarvest') {
-            this._captchaEventHandler('stop', 1);
+            this._captchaEventHandler('stop', id);
           }
         },
       );
@@ -71,14 +76,14 @@ class TaskManagerWrapper {
     this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
   }
 
-  _captchaEventHandler(eventType, taskId, siteKey) {
+  _captchaEventHandler(eventType, runnerId, siteKey) {
     const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
     // TODO: Replace with actual check
     if (eventType === 'start') {
-      this._context.windowManager.onRequestStartHarvestingCaptcha(taskId, key);
+      this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, key);
       // TODO: Replace with actual check
     } else if (eventType === 'stop') {
-      this._context.windowManager.onRequestStopHarvestingCaptcha(taskId, key);
+      this._context.windowManager.onRequestStopHarvestingCaptcha(runnerId, key);
     }
   }
 
@@ -96,6 +101,12 @@ class TaskManagerWrapper {
       // Stop listening for events since we don't have any listeners
       this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
     }
+  }
+
+  _onHarvestToken(event, runnerId, token, siteKey, host) {
+    console.log(`Harvesting Token: ${token}\nRunner: ${runnerId}\nhost: ${host}\nkey: ${siteKey}`);
+    // TODO: Add this back in
+    // this._taskManager.harvestToken(token, host, sitekey);
   }
 
   _onRegisterEventRequest(event) {

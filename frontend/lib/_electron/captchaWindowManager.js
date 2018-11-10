@@ -46,7 +46,7 @@ class CaptchaWindowManager {
      */
     context.ipc.on(IPCKeys.RequestLaunchYoutube, this._onRequestLaunchYoutube.bind(this));
     context.ipc.on(IPCKeys.RequestEndSession, this._onRequestEndSession.bind(this));
-    context.ipc.on(IPCKeys.RequestHarvestToken, this._onRequestHarvestToken.bind(this));
+    context.ipc.on(IPCKeys.HarvestCaptcha, this._onRequestHarvestToken.bind(this));
     context.ipc.on(
       IPCKeys.RequestRefreshCaptchaWindow,
       this._onRequestRefreshCaptchaWindow.bind(this),
@@ -166,7 +166,7 @@ class CaptchaWindowManager {
     this._session.clearCache(() => {});
   }
 
-  _onRequestHarvestToken(ev, token, host, sitekey) {
+  _onRequestHarvestToken(ev, runnerId, token, sitekey, host) {
     this._tokens.push(new TokenContainer(token, moment(), host, sitekey));
     if (this._checkTokens === null) {
       this._checkTokens = setInterval(this.checkTokens, 1000);
