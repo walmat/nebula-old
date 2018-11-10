@@ -3,6 +3,10 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 
+const nebulaEnv = require('./env');
+
+nebulaEnv.setUpEnvironment();
+
 class CaptchaServerManager {
   constructor(context) {
     /**
@@ -23,13 +27,17 @@ class CaptchaServerManager {
      */
     this._port = 0;
 
+    const rootDir = nebulaEnv.isDevelopment() ?
+      path.join(__dirname, '../../public') :
+      path.join(__dirname, '../../build');
+
     // initialize express app
     const app = express();
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
-    app.use(express.static(path.join(__dirname, '../../build')));
+    app.use(express.static(rootDir));
     app.get('/', (req, res) => {
-      res.sendFile(path.join(__dirname, '../../build/captcha.html'));
+      res.sendFile(path.join(rootDir, 'captcha.html'));
     });
     this._app = app;
   }
