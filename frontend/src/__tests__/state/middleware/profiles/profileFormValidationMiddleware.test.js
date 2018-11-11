@@ -55,7 +55,7 @@ describe('profile form validation middleware', () => {
       ...payload,
     });
 
-    const testNoop = payload => {
+    const testNoop = (payload) => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         currentProfile: {
@@ -120,8 +120,8 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          state: testValid ? 'invalid' : 'PR',
-          country: testValid ? 'invalid' : 'US',
+          state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
+          country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -132,8 +132,8 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          state: testValid ? 'invalid' : 'PR',
-          country: testValid ? 'invalid' : 'US',
+          state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
+          country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -226,9 +226,9 @@ describe('profile form validation middleware', () => {
         [mapProfileFieldToKey[field]]: !subField
           ? value
           : {
-              ...actionBase.profile[mapProfileFieldToKey[field]],
-              [subField]: value,
-            },
+            ...actionBase.profile[mapProfileFieldToKey[field]],
+            [subField]: value,
+          },
       },
     };
     const expectedAction = {
@@ -240,22 +240,22 @@ describe('profile form validation middleware', () => {
         [mapProfileFieldToKey[field]]: !subField
           ? value
           : {
-              ...action.profile[mapProfileFieldToKey[field]],
-              errors: {
-                ...expectedActionBase.profile[mapProfileFieldToKey[field]]
-                  .errors,
-                [subField]: !testValid,
-              },
+            ...action.profile[mapProfileFieldToKey[field]],
+            errors: {
+              ...expectedActionBase.profile[mapProfileFieldToKey[field]]
+                .errors,
+              [subField]: !testValid,
             },
+          },
       },
       errors: {
         ...expectedActionBase.errors,
         [mapProfileFieldToKey[field]]: !subField
           ? !testValid
           : {
-              ...expectedActionBase.errors[mapProfileFieldToKey[field]],
-              [subField]: !testValid,
-            },
+            ...expectedActionBase.errors[mapProfileFieldToKey[field]],
+            [subField]: !testValid,
+          },
       },
     };
     if (!subField) {
@@ -272,12 +272,14 @@ describe('profile form validation middleware', () => {
 
   const testErrorFlagsForAction = (type, args, genNoErrors) => {
     // get args or mock them if we aren't generating errors
-    const { field, value, valid, subField } = !genNoErrors
+    const {
+      field, value, valid, subField,
+    } = !genNoErrors
       ? args
       : {
-          value: 'test',
-          valid: false,
-        };
+        value: 'test',
+        valid: false,
+      };
     const { store, next, invoke } = create();
     const { action, expectedAction } = generateActions(
       type,
@@ -296,7 +298,7 @@ describe('profile form validation middleware', () => {
     expect(next).toHaveBeenCalledWith(expectedAction);
   };
 
-  const performErrorFlagTestsForAction = type => {
+  const performErrorFlagTestsForAction = (type) => {
     const testErrorFlag = args => testErrorFlagsForAction(type, args);
 
     it('should not generate an errors object if no errors exist', () =>
@@ -411,7 +413,7 @@ describe('profile form validation middleware', () => {
         });
       });
 
-      const performLocationErrorFlagTests = field => {
+      const performLocationErrorFlagTests = (field) => {
         const _testErrorFlag = args => testErrorFlag({ ...args, field });
 
         describe('first name', () => {
@@ -521,35 +523,23 @@ describe('profile form validation middleware', () => {
         });
 
         describe('country', () => {
-          it('should not generate error flag when valid', () =>
-            _testErrorFlag({
-              value: 'US',
-              valid: true,
-              subField: LOCATION_FIELDS.COUNTRY,
-            }));
+          it('should not generate error flag when valid', () => _testErrorFlag({
+            value: { value: 'US', label: 'United States' }, valid: true, subField: LOCATION_FIELDS.COUNTRY,
+          }));
 
-          it('should generate error flag when invalid', () =>
-            _testErrorFlag({
-              value: 'invalid',
-              valid: false,
-              subField: LOCATION_FIELDS.COUNTRY,
-            }));
+          it('should generate error flag when invalid', () => _testErrorFlag({
+            value: 'invalid', valid: false, subField: LOCATION_FIELDS.COUNTRY,
+          }));
         });
 
         describe('state', () => {
-          it('should not generate error flag when valid', () =>
-            _testErrorFlag({
-              value: 'PR',
-              valid: true,
-              subField: LOCATION_FIELDS.STATE,
-            }));
+          it('should not generate error flag when valid', () => _testErrorFlag({
+            value: { label: 'Puerto Rico', value: 'PR' }, valid: true, subField: LOCATION_FIELDS.STATE,
+          }));
 
-          it('should generate error flag when invalid', () =>
-            _testErrorFlag({
-              value: 'invalid',
-              valid: false,
-              subField: LOCATION_FIELDS.STATE,
-            }));
+          it('should generate error flag when invalid', () => _testErrorFlag({
+            value: 'invalid', valid: false, subField: LOCATION_FIELDS.STATE,
+          }));
         });
       };
 

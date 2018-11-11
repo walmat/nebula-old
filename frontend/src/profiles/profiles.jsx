@@ -11,12 +11,13 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import './profiles.css';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
-
+import { buildStyle } from '../utils/styles';
 // images
 import checkboxChecked from '../_assets/Check_icons-01.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 export class ProfilesPrimitive extends Component {
+
   constructor(props) {
     super(props);
     this.onProfileChange = this.onProfileChange.bind(this);
@@ -119,7 +120,7 @@ export class ProfilesPrimitive extends Component {
             components={{ DropdownIndicator }}
             id="profile-load"
             classNamePrefix="select"
-            styles={colourStyles}
+            styles={colourStyles(buildStyle(false, true))}
             onChange={this.onProfileChange}
             value={selectProfileValue}
             options={this.buildProfileOptions()}

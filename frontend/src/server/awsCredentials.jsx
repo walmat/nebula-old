@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import defns from '../utils/definitions/serverDefinitions';
-import { SERVER_FIELDS, serverActions } from '../state/actions';
+import { SERVER_FIELDS, mapServerFieldToKey, serverActions } from '../state/actions';
 import addTestId from '../utils/addTestId';
+import { buildStyle } from '../utils/styles';
 
 export class AWSCredentialsPrimitive extends Component {
   constructor(props) {
@@ -32,7 +33,7 @@ export class AWSCredentialsPrimitive extends Component {
   }
 
   render() {
-    const { serverInfo } = this.props;
+    const { serverInfo, errors } = this.props;
     const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
     return (
       <div className="server-credentials col col--start col--no-gutter">
@@ -45,6 +46,7 @@ export class AWSCredentialsPrimitive extends Component {
                   className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                   type="text"
                   placeholder="IAM User Access"
+                  style={buildStyle(false, errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]])}
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={serverInfo.credentials.AWSAccessKey}
                   required
@@ -62,6 +64,7 @@ export class AWSCredentialsPrimitive extends Component {
                 className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                 type="password"
                 placeholder="IAM User Secret"
+                style={buildStyle(false, errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]])}
                 onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                 value={serverInfo.credentials.AWSSecretKey}
                 required
@@ -98,6 +101,8 @@ AWSCredentialsPrimitive.propTypes = {
 
 AWSCredentialsPrimitive.defaultProps = {
   onKeyPress: () => {},
+  // eslint-disable-next-line react/default-props-match-prop-types
+  errors: {}, // TODO - add proper error object
 };
 
 export const mapStateToProps = state => ({

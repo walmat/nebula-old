@@ -1,14 +1,18 @@
 import {
   TASK_ACTIONS,
   mapTaskFieldsToKey,
+  taskActions,
 } from '../../actions';
 import taskAttributeValidatorMap from '../../../utils/validation/taskAttributeValidators';
 
-const tasksFormValidationMiddleware = () => next => (action) => {
+const tasksFormValidationMiddleware = store => next => (action) => {
   if (!action.type ||
-      (action.type !== TASK_ACTIONS.ADD &&
-       action.type !== TASK_ACTIONS.UPDATE)) {
+      (action.type !== TASK_ACTIONS.ADD && action.type !== TASK_ACTIONS.UPDATE)) {
     return next(action);
+  }
+
+  if (!action.task) {
+    return store.dispatch(taskActions.error(action.type, 'invalid action structure!'));
   }
 
   // action is gonna be update or add...

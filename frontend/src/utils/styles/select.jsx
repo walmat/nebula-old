@@ -9,10 +9,11 @@ export const DropdownIndicator = props => (
   </components.DropdownIndicator>
 );
 
-export const colourStyles = {
+export const colourStyles = provided => ({
   control: (styles, { isDisabled }) => ({
     ...styles,
-    border: '1px solid #F0405E',
+    border: '1px solid',
+    'border-color': (provided && provided.borderColor) || '#46ADB4',
     backgroundColor: isDisabled ? 'rgb(229, 229, 229)' : '#f4f4f4',
     height: '29px',
     minHeight: '29px',
@@ -21,7 +22,7 @@ export const colourStyles = {
     cursor: isDisabled ? 'not-allowed' : 'pointer',
     boxShadow: 'none',
     ':hover': {
-      borderColor: '#F0405E',
+      'border-color': (provided && provided.borderColor) || '#46ADB4',
       cursor: 'pointer',
     },
   }),
@@ -112,4 +113,4 @@ export const colourStyles = {
     ...styles,
     maxHeight: '175px',
   }),
-};
+});

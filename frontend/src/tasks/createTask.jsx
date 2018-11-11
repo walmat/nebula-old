@@ -3,7 +3,7 @@ import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { TASK_FIELDS, taskActions } from '../state/actions';
+import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
 import getAllSizes from '../constants/getAllSizes';
 import getAllSites from '../constants/getAllSites';
 
@@ -12,6 +12,7 @@ import tDefns from '../utils/definitions/taskDefinitions';
 
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
+import { buildStyle } from '../utils/styles';
 
 export class CreateTaskPrimitive extends Component {
   constructor(props) {
@@ -64,7 +65,7 @@ export class CreateTaskPrimitive extends Component {
   }
 
   render() {
-    const { task } = this.props;
+    const { task, errors } = this.props;
     let newTaskProfileValue = null;
     if (task.profile.id) {
       newTaskProfileValue = {
@@ -97,6 +98,7 @@ export class CreateTaskPrimitive extends Component {
                   placeholder="Variant, Keywords, Link"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
                   value={task.product.raw}
+                  style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
                   required
                   data-testid={addTestId('CreateTask.productInput')}
                 />
@@ -108,7 +110,7 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--field"
                   placeholder="Choose Site"
                   components={{ DropdownIndicator }}
-                  styles={colourStyles}
+                  styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]))}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
                   options={getAllSites()}
@@ -127,7 +129,7 @@ export class CreateTaskPrimitive extends Component {
                 className="tasks-create__input tasks-create__input--field"
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
-                styles={colourStyles}
+                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]))}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 value={newTaskProfileValue}
                 options={this.buildProfileOptions()}
@@ -142,7 +144,7 @@ export class CreateTaskPrimitive extends Component {
                 isClearable={false}
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
-                styles={colourStyles}
+                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]))}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
                 value={sizes}
                 options={getAllSizes()}
@@ -165,6 +167,7 @@ export class CreateTaskPrimitive extends Component {
                   value={task.username || ''}
                   required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
+                  style={buildStyle(accountFieldsDisabled, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]])}
                   data-testid={addTestId('CreateTask.usernameInput')}
                 />
               </div>
@@ -176,6 +179,7 @@ export class CreateTaskPrimitive extends Component {
                   placeholder="***********"
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
                   value={task.password || ''} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
+                  style={buildStyle(accountFieldsDisabled, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PASSWORD]])}
                   required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
                   data-testid={addTestId('CreateTask.passwordInput')}
@@ -206,6 +210,7 @@ CreateTaskPrimitive.propTypes = {
   onFieldChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   task: tDefns.task.isRequired,
+  errors: tDefns.taskErrors.isRequired,
   onAddNewTask: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
@@ -217,6 +222,7 @@ CreateTaskPrimitive.defaultProps = {
 export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   task: ownProps.taskToEdit,
+  errors: ownProps.taskToEdit.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({

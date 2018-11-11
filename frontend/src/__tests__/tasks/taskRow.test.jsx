@@ -33,6 +33,7 @@ describe('<TaskRow />', () => {
       onCommitEdits={renderProps.onCommitEdits}
       onCancelEdits={renderProps.onCancelEdits}
       onKeyPress={renderProps.onKeyPress}
+      errors={renderProps.errors}
     />);
   };
 
@@ -43,6 +44,7 @@ describe('<TaskRow />', () => {
       edits: { ...initialTaskStates.edit },
       proxies: [],
       profiles: [],
+      errors: { ...initialTaskStates.edit.errors },
       onSelectTask: () => {},
       onStartTask: () => {},
       onStopTask: () => {},

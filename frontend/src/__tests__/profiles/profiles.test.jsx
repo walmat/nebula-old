@@ -398,7 +398,7 @@ describe('<Profiles />', () => {
       editId: 1,
     };
     const expectedActions = [
-      profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING),
+      profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''),
       profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, 'test'),
       profileActions.add(tempProfile),
       profileActions.load(tempProfile),

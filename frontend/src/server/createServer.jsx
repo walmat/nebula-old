@@ -6,6 +6,8 @@ import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
+import { buildStyle } from '../utils/styles';
+
 
 export class CreateServerPrimitive extends Component {
   static changeServerChoice(options, onChange) {
@@ -52,7 +54,7 @@ export class CreateServerPrimitive extends Component {
                 components={{ DropdownIndicator }}
                 classNamePrefix="select"
                 className="server-options__input--select"
-                styles={colourStyles}
+                styles={colourStyles(buildStyle(disabled, null))} // TODO
                 onChange={onChange}
                 isDisabled={disabled}
                 value={value}
@@ -186,6 +188,8 @@ CreateServerPrimitive.defaultProps = {
   serverType: null,
   serverSize: null,
   serverLocation: null,
+  // eslint-disable-next-line react/default-props-match-prop-types
+  errors: {}, // TODO - add proper error object
 };
 
 export const mapStateToProps = state => ({
@@ -195,6 +199,7 @@ export const mapStateToProps = state => ({
   serverSize: state.serverInfo.serverOptions.size || null,
   serverLocation: state.serverInfo.serverOptions.location || null,
   serverListOptions: state.serverListOptions,
+  errors: defns.serverListOptionsErrors, // TODO: add actual definition
 });
 
 export const mapDispatchToProps = dispatch => ({

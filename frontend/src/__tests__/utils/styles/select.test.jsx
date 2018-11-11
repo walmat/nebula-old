@@ -11,7 +11,7 @@ describe('Custom Select', () => {
         className="test-class"
         placeholder="placeholder test"
         components={{ DropdownIndicator }}
-        styles={colourStyles}
+        styles={colourStyles()}
         value={{ value: 'test1', label: 'testLabel1' }}
         options={[
           { value: 'test1', label: 'testLabel1' },
@@ -37,9 +37,10 @@ describe('Custom Select', () => {
         const initialStyle = {
           height: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles.control(initialStyle, { isDisabled: false });
+        const actualStyle = colourStyles().control(initialStyle, { isDisabled: false });
         expect(actualStyle).toEqual({
-          border: '1px solid #F0405E',
+          border: '1px solid',
+          'border-color': '#46ADB4',
           backgroundColor: '#f4f4f4',
           height: '29px',
           minHeight: '29px',
@@ -48,7 +49,7 @@ describe('Custom Select', () => {
           cursor: 'pointer',
           boxShadow: 'none',
           ':hover': {
-            borderColor: '#F0405E',
+            'border-color': '#46ADB4',
             cursor: 'pointer',
           },
         });
@@ -58,9 +59,10 @@ describe('Custom Select', () => {
         const initialStyle = {
           height: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles.control(initialStyle, { isDisabled: true });
+        const actualStyle = colourStyles().control(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
-          border: '1px solid #F0405E',
+          border: '1px solid',
+          'border-color': '#46ADB4',
           backgroundColor: 'rgb(229, 229, 229)',
           height: '29px',
           minHeight: '29px',
@@ -69,7 +71,7 @@ describe('Custom Select', () => {
           cursor: 'not-allowed',
           boxShadow: 'none',
           ':hover': {
-            borderColor: '#F0405E',
+            'border-color': '#46ADB4',
             cursor: 'pointer',
           },
         });
@@ -81,7 +83,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles.option(initialStyle, {});
+        const actualStyle = colourStyles().option(initialStyle, {});
         expect(actualStyle).toEqual({
           backgroundColor: '#fff',
           color: '#161318',
@@ -96,7 +98,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles.option(initialStyle, { isDisabled: true });
+        const actualStyle = colourStyles().option(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#ccc',
           color: '#161318',
@@ -111,7 +113,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles.option(initialStyle, { isFocused: true });
+        const actualStyle = colourStyles().option(initialStyle, { isFocused: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#EDBCC6',
           color: '#161318',
@@ -126,7 +128,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles.option(initialStyle, { isSelected: true });
+        const actualStyle = colourStyles().option(initialStyle, { isSelected: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#fff',
           color: '#161318',
@@ -142,7 +144,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         height: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles.valueContainer(initialStyle, { isMulti: true });
+      const actualStyle = colourStyles().valueContainer(initialStyle, { isMulti: true });
       expect(actualStyle).toEqual({
         maxHeight: '29px',
         height: '29px',
@@ -162,7 +164,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         height: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles.valueContainer(initialStyle, { isMulti: false });
+      const actualStyle = colourStyles().valueContainer(initialStyle, { isMulti: false });
       expect(actualStyle).toEqual({
         maxHeight: '29px',
         height: '29px',
@@ -174,7 +176,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         border: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles.multiValue(initialStyle);
+      const actualStyle = colourStyles().multiValue(initialStyle);
       expect(actualStyle).toEqual({
         backgroundColor: '#B8D9D2',
         border: '0.5px solid #46ADB4',
@@ -194,7 +196,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           color: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles.placeholder(initialStyle, { isDisabled: false });
+        const actualStyle = colourStyles().placeholder(initialStyle, { isDisabled: false });
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',
@@ -209,7 +211,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           color: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles.placeholder(initialStyle, { isDisabled: true });
+        const actualStyle = colourStyles().placeholder(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',
@@ -225,7 +227,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         color: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles.singleValue(initialStyle);
+      const actualStyle = colourStyles().singleValue(initialStyle);
       expect(actualStyle).toEqual({
         fontFamily: 'AvenirNext-Medium',
         textTransform: 'capitalize',
@@ -240,7 +242,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         cursor: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles.multiValueLabel(initialStyle);
+      const actualStyle = colourStyles().multiValueLabel(initialStyle);
       expect(actualStyle).toEqual({
         cursor: 'pointer',
         paddingRight: '5px',
@@ -255,7 +257,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         cursor: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles.multiValueRemove(initialStyle);
+      const actualStyle = colourStyles().multiValueRemove(initialStyle);
       expect(actualStyle).toEqual({
         cursor: 'pointer',
         ':hover': {
@@ -267,7 +269,7 @@ describe('Custom Select', () => {
     });
 
     test('menu should return correct style', () => {
-      const actualStyle = colourStyles.menu({});
+      const actualStyle = colourStyles().menu({});
       expect(actualStyle).toEqual({});
     });
 
@@ -275,7 +277,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         maxHeight: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles.menuList(initialStyle);
+      const actualStyle = colourStyles().menuList(initialStyle);
       expect(actualStyle).toEqual({
         maxHeight: '175px',
       });
