@@ -15,6 +15,12 @@ describe('getAllSites', () => {
         auth: false,
       },
       {
+        value: 'https://blendsus.com',
+        label: 'Blends',
+        supported: true,
+        auth: false,
+      },
+      {
         value: 'https://shop.bdgastore.com',
         label: 'Bodega',
         supported: true,
