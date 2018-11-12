@@ -98,134 +98,118 @@ describe('task form validation middleware', () => {
       type,
       task: {
         ...initialTaskStates.task,
-        product: testValid ? '' : {
-          raw: '',
-          variant: null,
-          pos_keywords: null,
-          neg_keywords: null,
-          url: null,
+        product: {
+          ...initialTaskStates.task.product,
+          raw: testValid ? 'https' : '+test',
         },
-        site: testValid ? '' : {
-          name: null,
-          url: null,
-          supported: null,
-          auth: null,
+        site: {
+          ...initialTaskStates.task.site,
+          name: testValid ? 'invalidName' : 'Kith',
         },
         profile: testValid ? '' : {
           ...initialProfileStates.profile,
-          profileName: testValid ? '' : 'test',
-          billingMatchesShipping: testValid ? undefined : false,
+          profileName: 'test',
+          billingMatchesShipping: false,
           payment: {
             ...initialProfileStates.payment,
-            email: testValid ? 'invalid' : 'test@me.com',
-            cardNumber: testValid ? 'invalid' : '4111111111111',
-            exp: testValid ? 'invalid' : '12/34',
-            cvv: testValid ? 'invalid' : '123',
+            email: 'test@me.com',
+            cardNumber: '4111111111111',
+            exp: '12/34',
+            cvv: '123',
           },
           billing: {
             ...initialProfileStates.location,
-            firstName: testValid ? '' : 'test',
-            lastName: testValid ? '' : 'test',
-            address: testValid ? '' : 'test',
+            firstName: 'test',
+            lastName: 'test',
+            address: 'test',
             apt: 'test',
-            city: testValid ? '' : 'test',
-            state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
-            country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
-            zipCode: testValid ? '' : '12345',
-            phone: testValid ? 'invalid' : '1234567890',
+            city: 'test',
+            state: { label: 'Puerto Rico', value: 'PR' },
+            country: { value: 'US', label: 'United States' },
+            zipCode: '12345',
+            phone: '1234567890',
           },
           shipping: {
             ...initialProfileStates.location,
-            firstName: testValid ? '' : 'test',
-            lastName: testValid ? '' : 'test',
-            address: testValid ? '' : 'test',
+            firstName: 'test',
+            lastName: 'test',
+            address: 'test',
             apt: 'test',
-            city: testValid ? '' : 'test',
-            state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
-            country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
-            zipCode: testValid ? '' : '12345',
-            phone: testValid ? 'invalid' : '1234567890',
+            city: 'test',
+            state: { label: 'Puerto Rico', value: 'PR' },
+            country: { value: 'US', label: 'United States' },
+            zipCode: '12345',
+            phone: '1234567890',
           },
         },
-        sizes: testValid ? null : [],
+        sizes: [
+          ...initialTaskStates.task.sizes,
+        ],
         username: testValid ? '' : 'test',
         password: testValid ? '' : 'test',
-        status: testValid ? '' : 'idle',
-        output: testValid ? '' : 'Monitoring...',
-        errorDelay: testValid ? '' : 1500,
-        monitorDelay: testValid ? '' : 1500,
+        errorDelay: 1500,
+        monitorDelay: 1500,
       },
     };
+
     const expectedActionBase = {
       ...actionBase,
       task: {
         ...actionBase.task,
         errors: {
           ...actionBase.task.errors,
+          product: testValid,
+          site: testValid,
+          profile: testValid,
+          sizes: testValid,
+          username: testValid,
+          password: testValid,
+          status: null,
+          errorDelay: null,
+          monitorDelay: null,
         },
-        product: actionBase.task.product,
-        site: actionBase.task.site,
-        sizes: [actionBase.task.sizes],
-      },
-      errors: {
-        product: {
-          raw: testValid,
-          variant: testValid,
-          pos_keywords: testValid,
-          neg_keywords: testValid,
-          url: testValid,
-        },
-        site: testValid,
-        profile: testValid,
-        sizes: testValid,
-        username: testValid,
-        password: testValid,
-        status: testValid,
-        errorDelay: testValid,
-        monitorDelay: testValid,
-      },
-      edits: {
-        ...actionBase.task.edits,
-        errors: {
-          ...actionBase.task.edits.errors,
+        edits: {
+          ...actionBase.task.edits,
         },
       },
     };
+
     const action = {
-      ...actionBase,
       response: {
+        ...actionBase,
         task: {
           ...actionBase.task,
+          [mapTaskFieldsToKey[field]]: value,
           edits: {
             ...actionBase.task.edits,
           },
         },
-        [mapTaskFieldsToKey[field]]: value,
       },
     };
+
     const expectedAction = {
-      ...expectedActionBase,
       ...action,
       response: {
+        ...expectedActionBase,
         task: {
           ...actionBase.task,
           ...expectedActionBase.task,
+          errors: {
+            ...actionBase.task.errors,
+          },
           edits: {
             ...actionBase.task.edits,
             ...expectedActionBase.task.edits,
+            errors: {
+              ...actionBase.task.edits.errors,
+              ...expectedActionBase.task.edits.errors,
+            },
           },
+          [mapTaskFieldsToKey[field]]: value,
         },
-        [mapTaskFieldsToKey[field]]: value,
-      },
-      errors: {
-        ...expectedActionBase.errors,
-        [mapTaskFieldsToKey[field]]: !testValid,
       },
     };
-    expectedAction.task.errors = {
-      ...expectedAction.task.errors,
-      [mapTaskFieldsToKey[field]]: !testValid,
-    };
+
     return {
       action,
       expectedAction,
@@ -249,7 +233,6 @@ describe('task form validation middleware', () => {
     if (genNoErrors) {
       // delete expected errors field if we aren't generating errors
       delete expectedAction.errors;
-      delete expectedAction.task.errors.undefined;
     }
     invoke(action);
     expect(store.dispatch).not.toHaveBeenCalled();

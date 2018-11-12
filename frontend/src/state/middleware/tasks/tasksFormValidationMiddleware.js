@@ -22,9 +22,9 @@ const tasksFormValidationMiddleware = store => next => (action) => {
   const response =
     action.type === TASK_ACTIONS.ADD ? newAction.response.task :
       newAction.response.task;
-  newAction.errors = {};
-  const errors = action.type === TASK_ACTIONS.ADD ? newAction.response.task.errors :
-    newAction.response.task.edits.errors;
+  const errors =
+    action.type === TASK_ACTIONS.ADD ? newAction.response.task.errors :
+      newAction.response.task.edits.errors;
 
   Object.entries(taskAttributeValidatorMap).forEach((pair) => {
     const field = pair[0];
