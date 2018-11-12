@@ -27,8 +27,9 @@ class Checkout {
             CheckoutQueue: 'CHECKOUT_QUEUE',
             OutOfStock: 'OUT_OF_STOCK',
             Restock: 'RESTOCK',
-            Shipping: 'SHIPPING',
-            SolveCaptcha: 'SOLVE_CAPTCHA',
+            GetShipping: 'GET_SHIPPING',
+            RequestCaptcha: 'REQUEST_CAPTCHA',
+            PostShipping: 'POST_SHIPPING',
             Payment: 'PAYMENT',
             PaymentError: 'PAYMENT_ERROR',
             PaymentProcessing: 'PAYMENT_PROCESSING',
@@ -82,9 +83,9 @@ class Checkout {
         this._authToken;
         this._price;
         this._shippingValue;
+        this._shippingOpts;
         this._paymentToken;
         this._paymentGateway;
-        this._captchaResponse = '';
 
         this._variantIndex = 0;
 
@@ -102,6 +103,11 @@ class Checkout {
         this._payment = null;
         this._account = new Account(context, this._timer, this._request);
     }
+
+    _waitForDelay(delay) {
+        console.log(`[INFO]: CHECKOUT: Waiting for ${delay} ms...`);
+        return new Promise(resolve => setTimeout(resolve, delay));
+    };
 
     /**
      * Checkout process started
@@ -176,11 +182,8 @@ class Checkout {
         }
 
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
-            console.log('[INFO]: CHECKOUT: Waiting in queue...');
-            // TODO - implement a wait of some sort?
-            return Checkout.States.ProceedToCheckout;
+            return Checkout.States.CheckoutQueue;
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
-            console.log('[INFO]: CHECKOUT: Out of stock...');
             return Checkout.States.OutOfStock;
         } else if (res.state === this._cart.CART_STATES.Success) {            
             
@@ -195,8 +198,13 @@ class Checkout {
                 this._authToken,
                 this._shippingValue,
             );
-            return Checkout.States.Shipping;
+            return Checkout.States.GetShipping;
         }
+    }
+
+    async _handleCheckoutQueue() {
+        this._waitForDelay(500);
+        return Checkout.States.ProceedToCheckout;
     }
 
     /**
@@ -230,22 +238,70 @@ class Checkout {
     }
 
     /**
-     * Submit shipping details
+     * Submit `GET` shipping details
      * @returns {STATE} next checkout state
      */
-    async _handleShipping() {
+    async _handleGetShipping() {
         let opts = await this._shipping.getShippingOptions();
 
         if (opts.errors) {
             return { errors: opts.errors };
         }
 
+        this._authToken = opts.newAuthToken;
+
         if (opts.captcha) {
             console.log('[INFO]: CHECKOUT: Requesting to solve captcha...');
-            return Checkout.States.SolveCaptcha;
+            return Checkout.States.RequestCaptcha;
         }
 
-        res = await this._shipping.submitShipping(opts.type, opts.value, opts.authToken);
+        console.log('[INFO]: CHECKOUT: Captcha bypassed');
+        opts = await this._shipping.submitShippingOptions(this._authToken);
+
+        if (opts.errors) {
+            return { errors: opts.errors };
+        }
+
+        this._shippingOpts = {
+            type: opts.type,
+            value: opts.value,
+            authToken: opts.authToken,
+        }
+
+        return Checkout.States.PostShipping;
+    }
+
+    /**
+     * Handle CAPTCHA requests
+     */
+    async _handleRequestCaptcha() {
+        const token = await this._context.getCaptcha();
+        console.log(`[DEBUG]: CHECKOUT: Received token from captcha harvesting: ${token}`);
+
+        let opts = await this._shipping.submitShippingOptions(this._authToken, token);
+
+        if (opts.errors) {
+            return { errors: opts.errors };
+        }
+
+        console.log(JSON.stringify(opts, null, 2));
+
+        this._shippingOpts = {
+            type: opts.type,
+            value: opts.value,
+            authToken: opts.authToken,
+        }
+
+        this._context.stopHarvestCaptcha();
+        return Checkout.States.PostShipping;
+    }
+
+    /**
+     * Submit `POST` Shipping details
+     */
+    async _handlePostShipping() {
+        let { type, value, authToken } = this._shippingOpts;
+        let res = await this._shipping.submitShipping(type, value, authToken);
         
         if (res.errors) {
             return { errors: res.errors };
@@ -272,15 +328,6 @@ class Checkout {
         }
         console.log('[ERROR]: CHECKOUT: Unable to submit shipping...');
         return Checkout.States.Stopped;
-    }
-
-    /**
-     * Submit shipping details
-     * @returns {STATE} next checkout state
-     */
-    async _handleSolveCaptcha() {
-        // TODO - think about how to handle this with captcha and all..
-        this._captchaResponse = '';
     }
 
     /**
@@ -330,8 +377,10 @@ class Checkout {
             [Checkout.States.GeneratePaymentToken]: this._handlePaymentToken,
             [Checkout.States.ProceedToCheckout]: this._handleProceedToCheckout,
             [Checkout.States.OutOfStock]: this._handleOutOfStock,
-            [Checkout.States.Shipping]: this._handleShipping,
-            [Checkout.States.SolveCaptcha]: this._handleSolveCaptcha,
+            [Checkout.States.CheckoutQueue]: this._handleCheckoutQueue,
+            [Checkout.States.GetShipping]: this._handleGetShipping,
+            [Checkout.States.PostShipping]: this._handlePostShipping,
+            [Checkout.States.RequestCaptcha]: this._handleRequestCaptcha,
             [Checkout.States.Payment]: this._handlePayment,
             [Checkout.States.Stopped]: this._handleStopped,
         }
@@ -342,15 +391,17 @@ class Checkout {
 
     async run() {
         const nextState =  await this._handleStepLogic(this._state);
+        console.log('[TRACE]: CHECKOUT: Next State chosen as: ' + nextState);
         if(nextState.errors) {
+            console.log(`[TRACE]: CHECKOUT: Completed with Errors: ${JSON.stringify(nextState.errors, null, 2)}`);
             return {
                 nextState: States.Checkout,
                 errors: nextState.errors,
             }
         }
         this._state = nextState;
-        if (this._state !== Checkout.States.Stopped ||
-            this._state !== Checkout.States.PaymentProcessing ||
+        if (this._state !== Checkout.States.Stopped &&
+            this._state !== Checkout.States.PaymentProcessing &&
             this._state !== Checkout.States.Error) {
             return {
                 nextState: States.Checkout,

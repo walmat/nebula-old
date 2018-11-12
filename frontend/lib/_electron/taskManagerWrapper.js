@@ -1,7 +1,9 @@
 const TaskManager = require('task-runner/shopify/taskManager');
 
 const IPCKeys = require('../common/constants');
+const nebulaEnv = require('./env');
 
+nebulaEnv.setUpEnvironment();
 const _TASK_EVENT_KEY = 'TaskEventKey';
 
 class TaskManagerWrapper {
@@ -13,6 +15,13 @@ class TaskManagerWrapper {
     this._taskManager = new TaskManager();
 
     this._taskEventHandler = this._taskEventHandler.bind(this);
+    this._startHarvestEventHandler = this._startHarvestEventHandler.bind(this);
+    this._stopHarvestEventHandler = this._stopHarvestEventHandler.bind(this);
+
+    // TODO: Research if this should always listened to, or if we can dynamically
+    //       Start/Stop listening like we with task events
+    this._taskManager._events.on(TaskManager.Events.StartHarvest, this._startHarvestEventHandler);
+    this._taskManager._events.on(TaskManager.Events.StopHarvest, this._stopHarvestEventHandler);
 
     context.ipc.on(
       IPCKeys.RequestRegisterTaskEventHandler,
@@ -43,10 +52,52 @@ class TaskManagerWrapper {
       IPCKeys.RequestRemoveProxies,
       this._onRemoveProxiesRequest.bind(this),
     );
+
+    context.ipc.on(
+      IPCKeys.HarvestCaptcha,
+      this._onHarvestToken.bind(this),
+    );
+
+    // TEMPORARY
+    if (nebulaEnv.isDevelopment()) {
+      this._debugHarvestedTokens = [];
+      this._debugSentTokens = [];
+      context.ipc.on(
+        'debug',
+        (ev, type, ...params) => {
+          switch (type) {
+            case 'testStartHarvest': {
+              this._startHarvestEventHandler(params[0], params[1]);
+              break;
+            }
+            case 'testStopHarvest': {
+              this._stopHarvestEventHandler(params[0], params[1]);
+              break;
+            }
+            case 'viewHarvestedFrontendTokens': {
+              ev.sender.send('debug', type, this._debugHarvestedTokens);
+              break;
+            }
+            default:
+              break;
+          }
+        },
+      );
+    }
   }
 
   _taskEventHandler(taskId, statusMessage) {
     this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
+  }
+
+  async _startHarvestEventHandler(runnerId, siteKey) {
+    const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
+    await this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, key);
+  }
+
+  _stopHarvestEventHandler(runnerId, siteKey) {
+    const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
+    this._context.windowManager.onRequestStopHarvestingCaptcha(runnerId, key);
   }
 
   _addListener(listener) {
@@ -62,6 +113,18 @@ class TaskManagerWrapper {
     if (this._listeners.length === 0) {
       // Stop listening for events since we don't have any listeners
       this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
+    }
+  }
+
+  _onHarvestToken(event, runnerId, token, siteKey, host) {
+    console.log(`Harvesting Token: ${token}\nRunner: ${runnerId}\nkey: ${siteKey}`);
+    this._taskManager.harvestCaptchaToken(runnerId, token);
+    if (nebulaEnv.isDevelopment()) {
+      this._debugHarvestedTokens.push({
+        runnerId,
+        token,
+        siteKey,
+      });
     }
   }
 

@@ -63,42 +63,55 @@ class Shipping {
                 Referer: `${this._task.site.url}/cart`,
             },
             qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
-            // transform: function(body) {
-            //     return cheerio.load(body);
-            // }
+            transform: function(body) {
+                return cheerio.load(body);
+            }
         })
-        .then((res) => {
-            const $ = cheerio.load(res.body);
-            fs.writeFileSync(path.join(__dirname, 'shipping-method.html'), res.body);
+        .then(($) => {
 
-            // TODO - select captcha and spit back the sitekey to the captcha harvesters
-
+            const recaptchaFrame = $('#g-recaptcha');
             const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-            return this._request({
-                uri: `${this._checkoutUrl}`,
-                method: 'post',
-                proxy: formatProxy(this._proxy),
-                rejectUnauthorized: false,
-                followAllRedirects: true,
-                resolveWithFullResponse: true,
-                simple: false,
-                headers: {
-                    Origin: `${this._task.site.url}`,
-                    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                    'User-Agent': userAgent,
-                    Referer: `${this._checkoutUrl}`,
-                },
-                formData: buildShippingForm(this._task, newAuthToken, '', 'shipping_method', 'contact_information'),
-                // transform: function(body) {
-                //     return cheerio.load(body);
-                // }
-            })
-            .then((res) => {
-                const $ = cheerio.load(res.body);
 
-                fs.writeFileSync(path.join(__dirname, 'shipping-method.html'), res.body);
+            if (recaptchaFrame.length) {
+                return {
+                    captcha: recaptchaFrame,
+                    newAuthToken,
+                }
+            } else {
+                return {
+                    newAuthToken,
+                };
+            }
+        })
+        .catch((err) => {
+            return {
+                errors: err,
+            }
+        });
+    }
 
-                const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
+    submitShippingOptions(newAuthToken, captchaResponse) {
+        return this._request({
+            uri: `${this._checkoutUrl}`,
+            method: 'post',
+            proxy: formatProxy(this._proxy),
+            rejectUnauthorized: false,
+            followAllRedirects: true,
+            resolveWithFullResponse: true,
+            simple: false,
+            headers: {
+                Origin: `${this._task.site.url}`,
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'User-Agent': userAgent,
+                Referer: `${this._checkoutUrl}`,
+            },
+            formData: buildShippingForm(this._task, newAuthToken, captchaResponse || '', 'shipping_method', 'contact_information'),
+            transform: function(body) {
+                return cheerio.load(body);
+            }
+        })
+        .then(($) => {
+            const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
                 this._timer.stop(now());
                 console.log(`[INFO]: SHIPPING: Got shipping options in ${this._timer.getRunTime()}ms`);
                 if (shippingPollUrl === undefined) {
@@ -121,19 +134,12 @@ class Shipping {
                     value: shippingPollUrl,
                     authToken: '',
                 }
-            })
-            .catch((err) => {
-                return {
-                    errors: err,
-                }
-            })
-            
         })
         .catch((err) => {
             return {
-                errors: err,
+                errors: 'Error posting shipping',
             }
-        });
+        })
     }
 
     submitShipping(type, value, authToken) {

@@ -17,8 +17,8 @@ webFrame.setLayoutZoomLevelLimits(0, 0);
  * @param {String} channel definition for which trigger to look for
  * @param {*} msg any object to send along with the event || null
  */
-const _sendEvent = (channel, msg) => {
-  ipcRenderer.send(channel, msg);
+const _sendEvent = (channel, ...params) => {
+  ipcRenderer.send(channel, ...params);
 };
 
 /**
@@ -110,8 +110,24 @@ const _endCaptchaSession = () => {
 /**
  * Sends the harvest captcha trigger to windowManager.js
  */
-const _harvestCaptchaToken = (token) => {
-  _sendEvent(IPCKeys.HarvestCaptcha, token);
+const _harvestCaptchaToken = (runnerId, token, siteKey) => {
+  _sendEvent(IPCKeys.HarvestCaptcha, runnerId, token, siteKey);
+};
+
+const _registerForStartHarvestCaptcha = (callback) => {
+  _handleEvent(IPCKeys.StartHarvestCaptcha, callback);
+};
+
+const _deregisterForStartHarvestCaptcha = (callback) => {
+  _removeEvent(IPCKeys.StartHarvestCaptcha, callback);
+};
+
+const _registerForStopHarvestCaptcha = (callback) => {
+  _handleEvent(IPCKeys.StopHarvestCaptcha, callback);
+};
+
+const _deregisterForStopHarvestCaptcha = (callback) => {
+  _removeEvent(IPCKeys.StopHarvestCaptcha, callback);
 };
 
 /**
@@ -210,6 +226,16 @@ process.once('loaded', () => {
   window.Bridge.close = _close;
   window.Bridge.refreshCaptchaWindow = _refreshCaptchaWindow;
   window.Bridge.harvestCaptchaToken = _harvestCaptchaToken;
+  window.Bridge.Captcha = {
+    start: {
+      register: _registerForStartHarvestCaptcha,
+      deregister: _deregisterForStartHarvestCaptcha,
+    },
+    stop: {
+      register: _registerForStopHarvestCaptcha,
+      deregister: _deregisterForStopHarvestCaptcha,
+    },
+  };
   window.Bridge.endCaptchaSession = _endCaptchaSession;
   window.Bridge.getAppData = _getAppData;
   window.Bridge.deactivate = _deactivate;
@@ -221,9 +247,15 @@ process.once('loaded', () => {
   window.Bridge.stopTasks = _stopTasks;
   window.Bridge.addProxies = _addProxies;
   window.Bridge.removeProxies = _removeProxies;
+
   if (nebulaEnv.isDevelopment()) {
-    window.Bridge.sendDebugCmd = (evt) => {
-      _sendEvent('debug', evt);
+    window.Bridge.sendDebugCmd = (...params) => {
+      _sendEvent('debug', ...params);
     };
+
+    _handleEvent('debug', (ev, type, ...params) => {
+      console.log(`Received Response for type: ${type}`);
+      console.log(params);
+    });
   }
 });

@@ -33,11 +33,6 @@ class TaskRunner {
             aborted: false,
         };
 
-        /**
-         * The id of this task runner
-         */
-        this.id = id;
-
         this._queueBypass = new QueueBypass(this._context);
 
         /**
@@ -48,7 +43,11 @@ class TaskRunner {
         /**
          * Create a new checkout object to be used for this task
          */
-        this._checkout = new Checkout(this._context);
+        this._checkout = new Checkout({
+            ...this._context,
+            getCaptcha: this.getCaptcha.bind(this),
+            stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
+        });
 
         /**
          * Create a new event emitter to handle all IPC communication
@@ -78,6 +77,14 @@ class TaskRunner {
     }
 
     // MARK: Event Registration
+
+    async getCaptcha() {
+        return this._taskManager.startHarvestCaptcha(this._context.id);
+    }
+
+    stopHarvestCaptcha() {
+        this._taskManager.stopHarvestCaptcha(this._context.id);
+    }
 
     registerForEvent(event, callback) {
         switch(event) {

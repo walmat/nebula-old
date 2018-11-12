@@ -2,6 +2,7 @@
   <head>
     <title>Harvester</title>
     <script src="./js/prevent.js"></script>
+    <script src="./js/captcha.js"></script>
     <link rel="stylesheet" type="text/css" href="./css/captcha.css">
   </head>
   <body>
@@ -15,27 +16,13 @@
         <div class="dot"></div>
         <div class="dot"></div>
       </div>
-      
     </div>
     <div id="captcha">
-      <form action="/submit" method="post">
-        <div id="captchaFrame">
-          <div class="g-recaptcha" data-sitekey="window.Bridge.getSitekey()" data-callback="submitCaptcha"></div>
-        </div>
-        <script type="text/javascript" src="https://www.google.com/recaptcha/api.js"></script>
-    </form>
+      <form id="captchaForm" action="/submit" method="post"></form>
     </div>
     <div class="footer">
       <button id="launch-youtube" onclick="window.Bridge.launchYoutube()" >Account</button>
       <button id="end-session" onclick="window.Bridge.endCaptchaSession()" >End Session</button>
     </div>
-    <script>
-      function submitCaptcha() {
-        const token = document.getElementById('g-recaptcha-response').value;
-        window.Bridge.harvestCaptchaToken(token);
-        grecaptcha.reset();
-        window.Bridge.refreshCaptchaWindow();
-      }
-    </script>
   </body>
 </html>

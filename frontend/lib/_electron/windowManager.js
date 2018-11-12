@@ -12,6 +12,8 @@ const {
 
 const CaptchaWindowManager = require('./captchaWindowManager');
 
+nebulaEnv.setUpEnvironment();
+
 /**
  * Manage the window.
  */
@@ -128,9 +130,15 @@ class WindowManager {
         }
         case 'captcha': {
           if (this._captchas.size < 5) {
+            let serverPort = this._context.captchaServerManager.port;
+            if (!this._context.captchaServerManager.isRunning) {
+              console.log('[DEBUG]: Starting captcha server...');
+              this._context.captchaServerManager.start();
+              serverPort = this._context.captchaServerManager.port;
+            }
             w = await createCaptchaWindow();
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, w, this._context._session.fromPartition(`${w.id}`)));
-            console.log(`size after creating: ${this._captchas.size}`);
+            w.loadURL(`http://127.0.0.1:${serverPort}/captcha.html`);
           }
           break;
         }
@@ -141,7 +149,9 @@ class WindowManager {
         default: break;
       }
 
-      w.loadURL(urls.get(tag));
+      if (tag !== 'captcha') {
+        w.loadURL(urls.get(tag));
+      }
 
       this.addWindowEventListeners(w);
 
@@ -199,10 +209,16 @@ class WindowManager {
             // deregister the interval from the captcha window
             WindowManager.handleCloseCaptcha(this._captchas.get(win.id));
             this._captchas.delete(win.id);
-          } else if (win.id === captchaWindowManager._youtubeWindow.id) {
+          } else if (captchaWindowManager._youtubeWindow && win.id === captchaWindowManager._youtubeWindow.id) {
             captchaWindowManager._youtubeWindow = null;
           }
         });
+
+        if (this._captchas.size === 0) {
+          // Close the server
+          console.log('[DEBUG]: Stopping captcha server...');
+          this._context.captchaServerManager.stop();
+        }
       }
     };
   }
@@ -350,6 +366,35 @@ class WindowManager {
         if (captchaWindowManager._youtubeWindow) {
           captchaWindowManager._youtubeWindow.close();
         }
+      });
+    }
+  }
+
+  /**
+   * Start Harvesting Captchas for a specific task
+   * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
+   * // https://github.com/walmat/nebula/issues/97
+   */
+  async onRequestStartHarvestingCaptcha(runnerId, siteKey) {
+    let open = false;
+    if (this._captchas.size === 0) {
+      open = true;
+      await this.createNewWindow('captcha');
+    }
+    this._captchas.forEach((captchaWindowManager) => {
+      captchaWindowManager.startHarvestingCaptcha(runnerId, siteKey, open);
+    });
+  }
+
+  /**
+   * Stop Harvesting Captchas for a specific task
+   * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
+   * // https://github.com/walmat/nebula/issues/97
+   */
+  onRequestStopHarvestingCaptcha(runnerId, siteKey) {
+    if (this._captchas.size > 0) {
+      this._captchas.forEach((captchaWindowManager) => {
+        captchaWindowManager.stopHarvestingCaptcha(runnerId, siteKey);
       });
     }
   }
