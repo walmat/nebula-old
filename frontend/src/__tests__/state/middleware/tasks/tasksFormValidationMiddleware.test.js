@@ -73,7 +73,7 @@ describe('task form validation middleware', () => {
     describe('null task given', () => {
       test('when type is add', () => testNoop({
         type: TASK_ACTIONS.ADD,
-        task: null,
+        response: null,
       }));
 
       test('when type is update', () => testNoop({
@@ -199,7 +199,7 @@ describe('task form validation middleware', () => {
     };
     const action = {
       ...actionBase,
-      task: {
+      response: {
         ...actionBase.task,
         [mapTaskFieldsToKey[field]]: value,
       },
@@ -207,7 +207,7 @@ describe('task form validation middleware', () => {
     const expectedAction = {
       ...expectedActionBase,
       ...action,
-      task: {
+      response: {
         ...actionBase.task,
         ...expectedActionBase.task,
         [mapTaskFieldsToKey[field]]: value,
@@ -272,8 +272,8 @@ describe('task form validation middleware', () => {
         it('should not generate error flag when valid', () => testErrorFlag({
           field: TASK_FIELDS.EDIT_SITE,
           value: {
-            value: 'https://amongstfew.com',
-            label: 'Amongst Few',
+            url: 'https://amongstfew.com',
+            name: 'Amongst Few',
             supported: true,
             auth: false,
           },
@@ -375,13 +375,13 @@ describe('task form validation middleware', () => {
         }));
       });
     });
-
-    describe('for add action', () => {
-      performErrorFlagTestsForAction(TASK_ACTIONS.ADD);
-    });
-
-    describe('for update action', () => {
-      performErrorFlagTestsForAction(TASK_ACTIONS.UPDATE);
-    });
   };
+
+  describe('for add action', () => {
+    performErrorFlagTestsForAction(TASK_ACTIONS.ADD);
+  });
+
+  describe('for update action', () => {
+    performErrorFlagTestsForAction(TASK_ACTIONS.UPDATE);
+  });
 });

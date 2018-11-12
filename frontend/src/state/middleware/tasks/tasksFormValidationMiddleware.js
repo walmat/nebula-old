@@ -11,7 +11,7 @@ const tasksFormValidationMiddleware = store => next => (action) => {
     return next(action);
   }
 
-  if (!action.task) {
+  if (!action.response || (action.response && !action.response.task)) {
     return store.dispatch(taskActions.error(action.type, 'invalid action structure!'));
   }
 
