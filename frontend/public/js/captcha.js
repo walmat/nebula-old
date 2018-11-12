@@ -32,12 +32,16 @@ function _registerStopHandler(ev, runnerId, siteKey) {
   window.Bridge.refreshCaptchaWindow();
 }
 
-function registerForCaptchaEvents() {
+function _onLoad() {
   window.Bridge.Captcha.start.register(_registerStartHandler);
   window.Bridge.Captcha.stop.register(_registerStopHandler);
+
+  document.getElementById('close-btn').onclick = window.Bridge.close;
+  document.getElementById('launch-youtube').onclick = window.Bridge.launchYoutube;
+  document.getElementById('end-session').onclick = window.Bridge.endCaptchaSession;
 }
 
-function deregisterForCaptchaEvents() {
+function _onClose() {
   window.Bridge.Captcha.start.deregister(_registerStartHandler);
   window.Bridge.Captcha.stop.deregister(_registerStartHandler);
 }
@@ -57,5 +61,5 @@ function setupWindowHandler(event, func) {
   }
 }
 
-setupWindowHandler('onload', registerForCaptchaEvents);
-setupWindowHandler('onclose', deregisterForCaptchaEvents);
+setupWindowHandler('onload', _onLoad);
+setupWindowHandler('onclose', _onClose);

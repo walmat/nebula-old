@@ -45,6 +45,11 @@ Electron.app.on('window-all-closed', () => {
 });
 
 /**
+ * Handle certificate error event
+ */
+Electron.app.on('certificate-error', app.onCertificateErrorHandler);
+
+/**
  * Check web contents when they are created
  */
 Electron.app.on('web-contents-created', (evt1, contents) => {

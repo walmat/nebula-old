@@ -138,7 +138,7 @@ class WindowManager {
             }
             w = await createCaptchaWindow();
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, w, this._context._session.fromPartition(`${w.id}`)));
-            w.loadURL(`http://127.0.0.1:${serverPort}/captcha.html`);
+            w.loadURL(`https://127.0.0.1:${serverPort}/captcha.html`);
           }
           break;
         }
