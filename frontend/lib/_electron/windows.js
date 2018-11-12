@@ -4,6 +4,91 @@ const nebulaEnv = require('./env');
 
 nebulaEnv.setUpEnvironment();
 
+const _defaultWebPreferences = {
+  nodeIntegration: false,
+  webSecurity: true,
+  allowRunningInsecureContent: false,
+  experimentalCanvasFeatures: false,
+  experimentalFeatures: false,
+  blinkFeatures: '',
+};
+
+const _createWindow = (options) => {
+  // Create options
+  const browserWindowOptions = {
+    center: true,
+    frame: false,
+    fullscreenable: false,
+    movable: true,
+    resizable: false,
+    show: false,
+    webPreferences: {
+      ..._defaultWebPreferences,
+    },
+    ...options,
+  };
+
+  // Create new window instance
+  const win = new Electron.BrowserWindow(browserWindowOptions);
+
+  // Attach CSP Header by Default
+  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    // The majority of styling is currently inlne, so we have to allow this!
+    // TODO: move away from inline styles!
+    let cspHeaders = [
+      'default-src \'none\'; connect-src \'self\' https: wss:; font-src \'self\' https:; script-src \'self\' https:; img-src \'self\' https:; style-src \'self\' \'unsafe-inline\';',
+    ];
+    if (nebulaEnv.isDevelopment()) {
+      // If in dev mode, allow inline scripts to run (for developer tool extensions)
+      cspHeaders = [
+        'default-src \'none\'; connect-src \'self\' https: wss:; font-src \'self\' https:; script-src \'self\' https: \'unsafe-inline\'; img-src \'self\' https:; style-src \'self\' \'unsafe-inline\';',
+      ];
+    }
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': cspHeaders,
+      },
+    });
+  });
+
+  // Setup Explicit Window Permissions
+  win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (nebulaEnv.isDevelopment()) {
+      console.log(`[DEBUG]: Requesting Permission: ${permission}`);
+    }
+    switch (permission) {
+      case 'clipboardRead':
+      case 'clipboardWrite':
+      case 'contextMenus':
+      case 'cookies':
+      case 'history':
+      case 'idle':
+      case 'proxy':
+      case 'sessions':
+      case 'webReqeust': {
+        callback(true);
+        break;
+      }
+      case 'certificateProvider':
+      case 'debugger':
+      case 'displaySource': {
+        if (nebulaEnv.isDevelopment()) {
+          callback(true);
+        } else {
+          callback(false);
+        }
+        break;
+      }
+      default: {
+        callback(false);
+      }
+    }
+  });
+
+  return win;
+};
+
 /**
  * Map of our respective urls
  * :: (name, ref)
@@ -15,19 +100,12 @@ const urls = new Map();
  *
  * @return {BrowserWindow} Auth Window
  */
-const createAuthWindow = async () => new Electron.BrowserWindow({
+const createAuthWindow = () => _createWindow({
   width: 300,
   height: 215,
-  center: true,
-  frame: false,
-  fullscreenable: false,
-  movable: true,
-  resizable: false,
-  show: false,
   webPreferences: {
-    nodeIntegration: false,
+    ..._defaultWebPreferences,
     preload: Path.join(__dirname, '../_electron/preload.js'),
-    webSecurity: true,
   },
 });
 
@@ -39,19 +117,9 @@ urls.set('auth', authUrl);
  *
  * @return {BrowserWindow} About Window
  */
-const createAboutWindow = async () => new Electron.BrowserWindow({
+const createAboutWindow = () => _createWindow({
   width: 300,
   height: 215,
-  center: true,
-  frame: false,
-  fullscreenable: false,
-  movable: true,
-  resizable: false,
-  show: false,
-  webPreferences: {
-    nodeIntegration: false,
-    webSecurity: true,
-  },
 });
 
 const aboutUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
@@ -62,19 +130,12 @@ urls.set('about', aboutUrl);
  *
  * @return {BrowserWindow} Captcha Window
  */
-const createCaptchaWindow = async () => new Electron.BrowserWindow({
+const createCaptchaWindow = () => _createWindow({
   width: 400,
   height: 650,
-  center: true,
-  frame: false,
-  fullscreenable: false,
-  movable: true,
-  resizable: false,
-  show: false,
   webPreferences: {
-    nodeIntegration: false,
+    ..._defaultWebPreferences,
     preload: Path.join(__dirname, '../_electron/preload.js'),
-    webSecurity: true,
   },
 });
 
@@ -89,19 +150,13 @@ urls.set('captcha', captchaUrl);
  *
  * @return {BrowserWindow} YouTube Window
  */
-const createYouTubeWindow = async () => new Electron.BrowserWindow({
+const createYouTubeWindow = () => _createWindow({
   width: 450,
   height: 475,
-  center: true,
   frame: true,
-  fullscreenable: false,
-  movable: true,
-  resizable: false,
-  show: false,
   webPreferences: {
-    nodeIntegration: false,
+    ..._defaultWebPreferences,
     preload: Path.join(__dirname, '../_electron/preload.js'),
-    webSecurity: true,
   },
 });
 
@@ -113,19 +168,12 @@ urls.set('youtube', youtubeUrl);
  *
  * @return {BrowserWindow} Main Window
  */
-const createMainWindow = async () => new Electron.BrowserWindow({
+const createMainWindow = () => _createWindow({
   width: 1000,
   height: 715,
-  center: true,
-  frame: false,
-  fullscreenable: false,
-  movable: true,
-  resizable: false,
-  show: false,
   webPreferences: {
-    nodeIntegration: false,
+    ..._defaultWebPreferences,
     preload: Path.join(__dirname, '../_electron/preload.js'),
-    webSecurity: true,
   },
 });
 

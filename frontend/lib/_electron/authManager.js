@@ -84,6 +84,7 @@ class AuthManager {
    */
   async clearSession() {
     if (nebulaEnv.isDevelopment()) {
+      this._store.delete('session');
       return true;
     }
     const session = await this.getSession();

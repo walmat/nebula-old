@@ -19,7 +19,6 @@ class App {
    * Initialize instance.
    */
   constructor() {
-
     /**
      * Debug call to see if app was initialized..
      */
@@ -154,7 +153,6 @@ class App {
    */
   static async installExtensions() {
     const devExts = [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS];
-
     await Promise.all(devExts.map(ext => installExtension(ext)
       .then(name => console.log(`Added Extension: ${name}`))
       .catch(err => console.error(`An Error Occurred: ${err}`))));
