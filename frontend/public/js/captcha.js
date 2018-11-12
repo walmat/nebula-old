@@ -9,8 +9,6 @@ function submitCaptcha() {
 }
 
 function _registerStartHandler(ev, runnerId, siteKey) {
-  // TODO: Remove this!
-  console.log(`[DEBUG]: Starting token on site: ${siteKey} for runner: ${runnerId}`);
   _runnerId = runnerId;
   _siteKey = siteKey;
   const script = document.createElement('script');
@@ -30,25 +28,16 @@ function _registerStartHandler(ev, runnerId, siteKey) {
 }
 
 function _registerStopHandler(ev, runnerId, siteKey) {
-  console.log(window.grecaptcha);
-  // TODO: Remove this!
-  console.log(`[DEBUG]: Stopping token on site: ${siteKey} for runner: ${runnerId}`);
   window.grecaptcha.reset();
   window.Bridge.refreshCaptchaWindow();
-
-  // TODO: Check if runner/sitekey match what we have
 }
 
 function registerForCaptchaEvents() {
-  // TODO: Remove this!
-  console.log('[DEBUG]: Registering for captcha events...');
   window.Bridge.Captcha.start.register(_registerStartHandler);
   window.Bridge.Captcha.stop.register(_registerStopHandler);
 }
 
 function deregisterForCaptchaEvents() {
-  // TODO: Remove this!
-  console.log('[DEBUG]: Deregistering for captcha events...');
   window.Bridge.Captcha.start.deregister(_registerStartHandler);
   window.Bridge.Captcha.stop.deregister(_registerStartHandler);
 }

@@ -134,14 +134,10 @@ class WindowManager {
             if (!this._context.captchaServerManager.isRunning) {
               console.log('[DEBUG]: Starting captcha server...');
               this._context.captchaServerManager.start();
-              // TODO: Change to use destructuring?
-              // (Might have to add a public getter to CSM)
               serverPort = this._context.captchaServerManager.port;
             }
             w = await createCaptchaWindow();
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, w, this._context._session.fromPartition(`${w.id}`)));
-            console.log(`size after creating: ${this._captchas.size}`);
-            console.log(`[DEBUG]: Loading captcha with url: http://127.0.0.1:${serverPort}/captcha.html`);
             w.loadURL(`http://127.0.0.1:${serverPort}/captcha.html`);
           }
           break;
