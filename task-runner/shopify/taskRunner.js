@@ -144,45 +144,38 @@ class TaskRunner {
     }
 
     // MARK: Event Emitting
-    _emitEvent(event, message) {
+    _emitEvent(event, payload) {
         switch(event) {
-            case Events.TaskStatus: {
-                this._events.emit(Events.TaskStatus, this._context.id, message, Events.TaskStatus);
-                break;
-            }
-            case Events.QueueBypassStatus: {
-                this._events.emit(Events.QueueBypassStatus, this._context.id, message, Events.QueueBypassStatus);
-                break;
-            }
-            case Events.MonitorStatus: {
-                this._events.emit(Events.MonitorStatus, this._context.id, message, Events.MonitorStatus);
-                break;
-            }
+            // Emit supported events on their specific channel
+            case Events.TaskStatus:
+            case Events.QueueBypassStatus:
+            case Events.MonitorStatus:
             case Events.CheckoutStatus: {
-                this._events.emit(Events.CheckoutStatus, this._context.id, message, Events.CheckoutStatus);
+                this._events.emit(event, this._context.id, payload, event);
                 break;
             }
             default: {
                 break;
             }
         }
-        this._events.emit(Events.All, this._context.id, message, event);
+        // Emit all events on the All channel
+        this._events.emit(Events.All, this._context.id, payload, event);
     }
 
-    _emitTaskEvent(message) {
-        this._emitEvent(Events.TaskStatus, message);
+    _emitTaskEvent(payload) {
+        this._emitEvent(Events.TaskStatus, payload);
     }
 
-    _emitQueueBypassEvent(message) {
-        _emitEvent(Events.QueueBypassStatus, message);
+    _emitQueueBypassEvent(payload) {
+        this._emitEvent(Events.QueueBypassStatus, payload);
     }
 
-    _emitMonitorEvent(message) {
-        _emitEvent(Events.MonitorStatus, message);
+    _emitMonitorEvent(payload) {
+        this._emitEvent(Events.MonitorStatus, payload);
     }
 
-    _emitCheckoutEvent(message) {
-        this._emitEvent(Events.CheckoutStatus, message);
+    _emitCheckoutEvent(payload) {
+        this._emitEvent(Events.CheckoutStatus, payload);
     }
 
     // MARK: State Machine Step Logic
