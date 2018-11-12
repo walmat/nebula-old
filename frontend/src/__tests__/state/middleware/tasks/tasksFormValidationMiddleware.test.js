@@ -163,15 +163,9 @@ describe('task form validation middleware', () => {
         errors: {
           ...actionBase.task.errors,
         },
-        product: {
-          ...actionBase.task.product,
-        },
-        site: {
-          ...actionBase.task.site,
-        },
-        sizes: [
-          ...actionBase.task.sizes,
-        ],
+        product: actionBase.task.product,
+        site: actionBase.task.site,
+        sizes: [actionBase.task.sizes],
       },
       errors: {
         product: {
@@ -200,7 +194,12 @@ describe('task form validation middleware', () => {
     const action = {
       ...actionBase,
       response: {
-        ...actionBase.task,
+        task: {
+          ...actionBase.task,
+          edits: {
+            ...actionBase.task.edits,
+          },
+        },
         [mapTaskFieldsToKey[field]]: value,
       },
     };
@@ -208,8 +207,14 @@ describe('task form validation middleware', () => {
       ...expectedActionBase,
       ...action,
       response: {
-        ...actionBase.task,
-        ...expectedActionBase.task,
+        task: {
+          ...actionBase.task,
+          ...expectedActionBase.task,
+          edits: {
+            ...actionBase.task.edits,
+            ...expectedActionBase.task.edits,
+          },
+        },
         [mapTaskFieldsToKey[field]]: value,
       },
       errors: {
