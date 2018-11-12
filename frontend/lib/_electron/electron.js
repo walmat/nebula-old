@@ -2,8 +2,16 @@ const Electron = require('electron');
 const nebulaEnv = require('./env');
 const App = require('./app');
 
+// setup nebula environment
+nebulaEnv.setUpEnvironment();
+
 // reference to our application
 const app = new App();
+
+// Allow insecure content if in dev mode
+if (nebulaEnv.isDevelopment()) {
+  Electron.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
+}
 
 /**
  * Event fired when IPCRenderer triggers 'ready'
@@ -34,4 +42,41 @@ Electron.app.on('window-all-closed', () => {
   }
 
   app.onWindowAllClosed();
+});
+
+/**
+ * Handle certificate error event
+ */
+Electron.app.on('certificate-error', app.onCertificateErrorHandler);
+
+/**
+ * Check web contents when they are created
+ */
+Electron.app.on('web-contents-created', (evt1, contents) => {
+  /**
+   * Ensure webview options are valid before creation
+   */
+  contents.on('will-attach-webview', (evt2, webPreferences, params) => {
+    /* eslint no-param-reassign: ["error", { "props": false }] */
+    webPreferences.nodeIntegration = false;
+    webPreferences.webSecurity = true;
+    webPreferences.allowRunningInsecureContent = false;
+    webPreferences.experimentalCanvasFeatures = false;
+    webPreferences.experimentalFeatures = false;
+    webPreferences.blinkFeatures = '';
+
+    if (!params.src.startsWith('file:///') &&
+        !params.src.startsWith('https://localhost') &&
+        !params.src.startsWith('https://accounts.google.com')) {
+      evt2.preventDefault();
+    }
+  });
+
+  contents.on('will-navigate', (evt2, navigationUrl) => {
+    if (!navigationUrl.startsWith('file:///') &&
+        !navigationUrl.startsWith('https://localhost') &&
+        !navigationUrl.startsWith('https://accounts.google.com')) {
+      evt2.preventDefault();
+    }
+  });
 });

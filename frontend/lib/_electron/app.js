@@ -19,7 +19,6 @@ class App {
    * Initialize instance.
    */
   constructor() {
-
     /**
      * Debug call to see if app was initialized..
      */
@@ -74,6 +73,8 @@ class App {
      * @type {CaptchaServerManager}
      */
     this._captchaServerManager = new CaptchaServerManager(this);
+
+    this.onCertificateErrorHandler = this.onCertificateErrorHandler.bind(this);
   }
 
   /**
@@ -149,12 +150,22 @@ class App {
     Electron.app.quit();
   }
 
+  onCertificateErrorHandler(event, webContents, url, error, certificate, callback) {
+    const serverPort = this._captchaServerManager.port;
+    if (serverPort && url.startsWith(`https://127.0.0.1:${serverPort}`)) {
+      event.preventDefault();
+      callback(true);
+    } else {
+      event.preventDefault();
+      callback(false);
+    }
+  }
+
   /**
    * Install development extensions
    */
   static async installExtensions() {
     const devExts = [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS];
-
     await Promise.all(devExts.map(ext => installExtension(ext)
       .then(name => console.log(`Added Extension: ${name}`))
       .catch(err => console.error(`An Error Occurred: ${err}`))));

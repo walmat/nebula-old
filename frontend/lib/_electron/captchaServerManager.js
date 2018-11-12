@@ -1,5 +1,7 @@
-const http = require('http');
+const fs = require('fs');
+const https = require('https');
 const path = require('path');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -55,7 +57,11 @@ class CaptchaServerManager {
       console.log(`[ERROR]: Captcha Server has already started on port: ${this._port}`);
       return;
     }
-    this._server = http.createServer(this._app).listen();
+    const httpsOptions = {
+      key: fs.readFileSync(path.join(__dirname, '../common/_keys/key.pem')),
+      cert: fs.readFileSync(path.join(__dirname, '../common/_keys/cert.pem')),
+    };
+    this._server = https.createServer(httpsOptions, this._app).listen();
     this._port = this._server.address().port;
     this._app.set('port', this._port);
     console.log(`[INFO]: Captcha Server started listening on port: ${this._port}`);

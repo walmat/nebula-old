@@ -1,33 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-  <title>nebula</title>
-  <script src="./js/prevent.js"></script>
-  <script src="./js/checkLicense.js"></script>
-  <script src="./js/lottie.js"></script>
-  <link rel="stylesheet" type="text/css" href="./css/auth.css">
-</head>
-<body>
-  <div id="titlebar"></div>
-  <img src="./assets/close-auth.svg" id="close" onclick="window.Bridge.close()" />
-  <!-- this ^ will fail once we do a build or something I'm assuming.. -->
-  <div id="bodymovin"></div>
-  <div id="authorization-box"></div>
-  <p id="body-text">License Key</p>
-  <input id="license-key-input" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"/>
-  <button id="license-key-submit" onclick="checkLicense()">Submit</button>
-</body>
-<script>
-  const animData = {
-    wrapper: document.getElementById('bodymovin'),
-    animType: 'html',
-    loop: true,
-    prerender: true,
-    autoplay: true,
-    path: './js/nebula.json',
-  };
-  const anim = bodymovin.loadAnimation(animData);
-</script>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https:; script-src 'self' https:; img-src 'self' https:; style-src 'self' 'unsafe-inline'"/>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title>Nebula Authentication</title>
+    <script src="./js/prevent.js"></script>
+    <script src="./js/disableEval.js"></script>
+    <script src="./js/checkLicense.js"></script>
+    <script src="./js/lottie.js"></script>
+    <script src="./js/auth.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/auth.css">
+  </head>
+  <body>
+    <div id="titlebar"></div>
+    <img src="./assets/close-auth.svg" id="close" />
+    <div id="bodymovin"></div>
+    <div id="authorization-box"></div>
+    <p id="body-text">License Key</p>
+    <input id="license-key-input" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"/>
+    <button id="license-key-submit">Submit</button>
+  </body>
 </html>

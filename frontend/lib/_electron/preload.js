@@ -214,6 +214,12 @@ const _removeProxies = (proxies) => {
   _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
 };
 
+// Disable eval in the preload context
+// eslint-disable-next-line
+window.eval = global.eval = function () {
+  throw new Error('Sorry, this app does not support window.eval().');
+};
+
 /**
  * On process load, create the Bridge
  */

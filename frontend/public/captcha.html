@@ -1,13 +1,16 @@
+<!DOCTYPE html>
 <html>
   <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https:; script-src 'self' https:; img-src 'self' https:; style-src 'self' 'unsafe-inline'"/>
     <title>Harvester</title>
     <script src="./js/prevent.js"></script>
+    <script src="./js/disableEval.js"></script>
     <script src="./js/captcha.js"></script>
     <link rel="stylesheet" type="text/css" href="./css/captcha.css">
   </head>
   <body>
     <div id="titlebar"></div>
-    <img src="./assets/close-captcha.svg" id="close-btn" onclick="window.Bridge.close()" />
+    <img src="./assets/close-captcha.svg" id="close-btn"/>
     <div id="waiting">
       <div class="loader">
         <div class="dot"></div>
@@ -21,8 +24,8 @@
       <form id="captchaForm" action="/submit" method="post"></form>
     </div>
     <div class="footer">
-      <button id="launch-youtube" onclick="window.Bridge.launchYoutube()" >Account</button>
-      <button id="end-session" onclick="window.Bridge.endCaptchaSession()" >End Session</button>
+      <button id="launch-youtube">Account</button>
+      <button id="end-session">End Session</button>
     </div>
   </body>
 </html>
