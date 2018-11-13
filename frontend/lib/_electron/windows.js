@@ -36,12 +36,12 @@ const _createWindow = (options) => {
     // The majority of styling is currently inlne, so we have to allow this!
     // TODO: move away from inline styles!
     let cspHeaders = [
-      'default-src \'none\'; connect-src \'self\' https: wss:; font-src \'self\' https:; script-src \'self\' https:; img-src \'self\' https:; style-src \'self\' \'unsafe-inline\';',
+      'default-src \'none\'; connect-src \'self\' https: wss:; font-src \'self\' https:; script-src \'self\' https:; frame-src \'self\' https:; img-src \'self\' https:; style-src \'self\' \'unsafe-inline\';',
     ];
     if (nebulaEnv.isDevelopment()) {
       // If in dev mode, allow inline scripts to run (for developer tool extensions)
       cspHeaders = [
-        'default-src \'none\'; connect-src \'self\' https: wss:; font-src \'self\' https:; script-src \'self\' https: \'unsafe-inline\'; img-src \'self\' https:; style-src \'self\' \'unsafe-inline\';',
+        'default-src \'none\'; connect-src \'self\' https: wss:; font-src \'self\' https:; script-src \'self\' https: \'unsafe-inline\'; frame-src \'self\' https:; img-src \'self\' https:; style-src \'self\' \'unsafe-inline\';',
       ];
     }
     callback({
