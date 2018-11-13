@@ -95,17 +95,32 @@ describe('task form validation middleware', () => {
 
   const generateActions = (type, field, value, testValid) => {
     const actionBase = {
-      type,
       task: {
         ...initialTaskStates.task,
-        product: {
-          ...initialTaskStates.task.product,
-          raw: testValid ? 'https' : '+test',
-        },
-        site: {
-          ...initialTaskStates.task.site,
-          name: testValid ? 'invalidName' : 'Kith',
-        },
+        product:
+          testValid ? {
+            ...initialTaskStates.task.product,
+            raw: 'https',
+            url: null,
+            variant: null,
+            pos_keywords: null,
+            neg_keywords: null,
+          } : {
+            ...initialTaskStates.task.product,
+            raw: '+test',
+            url: null,
+            variant: null,
+            pos_keywords: null,
+            neg_keywords: null,
+          },
+        site:
+          testValid ? {
+            ...initialTaskStates.task.site,
+            name: 'invalid',
+          } : {
+            ...initialTaskStates.task.site,
+            name: 'Kith',
+          },
         profile: testValid ? '' : {
           ...initialProfileStates.profile,
           profileName: 'test',
@@ -142,9 +157,7 @@ describe('task form validation middleware', () => {
             phone: '1234567890',
           },
         },
-        sizes: [
-          ...initialTaskStates.task.sizes,
-        ],
+        sizes: testValid ? [] : ['XXS'],
         username: testValid ? '' : 'test',
         password: testValid ? '' : 'test',
         errorDelay: 1500,
@@ -170,18 +183,40 @@ describe('task form validation middleware', () => {
         },
         edits: {
           ...actionBase.task.edits,
+          errors: type === 'ADD_TASK' ? {
+            password: null,
+            product: null,
+            profile: null,
+            site: null,
+            sizes: null,
+            username: null,
+          } : {
+            password: testValid,
+            product: testValid,
+            profile: testValid,
+            site: testValid,
+            sizes: testValid,
+            username: testValid,
+          },
         },
       },
     };
 
     const action = {
+      type,
       response: {
         ...actionBase,
-        task: {
+        task: type === 'ADD_TASK' ? {
           ...actionBase.task,
           [mapTaskFieldsToKey[field]]: value,
           edits: {
             ...actionBase.task.edits,
+          },
+        } : {
+          ...actionBase.task,
+          edits: {
+            ...actionBase.task.edits,
+            [mapTaskFieldsToKey[field]]: value,
           },
         },
       },
@@ -194,18 +229,22 @@ describe('task form validation middleware', () => {
         task: {
           ...actionBase.task,
           ...expectedActionBase.task,
+          [mapTaskFieldsToKey[field]]: value,
           errors: {
-            ...actionBase.task.errors,
+            // ...actionBase.task.errors,
+            ...expectedActionBase.task.errors,
+            [mapTaskFieldsToKey[field]]: !testValid,
           },
           edits: {
             ...actionBase.task.edits,
             ...expectedActionBase.task.edits,
+            [mapTaskFieldsToKey[field]]: value,
             errors: {
-              ...actionBase.task.edits.errors,
+              // ...actionBase.task.edits.errors,
               ...expectedActionBase.task.edits.errors,
+              [mapTaskFieldsToKey[field]]: !testValid,
             },
           },
-          [mapTaskFieldsToKey[field]]: value,
         },
       },
     };
@@ -223,6 +262,7 @@ describe('task form validation middleware', () => {
     } = !genNoErrors ? args : {
       value: 'test', valid: false,
     };
+
     const { store, next, invoke } = create();
     const { action, expectedAction } = generateActions(
       type,
@@ -247,7 +287,7 @@ describe('task form validation middleware', () => {
 
     describe('for field', () => {
       describe('product', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
+        it.only('should not generate error flag when valid', () => testErrorFlag({
           field: TASK_FIELDS.EDIT_PRODUCT, value: '+test', valid: true,
         }));
 
@@ -365,9 +405,9 @@ describe('task form validation middleware', () => {
     });
   };
 
-  describe('for add action', () => {
-    performErrorFlagTestsForAction(TASK_ACTIONS.ADD);
-  });
+  // describe('for add action', () => {
+  //   performErrorFlagTestsForAction(TASK_ACTIONS.ADD);
+  // });
 
   describe('for update action', () => {
     performErrorFlagTestsForAction(TASK_ACTIONS.UPDATE);
