@@ -4,32 +4,37 @@ const path = require('path');
 const winston = require('winston');
 
 function _createLogger({ name, filename }) {
+  // Check if the logs directory exists and create it if needed
   const dirname = path.join(process.cwd(), 'logs');
   if (!fs.existsSync(dirname)) {
     fs.mkdirSync(dirname, { recursive: true });
   }
-  return winston.createLogger({
+  // Add the logger with default format options
+  winston.loggers.add(name, {
     levels: winston.config.npm.levels,
+    level: 'silly', // TODO Adjust this maybe?
     transports: [
+      new winston.transports.File({ filename: path.join(dirname, filename) }),
+      new winston.transports.File({ filename: path.join(dirname, 'combined.log') }),
       new winston.transports.Console({
-        level: 'info',
+        // level: 'info', // TODO Adjust this to add the console transport only when in dev mode
         format: winston.format.combine(
           winston.format.colorize({ all: true }),
-          winston.format.prettyPrint(),
-          winston.format.printf(info => `${new Date().toISOString()}: [${info.level}] [${name}] - ${info.message}`),
+          winston.format.label({ label: name }),
+          winston.format.timestamp(),
+          winston.format.printf(info => `${info.timestamp}: [${info.level}] [${info.label}] - ${info.message}`),
         ),
       }),
-      new winston.transports.File({ filename: path.join(dirname, 'combined.log') }),
-      new winston.transports.File({ filename: path.join(dirname, filename) }),
     ],
     format: winston.format.combine(
-      winston.format.splat(),
-      winston.format.simple(),
-      winston.format.label({ label: name}),
+      winston.format.label({ label: name }),
       winston.format.timestamp(),
+      winston.format.splat(),
+      winston.format.json(),
       winston.format.prettyPrint(),
     ),
   });
+  return winston.loggers.get(name);
 }
 
 module.exports = _createLogger;

@@ -345,7 +345,6 @@ class TaskManager {
     this._logger.log('info', 'Runner %s posted new event %s - %s', runnerId, event, message.message);
     // For now only re emit Task Status Events
     if (event === TaskRunner.Events.TaskStatus) {
-      this._logger.log()
       this._logger.log('info', 'Reemitting this status update...');
       const taskId = this._runners[runnerId]._context.task.id;
       this._events.emit('status', taskId, message, event);

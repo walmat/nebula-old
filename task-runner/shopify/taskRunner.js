@@ -4,6 +4,7 @@ const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const QueueBypass = require('./classes/bypass');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
+const createLogger = require('./logger');
 
 class TaskRunner {
     constructor(id, task, proxy, manager) {
@@ -11,6 +12,11 @@ class TaskRunner {
          * The manager of this task runner
          */
         this._taskManager = manager;
+
+        /**
+         * Logger Instance
+         */
+        this._logger = createLogger({ name: `TaskRunner-${id}`, filename: `runner-${id}.log` });;
 
         /**
          * Internal Task Runner State
@@ -28,8 +34,9 @@ class TaskRunner {
         this._context = {
             id,
             task,
-            jar: this._jar,
             proxy,
+            jar: this._jar,
+            logger: this._logger,
             aborted: false,
         };
 
@@ -62,7 +69,7 @@ class TaskRunner {
     }
 
     _waitForErrorDelay() {
-        console.log('[DEBUG]: TaskRunner: Waiting for error delay...');
+        this._logger.log('debug', 'Waiting for error delay...');
         return new Promise(resolve => setTimeout(resolve, this._context.task.errorDelay));
     }
 
@@ -160,6 +167,7 @@ class TaskRunner {
         }
         // Emit all events on the All channel
         this._events.emit(Events.All, this._context.id, payload, event);
+        this._logger.log('verbose', 'Event %s emitted: %j', event, payload);
     }
 
     _emitTaskEvent(payload) {
@@ -192,6 +200,7 @@ class TaskRunner {
         // const res = await this._checkout.geenerateAlternativeCheckout();
         const res = {};
         if(res.errors) {
+            this._logger.log('warn', 'Alt Checkout Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
                 message: 'Unable to Generate alternative checkout! Continuing on...',
                 errors: res.errors,
@@ -204,6 +213,7 @@ class TaskRunner {
     async _handleMonitor() {
         const res = await this._monitor.run();
         if(res.errors) {
+            this._logger.log('warn', 'Monitor Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
                 message: 'Error with Monitor! Retrying...',
                 errors: res.errors,
@@ -217,6 +227,7 @@ class TaskRunner {
     async _handleSwapProxies() {
         const res = await this._taskManager.swapProxies(this._context.id, this._context.proxy);
         if (res.errors) {
+            this._logger.log('warn', 'Swap Proxies Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
                 message: 'Error Swapping Proxies! Retrying Monitor...',
                 errors: res.errors,
@@ -230,7 +241,7 @@ class TaskRunner {
     async _handleCheckout() {
         const res = await this._checkout.run();
         if (res.errors) {
-            console.log(res.errors);
+            this._logger.log('warn', 'Checkout Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
                 message: 'Errors during Checkout! Retrying Monitor...',
                 errors: res.errors,
@@ -260,7 +271,7 @@ class TaskRunner {
             throw new Error('Reached Unknown State!');
         }
 
-        console.log(`[TRACE]: TaskRunner: Handling state: ${currentState}`);
+        this._logger.log('verbose', 'Handling state: %s', currentState);
 
         const stepMap = {
             [States.Started]: this._handleStarted,
@@ -284,7 +295,7 @@ class TaskRunner {
                 this._state = States.Aborted;
             }
             this._state = await this._handleStepLogic(this._state);
-            console.log(`[TRACE]: TaskRunner: Run Loop finished, state transitioned to: ${this._state}`);
+            this._logger.log('verbose', 'Run Loop finished, state transitioned to: %s', this._state);
         }
         this._emitTaskEvent({
             message: 'Task has stopped.',
