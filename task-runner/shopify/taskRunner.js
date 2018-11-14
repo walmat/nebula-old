@@ -4,7 +4,7 @@ const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const QueueBypass = require('./classes/bypass');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
-const createLogger = require('./logger');
+const { createLogger } = require('../common/logger');
 
 class TaskRunner {
     constructor(id, task, proxy, manager) {

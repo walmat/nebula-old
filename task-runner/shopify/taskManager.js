@@ -6,7 +6,7 @@ const hash = require('object-hash');
 const TaskRunner = require('./taskRunner');
 const AsyncQueue = require('./classes/asyncQueue');
 const { Events } = require('./classes/utils/constants').TaskManager;
-const createLogger = require('./logger');
+const { createLogger } = require('../common/logger');
 
 class TaskManager {
   constructor() {
