@@ -63,11 +63,17 @@ class Shipping {
                 Referer: `${this._task.site.url}/cart`,
             },
             qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
-            transform: function(body) {
-                return cheerio.load(body);
-            }
+            // transform: function(body) {
+            //     return cheerio.load(body);
+            // }
         })
+<<<<<<< HEAD
         .then(($) => {
+=======
+        .then((res) => {
+            const $ = cheerio.load(res.body);
+            fs.writeFileSync(path.join(__dirname, 'debug-1.html'), res.body);
+>>>>>>> task runner messages updates
             const recaptchaFrame = $('#g-recaptcha');
             const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
             this._logger.verbose('SHIPPING: Finished Getting Shipping Options Form');
@@ -109,23 +115,38 @@ class Shipping {
                 Referer: `${this._checkoutUrl}`,
             },
             formData: buildShippingForm(this._task, newAuthToken, captchaResponse || '', 'shipping_method', 'contact_information'),
-            transform: function(body) {
-                return cheerio.load(body);
-            }
+            // transform: function(body) {
+            //     return cheerio.load(body);
+            // }
         })
-        .then(($) => {
+        .then((res) => {
+            const $ = cheerio.load(res.body);
             const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
             this._timer.stop(now());
+<<<<<<< HEAD
             this._logger.info('Submitted shipping options in %d ms', this._timer.getRunTime());
             if (shippingPollUrl === undefined) {
                 const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
                 if (firstShippingOption == undefined) {
                     this._logger.info('%s is incompatible, sorry for the inconvenience', this._task.site.url);
+=======
+
+            fs.writeFileSync(path.join(__dirname, 'debug.html'), res.body);
+    
+            if (shippingPollUrl === undefined) {
+                const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
+                if (firstShippingOption == undefined) {
+>>>>>>> task runner messages updates
                     return {
                         errors: `Unable to find shipping options`,
                     };
                 } else {
+<<<<<<< HEAD
                     this._logger.debug('SHIPPING: Direct Shipping Method Chosen');
+=======
+                    this._timer.stop(now());
+                    console.log(`[INFO]: SHIPPING: Got shipping options in ${this._timer.getRunTime()}ms`);
+>>>>>>> task runner messages updates
                     return {
                         type: 'direct',
                         value: firstShippingOption,
@@ -133,7 +154,10 @@ class Shipping {
                     };
                 }
             }
+<<<<<<< HEAD
             this._logger.debug('SHIPPING: Poll Shipping Method Chosen');
+=======
+>>>>>>> task runner messages updates
             return {
                 type: 'poll',
                 value: shippingPollUrl,

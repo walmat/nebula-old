@@ -7,8 +7,6 @@ const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
 const { States } = require('./utils/constants').TaskRunner;
-const fs = require('fs');
-const path = require('path');
 
 class Checkout {
 
@@ -149,7 +147,7 @@ class Checkout {
         console.log(res);
         if (res.errors) {
             this._logger.verbose('CHECKOUT: Errors in Add to Cart: %s', res.errors);
-            return { message: res.errors, nextState: Checkout.States.Stopped };
+            return { message: 'Failed: add to cart', nextState: Checkout.States.Stopped };
         }
         if(!res) {
             this._logger.verbose('CHECKOUT: Failed to Add to Cart');
@@ -169,12 +167,11 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Generating Payment Token...');
         const res = await this._cart.getPaymentToken();
         if (res.errors) {
-            return { errors: res.errors };
+            return { message: res.errors, nextState: Checkout.States.Stopped };
         }
         if(!res.paymentToken) {
             this._logger.verbose('CHECKOUT: Failed fetching payment token');
-            // TODO - handle failed to get payment token
-            return Checkout.States.Stopped;
+            return { message: 'Failed: generating payment token', nextState: Checkout.States.GeneratePaymentToken };
         }
         this._paymentToken = res.paymentToken;
         return { message: 'Generating payment token', nextState: Checkout.States.ProceedToCheckout };
@@ -189,18 +186,16 @@ class Checkout {
         const res = await this._cart.proceedToCheckout();
         if (res.errors) {
             this._logger.verbose('CHECKOUT: Errors: %s', res.errors);
-            return { errors: res.errors }; 
+            return { message: res.errors, nextState: Checkout.States.Stopped }; 
         }
 
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
-            console.log('[INFO]: CHECKOUT: Waiting in queue...');
             // TODO - implement a wait of some sort?
-            return { message: 'Waiting in queue..', nextState: Checkout.States.ProceedToCheckout };
+            return { message: 'Waiting in queue', nextState: Checkout.States.ProceedToCheckout };
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
-            console.log('[INFO]: CHECKOUT: Out of stock...');
-            return { message: 'Out of stock', nextState: Checkout.States.OutOfStock };
-        } else if (res.state === this._cart.CART_STATES.Success) {            
-            
+            return { message: 'Out of stock, handling..', nextState: Checkout.States.OutOfStock };
+        } else if (res.state === this._cart.CART_STATES.Success) {      
+                        
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
 
@@ -212,7 +207,7 @@ class Checkout {
                 this._authToken,
                 this._shippingValue,
             );
-            return { message: 'Submitting shipping', nextState: Checkout.States.Shipping };
+            return { message: 'Submitting shipping', nextState: Checkout.States.GetShipping };
         }
     }
 
@@ -240,11 +235,11 @@ class Checkout {
             const res = await this._cart.clearCart();
             
             if (res.errors) {
-                return { errors: res.errors };
+                return { message: 'Failed: clearing cart', nextState: Checkout.States.OutOfStock };
             }
 
             if (res.cleared) {
-                return Checkout.States.AddToCart
+                return { message: 'Adding next size to cart', nextState: Checkout.States.AddToCart };
             }
             return Checkout.States.Stopped;
         } else {
@@ -262,19 +257,19 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Starting Shipping...')
         let opts = await this._shipping.getShippingOptions();
         if (opts.errors) {
-            return { message: opts.errors, nextState: Checkout.States.Stopped };
+            return { message: 'Failed: getting shipping rates, retrying...', nextState: Checkout.States.GetShipping };
         }
         this._authToken = opts.newAuthToken;
 
         if (opts.captcha) {
             this._logger.info('Requesting to solve captcha...');
-            return Checkout.States.RequestCaptcha;
+            return { message: 'Waiting for Captcha', nextState: Checkout.States.RequestCaptcha };
         }
 
         this._logger.verbose('Captcha Bypassed, Proceeding with Shipping...');
         opts = await this._shipping.submitShippingOptions(this._authToken);
         if (opts.errors) {
-            return { errors: opts.errors };
+            return { message: opts.errors, nextState: Checkout.States.Stopped };
         }
 
         this._shippingOpts = {
@@ -283,7 +278,7 @@ class Checkout {
             authToken: opts.authToken,
         }
 
-        return Checkout.States.PostShipping;
+        return { message: 'Posting shipping', nextState: Checkout.States.PostShipping };
     }
 
     /**
@@ -296,7 +291,7 @@ class Checkout {
 
         let opts = await this._shipping.submitShippingOptions(this._authToken, token);
         if (opts.errors) {
-            return { errors: opts.errors };
+            return { message: 'Failed: submit shipping', nextState: Checkout.States.Stopped };
         }
 
         this._shippingOpts = {
@@ -306,7 +301,7 @@ class Checkout {
         }
 
         this._context.stopHarvestCaptcha();
-        return Checkout.States.PostShipping;
+        return { message: 'Posting shipping', nextState: Checkout.States.PostShipping };
     }
 
     /**
@@ -317,7 +312,7 @@ class Checkout {
         let { type, value, authToken } = this._shippingOpts;
         let res = await this._shipping.submitShipping(type, value, authToken);
         if (res.errors) {
-            return { message: res.errors, nextState: Checkout.States.Stopped };
+            return { message: 'Failed: submit shipping', nextState: Checkout.States.Stopped };
         }
         
         if (res.paymentGateway && res.newAuthToken) {
@@ -337,10 +332,10 @@ class Checkout {
                 this._shippingValue,
                 this._captchaResponse,
             );
-            return { message: 'Submitting payment', nextState: Checkout.States.Payment };
+            return { message: 'Posting payment', nextState: Checkout.States.Payment };
         }
         this._logger.info('Unable to submit shipping!');
-        return Checkout.States.Stopped;
+        return { message: 'Failed: submit shipping', nextState: Checkout.States.Stopped };
     }
 
     /**
@@ -355,15 +350,15 @@ class Checkout {
         }
 
         if (res === this._payment.PAYMENT_STATES.Error) {
-            return { message: 'Error submitting payment', nextState: Checkout.States.Stopped };
+            return { message: 'Failed: submitting payment', nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
-            return { message: 'Payment Processing, check email.', nextState: Checkout.States.Stopped };
+            return { message: 'Success: Payment processing, check email.', nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Declined) {
-            return { message: 'Payment declined.', nextState: Checkout.States.PaymentError };
+            return { message: 'Failed: payment declined', nextState: Checkout.States.PaymentError };
         } else if (res === this._payment.PAYMENT_STATES.Success) {
-            return { message: 'Copped!', nextState: Checkout.States.Stopped };
+            return { message: 'Success: payment processed', nextState: Checkout.States.Stopped };
         } else {
-            return { message: 'Unknown error! Stopping task..', nextState: Checkout.States.Stopped };
+            return { message: 'Failed: unknown error', nextState: Checkout.States.Stopped };
         }
     }
 
@@ -398,7 +393,7 @@ class Checkout {
 
     async run() {
         const res = await this._handleStepLogic(this._state);
-        this._logger.verbose('CHECKOUT: Next State chosen as: %s', nextState);
+        this._logger.verbose('CHECKOUT: Next State chosen as: %s', res.nextState);
         if (res.nextState === Checkout.States.Error) {
             this._logger.verbose('CHECKOUT: Completed with errors: %j', nextState.errors);
             return {

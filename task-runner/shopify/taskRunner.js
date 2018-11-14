@@ -298,7 +298,7 @@ class TaskRunner {
     async start() {
         this._state = States.Started;
         while(this._state !== States.Stopped) {
-            console.log(this._state);
+            console.log('[TRACE]: TaskRunner: Next State chosen as: ' + this._state);
             if (this._context.aborted) {
                 this._state = States.Aborted;
             }
