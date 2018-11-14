@@ -47,7 +47,7 @@ class Shipping {
 
     getShippingOptions() {
         this._timer.start(now());
-        this._logger.log('verbose', 'SHIPPING: Starting Get Shipping Options Form request...');
+        this._logger.verbose('SHIPPING: Starting Get Shipping Options Form request...');
         return this._request({
             uri: `${this._checkoutUrl}`,
             method: 'get',
@@ -70,9 +70,9 @@ class Shipping {
         .then(($) => {
             const recaptchaFrame = $('#g-recaptcha');
             const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-            this._logger.log('verbose', 'SHIPPING: Finished Getting Shipping Options Form');
+            this._logger.verbose('SHIPPING: Finished Getting Shipping Options Form');
             if (recaptchaFrame.length) {
-                this._logger.log('debug', 'SHIPPING: Captcha Found in Shipping Form');
+                this._logger.debug('SHIPPING: Captcha Found in Shipping Form');
                 return {
                     captcha: recaptchaFrame,
                     newAuthToken,
@@ -84,7 +84,7 @@ class Shipping {
             }
         })
         .catch((err) => {
-            this._logger.log('debug', 'SHIPPING: Get Shipping Options Form request error: %s', err);
+            this._logger.debug('SHIPPING: Get Shipping Options Form request error: %s', err);
             return {
                 errors: err,
             }
@@ -92,7 +92,7 @@ class Shipping {
     }
 
     submitShippingOptions(newAuthToken, captchaResponse) {
-        this._logger.log('verbose', 'SHIPPING: Starting submit shipping options request...');
+        this._logger.verbose('SHIPPING: Starting submit shipping options request...');
         return this._request({
             uri: `${this._checkoutUrl}`,
             method: 'post',
@@ -115,16 +115,16 @@ class Shipping {
         .then(($) => {
             const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
                 this._timer.stop(now());
-                this._logger.log('info', 'Submitted shipping options in %d ms', this._timer.getRunTime());
+                this._logger.info('Submitted shipping options in %d ms', this._timer.getRunTime());
                 if (shippingPollUrl === undefined) {
                     const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
                     if (firstShippingOption == undefined) {
-                        this._logger.log('info', '%s is incompatible, sorry for the inconvenience', this._task.site.url);
+                        this._logger.info('%s is incompatible, sorry for the inconvenience', this._task.site.url);
                         return {
                             errors: `Site is incompatible.`,
                         };
                     } else {
-                        this._logger.log('debug', 'SHIPPING: Direct Shipping Method Chosen');
+                        this._logger.debug('SHIPPING: Direct Shipping Method Chosen');
                         return {
                             type: 'direct',
                             value: firstShippingOption,
@@ -132,7 +132,7 @@ class Shipping {
                         };
                     }
                 }
-                this._logger.log('debug', 'SHIPPING: Poll Shipping Method Chosen');
+                this._logger.debug('SHIPPING: Poll Shipping Method Chosen');
                 return {
                     type: 'poll',
                     value: shippingPollUrl,
@@ -140,7 +140,7 @@ class Shipping {
                 }
         })
         .catch((err) => {
-            this._logger.log('debug', 'Error submitting shipping options: %s', err);
+            this._logger.debug('Error submitting shipping options: %s', err);
             return {
                 errors: 'Error posting shipping',
             }
@@ -149,7 +149,7 @@ class Shipping {
 
     async submitShipping(type, value, authToken) {
         this._timer.start(now());
-        this._logger.log('verbose', 'Submitting Shipping Details...');
+        this._logger.verbose('Submitting Shipping Details...');
         if (type === 'poll') {
             await new Promise((resolve) => setTimeout(resolve, parseInt(this._task.shippingPoll)));
             return this._request({
@@ -195,7 +195,7 @@ class Shipping {
                 const newAuthToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
         
                 this._timer.stop(now());
-                this._logger.log('info', 'Submitted Shipping in %d ms', this._timer.getRunTime());
+                this._logger.info('Submitted Shipping in %d ms', this._timer.getRunTime());
                 return {
                     price,
                     paymentGateway,
@@ -203,7 +203,7 @@ class Shipping {
                 };
             })
             .catch((err) => {
-                this._logger.log('debug', 'Error Submitting Shipping: %s', err);
+                this._logger.debug('Error Submitting Shipping: %s', err);
                 return {
                     errors: err,
                 }
@@ -248,7 +248,7 @@ class Shipping {
                 const newAuthToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr('value');
                 
                 this._timer.stop(now());
-                this._logger.log('info', 'Submitted Shipping in %d ms', this._timer.getRunTime());
+                this._logger.info('Submitted Shipping in %d ms', this._timer.getRunTime());
                 return {
                     price,
                     paymentGateway,
@@ -256,7 +256,7 @@ class Shipping {
                 };
             })
             .catch((err) => {
-                this._logger.log('debug', 'Error Submitting Shipping: %s', err);
+                this._logger.debug('Error Submitting Shipping: %s', err);
                 return {
                     errors: err,
                 }

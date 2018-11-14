@@ -99,7 +99,7 @@ class JsonParser {
     this._log('silly', '%s: Starting run...', this._name);
     let products;
     try {
-      this._logger.log('silly', '%s: Making request for %s/products.json ...', this._name, this._task.site.url);
+      this._logger.silly('%s: Making request for %s/products.json ...', this._name, this._task.site.url);
       const response = await rp({
         method: 'GET',
         uri: `${this._task.site.url}/products.json`,
@@ -114,19 +114,19 @@ class JsonParser {
       });
       products = JSON.parse(response).products;
     } catch (error) {
-      this._logger.log('silly', '%s: ERROR making request!', this._name, error);
+      this._logger.silly('%s: ERROR making request!', this._name, error);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
-    this._logger.log('silly', '%s: Received Response, Attempting to match...', this._name);
+    this._logger.silly('%s: Received Response, Attempting to match...', this._name);
     const matchedProduct = this.match(products);
 
     if(!matchedProduct) {
-      this._logger.log('silly', '%s: Couldn\'t find a match!', this._name);
+      this._logger.silly('%s: Couldn\'t find a match!', this._name);
       throw new Error('unable to match the product');
     }
-    this._logger.log('silly', '%s: Product Found!', this._name);
+    this._logger.silly('%s: Product Found!', this._name);
     return matchedProduct;
   }
 
@@ -134,34 +134,34 @@ class JsonParser {
    * Perform Product Matching
    */
   match(products) {
-    this._logger.log('silly', '%s: starting parse...', this._name);
+    this._logger.silly('%s: starting parse...', this._name);
     switch(this._type) {
       case utils.ParseType.Variant: {
-        this._logger.log('silly', '%s: parsing type %s detected', this._name, this._type);
+        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
         const product = utils.matchVariant(products, this._task.product.variant);
         if (!product) {
-          this._logger.log('silly', '%s: Unable to find matching product! throwing error', this._name);
+          this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           throw new Error('ProductNotFound');
         }
-        this._logger.log('silly', '%s: Product found!', this._name);
+        this._logger.silly('%s: Product found!', this._name);
         return product;
       }
       case utils.ParseType.Keywords: {
-        this._logger.log('silly', '%s: parsing type %s detected', this._name, this._type);
+        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
         const keywords = {
           pos: this._task.product.pos_keywords,
           neg: this._task.product.neg_keywords,
         };
         const product = utils.matchKeywords(products, keywords); // no need to use a custom filter at this point...
         if (!product) {
-          this._logger.log('silly', '%s: Unable to find matching product! throwing error', this._name);
+          this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           throw new Error('ProductNotFound');
         }
-        this._logger.log('silly', '%s: Matching Product found!', this._name);
+        this._logger.silly('%s: Matching Product found!', this._name);
         return product;
       }
       default: {
-        this._logger.log('silly', '%s: Invalid parsing type %s! throwing error', this._name, this._type);
+        this._logger.silly('%s: Invalid parsing type %s! throwing error', this._name, this._type);
         throw new Error('InvalidParseType');
       }
     }

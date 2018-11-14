@@ -49,7 +49,7 @@ class Cart {
 
     addToCart(variant) {
         this._timer.start(now());
-        this._logger.log('verbose', 'Starting add to cart...');
+        this._logger.verbose('Starting add to cart...');
         return this._request({
             uri: `${this._task.site.url}/cart/add.js`,
             resolveWithFullResponse: true,
@@ -74,7 +74,7 @@ class Cart {
         })
         .then((res) => {
             if (res.body.status === 404) {
-                this._logger.log('debug', 'CART: Error in add to cart response: %s', res.body.description);
+                this._logger.debug('CART: Error in add to cart response: %s', res.body.description);
                 return {
                     errors: res.body.description,
                 };
@@ -82,12 +82,12 @@ class Cart {
                 this._price = Number.parseInt(this.removeTrailingZeros(res.body.line_price));
                 this._task.product.url = `${this._task.site.url}/${res.body.url.split('?')[0]}`;
                 this._timer.stop(now());
-                this._logger.log('info', 'CART: Added to cart in %d ms', this._timer.getRunTime());
+                this._logger.info('Added to cart in %d ms', this._timer.getRunTime());
                 return true;
             }
         })
         .catch((err) => {
-            this._logger.log('debug', 'CART: Error in add to cart: %s', res.body.description);
+            this._logger.debug('CART: Error in add to cart: %s', res.body.description);
             return {
                 errors: err,
             }
@@ -96,7 +96,7 @@ class Cart {
 
     proceedToCheckout() {
         this._timer.start(now());
-        this._logger.log('verbose', 'Starting proceed to checout request...');
+        this._logger.verbose('Starting proceed to checout request...');
         return this._request({
             uri: `${this._task.site.url}//checkout.json`,
             method: 'get',
@@ -112,18 +112,18 @@ class Cart {
         })
         .then((res) => {
             if (res.request.href.indexOf('throttle') > -1) {
-                this._logger.log('info', 'CART: throttle page...');
+                this._logger.info('Hit throttle page...');
                 return {
                     state: this.CART_STATES.CheckoutQueue
                 };
             } else if (res.request.href.indexOf('stock_problems') > -1) {
-                this._logger.log('info', 'CART: Hit out of stock page...');
+                this._logger.info('Hit out of stock page...');
                 return {
                     state: this.CART_STATES.OutOfStock
                 };
             } else {
                 this._timer.stop(now());
-                this._logger.log('info', 'CART: Got to checkout in %d ms', this._timer.getRunTime());
+                this._logger.info('Got to checkout in %d ms', this._timer.getRunTime());
                 const $ = cheerio.load(res.body);
                 return {
                     state: this.CART_STATES.Success,
@@ -133,7 +133,7 @@ class Cart {
             }
         })
         .catch((err) => {
-            this._logger.log('debug', 'CART: Error in proceed to checkout: %s', err);
+            this._logger.debug('CART: Error in proceed to checkout: %s', err);
             return {
                 errors: err,
             }
@@ -142,7 +142,7 @@ class Cart {
 
     clearCart() {
         this._timer.start(now());
-        this._logger.log('verbose', 'CART: Starting clear cart request...');
+        this._logger.verbose('CART: Starting clear cart request...');
         return this._request({
             uri: `${this._task.site.url}/cart/clear.js`,
             proxy: formatProxy(this._proxy),
@@ -161,14 +161,14 @@ class Cart {
         })
         .then((res) => {
             this._timer.stop(now());
-            this._logger.log('debug', 'CART: Cleared cart in %d ms', this._timer.getRunTime());
+            this._logger.debug('CART: Cleared cart in %d ms', this._timer.getRunTime());
             return {
                 cleared: res.item_count === 0,
                 errors: null,
             }
         })
         .catch((err) => {
-            this._logger.log('debug', 'CART: Error clearing cart: %s', err);
+            this._logger.debug('CART: Error clearing cart: %s', err);
             return {
                 errors: err,
             }
@@ -177,7 +177,7 @@ class Cart {
 
     async getEstimatedShippingRates() {
         this._timer.start(now());
-        this._logger.log('verbose', 'Starting get shipping method request...');
+        this._logger.verbose('Starting get shipping method request...');
         const form = {
             'shipping_address[zip]': this._task.profile.shipping.zipCode,
             'shipping_address[country]': this._task.profile.shipping.country.label,
@@ -205,7 +205,7 @@ class Cart {
             })
 
             this._timer.stop(now());
-            this._logger.log('info', 'CART: Got shipping method in %d ms', this._timer.getRunTime());
+            this._logger.info('Got shipping method in %d ms', this._timer.getRunTime());
             return {
                 rate: `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`,
                 name: `${shippingMethod.name}`,
@@ -213,7 +213,7 @@ class Cart {
             }
         })
         .catch((err) => {
-            this._logger.log('debug', 'CART: Error getting shipping method: %s', err);
+            this._logger.debug('CART: Error getting shipping method: %s', err);
             return {
                 errors: err,
             }
@@ -226,7 +226,7 @@ class Cart {
      */
     async getPaymentToken() {
         this._timer.start(now());
-        this._logger.log('verbose', 'Getting Payment Token...');
+        this._logger.verbose('Getting Payment Token...');
         return this._request({
             uri: `https://elb.deposit.shopifycs.com/sessions`,
             followAllRedirects: true,
@@ -241,13 +241,13 @@ class Cart {
         })
         .then((res) => {
             this._timer.stop(now());
-            this._logger.log('info', 'CART: Got payment token in %d ms', this._timer.getRunTime());
+            this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
             return {
                 paymentToken: JSON.parse(res).id
             }
         })
         .catch((err) => {
-            this._logger.log('debug', 'CART: Error getting payment token: %s', err);
+            this._logger.debug('CART: Error getting payment token: %s', err);
             return {
                 errors: err,
             }

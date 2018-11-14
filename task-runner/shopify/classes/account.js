@@ -28,7 +28,7 @@ class Account {
      * login to the account given to us by the user
      */
     login() {
-        this._logger.log('verbose', 'Starting login request to %s ...', this._task.site.url);
+        this._logger.verbose('Starting login request to %s ...', this._task.site.url);
         return this._request({
             uri: `${this._task.site.url}/account/login`,
             method: 'post',
@@ -52,11 +52,11 @@ class Account {
             if (res.request.href.indexOf('login') > -1) {
                 return this.ACCOUNT_STATES.LoggedOut;
             }
-            this._logger.log('info', 'ACCOUNT: Logged in! Proceeding to add to cart');
+            this._logger.info('Logged in! Proceeding to add to cart');
             return this.ACCOUNT_STATES.LoggedIn;
         })
         .catch((err) => {
-            this._logger.log('debug', 'ACCOUNT: Error logging in: %s', err);
+            this._logger.debug('ACCOUNT: Error logging in: %s', err);
             return {
                 errors: err,
             }
@@ -64,7 +64,7 @@ class Account {
     }
 
     logout() {
-        this._logger.log('verbose', 'Starting logout request to %s ...', this._task.site.url);
+        this._logger.verbose('Starting logout request to %s ...', this._task.site.url);
         return this._request({
             uri: `${this._task.site.url}/account/logout`,
             method: 'get',
@@ -79,13 +79,13 @@ class Account {
         })
         .then((res) => {
             if (res.request.href === `${this._task.site.url}/`) {
-                this._logger.log('info', 'ACCOUNT: Successfully logged out');
+                this._logger.info('Successfully logged out');
                 return this.ACCOUNT_STATES.LoggedOut;
             }
             return this.ACCOUNT_STATES.LoggedIn;
         })
         .catch((err) => {
-            this._logger.log('debug', 'ACCOUNT: Error logging out: %s', err);
+            this._logger.debug('ACCOUNT: Error logging out: %s', err);
             return {
                 errors: err,
             }

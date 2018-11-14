@@ -26,13 +26,13 @@ class AtomParser extends JsonParser {
   }
 
   async run () {
-    this._logger.log('silly', '%s: starting run...', this._name);
+    this._logger.silly('%s: starting run...', this._name);
     if (this._type !== utils.ParseType.Keywords) {
       throw new Error('Atom parsing is only supported for keyword searching');
     }
     let responseJson;
     try {
-      this._logger.log('silly', '%s: Making request for %s/collections/all.atom ...', this._name, this._task.site.url);
+      this._logger.silly('%s: Making request for %s/collections/all.atom ...', this._name, this._task.site.url);
       const response = await rp({
         method: 'GET',
         uri: `${this._task.site.url}/collections/all.atom`,
@@ -47,13 +47,13 @@ class AtomParser extends JsonParser {
       });
       responseJson = await utils.convertToJson(response);
     } catch (error) {
-      this._logger.log('silly', '%s: ERROR making request!', this._name, error);
+      this._logger.silly('%s: ERROR making request!', this._name, error);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
 
-    this._logger.log('silly', '%s: Received Response, attempting to translate structure...', this._name);
+    this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
     const responseItems = responseJson.feed.entry;
     const products = _.map(responseItems, (item) => {
       return {
@@ -65,26 +65,26 @@ class AtomParser extends JsonParser {
         handle: '-', // put an empty placeholder since we only have the title provided
       };
     });
-    this._logger.log('silly', '%s: Translated Structure, attempting to match', this._name);
+    this._logger.silly('%s: Translated Structure, attempting to match', this._name);
     const matchedProduct = super.match(products);
 
     if(!matchedProduct) {
-      this._logger.log('silly', '%s: Couldn\'t find a match!', this._name);
+      this._logger.silly('%s: Couldn\'t find a match!', this._name);
       const rethrow = new Error('unable to match the product');
       rethrow.status = 500; // Use a bad status code
       throw rethrow;
     }
-    this._logger.log('silly', '%s: Product Found! Looking for Variant Info...', this._name);
+    this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
     let fullProductInfo = null;
     try {
       fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url, this._logger);
-      this._logger.log('silly', '%s: Full Product Info Found! Merging data and Returning.', this._name);
+      this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
       return {
         ...matchedProduct,
         ...fullProductInfo,
       };
     } catch (errors) {
-      this._logger.log('silly', '%s: Couldn\'t Find Variant Info', this._name, errors);
+      this._logger.silly('%s: Couldn\'t Find Variant Info', this._name, errors);
       const rethrow = new Error('unable to get full product info');
       rethrow.status = 500; // Use a bad status code
       throw rethrow;

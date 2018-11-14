@@ -110,7 +110,7 @@ class Checkout {
     }
 
     _waitForDelay(delay) {
-        this._logger.log('silly', 'CHECKOUT: Waiting for %s ms...', delay);
+        this._logger.silly('CHECKOUT: Waiting for %s ms...', delay);
         return new Promise(resolve => setTimeout(resolve, delay));
     };
 
@@ -119,7 +119,7 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleStarted() {
-        this._logger.log('verbose', 'CHECKOUT: Starting...');
+        this._logger.verbose('CHECKOUT: Starting...');
         // if the site requires authentication, 
         if (this._task.username && this._task.password) {
             return Checkout.States.LoginAccount;
@@ -128,7 +128,7 @@ class Checkout {
     }
 
     async _handleLogin() {
-        this._logger.log('verbose', 'CHECKOUT: Logging in...');
+        this._logger.verbose('CHECKOUT: Logging in...');
         const res = await this._account.login();
         if (res.errors) {
             return { errors: res.errors };
@@ -144,14 +144,14 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleAddToCart() {
-        this._logger.log('verbose', 'CHECKOUT: Adding to Cart...');
+        this._logger.verbose('CHECKOUT: Adding to Cart...');
         const res = await this._cart.addToCart(this._task.product.variants[this._variantIndex]);
         if (res.errors) {
-            this._logger.log('verbose', 'CHECKOUT: Errors in Add to Cart: %s', res.errors);
+            this._logger.verbose('CHECKOUT: Errors in Add to Cart: %s', res.errors);
             return { errors: res.errors };
         }
         if(!res) {
-            this._logger.log('verbose', 'CHECKOUT: Failed to Add to Cart');
+            this._logger.verbose('CHECKOUT: Failed to Add to Cart');
             // TODO - rethink this logic a bit? What should happen if we fail the add to cart?
             // ...but what if the variant isn't live yet?
             return Checkout.States.AddToCart;
@@ -165,13 +165,13 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handlePaymentToken() {
-        this._logger.log('verbose', 'CHECKOUT: Generating Payment Token...');
+        this._logger.verbose('CHECKOUT: Generating Payment Token...');
         const res = await this._cart.getPaymentToken();
         if (res.errors) {
             return { errors: res.errors };
         }
         if(!res.paymentToken) {
-            this._logger.log('verbose', 'CHECKOUT: Failed fetching payment token');
+            this._logger.verbose('CHECKOUT: Failed fetching payment token');
             // TODO - handle failed to get payment token
             return Checkout.States.Stopped;
         }
@@ -184,10 +184,10 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleProceedToCheckout() {
-        this._logger.log('verbose', 'CHECKOUT: Proceeding to Checkout...');
+        this._logger.verbose('CHECKOUT: Proceeding to Checkout...');
         const res = await this._cart.proceedToCheckout();
         if (res.errors) {
-            this._logger.log('verbose', 'CHECKOUT: Errors: %s', res.errors);
+            this._logger.verbose('CHECKOUT: Errors: %s', res.errors);
             return { errors: res.errors }; 
         }
 
@@ -213,8 +213,8 @@ class Checkout {
     }
 
     async _handleCheckoutQueue() {
-        this._logger.log('verbose', 'CHECKOUT: Handling Checkout Queue...');
-        this._logger.log('silly', 'TODO: Need to Implement this!');
+        this._logger.verbose('CHECKOUT: Handling Checkout Queue...');
+        this._logger.silly('TODO: Need to Implement this!');
         this._waitForDelay(500);
         return Checkout.States.ProceedToCheckout;
     }
@@ -224,7 +224,7 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleOutOfStock() {
-        this._logger.log('verbose', 'CHECKOUT: Handling Out of Stock...');
+        this._logger.verbose('CHECKOUT: Handling Out of Stock...');
         this._variantIndex++;
         if (this._variantIndex >= this._task.sizes.length) {
             this._variantIndex = 0;
@@ -232,7 +232,7 @@ class Checkout {
         if (this._task.sizes.length > 1) {
             // TODO - make a CartManager that will be able to handle multiple carts
             // create background thread to run for restocks, and check next size?
-            this._logger.log('info', 'Swapping to Next Size...');
+            this._logger.info('Swapping to Next Size...');
             const res = await this._cart.clearCart();
             
             if (res.errors) {
@@ -245,7 +245,7 @@ class Checkout {
             return Checkout.States.Stopped;
         } else {
             // run restocks for the one size..
-            this._logger.log('info', 'Running for Restocks');
+            this._logger.info('Running for Restocks');
             return Checkout.States.Restock;
         }
     }
@@ -255,7 +255,7 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handleGetShipping() {
-        this._logger.log('verbose', 'CHECKOUT: Starting Shipping...')
+        this._logger.verbose('CHECKOUT: Starting Shipping...')
         let opts = await this._shipping.getShippingOptions();
         if (opts.errors) {
             return { errors: opts.errors };
@@ -263,11 +263,11 @@ class Checkout {
         this._authToken = opts.newAuthToken;
 
         if (opts.captcha) {
-            this._logger.log('info', 'Requesting to solve captcha...');
+            this._logger.info('Requesting to solve captcha...');
             return Checkout.States.RequestCaptcha;
         }
 
-        this._logger.log('verbose', 'Captcha Bypassed, Proceeding with Shipping...');
+        this._logger.verbose('Captcha Bypassed, Proceeding with Shipping...');
         opts = await this._shipping.submitShippingOptions(this._authToken);
         if (opts.errors) {
             return { errors: opts.errors };
@@ -286,9 +286,9 @@ class Checkout {
      * Handle CAPTCHA requests
      */
     async _handleRequestCaptcha() {
-        this._logger.log('verbose', 'CHECKOUT: Getting Solved Captcha...');
+        this._logger.verbose('CHECKOUT: Getting Solved Captcha...');
         const token = await this._context.getCaptcha();
-        this._logger.log('debug', 'CHECKOUT: Received token from captcha harvesting: %s', token);
+        this._logger.debug('CHECKOUT: Received token from captcha harvesting: %s', token);
 
         let opts = await this._shipping.submitShippingOptions(this._authToken, token);
         if (opts.errors) {
@@ -309,7 +309,7 @@ class Checkout {
      * Submit `POST` Shipping details
      */
     async _handlePostShipping() {
-        this._logger.log('verbose', 'CHECKOUT: Continuing with Shipping...');
+        this._logger.verbose('CHECKOUT: Continuing with Shipping...');
         let { type, value, authToken } = this._shippingOpts;
         let res = await this._shipping.submitShipping(type, value, authToken);
         if (res.errors) {
@@ -317,7 +317,7 @@ class Checkout {
         }
         
         if (res.paymentGateway && res.newAuthToken) {
-            this._logger.log('info', 'Proceeding to submit payment');
+            this._logger.info('Proceeding to submit payment');
             this._authToken = res.newAuthToken;
             this._paymentGateway = res.paymentGateway;
             this._price = res.price;
@@ -335,7 +335,7 @@ class Checkout {
             );
             return Checkout.States.Payment;
         }
-        this._logger.log('info', 'Unable to submit shipping!');
+        this._logger.info('Unable to submit shipping!');
         return Checkout.States.Stopped;
     }
 
@@ -344,7 +344,7 @@ class Checkout {
      * @returns {STATE} next checkout state
      */
     async _handlePayment() {
-        this._logger.log('verbose', 'CHECKOUT: Submitting Payment...');
+        this._logger.verbose('CHECKOUT: Submitting Payment...');
         const res = await this._payment.submit();
         if (res.errors) {
             throw new Error(res.errors);
@@ -364,7 +364,7 @@ class Checkout {
     }
 
     async _handleStopped() {
-        this._logger.log('verbose', 'CHECKOUT: Stopping checkout process...');
+        this._logger.verbose('CHECKOUT: Stopping checkout process...');
         return Checkout.States.Stopped;
         // TODO - handle a clean shut down..
     }
@@ -373,7 +373,7 @@ class Checkout {
         async function defaultHandler() {
             throw new Error('Reached Unknown State!');
         }
-        this._logger.log('verbose', 'CHECKOUT: Handling State: %s ...', currentState);
+        this._logger.verbose('CHECKOUT: Handling State: %s ...', currentState);
         const stateMap = {
             [Checkout.States.Started]: this._handleStarted,
             [Checkout.States.LoginAccount]: this._handleLogin,
@@ -395,9 +395,9 @@ class Checkout {
 
     async run() {
         const nextState =  await this._handleStepLogic(this._state);
-        this._logger.log('verbose', 'CHECKOUT: Next State chosen as: %s', nextState);
+        this._logger.verbose('CHECKOUT: Next State chosen as: %s', nextState);
         if(nextState.errors) {
-            this._logger.log('verbose', 'CHECKOUT: Completed with errors: %j', nextState.errors);
+            this._logger.verbose('CHECKOUT: Completed with errors: %j', nextState.errors);
             return {
                 nextState: States.Checkout,
                 errors: nextState.errors,

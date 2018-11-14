@@ -27,7 +27,7 @@ class Monitor {
     }
 
     _waitForDelay(delay) {
-        this._logger.log('verbose', 'MONITOR: Waiting for %d ms...', delay);
+        this._logger.silly('MONITOR: Waiting for %d ms...', delay);
         return new Promise(resolve => setTimeout(resolve, delay));
     };
 
@@ -52,7 +52,7 @@ class Monitor {
             default: break;
         }
         await delay.call(this);
-        this._logger.log('info', 'Monitoring not complete, remonitoring...');
+        this._logger.info('Monitoring not complete, remonitoring...');
         return States.Monitor;
     }
 
@@ -92,24 +92,24 @@ class Monitor {
             // Try parsing all files and wait for the first response
             parsed = await this._parseAll();
         } catch (errors) {
-            this._logger.log('debug', 'MONITOR: All request errored out! %j', errors);
+            this._logger.debug('MONITOR: All request errored out! %j', errors);
             // consolidate statuses
             const statuses = errors.map(error => error.status);
             // Check for bans
             let checkStatus;
             if (checkStatus = statuses.find(s => s === 403 || s === 429)) {
-                this._logger.log('info', 'Proxy was Banned, swapping proxies...');
+                this._logger.info('Proxy was Banned, swapping proxies...');
                 return States.SwapProxies;
             } else if (checkStatus = statuses.find(s => s >= 400)) {
                 return this._delay(checkStatus);
             }
         }
-        this._logger.log('verbose', 'MONITOR: %s retrieved as a matched product', parsed.title);
-        this._logger.log('verbose', 'MONITOR: Generating variant lists now...');
+        this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
+        this._logger.verbose('MONITOR: Generating variant lists now...');
         const variants = this._generateValidVariants(parsed);
-        this._logger.log('verbose', 'MONITOR: Variants Generated, updating context...');
+        this._logger.verbose('MONITOR: Variants Generated, updating context...');
         this._context.task.product.variants = variants;
-        this._logger.log('verbose', 'MONITOR: Status is OK, proceeding to checkout');
+        this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
         return States.Checkout;
     }
 
@@ -129,28 +129,28 @@ class Monitor {
                 },
             });
             // Response Succeeded -- Get Product Info
-            this._logger.log('verbose', 'MONITOR: Url %s responded with status code %s. Getting full info', url, response.statusCode);
+            this._logger.verbose('MONITOR: Url %s responded with status code %s. Getting full info', url, response.statusCode);
             const fullProductInfo = await JsonParser.getFullProductInfo(url, this._logger);
 
             // Generate Variants
-            this._logger.log('verbose', 'MONITOR: Retrieve Full Product %s, Generating Variants List...', fullProductInfo.title);
+            this._logger.verbose('MONITOR: Retrieve Full Product %s, Generating Variants List...', fullProductInfo.title);
             const variants = this._generateValidVariants(fullProductInfo);
-            this._logger.log('verbose', 'MONITOR: Variants Generated, updating context...');
+            this._logger.verbose('MONITOR: Variants Generated, updating context...');
             this._context.task.product.variants = variants;
 
             // Everything is setup -- kick it to checkout
-            this._logger.log('verbose', 'MONTIR: Status is OK, proceeding to checkout');
+            this._logger.verbose('MONTIR: Status is OK, proceeding to checkout');
             return States.Checkout;
         } catch (error) {
             // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
-            this._logger.log('debug', 'MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...', url, error.statusCode);
+            this._logger.debug('MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...', url, error.statusCode);
             return this._delay(error.statusCode);
         }
     }
 
     async run() {
         if (this._context.aborted) {
-            this._logger.log('info', 'Abort Detected, Stopping...');
+            this._logger.info('Abort Detected, Stopping...');
             return { nextState: States.Aborted };
         }
 
@@ -158,23 +158,23 @@ class Monitor {
         switch(parseType) {
             case ParseType.Variant: {
                 // TODO: Add a way to determine if variant is correct
-                this._logger.log('verbose', 'MONITOR: Variant Parsing Detected');
+                this._logger.verbose('MONITOR: Variant Parsing Detected');
                 this._context.task.product.variants = [this._context.task.product.variant];
-                this._logger.log('verbose', 'MONITOR: Skipping Monitor and Going to Checkout Directly...');
+                this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
                 return { nextState: States.Checkout };
             }
             case ParseType.Url: {
-                this._logger.log('verbose', 'MONITOR: Url Parsing Detected');
+                this._logger.verbose('MONITOR: Url Parsing Detected');
                 const nextState = await this._monitorUrl();
                 return { nextState };
             }
             case ParseType.Keywords: {
-                this._logger.log('verbose', 'MONITOR: Keyword Parsing Detected');
+                this._logger.verbose('MONITOR: Keyword Parsing Detected');
                 const nextState = await this._monitorKeywords();
                 return { nextState };
             }
             default: {
-                this._logger.log('verbose', 'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
+                this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
                 await this._waitForErrorDelay();
                 return { nextState: States.Monitor };
             }
