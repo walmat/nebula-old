@@ -23,50 +23,48 @@ class Monitor {
          * @type {TaskRunnerContext}
          */
         this._context = context;
+        this._logger = this._context.logger;
     }
 
     _waitForDelay(delay) {
-        console.log(`[TRACE]: MONITOR: Waiting for ${delay} ms...`);
+        this._logger.log('verbose', 'MONITOR: Waiting for %d ms...', delay);
         return new Promise(resolve => setTimeout(resolve, delay));
     };
 
     _waitForRefreshDelay() {
-        console.log('[DEBUG]: MONITOR: Waiting for monitor delay...');
         return this._waitForDelay(this._context.task.monitorDelay);
     }
 
     _waitForErrorDelay() {
-        console.log('[DEBUG]: MONITOR: Waiting for error delay...');
         return this._waitForDelay(this._context.task.errorDelay);
     }
 
     // ASSUMPTION: this method is only called when we know we have to 
     // delay and start the monitor again...
-    async _delay() {
+    async _delay(status) {
         let delay = this._waitForRefreshDelay;
-        switch (status) {
+        switch (status || 404) {
             case 401:
             case 404: {
-
                 delay = this._waitForErrorDelay;
                 break;
             }
             default: break;
         }
-        await delay();
-        console.log('[INFO]: MONITOR: Returning Monitor Again State...');
+        await delay.call(this);
+        this._logger.log('info', 'Monitoring not complete, remonitoring...');
         return States.Monitor;
     }
 
     _parseAll() {
         // Create the parsers and start the async run methods
         const parsers = [
-            new AtomParser(this._context.task, this._context.proxy),
-            new JsonParser(this._context.task, this._context.proxy),
-            new XmlParser(this._context.task, this._context.proxy),
+            new AtomParser(this._context.task, this._context.proxy, this._context.logger),
+            new JsonParser(this._context.task, this._context.proxy, this._context.logger),
+            new XmlParser(this._context.task, this._context.proxy, this._context.logger),
         ].map(p => p.run());
         // Return the winner of the race
-        return rfrl(parsers, 'parseAll');
+        return rfrl(parsers, 'parseAll', this._context.logger);
     }
 
     _generateValidVariants(product) {
@@ -94,24 +92,24 @@ class Monitor {
             // Try parsing all files and wait for the first response
             parsed = await this._parseAll();
         } catch (errors) {
-            console.log(`[DEBUG]: MONITOR: All requests errored out!\n${errors}`);
+            this._logger.log('debug', 'MONITOR: All request errored out! %j', errors);
             // consolidate statuses
             const statuses = errors.map(error => error.status);
             // Check for bans
             let checkStatus;
             if (checkStatus = statuses.find(s => s === 403 || s === 429)) {
-                console.log(`[INFO]: MONITOR: Found a ban status: ${checkStatus}, Swapping Proxies...`);
+                this._logger.log('info', 'Proxy was Banned, swapping proxies...');
                 return States.SwapProxies;
             } else if (checkStatus = statuses.find(s => s >= 400)) {
                 return this._delay(checkStatus);
             }
         }
-        console.log(`[DEBUG]: MONITOR: ${parsed.title} retrieved as a matched product`);
-        console.log('[DEBUG]: MONITOR: Generating variant lists now...');
+        this._logger.log('verbose', 'MONITOR: %s retrieved as a matched product', parsed.title);
+        this._logger.log('verbose', 'MONITOR: Generating variant lists now...');
         const variants = this._generateValidVariants(parsed);
-        console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
+        this._logger.log('verbose', 'MONITOR: Variants Generated, updating context...');
         this._context.task.product.variants = variants;
-        console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
+        this._logger.log('verbose', 'MONITOR: Status is OK, proceeding to checkout');
         return States.Checkout;
     }
 
@@ -131,52 +129,52 @@ class Monitor {
                 },
             });
             // Response Succeeded -- Get Product Info
-            console.log(`[INFO]: MONITOR: Url ${url} responded with status code ${response.statusCode}. Getting full info...`);
-            const fullProductInfo = await JsonParser.getFullProductInfo(url);
+            this._logger.log('verbose', 'MONITOR: Url %s responded with status code %s. Getting full info', url, response.statusCode);
+            const fullProductInfo = await JsonParser.getFullProductInfo(url, this._logger);
 
             // Generate Variants
-            console.log(`[DEBUG]: Retrieved Full Product ${fullProductInfo.title}, Generating Variants List...`);
+            this._logger.log('verbose', 'MONITOR: Retrieve Full Product %s, Generating Variants List...', fullProductInfo.title);
             const variants = this._generateValidVariants(fullProductInfo);
-            console.log('[DEBUG]: MONITOR: Variants Generated, updating context...');
+            this._logger.log('verbose', 'MONITOR: Variants Generated, updating context...');
             this._context.task.product.variants = variants;
 
             // Everything is setup -- kick it to checkout
-            console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
+            this._logger.log('verbose', 'MONTIR: Status is OK, proceeding to checkout');
             return States.Checkout;
         } catch (error) {
             // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
-            console.log(`[DEBUG]: MONITOR: Monitoring Url ${url} responded with status code ${error.statusCode}. Delaying and retrying...`);
+            this._logger.log('debug', 'MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...', url, error.statusCode);
             return this._delay(error.statusCode);
         }
     }
 
     async run() {
         if (this._context.aborted) {
-            console.log('[INFO]: MONITOR: Abort detected, aborting...');
+            this._logger.log('info', 'Abort Detected, Stopping...');
             return { nextState: States.Aborted };
         }
 
-        const parseType = getParseType(this._context.task.product);
+        const parseType = getParseType(this._context.task.product, this._logger);
         switch(parseType) {
             case ParseType.Variant: {
                 // TODO: Add a way to determine if variant is correct
-                console.log('[INFO]: MONITOR: Variant Parsing Detected');
+                this._logger.log('verbose', 'MONITOR: Variant Parsing Detected');
                 this._context.task.product.variants = [this._context.task.product.variant];
-                console.log('[INFO]: MONITOR: Skipping Monitor and Going to Checkout Directly...');
+                this._logger.log('verbose', 'MONITOR: Skipping Monitor and Going to Checkout Directly...');
                 return { nextState: States.Checkout };
             }
             case ParseType.Url: {
-                console.log('[INFO]: MONITOR: Url Parsing Detected');
+                this._logger.log('verbose', 'MONITOR: Url Parsing Detected');
                 const nextState = await this._monitorUrl();
                 return { nextState };
             }
             case ParseType.Keywords: {
-                console.log('[INFO]: MONITOR: Keyword Parsing Detected');
+                this._logger.log('verbose', 'MONITOR: Keyword Parsing Detected');
                 const nextState = await this._monitorKeywords();
                 return { nextState };
             }
             default: {
-                console.log(`[INFO]: MONITOR: Unable to Monitor Type: ${parseType} -- Delaying and Retrying...`);
+                this._logger.log('verbose', 'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
                 await this._waitForErrorDelay();
                 return { nextState: States.Monitor };
             }

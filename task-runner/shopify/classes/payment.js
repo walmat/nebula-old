@@ -44,6 +44,7 @@ class Payment {
         this._task = this._context.task;
         this._proxy = this._context.proxy;
         this._aborted = this._context.aborted;
+        this._logger = this._context.logger;
 
 
         /**
@@ -58,9 +59,8 @@ class Payment {
     }
 
     submit() {
-
         this._timer.start(now());
-
+        this._logger.log('starting Payment Submit Request...');
         return this._request({
             uri: `${this._checkoutUrl}?step=payment_method`,
             proxy: formatProxy(this._proxy),
@@ -103,44 +103,43 @@ class Payment {
                     this._captchaResponse,
                 ),
             })
-            .then((res) => {
-                const $ = cheerio.load(res.body);
-                console.log(path.join(__dirname, 'debug.html'));
-                fs.writeFileSync(path.join(__dirname, 'debug.html'), res.body);
-                this._timer.stop(now());
-                console.log(`[INFO]: PAYMENT: Submitted payment in ${this._timer.getRunTime()}ms`)
-                
-                if ($('input[name="step"]').val() == 'processing') {
-                    console.log('[INFO]: PAYMENT: Payment is processing, go check your email for a confirmation.');
-                    return this.PAYMENT_STATES.Processing;
-                } else if ($('title').text().indexOf('Processing') > -1) {
-                    console.log('[INFO]: PAYMENT: Payment is processing, go check your email for a confirmation.');
-                    return this.PAYMENT_STATES.Processing;
-                } else if (res.request.href.indexOf('paypal.com') > -1) {
-                    const open = require('open');
-                    console.log('[INFO]: PAYMENT: This website only supports PayPal');
-                    open(res.request.href);
-                    return this.PAYMENT_STATES.Success;
-                } else if ($('div.notice--warning p.notice__text')) {
-                    if ($('div.notice--warning p.notice__text') == '') {
-                      console.log(`[INFO]: PAYMENT: An unknown error has occured please try again.`);
-                        return this.PAYMENT_STATES.Error;
-                    } else {
-                      console.log(`[INFO]: PAYMENT: ${$('div.notice--warning p.notice__text').eq(0).text()}`);
-                      return this.PAYMENT_STATES.Error;
-                    }
+        })
+        .then((res) => {
+            const $ = cheerio.load(res.body);
+            // TODO: Only do this when debugging!
+            const debugHtmlPath = path.join(__dirname, 'debug.html');
+            this._logger.log('debug', 'Writing out debug html to: %s', debugHtmlPath);
+            fs.writeFileSync(debugHtmlPath, res.body);
+            this._timer.stop(now());
+            this._logger.log('info', 'Submitted Payment in %d ms', this._timer.getRunTime());
+
+            if ($('input[name="step"]').val() == 'processing') {
+                this._logger.log('info', 'Payment is processing, go check your email for a confirmation.');
+                return this.PAYMENT_STATES.Processing;
+            } else if ($('title').text().indexOf('Processing') > -1) {
+                this._logger.log('info', 'Payment is processing, go check your email for a confirmation.');
+                return this.PAYMENT_STATES.Processing;
+            } else if (res.request.href.indexOf('paypal.com') > -1) {
+                const open = require('open');
+                this._logger.log('info', 'This website only supports Paypal.');
+                open(res.request.href);
+                return this.PAYMENT_STATES.Success;
+            } else if ($('div.notice--warning p.notice__text')) {
+                if ($('div.notice--warning p.notice__text') == '') {
+                    this._logger.log('info', 'An unknown error has occured, please try again.');
+                    return this.PAYMENT_STATES.Error;
                 } else {
-                    console.log(`[INFO]: PAYMENT: An unknown error has occured please try again.`);
+                    this._logger.log('info', 'Notice Received: %s', $('div.notice--warning p.notice__text').eq(0).text());
                     return this.PAYMENT_STATES.Error;
                 }
-            })
-            .catch((err) => {
-                return {
-                    errors: err,
-                }
-            })
+            } else {
+                this._logger.log('info', 'An unknown error has occured, pleas try again');
+                return this.PAYMENT_STATES.Error;
+            }
         })
         .catch((err) => {
+            this._logger.log('info', 'An unknown error has occured, pleas try again');
+            this._logger.log('debug', 'PAYMENT: Error submitting payment: %s', err);
             return {
                 errors: err,
             }
