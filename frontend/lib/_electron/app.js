@@ -5,6 +5,7 @@ const WindowManager = require('./windowManager');
 const AuthManager = require('./authManager');
 const TaskManagerWrapper = require('./taskManagerWrapper');
 const nebulaEnv = require('./env');
+const { bindDebugEvents } = require('./debug');
 
 nebulaEnv.setUpEnvironment();
 
@@ -19,13 +20,6 @@ class App {
    * Initialize instance.
    */
   constructor() {
-    /**
-     * Debug call to see if app was initialized..
-     */
-    if (nebulaEnv.isDevelopment()) {
-      console.log('Initialize Application');
-    }
-
     /**
      * IPC module for main process.
      * @type {ipcMain}
@@ -75,6 +69,14 @@ class App {
     this._captchaServerManager = new CaptchaServerManager(this);
 
     this.onCertificateErrorHandler = this.onCertificateErrorHandler.bind(this);
+
+    /**
+     * Debug call to see if app was initialized..
+     */
+    if (nebulaEnv.isDevelopment()) {
+      console.log('Initialize Application');
+      bindDebugEvents(this);
+    }
   }
 
   /**

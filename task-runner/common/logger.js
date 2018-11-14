@@ -73,7 +73,6 @@ function _setLevels(levels, name) {
   if (!levels) {
     return; // if no levels are given, don't do anything...
   }
-  _levels = levels; // Update the state of levels for future loggers
   function adjustLevels(lvls, logger) {
     logger.transports.forEach(t => {
       if (!t.name) {
@@ -89,6 +88,7 @@ function _setLevels(levels, name) {
       adjustLevels(levels, logger);
     }
   } else {
+    _levels = levels; // Update the state of levels for future loggers
     winston.loggers.loggers.forEach(l => adjustLevels(levels, l));
   }
 }
