@@ -37,7 +37,7 @@ function _createLogger({ name, filename }) {
   // Add the logger with default format options
   winston.loggers.add(name, {
     levels: winston.config.npm.levels,
-    level: _isDevelopment ? 'silly' : 'verbose', // Set it to silly in dev mode, but only verbose in prod (maybe info is better?)
+    level: _isDevelopment ? 'silly' : 'verbose', // Set it to silly in dev mode, but verbose in prod
     transports,
     format: winston.format.combine(
       winston.format.label({ label: name }),

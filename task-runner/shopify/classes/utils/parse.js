@@ -70,7 +70,7 @@ function filterAndLimit(list, sorter, limit, logger) {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
   if (!list) {
-    _log('silly', 'No list given! returning empty list');
+    _logger.log('silly', 'No list given! returning empty list');
     return [];
   }
   _logger.log('silly', 'List Detected with %d elements. Proceeding to sorting now...', list.length);

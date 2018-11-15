@@ -96,7 +96,7 @@ class Cart {
 
     proceedToCheckout() {
         this._timer.start(now());
-        this._logger.verbose('Starting proceed to checout request...');
+        this._logger.verbose('Starting proceed to checkout request...');
         return this._request({
             uri: `${this._task.site.url}//checkout.json`,
             method: 'get',
@@ -112,7 +112,7 @@ class Cart {
         })
         .then((res) => {
             if (res.request.href.indexOf('throttle') > -1) {
-                this._logger.info('Hit throttle page...');
+                this._logger.info('Waiting in checkout queue...');
                 return {
                     state: this.CART_STATES.CheckoutQueue
                 };
