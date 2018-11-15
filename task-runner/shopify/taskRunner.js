@@ -5,6 +5,9 @@ const Checkout = require('./classes/checkout');
 const QueueBypass = require('./classes/bypass');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const { createLogger } = require('../common/logger');
+const {
+    waitForDelay
+} = require('./classes/utils');
 
 class TaskRunner {
     constructor(id, task, proxy, manager) {
@@ -70,7 +73,7 @@ class TaskRunner {
 
     _waitForErrorDelay() {
         this._logger.debug('Waiting for error delay...');
-        return new Promise(resolve => setTimeout(resolve, this._context.task.errorDelay));
+        return waitForDelay(this._context.task.errorDelay);
     }
 
     _handleAbort(id) {
@@ -190,7 +193,7 @@ class TaskRunner {
 
     async _handleStarted() {
         this._emitTaskEvent({
-            message: 'Starting task...',
+            message: 'Starting!',
         });
         return States.GenAltCheckout;
     }
@@ -215,11 +218,14 @@ class TaskRunner {
         if(res.errors) {
             this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
-                message: 'Error with Monitor! Retrying...',
+                message: 'Error monitoring product...',
                 errors: res.errors,
             });
             await this._waitForErrorDelay();
         }
+        this._emitTaskEvent({
+            message: res.message,
+        });
         // Monitor will be in charge of choosing the next state
         return res.nextState;
     }
@@ -243,18 +249,21 @@ class TaskRunner {
         if (res.errors) {
             this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
-                message: 'Errors during Checkout! Retrying Monitor...',
+                message: 'Errors during Checkout!',
                 errors: res.errors,
             });
             await this._waitForErrorDelay();
         }
+        this._emitTaskEvent({
+            message: res.message,
+        });
         // Checkout will be in charge of choosing the next state
         return res.nextState;
     }
 
     async _handleFinished() {
         this._emitTaskEvent({
-            message: 'Task has finished!',
+            message: this._context.status || 'Task has finished!',
         });
         return States.Stopped;
     }
@@ -297,6 +306,10 @@ class TaskRunner {
             this._state = await this._handleStepLogic(this._state);
             this._logger.verbose('Run Loop finished, state transitioned to: %s', this._state);
         }
+        // wait for 2 seconds before showing the task has stopped message
+        await waitForDelay(2000);
+
+        // update previous message with task has stopped message
         this._emitTaskEvent({
             message: 'Task has stopped.',
         });

@@ -7,8 +7,9 @@ const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
 const { States } = require('./utils/constants').TaskRunner;
-const fs = require('fs');
-const path = require('path');
+const {
+    waitForDelay, 
+} = require('./utils');
 
 class Checkout {
 
@@ -93,6 +94,11 @@ class Checkout {
         this._paymentGateway;
 
         this._variantIndex = 0;
+        
+        // TODO - adjust these if needed (ms)
+        this.DELAYS = {
+            CHECKOUT_QUEUE: 500,
+        }
 
         this._request = require('request-promise').defaults({
             timeout: 10000,
@@ -109,11 +115,6 @@ class Checkout {
         this._account = new Account(context, this._timer, this._request);
     }
 
-    _waitForDelay(delay) {
-        this._logger.silly('CHECKOUT: Waiting for %s ms...', delay);
-        return new Promise(resolve => setTimeout(resolve, delay));
-    };
-
     /**
      * Checkout process started
      * @returns {STATE} next checkout state
@@ -122,20 +123,20 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Starting...');
         // if the site requires authentication, 
         if (this._task.username && this._task.password) {
-            return Checkout.States.LoginAccount;
+            return { message: 'Logging in', nextState: Checkout.States.LoginAccount };
         }
-        return Checkout.States.AddToCart;
+        return { message: `Found product: ${this._task.product.name}`, nextState: Checkout.States.AddToCart };
     }
 
     async _handleLogin() {
         this._logger.verbose('CHECKOUT: Logging in...');
         const res = await this._account.login();
         if (res.errors) {
-            return { errors: res.errors };
+            return { message: 'Invalid login', nextState: Checkout.States.Stopped };
         } else if (res === this._account.ACCOUNT_STATES.LoggedIn) {
-            return Checkout.States.AddToCart
+            return { message: 'Logged in!', nextState: Checkout.States.AddToCart };
         } else {
-            return Checkout.States.Stopped;
+            return { message: 'Unable to login', nextState: Checkout.States.Stopped };
         }
     }
 
@@ -146,18 +147,18 @@ class Checkout {
     async _handleAddToCart() {
         this._logger.verbose('CHECKOUT: Adding to Cart...');
         const res = await this._cart.addToCart(this._task.product.variants[this._variantIndex]);
+
         if (res.errors) {
             this._logger.verbose('CHECKOUT: Errors in Add to Cart: %s', res.errors);
-            return { errors: res.errors };
+            return { message: 'Failed: add to cart', nextState: Checkout.States.Stopped };
         }
         if(!res) {
             this._logger.verbose('CHECKOUT: Failed to Add to Cart');
-            // TODO - rethink this logic a bit? What should happen if we fail the add to cart?
-            // ...but what if the variant isn't live yet?
-            return Checkout.States.AddToCart;
+            waitForDelay(this._task.errorDelay);
+            return { message: 'Adding to cart', nextState: Checkout.States.AddToCart };
         }
         this._price = this._cart._price;
-        return Checkout.States.GeneratePaymentToken;
+        return { message: 'Proceeding to checkout', nextState: Checkout.States.GeneratePaymentToken };
     }
 
     /**
@@ -168,15 +169,14 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Generating Payment Token...');
         const res = await this._cart.getPaymentToken();
         if (res.errors) {
-            return { errors: res.errors };
+            return { message: 'Failed: generating payment token', nextState: Checkout.States.Stopped };
         }
         if(!res.paymentToken) {
             this._logger.verbose('CHECKOUT: Failed fetching payment token');
-            // TODO - handle failed to get payment token
-            return Checkout.States.Stopped;
+            return { message: 'Failed: generating payment token', nextState: Checkout.States.GeneratePaymentToken };
         }
         this._paymentToken = res.paymentToken;
-        return Checkout.States.ProceedToCheckout;
+        return { message: 'Generating payment token', nextState: Checkout.States.ProceedToCheckout };
     }
 
     /**
@@ -188,15 +188,13 @@ class Checkout {
         const res = await this._cart.proceedToCheckout();
         if (res.errors) {
             this._logger.verbose('CHECKOUT: Errors: %s', res.errors);
-            return { errors: res.errors }; 
+            return { message: 'Failed: unable to get checkout', nextState: Checkout.States.Stopped }; 
         }
-
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
-            return Checkout.States.CheckoutQueue;
+            return { message: 'Waiting in queue', nextState: Checkout.States.CheckoutQueue };
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
-            return Checkout.States.OutOfStock;
-        } else if (res.state === this._cart.CART_STATES.Success) {            
-            
+            return { message: 'Out of stock, handling..', nextState: Checkout.States.OutOfStock };
+        } else if (res.state === this._cart.CART_STATES.Success) {         
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
 
@@ -208,15 +206,18 @@ class Checkout {
                 this._authToken,
                 this._shippingValue,
             );
-            return Checkout.States.GetShipping;
+            return { message: 'Submitting shipping', nextState: Checkout.States.GetShipping };
         }
     }
 
     async _handleCheckoutQueue() {
         this._logger.verbose('CHECKOUT: Handling Checkout Queue...');
         this._logger.silly('TODO: Need to Implement this!');
-        this._waitForDelay(500);
-        return Checkout.States.ProceedToCheckout;
+        this._waitForDelay(this.DELAYS.CHECKOUT_QUEUE);
+        // return same message to prevent blank log messages
+        // this will make it so `Waiting in queue` is shown until
+        // the queue is over. 
+        return { message: 'Waiting in queue', nextState: Checkout.States.ProceedToCheckout };
     }
 
     /**
@@ -236,17 +237,17 @@ class Checkout {
             const res = await this._cart.clearCart();
             
             if (res.errors) {
-                return { errors: res.errors };
+                return { message: 'Failed: clearing cart', nextState: Checkout.States.OutOfStock };
             }
 
             if (res.cleared) {
-                return Checkout.States.AddToCart
+                return { message: 'Adding next size to cart', nextState: Checkout.States.AddToCart };
             }
             return Checkout.States.Stopped;
         } else {
             // run restocks for the one size..
             this._logger.info('Running for Restocks');
-            return Checkout.States.Restock;
+            return { message: 'Running for Restocks', nextState: Checkout.States.Restock };
         }
     }
 
@@ -258,19 +259,19 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Starting Shipping...')
         let opts = await this._shipping.getShippingOptions();
         if (opts.errors) {
-            return { errors: opts.errors };
+            return { message: 'Failed: getting shipping rates', nextState: Checkout.States.Stopped };
         }
         this._authToken = opts.newAuthToken;
 
         if (opts.captcha) {
             this._logger.info('Requesting to solve captcha...');
-            return Checkout.States.RequestCaptcha;
+            return { message: 'Waiting for Captcha', nextState: Checkout.States.RequestCaptcha };
         }
 
         this._logger.verbose('Captcha Bypassed, Proceeding with Shipping...');
-        opts = await this._shipping.submitShippingOptions(this._authToken);
+        opts = await this._shipping.submitShippingOptions(this._authToken, '');
         if (opts.errors) {
-            return { errors: opts.errors };
+            return { message: 'Failed: submitting shipping', nextState: Checkout.States.Stopped };
         }
 
         this._shippingOpts = {
@@ -279,7 +280,7 @@ class Checkout {
             authToken: opts.authToken,
         }
 
-        return Checkout.States.PostShipping;
+        return { message: 'Posting shipping', nextState: Checkout.States.PostShipping };
     }
 
     /**
@@ -292,7 +293,7 @@ class Checkout {
 
         let opts = await this._shipping.submitShippingOptions(this._authToken, token);
         if (opts.errors) {
-            return { errors: opts.errors };
+            return { message: 'Failed: submitting shipping', nextState: Checkout.States.Stopped };
         }
 
         this._shippingOpts = {
@@ -302,7 +303,7 @@ class Checkout {
         }
 
         this._context.stopHarvestCaptcha();
-        return Checkout.States.PostShipping;
+        return { message: 'Posting shipping', nextState: Checkout.States.PostShipping };
     }
 
     /**
@@ -313,7 +314,7 @@ class Checkout {
         let { type, value, authToken } = this._shippingOpts;
         let res = await this._shipping.submitShipping(type, value, authToken);
         if (res.errors) {
-            return { errors: res.errors };
+            return { message: 'Failed: posting shipping', nextState: Checkout.States.Stopped };
         }
         
         if (res.paymentGateway && res.newAuthToken) {
@@ -333,10 +334,10 @@ class Checkout {
                 this._shippingValue,
                 this._captchaResponse,
             );
-            return Checkout.States.Payment;
+            return { message: 'Posting payment', nextState: Checkout.States.Payment };
         }
         this._logger.info('Unable to submit shipping!');
-        return Checkout.States.Stopped;
+        return { message: 'Failed: posting shipping', nextState: Checkout.States.Stopped };
     }
 
     /**
@@ -347,26 +348,31 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Submitting Payment...');
         const res = await this._payment.submit();
         if (res.errors) {
+            // TODO - not sure if this needs to return { nextState: Checkout.States.Stopped } at all, haven't been able to reach here.
             throw new Error(res.errors);
         }
 
         if (res === this._payment.PAYMENT_STATES.Error) {
-            return Checkout.States.Stopped;
+            this._context.status = 'Failed: submitting payment';
+            return { message: this._context.status, nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
-            return Checkout.States.Stopped;
+            this._context.status = 'Success: Payment processing, check email';
+            return { message: this._context.status, nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Declined) {
-            return Checkout.States.PaymentError;
+            this._context.status = 'Failed: payment declined';
+            return { message: this._context.status, nextState: Checkout.States.PaymentError };
         } else if (res === this._payment.PAYMENT_STATES.Success) {
-            return Checkout.States.Stopped; 
+            this._context.status = 'Success: payment processed';
+            return { message: this._context.status, nextState: Checkout.States.Stopped };
         } else {
-            return Checkout.States.Stopped;
+            this._context.status = 'Failed: unknown error, please send logs';
+            return { message: this._context.status, nextState: Checkout.States.Stopped };
         }
     }
 
     async _handleStopped() {
         this._logger.verbose('CHECKOUT: Stopping checkout process...');
-        return Checkout.States.Stopped;
-        // TODO - handle a clean shut down..
+        return { message: 'Stopping task...', nextState: Checkout.States.Stopped };
     }
 
     async _handleStepLogic(currentState) {
@@ -394,26 +400,30 @@ class Checkout {
     }
 
     async run() {
-        const nextState =  await this._handleStepLogic(this._state);
-        this._logger.verbose('CHECKOUT: Next State chosen as: %s', nextState);
-        if(nextState.errors) {
-            this._logger.verbose('CHECKOUT: Completed with errors: %j', nextState.errors);
+        const res = await this._handleStepLogic(this._state);
+        this._logger.verbose('CHECKOUT: Next State chosen as: %s', res.nextState);
+        if (res.nextState === Checkout.States.Error) {
+            this._logger.verbose('CHECKOUT: Completed with errors: %j', res.errors);
             return {
-                nextState: States.Checkout,
-                errors: nextState.errors,
+                message: res.errors,
+                nextState: States.Stopped,
             }
+        } else if (res) {
+            this._state = res.nextState;
         }
-        this._state = nextState;
+
         if (this._state !== Checkout.States.Stopped &&
             this._state !== Checkout.States.PaymentProcessing &&
             this._state !== Checkout.States.Error) {
             return {
+                message: res.message,
                 nextState: States.Checkout,
             }
         }
+        
         return {
-            nextState: States.Finished,
-            errors: null,
+            message: res.message,
+            nextState: States.Stopped,
         }
 
     }

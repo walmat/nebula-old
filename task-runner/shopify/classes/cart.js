@@ -53,7 +53,6 @@ class Cart {
         return this._request({
             uri: `${this._task.site.url}/cart/add.js`,
             resolveWithFullResponse: true,
-            rejectUnauthorized: false,
             followAllRedirects: true,
             simple: false,
             json: true,
@@ -87,7 +86,7 @@ class Cart {
             }
         })
         .catch((err) => {
-            this._logger.debug('CART: Error in add to cart: %s', res.body.description);
+            this._logger.debug('CART: Error in add to cart: %s', err);
             return {
                 errors: err,
             }
@@ -101,7 +100,6 @@ class Cart {
             uri: `${this._task.site.url}//checkout.json`,
             method: 'get',
             proxy: formatProxy(this._proxy),
-            rejectUnauthorized: false,
             followAllRedirects: true,
             simple: true,
             json: false,
@@ -146,7 +144,6 @@ class Cart {
         return this._request({
             uri: `${this._task.site.url}/cart/clear.js`,
             proxy: formatProxy(this._proxy),
-            rejectUnauthorized: false,
             followAllRedirects: true,
             json: true,
             method: 'POST',
@@ -187,7 +184,6 @@ class Cart {
         return this._request({
             uri: `${this._task.site.url}/cart/shipping_rates.json`,
             proxy: formatProxy(this._proxy),
-            rejectUnauthorized: false,
             followAllRedirects: true,
             method: 'get',
             headers: {
@@ -231,7 +227,6 @@ class Cart {
             uri: `https://elb.deposit.shopifycs.com/sessions`,
             followAllRedirects: true,
             proxy: formatProxy(this._proxy),
-            rejectUnauthorized: false,
             method: 'post',
             headers: {
                 'User-Agent': userAgent,

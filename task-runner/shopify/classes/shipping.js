@@ -42,7 +42,6 @@ class Shipping {
         this._aborted = this._context.aborted;
         this._logger = this._context.logger;
 
-        this._captchaResponse = '';
     }
 
     getShippingOptions() {
@@ -52,7 +51,6 @@ class Shipping {
             uri: `${this._checkoutUrl}`,
             method: 'get',
             proxy: formatProxy(this._proxy),
-            rejectUnauthorized: false,
             resolveWithFullResponse: true,
             followAllRedirects: true,
             simple: false,
@@ -63,14 +61,18 @@ class Shipping {
                 Referer: `${this._task.site.url}/cart`,
             },
             qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
-            transform: function(body) {
-                return cheerio.load(body);
-            }
+            // TODO - revert back once testing is done
+            // transform: function(body) {
+            //     return cheerio.load(body);
+            // }
         })
-        .then(($) => {
+        .then((res) => {
+            const $ = cheerio.load(res.body);
+            fs.writeFileSync(path.join(__dirname, 'debug-1.html'), res.body);
             const recaptchaFrame = $('#g-recaptcha');
             const newAuthToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
             this._logger.verbose('SHIPPING: Finished Getting Shipping Options Form');
+
             if (recaptchaFrame.length) {
                 this._logger.debug('SHIPPING: Captcha Found in Shipping Form');
                 return {
@@ -97,7 +99,6 @@ class Shipping {
             uri: `${this._checkoutUrl}`,
             method: 'post',
             proxy: formatProxy(this._proxy),
-            rejectUnauthorized: false,
             followAllRedirects: true,
             resolveWithFullResponse: true,
             simple: false,
@@ -107,37 +108,42 @@ class Shipping {
                 'User-Agent': userAgent,
                 Referer: `${this._checkoutUrl}`,
             },
-            formData: buildShippingForm(this._task, newAuthToken, captchaResponse || '', 'shipping_method', 'contact_information'),
-            transform: function(body) {
-                return cheerio.load(body);
-            }
+            formData: buildShippingForm(this._task, newAuthToken, captchaResponse, 'shipping_method', 'contact_information'),
+            // TODO - revert back once testing is done
+            // transform: function(body) {
+            //     return cheerio.load(body);
+            // }
         })
-        .then(($) => {
+        .then((res) => {
+            const $ = cheerio.load(res.body);
             const shippingPollUrl = $('div[data-poll-refresh="[data-step=shipping_method]"]').attr('data-poll-target');
-                this._timer.stop(now());
-                this._logger.info('Submitted shipping options in %d ms', this._timer.getRunTime());
-                if (shippingPollUrl === undefined) {
-                    const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
-                    if (firstShippingOption == undefined) {
-                        this._logger.info('%s is incompatible, sorry for the inconvenience', this._task.site.url);
-                        return {
-                            errors: `Site is incompatible.`,
-                        };
-                    } else {
-                        this._logger.debug('SHIPPING: Direct Shipping Method Chosen');
-                        return {
-                            type: 'direct',
-                            value: firstShippingOption,
-                            authToken: $('input[name="authenticity_token"]').val()
-                        };
-                    }
+            this._timer.stop(now());
+
+            fs.writeFileSync(path.join(__dirname, 'debug.html'), res.body);
+            this._logger.info('Submitted shipping options in %d ms', this._timer.getRunTime());
+            if (shippingPollUrl === undefined) {
+                const firstShippingOption = $('div.content-box__row .radio-wrapper').attr('data-shipping-method');
+                if (firstShippingOption == undefined) {
+                    this._logger.info('%s is incompatible, sorry for the inconvenience', this._task.site.url);
+                    return {
+                        errors: `Unable to find shipping options`,
+                    };
+                } else {
+                    this._timer.stop(now());
+                    this._logger.debug('SHIPPING: Direct Shipping Method Chosen');
+                    return {
+                        type: 'direct',
+                        value: firstShippingOption,
+                        authToken: $('input[name="authenticity_token"]').val()
+                    };
                 }
-                this._logger.debug('SHIPPING: Poll Shipping Method Chosen');
-                return {
-                    type: 'poll',
-                    value: shippingPollUrl,
-                    authToken: '',
-                }
+            }
+            this._logger.debug('SHIPPING: Poll Shipping Method Chosen');
+            return {
+                type: 'poll',
+                value: shippingPollUrl,
+                authToken: '',
+            }
         })
         .catch((err) => {
             this._logger.debug('Error submitting shipping options: %s', err);
@@ -157,7 +163,6 @@ class Shipping {
                 followAllRedirects: true,
                 resolveWithFullResponse: true,
                 proxy: formatProxy(this._proxy),
-                rejectUnauthorized: false,
                 simple: false,
                 method: 'get',
                 headers: {
@@ -177,7 +182,6 @@ class Shipping {
                     followAllRedirects: true,
                     resolveWithFullResponse: true,
                     proxy: formatProxy(this._proxy),
-                    rejectUnauthorized: false,
                     method: 'post',
                     headers: {
                         'User-Agent': userAgent,
@@ -214,7 +218,6 @@ class Shipping {
                 followAllRedirects: true,
                 resolveWithFullResponse: true,
                 proxy: formatProxy(this._proxy),
-                rejectUnauthorized: false,
                 method: 'post',
                 headers: {
                     'User-Agent': userAgent,
@@ -232,7 +235,6 @@ class Shipping {
                     method: 'get',
                     followAllRedirects: true,
                     proxy: formatProxy(this._proxy),
-                    rejectUnauthorized: false,
                     headers: {
                         'User-Agent': userAgent,
                         'Content-Type': 'application/x-www-form-urlencoded',

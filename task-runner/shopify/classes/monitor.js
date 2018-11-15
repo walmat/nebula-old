@@ -6,7 +6,7 @@ const rp = require('request-promise').defaults({
 });
 
 const { AtomParser, JsonParser, XmlParser } = require('./parsers');
-const { formatProxy, userAgent, rfrl } = require('./utils');
+const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 const { ParseType, getParseType } = require('./utils/parse');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
@@ -26,17 +26,14 @@ class Monitor {
         this._logger = this._context.logger;
     }
 
-    _waitForDelay(delay) {
-        this._logger.silly('MONITOR: Waiting for %d ms...', delay);
-        return new Promise(resolve => setTimeout(resolve, delay));
-    };
-
     _waitForRefreshDelay() {
-        return this._waitForDelay(this._context.task.monitorDelay);
+        this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.monitorDelay);
+        return waitForDelay(this._context.task.monitorDelay);
     }
 
     _waitForErrorDelay() {
-        return this._waitForDelay(this._context.task.errorDelay);
+        this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.errorDelay);
+        return waitForDelay(this._context.task.errorDelay);
     }
 
     // ASSUMPTION: this method is only called when we know we have to 
@@ -53,7 +50,7 @@ class Monitor {
         }
         await delay.call(this);
         this._logger.info('Monitoring not complete, remonitoring...');
-        return States.Monitor;
+        return { message: `Delaying ${delay}`, nextState: States.Monitor };
     }
 
     _parseAll() {
@@ -99,7 +96,7 @@ class Monitor {
             let checkStatus;
             if (checkStatus = statuses.find(s => s === 403 || s === 429)) {
                 this._logger.info('Proxy was Banned, swapping proxies...');
-                return States.SwapProxies;
+                return { message: 'Soft ban detected, attempting to swap proxies', nextState: States.SwapProxies };
             } else if (checkStatus = statuses.find(s => s >= 400)) {
                 return this._delay(checkStatus);
             }
@@ -109,9 +106,10 @@ class Monitor {
         const variants = this._generateValidVariants(parsed);
         this._logger.verbose('MONITOR: Variants Generated, updating context...');
         this._context.task.product.variants = variants;
+        this._context.task.product.name = capitalizeFirstLetter(parsed.title);
         this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
-        return States.Checkout;
-    }
+        return { message: `Found product: ${this._context.task.product.name}`, nextState: States.Checkout };
+        }
 
     async _monitorUrl() {
         const { url } = this._context.task.product;
@@ -139,8 +137,9 @@ class Monitor {
             this._context.task.product.variants = variants;
 
             // Everything is setup -- kick it to checkout
-            this._logger.verbose('MONTIR: Status is OK, proceeding to checkout');
-            return States.Checkout;
+            this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
+            this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
+            return { message: `Found product: ${this._context.task.product.name}`, nextState: States.Checkout };
         } catch (error) {
             // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
             this._logger.debug('MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...', url, error.statusCode);
@@ -161,22 +160,20 @@ class Monitor {
                 this._logger.verbose('MONITOR: Variant Parsing Detected');
                 this._context.task.product.variants = [this._context.task.product.variant];
                 this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
-                return { nextState: States.Checkout };
+                return { message: 'Adding to cart', nextState: States.Checkout };
             }
             case ParseType.Url: {
                 this._logger.verbose('MONITOR: Url Parsing Detected');
-                const nextState = await this._monitorUrl();
-                return { nextState };
+                return this._monitorUrl();
             }
             case ParseType.Keywords: {
                 this._logger.verbose('MONITOR: Keyword Parsing Detected');
-                const nextState = await this._monitorKeywords();
-                return { nextState };
+                return this._monitorKeywords();;
             }
             default: {
                 this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
                 await this._waitForErrorDelay();
-                return { nextState: States.Monitor };
+                return { message: 'Monitoring...', nextState: States.Monitor };
             }
         }
     }

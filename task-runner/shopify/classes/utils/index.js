@@ -13,6 +13,11 @@ const formatter = new Intl.NumberFormat('en-US', {
 });
 module.exports.formatter = formatter;
 
+function waitForDelay(delay) {
+    return new Promise(resolve => setTimeout(resolve, delay));
+}
+module.exports.waitForDelay = waitForDelay;
+
 /**
  * Formats the proxy correctly to be used in a request
  * @param {*} input - IP:PORT:USER:PASS || IP:PORT
@@ -61,6 +66,14 @@ function trimKeywords(input) {
     return ret;
 }
 module.exports.trimKeywords = trimKeywords;
+
+function capitalizeFirstLetter(word) {
+    return word.toLowerCase()
+    .split(' ')
+    .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+    .join(' ');
+}
+module.exports.capitalizeFirstLetter = capitalizeFirstLetter;
 
 // Add in utils from other files
 module.exports.rfrl = rfrl;
