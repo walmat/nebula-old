@@ -46,7 +46,7 @@ function resolveFirstRejectLast(promises, tag, logger) {
           errorCount += 1;
           if (errorCount >= status.errors.length && !status.winner) {
             _logger.log('silly', '[ASYNC] RFRL%s - %d: Final error detected, rejecting.', tagStr, idx);
-            reject(status);
+            reject(status.errors);
           } else {
             _logger.log('silly', '[ASYNC] RFRL%s - %d: Not the final error, there\'s still hope!', tagStr, idx);
           }

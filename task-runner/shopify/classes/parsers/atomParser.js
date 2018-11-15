@@ -21,8 +21,7 @@ class AtomParser extends JsonParser {
    * @param {Logger} (optional) A logger to log messages to
    */
   constructor(task, proxy, logger) {
-    this._name = 'AtomParser';
-    super(task, proxy, logger);
+    super(task, proxy, logger, 'AtomParser');
   }
 
   async run () {

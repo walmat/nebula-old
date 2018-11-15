@@ -111,7 +111,7 @@ module.exports.filterAndLimit = filterAndLimit;
  * @param {List} products list of products to search
  * @param {String} variantId the variant id to match
  */
-function matchVariant(products, variantId) {
+function matchVariant(products, variantId, logger) {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Starting variant matching for variant: %s', variantId);
   if (!products) {
@@ -161,7 +161,7 @@ module.exports.matchVariant = matchVariant;
  * @param {Object} keywords an object containing two arrays of strings (`pos` and `neg`)
  * @see filterAndLimit
  */
-function matchKeywords(products, keywords, filter) {
+function matchKeywords(products, keywords, filter, logger) {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Starting keyword matching for keywords: %s', JSON.stringify(keywords, null, 2));
   if (!products) {
@@ -209,12 +209,12 @@ function matchKeywords(products, keywords, filter) {
     _logger.log('silly', 'Searched %d products. %d Products Found', products.length, matches.length, JSON.stringify(matches.map(({ title }) => title), null, 2));
     if (filter && filter.sorter && filter.limit) {
       _logger.log('silly', 'Using given filtering heuristic on the products...');
-      filtered = filterAndLimit(matches, filter.sorter, filter.limit);
+      filtered = filterAndLimit(matches, filter.sorter, filter.limit, this._logger);
       _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
       return filtered[0];
     }
     _logger.log('silly', 'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...');
-    filtered = filterAndLimit(matches, 'updated_at', -1);
+    filtered = filterAndLimit(matches, 'updated_at', -1, this._logger);
     _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
     return filtered[0];
   }

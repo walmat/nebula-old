@@ -20,8 +20,7 @@ class XmlParser extends JsonParser {
    * @param {Proxy} the proxy to use when making requests
    */
   constructor(task, proxy, logger) {
-    this._name = 'XmlParser';
-    super(task, proxy, logger);
+    super(task, proxy, logger, 'XmlParser');
   }
 
   async run () {

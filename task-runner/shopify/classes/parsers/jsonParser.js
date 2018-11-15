@@ -85,14 +85,14 @@ class JsonParser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(task, proxy, logger) {
+  constructor(task, proxy, logger, name) {
     this._logger = logger || { log: () => {} };
-    this._name = this._name || 'JsonParser';
-    this._log('silly', '%s: constructing...', this._name);
+    this._name = name || 'JsonParser';
+    this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
     this._task = task;
     this._type = utils.getParseType(task.product);
-    this._log('silly', '%s: constructed', this._name);
+    this._logger.log('silly', '%s: constructed', this._name);
   }
 
   async run() {
@@ -138,7 +138,7 @@ class JsonParser {
     switch(this._type) {
       case utils.ParseType.Variant: {
         this._logger.silly('%s: parsing type %s detected', this._name, this._type);
-        const product = utils.matchVariant(products, this._task.product.variant);
+        const product = utils.matchVariant(products, this._task.product.variant, this._logger);
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           throw new Error('ProductNotFound');
@@ -152,7 +152,7 @@ class JsonParser {
           pos: this._task.product.pos_keywords,
           neg: this._task.product.neg_keywords,
         };
-        const product = utils.matchKeywords(products, keywords); // no need to use a custom filter at this point...
+        const product = utils.matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           throw new Error('ProductNotFound');
