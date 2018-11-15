@@ -1,0 +1,872 @@
+{ level: 'verbose',
+  message: 'Handling state: STARTED',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.167Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'STARTED' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: STARTED","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.167Z"}' }
+{ level: 'verbose',
+  message: 'Event TASK_STATUS emitted: {"message":"Starting task..."}',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.168Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'TASK_STATUS', { message: 'Starting task...' } ],
+  [Symbol(message)]: '{"level":"verbose","message":"Event TASK_STATUS emitted: {\\"message\\":\\"Starting task...\\"}","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.168Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: GEN_ALT_CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.168Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'GEN_ALT_CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: GEN_ALT_CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.168Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: GEN_ALT_CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.169Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'GEN_ALT_CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: GEN_ALT_CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.169Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: MONITOR',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.180Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'MONITOR' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: MONITOR","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.180Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: MONITOR',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.180Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'MONITOR' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: MONITOR","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.180Z"}' }
+{ level: 'silly',
+  message: 'Determining Parse Type for Product...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.181Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(message)]: '{"level":"silly","message":"Determining Parse Type for Product...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.181Z"}' }
+{ level: 'silly',
+  message: 'Parse Type Determined as KEYWORDS',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.181Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'KEYWORDS' ],
+  [Symbol(message)]: '{"level":"silly","message":"Parse Type Determined as KEYWORDS","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.181Z"}' }
+{ message: 'MONITOR: Keyword Parsing Detected',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.182Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"MONITOR: Keyword Parsing Detected","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.182Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: constructing...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.182Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: constructing...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.182Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: constructed',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.182Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: constructed","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.182Z"}' }
+{ level: 'silly',
+  message: 'JsonParser: constructing...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.183Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'JsonParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"JsonParser: constructing...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.183Z"}' }
+{ level: 'silly',
+  message: 'JsonParser: constructed',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.183Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'JsonParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"JsonParser: constructed","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.183Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: constructing...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.183Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: constructing...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.183Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: constructed',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.184Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: constructed","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.184Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: starting run...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.184Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: starting run...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.184Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: Making request for https://kith.com/collections/all.atom ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.185Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser', 'https://kith.com' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: Making request for https://kith.com/collections/all.atom ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.185Z"}' }
+{ level: 'silly',
+  message: 'JsonParser: Starting run...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.188Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'JsonParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"JsonParser: Starting run...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.188Z"}' }
+{ level: 'silly',
+  message: 'JsonParser: Making request for https://kith.com/products.json ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.188Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'JsonParser', 'https://kith.com' ],
+  [Symbol(message)]: '{"level":"silly","message":"JsonParser: Making request for https://kith.com/products.json ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.188Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: starting run...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.191Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: starting run...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.191Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: Making request for https://kith.com/sitemap_products_1.xml ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.191Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser', 'https://kith.com' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: Making request for https://kith.com/sitemap_products_1.xml ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.191Z"}' }
+{ level: 'silly',
+  message: 'RFRL - parseAll: Starting...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.193Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll' ],
+  [Symbol(message)]: '{"level":"silly","message":"RFRL - parseAll: Starting...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.193Z"}' }
+{ level: 'silly',
+  message: '[ASYNC] RFRL - parseAll: Attaching Handlers...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.193Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll' ],
+  [Symbol(message)]: '{"level":"silly","message":"[ASYNC] RFRL - parseAll: Attaching Handlers...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.193Z"}' }
+{ level: 'silly',
+  message: 'RFRL - parseAll: Sync work done, waiting on promises...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.194Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll' ],
+  [Symbol(message)]: '{"level":"silly","message":"RFRL - parseAll: Sync work done, waiting on promises...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.194Z"}' }
+{ level: 'silly',
+  message: 'JsonParser: ERROR making request!',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.315Z',
+  meta: 
+   { RequestError: Error: socket hang up
+    at new RequestError (/Users/Matt/Downloads/nebula/task-runner/node_modules/request-promise-core/lib/errors.js:14:15)
+    at Request.plumbing.callback (/Users/Matt/Downloads/nebula/task-runner/node_modules/request-promise-core/lib/plumbing.js:87:29)
+    at Request.RP$callback [as _callback] (/Users/Matt/Downloads/nebula/task-runner/node_modules/request-promise-core/lib/plumbing.js:46:31)
+    at self.callback (/Users/Matt/Downloads/nebula/task-runner/node_modules/request/request.js:185:22)
+    at emitOne (events.js:116:13)
+    at Request.emit (events.js:211:7)
+    at Request.onRequestError (/Users/Matt/Downloads/nebula/task-runner/node_modules/request/request.js:881:8)
+    at emitOne (events.js:121:20)
+    at ClientRequest.emit (events.js:211:7)
+    at TLSSocket.socketOnEnd (_http_client.js:423:9)
+    at emitNone (events.js:111:20)
+    at TLSSocket.emit (events.js:208:7)
+    at endReadableNT (_stream_readable.js:1056:12)
+    at _combinedTickCallback (internal/process/next_tick.js:138:11)
+    at process._tickCallback (internal/process/next_tick.js:180:9)
+From previous event:
+    at Request.plumbing.init (/Users/Matt/Downloads/nebula/task-runner/node_modules/request-promise-core/lib/plumbing.js:36:28)
+    at Request.RP$initInterceptor [as init] (/Users/Matt/Downloads/nebula/task-runner/node_modules/request-promise-core/configure/request2.js:41:27)
+    at new Request (/Users/Matt/Downloads/nebula/task-runner/node_modules/request/request.js:127:8)
+    at request (/Users/Matt/Downloads/nebula/task-runner/node_modules/request/index.js:53:10)
+    at /Users/Matt/Downloads/nebula/task-runner/node_modules/request/index.js:100:12
+    at JsonParser.run (/Users/Matt/Downloads/nebula/task-runner/shopify/classes/parsers/jsonParser.js:103:30)
+    at parsers.map.p (/Users/Matt/Downloads/nebula/task-runner/shopify/classes/monitor.js:65:22)
+    at Array.map (<anonymous>)
+    at Monitor._parseAll (/Users/Matt/Downloads/nebula/task-runner/shopify/classes/monitor.js:65:11)
+    at Monitor._monitorKeywords (/Users/Matt/Downloads/nebula/task-runner/shopify/classes/monitor.js:93:33)
+    at Monitor.run (/Users/Matt/Downloads/nebula/task-runner/shopify/classes/monitor.js:173:46)
+    at TaskRunner._handleMonitor (/Users/Matt/Downloads/nebula/task-runner/shopify/taskRunner.js:214:41)
+    at TaskRunner._handleStepLogic (/Users/Matt/Downloads/nebula/task-runner/shopify/taskRunner.js:286:30)
+    at TaskRunner.start (/Users/Matt/Downloads/nebula/task-runner/shopify/taskRunner.js:297:38)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7)
+     name: 'RequestError',
+     message: 'Error: socket hang up',
+     cause: { Error: socket hang up
+    at createHangUpError (_http_client.js:331:15)
+    at TLSSocket.socketOnEnd (_http_client.js:423:23)
+    at emitNone (events.js:111:20)
+    at TLSSocket.emit (events.js:208:7)
+    at endReadableNT (_stream_readable.js:1056:12)
+    at _combinedTickCallback (internal/process/next_tick.js:138:11)
+    at process._tickCallback (internal/process/next_tick.js:180:9) code: 'ECONNRESET' },
+     error: { Error: socket hang up
+    at createHangUpError (_http_client.js:331:15)
+    at TLSSocket.socketOnEnd (_http_client.js:423:23)
+    at emitNone (events.js:111:20)
+    at TLSSocket.emit (events.js:208:7)
+    at endReadableNT (_stream_readable.js:1056:12)
+    at _combinedTickCallback (internal/process/next_tick.js:138:11)
+    at process._tickCallback (internal/process/next_tick.js:180:9) code: 'ECONNRESET' },
+     options: 
+      { timeout: 10000,
+        jar: 
+         RequestJar {
+           _jar: 
+            CookieJar {
+              enableLooseMode: true,
+              store: { idx: { 'kith.com': 
+   { '/': 
+      { _shopify_y: Cookie="_shopify_y=d67ee22a-75ff-4774-ad1b-96ee7a6ab40b; Expires=Sat, 14 Nov 2020 14:49:24 GMT; Path=/; hostOnly=true; aAge=125ms; cAge=137326ms",
+        secure_customer_sig: Cookie="secure_customer_sig=; Expires=Mon, 15 Nov 2038 03:11:01 GMT; Path=/; Secure; HttpOnly; hostOnly=true; aAge=125ms; cAge=137326ms",
+        cart_sig: Cookie="cart_sig=; Expires=Thu, 29 Nov 2018 03:11:01 GMT; Path=/; HttpOnly; hostOnly=true; aAge=125ms; cAge=137326ms" } } } } } },
+        method: 'GET',
+        uri: 'https://kith.com/products.json',
+        rejectUnauthorized: false,
+        json: false,
+        simple: true,
+        gzip: true,
+        headers: 
+         { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36' },
+        callback: [Function: RP$callback],
+        transform: undefined,
+        resolveWithFullResponse: false,
+        transform2xxOnly: false },
+     response: undefined },
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'JsonParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"JsonParser: ERROR making request!","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.315Z","meta":{"name":"RequestError","message":"Error: socket hang up","cause":{"code":"ECONNRESET"},"error":{"code":"ECONNRESET"},"options":{"timeout":10000,"jar":{"_jar":{"version":"tough-cookie@2.4.3","storeType":"MemoryCookieStore","rejectPublicSuffixes":true,"cookies":[{"key":"_shopify_y","value":"d67ee22a-75ff-4774-ad1b-96ee7a6ab40b","expires":"2020-11-14T14:49:24.000Z","domain":"kith.com","path":"/","hostOnly":true,"creation":"2018-11-15T03:11:00.990Z","lastAccessed":"2018-11-15T03:13:18.191Z"},{"key":"secure_customer_sig","expires":"2038-11-15T03:11:01.000Z","domain":"kith.com","path":"/","secure":true,"httpOnly":true,"hostOnly":true,"creation":"2018-11-15T03:11:00.990Z","lastAccessed":"2018-11-15T03:13:18.191Z"},{"key":"cart_sig","expires":"2018-11-29T03:11:01.000Z","domain":"kith.com","path":"/","httpOnly":true,"hostOnly":true,"creation":"2018-11-15T03:11:00.990Z","lastAccessed":"2018-11-15T03:13:18.191Z"}]}},"method":"GET","uri":"https://kith.com/products.json","rejectUnauthorized":false,"json":false,"simple":true,"gzip":true,"headers":{"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36"},"resolveWithFullResponse":false,"transform2xxOnly":false}}}' }
+{ level: 'silly',
+  message: '[ASYNC] RFRL - parseAll - 1: REJECTED',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.317Z',
+  meta: { Error: unable to make request
+    at JsonParser.run (/Users/Matt/Downloads/nebula/task-runner/shopify/classes/parsers/jsonParser.js:118:23)
+    at <anonymous> status: 404 },
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll', 1 ],
+  [Symbol(message)]: '{"level":"silly","message":"[ASYNC] RFRL - parseAll - 1: REJECTED","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.317Z","meta":{"status":404}}' }
+{ level: 'silly',
+  message: '[ASYNC] RFRL - parseAll - 1: Not the final error, there\'s still hope!',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.318Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll', 1 ],
+  [Symbol(message)]: '{"level":"silly","message":"[ASYNC] RFRL - parseAll - 1: Not the final error, there\'s still hope!","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.318Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: Received Response, attempting to translate structure...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.478Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: Received Response, attempting to translate structure...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.478Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: Translated Structure, attempting to match',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.478Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: Translated Structure, attempting to match","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.478Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: starting parse...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.479Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: starting parse...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.479Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: parsing type KEYWORDS detected',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.479Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser', 'KEYWORDS' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: parsing type KEYWORDS detected","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.479Z"}' }
+{ level: 'silly',
+  message: 'AtomParser: Unable to find matching product! throwing error',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.480Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'AtomParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"AtomParser: Unable to find matching product! throwing error","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.480Z"}' }
+{ level: 'silly',
+  message: '[ASYNC] RFRL - parseAll - 0: REJECTED',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.480Z',
+  meta: Error: ProductNotFound
+    at AtomParser.match (/Users/Matt/Downloads/nebula/task-runner/shopify/classes/parsers/jsonParser.js:158:17)
+    at AtomParser.run (/Users/Matt/Downloads/nebula/task-runner/shopify/classes/parsers/atomParser.js:68:34)
+    at <anonymous>,
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll', 0 ],
+  [Symbol(message)]: '{"level":"silly","message":"[ASYNC] RFRL - parseAll - 0: REJECTED","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.480Z","meta":{}}' }
+{ level: 'silly',
+  message: '[ASYNC] RFRL - parseAll - 0: Not the final error, there\'s still hope!',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:18.481Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll', 0 ],
+  [Symbol(message)]: '{"level":"silly","message":"[ASYNC] RFRL - parseAll - 0: Not the final error, there\'s still hope!","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:18.481Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: Received Response, attempting to translate structure...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.092Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: Received Response, attempting to translate structure...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.092Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: Translated Structure, attempting to match',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.100Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: Translated Structure, attempting to match","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.100Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: starting parse...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.100Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: starting parse...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.100Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: parsing type KEYWORDS detected',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.101Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser', 'KEYWORDS' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: parsing type KEYWORDS detected","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.101Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: Matching Product found!',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.118Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: Matching Product found!","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.118Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: Product Found! Looking for Variant Info...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.118Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: Product Found! Looking for Variant Info...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.118Z"}' }
+{ level: 'silly',
+  message: 'JsonParser: Getting Full Product Info...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.119Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(message)]: '{"level":"silly","message":"JsonParser: Getting Full Product Info...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.119Z"}' }
+{ level: 'silly',
+  message: 'JsonParser: Requesting https://kith.com/products/ronnie-fieg-x-clarks-shearling-wallabee-purple.(json|oembed) in a race',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.119Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: 
+   [ 'https://kith.com/products/ronnie-fieg-x-clarks-shearling-wallabee-purple' ],
+  [Symbol(message)]: '{"level":"silly","message":"JsonParser: Requesting https://kith.com/products/ronnie-fieg-x-clarks-shearling-wallabee-purple.(json|oembed) in a race","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.119Z"}' }
+{ level: 'silly',
+  message: 'XmlParser: Full Product Info Found! Merging data and Returning.',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.346Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ 'XmlParser' ],
+  [Symbol(message)]: '{"level":"silly","message":"XmlParser: Full Product Info Found! Merging data and Returning.","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.346Z"}' }
+{ level: 'silly',
+  message: '[ASYNC] RFRL - parseAll - 2: RESOLVE',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.347Z',
+  meta: 
+   { url: 'https://kith.com/products/ronnie-fieg-x-clarks-shearling-wallabee-purple',
+     updated_at: '2018-11-14T17:08:45-05:00',
+     title: 'Ronnie Fieg x Clarks Shearling Wallabee - Purple',
+     handle: 'ronnie-fieg-x-clarks-shearling-wallabee-purple',
+     vendor: 'Kith',
+     variants: 
+      [ { title: '6', id: 17395418792005, price: '185' },
+        { title: '6.5', id: 17395418923077, price: '185' },
+        { title: '7', id: 17395419021381, price: '185' },
+        { title: '7.5', id: 17395419152453, price: '185' },
+        { title: '8', id: 17395419250757, price: '185' },
+        { title: '8.5', id: 17395419316293, price: '185' },
+        { title: '9', id: 17395419414597, price: '185' },
+        { title: '9.5', id: 17395419512901, price: '185' },
+        { title: '10', id: 17395419578437, price: '185' },
+        { title: '10.5', id: 17395419643973, price: '185' },
+        { title: '11', id: 17395419709509, price: '185' },
+        { title: '11.5', id: 17395419775045, price: '185' },
+        { title: '12', id: 17395419906117, price: '185' },
+        { title: '12.5', id: 17395420004421, price: '185' },
+        { title: '13', id: 17395420102725, price: '185' },
+        { title: '13.5', id: 17395420201029, price: '185' },
+        { title: '14', id: 17395420266565, price: '185' },
+        { title: '14.5', id: 17395420364869, price: '185' },
+        { title: '15', id: 17395420463173, price: '185' },
+        { title: '40', id: 17395420561477, price: '185' },
+        { title: '41', id: 17395420725317, price: '185' },
+        { title: '42', id: 17395420823621, price: '185' },
+        { title: '43', id: 17395420987461, price: '185' },
+        { title: '44', id: 17395421184069, price: '185' },
+        { title: '45', id: 17395421315141, price: '185' },
+        { title: '46', id: 17395421446213, price: '185' },
+        { title: '47', id: 17395421577285, price: '185' } ] },
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll', 2 ],
+  [Symbol(message)]: '{"level":"silly","message":"[ASYNC] RFRL - parseAll - 2: RESOLVE","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.347Z","meta":{"url":"https://kith.com/products/ronnie-fieg-x-clarks-shearling-wallabee-purple","updated_at":"2018-11-14T17:08:45-05:00","title":"Ronnie Fieg x Clarks Shearling Wallabee - Purple","handle":"ronnie-fieg-x-clarks-shearling-wallabee-purple","vendor":"Kith","variants":[{"title":"6","id":17395418792005,"price":"185"},{"title":"6.5","id":17395418923077,"price":"185"},{"title":"7","id":17395419021381,"price":"185"},{"title":"7.5","id":17395419152453,"price":"185"},{"title":"8","id":17395419250757,"price":"185"},{"title":"8.5","id":17395419316293,"price":"185"},{"title":"9","id":17395419414597,"price":"185"},{"title":"9.5","id":17395419512901,"price":"185"},{"title":"10","id":17395419578437,"price":"185"},{"title":"10.5","id":17395419643973,"price":"185"},{"title":"11","id":17395419709509,"price":"185"},{"title":"11.5","id":17395419775045,"price":"185"},{"title":"12","id":17395419906117,"price":"185"},{"title":"12.5","id":17395420004421,"price":"185"},{"title":"13","id":17395420102725,"price":"185"},{"title":"13.5","id":17395420201029,"price":"185"},{"title":"14","id":17395420266565,"price":"185"},{"title":"14.5","id":17395420364869,"price":"185"},{"title":"15","id":17395420463173,"price":"185"},{"title":"40","id":17395420561477,"price":"185"},{"title":"41","id":17395420725317,"price":"185"},{"title":"42","id":17395420823621,"price":"185"},{"title":"43","id":17395420987461,"price":"185"},{"title":"44","id":17395421184069,"price":"185"},{"title":"45","id":17395421315141,"price":"185"},{"title":"46","id":17395421446213,"price":"185"},{"title":"47","id":17395421577285,"price":"185"}]}}' }
+{ level: 'silly',
+  message: '[ASYNC] RFRL - parseAll - 2: Chosen as WINNER',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.348Z',
+  [Symbol(level)]: 'silly',
+  [Symbol(splat)]: [ ' - parseAll', 2 ],
+  [Symbol(message)]: '{"level":"silly","message":"[ASYNC] RFRL - parseAll - 2: Chosen as WINNER","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.348Z"}' }
+{ level: 'verbose',
+  message: 'MONITOR: Ronnie Fieg x Clarks Shearling Wallabee - Purple retrieved as a matched product',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.348Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'Ronnie Fieg x Clarks Shearling Wallabee - Purple' ],
+  [Symbol(message)]: '{"level":"verbose","message":"MONITOR: Ronnie Fieg x Clarks Shearling Wallabee - Purple retrieved as a matched product","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.348Z"}' }
+{ message: 'MONITOR: Generating variant lists now...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.349Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"MONITOR: Generating variant lists now...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.349Z"}' }
+{ message: 'MONITOR: Variants Generated, updating context...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.349Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"MONITOR: Variants Generated, updating context...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.349Z"}' }
+{ message: 'MONITOR: Status is OK, proceeding to checkout',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.350Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"MONITOR: Status is OK, proceeding to checkout","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.350Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.355Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.355Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.356Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.356Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Handling State: STARTED ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.356Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'STARTED' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Handling State: STARTED ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.356Z"}' }
+{ message: 'CHECKOUT: Starting...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.357Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"CHECKOUT: Starting...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.357Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Next State chosen as: ADD_TO_CART',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.357Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'ADD_TO_CART' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Next State chosen as: ADD_TO_CART","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.357Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.358Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.358Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.359Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.359Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Handling State: ADD_TO_CART ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.359Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'ADD_TO_CART' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Handling State: ADD_TO_CART ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.359Z"}' }
+{ message: 'CHECKOUT: Adding to Cart...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.360Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"CHECKOUT: Adding to Cart...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.360Z"}' }
+{ message: 'Starting add to cart...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.360Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"Starting add to cart...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.360Z"}' }
+{ level: 'info',
+  message: 'Added to cart in 281.08 ms',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.641Z',
+  [Symbol(level)]: 'info',
+  [Symbol(splat)]: [ '281.080' ],
+  [Symbol(message)]: '{"level":"info","message":"Added to cart in 281.08 ms","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.641Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Next State chosen as: GENERATE_PAYMENT_TOKEN',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.642Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'GENERATE_PAYMENT_TOKEN' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Next State chosen as: GENERATE_PAYMENT_TOKEN","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.642Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.642Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.642Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.642Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.642Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Handling State: GENERATE_PAYMENT_TOKEN ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.643Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'GENERATE_PAYMENT_TOKEN' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Handling State: GENERATE_PAYMENT_TOKEN ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.643Z"}' }
+{ message: 'CHECKOUT: Generating Payment Token...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.643Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"CHECKOUT: Generating Payment Token...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.643Z"}' }
+{ message: 'Getting Payment Token...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.643Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"Getting Payment Token...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.643Z"}' }
+{ level: 'info',
+  message: 'Got payment token in 186.026 ms',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.829Z',
+  [Symbol(level)]: 'info',
+  [Symbol(splat)]: [ '186.026' ],
+  [Symbol(message)]: '{"level":"info","message":"Got payment token in 186.026 ms","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.829Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Next State chosen as: PROCEED_TO_CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.830Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'PROCEED_TO_CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Next State chosen as: PROCEED_TO_CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.830Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.831Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.831Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.832Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.832Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Handling State: PROCEED_TO_CHECKOUT ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.832Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'PROCEED_TO_CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Handling State: PROCEED_TO_CHECKOUT ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.832Z"}' }
+{ message: 'CHECKOUT: Proceeding to Checkout...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.833Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"CHECKOUT: Proceeding to Checkout...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.833Z"}' }
+{ message: 'Starting proceed to checkout request...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:19.833Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"Starting proceed to checkout request...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:19.833Z"}' }
+{ level: 'info',
+  message: 'Got to checkout in 1356.366 ms',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:21.189Z',
+  [Symbol(level)]: 'info',
+  [Symbol(splat)]: [ '1356.366' ],
+  [Symbol(message)]: '{"level":"info","message":"Got to checkout in 1356.366 ms","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:21.189Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Next State chosen as: GET_SHIPPING',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:21.234Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'GET_SHIPPING' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Next State chosen as: GET_SHIPPING","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:21.234Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:21.234Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:21.234Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:21.235Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:21.235Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Handling State: GET_SHIPPING ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:21.235Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'GET_SHIPPING' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Handling State: GET_SHIPPING ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:21.235Z"}' }
+{ message: 'CHECKOUT: Starting Shipping...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:21.235Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"CHECKOUT: Starting Shipping...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:21.235Z"}' }
+{ message: 'SHIPPING: Starting Get Shipping Options Form request...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:21.235Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"SHIPPING: Starting Get Shipping Options Form request...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:21.235Z"}' }
+{ message: 'SHIPPING: Finished Getting Shipping Options Form',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:22.147Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"SHIPPING: Finished Getting Shipping Options Form","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:22.147Z"}' }
+{ message: 'Captcha Bypassed, Proceeding with Shipping...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:22.148Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"Captcha Bypassed, Proceeding with Shipping...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:22.148Z"}' }
+{ message: 'SHIPPING: Starting submit shipping options request...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:22.148Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"SHIPPING: Starting submit shipping options request...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:22.148Z"}' }
+{ level: 'info',
+  message: 'Submitted shipping options in 2127.507 ms',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:23.363Z',
+  [Symbol(level)]: 'info',
+  [Symbol(splat)]: [ '2127.507' ],
+  [Symbol(message)]: '{"level":"info","message":"Submitted shipping options in 2127.507 ms","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:23.363Z"}' }
+{ level: 'info',
+  message: 'https://kith.com is incompatible, sorry for the inconvenience',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:23.364Z',
+  [Symbol(level)]: 'info',
+  [Symbol(splat)]: [ 'https://kith.com' ],
+  [Symbol(message)]: '{"level":"info","message":"https://kith.com is incompatible, sorry for the inconvenience","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:23.364Z"}' }
+{ errors: 'Site is incompatible.',
+  level: 'verbose',
+  message: 'CHECKOUT: Next State chosen as: [object Object]',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:23.365Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ { errors: 'Site is incompatible.' } ],
+  [Symbol(message)]: '{"errors":"Site is incompatible.","level":"verbose","message":"CHECKOUT: Next State chosen as: [object Object]","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:23.365Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Completed with errors: "Site is incompatible."',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:23.365Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'Site is incompatible.' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Completed with errors: \\"Site is incompatible.\\"","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:23.365Z"}' }
+{ level: 'verbose',
+  message: 'Checkout Handler completed with errors: "Site is incompatible."',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:23.366Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'Site is incompatible.' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Checkout Handler completed with errors: \\"Site is incompatible.\\"","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:23.366Z"}' }
+{ level: 'verbose',
+  message: 'Event TASK_STATUS emitted: {"message":"Errors during Checkout! Retrying Monitor...","errors":"Site is incompatible."}',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:23.367Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: 
+   [ 'TASK_STATUS',
+     { message: 'Errors during Checkout! Retrying Monitor...',
+       errors: 'Site is incompatible.' } ],
+  [Symbol(message)]: '{"level":"verbose","message":"Event TASK_STATUS emitted: {\\"message\\":\\"Errors during Checkout! Retrying Monitor...\\",\\"errors\\":\\"Site is incompatible.\\"}","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:23.367Z"}' }
+{ message: 'Waiting for error delay...',
+  level: 'debug',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:23.367Z',
+  [Symbol(level)]: 'debug',
+  [Symbol(message)]: '{"message":"Waiting for error delay...","level":"debug","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:23.367Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:24.869Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:24.869Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:24.870Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:24.870Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Handling State: GET_SHIPPING ...',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:24.870Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'GET_SHIPPING' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Handling State: GET_SHIPPING ...","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:24.870Z"}' }
+{ message: 'CHECKOUT: Starting Shipping...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:24.870Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"CHECKOUT: Starting Shipping...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:24.870Z"}' }
+{ message: 'SHIPPING: Starting Get Shipping Options Form request...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:24.871Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"SHIPPING: Starting Get Shipping Options Form request...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:24.871Z"}' }
+{ message: 'SHIPPING: Finished Getting Shipping Options Form',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:26.795Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"SHIPPING: Finished Getting Shipping Options Form","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:26.795Z"}' }
+{ message: 'Captcha Bypassed, Proceeding with Shipping...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:26.795Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"Captcha Bypassed, Proceeding with Shipping...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:26.795Z"}' }
+{ message: 'SHIPPING: Starting submit shipping options request...',
+  level: 'verbose',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:26.795Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(message)]: '{"message":"SHIPPING: Starting submit shipping options request...","level":"verbose","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:26.795Z"}' }
+{ level: 'info',
+  message: 'Submitted shipping options in 3096.016 ms',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:27.967Z',
+  [Symbol(level)]: 'info',
+  [Symbol(splat)]: [ '3096.016' ],
+  [Symbol(message)]: '{"level":"info","message":"Submitted shipping options in 3096.016 ms","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:27.967Z"}' }
+{ level: 'info',
+  message: 'https://kith.com is incompatible, sorry for the inconvenience',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:27.968Z',
+  [Symbol(level)]: 'info',
+  [Symbol(splat)]: [ 'https://kith.com' ],
+  [Symbol(message)]: '{"level":"info","message":"https://kith.com is incompatible, sorry for the inconvenience","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:27.968Z"}' }
+{ errors: 'Site is incompatible.',
+  level: 'verbose',
+  message: 'CHECKOUT: Next State chosen as: [object Object]',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:27.968Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ { errors: 'Site is incompatible.' } ],
+  [Symbol(message)]: '{"errors":"Site is incompatible.","level":"verbose","message":"CHECKOUT: Next State chosen as: [object Object]","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:27.968Z"}' }
+{ level: 'verbose',
+  message: 'CHECKOUT: Completed with errors: "Site is incompatible."',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:27.969Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'Site is incompatible.' ],
+  [Symbol(message)]: '{"level":"verbose","message":"CHECKOUT: Completed with errors: \\"Site is incompatible.\\"","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:27.969Z"}' }
+{ level: 'verbose',
+  message: 'Checkout Handler completed with errors: "Site is incompatible."',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:27.969Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'Site is incompatible.' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Checkout Handler completed with errors: \\"Site is incompatible.\\"","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:27.969Z"}' }
+{ level: 'verbose',
+  message: 'Event TASK_STATUS emitted: {"message":"Errors during Checkout! Retrying Monitor...","errors":"Site is incompatible."}',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:27.970Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: 
+   [ 'TASK_STATUS',
+     { message: 'Errors during Checkout! Retrying Monitor...',
+       errors: 'Site is incompatible.' } ],
+  [Symbol(message)]: '{"level":"verbose","message":"Event TASK_STATUS emitted: {\\"message\\":\\"Errors during Checkout! Retrying Monitor...\\",\\"errors\\":\\"Site is incompatible.\\"}","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:27.970Z"}' }
+{ message: 'Waiting for error delay...',
+  level: 'debug',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:27.970Z',
+  [Symbol(level)]: 'debug',
+  [Symbol(message)]: '{"message":"Waiting for error delay...","level":"debug","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:27.970Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: CHECKOUT',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:29.471Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'CHECKOUT' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: CHECKOUT","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:29.471Z"}' }
+{ level: 'verbose',
+  message: 'Handling state: ABORTED',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:29.472Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'ABORTED' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Handling state: ABORTED","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:29.472Z"}' }
+{ level: 'verbose',
+  message: 'Event TASK_STATUS emitted: {"message":"Task has aborted!"}',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:29.473Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'TASK_STATUS', { message: 'Task has aborted!' } ],
+  [Symbol(message)]: '{"level":"verbose","message":"Event TASK_STATUS emitted: {\\"message\\":\\"Task has aborted!\\"}","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:29.473Z"}' }
+{ level: 'verbose',
+  message: 'Run Loop finished, state transitioned to: STOPPED',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:29.474Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'STOPPED' ],
+  [Symbol(message)]: '{"level":"verbose","message":"Run Loop finished, state transitioned to: STOPPED","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:29.474Z"}' }
+{ level: 'verbose',
+  message: 'Event TASK_STATUS emitted: {"message":"Task has stopped."}',
+  label: 'TaskRunner-86233552-4105-468d-aec0-d905d0403646',
+  timestamp: '2018-11-15T03:13:29.479Z',
+  [Symbol(level)]: 'verbose',
+  [Symbol(splat)]: [ 'TASK_STATUS', { message: 'Task has stopped.' } ],
+  [Symbol(message)]: '{"level":"verbose","message":"Event TASK_STATUS emitted: {\\"message\\":\\"Task has stopped.\\"}","label":"TaskRunner-86233552-4105-468d-aec0-d905d0403646","timestamp":"2018-11-15T03:13:29.479Z"}' }

@@ -123,7 +123,7 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Starting...');
         // if the site requires authentication, 
         if (this._task.username && this._task.password) {
-            return Checkout.States.LoginAccount;
+            return { message: 'Logging in', nextState: Checkout.States.LoginAccount };
         }
         return { message: `Found product: ${this._task.product.name}`, nextState: Checkout.States.AddToCart };
     }
@@ -169,7 +169,7 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Generating Payment Token...');
         const res = await this._cart.getPaymentToken();
         if (res.errors) {
-            return { message: res.errors, nextState: Checkout.States.Stopped };
+            return { message: 'Failed: generating payment token', nextState: Checkout.States.Stopped };
         }
         if(!res.paymentToken) {
             this._logger.verbose('CHECKOUT: Failed fetching payment token');
@@ -188,7 +188,7 @@ class Checkout {
         const res = await this._cart.proceedToCheckout();
         if (res.errors) {
             this._logger.verbose('CHECKOUT: Errors: %s', res.errors);
-            return { message: res.errors, nextState: Checkout.States.Stopped }; 
+            return { message: 'Failed: unable to get checkout', nextState: Checkout.States.Stopped }; 
         }
 
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
@@ -216,7 +216,10 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Handling Checkout Queue...');
         this._logger.silly('TODO: Need to Implement this!');
         this._waitForDelay(this.DELAYS.CHECKOUT_QUEUE);
-        return Checkout.States.ProceedToCheckout;
+        // return same message to prevent blank log messages
+        // this will make it so `Waiting in queue` is shown until
+        // the queue is over. 
+        return { message: 'Waiting in queue', nextState: Checkout.States.ProceedToCheckout };
     }
 
     /**
@@ -258,7 +261,7 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Starting Shipping...')
         let opts = await this._shipping.getShippingOptions();
         if (opts.errors) {
-            return { message: 'Failed: getting shipping rates, retrying...', nextState: Checkout.States.GetShipping };
+            return { message: 'Failed: getting shipping rates', nextState: Checkout.States.Stopped };
         }
         this._authToken = opts.newAuthToken;
 
@@ -270,7 +273,7 @@ class Checkout {
         this._logger.verbose('Captcha Bypassed, Proceeding with Shipping...');
         opts = await this._shipping.submitShippingOptions(this._authToken, '');
         if (opts.errors) {
-            return { message: opts.errors, nextState: Checkout.States.Stopped };
+            return { message: 'Failed: submitting shipping', nextState: Checkout.States.Stopped };
         }
 
         this._shippingOpts = {
@@ -292,7 +295,7 @@ class Checkout {
 
         let opts = await this._shipping.submitShippingOptions(this._authToken, token);
         if (opts.errors) {
-            return { message: 'Failed: submit shipping', nextState: Checkout.States.Stopped };
+            return { message: 'Failed: submitting shipping', nextState: Checkout.States.Stopped };
         }
 
         this._shippingOpts = {
@@ -315,7 +318,7 @@ class Checkout {
         let { type, value, authToken } = this._shippingOpts;
         let res = await this._shipping.submitShipping(type, value, authToken);
         if (res.errors) {
-            return { message: 'Failed: submit shipping', nextState: Checkout.States.Stopped };
+            return { message: 'Failed: posting shipping', nextState: Checkout.States.Stopped };
         }
         
         if (res.paymentGateway && res.newAuthToken) {
@@ -338,7 +341,7 @@ class Checkout {
             return { message: 'Posting payment', nextState: Checkout.States.Payment };
         }
         this._logger.info('Unable to submit shipping!');
-        return { message: 'Failed: submit shipping', nextState: Checkout.States.Stopped };
+        return { message: 'Failed: posting shipping', nextState: Checkout.States.Stopped };
     }
 
     /**
@@ -349,19 +352,25 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Submitting Payment...');
         const res = await this._payment.submit();
         if (res.errors) {
+            // TODO - not sure if this needs to return { nextState: Checkout.States.Stopped } at all, haven't been able to reach here.
             throw new Error(res.errors);
         }
 
         if (res === this._payment.PAYMENT_STATES.Error) {
-            return { message: 'Failed: submitting payment', nextState: Checkout.States.Stopped };
+            this._task.product.status = 'Failed: submitting payment';
+            return { message: this._task.product.status, nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
-            return { message: 'Success: Payment processing, check email.', nextState: Checkout.States.Stopped };
+            this._task.product.status = 'Success: Payment processing, check email';
+            return { message: this._task.product.status, nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Declined) {
-            return { message: 'Failed: payment declined', nextState: Checkout.States.PaymentError };
+            this._task.product.state = 'Failed: payment declined';
+            return { message: this._task.product.status, nextState: Checkout.States.PaymentError };
         } else if (res === this._payment.PAYMENT_STATES.Success) {
-            return { message: 'Success: payment processed', nextState: Checkout.States.Stopped };
+            this._task.product.state = 'Success: payment processed';
+            return { message: this._task.product.status, nextState: Checkout.States.Stopped };
         } else {
-            return { message: 'Failed: unknown error', nextState: Checkout.States.Stopped };
+            this._task.product.state = 'Failed: unknown error, please send logs';
+            return { message: this._task.product.status, nextState: Checkout.States.Stopped };
         }
     }
 

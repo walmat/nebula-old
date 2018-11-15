@@ -26,28 +26,14 @@ class Monitor {
         this._logger = this._context.logger;
     }
 
-<<<<<<< HEAD
-    _waitForDelay(delay) {
-        this._logger.silly('MONITOR: Waiting for %d ms...', delay);
-        return new Promise(resolve => setTimeout(resolve, delay));
-    };
-
     _waitForRefreshDelay() {
-        return this._waitForDelay(this._context.task.monitorDelay);
-    }
-
-    _waitForErrorDelay() {
-        return this._waitForDelay(this._context.task.errorDelay);
-=======
-    _waitForRefreshDelay() {
-        console.log('[DEBUG]: MONITOR: Waiting for monitor delay...');
+        this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.monitorDelay);
         return waitForDelay(this._context.task.monitorDelay);
     }
 
     _waitForErrorDelay() {
-        console.log('[DEBUG]: MONITOR: Waiting for error delay...');
+        this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.errorDelay);
         return waitForDelay(this._context.task.errorDelay);
->>>>>>> messages updates
     }
 
     // ASSUMPTION: this method is only called when we know we have to 
@@ -64,7 +50,7 @@ class Monitor {
         }
         await delay.call(this);
         this._logger.info('Monitoring not complete, remonitoring...');
-        return States.Monitor;
+        return { message: `Delaying ${delay}`, nextState: States.Monitor };
     }
 
     _parseAll() {
@@ -110,7 +96,7 @@ class Monitor {
             let checkStatus;
             if (checkStatus = statuses.find(s => s === 403 || s === 429)) {
                 this._logger.info('Proxy was Banned, swapping proxies...');
-                return States.SwapProxies;
+                return { message: 'Soft ban detected, attempting to swap proxies', nextState: States.SwapProxies };
             } else if (checkStatus = statuses.find(s => s >= 400)) {
                 return this._delay(checkStatus);
             }
@@ -120,14 +106,9 @@ class Monitor {
         const variants = this._generateValidVariants(parsed);
         this._logger.verbose('MONITOR: Variants Generated, updating context...');
         this._context.task.product.variants = variants;
-<<<<<<< HEAD
-        this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
-        return { product: parsed.title, nextState: States.Checkout };
-=======
         this._context.task.product.name = capitalizeFirstLetter(parsed.title);
-        console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
+        this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
         return { product: this._context.task.product.name, nextState: States.Checkout };
->>>>>>> messages updates
         }
 
     async _monitorUrl() {
@@ -157,14 +138,9 @@ class Monitor {
             this._context.task.product.variants = variants;
 
             // Everything is setup -- kick it to checkout
-<<<<<<< HEAD
             this._logger.verbose('MONTIR: Status is OK, proceeding to checkout');
-            return { product: fullProductInfo.title, nextState: States.Checkout };
-=======
-            console.log('[DEBUG]: MONITOR: Status is OK, proceeding to checkout');
             this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
             return { product: this._context.task.product.name, nextState: States.Checkout };
->>>>>>> messages updates
         } catch (error) {
             // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
             this._logger.debug('MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...', url, error.statusCode);
@@ -183,9 +159,9 @@ class Monitor {
             case ParseType.Variant: {
                 // TODO: Add a way to determine if variant is correct
                 this._logger.verbose('MONITOR: Variant Parsing Detected');
-                this._context.task.product.variants = [this._context.task.product.variant]
+                this._context.task.product.variants = [this._context.task.product.variant];
                 this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
-                return { message: 'Adding to cart...', nextState: States.Checkout };
+                return { message: 'Adding to cart', nextState: States.Checkout };
             }
             case ParseType.Url: {
                 this._logger.verbose('MONITOR: Url Parsing Detected');

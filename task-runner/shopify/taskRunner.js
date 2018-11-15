@@ -271,7 +271,7 @@ class TaskRunner {
 
     async _handleFinished() {
         this._emitTaskEvent({
-            message: 'Task has finished!',
+            message: this._context.task.product.status || 'Task has finished!',
         });
         return States.Stopped;
     }
@@ -315,6 +315,10 @@ class TaskRunner {
             this._state = await this._handleStepLogic(this._state);
             this._logger.verbose('Run Loop finished, state transitioned to: %s', this._state);
         }
+        // wait for 2 seconds before showing the task has stopped message
+        await waitForDelay(2000);
+
+        // update previous message with task has stopped message
         this._emitTaskEvent({
             message: 'Task has stopped.',
         });
