@@ -17,7 +17,6 @@ import deactivate from './_assets/logout.svg';
 import './app.css';
 
 export class App extends PureComponent {
-
   static close(e) {
     e.preventDefault();
     if (window.Bridge) {
@@ -55,6 +54,12 @@ export class App extends PureComponent {
   }
 
   render() {
+    const stateLocation = this.props.store.getState().navbar.location;
+    const windowLocation = window.location.pathname;
+    let redirectRoute = ROUTES.TASKS;
+    if (windowLocation !== stateLocation) {
+      redirectRoute = stateLocation;
+    }
     return (
       <Provider store={this.props.store}>
         <BrowserRouter>
@@ -119,7 +124,7 @@ export class App extends PureComponent {
                 <Route component={Server} path={ROUTES.SERVER} />
                 <Route component={Settings} path={ROUTES.SETTINGS} />
                 <Route path="/">
-                  <Redirect to={ROUTES.TASKS} />
+                  <Redirect to={redirectRoute} />
                 </Route>
               </Switch>
             </div>

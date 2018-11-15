@@ -26,22 +26,22 @@ export const mapActionsToRoutes = {
 };
 
 // Private Action Object Generator for Reducer
-const _routeAction = action => makeActionCreator(action, 'history');
+const _routeAction = type => makeActionCreator(type, 'history');
 
 // Public General Route Action
-const route = (action, history) =>
+const route = (type, history) =>
   (dispatch) => {
-    let _action = action;
-    if (!mapActionsToRoutes[action]) {
-      _action = NAVBAR_ACTIONS.ROUTE_HOME;
+    let _type = type;
+    if (!mapActionsToRoutes[type]) {
+      _type = NAVBAR_ACTIONS.ROUTE_HOME;
     }
-    history.push(mapActionsToRoutes[_action] || '/');
-    dispatch(_routeAction(_action)(history));
+    history.push(mapActionsToRoutes[_type] || '/');
+    dispatch(_routeAction(_type)(history));
   };
 
 // Public Specific Route Action Generator
-const routeAction = action =>
-  history => route(action, history);
+const routeAction = type =>
+  history => route(type, history);
 
 export const navbarActions = {
   route,

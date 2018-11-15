@@ -1,10 +1,8 @@
 /* global describe it test beforeEach afterEach expect jest */
 import React from 'react';
 import { shallow } from 'enzyme';
-import configureStore from 'redux-mock-store';
-import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 
 import createApp, { App } from '../app';
 import Navbar from '../navbar/navbar';
@@ -12,12 +10,9 @@ import Tasks from '../tasks/tasks';
 import Profiles from '../profiles/profiles';
 import Server from '../server/server';
 import Settings from '../settings/settings';
-import { TASK_ACTIONS } from '../state/actions';
+import { ROUTES } from '../state/actions';
 
 import getByTestId from '../__testUtils__/getByTestId';
-
-const middlewares = [thunk];
-const mockStore = configureStore(middlewares);
 
 describe('Top Level App', () => {
   let defaultProps;
@@ -38,6 +33,7 @@ describe('Top Level App', () => {
       expect(getByTestId(wrapper, 'App.button.close')).toHaveLength(1);
       expect(getByTestId(wrapper, 'App.button.deactivate')).toHaveLength(1);
       getByTestId(wrapper, 'App.button.deactivate').simulate('keyPress');
+      expect(wrapper.instance().props.store.getState).toHaveBeenCalled();
       wrapper.unmount();
     });
 
@@ -149,7 +145,9 @@ describe('Top Level App', () => {
 
       it('should respond to events', () => {
         const store = {
+          getState: defaultProps.store.getState,
           dispatch: jest.fn(),
+          subscribe: defaultProps.store.subscribe,
         };
         const wrapper = appProvider({ store });
         const appComponent = wrapper.instance();
@@ -160,11 +158,36 @@ describe('Top Level App', () => {
         expect(store.dispatch).toHaveBeenCalledWith(expect.any(Function));
       });
     });
+
+    describe('Location Syncing', () => {
+      it('should load a redirect to the tasks page by default', () => {
+        const wrapper = appProvider();
+        const redirect = wrapper.find(Redirect);
+        expect(redirect).toHaveLength(1);
+        expect(redirect.props().to).toBe(ROUTES.TASKS);
+      });
+
+      it('should load a redirect the state\'s location if state and window locations are not in sync', () => {
+        const store = {
+          getState: jest.fn(() => ({ navbar: { location: '/notdefault' } })),
+          dispatch: jest.fn(),
+          subscribe: jest.fn(),
+        };
+        const wrapper = appProvider({ store });
+        const redirect = wrapper.find(Redirect);
+        expect(redirect).toHaveLength(1);
+        expect(redirect.props().to).toBe('/notdefault');
+      });
+    });
   };
 
   beforeEach(() => {
     defaultProps = {
-      store: mockStore(),
+      store: {
+        getState: jest.fn(() => ({ navbar: { location: '/' } })),
+        dispatch: jest.fn(),
+        subscribe: jest.fn(),
+      },
     };
   });
 
