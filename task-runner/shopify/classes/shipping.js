@@ -114,7 +114,7 @@ class Shipping {
                 'User-Agent': userAgent,
                 Referer: `${this._checkoutUrl}`,
             },
-            formData: buildShippingForm(this._task, newAuthToken, captchaResponse || '', 'shipping_method', 'contact_information'),
+            formData: buildShippingForm(this._task, newAuthToken, captchaResponse, 'shipping_method', 'contact_information'),
             // transform: function(body) {
             //     return cheerio.load(body);
             // }

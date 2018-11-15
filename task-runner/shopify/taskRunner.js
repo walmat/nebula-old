@@ -4,7 +4,13 @@ const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const QueueBypass = require('./classes/bypass');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
+<<<<<<< HEAD
 const { createLogger } = require('../common/logger');
+=======
+const {
+    waitForDelay
+} = require('./classes/utils');
+>>>>>>> messages updates
 
 class TaskRunner {
     constructor(id, task, proxy, manager) {
@@ -69,8 +75,12 @@ class TaskRunner {
     }
 
     _waitForErrorDelay() {
+<<<<<<< HEAD
         this._logger.debug('Waiting for error delay...');
         return new Promise(resolve => setTimeout(resolve, this._context.task.errorDelay));
+=======
+       return waitForDelay(this._context.task.errorDelay);
+>>>>>>> messages updates
     }
 
     _handleAbort(id) {
@@ -90,7 +100,7 @@ class TaskRunner {
     }
 
     stopHarvestCaptcha() {
-        this._taskManager.stopHarvestCaptcha(this._context.id);
+        return this._taskManager.stopHarvestCaptcha(this._context.id);
     }
 
     registerForEvent(event, callback) {

@@ -7,6 +7,9 @@ const Payment = require('./payment');
 const Account = require('./account');
 const Timer = require('./timer');
 const { States } = require('./utils/constants').TaskRunner;
+const {
+    waitForDelay, 
+} = require('./utils');
 
 class Checkout {
 
@@ -91,6 +94,11 @@ class Checkout {
         this._paymentGateway;
 
         this._variantIndex = 0;
+        
+        // TODO - adjust these if needed (ms)
+        this.DELAYS = {
+            CHECKOUT_QUEUE: 500,
+        }
 
         this._request = require('request-promise').defaults({
             timeout: 10000,
@@ -107,11 +115,6 @@ class Checkout {
         this._account = new Account(context, this._timer, this._request);
     }
 
-    _waitForDelay(delay) {
-        this._logger.silly('CHECKOUT: Waiting for %s ms...', delay);
-        return new Promise(resolve => setTimeout(resolve, delay));
-    };
-
     /**
      * Checkout process started
      * @returns {STATE} next checkout state
@@ -122,18 +125,18 @@ class Checkout {
         if (this._task.username && this._task.password) {
             return Checkout.States.LoginAccount;
         }
-        return { message: 'Adding to cart...', nextState: Checkout.States.AddToCart };
+        return { message: `Found product: ${this._task.product.name}`,nextState: Checkout.States.AddToCart };
     }
 
     async _handleLogin() {
         this._logger.verbose('CHECKOUT: Logging in...');
         const res = await this._account.login();
         if (res.errors) {
-            return { errors: res.errors };
+            return { message: 'Invalid login', nextState: Checkout.States.Stopped };
         } else if (res === this._account.ACCOUNT_STATES.LoggedIn) {
-            return Checkout.States.AddToCart
+            return { message: 'Logged in!', nextState: Checkout.States.AddToCart };
         } else {
-            return Checkout.States.Stopped;
+            return { message: 'Unable to login', nextState: Checkout.States.Stopped };
         }
     }
 
@@ -144,19 +147,18 @@ class Checkout {
     async _handleAddToCart() {
         this._logger.verbose('CHECKOUT: Adding to Cart...');
         const res = await this._cart.addToCart(this._task.product.variants[this._variantIndex]);
-        console.log(res);
+
         if (res.errors) {
             this._logger.verbose('CHECKOUT: Errors in Add to Cart: %s', res.errors);
             return { message: 'Failed: add to cart', nextState: Checkout.States.Stopped };
         }
         if(!res) {
             this._logger.verbose('CHECKOUT: Failed to Add to Cart');
-            // TODO - rethink this logic a bit? What should happen if we fail the add to cart?
-            // ...but what if the variant isn't live yet?
+            waitForDelay(this._task.errorDelay);
             return { message: 'Adding to cart', nextState: Checkout.States.AddToCart };
         }
         this._price = this._cart._price;
-        return { message: 'Proceeding to checkout..', nextState: Checkout.States.GeneratePaymentToken };
+        return { message: 'Proceeding to checkout', nextState: Checkout.States.GeneratePaymentToken };
     }
 
     /**
@@ -190,14 +192,15 @@ class Checkout {
         }
 
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
-            // TODO - implement a wait of some sort?
-            return { message: 'Waiting in queue', nextState: Checkout.States.ProceedToCheckout };
+            return { message: 'Waiting in queue', nextState: Checkout.States.CheckoutQueue };
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
             return { message: 'Out of stock, handling..', nextState: Checkout.States.OutOfStock };
         } else if (res.state === this._cart.CART_STATES.Success) {      
                         
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
+
+            console.log(this._checkoutUrl, this._authToken);
 
             this._shipping = new Shipping(
                 this._context,
@@ -214,7 +217,7 @@ class Checkout {
     async _handleCheckoutQueue() {
         this._logger.verbose('CHECKOUT: Handling Checkout Queue...');
         this._logger.silly('TODO: Need to Implement this!');
-        this._waitForDelay(500);
+        this._waitForDelay(this.DELAYS.CHECKOUT_QUEUE);
         return Checkout.States.ProceedToCheckout;
     }
 
@@ -267,7 +270,7 @@ class Checkout {
         }
 
         this._logger.verbose('Captcha Bypassed, Proceeding with Shipping...');
-        opts = await this._shipping.submitShippingOptions(this._authToken);
+        opts = await this._shipping.submitShippingOptions(this._authToken, '');
         if (opts.errors) {
             return { message: opts.errors, nextState: Checkout.States.Stopped };
         }
@@ -299,6 +302,8 @@ class Checkout {
             value: opts.value,
             authToken: opts.authToken,
         }
+
+        console.log(this._shippingOpts);
 
         this._context.stopHarvestCaptcha();
         return { message: 'Posting shipping', nextState: Checkout.States.PostShipping };

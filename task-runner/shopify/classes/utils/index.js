@@ -13,6 +13,11 @@ const formatter = new Intl.NumberFormat('en-US', {
 });
 module.exports.formatter = formatter;
 
+function _waitForDelay(delay) {
+    return new Promise(resolve => setTimeout(resolve, delay));
+}
+module.exports.waitForDelay = _waitForDelay;
+
 /**
  * Formats the proxy correctly to be used in a request
  * @param {*} input - IP:PORT:USER:PASS || IP:PORT
