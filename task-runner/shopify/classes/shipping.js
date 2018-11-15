@@ -42,7 +42,6 @@ class Shipping {
         this._aborted = this._context.aborted;
         this._logger = this._context.logger;
 
-        this._captchaResponse = '';
     }
 
     getShippingOptions() {

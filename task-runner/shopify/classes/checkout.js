@@ -125,7 +125,7 @@ class Checkout {
         if (this._task.username && this._task.password) {
             return Checkout.States.LoginAccount;
         }
-        return { message: `Found product: ${this._task.product.name}`,nextState: Checkout.States.AddToCart };
+        return { message: `Found product: ${this._task.product.name}`, nextState: Checkout.States.AddToCart };
     }
 
     async _handleLogin() {
@@ -199,8 +199,6 @@ class Checkout {
                         
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
-
-            console.log(this._checkoutUrl, this._authToken);
 
             this._shipping = new Shipping(
                 this._context,

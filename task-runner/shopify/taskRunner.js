@@ -257,7 +257,7 @@ class TaskRunner {
         if (res.errors) {
             this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
-                message: 'Errors during Checkout! Retrying...',
+                message: 'Errors during Checkout!',
                 errors: res.errors,
             });
             await this._waitForErrorDelay();
