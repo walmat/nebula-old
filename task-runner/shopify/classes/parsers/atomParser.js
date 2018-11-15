@@ -18,21 +18,20 @@ class AtomParser extends JsonParser {
    * 
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
+   * @param {Logger} (optional) A logger to log messages to
    */
-  constructor(task, proxy) {
-    console.log('[TRACE]: AtomParser: constructing...');
-    super(task, proxy);
-    console.log('[TRACE]: AtomParser: constructed');
+  constructor(task, proxy, logger) {
+    super(task, proxy, logger, 'AtomParser');
   }
 
   async run () {
-    console.log('[TRACE]: AtomParser: starting run...');
+    this._logger.silly('%s: starting run...', this._name);
     if (this._type !== utils.ParseType.Keywords) {
       throw new Error('Atom parsing is only supported for keyword searching');
     }
     let responseJson;
     try {
-      console.log(`[TRACE]: AtomParser: Making request for ${this._task.site.url}/collections/all.atom ...`);
+      this._logger.silly('%s: Making request for %s/collections/all.atom ...', this._name, this._task.site.url);
       const response = await rp({
         method: 'GET',
         uri: `${this._task.site.url}/collections/all.atom`,
@@ -47,13 +46,13 @@ class AtomParser extends JsonParser {
       });
       responseJson = await utils.convertToJson(response);
     } catch (error) {
-      console.log(`[TRACE]: AtomParser: ERROR making request! Error:\n${error}`);
+      this._logger.silly('%s: ERROR making request!', this._name, error);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
 
-    console.log('[TRACE]: AtomParser: Received Response, attempting to translate structure...');
+    this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
     const responseItems = responseJson.feed.entry;
     const products = _.map(responseItems, (item) => {
       return {
@@ -65,28 +64,26 @@ class AtomParser extends JsonParser {
         handle: '-', // put an empty placeholder since we only have the title provided
       };
     });
-
-    console.log('[TRACE]: AtomParser: Translated Structure, attempting to match');
+    this._logger.silly('%s: Translated Structure, attempting to match', this._name);
     const matchedProduct = super.match(products);
 
     if(!matchedProduct) {
-      console.log('[TRACE]: AtomParser: Could\'t find a match!');
+      this._logger.silly('%s: Couldn\'t find a match!', this._name);
       const rethrow = new Error('unable to match the product');
       rethrow.status = 500; // Use a bad status code
       throw rethrow;
     }
-
-    console.log('[TRACE]: AtomParser: Product Found! Looking for Variant Info...');
+    this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
     let fullProductInfo = null;
     try {
-      fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url);
-      console.log(`[TRACE]: AtomParser: Full Product Info Found! Merging data and Returning.`)
+      fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url, this._logger);
+      this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
       return {
         ...matchedProduct,
         ...fullProductInfo,
       };
     } catch (errors) {
-      console.log(`[TRACE]: AtomParser: Couldn't Find Variant Info:\n${errors}`);
+      this._logger.silly('%s: Couldn\'t Find Variant Info', this._name, errors);
       const rethrow = new Error('unable to get full product info');
       rethrow.status = 500; // Use a bad status code
       throw rethrow;

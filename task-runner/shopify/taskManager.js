@@ -1,9 +1,12 @@
+const EventEmitter = require('events');
+
 const uuidv4 = require('uuid/v4');
 const hash = require('object-hash');
-const EventEmitter = require('events');
+
 const TaskRunner = require('./taskRunner');
 const AsyncQueue = require('./classes/asyncQueue');
 const { Events } = require('./classes/utils/constants').TaskManager;
+const { createLogger } = require('../common/logger');
 
 class TaskManager {
   constructor() {
@@ -21,6 +24,9 @@ class TaskManager {
 
     // Proxy Map
     this._proxies = [];
+
+    // Logger
+    this._logger = createLogger({ name: 'TaskManager', filename: 'manager.log' });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }
@@ -57,16 +63,16 @@ class TaskManager {
    * @param {Proxy} proxy the proxy to register
    */
   registerProxy(proxy) {
-    console.log('[TRACE]: TaskManager: registering proxy...');
+    this._logger.verbose('Registering proxy...');
     let proxyId;
     const proxyHash = hash(proxy);
     if (Object.keys(this._proxies)
         .map(key => this._proxies[key].hash)
         .includes(proxyHash)) {
-      console.log(`[TRACE]: TaskManager: proxy already exists with hash ${proxyHash}! Proxy not added`);
+      this._logger.verbose('Proxy already exists with hash %s! proxy not added', proxyHash);
       return;
     }
-    console.log(`[TRACE]: TaskManager: New Proxy Detected with hash ${proxyHash}. Adding now`);
+    this._logger.verbose('New Proxy Detected with hash %s. Adding now', proxyHash);
     do {
       proxyId = uuidv4();
     } while(this._proxies[proxyId]);
@@ -76,7 +82,7 @@ class TaskManager {
       hash: proxyHash,
       proxy,
     };
-    console.log(`[TRACE]: TaskManager: Proxy Added with id ${proxyId}`);
+    this._logger.verbose('Proxy Added with id %s', proxyId);
   }
 
   /**
@@ -102,18 +108,18 @@ class TaskManager {
    * @param {Proxy} proxy the proxy to deregister
    */
   deregisterProxy(proxy) {
-    console.log('[TRACE]: TaskManager: deregistering proxy...');
+    this._logger.verbose('Deregistering proxy...');
     const proxyHash = hash(proxy);
     const storedProxy = this._proxies.find(p => p.hash === proxyHash);
 
     if (!storedProxy) {
-      console.log(`[TRACE]: TaskManager: proxy with hash ${proxyHash} not found! Skipping removal`);
+      this._logger.verbose('Proxy with hash %s not found! Skipping removal', proxyHash);
       return;
     }
-    console.log(`[TRACE]: TaskManager: Proxy found with hash ${proxyHash}. Removing now`);
+    this._logger.verbose('Proxy found with hash %s. Removing now', proxyHash);
     
     delete this._proxies[storedProxy.id];
-    console.log(`[TRACE]: TaskManager: Proxy removed with id ${storedProxy.id}`);
+    this._logger.verbose('Proxy removed with id %s', storedProxy.id);
   }
 
   /**
@@ -135,18 +141,19 @@ class TaskManager {
    * @param {String} waitForOpenProxy whether or not this method should wait for an open proxy
    */
   async reserveProxy(runnerId, waitForOpenProxy) {
-    console.log(`[TRACE]: TaskManager: Reserving proxy for runner ${runnerId} ...`);
+    this._logger.verbose('Reserving proxy for runner %s ...', runnerId);
     const proxy = this._proxies.find(p => !p.assignedRunner && !p.banned)
     if (proxy) {
       proxy.assignedRunner = runnerId;
-    }
-    if (!waitForOpenProxy) {
-      console.log(`[TRACE]: returning proxy or null: ${proxy}`);
+      this._logger.verbose('Returning proxy: %s', proxy.id);
       return proxy;
     }
-    console.log('[TRACE]: TaskManager: Returning proxy or promise to recursive reserve')
-    return proxy || new Promise((resolve) => {
-      console.log('[TRACE]: TaskManager: All Proxies are Reserved, ')
+    if (!waitForOpenProxy) {
+      this._logger.verbose('Not waiting for open proxy, returning null');
+      return null;
+    }
+    this._logger.verbose('All proxies are reserved, waiting for open proxy...');
+    return new Promise((resolve) => {
       setTimeout(() => resolve(this.reserveProxy(runnerId, waitForOpenProxy)), 1000); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
     });
   }
@@ -158,14 +165,14 @@ class TaskManager {
    * @param {String} proxyId the id of the proxy to release
    */
   releaseProxy(runnerId, proxyId) {
-    console.log(`[TRACE]: TaskManager: Releasing proxy ${proxyId} for runner ${runnerId} ...`);
+    this._logger.verbose('Releasing proxy %s for runner %s ...', proxyId, runnerId);
     const proxy = this._proxies[proxyId];
     if (!proxy) {
-      console.log('[TRACE]: TaskManager: No proxy found, skipping release');
+      this._logger.verbose('No proxy found, skipping release');
       return;
     }
     delete proxy.assignedRunner;
-    console.log('[TRACE]: TaskManager: Released Proxy');
+    this._logger.verbose('Released Proxy %s', proxyId);
   }
 
   /**
@@ -174,14 +181,14 @@ class TaskManager {
    * @param {String} proxyId the id of the proxy to ban
    */
   banProxy(proxyId) {
-    console.log(`[TRACE]: TaskManager: Banning proxy ${proxyId} for runner ${runnerId} ...`);
+    this._logger.verbose('Banning proxy %s for runner %s ...', proxyId, runnerId);
     const proxy = this._proxies[proxyId];
     if (!proxy) {
-      console.log('[TRACE]: TaskManager: No proxy found, skipping ban');
+      this._logger.verbose('No proxy found, skipping ban');
       return;
     }
     proxy.banned = true;
-    console.log('[TRACE]: TaskManager: banned Proxy');
+    this._logger.verbose('Banned Proxy %s', proxyId);
   }
 
   /**
@@ -196,10 +203,10 @@ class TaskManager {
    * @param {bool} shouldBan whether the old proxy should be banned
    */
   async swapProxy(runnerId, proxyId, shouldBan) {
-    console.log(`[TRACE]: TaskManager: Swapping Proxy ${proxyId} for runner ${runnerId}. Should Ban? ${shouldBan} ...`);
+    this._logger.verbose('Swapping Proxy %s for runner %s. Should ban? %s ...', proxyId, runnerId, shouldBan);
     let shouldRelease = true;
     if (!this._proxies[proxyId]) {
-      console.log('[TRACE]: TaskManager: No proxy found, skipping release/ban');
+      this._logger.verbose('No proxy found, skipping release/ban');
       shouldRelease = false;
     }
 
@@ -335,10 +342,10 @@ class TaskManager {
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(runnerId, message, event) {
-    console.log(`[TRACE]: TaskManager: Runner ${runnerId} posted new event ${event} - ${message.message}`);
+    this._logger.info('Runner %s posted new event %s - %s', runnerId, event, message.message);
     // For now only re emit Task Status Events
     if (event === TaskRunner.Events.TaskStatus) {
-      console.log('[TRACE]: TaskManager: Reemitting this status update...');
+      this._logger.info('Reemitting this status update...');
       const taskId = this._runners[runnerId]._context.task.id;
       this._events.emit('status', taskId, message, event);
     }
@@ -357,11 +364,11 @@ class TaskManager {
    * @param {Task} task 
    */
   async start(task) {
-    console.log(`[TRACE]: TaskManager: Starting task ${task.id} ...`);
+    this._logger.info('Starting task %s', task.id);
 
     const alreadyStarted = this._runners.find(r => r.task.id === task.id);
     if(alreadyStarted) {
-      console.log('[TRACE]: TaskManager: This task is already runner! skipping start');
+      this._logger.warn('This task is already running! skipping start');
       return;
     }
 
@@ -369,29 +376,27 @@ class TaskManager {
     do {
       runnerId = uuidv4();
     } while(this._runners[runnerId]);
-    console.log(`[TRACE]: TaskManager: Creating new runner ${runnerId} for task ${task.id}`);
+    this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
 
     const openProxy = await this.reserveProxy(runnerId);
     const runner = new TaskRunner(runnerId, task, openProxy, this);
     this._runners[runnerId] = runner;
 
     // Register for status updates
-    console.log('[TRACE]: TaskManager: Registering for TaskRunner Events...');
+    this._logger.verbose('Registering for TaskRunner Events ...');
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     
     // Start the runner asynchronously
-    console.log('[TRACE]: TaskManager: Starting runner...');
+    this._logger.verbose('Starting Runner ...');
     runner.start()
       .then(() => {
-        console.log(`[DEBUG]: TaskManager: Runner ${runnerId} finished without errors`);
-        // Replace this with any success specific callback you want
+        this._logger.info('Runner %s finished without errors', runnerId);
       }) 
       .catch((error) => {
-        console.log(`[ERROR]: TaskManager: Runner ${runnerId} was stopped due to an error: ${error}`);
-        // Replace this with any error specific callback you want
+        this._logger.error('Runner %s was stopped due to an errors: %s', runnerId, error.toString(), error);
       }) 
       .then(() => {
-        console.log(`[TRACE]: TaskManager: Runner ${runnerId} has finished or was stopped`);
+        this._logger.verbose('Performing cleanup for runner %s', runnerId);
         // Cleanup handlers
         runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
         // Remove from runners map
@@ -429,16 +434,16 @@ class TaskManager {
    * @param {Task} task the task to stop
    */
   stop(task) {
-    console.log(`[TRACE]: TaskManager: Attempting to stop runner with task id: ${task.id}`);
+    this._logger.info('Attempting to stop runner with task id: %s', task.id);
     const rId = Object.keys(this._runners).find(k => this._runners[k]._context.task.id === task.id);
     if (!rId) {
-      console.log('[TRACE]: TaskManager: This task was not previously runner or has already been stopped! Skipping stop');
+      this._logger.warn('This task was not previously running or has already been stopped! Skipping stop');
       return;
     }
 
     // Send abort signal
     this._events.emit('abort', rId);
-    console.log('[TRACE]: TaskManager: Stop signal sent');
+    this._logger.verbose('Stop signal sent');
   }
 
   /**

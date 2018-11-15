@@ -19,20 +19,18 @@ class XmlParser extends JsonParser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(task, proxy) {
-    console.log('[TRACE]: XmlParser: constructing...');
-    super(task, proxy);
-    console.log('[TRACE]: XmlParser: constructed');
+  constructor(task, proxy, logger) {
+    super(task, proxy, logger, 'XmlParser');
   }
 
   async run () {
-    console.log('[TRACE]: XmlParser: starting run...');
+    this._logger.silly('%s: starting run...', this._name);
     if (this._type !== utils.ParseType.Keywords) {
       throw new Error('xml parsing is only supported for keyword searching');
     }
     let responseJson;
     try {
-      console.log(`[TRACE]: XmlParser: Making request for ${this._task.site.url}/sitemap_products_1.xml ...`);
+      this._logger.silly('%s: Making request for %s/sitemap_products_1.xml ...', this._name, this._task.site.url);
       const response = await rp({
         method: 'GET',
         uri: `${this._task.site.url}/sitemap_products_1.xml`,
@@ -47,13 +45,12 @@ class XmlParser extends JsonParser {
       });
       responseJson = await utils.convertToJson(response);
     } catch (error) {
-      console.log(`[TRACE]: XmlParser: ERROR making request! Error:\n${error}`);
+      this._logger.silly('%s: ERROR making request!', this._name, error);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
-
-    console.log('[TRACE]: XmlParser: Received Response, attempting to translate structure...');
+    this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
     const responseItems = _.filter(responseJson.urlset.url, (i => i['image:image']))
     const products = _.map(responseItems, (item) => {
       return {
@@ -63,26 +60,24 @@ class XmlParser extends JsonParser {
         handle: '-', // put an empty placeholder since we only have the title provided
       }
     });
-
-    console.log('[TRACE]: XmlParser: Translated Structure, attempting to match');
+    this._logger.silly('%s: Translated Structure, attempting to match', this._name);
     const matchedProduct = super.match(products);
 
     if(!matchedProduct) {
-      console.log('[TRACE]: XmlParser: Could\'t find a match!');
+      this._logger.silly('%s: Couldn\'t find a match!', this._name);
       throw new Error('unable to match the product');
     }
-
-    console.log('[TRACE]: XmlParser: Product Found! Looking for Variant Info...');
+    this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
     let fullProductInfo = null;
     try {
-      fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url);
-      console.log(`[TRACE]: XmlParser: Full Product Info Found! Merging data and Returning.`)
+      fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url, this._logger);
+      this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
       return {
         ...matchedProduct,
         ...fullProductInfo,
       };
     } catch (errors) {
-      console.log(`[TRACE]: XmlParser: Couldn't Find Variant Info:\n${errors}`);
+      this._logger.silly('%s: Couldn\'t Find Variant Info', this._name, errors);
       throw new Error('unable to get full product info');
     }
   }

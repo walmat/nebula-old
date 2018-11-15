@@ -17,44 +17,43 @@ const _ = require('underscore');
  * @param {List<Promise>} promises list of promises to run
  * @param {String} tag optional tag to attach to log statements
  */
-function resolveFirstRejectLast(promises, tag) {
+function resolveFirstRejectLast(promises, tag, logger) {
+  const _logger = logger || { log: () => {} };
   const tagStr = tag ? ` - ${tag}` : '';
   return new Promise((resolve, reject) => {
-    console.log(`[TRACE]: RFRL${tagStr}: Starting...`);
+    _logger.log('silly', 'RFRL%s: Starting...', tagStr);
     let errorCount = 0;
     const status = {
       winner: null,
       errors: new Array(promises.length),
     }
-  
-    console.log(`[TRACE]: RFRL${tagStr}: Attaching Handlers...`);
+    _logger.log('silly', '[ASYNC] RFRL%s: Attaching Handlers...', tagStr);
     _.forEach(promises, (p, idx) => {
       p.then(
         (resolved) => {
-          console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: RESOLVE`);
-          // console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: ${JSON.stringify(resolved, null, 2)}`);
+          _logger.log('silly', '[ASYNC] RFRL%s - %d: RESOLVE', tagStr, idx, resolved);
           if (!status.winner) {
-            console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: Chosen as WINNER`);
+            _logger.log('silly', '[ASYNC] RFRL%s - %d: Chosen as WINNER', tagStr, idx);
             status.winner = resolved;
             resolve(resolved);
           } else {
-            console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: Not chosen as WINNER`);
+            _logger.log('silly', '[ASYNC] RFRL%s - %d: Not chosen as WINNER', tagStr, idx);
           }
         },
         (error) => {
-          console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: REJECTED\n${error}`);
+          _logger.log('silly', '[ASYNC] RFRL%s - %d: REJECTED', tagStr, idx, error);
           status.errors[idx] = error;
           errorCount += 1;
           if (errorCount >= status.errors.length && !status.winner) {
-            console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: Final error detected, rejecting.`);
-            reject(status);
+            _logger.log('silly', '[ASYNC] RFRL%s - %d: Final error detected, rejecting.', tagStr, idx);
+            reject(status.errors);
           } else {
-            console.log(`[ASYNC] [TRACE]: RFRL${tagStr} - ${idx}: Not the final error, there's still hope!`);
+            _logger.log('silly', '[ASYNC] RFRL%s - %d: Not the final error, there\'s still hope!', tagStr, idx);
           }
         },
       );
     });
-    console.log(`[TRACE]: RFRL${tagStr}: Sync work done, waiting on promises...`);
+    _logger.log('silly', 'RFRL%s: Sync work done, waiting on promises...', tagStr);
   });
 }
 

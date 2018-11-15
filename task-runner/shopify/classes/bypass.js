@@ -12,7 +12,6 @@ const Checkout = require('./checkout');
  */
 class Bypass {
     constructor(context) {
-
         /**
          * All data needed for monitor to run
          * This includes:
@@ -31,13 +30,12 @@ class Bypass {
         this._id = context.runner_id;
         this._proxy = context.proxy;
         this._aborted = context.aborted;
+        this._logger = context.logger;
     }
 
     generateAlternativeCheckout() {
         
     }
-    
-
 }
 
 module.exports = Bypass;

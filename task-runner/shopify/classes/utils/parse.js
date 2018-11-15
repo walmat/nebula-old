@@ -18,29 +18,30 @@ module.exports.ParseType = ParseType;
  * 
  * @param {TaskProduct} product 
  */
-function getParseType(product) {
-  console.log(`[TRACE]: Determining Parse Type for product...\n${JSON.stringify(product)}`);
+function getParseType(product, logger) {
+  const _logger = logger || { log: () => {} };
+  _logger.log('silly', 'Determining Parse Type for Product...');
   if(!product) {
-    console.log(`[TRACE]: Product is not defined, returning: ${ParseType.Unknown}`);
+    _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
     return ParseType.Unknown;
   }
 
   if (product.variant) {
-    console.log(`[TRACE]: Parse Type Determined as: ${ParseType.Variant}`);
+    _logger.log('silly', 'Parse Type determined as %s', ParseType.Variant);
     return ParseType.Variant;
   }
 
   if (product.url) {
-    console.log(`[TRACE]: Parse Type Determined as: ${ParseType.Url}`);
+    _logger.log('silly', 'Parse Type determined as %s', ParseType.Url);
     return ParseType.Url;
   }
 
   if (product.pos_keywords && product.neg_keywords) {
-    console.log(`[TRACE]: Parse Type Determined as: ${ParseType.Keywords}`);
+    _logger.log('silly', 'Parse Type Determined as %s', ParseType.Keywords);
     return ParseType.Keywords;
   }
 
-  console.log('[TRACE]: Prase Type could not be determined!');
+  _logger.log('silly', 'Parse Type could not be determined!');
   return ParseType.Unknown;
 }
 module.exports.getParseType = getParseType;
@@ -65,28 +66,29 @@ module.exports.getParseType = getParseType;
  * @param {Sorter} sorter the method of sorting
  * @param {num} limit the limit to use
  */
-function filterAndLimit(list, sorter, limit) {
-  console.log(`[TRACE]: Filtering given list with sorter: ${sorter} and limit: ${limit} ...`);
+function filterAndLimit(list, sorter, limit, logger) {
+  const _logger = logger || { log: () => {} };
+  _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
   if (!list) {
-    console.log('[TRACE]: No list given! returning empty list');
+    _logger.log('silly', 'No list given! returning empty list');
     return [];
   }
-  console.log(`[TRACE]: List Detected with ${list.length} elements. Proceeding to sorting now...`);
+  _logger.log('silly', 'List Detected with %d elements. Proceeding to sorting now...', list.length);
   let sorted = list;
   if (sorter) {
-    console.log('[TRACE]: Sorter detected, sorting...');
+    _logger.log('silly', 'Sorter detected, sorting...');
     sorted = _.sortBy(list, sorter);
   }
 
   const _limit = limit || 0;
   if (_limit === 0) {
-    console.log('[TRACE]: No limit given! returning...');
+    _logger.log('silly', 'No limit given! returning...');
     return sorted;
   } else if (_limit > 0) {
-    console.log('[TRACE]: Ascending Limit detected, limiting...');
+    _logger.log('silly', 'Ascending Limit detected, limiting...');
     return sorted.slice(_limit);
   }
-  console.log('[TRACE]: Descending Limit detected, limiting...');
+  _logger.log('silly', 'Descending Limit detected, limiting...');
   // slice, then reverse elements to get the proper order
   return sorted.slice(0, _limit).reverse();
 }
@@ -109,14 +111,15 @@ module.exports.filterAndLimit = filterAndLimit;
  * @param {List} products list of products to search
  * @param {String} variantId the variant id to match
  */
-function matchVariant(products, variantId) {
-  console.log(`[TRACE]: Starting variant matching for variant: ${variantId}`);
+function matchVariant(products, variantId, logger) {
+  const _logger = logger || { log: () => {} };
+  _logger.log('silly', 'Starting variant matching for variant: %s', variantId);
   if (!products) {
-    console.log('[TRACE]: No product list given! Returning null');
+    _logger.log('silly', 'No product list given! Returning null');
     return null;
   }
   if (!variantId) {
-    console.log('[TRACE]: No variant id given! Returning null');
+    _logger.log('silly', 'No variant id given! Returning null');
     return null;
   }
   // Step 1: Map products list to a list of variant lists
@@ -129,11 +132,11 @@ function matchVariant(products, variantId) {
     v => v.id.toString() === variantId
   );
   if (matchedVariant) {
-    console.log(`[TRACE]: Searched ${products.length} products. Found variant ${variantId}:\n${JSON.stringify(matchedVariant, null, 2)}`);
-    console.log('[TRACE]: Returning product associated with this variant...');
+    _logger.log('silly', 'Searched %d products. Found variant %s}', products.length, variantId);
+    _logger.log('silly', 'Returning product associated with this variant...');
     return _.find(products, p => p.id === matchedVariant.product_id);
   }
-  console.log(`[TRACE]: Searched ${products.length} products. Variant ${varianId} was not found! Returning null`);
+  _logger.log('silly', 'Searched %d products. Variant %s was not found! Returning null', products.length, variantId);
   return null;
 }
 module.exports.matchVariant = matchVariant;
@@ -158,18 +161,19 @@ module.exports.matchVariant = matchVariant;
  * @param {Object} keywords an object containing two arrays of strings (`pos` and `neg`)
  * @see filterAndLimit
  */
-function matchKeywords(products, keywords, filter) {
-  console.log(`[TRACE]: Starting keyword matching for keywords: ${JSON.stringify(keywords, null, 2)}`);
+function matchKeywords(products, keywords, filter, logger) {
+  const _logger = logger || { log: () => {} };
+  _logger.log('silly', 'Starting keyword matching for keywords: %s', JSON.stringify(keywords, null, 2));
   if (!products) {
-    console.log('[TRACE]: No product list given! Returning null');
+    _logger.log('silly', 'No product list given! Returning null');
     return null;
   }
   if (!keywords) {
-    console.log('[TRACE]: No keywords object given! Returning null');
+    _logger.log('silly', 'No keywords object given! Returning null');
     return null;
   }
   if (!keywords.pos || !keywords.neg) {
-    console.log('[TRACE]: Malformed keywords object! Returning null');
+    _logger.log('silly', 'Malformed keywords object! Returning null');
     return null;
   }
 
@@ -198,23 +202,23 @@ function matchKeywords(products, keywords, filter) {
   });
 
   if (!matches.length) {
-    console.log(`[TRACE]: Searched ${products.length} products. No matches found! Returning null`);
+    _logger.log('silly', 'Searched %d products. No matches found! Returning null', products.length);
     return null;
   } else if (matches.length > 1) {
     let filtered;
-    console.log(`[TRACE]: Searched ${products.length} products. ${matches.length} Products found:\n${JSON.stringify(matches.map(({ title }) => title), null, 2)}`);
+    _logger.log('silly', 'Searched %d products. %d Products Found', products.length, matches.length, JSON.stringify(matches.map(({ title }) => title), null, 2));
     if (filter && filter.sorter && filter.limit) {
-      console.log(`[TRACE]: Using given filtering heuristic on the products...`);
-      filtered = filterAndLimit(matches, filter.sorter, filter.limit);
-      console.log(`[TRACE]: Returning Matched Product: ${filtered[0].title}`);
+      _logger.log('silly', 'Using given filtering heuristic on the products...');
+      filtered = filterAndLimit(matches, filter.sorter, filter.limit, this._logger);
+      _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
       return filtered[0];
     }
-    console.log(`[TRACE]: No Filter or Invalid Filter Heuristic given! Defaulting to most recent...`);
-    filtered = filterAndLimit(matches, 'updated_at', -1);
-    console.log(`[TRACE]: Returning Matched Product: ${filtered[0].title}`);
+    _logger.log('silly', 'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...');
+    filtered = filterAndLimit(matches, 'updated_at', -1, this._logger);
+    _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
     return filtered[0];
   }
-  console.log(`[TRACE]: Searched ${products.length} products. Matching Product Found:\n${matches[0].title}`);
+  _logger.log('silly', 'Searched %d products. Matching Product Found: %s', products.length, matches[0].title);
   return matches[0];
 }
 module.exports.matchKeywords = matchKeywords;

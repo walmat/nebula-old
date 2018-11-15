@@ -20,9 +20,10 @@ class JsonParser {
    * 
    * @param {String} productUrl 
    */
-  static getFullProductInfo(productUrl) {
-    console.log('[TRACE]: JsonParser: Getting Full Product Info...');
-    console.log(`[TRACE]: JsonParser: Requesting ${productUrl}.(json|oembed) in a race`);
+  static getFullProductInfo(productUrl, logger) {
+    const _logger = logger || { log: () => {} };
+    _logger.log('silly', 'JsonParser: Getting Full Product Info...');
+    _logger.log('silly', 'JsonParser: Requesting %s.(json|oembed) in a race', productUrl);
     const genRequestPromise = (uri) => {
       return rp({
         method: 'GET',
@@ -84,19 +85,21 @@ class JsonParser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(task, proxy) {
-    console.log('[TRACE]: JsonParser: constructing...');
+  constructor(task, proxy, logger, name) {
+    this._logger = logger || { log: () => {} };
+    this._name = name || 'JsonParser';
+    this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
     this._task = task;
     this._type = utils.getParseType(task.product);
-    console.log('[TRACE]: JsonParser: constructed');
+    this._logger.log('silly', '%s: constructed', this._name);
   }
 
   async run() {
-    console.log('[TRACE]: JsonParser: Starting run...');
+    this._logger.log('silly', '%s: Starting run...', this._name);
     let products;
     try {
-      console.log(`[TRACE]: JsonParser: Making request for ${this._task.site.url}/products.json ...`);
+      this._logger.silly('%s: Making request for %s/products.json ...', this._name, this._task.site.url);
       const response = await rp({
         method: 'GET',
         uri: `${this._task.site.url}/products.json`,
@@ -111,21 +114,19 @@ class JsonParser {
       });
       products = JSON.parse(response).products;
     } catch (error) {
-      console.log(`[TRACE]: JsonParser: ERROR making request! Error:\n${error}`);
+      this._logger.silly('%s: ERROR making request!', this._name, error);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
-
-    console.log('[TRACE]: JsonParser: Received Response, Attempting to match...');
+    this._logger.silly('%s: Received Response, Attempting to match...', this._name);
     const matchedProduct = this.match(products);
 
     if(!matchedProduct) {
-      console.log('[TRACE]: JsonParser: Could\'t find a match!');
+      this._logger.silly('%s: Couldn\'t find a match!', this._name);
       throw new Error('unable to match the product');
     }
-
-    console.log('[TRACE]: JsonParser: Product Found!');
+    this._logger.silly('%s: Product Found!', this._name);
     return matchedProduct;
   }
 
@@ -133,34 +134,34 @@ class JsonParser {
    * Perform Product Matching
    */
   match(products) {
-    console.log('[TRACE]: JsonParser: starting parse...')
+    this._logger.silly('%s: starting parse...', this._name);
     switch(this._type) {
       case utils.ParseType.Variant: {
-        console.log(`[TRACE]: JsonParser: parsing type ${this._type} detected`);
-        const product = utils.matchVariant(products, this._task.product.variant);
+        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
+        const product = utils.matchVariant(products, this._task.product.variant, this._logger);
         if (!product) {
-          console.log('[TRACE]: Unable to find matching product! throwing error');
+          this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           throw new Error('ProductNotFound');
         }
-        console.log('[TRACE]: Matching Product found!');
+        this._logger.silly('%s: Product found!', this._name);
         return product;
       }
       case utils.ParseType.Keywords: {
-        console.log(`[TRACE]: JsonParser: parsing type ${this._type} detected`);
+        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
         const keywords = {
           pos: this._task.product.pos_keywords,
           neg: this._task.product.neg_keywords,
         };
-        const product = utils.matchKeywords(products, keywords); // no need to use a custom filter at this point...
+        const product = utils.matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
         if (!product) {
-          console.log('[TRACE]: Unable to find matching product! throwing error');
+          this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           throw new Error('ProductNotFound');
         }
-        console.log('[TRACE]: Matching Product found!');
+        this._logger.silly('%s: Matching Product found!', this._name);
         return product;
       }
       default: {
-        console.log(`[TRACE]: JsonParser: Invalid parsing type ${this._type}! throwing error`);
+        this._logger.silly('%s: Invalid parsing type %s! throwing error', this._name, this._type);
         throw new Error('InvalidParseType');
       }
     }
