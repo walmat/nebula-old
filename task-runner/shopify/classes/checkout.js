@@ -190,13 +190,11 @@ class Checkout {
             this._logger.verbose('CHECKOUT: Errors: %s', res.errors);
             return { message: 'Failed: unable to get checkout', nextState: Checkout.States.Stopped }; 
         }
-
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
             return { message: 'Waiting in queue', nextState: Checkout.States.CheckoutQueue };
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
             return { message: 'Out of stock, handling..', nextState: Checkout.States.OutOfStock };
-        } else if (res.state === this._cart.CART_STATES.Success) {      
-                        
+        } else if (res.state === this._cart.CART_STATES.Success) {         
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
 
@@ -304,8 +302,6 @@ class Checkout {
             authToken: opts.authToken,
         }
 
-        console.log(this._shippingOpts);
-
         this._context.stopHarvestCaptcha();
         return { message: 'Posting shipping', nextState: Checkout.States.PostShipping };
     }
@@ -357,20 +353,20 @@ class Checkout {
         }
 
         if (res === this._payment.PAYMENT_STATES.Error) {
-            this._task.product.status = 'Failed: submitting payment';
-            return { message: this._task.product.status, nextState: Checkout.States.Stopped };
+            this._context.status = 'Failed: submitting payment';
+            return { message: this._context.status, nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Processing) {
-            this._task.product.status = 'Success: Payment processing, check email';
-            return { message: this._task.product.status, nextState: Checkout.States.Stopped };
+            this._context.status = 'Success: Payment processing, check email';
+            return { message: this._context.status, nextState: Checkout.States.Stopped };
         } else if (res === this._payment.PAYMENT_STATES.Declined) {
-            this._task.product.state = 'Failed: payment declined';
-            return { message: this._task.product.status, nextState: Checkout.States.PaymentError };
+            this._context.status = 'Failed: payment declined';
+            return { message: this._context.status, nextState: Checkout.States.PaymentError };
         } else if (res === this._payment.PAYMENT_STATES.Success) {
-            this._task.product.state = 'Success: payment processed';
-            return { message: this._task.product.status, nextState: Checkout.States.Stopped };
+            this._context.status = 'Success: payment processed';
+            return { message: this._context.status, nextState: Checkout.States.Stopped };
         } else {
-            this._task.product.state = 'Failed: unknown error, please send logs';
-            return { message: this._task.product.status, nextState: Checkout.States.Stopped };
+            this._context.status = 'Failed: unknown error, please send logs';
+            return { message: this._context.status, nextState: Checkout.States.Stopped };
         }
     }
 
@@ -407,7 +403,7 @@ class Checkout {
         const res = await this._handleStepLogic(this._state);
         this._logger.verbose('CHECKOUT: Next State chosen as: %s', res.nextState);
         if (res.nextState === Checkout.States.Error) {
-            this._logger.verbose('CHECKOUT: Completed with errors: %j', nextState.errors);
+            this._logger.verbose('CHECKOUT: Completed with errors: %j', res.errors);
             return {
                 message: res.errors,
                 nextState: States.Stopped,

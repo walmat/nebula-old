@@ -66,7 +66,6 @@ class Payment {
             proxy: formatProxy(this._proxy),
             method: 'get',
             followAllRedirects: true,
-
             simple: false,
             json: false,
             resolveWithFullResponse: true,
@@ -121,10 +120,8 @@ class Payment {
                 this._logger.info('Payment is processing, go check your email for a confirmation.');
                 return this.PAYMENT_STATES.Processing;
             } else if (res.request.href.indexOf('paypal.com') > -1) {
-                const open = require('open');
                 this._logger.info('This website only supports Paypal.');
-                open(res.request.href);
-                return this.PAYMENT_STATES.Success;
+                return this.PAYMENT_STATES.Error;
             } else if ($('div.notice--warning p.notice__text')) {
                 if ($('div.notice--warning p.notice__text') == '') {
                     this._logger.info('An unknown error has occured, please try again.');

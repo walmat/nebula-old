@@ -51,7 +51,6 @@ class Shipping {
             uri: `${this._checkoutUrl}`,
             method: 'get',
             proxy: formatProxy(this._proxy),
-            rejectUnauthorized: false,
             resolveWithFullResponse: true,
             followAllRedirects: true,
             simple: false,
@@ -62,6 +61,7 @@ class Shipping {
                 Referer: `${this._task.site.url}/cart`,
             },
             qs: buildShippingForm(this._task, this._authToken, '', 'contact_information', 'contact_information'),
+            // TODO - revert back once testing is done
             // transform: function(body) {
             //     return cheerio.load(body);
             // }
@@ -99,7 +99,6 @@ class Shipping {
             uri: `${this._checkoutUrl}`,
             method: 'post',
             proxy: formatProxy(this._proxy),
-            rejectUnauthorized: false,
             followAllRedirects: true,
             resolveWithFullResponse: true,
             simple: false,
@@ -110,6 +109,7 @@ class Shipping {
                 Referer: `${this._checkoutUrl}`,
             },
             formData: buildShippingForm(this._task, newAuthToken, captchaResponse, 'shipping_method', 'contact_information'),
+            // TODO - revert back once testing is done
             // transform: function(body) {
             //     return cheerio.load(body);
             // }
@@ -163,7 +163,6 @@ class Shipping {
                 followAllRedirects: true,
                 resolveWithFullResponse: true,
                 proxy: formatProxy(this._proxy),
-                rejectUnauthorized: false,
                 simple: false,
                 method: 'get',
                 headers: {
@@ -183,7 +182,6 @@ class Shipping {
                     followAllRedirects: true,
                     resolveWithFullResponse: true,
                     proxy: formatProxy(this._proxy),
-                    rejectUnauthorized: false,
                     method: 'post',
                     headers: {
                         'User-Agent': userAgent,
@@ -220,7 +218,6 @@ class Shipping {
                 followAllRedirects: true,
                 resolveWithFullResponse: true,
                 proxy: formatProxy(this._proxy),
-                rejectUnauthorized: false,
                 method: 'post',
                 headers: {
                     'User-Agent': userAgent,
@@ -238,7 +235,6 @@ class Shipping {
                     method: 'get',
                     followAllRedirects: true,
                     proxy: formatProxy(this._proxy),
-                    rejectUnauthorized: false,
                     headers: {
                         'User-Agent': userAgent,
                         'Content-Type': 'application/x-www-form-urlencoded',

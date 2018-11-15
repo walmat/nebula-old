@@ -13,10 +13,10 @@ const formatter = new Intl.NumberFormat('en-US', {
 });
 module.exports.formatter = formatter;
 
-function _waitForDelay(delay) {
+function waitForDelay(delay) {
     return new Promise(resolve => setTimeout(resolve, delay));
 }
-module.exports.waitForDelay = _waitForDelay;
+module.exports.waitForDelay = waitForDelay;
 
 /**
  * Formats the proxy correctly to be used in a request

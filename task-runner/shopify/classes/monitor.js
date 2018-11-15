@@ -108,7 +108,7 @@ class Monitor {
         this._context.task.product.variants = variants;
         this._context.task.product.name = capitalizeFirstLetter(parsed.title);
         this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
-        return { product: this._context.task.product.name, nextState: States.Checkout };
+        return { message: `Found product: ${this._context.task.product.name}`, nextState: States.Checkout };
         }
 
     async _monitorUrl() {
@@ -118,7 +118,6 @@ class Monitor {
                 method: 'GET',
                 uri: url,
                 proxy: formatProxy(this._context.proxy),
-                rejectUnauthorized: false,
                 resolveWithFullResponse: true,
                 simple: true,
                 followRedirect: false,
@@ -138,9 +137,9 @@ class Monitor {
             this._context.task.product.variants = variants;
 
             // Everything is setup -- kick it to checkout
-            this._logger.verbose('MONTIR: Status is OK, proceeding to checkout');
+            this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
             this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
-            return { product: this._context.task.product.name, nextState: States.Checkout };
+            return { message: `Found product: ${this._context.task.product.name}`, nextState: States.Checkout };
         } catch (error) {
             // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
             this._logger.debug('MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...', url, error.statusCode);
@@ -165,13 +164,11 @@ class Monitor {
             }
             case ParseType.Url: {
                 this._logger.verbose('MONITOR: Url Parsing Detected');
-                const res = await this._monitorUrl();
-                return { message: `Found product: ${capitalizeFirstLetter(res.product)}`, nextState: res.nextState };
+                return this._monitorUrl();
             }
             case ParseType.Keywords: {
                 this._logger.verbose('MONITOR: Keyword Parsing Detected');
-                const res = await this._monitorKeywords();
-                return { message: `Found product: ${capitalizeFirstLetter(res.product)}`, nextState: res.nextState };
+                return this._monitorKeywords();;
             }
             default: {
                 this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);

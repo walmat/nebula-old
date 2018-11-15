@@ -93,7 +93,7 @@ class TaskRunner {
     }
 
     stopHarvestCaptcha() {
-        return this._taskManager.stopHarvestCaptcha(this._context.id);
+        this._taskManager.stopHarvestCaptcha(this._context.id);
     }
 
     registerForEvent(event, callback) {
@@ -193,7 +193,7 @@ class TaskRunner {
 
     async _handleStarted() {
         this._emitTaskEvent({
-            message: 'Monitoring...',
+            message: 'Starting!',
         });
         return States.GenAltCheckout;
     }
@@ -218,7 +218,7 @@ class TaskRunner {
         if(res.errors) {
             this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
-                message: 'Error finding product..',
+                message: 'Error monitoring product...',
                 errors: res.errors,
             });
             await this._waitForErrorDelay();
@@ -246,7 +246,6 @@ class TaskRunner {
 
     async _handleCheckout() {
         const res = await this._checkout.run();
-        console.log(res.message, res.nextState);
         if (res.errors) {
             this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
@@ -264,7 +263,7 @@ class TaskRunner {
 
     async _handleFinished() {
         this._emitTaskEvent({
-            message: this._context.task.product.status || 'Task has finished!',
+            message: this._context.status || 'Task has finished!',
         });
         return States.Stopped;
     }
@@ -301,7 +300,6 @@ class TaskRunner {
     async start() {
         this._state = States.Started;
         while(this._state !== States.Stopped) {
-            console.log('[TRACE]: TaskRunner: Next State chosen as: ' + this._state);
             if (this._context.aborted) {
                 this._state = States.Aborted;
             }
