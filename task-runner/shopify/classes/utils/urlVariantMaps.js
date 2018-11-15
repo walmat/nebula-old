@@ -60,7 +60,7 @@ const urlToOptionIndex = {
     "https://thesportsedit.com": 1,
     "https://txdxe.com": 1,
     "https://wishatl.com": 2,
-    "https://abovethecloudsstore.com": 1, //TODO -- didn't load
+    "https://www.abovethecloudsstore.com": 1, //TODO -- (option 1 looks like: US 7)
     "https://addictmiami.com": 1, // TODO -- (option 1 looks like: 5.5 US Women, 44 IT, etc.)
     "https://amongstfew.com": 1, // TODO -- (option 1 looks like: US 8 / UK 7 / EU 41)
     "https://apbstore.com": 1,
@@ -137,8 +137,8 @@ const urlToTitleSegment = (function() {
 })();
 
 const validateVariantSize = (variant, expectedSize, url) => {
-    return variant[urlToVariantOption[url]].trim() === expectedSize.trim() ||
-        urlToTitleSegment[url](variant.title).trim() === expectedSize.trim();
+    return variant[urlToVariantOption[url]].trim().includes(expectedSize.trim()) ||
+        urlToVariantOption[url].trim().includes(expectedSize.trim());
 }
 
 module.exports = {
