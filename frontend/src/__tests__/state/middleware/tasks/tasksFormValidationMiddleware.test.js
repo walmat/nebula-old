@@ -97,21 +97,14 @@ describe('task form validation middleware', () => {
     const actionBase = {
       task: {
         ...initialTaskStates.task,
+        id: type === 'ADD_TASK' ? null : '1',
         product:
           testValid ? {
             ...initialTaskStates.task.product,
             raw: 'https',
-            url: null,
-            variant: null,
-            pos_keywords: null,
-            neg_keywords: null,
           } : {
             ...initialTaskStates.task.product,
             raw: '+test',
-            url: null,
-            variant: null,
-            pos_keywords: null,
-            neg_keywords: null,
           },
         site:
           testValid ? {
@@ -119,10 +112,14 @@ describe('task form validation middleware', () => {
             name: 'invalid',
           } : {
             ...initialTaskStates.task.site,
-            name: 'Kith',
+            name: 'Undefeated',
+            auth: true,
           },
-        profile: testValid ? '' : {
+        profile: testValid ? {
           ...initialProfileStates.profile,
+        } : {
+          ...initialProfileStates.profile,
+          id: '1',
           profileName: 'test',
           billingMatchesShipping: false,
           payment: {
@@ -169,17 +166,21 @@ describe('task form validation middleware', () => {
       ...actionBase,
       task: {
         ...actionBase.task,
-        errors: {
+        errors: type === 'ADD_TASK' ? {
           ...actionBase.task.errors,
           product: testValid,
           site: testValid,
           profile: testValid,
           sizes: testValid,
-          username: testValid,
-          password: testValid,
+          username:
+            (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_USERNAME' ? testValid : false,
+          password:
+            (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_PASSWORD' ? testValid : false,
           status: null,
           errorDelay: null,
           monitorDelay: null,
+        } : {
+          ...actionBase.task.errors,
         },
         edits: {
           ...actionBase.task.edits,
@@ -191,12 +192,12 @@ describe('task form validation middleware', () => {
             sizes: null,
             username: null,
           } : {
-            password: testValid,
             product: testValid,
             profile: testValid,
             site: testValid,
             sizes: testValid,
-            username: testValid,
+            username: (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_USERNAME' ? testValid : false,
+            password: (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_PASSWORD' ? testValid : false,
           },
         },
       },
@@ -229,20 +230,21 @@ describe('task form validation middleware', () => {
         task: {
           ...actionBase.task,
           ...expectedActionBase.task,
-          [mapTaskFieldsToKey[field]]: value,
+          [mapTaskFieldsToKey[field]]:
+            type === 'ADD_TASK' ? value : action.response.task[mapTaskFieldsToKey[field]],
           errors: {
-            // ...actionBase.task.errors,
+            ...actionBase.task.errors,
             ...expectedActionBase.task.errors,
-            [mapTaskFieldsToKey[field]]: !testValid,
+            [mapTaskFieldsToKey[field]]: type === 'ADD_TASK' ? !testValid : null,
           },
           edits: {
             ...actionBase.task.edits,
             ...expectedActionBase.task.edits,
-            [mapTaskFieldsToKey[field]]: value,
+            [mapTaskFieldsToKey[field]]: type === 'ADD_TASK' ? null : value,
             errors: {
-              // ...actionBase.task.edits.errors,
+              ...actionBase.task.edits.errors,
               ...expectedActionBase.task.edits.errors,
-              [mapTaskFieldsToKey[field]]: !testValid,
+              [mapTaskFieldsToKey[field]]: type === 'ADD_TASK' ? null : !testValid,
             },
           },
         },
@@ -273,6 +275,9 @@ describe('task form validation middleware', () => {
     if (genNoErrors) {
       // delete expected errors field if we aren't generating errors
       delete expectedAction.errors;
+      delete expectedAction.response.task.errors.undefined;
+      delete expectedAction.response.task.edits.undefined;
+      delete expectedAction.response.task.edits.errors.undefined;
     }
     invoke(action);
     expect(store.dispatch).not.toHaveBeenCalled();
@@ -287,7 +292,7 @@ describe('task form validation middleware', () => {
 
     describe('for field', () => {
       describe('product', () => {
-        it.only('should not generate error flag when valid', () => testErrorFlag({
+        it('should not generate error flag when valid', () => testErrorFlag({
           field: TASK_FIELDS.EDIT_PRODUCT, value: '+test', valid: true,
         }));
 
@@ -405,9 +410,9 @@ describe('task form validation middleware', () => {
     });
   };
 
-  // describe('for add action', () => {
-  //   performErrorFlagTestsForAction(TASK_ACTIONS.ADD);
-  // });
+  describe('for add action', () => {
+    performErrorFlagTestsForAction(TASK_ACTIONS.ADD);
+  });
 
   describe('for update action', () => {
     performErrorFlagTestsForAction(TASK_ACTIONS.UPDATE);

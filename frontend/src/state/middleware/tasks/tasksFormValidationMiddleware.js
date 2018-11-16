@@ -19,9 +19,7 @@ const tasksFormValidationMiddleware = store => next => (action) => {
   const newAction = JSON.parse(JSON.stringify(action));
 
   let combinedErrors = false;
-  const response =
-    action.type === TASK_ACTIONS.ADD ? newAction.response.task :
-      newAction.response.task;
+  const response = newAction.response.task;
   const errors =
     action.type === TASK_ACTIONS.ADD ? newAction.response.task.errors :
       newAction.response.task.edits.errors;
