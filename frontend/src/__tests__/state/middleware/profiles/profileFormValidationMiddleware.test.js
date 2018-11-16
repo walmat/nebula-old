@@ -291,7 +291,6 @@ describe('profile form validation middleware', () => {
     if (genNoErrors) {
       // delete expected errors field if we aren't generating errors
       delete expectedAction.errors;
-      delete expectedAction.profile.errors.undefined;
     }
     invoke(action);
     expect(store.dispatch).not.toHaveBeenCalled();

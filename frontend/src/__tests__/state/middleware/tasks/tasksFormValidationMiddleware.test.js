@@ -162,6 +162,8 @@ describe('task form validation middleware', () => {
       },
     };
 
+    console.log(actionBase);
+
     const expectedActionBase = {
       ...actionBase,
       task: {
@@ -176,15 +178,19 @@ describe('task form validation middleware', () => {
             (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_USERNAME' ? testValid : false,
           password:
             (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_PASSWORD' ? testValid : false,
-          status: null,
-          errorDelay: null,
-          monitorDelay: null,
         } : {
           ...actionBase.task.errors,
+          password: null,
+          product: null,
+          profile: null,
+          site: null,
+          sizes: null,
+          username: null,
         },
         edits: {
           ...actionBase.task.edits,
           errors: type === 'ADD_TASK' ? {
+            ...actionBase.task.edits.errors,
             password: null,
             product: null,
             profile: null,
@@ -192,6 +198,7 @@ describe('task form validation middleware', () => {
             sizes: null,
             username: null,
           } : {
+            ...actionBase.task.edits.errors,
             product: testValid,
             profile: testValid,
             site: testValid,
@@ -203,10 +210,11 @@ describe('task form validation middleware', () => {
       },
     };
 
+    console.log(expectedActionBase);
+
     const action = {
       type,
       response: {
-        ...actionBase,
         task: type === 'ADD_TASK' ? {
           ...actionBase.task,
           [mapTaskFieldsToKey[field]]: value,
@@ -223,8 +231,17 @@ describe('task form validation middleware', () => {
       },
     };
 
+    console.log(action);
+
+
+    console.log(type);
+
     const expectedAction = {
       ...action,
+      errors: {
+        ...expectedActionBase.errors,
+        [mapTaskFieldsToKey[field]]: !testValid,
+      },
       response: {
         ...expectedActionBase,
         task: {
@@ -250,6 +267,26 @@ describe('task form validation middleware', () => {
         },
       },
     };
+
+
+    // // update error objects -- THESE AREN'T WORKING?
+    // if (type === 'ADD_TASK') {
+    //   expectedAction.errors = {
+    //     ...expectedAction.response.task.errors,
+    //     [mapTaskFieldsToKey[field]]: !testValid,
+    //   };
+
+    //   expectedAction.response.task.errors = {
+    //     [mapTaskFieldsToKey[field]]: !testValid,
+    //   };
+    // } else if (type === 'UPDATE_TASK') {
+    //   expectedAction.response.task.edits.errors = {
+    //     ...actionBase.task.edits.errors,
+    //     ...expectedActionBase.task.edits.errors,
+    //     [mapTaskFieldsToKey[field]]: !testValid,
+    //   };
+    // }
+
 
     return {
       action,
