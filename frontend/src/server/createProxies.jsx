@@ -34,7 +34,7 @@ export class CreateProxiesPrimitive extends Component {
                   value={serverInfo.proxyOptions.numProxies}
                   format="##"
                   placeholder="00"
-                  style={buildStyle(false, null)} // TODO
+                  style={buildStyle(false, null)}
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
                   required
@@ -49,7 +49,7 @@ export class CreateProxiesPrimitive extends Component {
                   components={{ DropdownIndicator }}
                   classNamePrefix="select"
                   className="proxy-options__input--location"
-                  styles={colourStyles(buildStyle(false, null))} // TODO
+                  styles={colourStyles(buildStyle(false, null))}
                   value={serverInfo.proxyOptions.location}
                   options={serverListOptions.locations}
                   data-testid={addTestId('CreateProxies.location')}
@@ -68,7 +68,7 @@ export class CreateProxiesPrimitive extends Component {
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
                   type="text"
                   placeholder="Desired Username"
-                  style={buildStyle(false, null)} // TODO
+                  style={buildStyle(false, null)}
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
                   value={serverInfo.proxyOptions.username}
                   required
@@ -87,7 +87,7 @@ export class CreateProxiesPrimitive extends Component {
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
                   type="text"
                   placeholder="Desired Password"
-                  style={buildStyle(false, null)} // TODO
+                  style={buildStyle(false, null)}
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
                   value={serverInfo.proxyOptions.password}
                   required

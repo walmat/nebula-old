@@ -230,53 +230,30 @@ describe('task reducer', () => {
             };
             const expected = {
               ...initialState,
-              sizes: [
-                'test2',
-                'test3',
-                'test',
-              ],
+              sizes: ['test2', 'test3', 'test'],
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: [
-                  'test2',
-                  'test3',
-                ],
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: ['test2', 'test3'],
+            });
             expect(actual).toEqual(expected);
           });
 
           test('when removing sizes from an existing list', () => {
             const initialState = {
               ...initialTaskStates.task,
-              sizes: [
-                'test',
-                'test2',
-                'test3',
-              ],
+              sizes: ['test', 'test2', 'test3'],
             };
             const expected = {
               ...initialState,
-              sizes: [
-                'test2',
-                'test3',
-              ],
+              sizes: ['test2', 'test3'],
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: [
-                  'test2',
-                  'test3',
-                ],
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: ['test2', 'test3'],
+            });
             expect(actual).toEqual(expected);
           });
         });
@@ -550,14 +527,11 @@ describe('task reducer', () => {
               ...initialState,
               sizes: [],
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: null,
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: null,
+            });
             expect(actual).toEqual(expected);
           });
 
@@ -573,25 +547,15 @@ describe('task reducer', () => {
               ...initialState,
               edits: {
                 ...initialState.edits,
-                sizes: [
-                  'test2',
-                  'test3',
-                  'test',
-                ],
+                sizes: ['test2', 'test3', 'test'],
               },
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                id: 1,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: [
-                  'test2',
-                  'test3',
-                ],
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              id: 1,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: ['test2', 'test3'],
+            });
             expect(actual).toEqual(expected);
           });
 
@@ -600,35 +564,22 @@ describe('task reducer', () => {
               ...initialTaskStates.task,
               edits: {
                 ...initialTaskStates.edit,
-                sizes: [
-                  'test',
-                  'test2',
-                  'test3',
-                ],
+                sizes: ['test', 'test2', 'test3'],
               },
             };
             const expected = {
               ...initialState,
               edits: {
                 ...initialState.edits,
-                sizes: [
-                  'test2',
-                  'test3',
-                ],
+                sizes: ['test2', 'test3'],
               },
             };
-            const actual = taskReducer(
-              initialState,
-              {
-                type: TASK_ACTIONS.EDIT,
-                id: 1,
-                field: TASK_FIELDS.EDIT_SIZES,
-                value: [
-                  'test2',
-                  'test3',
-                ],
-              },
-            );
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              id: 1,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: ['test2', 'test3'],
+            });
             expect(actual).toEqual(expected);
           });
         });
@@ -753,7 +704,7 @@ describe('task reducer', () => {
   });
 
   describe('should not respond to', () => {
-    const _testNoopResponse = (type) => {
+    const _testNoopResponse = type => {
       const actual = taskReducer(initialTaskStates.task, { type });
       expect(actual).toEqual(initialTaskStates.task);
     };

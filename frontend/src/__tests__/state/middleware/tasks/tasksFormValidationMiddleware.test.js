@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* global describe expect it test jest beforeEach */
 import tasksFormValidationMiddleware from '../../../../state/middleware/tasks/tasksFormValidationMiddleware';
 import {
@@ -37,7 +38,7 @@ describe('task form validation middleware', () => {
     expect(store.getState).not.toHaveBeenCalled();
   });
 
-  it('should pass through actions that aren\'t a task add or update type', () => {
+  it("should pass through actions that aren't a task add or update type", () => {
     const { store, next, invoke } = create();
     const action = { type: 'NOT_A_TASK_ADD_OR_UPDATE' };
     invoke(action);
@@ -53,7 +54,7 @@ describe('task form validation middleware', () => {
       ...payload,
     });
 
-    const testNoop = (payload) => {
+    const testNoop = payload => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         task: {
@@ -70,26 +71,40 @@ describe('task form validation middleware', () => {
       expect(nextAction.type).toBe(TASK_ACTIONS.ERROR);
     };
 
-    describe('null task given', () => {
-      test('when type is add', () => testNoop({
-        type: TASK_ACTIONS.ADD,
-        response: null,
-      }));
+    describe('null response given', () => {
+      test('when type is add', () =>
+        testNoop({
+          type: TASK_ACTIONS.ADD,
+          response: null,
+        }));
 
-      test('when type is update', () => testNoop({
-        type: TASK_ACTIONS.UPDATE,
-        id: null,
-      }));
+      test('when type is update', () =>
+        testNoop({
+          type: TASK_ACTIONS.UPDATE,
+          response: null,
+        }));
     });
 
-    describe('no task given', () => {
-      test('when type is add', () => testNoop({
-        type: TASK_ACTIONS.ADD,
-      }));
+    describe('no response given', () => {
+      test('when type is add', () =>
+        testNoop({
+          type: TASK_ACTIONS.ADD,
+        }));
 
-      test('when type is update', () => testNoop({
-        type: TASK_ACTIONS.UPDATE,
-      }));
+      test('when type is update', () =>
+        testNoop({
+          type: TASK_ACTIONS.UPDATE,
+        }));
+    });
+
+    describe('no response id given', () => {
+      test('when type is update', () =>
+        testNoop({
+          type: TASK_ACTIONS.UPDATE,
+          response: {
+            id: null,
+          },
+        }));
     });
   });
 
@@ -97,196 +112,288 @@ describe('task form validation middleware', () => {
     const actionBase = {
       task: {
         ...initialTaskStates.task,
-        id: type === 'ADD_TASK' ? null : '1',
-        product:
-          testValid ? {
-            ...initialTaskStates.task.product,
-            raw: 'https',
-          } : {
-            ...initialTaskStates.task.product,
-            raw: '+test',
-          },
-        site:
-          testValid ? {
-            ...initialTaskStates.task.site,
-            name: 'invalid',
-          } : {
-            ...initialTaskStates.task.site,
-            name: 'Undefeated',
-            auth: true,
-          },
-        profile: testValid ? {
-          ...initialProfileStates.profile,
-        } : {
-          ...initialProfileStates.profile,
-          id: '1',
-          profileName: 'test',
-          billingMatchesShipping: false,
-          payment: {
-            ...initialProfileStates.payment,
-            email: 'test@me.com',
-            cardNumber: '4111111111111',
-            exp: '12/34',
-            cvv: '123',
-          },
-          billing: {
-            ...initialProfileStates.location,
-            firstName: 'test',
-            lastName: 'test',
-            address: 'test',
-            apt: 'test',
-            city: 'test',
-            state: { label: 'Puerto Rico', value: 'PR' },
-            country: { value: 'US', label: 'United States' },
-            zipCode: '12345',
-            phone: '1234567890',
-          },
-          shipping: {
-            ...initialProfileStates.location,
-            firstName: 'test',
-            lastName: 'test',
-            address: 'test',
-            apt: 'test',
-            city: 'test',
-            state: { label: 'Puerto Rico', value: 'PR' },
-            country: { value: 'US', label: 'United States' },
-            zipCode: '12345',
-            phone: '1234567890',
-          },
-        },
+        id: type === TASK_ACTIONS.ADD ? null : '1',
+        product: testValid
+          ? {
+              ...initialTaskStates.task.product,
+              raw: 'https',
+            }
+          : {
+              ...initialTaskStates.task.product,
+              raw: '+test',
+            },
+        site: testValid
+          ? {
+              ...initialTaskStates.task.site,
+              name: 'invalid',
+            }
+          : {
+              ...initialTaskStates.task.site,
+              name: 'Undefeated',
+              auth: true,
+            },
+        profile: testValid
+          ? {
+              ...initialProfileStates.profile,
+            }
+          : {
+              ...initialProfileStates.profile,
+              id: '1',
+              profileName: 'test',
+              billingMatchesShipping: false,
+              payment: {
+                ...initialProfileStates.payment,
+                email: 'test@me.com',
+                cardNumber: '4111111111111',
+                exp: '12/34',
+                cvv: '123',
+              },
+              billing: {
+                ...initialProfileStates.location,
+                firstName: 'test',
+                lastName: 'test',
+                address: 'test',
+                apt: 'test',
+                city: 'test',
+                state: { label: 'Puerto Rico', value: 'PR' },
+                country: { value: 'US', label: 'United States' },
+                zipCode: '12345',
+                phone: '1234567890',
+              },
+              shipping: {
+                ...initialProfileStates.location,
+                firstName: 'test',
+                lastName: 'test',
+                address: 'test',
+                apt: 'test',
+                city: 'test',
+                state: { label: 'Puerto Rico', value: 'PR' },
+                country: { value: 'US', label: 'United States' },
+                zipCode: '12345',
+                phone: '1234567890',
+              },
+            },
         sizes: testValid ? [] : ['XXS'],
         username: testValid ? '' : 'test',
         password: testValid ? '' : 'test',
+        edits: {
+          ...initialTaskStates.task.edits,
+
+          product:
+            type === TASK_ACTIONS.UPDATE
+              ? testValid
+                ? {
+                    ...initialTaskStates.task.product,
+                    raw: 'https',
+                  }
+                : {
+                    ...initialTaskStates.task.product,
+                    raw: '+test',
+                  }
+              : null,
+
+          site:
+            type === TASK_ACTIONS.UPDATE
+              ? testValid
+                ? {
+                    ...initialTaskStates.task.site,
+                    name: 'invalid',
+                  }
+                : {
+                    ...initialTaskStates.task.site,
+                    name: 'Undefeated',
+                    auth: true,
+                  }
+              : null,
+
+          profile:
+            type === TASK_ACTIONS.UPDATE
+              ? testValid
+                ? {
+                    ...initialProfileStates.profile,
+                  }
+                : {
+                    ...initialProfileStates.profile,
+                    id: '1',
+                    profileName: 'test',
+                    billingMatchesShipping: false,
+                    payment: {
+                      ...initialProfileStates.payment,
+                      email: 'test@me.com',
+                      cardNumber: '4111111111111',
+                      exp: '12/34',
+                      cvv: '123',
+                    },
+                    billing: {
+                      ...initialProfileStates.location,
+                      firstName: 'test',
+                      lastName: 'test',
+                      address: 'test',
+                      apt: 'test',
+                      city: 'test',
+                      state: { label: 'Puerto Rico', value: 'PR' },
+                      country: { value: 'US', label: 'United States' },
+                      zipCode: '12345',
+                      phone: '1234567890',
+                    },
+                    shipping: {
+                      ...initialProfileStates.location,
+                      firstName: 'test',
+                      lastName: 'test',
+                      address: 'test',
+                      apt: 'test',
+                      city: 'test',
+                      state: { label: 'Puerto Rico', value: 'PR' },
+                      country: { value: 'US', label: 'United States' },
+                      zipCode: '12345',
+                      phone: '1234567890',
+                    },
+                  }
+              : null,
+          sizes:
+            type === TASK_ACTIONS.UPDATE ? (testValid ? [] : ['XXS']) : null,
+          username:
+            type === TASK_ACTIONS.UPDATE ? (testValid ? '' : 'test') : null,
+          password:
+            type === TASK_ACTIONS.UPDATE ? (testValid ? '' : 'test') : null,
+        },
         errorDelay: 1500,
         monitorDelay: 1500,
       },
     };
 
-    console.log(actionBase);
-
     const expectedActionBase = {
       ...actionBase,
       task: {
         ...actionBase.task,
-        errors: type === 'ADD_TASK' ? {
-          ...actionBase.task.errors,
-          product: testValid,
-          site: testValid,
-          profile: testValid,
-          sizes: testValid,
-          username:
-            (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_USERNAME' ? testValid : false,
-          password:
-            (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_PASSWORD' ? testValid : false,
-        } : {
-          ...actionBase.task.errors,
-          password: null,
-          product: null,
-          profile: null,
-          site: null,
-          sizes: null,
-          username: null,
-        },
+        errors:
+          type === TASK_ACTIONS.ADD
+            ? {
+                ...actionBase.task.errors,
+                product: testValid,
+                site: testValid,
+                profile: testValid,
+                sizes: testValid,
+                username:
+                  (field === TASK_FIELDS.EDIT_SITE && value.auth) ||
+                  field === TASK_FIELDS.EDIT_USERNAME
+                    ? testValid
+                    : false,
+                password:
+                  (field === TASK_FIELDS.EDIT_SITE && value.auth) ||
+                  field === TASK_FIELDS.EDIT_PASSWORD
+                    ? testValid
+                    : false,
+              }
+            : {
+                ...actionBase.task.errors,
+                password: null,
+                product: null,
+                profile: null,
+                site: null,
+                sizes: null,
+                username: null,
+              },
         edits: {
           ...actionBase.task.edits,
-          errors: type === 'ADD_TASK' ? {
-            ...actionBase.task.edits.errors,
-            password: null,
-            product: null,
-            profile: null,
-            site: null,
-            sizes: null,
-            username: null,
-          } : {
-            ...actionBase.task.edits.errors,
-            product: testValid,
-            profile: testValid,
-            site: testValid,
-            sizes: testValid,
-            username: (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_USERNAME' ? testValid : false,
-            password: (field === 'EDIT_SITE' && value.auth) || field === 'EDIT_PASSWORD' ? testValid : false,
-          },
+          errors:
+            type === TASK_ACTIONS.ADD
+              ? {
+                  ...actionBase.task.edits.errors,
+                  password: null,
+                  product: null,
+                  profile: null,
+                  site: null,
+                  sizes: null,
+                  username: null,
+                }
+              : {
+                  ...actionBase.task.edits.errors,
+                  product: testValid,
+                  profile: testValid,
+                  site: testValid,
+                  sizes: testValid,
+                  username:
+                    (field === TASK_FIELDS.EDIT_SITE && value.auth) ||
+                    field === TASK_FIELDS.EDIT_USERNAME
+                      ? testValid
+                      : false,
+                  password:
+                    (field === TASK_FIELDS.EDIT_SITE && value.auth) ||
+                    field === TASK_FIELDS.EDIT_PASSWORD
+                      ? testValid
+                      : false,
+                },
         },
       },
     };
-
-    console.log(expectedActionBase);
 
     const action = {
       type,
       response: {
-        task: type === 'ADD_TASK' ? {
-          ...actionBase.task,
-          [mapTaskFieldsToKey[field]]: value,
-          edits: {
-            ...actionBase.task.edits,
-          },
-        } : {
-          ...actionBase.task,
-          edits: {
-            ...actionBase.task.edits,
-            [mapTaskFieldsToKey[field]]: value,
-          },
-        },
+        task:
+          type === TASK_ACTIONS.ADD
+            ? {
+                ...actionBase.task,
+                [mapTaskFieldsToKey[field]]: value,
+                edits: {
+                  ...actionBase.task.edits,
+                },
+              }
+            : {
+                ...actionBase.task,
+                edits: {
+                  ...actionBase.task.edits,
+                  [mapTaskFieldsToKey[field]]: value,
+                },
+              },
       },
     };
 
-    console.log(action);
-
-
-    console.log(type);
-
     const expectedAction = {
       ...action,
-      errors: {
-        ...expectedActionBase.errors,
-        [mapTaskFieldsToKey[field]]: !testValid,
-      },
       response: {
         ...expectedActionBase,
         task: {
           ...actionBase.task,
           ...expectedActionBase.task,
           [mapTaskFieldsToKey[field]]:
-            type === 'ADD_TASK' ? value : action.response.task[mapTaskFieldsToKey[field]],
+            type === TASK_ACTIONS.ADD
+              ? value
+              : action.response.task[mapTaskFieldsToKey[field]],
           errors: {
             ...actionBase.task.errors,
             ...expectedActionBase.task.errors,
-            [mapTaskFieldsToKey[field]]: type === 'ADD_TASK' ? !testValid : null,
+            [mapTaskFieldsToKey[field]]:
+              type === TASK_ACTIONS.ADD ? !testValid : null,
           },
           edits: {
             ...actionBase.task.edits,
             ...expectedActionBase.task.edits,
-            [mapTaskFieldsToKey[field]]: type === 'ADD_TASK' ? null : value,
+            [mapTaskFieldsToKey[field]]:
+              type === TASK_ACTIONS.ADD ? null : value,
             errors: {
               ...actionBase.task.edits.errors,
               ...expectedActionBase.task.edits.errors,
-              [mapTaskFieldsToKey[field]]: type === 'ADD_TASK' ? null : !testValid,
+              [mapTaskFieldsToKey[field]]:
+                type === TASK_ACTIONS.ADD ? null : !testValid,
             },
           },
         },
       },
     };
 
-
-    // // update error objects -- THESE AREN'T WORKING?
-    // if (type === 'ADD_TASK') {
-    //   expectedAction.errors = {
-    //     ...expectedAction.response.task.errors,
-    //     [mapTaskFieldsToKey[field]]: !testValid,
-    //   };
-
-    //   expectedAction.response.task.errors = {
-    //     [mapTaskFieldsToKey[field]]: !testValid,
-    //   };
-    // } else if (type === 'UPDATE_TASK') {
-    //   expectedAction.response.task.edits.errors = {
-    //     ...actionBase.task.edits.errors,
-    //     ...expectedActionBase.task.edits.errors,
-    //     [mapTaskFieldsToKey[field]]: !testValid,
-    //   };
-    // }
-
+    if (type === TASK_ACTIONS.ADD) {
+      expectedAction.errors = {
+        ...expectedAction.response.task.errors,
+        [mapTaskFieldsToKey[field]]: !testValid,
+      };
+    } else if (type === TASK_ACTIONS.UPDATE) {
+      expectedAction.errors = {
+        ...expectedAction.response.task.edits.errors,
+        [mapTaskFieldsToKey[field]]: !testValid,
+      };
+    }
 
     return {
       action,
@@ -296,11 +403,12 @@ describe('task form validation middleware', () => {
 
   const testErrorFlagsForAction = (type, args, genNoErrors) => {
     // get args or mock them if we aren't generating errors
-    const {
-      field, value, valid,
-    } = !genNoErrors ? args : {
-      value: 'test', valid: false,
-    };
+    const { field, value, valid } = !genNoErrors
+      ? args
+      : {
+          value: 'test',
+          valid: false,
+        };
 
     const { store, next, invoke } = create();
     const { action, expectedAction } = generateActions(
@@ -312,6 +420,10 @@ describe('task form validation middleware', () => {
     if (genNoErrors) {
       // delete expected errors field if we aren't generating errors
       delete expectedAction.errors;
+      delete action.response.task.undefined;
+      delete action.response.task.edits.undefined;
+
+      delete expectedAction.response.task.undefined;
       delete expectedAction.response.task.errors.undefined;
       delete expectedAction.response.task.edits.undefined;
       delete expectedAction.response.task.edits.errors.undefined;
@@ -321,7 +433,7 @@ describe('task form validation middleware', () => {
     expect(next).toHaveBeenCalledWith(expectedAction);
   };
 
-  const performErrorFlagTestsForAction = (type) => {
+  const performErrorFlagTestsForAction = type => {
     const testErrorFlag = args => testErrorFlagsForAction(type, args);
 
     it('should not generate an errors object if no errors exist', () =>
@@ -329,120 +441,136 @@ describe('task form validation middleware', () => {
 
     describe('for field', () => {
       describe('product', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_PRODUCT, value: '+test', valid: true,
-        }));
+        it('should not generate error flag when valid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_PRODUCT,
+            value: '+test',
+            valid: true,
+          }));
 
-        it('should generate error flag when invalid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_PRODUCT, value: '', valid: false,
-        }));
+        it('should generate error flag when invalid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_PRODUCT,
+            value: '',
+            valid: false,
+          }));
       });
 
       describe('site', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_SITE,
-          value: {
-            url: 'https://amongstfew.com',
-            name: 'Amongst Few',
-            supported: true,
-            auth: false,
-          },
-          valid: true,
-        }));
+        it('should not generate error flag when valid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_SITE,
+            value: {
+              url: 'https://amongstfew.com',
+              name: 'Amongst Few',
+              supported: true,
+              auth: false,
+            },
+            valid: true,
+          }));
 
-        it('should generate error flag when invalid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_SITE,
-          value: {},
-          valid: false,
-        }));
+        it('should generate error flag when invalid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_SITE,
+            value: {},
+            valid: false,
+          }));
       });
 
       describe('profile', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_PROFILE,
-          value: {
-            id: '1',
-            profileName: 'test',
-            billingMatchesShipping: false,
-            payment: {
-              email: 'test@me.com',
-              cardNumber: '4111111111111',
-              exp: '12/34',
-              cvv: '123',
+        it('should not generate error flag when valid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_PROFILE,
+            value: {
+              id: '1',
+              profileName: 'test',
+              billingMatchesShipping: false,
+              payment: {
+                email: 'test@me.com',
+                cardNumber: '4111111111111',
+                exp: '12/34',
+                cvv: '123',
+              },
+              billing: {
+                firstName: 'test',
+                lastName: 'test',
+                address: 'test',
+                apt: 'test',
+                city: 'test',
+                state: { label: 'Puerto Rico', value: 'PR' },
+                country: { value: 'US', label: 'United States' },
+                zipCode: '12345',
+                phone: '1234567890',
+              },
+              shipping: {
+                firstName: 'test',
+                lastName: 'test',
+                address: 'test',
+                apt: 'test',
+                city: 'test',
+                state: { label: 'Puerto Rico', value: 'PR' },
+                country: { value: 'US', label: 'United States' },
+                zipCode: '12345',
+                phone: '1234567890',
+              },
             },
-            billing: {
-              firstName: 'test',
-              lastName: 'test',
-              address: 'test',
-              apt: 'test',
-              city: 'test',
-              state: { label: 'Puerto Rico', value: 'PR' },
-              country: { value: 'US', label: 'United States' },
-              zipCode: '12345',
-              phone: '1234567890',
-            },
-            shipping: {
-              firstName: 'test',
-              lastName: 'test',
-              address: 'test',
-              apt: 'test',
-              city: 'test',
-              state: { label: 'Puerto Rico', value: 'PR' },
-              country: { value: 'US', label: 'United States' },
-              zipCode: '12345',
-              phone: '1234567890',
-            },
-          },
-          valid: true,
-        }));
+            valid: true,
+          }));
 
-        it('should generate error flag when invalid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_PROFILE,
-          value: {},
-          valid: false,
-        }));
+        it('should generate error flag when invalid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_PROFILE,
+            value: {},
+            valid: false,
+          }));
       });
 
       describe('sizes', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_SIZES,
-          value: ['XXS'],
-          valid: true,
-        }));
+        it('should not generate error flag when valid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_SIZES,
+            value: ['XXS'],
+            valid: true,
+          }));
 
-        it('should generate error flag when invalid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_SIZES,
-          value: [],
-          valid: false,
-        }));
+        it('should generate error flag when invalid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_SIZES,
+            value: [],
+            valid: false,
+          }));
       });
 
       describe('username', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_USERNAME,
-          value: 'test',
-          valid: true,
-        }));
+        it('should not generate error flag when valid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_USERNAME,
+            value: 'test',
+            valid: true,
+          }));
 
-        it('should generate error flag when invalid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_USERNAME,
-          value: '',
-          valid: false,
-        }));
+        it('should generate error flag when invalid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_USERNAME,
+            value: '',
+            valid: false,
+          }));
       });
 
       describe('password', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_PASSWORD,
-          value: 'test',
-          valid: true,
-        }));
+        it('should not generate error flag when valid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_PASSWORD,
+            value: 'test',
+            valid: true,
+          }));
 
-        it('should generate error flag when invalid', () => testErrorFlag({
-          field: TASK_FIELDS.EDIT_PASSWORD,
-          value: '',
-          valid: false,
-        }));
+        it('should generate error flag when invalid', () =>
+          testErrorFlag({
+            field: TASK_FIELDS.EDIT_PASSWORD,
+            value: '',
+            valid: false,
+          }));
       });
     });
   };

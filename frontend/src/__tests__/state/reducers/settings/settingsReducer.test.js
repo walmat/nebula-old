@@ -147,14 +147,11 @@ describe('settings reducer', () => {
     let expected;
 
     const _getStateForAction = actionType =>
-      settingsReducer(
-        undefined,
-        {
-          type: actionType,
-          defaults: initialSettingsStates.defaults,
-          errors: initialSettingsStates.settingsErrors,
-        },
-      );
+      settingsReducer(undefined, {
+        type: actionType,
+        defaults: initialSettingsStates.defaults,
+        errors: initialSettingsStates.settingsErrors,
+      });
 
     beforeAll(() => {
       expected = {

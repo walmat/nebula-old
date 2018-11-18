@@ -19,28 +19,35 @@ export const TASK_ACTIONS = {
 const _addTaskRequest = async task =>
   new Promise((resolve, reject) => {
     const copy = JSON.parse(JSON.stringify(task));
-    const kws = copy.product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
+    const kws = copy.product.raw
+      .split(',')
+      .reduce((a, x) => a.concat(x.trim().split(' ')), []);
     const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
     const validKeywords = _.every(testKeywords, isValid => isValid === true);
 
-    if (regexes.urlRegex.test(task.product.raw)) { // test a url match
+    if (regexes.urlRegex.test(task.product.raw)) {
+      // test a url match
       copy.product.url = copy.product.raw;
       resolve({ task: copy });
-    } else if (regexes.variantRegex.test(task.product.raw)) { // test variant match
+    } else if (regexes.variantRegex.test(task.product.raw)) {
+      // test variant match
       copy.product.variant = copy.product.raw;
       resolve({ task: copy });
-    } else if (validKeywords) { // test keyword match
+    } else if (validKeywords) {
+      // test keyword match
       copy.product.pos_keywords = [];
       copy.product.neg_keywords = [];
-      kws.map((kw) => {
-        if (kw.slice(0, 1) === '+') { // positive keywords
+      kws.map(kw => {
+        if (kw.slice(0, 1) === '+') {
+          // positive keywords
           return copy.product.pos_keywords.push(kw.slice(1, kw.length));
         }
         // negative keywords
         return copy.product.neg_keywords.push(kw.slice(1, kw.length));
       });
       resolve({ task: copy });
-    } else { // reject any other input that fails
+    } else {
+      // reject any other input that fails
       reject(new Error('Unknown Input'));
     }
   });
@@ -57,7 +64,7 @@ const _destroyTaskRequest = async (task, type) => {
 
 const _updateTaskRequest = async (id, task) =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
+  new Promise(resolve => {
     setTimeout(() => {
       // API will likely do something like this:
       const copy = JSON.parse(JSON.stringify(task));
@@ -159,7 +166,7 @@ const destroyTask = (task, type) => dispatch =>
 
 const updateTask = (id, task) => (dispatch, getState) =>
   _updateTaskRequest(id, task).then(
-    (response) => {
+    response => {
       dispatch(_updateTask(response));
       const state = getState();
       if (state.selectedTask && state.selectedTask.id === response.id) {
@@ -181,7 +188,7 @@ const clearEdits = (id, task) => {
   copy.edits = null;
   return (dispatch, getState) =>
     _updateTaskRequest(id, copy).then(
-      (response) => {
+      response => {
         dispatch(_updateTask(response));
         const state = getState();
         if (state.selectedTask && state.selectedTask.id === response.id) {

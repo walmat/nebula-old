@@ -8,7 +8,6 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
-
 export class CreateServerPrimitive extends Component {
   static changeServerChoice(options, onChange) {
     return (event) => {
@@ -54,7 +53,7 @@ export class CreateServerPrimitive extends Component {
                 components={{ DropdownIndicator }}
                 classNamePrefix="select"
                 className="server-options__input--select"
-                styles={colourStyles(buildStyle(disabled, null))} // TODO
+                styles={colourStyles(buildStyle(disabled, null))}
                 onChange={onChange}
                 isDisabled={disabled}
                 value={value}
@@ -199,7 +198,6 @@ export const mapStateToProps = state => ({
   serverSize: state.serverInfo.serverOptions.size || null,
   serverLocation: state.serverInfo.serverOptions.location || null,
   serverListOptions: state.serverListOptions,
-  errors: defns.serverListOptionsErrors, // TODO: add actual definition
 });
 
 export const mapDispatchToProps = dispatch => ({

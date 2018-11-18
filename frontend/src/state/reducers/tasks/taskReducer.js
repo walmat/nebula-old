@@ -29,7 +29,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
             break;
           }
           const site = getAllSites().filter(s =>
-            URL.host.includes(s.value.split('/')[2]));
+            URL.host.includes(s.value.split('/')[2]),
+          );
           if (site.length === 0) {
             break;
           }
@@ -68,10 +69,13 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (nextSizes === null) {
             nextSizes = initialTaskStates.task.sizes;
           } else if (action.value && action.value.length > state.sizes.length) {
-            nextSizes.unshift(...(action.value.filter(s =>
-              !state.sizes.find(v => s === v))));
+            nextSizes.unshift(
+              ...action.value.filter(s => !state.sizes.find(v => s === v)),
+            );
           } else {
-            nextSizes = state.sizes.filter(s => action.value.find(v => s === v));
+            nextSizes = state.sizes.filter(s =>
+              action.value.find(v => s === v),
+            );
           }
           change = {
             sizes: nextSizes,
@@ -117,7 +121,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
               break;
             }
             const site = getAllSites().filter(s =>
-              URL.host.includes(s.value.split('/')[2]));
+              URL.host.includes(s.value.split('/')[2]),
+            );
             if (site.length === 0) {
               break;
             }
@@ -175,10 +180,15 @@ export function taskReducer(state = initialTaskStates.task, action) {
               nextSizes = action.value;
             }
           } else if (action.value && action.value.length > nextSizes.length) {
-            nextSizes.unshift(...(action.value.filter(s =>
-              !state.edits.sizes.find(v => s === v))));
+            nextSizes.unshift(
+              ...action.value.filter(
+                s => !state.edits.sizes.find(v => s === v),
+              ),
+            );
           } else {
-            nextSizes = state.edits.sizes.filter(s => action.value.find(v => s === v));
+            nextSizes = state.edits.sizes.filter(s =>
+              action.value.find(v => s === v),
+            );
           }
 
           change = {
@@ -222,8 +232,11 @@ export function newTaskReducer(state = initialTaskStates.task, action) {
       break;
     }
     case TASK_ACTIONS.ADD: {
-      if (action.errors) {
-        return Object.assign({}, state, { errors: Object.assign({}, state.errors, action.errors) });
+      console.log(action);
+      if (action.error) {
+        return Object.assign({}, state, {
+          errors: Object.assign({}, state.errors, action.errors),
+        });
       }
       // If we have a response error, we should do nothing
       if (!action.response || !action.response.task) {

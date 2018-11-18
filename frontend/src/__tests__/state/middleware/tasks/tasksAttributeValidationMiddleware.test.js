@@ -16,7 +16,8 @@ describe('task attribute validation middleware', () => {
 
     const next = jest.fn();
 
-    const invoke = action => taskAttributeValidationMiddleware(store)(next)(action);
+    const invoke = action =>
+      taskAttributeValidationMiddleware(store)(next)(action);
 
     return {
       store,
@@ -41,7 +42,7 @@ describe('task attribute validation middleware', () => {
     expect(store.getState).not.toHaveBeenCalled();
   });
 
-  it('should pass through actions that aren\'t a task edit type', () => {
+  it("should pass through actions that aren't a task edit type", () => {
     const { store, next, invoke } = create();
     const action = { type: 'NOT_A_TASK_EDIT_ACTION' };
     invoke(action);
@@ -58,7 +59,7 @@ describe('task attribute validation middleware', () => {
       ...payload,
     });
 
-    const testNoop = (payload) => {
+    const testNoop = payload => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         newTask: {
@@ -75,21 +76,29 @@ describe('task attribute validation middleware', () => {
       expect(nextAction.type).toBe(TASK_ACTIONS.ERROR);
     };
 
-    test('null field given', () => testNoop({
-      field: null,
-      value: 'test',
-    }));
+    test('null field given', () =>
+      testNoop({
+        field: null,
+        value: 'test',
+      }));
 
-    test('no field given', () => testNoop({
-      value: 'test',
-    }));
+    test('no field given', () =>
+      testNoop({
+        value: 'test',
+      }));
 
-    test('null value given', () => testNoop({
-      field: TASK_FIELDS.EDIT_PRODUCT,
-      value: null,
-    }));
+    test('no value given', () =>
+      testNoop({
+        field: TASK_FIELDS.EDIT_PRODUCT,
+      }));
 
-    test('no value given', () => testNoop({}));
+    test('null value given', () =>
+      testNoop({
+        field: TASK_FIELDS.EDIT_PRODUCT,
+        value: null,
+      }));
+
+    test('no field nor value given', () => testNoop({}));
   });
 
   const performErrorInjectionTest = ({ id, action, expectedAction }) => {
@@ -99,10 +108,12 @@ describe('task attribute validation middleware', () => {
         ...initialTaskStates.task,
         id: '',
       },
-      tasks: [{
-        ...initialTaskStates.task,
-        id,
-      }],
+      tasks: [
+        {
+          ...initialTaskStates.task,
+          id,
+        },
+      ],
     }));
     invoke(action);
     expect(next).toHaveBeenCalledWith(expectedAction);
@@ -127,15 +138,32 @@ describe('task attribute validation middleware', () => {
     },
   });
 
-  const testAllFields = (id) => {
-    const testInjection = actionObject => performErrorInjectionTest(actionObject);
-    const getActions = (field, value, valid) => generateActions(id, field, value, valid);
-
+  const testAllFields = id => {
+    const testInjection = actionObject =>
+      performErrorInjectionTest(actionObject);
+    const getActions = (field, value, valid) =>
+      generateActions(id, field, value, valid);
 
     describe('should inject errors map on', () => {
       describe('edit product field', () => {
-        test('when valid', () => {
+        test('when valid keywords', () => {
           testInjection(getActions(TASK_FIELDS.EDIT_PRODUCT, '+test', true));
+        });
+
+        test('when valid url', () => {
+          testInjection(
+            getActions(
+              TASK_FIELDS.EDIT_PRODUCT,
+              'https://yeezysupply.com/products/1238',
+              true,
+            ),
+          );
+        });
+
+        test('when valid variant', () => {
+          testInjection(
+            getActions(TASK_FIELDS.EDIT_PRODUCT, '1231515617751', true),
+          );
         });
 
         test('when invalid', () => {
@@ -145,12 +173,18 @@ describe('task attribute validation middleware', () => {
 
       describe('edit site field', () => {
         test('when valid', () => {
-          testInjection(getActions(TASK_FIELDS.EDIT_SITE, {
-            url: 'https://amongstfew.com',
-            name: 'Amongst Few',
-            supported: true,
-            auth: false,
-          }, true));
+          testInjection(
+            getActions(
+              TASK_FIELDS.EDIT_SITE,
+              {
+                url: 'https://amongstfew.com',
+                name: 'Amongst Few',
+                supported: true,
+                auth: false,
+              },
+              true,
+            ),
+          );
         });
 
         test('when invalid', () => {
@@ -160,39 +194,45 @@ describe('task attribute validation middleware', () => {
 
       describe('edit profile field', () => {
         test('when valid', () => {
-          testInjection(getActions(TASK_FIELDS.EDIT_PROFILE, {
-            id: '1',
-            profileName: 'test',
-            billingMatchesShipping: false,
-            payment: {
-              email: 'test@me.com',
-              cardNumber: '4111111111111',
-              exp: '12/34',
-              cvv: '123',
-            },
-            billing: {
-              firstName: 'test',
-              lastName: 'test',
-              address: 'test',
-              apt: 'test',
-              city: 'test',
-              state: { label: 'Puerto Rico', value: 'PR' },
-              country: { value: 'US', label: 'United States' },
-              zipCode: '12345',
-              phone: '1234567890',
-            },
-            shipping: {
-              firstName: 'test',
-              lastName: 'test',
-              address: 'test',
-              apt: 'test',
-              city: 'test',
-              state: { label: 'Puerto Rico', value: 'PR' },
-              country: { value: 'US', label: 'United States' },
-              zipCode: '12345',
-              phone: '1234567890',
-            },
-          }, true));
+          testInjection(
+            getActions(
+              TASK_FIELDS.EDIT_PROFILE,
+              {
+                id: '1',
+                profileName: 'test',
+                billingMatchesShipping: false,
+                payment: {
+                  email: 'test@me.com',
+                  cardNumber: '4111111111111',
+                  exp: '12/34',
+                  cvv: '123',
+                },
+                billing: {
+                  firstName: 'test',
+                  lastName: 'test',
+                  address: 'test',
+                  apt: 'test',
+                  city: 'test',
+                  state: { label: 'Puerto Rico', value: 'PR' },
+                  country: { value: 'US', label: 'United States' },
+                  zipCode: '12345',
+                  phone: '1234567890',
+                },
+                shipping: {
+                  firstName: 'test',
+                  lastName: 'test',
+                  address: 'test',
+                  apt: 'test',
+                  city: 'test',
+                  state: { label: 'Puerto Rico', value: 'PR' },
+                  country: { value: 'US', label: 'United States' },
+                  zipCode: '12345',
+                  phone: '1234567890',
+                },
+              },
+              true,
+            ),
+          );
         });
 
         test('when invalid', () => {

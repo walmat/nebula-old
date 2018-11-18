@@ -14,13 +14,16 @@ export default function configureStore() {
   return createStore(
     topLevelReducer,
     initialState,
-    composeEnhancers(applyMiddleware(
-      profileAttributeValidationMiddleware,
-      profileFormValidationMiddleware,
-      tasksAttributeValidationMiddleware,
-      tasksFormValidationMiddleware,
-      settingsAttributeValidationMiddleware,
-      thunk,
-    ), persistState()),
+    composeEnhancers(
+      applyMiddleware(
+        profileAttributeValidationMiddleware,
+        profileFormValidationMiddleware,
+        tasksAttributeValidationMiddleware,
+        tasksFormValidationMiddleware,
+        settingsAttributeValidationMiddleware,
+        thunk,
+      ),
+      persistState(),
+    ),
   );
 }

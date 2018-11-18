@@ -8,11 +8,13 @@ function validateProduct(product) {
     return false;
   }
 
-  if (typeof (product) === 'object') {
+  if (typeof product === 'object') {
     product = product.raw;
   }
 
-  const kws = product.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
+  const kws = product
+    .split(',')
+    .reduce((a, x) => a.concat(x.trim().split(' ')), []);
   const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
   const validKeywords = _.every(testKeywords, isValid => isValid === true);
 
@@ -36,7 +38,6 @@ function validateSite(site) {
  * @param {Array} sizes - array of sizes
  */
 function validateSizes(sizes) {
-  // console.log(sizes);
   return sizes && sizes.length > 0;
 }
 
@@ -49,7 +50,6 @@ function validateProfile(profile) {
  * @param {String} input - The string input (non empty);
  */
 function validateAccountInformation(input) {
-  console.log(input && input !== '');
   return input && input !== '';
 }
 

@@ -32,7 +32,11 @@ export default function taskListReducer(
   switch (action.type) {
     case TASK_ACTIONS.ADD: {
       // Check for valid payload structure
-      if (action.errors || !action.response || (action.response && !action.response.task)) {
+      if (
+        action.errors ||
+        !action.response ||
+        (action.response && !action.response.task)
+      ) {
         break;
       }
 
@@ -82,10 +86,12 @@ export default function taskListReducer(
       break;
     }
     case TASK_ACTIONS.UPDATE: {
-      // Check if payload has correct structure
+      // Check if payload has correct structure or any errors
       if (
+        action.errors ||
         !action.response ||
-        (action.response && (!action.response.task || !action.response.id))
+        !action.response.id ||
+        !action.response.task
       ) {
         break;
       }
@@ -207,7 +213,9 @@ export default function taskListReducer(
       break;
     }
     case TASK_ACTIONS.ERROR: {
-      console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
+      console.error(
+        `Error trying to perform: ${action.action}! Reason: ${action.error}`,
+      );
       break;
     }
     default:
