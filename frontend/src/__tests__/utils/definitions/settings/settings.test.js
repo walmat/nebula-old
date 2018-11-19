@@ -1,6 +1,11 @@
 /* global describe */
-import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, {
+  initialSettingsStates,
+} from '../../../../utils/definitions/settingsDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('settings definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -21,19 +26,17 @@ describe('settings definitions', () => {
     'proxies',
     [
       [],
-      ['test', {}, {
-        ip: 'i',
-        port: 0,
-        username: 'u',
-        password: 'p',
-      }],
+      [
+        'test',
+        {},
+        {
+          ip: 'i',
+          port: 0,
+          username: 'u',
+          password: 'p',
+        },
+      ],
     ],
-    [
-      {},
-      3,
-      false,
-      [false],
-      [3],
-    ],
+    [{}, 3, false, [false], [3]],
   );
 });

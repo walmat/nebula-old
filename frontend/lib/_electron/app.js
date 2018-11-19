@@ -1,5 +1,6 @@
 const Electron = require('electron');
 const CaptchaServerManager = require('./captchaServerManager');
+const MainMenu = require('./mainMenu');
 const DialogManager = require('./dialogManager');
 const WindowManager = require('./windowManager');
 const AuthManager = require('./authManager');
@@ -8,9 +9,6 @@ const nebulaEnv = require('./env');
 const { bindDebugEvents } = require('./debug');
 
 nebulaEnv.setUpEnvironment();
-
-// Install Dev tools extensions
-const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
 
 /**
  * Application entry point.
@@ -139,6 +137,8 @@ class App {
     }
 
     await this._windowManager.createNewWindow('main');
+    const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
+    Electron.Menu.setApplicationMenu(menu);
   }
 
   /**
@@ -152,7 +152,14 @@ class App {
     Electron.app.quit();
   }
 
-  onCertificateErrorHandler(event, webContents, url, error, certificate, callback) {
+  onCertificateErrorHandler(
+    event,
+    webContents,
+    url,
+    error,
+    certificate,
+    callback,
+  ) {
     const serverPort = this._captchaServerManager.port;
     if (serverPort && url.startsWith(`https://127.0.0.1:${serverPort}`)) {
       event.preventDefault();
@@ -167,10 +174,19 @@ class App {
    * Install development extensions
    */
   static async installExtensions() {
+    const {
+      default: installExtension,
+      REACT_DEVELOPER_TOOLS,
+      REDUX_DEVTOOLS,
+    } = require('electron-devtools-installer');
     const devExts = [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS];
-    await Promise.all(devExts.map(ext => installExtension(ext)
-      .then(name => console.log(`Added Extension: ${name}`))
-      .catch(err => console.error(`An Error Occurred: ${err}`))));
+    await Promise.all(
+      devExts.map(ext =>
+        installExtension(ext)
+          .then(name => console.log(`Added Extension: ${name}`))
+          .catch(err => console.error(`An Error Occurred: ${err}`)),
+      ),
+    );
   }
 }
 

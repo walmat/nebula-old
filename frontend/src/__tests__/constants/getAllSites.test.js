@@ -142,7 +142,7 @@ describe('getAllSites', () => {
   });
 
   it('should lookup the correct sizes', () => {
-    expectedSites.forEach((site) => {
+    expectedSites.forEach(site => {
       expect(getSite(site.value)).toEqual({ ...site, supported: true });
     });
   });

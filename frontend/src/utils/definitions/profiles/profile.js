@@ -16,10 +16,7 @@ export const initialProfileState = {
 };
 
 const profile = PropTypes.shape({
-  id: PropTypes.oneOfType([
-    PropTypes.number,
-    PropTypes.string,
-  ]),
+  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   profileName: PropTypes.string,
   errors: PropTypes.shape({
     profileName: PropTypes.bool,

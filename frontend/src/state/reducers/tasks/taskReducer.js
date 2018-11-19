@@ -1,9 +1,5 @@
 import { parseURL } from 'whatwg-url';
-import {
-  TASK_ACTIONS,
-  TASK_FIELDS,
-  mapTaskFieldsToKey,
-} from '../../actions';
+import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 import getAllSites from '../../../constants/getAllSites';
 // import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
@@ -31,7 +27,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (!URL || !URL.host) {
             break;
           }
-          const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
+          const site = getAllSites().filter(s =>
+            URL.host.includes(s.value.split('/')[2]),
+          );
           if (site.length === 0) {
             break;
           }
@@ -67,10 +65,15 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (nextSizes === null) {
             nextSizes = initialTaskStates.task.sizes;
           } else if (action.value && action.value.length > state.sizes.length) {
-            nextSizes.unshift(...(action.value.filter(s =>
-              !state.sizes.find(({ id }) => s.id === id))));
+            nextSizes.unshift(
+              ...action.value.filter(
+                s => !state.sizes.find(({ id }) => s.id === id),
+              ),
+            );
           } else {
-            nextSizes = state.sizes.filter(s => action.value.find(({ id }) => s.id === id));
+            nextSizes = state.sizes.filter(s =>
+              action.value.find(({ id }) => s.id === id),
+            );
           }
 
           change = {
@@ -84,7 +87,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
             break;
           }
           change = {
-            [mapTaskFieldsToKey[action.field]]: action.value ||
+            [mapTaskFieldsToKey[action.field]]:
+              action.value ||
               initialTaskStates.task[mapTaskFieldsToKey[action.field]],
             errors: Object.assign({}, state.errors, action.errors),
           };
@@ -115,7 +119,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
             if (!URL || !URL.host) {
               break;
             }
-            const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
+            const site = getAllSites().filter(s =>
+              URL.host.includes(s.value.split('/')[2]),
+            );
             if (site.length === 0) {
               break;
             }
@@ -169,18 +175,25 @@ export function taskReducer(state = initialTaskStates.task, action) {
           let nextSizes = JSON.parse(JSON.stringify(state.edits.sizes));
           if (nextSizes === null) {
             if (action.value) {
-              nextSizes = [{
-                ...initialTaskStates.task.sizes,
-                id: action.value[0].id,
-                label: action.value[0].label,
-                value: action.value[0].value,
-              }];
+              nextSizes = [
+                {
+                  ...initialTaskStates.task.sizes,
+                  id: action.value[0].id,
+                  label: action.value[0].label,
+                  value: action.value[0].value,
+                },
+              ];
             }
           } else if (action.value && action.value.length > nextSizes.length) {
-            nextSizes.unshift(...(action.value.filter(s =>
-              !state.edits.sizes.find(({ id }) => s.id === id))));
+            nextSizes.unshift(
+              ...action.value.filter(
+                s => !state.edits.sizes.find(({ id }) => s.id === id),
+              ),
+            );
           } else {
-            nextSizes = state.edits.sizes.filter(s => action.value.find(({ id }) => s.id === id));
+            nextSizes = state.edits.sizes.filter(s =>
+              action.value.find(({ id }) => s.id === id),
+            );
           }
 
           change = {
@@ -198,14 +211,16 @@ export function taskReducer(state = initialTaskStates.task, action) {
           change = {
             edits: {
               ...state.edits,
-              [mapTaskFieldsToKey[action.field]]: action.value ||
+              [mapTaskFieldsToKey[action.field]]:
+                action.value ||
                 initialTaskStates.task.edits[mapTaskFieldsToKey[action.field]],
               errors: Object.assign({}, state.edits.errors, action.errors),
             },
           };
           break;
         }
-        default: break;
+        default:
+          break;
       }
     }
   }

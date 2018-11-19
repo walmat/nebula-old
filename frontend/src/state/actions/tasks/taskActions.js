@@ -20,23 +20,29 @@ const _addTaskRequest = async task =>
     const keywordRegex = /^[+-][A-Za-z0-9&]+$/;
     const variantRegex = /^\d+$/;
     const copy = JSON.parse(JSON.stringify(task));
-    const kws = task.product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
+    const kws = task.product.raw
+      .split(',')
+      .reduce((a, x) => a.concat(x.trim().split(' ')), []);
     const validKeywords = kws.map(val => keywordRegex.test(val));
 
-    if (urlRegex.test(task.product.raw)) { // test a url match
+    if (urlRegex.test(task.product.raw)) {
+      // test a url match
       copy.product.url = copy.product.raw;
       resolve({ task: copy });
-    } else if (variantRegex.test(task.product.raw)) { // test variant match
+    } else if (variantRegex.test(task.product.raw)) {
+      // test variant match
       copy.product.variant = copy.product.raw;
       resolve({ task: copy });
-    } else if (validKeywords) { // test keyword match
+    } else if (validKeywords) {
+      // test keyword match
       if (validKeywords.some(v => v === false)) {
         reject(new Error('Improper keywords'));
       } else {
         copy.product.pos_keywords = [];
         copy.product.neg_keywords = [];
-        kws.map((kw) => {
-          if (kw.slice(0, 1) === '+') { // positive keywords
+        kws.map(kw => {
+          if (kw.slice(0, 1) === '+') {
+            // positive keywords
             return copy.product.pos_keywords.push(kw.slice(1, kw.length));
           }
           // negative keywords
@@ -44,7 +50,8 @@ const _addTaskRequest = async task =>
         });
         resolve({ task: copy });
       }
-    } else { // reject any other input that fails
+    } else {
+      // reject any other input that fails
       reject(new Error('Unknown Input'));
     }
   });
@@ -61,12 +68,14 @@ const _destroyTaskRequest = async (task, type) => {
 
 const _updateTaskRequest = async (id, task) =>
   // TODO: Replace this with an actual API call
-  new Promise((resolve) => {
+  new Promise(resolve => {
     setTimeout(() => {
       // API will likely do something like this:
       const copy = JSON.parse(JSON.stringify(task));
       if (copy.edits !== null) {
-        const useAuth = (copy.edits.site && copy.edits.site.auth) || (copy.site && copy.site.auth);
+        const useAuth =
+          (copy.edits.site && copy.edits.site.auth) ||
+          (copy.site && copy.site.auth);
         copy.profile = copy.edits.profile || copy.profile;
         copy.product = copy.edits.product || copy.product;
         copy.sizes = copy.edits.sizes || copy.sizes;
@@ -147,21 +156,21 @@ const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
-const addTask = task =>
-  dispatch => _addTaskRequest(task).then(
+const addTask = task => dispatch =>
+  _addTaskRequest(task).then(
     response => dispatch(_addTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
 
-const destroyTask = (task, type) =>
-  dispatch => _destroyTaskRequest(task, type).then(
+const destroyTask = (task, type) => dispatch =>
+  _destroyTaskRequest(task, type).then(
     response => dispatch(_destroyTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.DESTROY, error)),
   );
 
-const updateTask = (id, task) =>
-  (dispatch, getState) => _updateTaskRequest(id, task).then(
-    (response) => {
+const updateTask = (id, task) => (dispatch, getState) =>
+  _updateTaskRequest(id, task).then(
+    response => {
       dispatch(_updateTask(response));
       const state = getState();
       if (state.selectedTask && state.selectedTask.id === response.id) {
@@ -171,8 +180,8 @@ const updateTask = (id, task) =>
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 
-const statusTask = (id, message) =>
-  dispatch => _statusTaskRequest(id, message).then(
+const statusTask = (id, message) => dispatch =>
+  _statusTaskRequest(id, message).then(
     response => dispatch(_statusTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.STATUS, error)),
   );
@@ -181,26 +190,27 @@ const clearEdits = (id, task) => {
   // Clear the edits so the update clears them out properly
   const copy = JSON.parse(JSON.stringify(task));
   copy.edits = null;
-  return (dispatch, getState) => _updateTaskRequest(id, copy).then(
-    (response) => {
-      dispatch(_updateTask(response));
-      const state = getState();
-      if (state.selectedTask && state.selectedTask.id === response.id) {
-        dispatch(selectTask(null));
-      }
-    },
-    error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
-  );
+  return (dispatch, getState) =>
+    _updateTaskRequest(id, copy).then(
+      response => {
+        dispatch(_updateTask(response));
+        const state = getState();
+        if (state.selectedTask && state.selectedTask.id === response.id) {
+          dispatch(selectTask(null));
+        }
+      },
+      error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
+    );
 };
 
-const startTask = (task, proxies) =>
-  dispatch => _startTaskRequest(task, proxies).then(
+const startTask = (task, proxies) => dispatch =>
+  _startTaskRequest(task, proxies).then(
     response => dispatch(_startTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.START, error)),
   );
 
-const stopTask = task =>
-  dispatch => _stopTaskRequest(task).then(
+const stopTask = task => dispatch =>
+  _stopTaskRequest(task).then(
     response => dispatch(_stopTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.STOP, error)),
   );

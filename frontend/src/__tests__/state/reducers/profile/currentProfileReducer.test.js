@@ -20,10 +20,11 @@ describe('current profile reducer', () => {
           ...initialProfileStates.profile,
           profileName: 'test',
         };
-        const actual = currentProfileReducer(
-          initialProfileStates.profile,
-          { type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_NAME, value: 'test' },
-        );
+        const actual = currentProfileReducer(initialProfileStates.profile, {
+          type: PROFILE_ACTIONS.EDIT,
+          field: PROFILE_FIELDS.EDIT_NAME,
+          value: 'test',
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -35,12 +36,12 @@ describe('current profile reducer', () => {
             email: 'test',
           },
         };
-        const actual = currentProfileReducer(
-          initialProfileStates.profile,
-          {
-            type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_PAYMENT, value: 'test', subField: PAYMENT_FIELDS.EMAIL,
-          },
-        );
+        const actual = currentProfileReducer(initialProfileStates.profile, {
+          type: PROFILE_ACTIONS.EDIT,
+          field: PROFILE_FIELDS.EDIT_PAYMENT,
+          value: 'test',
+          subField: PAYMENT_FIELDS.EMAIL,
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -56,7 +57,8 @@ describe('current profile reducer', () => {
         };
 
         _testHandleInvalid('(no value)', {
-          type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_NAME,
+          type: PROFILE_ACTIONS.EDIT,
+          field: PROFILE_FIELDS.EDIT_NAME,
         });
 
         _testHandleInvalid('with subfield (no value)', {
@@ -66,19 +68,27 @@ describe('current profile reducer', () => {
         });
 
         _testHandleInvalid('(no subfield)', {
-          type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_PAYMENT, value: 'test',
+          type: PROFILE_ACTIONS.EDIT,
+          field: PROFILE_FIELDS.EDIT_PAYMENT,
+          value: 'test',
         });
 
         _testHandleInvalid('(invalid subfield)', {
-          type: PROFILE_ACTIONS.EDIT, field: PROFILE_FIELDS.EDIT_PAYMENT, subField: 'INVALID', value: 'test',
+          type: PROFILE_ACTIONS.EDIT,
+          field: PROFILE_FIELDS.EDIT_PAYMENT,
+          subField: 'INVALID',
+          value: 'test',
         });
 
         _testHandleInvalid('(no field)', {
-          type: PROFILE_ACTIONS.EDIT, value: 'test',
+          type: PROFILE_ACTIONS.EDIT,
+          value: 'test',
         });
 
         _testHandleInvalid('(invalid field)', {
-          type: PROFILE_ACTIONS.EDIT, field: 'INVALID', value: 'test',
+          type: PROFILE_ACTIONS.EDIT,
+          field: 'INVALID',
+          value: 'test',
         });
       });
     });
@@ -88,7 +98,10 @@ describe('current profile reducer', () => {
         ...initialProfileStates.profile,
         profileName: 'testing...',
       };
-      const actual = currentProfileReducer(start, { type: PROFILE_ACTIONS.EDIT, id: 1 });
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.EDIT,
+        id: 1,
+      });
       expect(actual).toEqual(start);
     });
   });
@@ -99,10 +112,10 @@ describe('current profile reducer', () => {
         ...initialProfileStates.profile,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.ADD, profile: {} },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.ADD,
+        profile: {},
+      });
       expect(actual).toEqual(initialProfileStates.profile);
     });
 
@@ -111,10 +124,9 @@ describe('current profile reducer', () => {
         ...initialProfileStates.profile,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.ADD },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.ADD,
+      });
       expect(actual).toEqual(start);
     });
   });
@@ -125,10 +137,10 @@ describe('current profile reducer', () => {
         ...initialProfileStates.profile,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.ADD, profile: {} },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.ADD,
+        profile: {},
+      });
       expect(actual).toEqual(initialProfileStates.profile);
     });
 
@@ -137,10 +149,9 @@ describe('current profile reducer', () => {
         ...initialProfileStates.profile,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.ADD },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.ADD,
+      });
       expect(actual).toEqual(start);
     });
   });
@@ -153,17 +164,14 @@ describe('current profile reducer', () => {
         editId: 2,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        initialProfileStates.profile,
-        {
-          type: PROFILE_ACTIONS.LOAD,
-          profile: {
-            ...initialProfileStates.profile,
-            id: 2,
-            profileName: 'testing',
-          },
+      const actual = currentProfileReducer(initialProfileStates.profile, {
+        type: PROFILE_ACTIONS.LOAD,
+        profile: {
+          ...initialProfileStates.profile,
+          id: 2,
+          profileName: 'testing',
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -172,13 +180,10 @@ describe('current profile reducer', () => {
         ...initialProfileStates.profile,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        {
-          type: PROFILE_ACTIONS.LOAD,
-          profile: {},
-        },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.LOAD,
+        profile: {},
+      });
       expect(actual).toEqual(start);
     });
 
@@ -187,10 +192,9 @@ describe('current profile reducer', () => {
         ...initialProfileStates.profile,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.LOAD },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.LOAD,
+      });
       expect(actual).toEqual(start);
     });
   });
@@ -202,10 +206,10 @@ describe('current profile reducer', () => {
         id: 1,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.REMOVE, id: 1 },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 1,
+      });
       expect(actual).toEqual(initialProfileStates.profile);
     });
 
@@ -215,10 +219,10 @@ describe('current profile reducer', () => {
         editId: 1,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.REMOVE, id: 1 },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 1,
+      });
       expect(actual).toEqual(initialProfileStates.profile);
     });
 
@@ -228,10 +232,10 @@ describe('current profile reducer', () => {
         id: 2,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.REMOVE, id: 1 },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 1,
+      });
       expect(actual).toEqual(start);
     });
 
@@ -241,10 +245,10 @@ describe('current profile reducer', () => {
         editId: 2,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.REMOVE, id: 1 },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 1,
+      });
       expect(actual).toEqual(start);
     });
 
@@ -254,20 +258,18 @@ describe('current profile reducer', () => {
         id: 1,
         profileName: 'testing',
       };
-      const actual = currentProfileReducer(
-        start,
-        { type: PROFILE_ACTIONS.REMOVE },
-      );
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.REMOVE,
+      });
       expect(actual).toEqual(start);
     });
   });
 
   describe('should not respond to', () => {
-    const _testNoopResponse = (type) => {
-      const actual = currentProfileReducer(
-        initialProfileStates.profile,
-        { type },
-      );
+    const _testNoopResponse = type => {
+      const actual = currentProfileReducer(initialProfileStates.profile, {
+        type,
+      });
       expect(actual).toEqual(initialProfileStates.profile);
     };
 

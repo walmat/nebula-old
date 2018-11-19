@@ -19,7 +19,7 @@ describe('getAllSizes', () => {
         ],
       },
       {
-        label: 'US Men\'s',
+        label: "US Men's",
         options: [
           { value: 'US Random', label: 'Random' },
           { value: 'US FSR', label: 'Full Size Run' },
@@ -46,7 +46,7 @@ describe('getAllSizes', () => {
         ],
       },
       {
-        label: 'UK Men\'s',
+        label: "UK Men's",
         options: [
           { value: 'UK Random', label: 'Random' },
           { value: 'UK FSR', label: 'Full Size Run' },
@@ -73,7 +73,7 @@ describe('getAllSizes', () => {
         ],
       },
       {
-        label: 'EU Men\'s',
+        label: "EU Men's",
         options: [
           { value: 'EU Random', label: 'Random' },
           { value: 'EU FSR', label: 'Full Size Run' },
@@ -143,12 +143,14 @@ describe('getAllSizes', () => {
   });
 
   it('should return correct category', () => {
-    expectedSizes.forEach(category => expect(getCategory(category.label)).toEqual(category));
+    expectedSizes.forEach(category =>
+      expect(getCategory(category.label)).toEqual(category),
+    );
   });
 
   it('should lookup the correct sizes', () => {
-    expectedSizes.forEach((category) => {
-      category.options.forEach((size) => {
+    expectedSizes.forEach(category => {
+      category.options.forEach(size => {
         expect(getSize(size.label, category.label)).toEqual(size.label);
       });
     });

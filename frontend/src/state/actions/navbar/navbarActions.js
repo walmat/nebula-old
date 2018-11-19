@@ -29,19 +29,17 @@ export const mapActionsToRoutes = {
 const _routeAction = type => makeActionCreator(type, 'history');
 
 // Public General Route Action
-const route = (type, history) =>
-  (dispatch) => {
-    let _type = type;
-    if (!mapActionsToRoutes[type]) {
-      _type = NAVBAR_ACTIONS.ROUTE_HOME;
-    }
-    history.push(mapActionsToRoutes[_type] || '/');
-    dispatch(_routeAction(_type)(history));
-  };
+const route = (type, history) => dispatch => {
+  let _type = type;
+  if (!mapActionsToRoutes[type]) {
+    _type = NAVBAR_ACTIONS.ROUTE_HOME;
+  }
+  history.push(mapActionsToRoutes[_type] || '/');
+  dispatch(_routeAction(_type)(history));
+};
 
 // Public Specific Route Action Generator
-const routeAction = type =>
-  history => route(type, history);
+const routeAction = type => history => route(type, history);
 
 export const navbarActions = {
   route,

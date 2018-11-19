@@ -1,10 +1,7 @@
 /* global describe expect it test jest */
 import { newTaskReducer } from '../../../../state/reducers/tasks/taskReducer';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import {
-  TASK_ACTIONS,
-  TASK_FIELDS,
-} from '../../../../state/actions';
+import { TASK_ACTIONS, TASK_FIELDS } from '../../../../state/actions';
 
 describe('new task reducer', () => {
   it('should return initial state', () => {
@@ -18,52 +15,50 @@ describe('new task reducer', () => {
         ...initialTaskStates.task,
         username: 'test',
       };
-      const actual = newTaskReducer(
-        initialTaskStates.task,
-        {
-          type: TASK_ACTIONS.EDIT, id: null, field: TASK_FIELDS.EDIT_USERNAME, value: 'test',
-        },
-      );
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: TASK_ACTIONS.EDIT,
+        id: null,
+        field: TASK_FIELDS.EDIT_USERNAME,
+        value: 'test',
+      });
       expect(actual).toEqual(expected);
     });
 
     test('when id is non-null', () => {
-      const actual = newTaskReducer(
-        initialTaskStates.task,
-        {
-          type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_USERNAME, value: 'test',
-        },
-      );
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: TASK_ACTIONS.EDIT,
+        id: 1,
+        field: TASK_FIELDS.EDIT_USERNAME,
+        value: 'test',
+      });
       expect(actual).toEqual(initialTaskStates.task);
     });
 
     test('when field is not given', () => {
-      const actual = newTaskReducer(
-        initialTaskStates.task,
-        {
-          type: TASK_ACTIONS.EDIT, id: null, value: 'test',
-        },
-      );
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: TASK_ACTIONS.EDIT,
+        id: null,
+        value: 'test',
+      });
       expect(actual).toEqual(initialTaskStates.task);
     });
 
     test('when field is invalid', () => {
-      const actual = newTaskReducer(
-        initialTaskStates.task,
-        {
-          type: TASK_ACTIONS.EDIT, id: null, field: 'INVALID', value: 'test',
-        },
-      );
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: TASK_ACTIONS.EDIT,
+        id: null,
+        field: 'INVALID',
+        value: 'test',
+      });
       expect(actual).toEqual(initialTaskStates.task);
     });
 
     test('when value is not given', () => {
-      const actual = newTaskReducer(
-        initialTaskStates.task,
-        {
-          type: TASK_ACTIONS.EDIT, id: null, field: TASK_FIELDS.EDIT_USERNAME,
-        },
-      );
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: TASK_ACTIONS.EDIT,
+        id: null,
+        field: TASK_FIELDS.EDIT_USERNAME,
+      });
       expect(actual).toEqual(initialTaskStates.task);
     });
   });
@@ -74,10 +69,10 @@ describe('new task reducer', () => {
         ...initialTaskStates.task,
         username: 'test',
       };
-      const actual = newTaskReducer(
-        start,
-        { type: TASK_ACTIONS.ADD, response: { task: {} } },
-      );
+      const actual = newTaskReducer(start, {
+        type: TASK_ACTIONS.ADD,
+        response: { task: {} },
+      });
       expect(actual).toEqual(initialTaskStates.task);
     });
 
@@ -86,10 +81,10 @@ describe('new task reducer', () => {
         ...initialTaskStates.task,
         username: 'test',
       };
-      const actual = newTaskReducer(
-        start,
-        { type: TASK_ACTIONS.ADD, response: {} },
-      );
+      const actual = newTaskReducer(start, {
+        type: TASK_ACTIONS.ADD,
+        response: {},
+      });
       expect(actual).toEqual(start);
     });
 
@@ -98,20 +93,14 @@ describe('new task reducer', () => {
         ...initialTaskStates.task,
         username: 'test',
       };
-      const actual = newTaskReducer(
-        start,
-        { type: TASK_ACTIONS.ADD },
-      );
+      const actual = newTaskReducer(start, { type: TASK_ACTIONS.ADD });
       expect(actual).toEqual(start);
     });
   });
 
   describe('should not respond to', () => {
-    const _testNoopResponse = (type) => {
-      const actual = newTaskReducer(
-        initialTaskStates.task,
-        { type },
-      );
+    const _testNoopResponse = type => {
+      const actual = newTaskReducer(initialTaskStates.task, { type });
       expect(actual).toEqual(initialTaskStates.task);
     };
 

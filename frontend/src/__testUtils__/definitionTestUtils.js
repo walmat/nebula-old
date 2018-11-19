@@ -13,7 +13,9 @@ export const setupConsoleErrorSpy = () => {
   const spy = {};
 
   beforeEach(() => {
-    spy.consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    spy.consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -23,9 +25,18 @@ export const setupConsoleErrorSpy = () => {
   return spy;
 };
 
-export const testKey = (keyName, validKey, invalidKey, spec, initialState, spy) => {
+export const testKey = (
+  keyName,
+  validKey,
+  invalidKey,
+  spec,
+  initialState,
+  spy,
+) => {
   const _testKey = (value, isValid) => {
-    it(`should ${isValid ? 'succeed' : 'fail'} when ${isValid ? '' : 'in'}valid value "${value}" is passed to ${keyName}`, () => {
+    it(`should ${isValid ? 'succeed' : 'fail'} when ${
+      isValid ? '' : 'in'
+    }valid value "${value}" is passed to ${keyName}`, () => {
       const idx = getIdx();
       const testState = {
         test: {
@@ -33,7 +44,12 @@ export const testKey = (keyName, validKey, invalidKey, spec, initialState, spy) 
           [keyName]: value,
         },
       };
-      PropTypes.checkPropTypes({ test: spec }, testState, 'test', `${isValid ? 'success' : 'failure'} check ${idx} for ${keyName}`);
+      PropTypes.checkPropTypes(
+        { test: spec },
+        testState,
+        'test',
+        `${isValid ? 'success' : 'failure'} check ${idx} for ${keyName}`,
+      );
       if (isValid) {
         expect(spy.consoleError).not.toHaveBeenCalled();
       } else {
@@ -57,9 +73,16 @@ export const testKey = (keyName, validKey, invalidKey, spec, initialState, spy) 
 
 export const testValue = (valid, invalid, spec, spy) => {
   const _testValue = (value, isValid) => {
-    it(`should ${isValid ? 'succeed' : 'fail'} when ${isValid ? '' : 'in'}valid value "${value}" is passed to spec`, () => {
+    it(`should ${isValid ? 'succeed' : 'fail'} when ${
+      isValid ? '' : 'in'
+    }valid value "${value}" is passed to spec`, () => {
       const idx = getIdx();
-      PropTypes.checkPropTypes({ value: spec }, { value }, 'test', `${isValid ? 'success' : 'failure'} check ${idx}`);
+      PropTypes.checkPropTypes(
+        { value: spec },
+        { value },
+        'test',
+        `${isValid ? 'success' : 'failure'} check ${idx}`,
+      );
       if (isValid) {
         expect(spy.consoleError).not.toHaveBeenCalled();
       } else {
@@ -81,11 +104,21 @@ export const testValue = (valid, invalid, spec, spy) => {
   }
 };
 
-export const testArray = (validEntries, invalidEntries, spec, initialEntries, spy) => {
+export const testArray = (
+  validEntries,
+  invalidEntries,
+  spec,
+  initialEntries,
+  spy,
+) => {
   const specWrapper = { test: spec };
 
   const _testArray = (value, isValid) => {
-    it(`it should ${isValid ? 'succeed' : 'fail'} when a non-empty array containing ${isValid ? '' : 'in'}valid values is passed`, () => {
+    it(`it should ${
+      isValid ? 'succeed' : 'fail'
+    } when a non-empty array containing ${
+      isValid ? '' : 'in'
+    }valid values is passed`, () => {
       const testArr = initialEntries.splice(0);
       const idx = getIdx();
       if (Array.isArray(value)) {
@@ -96,7 +129,12 @@ export const testArray = (validEntries, invalidEntries, spec, initialEntries, sp
       const testState = {
         test: testArr,
       };
-      PropTypes.checkPropTypes(specWrapper, testState, 'test', `${isValid ? 'success' : 'failure'} check ${idx}`);
+      PropTypes.checkPropTypes(
+        specWrapper,
+        testState,
+        'test',
+        `${isValid ? 'success' : 'failure'} check ${idx}`,
+      );
       if (isValid) {
         expect(spy.consoleError).not.toHaveBeenCalled();
       } else {

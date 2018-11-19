@@ -1,10 +1,7 @@
 /* global describe expect it test beforeEach jest */
 import taskListReducer from '../../../../state/reducers/tasks/taskListReducer';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import {
-  TASK_ACTIONS,
-  TASK_FIELDS,
-} from '../../../../state/actions';
+import { TASK_ACTIONS, TASK_FIELDS } from '../../../../state/actions';
 
 describe('task list reducer', () => {
   it('should return initial state', () => {
@@ -41,10 +38,12 @@ describe('task list reducer', () => {
       });
 
       test('add a new task to an empty list', () => {
-        const expected = [{
-          ...expectedBase,
-          id: 1,
-        }];
+        const expected = [
+          {
+            ...expectedBase,
+            id: 1,
+          },
+        ];
         const actual = taskListReducer([], {
           type: TASK_ACTIONS.ADD,
           response: {
@@ -55,10 +54,12 @@ describe('task list reducer', () => {
       });
 
       test('add a new task to an existing list', () => {
-        const start = [{
-          ...initialTaskStates.task,
-          id: 1,
-        }];
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 1,
+          },
+        ];
         const expected = [
           {
             ...initialTaskStates.task,
@@ -114,7 +115,7 @@ describe('task list reducer', () => {
     });
 
     describe('when invalid action is formed because', () => {
-      const testNoop = (payload) => {
+      const testNoop = payload => {
         const actual = taskListReducer([], {
           type: TASK_ACTIONS.ADD,
           ...payload,
@@ -177,10 +178,12 @@ describe('task list reducer', () => {
       });
 
       test('to delete all tasks', () => {
-        const start = [{
-          ...initialTaskStates.task,
-          id: 1,
-        }];
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 1,
+          },
+        ];
         const expected = [];
         const actual = taskListReducer(start, {
           type: TASK_ACTIONS.REMOVE,
@@ -191,11 +194,13 @@ describe('task list reducer', () => {
     });
 
     describe('when invalid action is formed because', () => {
-      const testNoop = (payload) => {
-        const start = [{
-          ...initialTaskStates.task,
-          id: 1,
-        }];
+      const testNoop = payload => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 1,
+          },
+        ];
         const expected = JSON.parse(JSON.stringify(start));
         const actual = taskListReducer(start, {
           type: TASK_ACTIONS.REMOVE,
@@ -224,7 +229,7 @@ describe('task list reducer', () => {
 
   describe('should handle update', () => {
     describe('when valid action is formed to', () => {
-      const testValid = (edits) => {
+      const testValid = edits => {
         const initialValues = {
           username: 'username',
           password: 'password',
@@ -233,11 +238,13 @@ describe('task list reducer', () => {
           sizes: [],
           site: {},
         };
-        const start = [{
-          ...initialTaskStates.task,
-          ...initialValues,
-          id: 1,
-        }];
+        const start = [
+          {
+            ...initialTaskStates.task,
+            ...initialValues,
+            id: 1,
+          },
+        ];
         const update = {
           ...start[0],
           edits: {
@@ -245,17 +252,20 @@ describe('task list reducer', () => {
             ...edits,
           },
         };
-        const expected = [{
-          ...update,
-          ...edits,
-          edits: {
-            ...update.edits,
-            ...initialValues,
+        const expected = [
+          {
+            ...update,
             ...edits,
+            edits: {
+              ...update.edits,
+              ...initialValues,
+              ...edits,
+            },
           },
-        }];
+        ];
         const actual = taskListReducer(start, {
-          type: TASK_ACTIONS.UPDATE, response: { id: 1, task: update },
+          type: TASK_ACTIONS.UPDATE,
+          response: { id: 1, task: update },
         });
         expect(actual).toEqual(expected);
       };
@@ -323,41 +333,48 @@ describe('task list reducer', () => {
           sizes: [],
           site: {},
         };
-        const start = [{
-          ...initialTaskStates.task,
-          ...initialValues,
-          id: 1,
-        }];
+        const start = [
+          {
+            ...initialTaskStates.task,
+            ...initialValues,
+            id: 1,
+          },
+        ];
         const update = {
           ...start[0],
           edits: null,
         };
-        const expected = [{
-          ...update,
-          edits: {
-            ...start[0].edits,
-            ...initialValues,
+        const expected = [
+          {
+            ...update,
+            edits: {
+              ...start[0].edits,
+              ...initialValues,
+            },
           },
-        }];
+        ];
         const actual = taskListReducer(start, {
-          type: TASK_ACTIONS.UPDATE, response: { id: 1, task: update },
+          type: TASK_ACTIONS.UPDATE,
+          response: { id: 1, task: update },
         });
         expect(actual).toEqual(expected);
       });
     });
 
     describe('when invalid action is formed because', () => {
-      const testNoop = (payload) => {
-        const start = [{
-          ...initialTaskStates.task,
-          id: 1,
-          username: 'username',
-          password: 'password',
-          profile: {},
-          product: {},
-          sizes: [],
-          site: {},
-        }];
+      const testNoop = payload => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 1,
+            username: 'username',
+            password: 'password',
+            profile: {},
+            product: {},
+            sizes: [],
+            site: {},
+          },
+        ];
         const expected = JSON.parse(JSON.stringify(start));
         const actual = taskListReducer(start, {
           ...payload,
@@ -452,9 +469,7 @@ describe('task list reducer', () => {
       });
     });
 
-    test('when clearing edits', () => {
-
-    });
+    test('when clearing edits', () => {});
   });
 
   describe('should handle status', () => {
@@ -468,15 +483,13 @@ describe('task list reducer', () => {
       ];
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].output = 'testing...';
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STATUS,
-          response: {
-            id: 1, message: 'testing...',
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STATUS,
+        response: {
+          id: 1,
+          message: 'testing...',
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -488,15 +501,13 @@ describe('task list reducer', () => {
           output: 'testOutput',
         },
       ];
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STATUS,
-          response: {
-            id: 4, message: 'testing...',
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STATUS,
+        response: {
+          id: 4,
+          message: 'testing...',
         },
-      );
+      });
       expect(actual).toEqual(start);
     });
 
@@ -508,15 +519,13 @@ describe('task list reducer', () => {
           output: 'testOutput',
         },
       ];
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STATUS,
-          response: {
-            id: null, message: 'testing...',
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STATUS,
+        response: {
+          id: null,
+          message: 'testing...',
         },
-      );
+      });
       expect(actual).toEqual(start);
     });
 
@@ -528,15 +537,12 @@ describe('task list reducer', () => {
           output: 'testOutput',
         },
       ];
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STATUS,
-          response: {
-            message: 'testing...',
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STATUS,
+        response: {
+          message: 'testing...',
         },
-      );
+      });
       expect(actual).toEqual(start);
     });
 
@@ -548,15 +554,13 @@ describe('task list reducer', () => {
           output: 'testOutput',
         },
       ];
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STATUS,
-          response: {
-            id: 1, message: null,
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STATUS,
+        response: {
+          id: 1,
+          message: null,
         },
-      );
+      });
       expect(actual).toEqual(start);
     });
 
@@ -568,15 +572,12 @@ describe('task list reducer', () => {
           output: 'testOutput',
         },
       ];
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STATUS,
-          response: {
-            id: 1,
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STATUS,
+        response: {
+          id: 1,
         },
-      );
+      });
       expect(actual).toEqual(start);
     });
   });
@@ -592,12 +593,12 @@ describe('task list reducer', () => {
       ];
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].edits.username = 'testing';
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.EDIT, id: 1, field: TASK_FIELDS.EDIT_USERNAME, value: 'testing',
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.EDIT,
+        id: 1,
+        field: TASK_FIELDS.EDIT_USERNAME,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -610,12 +611,12 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.EDIT, id: 2, field: TASK_FIELDS.EDIT_USERNAME, value: 'testing',
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.EDIT,
+        id: 2,
+        field: TASK_FIELDS.EDIT_USERNAME,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -628,12 +629,12 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_USERNAME, id: null, value: 'testing',
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.EDIT,
+        field: TASK_FIELDS.EDIT_USERNAME,
+        id: null,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -646,12 +647,11 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.EDIT, field: TASK_FIELDS.EDIT_USERNAME, value: 'testing',
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.EDIT,
+        field: TASK_FIELDS.EDIT_USERNAME,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -664,12 +664,11 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.EDIT, id: 1, value: 'testing',
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.EDIT,
+        id: 1,
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -682,12 +681,12 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.EDIT, id: 1, field: 'INVALID', value: 'testing',
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.EDIT,
+        id: 1,
+        field: 'INVALID',
+        value: 'testing',
+      });
       expect(actual).toEqual(expected);
     });
   });
@@ -703,15 +702,12 @@ describe('task list reducer', () => {
       ];
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].status = 'running';
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.START,
-          response: {
-            task: { id: 1 },
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.START,
+        response: {
+          task: { id: 1 },
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -726,15 +722,12 @@ describe('task list reducer', () => {
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].status = 'running';
       expected[0].output = 'Starting task!';
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.START,
-          response: {
-            task: { id: 1 },
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.START,
+        response: {
+          task: { id: 1 },
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -749,15 +742,12 @@ describe('task list reducer', () => {
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].status = 'running';
       expected[0].output = 'Starting task!';
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.START,
-          response: {
-            task: { id: 1 },
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.START,
+        response: {
+          task: { id: 1 },
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -770,15 +760,12 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.START,
-          response: {
-            task: { id: 2 },
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.START,
+        response: {
+          task: { id: 2 },
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -791,13 +778,10 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.START,
-          response: {},
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.START,
+        response: {},
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -810,12 +794,9 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.START,
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.START,
+      });
       expect(actual).toEqual(expected);
     });
   });
@@ -832,15 +813,12 @@ describe('task list reducer', () => {
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].status = 'stopped';
       expected[0].output = 'Stopping task...';
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STOP,
-          response: {
-            task: { id: 1 },
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STOP,
+        response: {
+          task: { id: 1 },
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -854,15 +832,12 @@ describe('task list reducer', () => {
       ];
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].status = 'stopped';
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STOP,
-          response: {
-            task: { id: 1 },
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STOP,
+        response: {
+          task: { id: 1 },
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -875,15 +850,12 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STOP,
-          response: {
-            task: { id: 1 },
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STOP,
+        response: {
+          task: { id: 1 },
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -896,15 +868,12 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STOP,
-          response: {
-            task: { id: 2 },
-          },
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STOP,
+        response: {
+          task: { id: 2 },
         },
-      );
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -917,13 +886,10 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STOP,
-          response: {},
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STOP,
+        response: {},
+      });
       expect(actual).toEqual(expected);
     });
 
@@ -936,32 +902,23 @@ describe('task list reducer', () => {
         },
       ];
       const expected = JSON.parse(JSON.stringify(start));
-      const actual = taskListReducer(
-        start,
-        {
-          type: TASK_ACTIONS.STOP,
-        },
-      );
+      const actual = taskListReducer(start, {
+        type: TASK_ACTIONS.STOP,
+      });
       expect(actual).toEqual(expected);
     });
   });
 
   describe('should handle error', () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    taskListReducer(
-      initialTaskStates.list,
-      { type: TASK_ACTIONS.ERROR },
-    );
+    taskListReducer(initialTaskStates.list, { type: TASK_ACTIONS.ERROR });
     expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
 
   describe('should not respond to', () => {
-    const _testNoopResponse = (type) => {
-      const actual = taskListReducer(
-        initialTaskStates.list,
-        { type },
-      );
+    const _testNoopResponse = type => {
+      const actual = taskListReducer(initialTaskStates.list, { type });
       expect(actual).toEqual(initialTaskStates.list);
     };
 

@@ -1,10 +1,7 @@
-import {
-  SETTINGS_ACTIONS,
-  mapSettingsFieldToKey,
-} from '../../actions';
+import { SETTINGS_ACTIONS, mapSettingsFieldToKey } from '../../actions';
 import settingsAttributeValidatorMap from '../../../utils/validation/settingsProxyAttributeValidators';
 
-const settingsAttributeValidationMiddleware = store => next => (action) => {
+const settingsAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing settings
   if (action.type !== SETTINGS_ACTIONS.EDIT) {
     return next(action);
@@ -22,7 +19,9 @@ const settingsAttributeValidationMiddleware = store => next => (action) => {
     newAction.errors = Object.assign({}, state.settings.errors);
 
     // TODO - remove this later when validation is finalized
-    const proxyErrors = settingsAttributeValidatorMap[newAction.field](newAction.value);
+    const proxyErrors = settingsAttributeValidatorMap[newAction.field](
+      newAction.value,
+    );
     newAction.errors[mapSettingsFieldToKey[newAction.field]] = proxyErrors;
 
     if (!proxyErrors.length) {

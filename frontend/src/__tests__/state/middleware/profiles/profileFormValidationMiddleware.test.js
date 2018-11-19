@@ -17,7 +17,8 @@ describe('profile form validation middleware', () => {
     };
     const next = jest.fn();
 
-    const invoke = action => profileFormValidationMiddleware(store)(next)(action);
+    const invoke = action =>
+      profileFormValidationMiddleware(store)(next)(action);
 
     return { store, next, invoke };
   };
@@ -38,7 +39,7 @@ describe('profile form validation middleware', () => {
     expect(store.getState).not.toHaveBeenCalled();
   });
 
-  it('should pass through actions that aren\'t a profile add or update type', () => {
+  it("should pass through actions that aren't a profile add or update type", () => {
     const { store, next, invoke } = create();
     const action = { type: 'NOT_A_PROFILE_ACTION' };
     invoke(action);
@@ -54,7 +55,7 @@ describe('profile form validation middleware', () => {
       ...payload,
     });
 
-    const testNoop = (payload) => {
+    const testNoop = payload => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         currentProfile: {
@@ -72,25 +73,29 @@ describe('profile form validation middleware', () => {
     };
 
     describe('null profile given', () => {
-      test('when type is add', () => testNoop({
-        type: PROFILE_ACTIONS.ADD,
-        profile: null,
-      }));
+      test('when type is add', () =>
+        testNoop({
+          type: PROFILE_ACTIONS.ADD,
+          profile: null,
+        }));
 
-      test('when type is update', () => testNoop({
-        type: PROFILE_ACTIONS.UPDATE,
-        profile: null,
-      }));
+      test('when type is update', () =>
+        testNoop({
+          type: PROFILE_ACTIONS.UPDATE,
+          profile: null,
+        }));
     });
 
     describe('no profile given', () => {
-      test('when type is add', () => testNoop({
-        type: PROFILE_ACTIONS.ADD,
-      }));
+      test('when type is add', () =>
+        testNoop({
+          type: PROFILE_ACTIONS.ADD,
+        }));
 
-      test('when type is update', () => testNoop({
-        type: PROFILE_ACTIONS.UPDATE,
-      }));
+      test('when type is update', () =>
+        testNoop({
+          type: PROFILE_ACTIONS.UPDATE,
+        }));
     });
   });
 
@@ -218,10 +223,12 @@ describe('profile form validation middleware', () => {
       ...actionBase,
       profile: {
         ...actionBase.profile,
-        [mapProfileFieldToKey[field]]: (!subField) ? value : {
-          ...actionBase.profile[mapProfileFieldToKey[field]],
-          [subField]: value,
-        },
+        [mapProfileFieldToKey[field]]: !subField
+          ? value
+          : {
+              ...actionBase.profile[mapProfileFieldToKey[field]],
+              [subField]: value,
+            },
       },
     };
     const expectedAction = {
@@ -230,20 +237,25 @@ describe('profile form validation middleware', () => {
       profile: {
         ...actionBase.profile,
         ...expectedActionBase.profile,
-        [mapProfileFieldToKey[field]]: (!subField) ? value : {
-          ...action.profile[mapProfileFieldToKey[field]],
-          errors: {
-            ...expectedActionBase.profile[mapProfileFieldToKey[field]].errors,
-            [subField]: !testValid,
-          },
-        },
+        [mapProfileFieldToKey[field]]: !subField
+          ? value
+          : {
+              ...action.profile[mapProfileFieldToKey[field]],
+              errors: {
+                ...expectedActionBase.profile[mapProfileFieldToKey[field]]
+                  .errors,
+                [subField]: !testValid,
+              },
+            },
       },
       errors: {
         ...expectedActionBase.errors,
-        [mapProfileFieldToKey[field]]: (!subField) ? !testValid : {
-          ...expectedActionBase.errors[mapProfileFieldToKey[field]],
-          [subField]: !testValid,
-        },
+        [mapProfileFieldToKey[field]]: !subField
+          ? !testValid
+          : {
+              ...expectedActionBase.errors[mapProfileFieldToKey[field]],
+              [subField]: !testValid,
+            },
       },
     };
     if (!subField) {
@@ -260,11 +272,12 @@ describe('profile form validation middleware', () => {
 
   const testErrorFlagsForAction = (type, args, genNoErrors) => {
     // get args or mock them if we aren't generating errors
-    const {
-      field, value, valid, subField,
-    } = !genNoErrors ? args : {
-      value: 'test', valid: false,
-    };
+    const { field, value, valid, subField } = !genNoErrors
+      ? args
+      : {
+          value: 'test',
+          valid: false,
+        };
     const { store, next, invoke } = create();
     const { action, expectedAction } = generateActions(
       type,
@@ -283,7 +296,7 @@ describe('profile form validation middleware', () => {
     expect(next).toHaveBeenCalledWith(expectedAction);
   };
 
-  const performErrorFlagTestsForAction = (type) => {
+  const performErrorFlagTestsForAction = type => {
     const testErrorFlag = args => testErrorFlagsForAction(type, args);
 
     it('should not generate an errors object if no errors exist', () =>
@@ -291,169 +304,252 @@ describe('profile form validation middleware', () => {
 
     describe('for field', () => {
       describe('name', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
-          field: PROFILE_FIELDS.EDIT_NAME, value: 'test', valid: true,
-        }));
+        it('should not generate error flag when valid', () =>
+          testErrorFlag({
+            field: PROFILE_FIELDS.EDIT_NAME,
+            value: 'test',
+            valid: true,
+          }));
 
-        it('should generate error flag when invalid', () => testErrorFlag({
-          field: PROFILE_FIELDS.EDIT_NAME, value: '', valid: false,
-        }));
+        it('should generate error flag when invalid', () =>
+          testErrorFlag({
+            field: PROFILE_FIELDS.EDIT_NAME,
+            value: '',
+            valid: false,
+          }));
       });
 
       describe('billing matches shipping', () => {
-        it('should not generate error flag when valid', () => testErrorFlag({
-          field: PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING,
-          value: 'test',
-          valid: true,
-        }));
+        it('should not generate error flag when valid', () =>
+          testErrorFlag({
+            field: PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING,
+            value: 'test',
+            valid: true,
+          }));
 
-        it('should generate error flag when invalid', () => testErrorFlag({
-          field: PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING,
-          value: undefined,
-          valid: false,
-        }));
+        it('should generate error flag when invalid', () =>
+          testErrorFlag({
+            field: PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING,
+            value: undefined,
+            valid: false,
+          }));
       });
 
-      describe('billing matches shipping', () => testErrorFlag({
-        field: PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING,
-        value: false,
-        valid: true,
-      }));
+      describe('billing matches shipping', () =>
+        testErrorFlag({
+          field: PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING,
+          value: false,
+          valid: true,
+        }));
 
       describe('payment', () => {
         const _testErrorFlag = args =>
           testErrorFlag({ ...args, field: PROFILE_FIELDS.EDIT_PAYMENT });
 
         describe('email', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: 'test@me.com', valid: true, subField: PAYMENT_FIELDS.EMAIL,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: 'test@me.com',
+              valid: true,
+              subField: PAYMENT_FIELDS.EMAIL,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: 'invalid', valid: false, subField: PAYMENT_FIELDS.EMAIL,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: 'invalid',
+              valid: false,
+              subField: PAYMENT_FIELDS.EMAIL,
+            }));
         });
 
         describe('card number', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: '4111111111111', valid: true, subField: PAYMENT_FIELDS.CARD_NUMBER,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: '4111111111111',
+              valid: true,
+              subField: PAYMENT_FIELDS.CARD_NUMBER,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: 'invalid', valid: false, subField: PAYMENT_FIELDS.CARD_NUMBER,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: 'invalid',
+              valid: false,
+              subField: PAYMENT_FIELDS.CARD_NUMBER,
+            }));
         });
 
         describe('exp', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: '12/34', valid: true, subField: PAYMENT_FIELDS.EXP,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: '12/34',
+              valid: true,
+              subField: PAYMENT_FIELDS.EXP,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: 'invalid', valid: false, subField: PAYMENT_FIELDS.EXP,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: 'invalid',
+              valid: false,
+              subField: PAYMENT_FIELDS.EXP,
+            }));
         });
 
         describe('cvv', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: '123', valid: true, subField: PAYMENT_FIELDS.CVV,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: '123',
+              valid: true,
+              subField: PAYMENT_FIELDS.CVV,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: 'invalid', valid: false, subField: PAYMENT_FIELDS.CVV,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: 'invalid',
+              valid: false,
+              subField: PAYMENT_FIELDS.CVV,
+            }));
         });
       });
 
-      const performLocationErrorFlagTests = (field) => {
-        const _testErrorFlag = args =>
-          testErrorFlag({ ...args, field });
+      const performLocationErrorFlagTests = field => {
+        const _testErrorFlag = args => testErrorFlag({ ...args, field });
 
         describe('first name', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: 'test', valid: true, subField: LOCATION_FIELDS.FIRST_NAME,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: 'test',
+              valid: true,
+              subField: LOCATION_FIELDS.FIRST_NAME,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: '', valid: false, subField: LOCATION_FIELDS.FIRST_NAME,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: '',
+              valid: false,
+              subField: LOCATION_FIELDS.FIRST_NAME,
+            }));
         });
 
         describe('last name', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: 'test', valid: true, subField: LOCATION_FIELDS.LAST_NAME,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: 'test',
+              valid: true,
+              subField: LOCATION_FIELDS.LAST_NAME,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: '', valid: false, subField: LOCATION_FIELDS.LAST_NAME,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: '',
+              valid: false,
+              subField: LOCATION_FIELDS.LAST_NAME,
+            }));
         });
 
         describe('address', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: 'test', valid: true, subField: LOCATION_FIELDS.ADDRESS,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: 'test',
+              valid: true,
+              subField: LOCATION_FIELDS.ADDRESS,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: '', valid: false, subField: LOCATION_FIELDS.ADDRESS,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: '',
+              valid: false,
+              subField: LOCATION_FIELDS.ADDRESS,
+            }));
         });
 
         describe('apt', () => {
           // APT is optional, so there's no need to test invalid case
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: 'test', valid: true, subField: LOCATION_FIELDS.APT,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: 'test',
+              valid: true,
+              subField: LOCATION_FIELDS.APT,
+            }));
         });
 
         describe('city', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: 'test', valid: true, subField: LOCATION_FIELDS.CITY,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: 'test',
+              valid: true,
+              subField: LOCATION_FIELDS.CITY,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: '', valid: false, subField: LOCATION_FIELDS.CITY,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: '',
+              valid: false,
+              subField: LOCATION_FIELDS.CITY,
+            }));
         });
 
         describe('zip code', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: '12345', valid: true, subField: LOCATION_FIELDS.ZIP_CODE,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: '12345',
+              valid: true,
+              subField: LOCATION_FIELDS.ZIP_CODE,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: '', valid: false, subField: LOCATION_FIELDS.ZIP_CODE,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: '',
+              valid: false,
+              subField: LOCATION_FIELDS.ZIP_CODE,
+            }));
         });
 
         describe('phone number', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: '+1 123 456 7890', valid: true, subField: LOCATION_FIELDS.PHONE_NUMBER,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: '+1 123 456 7890',
+              valid: true,
+              subField: LOCATION_FIELDS.PHONE_NUMBER,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: 'invalid', valid: false, subField: LOCATION_FIELDS.PHONE_NUMBER,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: 'invalid',
+              valid: false,
+              subField: LOCATION_FIELDS.PHONE_NUMBER,
+            }));
         });
 
         describe('country', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: 'US', valid: true, subField: LOCATION_FIELDS.COUNTRY,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: 'US',
+              valid: true,
+              subField: LOCATION_FIELDS.COUNTRY,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: 'invalid', valid: false, subField: LOCATION_FIELDS.COUNTRY,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: 'invalid',
+              valid: false,
+              subField: LOCATION_FIELDS.COUNTRY,
+            }));
         });
 
         describe('state', () => {
-          it('should not generate error flag when valid', () => _testErrorFlag({
-            value: 'PR', valid: true, subField: LOCATION_FIELDS.STATE,
-          }));
+          it('should not generate error flag when valid', () =>
+            _testErrorFlag({
+              value: 'PR',
+              valid: true,
+              subField: LOCATION_FIELDS.STATE,
+            }));
 
-          it('should generate error flag when invalid', () => _testErrorFlag({
-            value: 'invalid', valid: false, subField: LOCATION_FIELDS.STATE,
-          }));
+          it('should generate error flag when invalid', () =>
+            _testErrorFlag({
+              value: 'invalid',
+              valid: false,
+              subField: LOCATION_FIELDS.STATE,
+            }));
         });
       };
 

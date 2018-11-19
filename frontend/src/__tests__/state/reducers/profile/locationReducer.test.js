@@ -10,16 +10,16 @@ describe('location reducer', () => {
   });
 
   describe('when editing', () => {
-    const _testEditField = (field) => {
+    const _testEditField = field => {
       it('should update when using a non-null value', () => {
         const expected = {
           ...initialProfileStates.location,
           [field]: 'testing',
         };
-        const actual = locationReducer(
-          initialProfileStates.location,
-          { type: field, value: 'testing' },
-        );
+        const actual = locationReducer(initialProfileStates.location, {
+          type: field,
+          value: 'testing',
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -27,10 +27,10 @@ describe('location reducer', () => {
         const expected = {
           ...initialProfileStates.location,
         };
-        const actual = locationReducer(
-          initialProfileStates.location,
-          { type: field, value: '' },
-        );
+        const actual = locationReducer(initialProfileStates.location, {
+          type: field,
+          value: '',
+        });
         expect(actual).toEqual(expected);
       });
 
@@ -38,10 +38,10 @@ describe('location reducer', () => {
         const expected = {
           ...initialProfileStates.location,
         };
-        const actual = locationReducer(
-          initialProfileStates.location,
-          { type: field, value: null },
-        );
+        const actual = locationReducer(initialProfileStates.location, {
+          type: field,
+          value: null,
+        });
         expect(actual).toEqual(expected);
       });
     };
@@ -58,7 +58,8 @@ describe('location reducer', () => {
 
     describe('zip code', () => _testEditField(LOCATION_FIELDS.ZIP_CODE));
 
-    describe('phone number', () => _testEditField(LOCATION_FIELDS.PHONE_NUMBER));
+    describe('phone number', () =>
+      _testEditField(LOCATION_FIELDS.PHONE_NUMBER));
 
     describe('state', () => _testEditField(LOCATION_FIELDS.STATE));
 
@@ -66,31 +67,29 @@ describe('location reducer', () => {
   });
 
   it('should not respond to invalid action type', () => {
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: 'INVALID' },
-    );
+    const actual = locationReducer(initialProfileStates.location, {
+      type: 'INVALID',
+    });
     expect(actual).toEqual(initialProfileStates.location);
   });
 
   it('should not respond to an invalid action', () => {
-    const actual = locationReducer(
-      initialProfileStates.location,
-      { type: LOCATION_FIELDS.ADDRESS },
-    );
+    const actual = locationReducer(initialProfileStates.location, {
+      type: LOCATION_FIELDS.ADDRESS,
+    });
     expect(actual).toEqual(initialProfileStates.location);
   });
 
   describe('should handle errors', () => {
-    const _handleErrorsTest = (type) => {
+    const _handleErrorsTest = type => {
       const expected = {
         ...initialProfileStates.location,
         errors: 'testing',
       };
-      const actual = locationReducer(
-        initialProfileStates.location,
-        { type, errors: 'testing' },
-      );
+      const actual = locationReducer(initialProfileStates.location, {
+        type,
+        errors: 'testing',
+      });
       expect(actual).toEqual(expected);
     };
 

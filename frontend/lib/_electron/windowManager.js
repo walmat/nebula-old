@@ -62,10 +62,22 @@ class WindowManager {
     /**
      * IPC Function Definitions
      */
-    context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
-    context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
-    context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
-    context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
+    context.ipc.on(
+      IPCKeys.RequestCreateNewWindow,
+      this._onRequestCreateNewWindow.bind(this),
+    );
+    context.ipc.on(
+      IPCKeys.RequestSendMessage,
+      this._onRequestSendMessage.bind(this),
+    );
+    context.ipc.on(
+      IPCKeys.RequestGetWindowIDs,
+      this._onRequestGetWindowIDs.bind(this),
+    );
+    context.ipc.on(
+      IPCKeys.RequestCloseWindow,
+      this._onRequestWindowClose.bind(this),
+    );
     context.ipc.on(
       IPCKeys.RequestCloseAllCaptchaWindows,
       this._onRequestCloseAllCaptchaWindows.bind(this),
@@ -137,7 +149,14 @@ class WindowManager {
               serverPort = this._context.captchaServerManager.port;
             }
             w = await createCaptchaWindow();
-            this._captchas.set(w.id, new CaptchaWindowManager(this._context, w, this._context._session.fromPartition(`${w.id}`)));
+            this._captchas.set(
+              w.id,
+              new CaptchaWindowManager(
+                this._context,
+                w,
+                this._context._session.fromPartition(`${w.id}`),
+              ),
+            );
             w.loadURL(`https://127.0.0.1:${serverPort}/captcha.html`);
           }
           break;
@@ -146,7 +165,8 @@ class WindowManager {
           w = await createYouTubeWindow();
           break;
         }
-        default: break;
+        default:
+          break;
       }
 
       if (tag !== 'captcha') {
@@ -172,10 +192,13 @@ class WindowManager {
    */
   handleShow(win) {
     return () => {
+      // open dev tools if dev env
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`Window was opened, id = ${win.id}`);
         win.webContents.openDevTools();
       }
+
+      // add window & id to windows map, notify other windows, and finally, show the window
       this._windows.set(win.id, win);
       this._notifyUpdateWindowIDs(win.id);
       win.show();
@@ -195,21 +218,22 @@ class WindowManager {
       this._windows.delete(win.id);
       this._notifyUpdateWindowIDs(win.id);
 
-      if (this._windows.size === 0 && this._aboutDialog) {
-        this._aboutDialog.close();
-      }
-
-      if (this._main && win.id === this._main.id) {
+      if (this._aboutDialog && win.id === this._aboutDialog.id) {
+        this._aboutDialog = null;
+      } else if (this._main && win.id === this._main.id) {
         this._main = null;
       } else if (this._auth && win.id === this._auth.id) {
         this._auth = null;
       } else if (this._captchas.size > 0) {
-        this._captchas.forEach((captchaWindowManager) => {
+        this._captchas.forEach(captchaWindowManager => {
           if (win.id === captchaWindowManager._captchaWindow.id) {
             // deregister the interval from the captcha window
             WindowManager.handleCloseCaptcha(this._captchas.get(win.id));
             this._captchas.delete(win.id);
-          } else if (captchaWindowManager._youtubeWindow && win.id === captchaWindowManager._youtubeWindow.id) {
+          } else if (
+            captchaWindowManager._youtubeWindow &&
+            win.id === captchaWindowManager._youtubeWindow.id
+          ) {
             captchaWindowManager._youtubeWindow = null;
           }
         });
@@ -241,7 +265,7 @@ class WindowManager {
 
     this._auth.on('close', this.handleClose(this._auth));
 
-    this._windows.forEach((w) => {
+    this._windows.forEach(w => {
       if (w.id !== this._auth.id) {
         w.close();
       }
@@ -261,7 +285,7 @@ class WindowManager {
 
     this._main.on('close', this.handleClose(this._main));
 
-    this._windows.forEach((w) => {
+    this._windows.forEach(w => {
       if (w.id !== this._main.id) {
         w.close();
       }
@@ -280,7 +304,7 @@ class WindowManager {
       windowIDs.push(key);
     }
 
-    this._windows.forEach((w) => {
+    this._windows.forEach(w => {
       if (w.id === excludeID) {
         return;
       }
@@ -333,22 +357,28 @@ class WindowManager {
    * @param {Number} id corresponding window id
    */
   _onRequestWindowClose(ev, id) {
-    if (this._main && (this._main.id === id)) {
+    if (this._main && this._main.id === id) {
       // close all windows
-      this._windows.forEach((w) => {
+      this._windows.forEach(w => {
         w.close();
       });
-    } else if (this._auth && (this._auth.id === id)) {
-      this._windows.forEach((w) => {
+    } else if (this._auth && this._auth.id === id) {
+      this._windows.forEach(w => {
         w.close();
       });
     } else if (this._captchas.size > 0) {
-      this._captchas.forEach((w) => {
+      this._captchas.forEach(w => {
         if (id === w._captchaWindow.id) {
           w._captchaWindow.close();
           if (w._youtubeWindow) {
             w._youtubeWindow.close();
           }
+        }
+      });
+    } else if (this._aboutDialog && this._aboutDialog.id === id) {
+      this._windows.forEach(w => {
+        if (w.id === id) {
+          w.close();
         }
       });
     }
@@ -361,7 +391,7 @@ class WindowManager {
    */
   _onRequestCloseAllCaptchaWindows(ev) {
     if (this._captchas.size > 0) {
-      this._captchas.forEach((captchaWindowManager) => {
+      this._captchas.forEach(captchaWindowManager => {
         captchaWindowManager._captchaWindow.close();
         if (captchaWindowManager._youtubeWindow) {
           captchaWindowManager._youtubeWindow.close();
@@ -381,7 +411,7 @@ class WindowManager {
       open = true;
       await this.createNewWindow('captcha');
     }
-    this._captchas.forEach((captchaWindowManager) => {
+    this._captchas.forEach(captchaWindowManager => {
       captchaWindowManager.startHarvestingCaptcha(runnerId, siteKey, open);
     });
   }
@@ -393,7 +423,7 @@ class WindowManager {
    */
   onRequestStopHarvestingCaptcha(runnerId, siteKey) {
     if (this._captchas.size > 0) {
-      this._captchas.forEach((captchaWindowManager) => {
+      this._captchas.forEach(captchaWindowManager => {
         captchaWindowManager.stopHarvestingCaptcha(runnerId, siteKey);
       });
     }

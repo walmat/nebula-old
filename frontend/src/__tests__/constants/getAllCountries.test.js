@@ -17,7 +17,7 @@ describe('getAllCountries', () => {
   });
 
   it('should lookup the correct countries', () => {
-    expectedCountries.forEach((country) => {
+    expectedCountries.forEach(country => {
       expect(getCountry(country.value)).toEqual(country);
     });
   });

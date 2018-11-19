@@ -12,11 +12,14 @@ export default function configureStore() {
   return createStore(
     topLevelReducer,
     initialState,
-    composeEnhancers(applyMiddleware(
-      profileAttributeValidationMiddleware,
-      profileFormValidationMiddleware,
-      settingsAttributeValidationMiddleware,
-      thunk,
-    ), persistState()),
+    composeEnhancers(
+      applyMiddleware(
+        profileAttributeValidationMiddleware,
+        profileFormValidationMiddleware,
+        settingsAttributeValidationMiddleware,
+        thunk,
+      ),
+      persistState(),
+    ),
   );
 }

@@ -6,7 +6,10 @@ import {
 
 import { initialSettingsStates } from '../../../utils/definitions/settingsDefinitions';
 
-export default function settingsReducer(state = initialSettingsStates.settings, action) {
+export default function settingsReducer(
+  state = initialSettingsStates.settings,
+  action,
+) {
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {

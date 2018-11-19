@@ -10,7 +10,7 @@ function validateCardNumber(cardNumber) {
 }
 
 function validateExp(exp) {
-// TODO: create regex for this
+  // TODO: create regex for this
   return exp && regexes.creditCardExp.test(exp);
 }
 

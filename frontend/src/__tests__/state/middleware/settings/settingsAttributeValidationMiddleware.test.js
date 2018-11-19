@@ -1,9 +1,6 @@
 /* global describe expect it test jest */
 import settingsAttributeValidationMiddleware from '../../../../state/middleware/settings/settingsAttributeValidationMiddleware';
-import {
-  SETTINGS_ACTIONS,
-  SETTINGS_FIELDS,
-} from '../../../../state/actions';
+import { SETTINGS_ACTIONS, SETTINGS_FIELDS } from '../../../../state/actions';
 import { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
 
 describe('settings attribute validatation middleware', () => {
@@ -14,7 +11,8 @@ describe('settings attribute validatation middleware', () => {
     };
     const next = jest.fn();
 
-    const invoke = action => settingsAttributeValidationMiddleware(store)(next)(action);
+    const invoke = action =>
+      settingsAttributeValidationMiddleware(store)(next)(action);
 
     return { store, next, invoke };
   };
@@ -35,7 +33,7 @@ describe('settings attribute validatation middleware', () => {
     expect(store.getState).not.toHaveBeenCalled();
   });
 
-  it('should pass through actions that aren\'t a settings edit type', () => {
+  it("should pass through actions that aren't a settings edit type", () => {
     const { store, next, invoke } = create();
     const action = { type: 'NOT_A_SETTINGS_ACTION' };
     invoke(action);
@@ -67,10 +65,7 @@ describe('settings attribute validatation middleware', () => {
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
         field: SETTINGS_FIELDS.EDIT_PROXIES,
-        value: [
-          '123.123.123.123:8080',
-          '123.123.123.123:8080:user:pass',
-        ],
+        value: ['123.123.123.123:8080', '123.123.123.123:8080:user:pass'],
       };
       const expectedAction = {
         ...action,

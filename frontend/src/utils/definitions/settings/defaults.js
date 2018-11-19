@@ -14,9 +14,12 @@ export const initialDefaultState = {
 
 const _defaultsShape = {
   profile: pDefns.profile,
-  sizes: PropTypes.arrayOf(PropTypes.shape({
-    value: PropTypes.string, label: PropTypes.string,
-  })),
+  sizes: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string,
+      label: PropTypes.string,
+    }),
+  ),
 };
 
 const defaults = PropTypes.shape({

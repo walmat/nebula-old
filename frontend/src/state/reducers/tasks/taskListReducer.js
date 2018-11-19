@@ -23,7 +23,10 @@ function _getId(taskList) {
   return newId;
 }
 
-export default function taskListReducer(state = initialTaskStates.list, action) {
+export default function taskListReducer(
+  state = initialTaskStates.list,
+  action,
+) {
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
@@ -62,7 +65,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       let taskId = -1;
       // Check if we are removing all tasks or just a single task
       if (task || task === null) {
-        taskId = (task && task.id);
+        taskId = task && task.id;
       }
 
       // filter out task from list now
@@ -80,7 +83,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
     }
     case TASK_ACTIONS.UPDATE: {
       // Check if payload has correct structure
-      if (!action.response || (action.response && (!action.response.task || !action.response.id))) {
+      if (
+        !action.response ||
+        (action.response && (!action.response.task || !action.response.id))
+      ) {
         break;
       }
       const updateId = action.response.id;
@@ -189,7 +195,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       const idx = nextState.indexOf(found);
 
       // do nothing if the status is already stopped or idle
-      if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
+      if (
+        nextState[idx].status === 'stopped' ||
+        nextState[idx].status === 'idle'
+      ) {
         break;
       } else {
         nextState[idx].status = 'stopped';
@@ -198,7 +207,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.ERROR: {
-      console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
+      console.error(
+        `Error trying to perform: ${action.action}! Reason: ${action.error}`,
+      );
       break;
     }
     default:

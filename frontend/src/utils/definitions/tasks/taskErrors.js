@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 
-import taskProductErrors, { initialTaskProductErrorState } from './taskProductErrors';
+import taskProductErrors, {
+  initialTaskProductErrorState,
+} from './taskProductErrors';
 
 export const initialTaskErrorState = {
   method: null,

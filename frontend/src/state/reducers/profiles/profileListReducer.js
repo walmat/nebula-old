@@ -4,7 +4,10 @@ import { PROFILE_ACTIONS } from '../../actions';
 import { profileReducer } from './profileReducer';
 import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
-export default function profileListReducer(state = initialProfileStates.list, action) {
+export default function profileListReducer(
+  state = initialProfileStates.list,
+  action,
+) {
   // perform deep copy of given state
   let nextState = JSON.parse(JSON.stringify(state));
 
@@ -48,7 +51,7 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       }
 
       // find the element with the given id
-      const found = nextState.find((p => p.id === action.id));
+      const found = nextState.find(p => p.id === action.id);
       if (found === undefined) {
         break;
       }
@@ -67,7 +70,7 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       }
 
       // find the element with the given id
-      const found = nextState.find((p => p.id === action.id));
+      const found = nextState.find(p => p.id === action.id);
       if (found === undefined) {
         break;
       }
@@ -79,7 +82,9 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       break;
     }
     case PROFILE_ACTIONS.ERROR: {
-      console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
+      console.error(
+        `Error trying to perform: ${action.action}! Reason: ${action.error}`,
+      );
       break;
     }
     default:

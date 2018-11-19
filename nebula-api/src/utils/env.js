@@ -1,6 +1,8 @@
 const fs = require('fs');
 const dotenv = require('dotenv');
 
+let _isDevelopment = process.env.NEBULA_API_ENV === 'development';
+
 function _setUpEnvironment(envFname) {
   const envConfig = dotenv.parse(fs.readFileSync(envFname));
   if (envConfig) {
@@ -25,12 +27,20 @@ function setUpProdEnvironment() {
   }
 }
 
+/**
+ * Used to tell whether or not we're in development
+ * @return {Boolean} in development or not
+ */
+function isDevelopment() {
+  return _isDevelopment;
+}
+
 function setUpEnvironment() {
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment()) {
     setUpDevEnvironment();
   } else {
     setUpProdEnvironment();
   }
 }
 
-module.exports = { setUpDevEnvironment, setUpProdEnvironment, setUpEnvironment };
+module.exports = { setUpDevEnvironment, setUpProdEnvironment, setUpEnvironment, isDevelopment };

@@ -41,7 +41,6 @@ async function deactivate(licenseKey, discordId, cb) {
         });
 
     const body = await result.json();
-    console.log(body);
     return cb(body.message);
 }
 

@@ -9,10 +9,7 @@ export const initialProxyOptionsState = {
 };
 
 const proxyOptions = PropTypes.shape({
-  numProxies: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number,
-  ]),
+  numProxies: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   location: PropTypes.shape({
     id: PropTypes.number,
     label: PropTypes.string,

@@ -1,8 +1,10 @@
 const Electron = require('electron');
 const nebulaEnv = require('./env');
 
-const APP_NAME = 'Nebula';
+const APP_NAME = 'Nebula Orion';
 const HELP_URL = 'https://nebulabots.com/about';
+
+nebulaEnv.setUpEnvironment();
 
 /**
  * Main menu.
@@ -18,6 +20,7 @@ class MainMenu {
   static menu(context) {
     const templates = [
       MainMenu._menuView(),
+      MainMenu._menuEdit(),
       MainMenu._menuWindow(),
       MainMenu._menuHelp(),
     ];
@@ -25,7 +28,6 @@ class MainMenu {
     if (process.platform === 'darwin') {
       templates.unshift(MainMenu._menuApp(context));
     }
-
     return templates;
   }
 
@@ -40,9 +42,17 @@ class MainMenu {
       submenu: [
         {
           label: `About ${APP_NAME}`,
-          click: () => {
-            context.windowManager.createAboutWindow();
+          click: async () => {
+            await context.windowManager.createNewWindow('about');
           },
+        },
+        {
+          type: 'separator',
+        },
+        {
+          label: 'Services',
+          role: 'services',
+          submenu: [],
         },
         {
           type: 'separator',
@@ -67,7 +77,9 @@ class MainMenu {
         {
           label: 'Quit',
           accelerator: 'Command+Q',
-          click: () => { Electron.app.quit(); },
+          click: () => {
+            Electron.app.quit();
+          },
         },
       ],
     };
@@ -83,30 +95,45 @@ class MainMenu {
       const templates = {
         label: 'View',
         submenu: [
+          {
+            label: 'Reload',
+            accelerator: 'CmdOrCtrl+R',
+            click: (item, focusedWindow) => {
+              if (focusedWindow) {
+                focusedWindow.reload();
+              }
+            },
+          },
+          {
+            label: 'Toggle Developer Tools',
+            accelerator: (() =>
+              process.platform === 'darwin'
+                ? 'Alt+Command+I'
+                : 'Ctrl+Shift+I')(),
+            click: (item, focusedWindow) => {
+              if (focusedWindow) {
+                focusedWindow.toggleDevTools();
+              }
+            },
+          },
         ],
       };
-      templates.submenu.unshift({
-        label: 'Reload',
-        accelerator: 'CmdOrCtrl+R',
-        click: (item, focusedWindow) => {
-          if (focusedWindow) {
-            focusedWindow.reload();
-          }
-        },
-      });
-
-      templates.submenu.push({
-        label: 'Toggle Developer Tools',
-        accelerator: (() => (process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
-        click: (item, focusedWindow) => {
-          if (focusedWindow) {
-            focusedWindow.toggleDevTools();
-          }
-        },
-      });
       return templates;
     }
-    return null;
+    return {};
+  }
+
+  static _menuEdit() {
+    return {
+      label: 'Edit',
+      submenu: [
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'pasteandmatchstyle' },
+        { role: 'selectall' },
+      ],
+    };
   }
 
   /**
@@ -168,4 +195,3 @@ class MainMenu {
 }
 
 module.exports = MainMenu;
-

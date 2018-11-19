@@ -1,6 +1,11 @@
 /* global describe */
-import pDefns, { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import pDefns, {
+  initialProfileStates,
+} from '../../../../utils/definitions/profileDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('paymentState definitions', () => {
   const spy = setupConsoleErrorSpy();

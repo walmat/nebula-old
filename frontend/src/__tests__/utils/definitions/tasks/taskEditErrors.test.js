@@ -1,6 +1,11 @@
 /* global describe */
-import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import tDefns, {
+  initialTaskStates,
+} from '../../../../utils/definitions/taskDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskEditErrors definitions', () => {
   const spy = setupConsoleErrorSpy();

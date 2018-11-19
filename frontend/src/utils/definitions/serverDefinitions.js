@@ -1,11 +1,22 @@
-import awsCredentials, { initialAwsCredentialsState } from './server/awsCredentials';
+import awsCredentials, {
+  initialAwsCredentialsState,
+} from './server/awsCredentials';
 import proxyOptions, { initialProxyOptionsState } from './server/proxyOptions';
 import serverInfo, { initialServerInfoState } from './server/serverInfo';
 import coreServer, { initialCoreServerState } from './server/coreServer';
-import { serverList, server, initialServerListState, initialServerState } from './server/serverList';
+import {
+  serverList,
+  server,
+  initialServerListState,
+  initialServerState,
+} from './server/serverList';
 import serverListOptions from './server/serverListOptions';
-import serverProperty, { initialServerPropertyState } from './server/serverProperty';
-import serverOptions, { initialServerOptionsState } from './server/serverOptions';
+import serverProperty, {
+  initialServerPropertyState,
+} from './server/serverProperty';
+import serverOptions, {
+  initialServerOptionsState,
+} from './server/serverOptions';
 
 export const initialServerStates = {
   awsCredentials: initialAwsCredentialsState,
