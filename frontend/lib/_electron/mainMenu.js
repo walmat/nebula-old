@@ -43,7 +43,7 @@ class MainMenu {
         {
           label: `About ${APP_NAME}`,
           click: async () => {
-            await context._windowManager.createNewWindow('about');
+            await context.windowManager.createNewWindow('about');
           },
         },
         {

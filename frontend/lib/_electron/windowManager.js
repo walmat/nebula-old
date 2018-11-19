@@ -14,8 +14,6 @@ const CaptchaWindowManager = require('./captchaWindowManager');
 
 nebulaEnv.setUpEnvironment();
 
-nebulaEnv.setUpEnvironment();
-
 /**
  * Manage the window.
  */
