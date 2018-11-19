@@ -13,7 +13,7 @@
     "start": "npm run prod",
     "prebuild": "./node_modules/.bin/replace 'file-loader' 'url-loader' ./node_modules/react-scripts/config/webpack.config.prod.js",
     "precommit": "lint-staged && npm test -- --coverage",
-    "build": "GENERATE_SOURCEMAP=false && react-scripts build",
+    "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "coverage": "npm run test -- --coverage",
     "eject": "react-scripts eject",
