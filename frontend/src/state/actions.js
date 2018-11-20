@@ -1,6 +1,7 @@
 /**
- * This file is merely a shared import point for all actions.
+ * This file is a shared import point for all actions.
  */
+import makeActionCreator from './actions/actionCreator';
 
 import * as profiles from './actions/profiles/profileActions';
 import * as task from './actions/tasks/taskActions';
@@ -8,6 +9,16 @@ import * as settings from './actions/settings/settingsActions';
 import * as server from './actions/server/serverActions';
 import * as navbar from './actions/navbar/navbarActions';
 
+// Global Actions
+export const GLOBAL_ACTIONS = {
+  RESET: '@@RESET',
+};
+
+export const globalActions = {
+  reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
+};
+
+// Reimports
 export const {
   profileActions,
   mapProfileFieldToKey,
