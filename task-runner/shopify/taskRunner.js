@@ -201,6 +201,7 @@ class TaskRunner {
     async _handleGenAltCheckout() {
         // TODO: Add this back in!
         // const res = await this._checkout.geenerateAlternativeCheckout();
+        this._logger.silly('TODO: Implement the alt checkout process!');
         const res = {};
         if(res.errors) {
             this._logger.verbose('Alt Checkout Handler completed with errors: %j', res.errors);
@@ -261,18 +262,31 @@ class TaskRunner {
         return res.nextState;
     }
 
-    async _handleFinished() {
-        this._emitTaskEvent({
-            message: this._context.status || 'Task has finished!',
-        });
-        return States.Stopped;
-    }
-
-    async _handleAborted() {
-        this._emitTaskEvent({
-            message: 'Task has aborted!',
-        });
-        return States.Stopped;
+    _generateEndStateHandler(state) {
+        let status = 'stopped';
+        switch (state) {
+            case States.Aborted: {
+                status = 'aborted';
+                break;
+            }
+            case States.Errored: {
+                status = 'errored out';
+                break;
+            }
+            case States.Finished: {
+                status = 'finished';
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        return () => {
+            this._emitTaskEvent({
+                message: this._context.status || `Task has ${status}!`,
+            });
+            return States.Stopped;
+        }
     }
 
     async _handleStepLogic(currentState) {
@@ -288,8 +302,9 @@ class TaskRunner {
             [States.Monitor]: this._handleMonitor,
             [States.SwapProxies]: this._handleSwapProxies,
             [States.Checkout]: this._handleCheckout,
-            [States.Finished]: this._handleFinished,
-            [States.Aborted]: this._handleAborted,
+            [States.Finished]: this._generateEndStateHandler(States.Finished),
+            [States.Errored]: this._generateEndStateHandler(States.Errored),
+            [States.Aborted]: this._generateEndStateHandler(States.Aborted),
         }
         const handler = stepMap[currentState] || defaultHandler;
         return await handler.call(this);
@@ -303,16 +318,14 @@ class TaskRunner {
             if (this._context.aborted) {
                 this._state = States.Aborted;
             }
-            this._state = await this._handleStepLogic(this._state);
+            try {
+                this._state = await this._handleStepLogic(this._state);
+            } catch (e) {
+                this._logger.debug('Run loop errored out! %s', e);
+                this._state = States.Errored;
+            }
             this._logger.verbose('Run Loop finished, state transitioned to: %s', this._state);
         }
-        // wait for 2 seconds before showing the task has stopped message
-        await waitForDelay(2000);
-
-        // update previous message with task has stopped message
-        this._emitTaskEvent({
-            message: 'Task has stopped.',
-        });
 
         this._cleanup();
         return;

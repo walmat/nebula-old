@@ -26,6 +26,7 @@ const TaskRunnerStates = {
   SwapProxies: 'SWAP_PROXIES',
   Checkout: 'CHECKOUT',
   Finished: 'FINISHED',
+  Errored: 'ERRORED',
   Aborted: 'ABORTED',
   Stopped: 'STOPPED',
 };

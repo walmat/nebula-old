@@ -400,13 +400,18 @@ class Checkout {
     }
 
     async run() {
+        if (this._context.aborted) {
+            this._logger.info('Abort Detected, Stopping...');
+            return { nextState: States.Aborted };
+        }
+
         const res = await this._handleStepLogic(this._state);
         this._logger.verbose('CHECKOUT: Next State chosen as: %s', res.nextState);
         if (res.nextState === Checkout.States.Error) {
             this._logger.verbose('CHECKOUT: Completed with errors: %j', res.errors);
             return {
                 message: res.errors,
-                nextState: States.Stopped,
+                nextState: States.Errored,
             }
         } else if (res) {
             this._state = res.nextState;
