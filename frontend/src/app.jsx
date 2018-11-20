@@ -7,12 +7,12 @@ import Tasks from './tasks/tasks';
 import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
-import { ROUTES, taskActions } from './state/actions';
+import { ROUTES, taskActions, globalActions } from './state/actions';
 
 import addTestId from './utils/addTestId';
 
-import close from './_assets/close.svg';
-import deactivate from './_assets/logout.svg';
+import closeImg from './_assets/close.svg';
+import deactivateImg from './_assets/logout.svg';
 
 import './app.css';
 
@@ -24,11 +24,19 @@ export class App extends PureComponent {
     }
   }
 
-  static deactivate(e) {
-    e.preventDefault();
-    if (window.Bridge) {
-      window.Bridge.deactivate();
-    }
+  static deactivate(store) {
+    return async e => {
+      e.preventDefault();
+      if (window.Bridge) {
+        const confirm = await window.Bridge.confirmDialog(
+          'Are you sure you want to deactivate Orion? Doing so will erase all data!',
+        );
+        if (confirm) {
+          store.dispatch(globalActions.reset());
+          window.Bridge.deactivate();
+        }
+      }
+    };
   }
 
   constructor(props) {
@@ -71,12 +79,12 @@ export class App extends PureComponent {
                 tabIndex={0}
                 title="deactivate"
                 onKeyPress={this.props.onKeyPress}
-                onClick={App.deactivate}
+                onClick={App.deactivate(this.props.store)}
                 draggable="false"
                 data-testid={addTestId('App.button.deactivate')}
               >
                 <img
-                  src={deactivate}
+                  src={deactivateImg}
                   draggable="false"
                   alt="close"
                   style={{
@@ -101,7 +109,7 @@ export class App extends PureComponent {
                 data-testid={addTestId('App.button.close')}
               >
                 <img
-                  src={close}
+                  src={closeImg}
                   draggable="false"
                   alt="close"
                   style={{
@@ -144,6 +152,6 @@ App.defaultProps = {
   onKeyPress: () => {},
 };
 
-const createApp = (store, props) => (<App store={store} {...props} />);
+const createApp = (store, props) => <App store={store} {...props} />;
 
 export default createApp;

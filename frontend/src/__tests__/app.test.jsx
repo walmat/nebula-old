@@ -10,14 +10,14 @@ import Tasks from '../tasks/tasks';
 import Profiles from '../profiles/profiles';
 import Server from '../server/server';
 import Settings from '../settings/settings';
-import { ROUTES } from '../state/actions';
+import { ROUTES, globalActions } from '../state/actions';
 
 import getByTestId from '../__testUtils__/getByTestId';
 
 describe('Top Level App', () => {
   let defaultProps;
 
-  const testApp = (appProvider) => {
+  const testApp = appProvider => {
     it('should render with initial props', () => {
       const wrapper = appProvider();
       expect(wrapper.find(Navbar)).toHaveLength(1);
@@ -38,6 +38,14 @@ describe('Top Level App', () => {
     });
 
     describe('Deactivate Button', () => {
+      let Bridge;
+
+      afterEach(() => {
+        if (Bridge && window.Bridge) {
+          delete window.Bridge;
+        }
+      });
+
       it('should render with correct props', () => {
         const wrapper = appProvider();
         const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
@@ -48,7 +56,7 @@ describe('Top Level App', () => {
         expect(deactivateButton.prop('onClick')).toBeDefined();
       });
 
-      it('should not call window brige method if it isn\'t defined', () => {
+      it("should not call window bridge methods if bridge isn't defined", () => {
         const onKeyPress = jest.fn();
         const wrapper = appProvider({ onKeyPress });
         const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
@@ -61,20 +69,78 @@ describe('Top Level App', () => {
         expect(onKeyPress).toHaveBeenCalled();
       });
 
-      it('should call window brige method if it is defined', () => {
+      it('should call confirm before deactivate', async () => {
+        // ensure all assertions are called since we have an async event handler to test
+        expect.assertions(5);
         const wrapper = appProvider();
         const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
         const ev = {
           preventDefault: jest.fn(),
         };
-        const Bridge = {
+        Bridge = {
           deactivate: jest.fn(),
+          registerForTaskEvents: jest.fn(),
+          deregisterForTaskEvents: jest.fn(),
+        };
+        // Attach confirmDialog after Bridge is defined so we can reference it
+        Bridge.confirmDialog = jest.fn(() => {
+          // Before continuing, make sure we have prevented the click event,
+          // but have not yet called deactivate.
+          expect(ev.preventDefault).toHaveBeenCalled();
+          expect(Bridge.deactivate).not.toHaveBeenCalled();
+          return Promise.resolve(true);
+        });
+        window.Bridge = Bridge;
+        await deactivateButton.simulate('click', ev);
+        // Now confirm all appropriate functions have been called
+        expect(ev.preventDefault).toHaveBeenCalled();
+        expect(Bridge.confirmDialog).toHaveBeenCalled();
+        expect(Bridge.deactivate).toHaveBeenCalled();
+      });
+
+      it('should call reset action and deactivate if deactivate is confirmed', async () => {
+        expect.assertions(5);
+        const wrapper = appProvider();
+        const { store } = wrapper.instance().props;
+        const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
+        const ev = {
+          preventDefault: jest.fn(),
+        };
+        Bridge = {
+          deactivate: jest.fn(),
+          confirmDialog: jest.fn(() => Promise.resolve(true)),
+          registerForTaskEvents: jest.fn(),
+          deregisterForTaskEvents: jest.fn(),
         };
         window.Bridge = Bridge;
-        deactivateButton.simulate('click', ev);
+        await deactivateButton.simulate('click', ev);
         expect(ev.preventDefault).toHaveBeenCalled();
+        expect(Bridge.confirmDialog).toHaveBeenCalled();
+        expect(store.dispatch).toHaveBeenCalled();
+        expect(store.dispatch.mock.calls[0][0]).toEqual(globalActions.reset());
         expect(Bridge.deactivate).toHaveBeenCalled();
-        delete window.Bridge;
+      });
+
+      it('should not call reset action nor deactivate if deactivate is canceled', async () => {
+        expect.assertions(4);
+        const wrapper = appProvider();
+        const { store } = wrapper.instance().props;
+        const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
+        const ev = {
+          preventDefault: jest.fn(),
+        };
+        Bridge = {
+          deactivate: jest.fn(),
+          confirmDialog: jest.fn(() => Promise.resolve(false)),
+          registerForTaskEvents: jest.fn(),
+          deregisterForTaskEvents: jest.fn(),
+        };
+        window.Bridge = Bridge;
+        await deactivateButton.simulate('click', ev);
+        expect(ev.preventDefault).toHaveBeenCalled();
+        expect(Bridge.confirmDialog).toHaveBeenCalled();
+        expect(store.dispatch).not.toHaveBeenCalled();
+        expect(Bridge.deactivate).not.toHaveBeenCalled();
       });
     });
 
@@ -89,7 +155,7 @@ describe('Top Level App', () => {
         expect(closeButton.prop('onClick')).toBeDefined();
       });
 
-      it('should not call window brige method if it isn\'t defined', () => {
+      it("should not call window bridge method if it isn't defined", () => {
         const onKeyPress = jest.fn();
         const wrapper = appProvider({ onKeyPress });
         const closeButton = getByTestId(wrapper, 'App.button.close');
@@ -102,7 +168,7 @@ describe('Top Level App', () => {
         expect(onKeyPress).toHaveBeenCalled();
       });
 
-      it('should call window brige method if it is defined', () => {
+      it('should call window bridge method if it is defined', () => {
         const wrapper = appProvider();
         const closeButton = getByTestId(wrapper, 'App.button.close');
         const ev = {
@@ -110,6 +176,8 @@ describe('Top Level App', () => {
         };
         const Bridge = {
           close: jest.fn(),
+          registerForTaskEvents: jest.fn(),
+          deregisterForTaskEvents: jest.fn(),
         };
         window.Bridge = Bridge;
         closeButton.simulate('click', ev);
@@ -167,7 +235,7 @@ describe('Top Level App', () => {
         expect(redirect.props().to).toBe(ROUTES.TASKS);
       });
 
-      it('should load a redirect the state\'s location if state and window locations are not in sync', () => {
+      it("should load a redirect the state's location if state and window locations are not in sync", () => {
         const store = {
           getState: jest.fn(() => ({ navbar: { location: '/notdefault' } })),
           dispatch: jest.fn(),
@@ -192,22 +260,21 @@ describe('Top Level App', () => {
   });
 
   describe('<App />', () => {
-    const appProvider = (customProps) => {
+    const appProvider = customProps => {
       const renderProps = {
         ...defaultProps,
         ...customProps,
       };
-      return shallow(<App
-        store={renderProps.store}
-        onKeyPress={renderProps.onKeyPress}
-      />);
+      return shallow(
+        <App store={renderProps.store} onKeyPress={renderProps.onKeyPress} />,
+      );
     };
 
     testApp(appProvider);
   });
 
   describe('Create App', () => {
-    const appProvider = (customProps) => {
+    const appProvider = customProps => {
       const renderProps = {
         ...defaultProps,
         ...customProps,
