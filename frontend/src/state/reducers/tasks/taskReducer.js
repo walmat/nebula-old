@@ -232,8 +232,7 @@ export function newTaskReducer(state = initialTaskStates.task, action) {
       break;
     }
     case TASK_ACTIONS.ADD: {
-      console.log(action);
-      if (action.error) {
+      if (action.errors) {
         return Object.assign({}, state, {
           errors: Object.assign({}, state.errors, action.errors),
         });

@@ -64,6 +64,16 @@ describe('profile list reducer', () => {
       });
       expect(actual).toEqual(initialProfileStates.list);
     });
+
+    // MARK: PR Requests
+    test('when errors map exists', () => {
+      const actual = profileListReducer(initialProfileStates.list, {
+        type: PROFILE_ACTIONS.ADD,
+        errors: {},
+      });
+      expect(actual).toEqual(initialProfileStates.list);
+    });
+    // end MARK
   });
 
   describe('should handle remove', () => {
@@ -326,6 +336,24 @@ describe('profile list reducer', () => {
       });
       expect(actual).toEqual(start);
     });
+
+    // MARK: PR Requests
+    test('when errors map exists', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'testing',
+        },
+      ];
+      const actual = profileListReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+        id: 2,
+        errors: {},
+      });
+      expect(actual).toEqual(start);
+    });
+    // end MARK
   });
 
   it('should handle error', () => {
