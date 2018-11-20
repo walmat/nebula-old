@@ -2,7 +2,6 @@
  * Container for all state reducers. Reducers are available in their specific
  * files, this is just a shared import point.
  */
-// import { combineReducers } from 'redux';
 import {
   newTaskReducer,
   selectedTaskReducer,
@@ -22,7 +21,7 @@ import {
   navbarReducer,
   initialNavbarState,
 } from './reducers/navbar/navbarReducer';
-
+import { GLOBAL_ACTIONS } from './actions';
 import serverListOptions from '../utils/servers';
 import { initialProfileStates } from '../utils/definitions/profileDefinitions';
 import { initialTaskStates } from '../utils/definitions/taskDefinitions';
@@ -47,6 +46,15 @@ export const initialState = {
 };
 
 const topLevelReducer = (state = initialState, action) => {
+  // Return State if a null/undefined action is given
+  if (!action) {
+    return state;
+  }
+  // Check for reset and return initial state
+  if (action.type === GLOBAL_ACTIONS.RESET) {
+    return { ...initialState };
+  }
+  // If not a reset, handle the action with sub reducers
   const changes = {
     tasks: taskListReducer(state.tasks, action),
     newTask: newTaskReducer(state.newTask, action),
