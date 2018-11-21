@@ -13,7 +13,7 @@ class TaskManager {
     this._events = new EventEmitter();
 
     // Logger file path
-    this._loggerPath = LOGS_PATH;
+    this._loggerPath = loggerPath;
 
     // Runner Map
     this._runners = [];
