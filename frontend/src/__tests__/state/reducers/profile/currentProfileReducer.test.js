@@ -131,14 +131,28 @@ describe('current profile reducer', () => {
     });
 
     it('should bypass on errors', () => {
-      const initialState = {
+      const start = {
         ...initialProfileStates.profile,
+        errors: {
+          profileName: true,
+          billingMatchesShipping: false,
+        },
       };
-      const actual = currentProfileReducer(initialState, {
+      const actual = currentProfileReducer(start, {
         type: PROFILE_ACTIONS.ADD,
-        errors: {},
+        profile: {},
+        errors: {
+          ...start.errors,
+          billingMatchesShipping: true,
+        },
       });
-      expect(actual).toEqual(initialState);
+      expect(actual).toEqual({
+        ...start,
+        errors: {
+          profileName: true,
+          billingMatchesShipping: true,
+        },
+      });
     });
   });
 
@@ -166,23 +180,30 @@ describe('current profile reducer', () => {
       expect(actual).toEqual(start);
     });
 
-    // MARK: PR Request
     test('when errors map exists', () => {
       const start = {
         ...initialProfileStates.profile,
         errors: {
-          profileName: null,
+          profileName: true,
+          billingMatchesShipping: false,
         },
       };
       const actual = currentProfileReducer(start, {
         type: PROFILE_ACTIONS.UPDATE,
+        profile: {},
         errors: {
           ...start.errors,
+          billingMatchesShipping: true,
         },
       });
-      expect(actual).toEqual(start);
+      expect(actual).toEqual({
+        ...start,
+        errors: {
+          profileName: true,
+          billingMatchesShipping: true,
+        },
+      });
     });
-    // end MARK
   });
 
   describe('should handle load action', () => {

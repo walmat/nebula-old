@@ -359,7 +359,6 @@ describe('profile list reducer', () => {
       expect(actual).toEqual(start);
     });
 
-    // MARK: PR Requests
     test('when errors map exists', () => {
       const start = [
         {
@@ -375,7 +374,6 @@ describe('profile list reducer', () => {
       });
       expect(actual).toEqual(start);
     });
-    // end MARK
   });
 
   it('should handle error', () => {
