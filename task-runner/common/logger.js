@@ -1,13 +1,6 @@
 const fs = require('fs');
-const path = require('path');
-/**
- * OS X - '/Users/{USER}/Library/Preferences/Nebula'
- * Windows 8 - 'C:\Users\{USER}\AppData\Roaming\Nebula'
- * Windows XP - 'C:\Documents and Settings\{USER}\Application Data\Nebula'
- * Linux - 'TBD' - not sure haven't tested
- */
-const home = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application\ Support' : process.env.HOME + "/.nebula");
 const winston = require('winston');
+const path = require('path');
 
 // TODO: Generalize Env Code and Include it in this project
 // For now we will assume that the nebula env gets loaded before
@@ -15,9 +8,9 @@ const winston = require('winston');
 const _isDevelopment = process.env.NEBULA_ENV === 'development';
 let _levels = null;
 
-function _createLogger({ name, filename }) {
+function _createLogger({ dir, name, filename }) {
   // Check if the logs directory exists and create it if needed
-  const dirname = path.join(home, 'Nebula-Orion');
+  const dirname = path.join(dir, 'Nebula Orion');
   if (!fs.existsSync(dirname)) {
     fs.mkdirSync(dirname, { recursive: true });
   }
