@@ -130,23 +130,16 @@ describe('current profile reducer', () => {
       expect(actual).toEqual(start);
     });
 
-    // MARK: PR Requests
-    test('when errors map exists', () => {
-      const start = {
+    it('should bypass on errors', () => {
+      const initialState = {
         ...initialProfileStates.profile,
-        errors: {
-          profileName: null,
-        },
       };
-      const actual = currentProfileReducer(start, {
+      const actual = currentProfileReducer(initialState, {
         type: PROFILE_ACTIONS.ADD,
-        errors: {
-          ...start.errors,
-        },
+        errors: {},
       });
-      expect(actual).toEqual(start);
+      expect(actual).toEqual(initialState);
     });
-    // end MARK
   });
 
   describe('should handle update action', () => {

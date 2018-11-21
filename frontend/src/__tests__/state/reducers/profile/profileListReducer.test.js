@@ -65,15 +65,21 @@ describe('profile list reducer', () => {
       expect(actual).toEqual(initialProfileStates.list);
     });
 
-    // MARK: PR Requests
-    test('when errors map exists', () => {
-      const actual = profileListReducer(initialProfileStates.list, {
+    it('should bypass on errors', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+        },
+      ];
+
+      const actual = profileListReducer(start, {
         type: PROFILE_ACTIONS.ADD,
+        id: 1,
         errors: {},
       });
-      expect(actual).toEqual(initialProfileStates.list);
+      expect(actual).toEqual(start);
     });
-    // end MARK
   });
 
   describe('should handle remove', () => {
@@ -312,6 +318,22 @@ describe('profile list reducer', () => {
       const actual = profileListReducer(start, {
         type: PROFILE_ACTIONS.UPDATE,
         id: 1,
+      });
+      expect(actual).toEqual(start);
+    });
+
+    it('should bypass on errors', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+        },
+      ];
+
+      const actual = profileListReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+        id: 1,
+        errors: {},
       });
       expect(actual).toEqual(start);
     });
