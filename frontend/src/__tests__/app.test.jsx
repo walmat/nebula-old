@@ -73,6 +73,7 @@ describe('Top Level App', () => {
         // ensure all assertions are called since we have an async event handler to test
         expect.assertions(5);
         const wrapper = appProvider();
+        const { store } = wrapper.instance().props;
         const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
         const ev = {
           preventDefault: jest.fn(),
@@ -91,7 +92,10 @@ describe('Top Level App', () => {
           return Promise.resolve(true);
         });
         window.Bridge = Bridge;
-        await deactivateButton.simulate('click', ev);
+        // Enzyme can't await async event handlers, so we have to create the
+        // call ourselves...
+        const evHandler = App.deactivate(store);
+        await evHandler(ev);
         // Now confirm all appropriate functions have been called
         expect(ev.preventDefault).toHaveBeenCalled();
         expect(Bridge.confirmDialog).toHaveBeenCalled();
@@ -113,7 +117,10 @@ describe('Top Level App', () => {
           deregisterForTaskEvents: jest.fn(),
         };
         window.Bridge = Bridge;
-        await deactivateButton.simulate('click', ev);
+        // Enzyme can't await async event handlers, so we have to create the
+        // call ourselves...
+        const evHandler = App.deactivate(store);
+        await evHandler(ev);
         expect(ev.preventDefault).toHaveBeenCalled();
         expect(Bridge.confirmDialog).toHaveBeenCalled();
         expect(store.dispatch).toHaveBeenCalled();
@@ -136,7 +143,10 @@ describe('Top Level App', () => {
           deregisterForTaskEvents: jest.fn(),
         };
         window.Bridge = Bridge;
-        await deactivateButton.simulate('click', ev);
+        // Enzyme can't await async event handlers, so we have to create the
+        // call ourselves...
+        const evHandler = App.deactivate(store);
+        await evHandler(ev);
         expect(ev.preventDefault).toHaveBeenCalled();
         expect(Bridge.confirmDialog).toHaveBeenCalled();
         expect(store.dispatch).not.toHaveBeenCalled();
