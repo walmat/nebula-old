@@ -2,16 +2,23 @@ const EventEmitter = require('events');
 
 const uuidv4 = require('uuid/v4');
 const hash = require('object-hash');
-
 const TaskRunner = require('./taskRunner');
 const AsyncQueue = require('./classes/asyncQueue');
 const { Events } = require('./classes/utils/constants').TaskManager;
 const { createLogger } = require('../common/logger');
 
 class TaskManager {
-  constructor() {
+
+  get loggerPath() {
+    return this._loggerPath;
+  }
+
+  constructor(loggerPath) {
     // Event Emitter for this manager
     this._events = new EventEmitter();
+
+    // Logger file path
+    this._loggerPath = loggerPath;
 
     // Runner Map
     this._runners = [];
@@ -26,7 +33,7 @@ class TaskManager {
     this._proxies = [];
 
     // Logger
-    this._logger = createLogger({ name: 'TaskManager', filename: 'manager.log' });
+    this._logger = createLogger({ dir: this._loggerPath, name: 'TaskManager', filename: 'manager.log' });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }
