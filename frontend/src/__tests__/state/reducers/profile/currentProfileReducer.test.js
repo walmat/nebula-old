@@ -129,6 +129,31 @@ describe('current profile reducer', () => {
       });
       expect(actual).toEqual(start);
     });
+
+    it('should bypass on errors', () => {
+      const start = {
+        ...initialProfileStates.profile,
+        errors: {
+          profileName: true,
+          billingMatchesShipping: false,
+        },
+      };
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.ADD,
+        profile: {},
+        errors: {
+          ...start.errors,
+          billingMatchesShipping: true,
+        },
+      });
+      expect(actual).toEqual({
+        ...start,
+        errors: {
+          profileName: true,
+          billingMatchesShipping: true,
+        },
+      });
+    });
   });
 
   describe('should handle update action', () => {
@@ -138,7 +163,7 @@ describe('current profile reducer', () => {
         profileName: 'testing',
       };
       const actual = currentProfileReducer(start, {
-        type: PROFILE_ACTIONS.ADD,
+        type: PROFILE_ACTIONS.UPDATE,
         profile: {},
       });
       expect(actual).toEqual(initialProfileStates.profile);
@@ -150,9 +175,34 @@ describe('current profile reducer', () => {
         profileName: 'testing',
       };
       const actual = currentProfileReducer(start, {
-        type: PROFILE_ACTIONS.ADD,
+        type: PROFILE_ACTIONS.UPDATE,
       });
       expect(actual).toEqual(start);
+    });
+
+    test('when errors map exists', () => {
+      const start = {
+        ...initialProfileStates.profile,
+        errors: {
+          profileName: true,
+          billingMatchesShipping: false,
+        },
+      };
+      const actual = currentProfileReducer(start, {
+        type: PROFILE_ACTIONS.UPDATE,
+        profile: {},
+        errors: {
+          ...start.errors,
+          billingMatchesShipping: true,
+        },
+      });
+      expect(actual).toEqual({
+        ...start,
+        errors: {
+          profileName: true,
+          billingMatchesShipping: true,
+        },
+      });
     });
   });
 

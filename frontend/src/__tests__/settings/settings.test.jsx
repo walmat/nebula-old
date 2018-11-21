@@ -23,6 +23,7 @@ describe('<Settings />', () => {
       onSaveDefaults={renderProps.onSaveDefaults}
       onClearDefaults={renderProps.onClearDefaults}
       onKeyPress={renderProps.onKeyPress}
+      errors={renderProps.settings.errors}
     />);
   };
 
@@ -33,7 +34,12 @@ describe('<Settings />', () => {
         { ...initialProfileStates.profile, id: 2, profileName: 'profile2' },
         { ...initialProfileStates.profile, id: 3, profileName: 'profile3' },
       ],
-      settings: { ...initialSettingsStates.settings },
+      settings: {
+        ...initialSettingsStates.settings,
+      },
+      errors: {
+        ...initialSettingsStates.settingsErrors,
+      },
       onSettingsChange: () => {},
       onSaveDefaults: () => {},
       onClearDefaults: () => {},
@@ -307,6 +313,7 @@ describe('<Settings />', () => {
     const expected = {
       profiles: state.profiles,
       settings: state.settings,
+      errors: state.settings.errors,
     };
     expect(mapStateToProps(state)).toEqual(expected);
   });

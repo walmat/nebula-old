@@ -14,7 +14,8 @@ import start from '../_assets/run.svg';
 import stop from '../_assets/stop.svg';
 import destroy from '../_assets/destroy.svg';
 import edit from '../_assets/edit_icon.svg';
-import { taskActions, TASK_FIELDS } from '../state/actions';
+import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../state/actions';
+import { buildStyle } from '../utils/styles';
 
 export class TaskRowPrimitive extends Component {
   createOnChangeHandler(field) {
@@ -114,7 +115,7 @@ export class TaskRowPrimitive extends Component {
       return null;
     }
     const testIdBase = 'TaskRow.edit';
-    const { edits } = this.props;
+    const { edits, errors } = this.props;
     let editProduct = null;
     let editProfile = null;
     let editSizes = [];
@@ -151,6 +152,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Variant, Keywords, Link"
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
                 value={editProduct}
+                style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
                 required
                 data-testid={addTestId(`${testIdBase}.productInput`)}
               />
@@ -163,7 +165,7 @@ export class TaskRowPrimitive extends Component {
                 classNamePrefix="select"
                 placeholder="Choose Site"
                 components={{ DropdownIndicator }}
-                styles={colourStyles}
+                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]))}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
                 options={getAllSites()}
@@ -171,14 +173,14 @@ export class TaskRowPrimitive extends Component {
               />
             </div>
             <div className="col edit-field">
-              <p className="edit-field__label">Billing Profiles</p>
+              <p className="edit-field__label">Billing Profile</p>
               <Select
                 required
                 classNamePrefix="select"
                 className="edit-field__select"
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
-                styles={colourStyles}
+                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]))}
                 value={editProfile}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 options={this.buildProfileOptions()}
@@ -195,7 +197,7 @@ export class TaskRowPrimitive extends Component {
                 className="edit-field__select"
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
-                styles={colourStyles}
+                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]))}
                 value={editSizes}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
                 options={getAllSizes()}
@@ -210,6 +212,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="johndoe@example.com"
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
                 value={edits.username || ''}
+                style={buildStyle(editAccountFieldDisabled, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]])}
                 required={!editAccountFieldDisabled}
                 disabled={editAccountFieldDisabled}
                 data-testid={addTestId(`${testIdBase}.usernameInput`)}
@@ -223,6 +226,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="***********"
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
                 value={edits.password || ''}
+                style={buildStyle(editAccountFieldDisabled, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PASSWORD]])}
                 required={!editAccountFieldDisabled}
                 disabled={editAccountFieldDisabled}
                 data-testid={addTestId(`${testIdBase}.passwordInput`)}
@@ -362,6 +366,7 @@ TaskRowPrimitive.propTypes = {
   onCommitEdits: PropTypes.func.isRequired,
   onCancelEdits: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
+  errors: tDefns.taskEditErrors.isRequired,
 };
 
 TaskRowPrimitive.defaultProps = {
@@ -374,6 +379,7 @@ export const mapStateToProps = (state, ownProps) => ({
   task: ownProps.task,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
+  errors: ownProps.task.edits.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({

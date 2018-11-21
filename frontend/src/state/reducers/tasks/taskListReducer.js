@@ -32,11 +32,15 @@ export default function taskListReducer(
   switch (action.type) {
     case TASK_ACTIONS.ADD: {
       // Check for valid payload structure
-      if (!action.response || (action.response && !action.response.task)) {
+      if (
+        action.errors ||
+        !action.response ||
+        (action.response && !action.response.task)
+      ) {
         break;
       }
 
-      // perform a deep copy of given profile
+      // perform a deep copy of given task
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
       // copy over edits
@@ -82,10 +86,12 @@ export default function taskListReducer(
       break;
     }
     case TASK_ACTIONS.UPDATE: {
-      // Check if payload has correct structure
+      // Check if payload has correct structure or any errors
       if (
+        action.errors ||
         !action.response ||
-        (action.response && (!action.response.task || !action.response.id))
+        !action.response.id ||
+        !action.response.task
       ) {
         break;
       }

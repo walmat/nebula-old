@@ -96,6 +96,17 @@ describe('new task reducer', () => {
       const actual = newTaskReducer(start, { type: TASK_ACTIONS.ADD });
       expect(actual).toEqual(start);
     });
+
+    test('when errors map is given', () => {
+      const start = {
+        ...initialTaskStates.task,
+      };
+      const actual = newTaskReducer(start, {
+        type: TASK_ACTIONS.ADD,
+        errors: {},
+      });
+      expect(actual).toEqual(start);
+    });
   });
 
   describe('should not respond to', () => {

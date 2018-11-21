@@ -24,6 +24,7 @@ describe('<CreateTask />', () => {
       onFieldChange={renderProps.onFieldChange}
       onAddNewTask={renderProps.onAddNewTask}
       onKeyPress={renderProps.onKeyPress}
+      errors={renderProps.errors}
     />);
   };
 
@@ -31,6 +32,7 @@ describe('<CreateTask />', () => {
     defaultProps = {
       profiles: [],
       task: { ...initialTaskStates.task },
+      errors: { ...initialTaskStates.errors },
       onFieldChange: () => {},
       onAddNewTask: () => {},
     };

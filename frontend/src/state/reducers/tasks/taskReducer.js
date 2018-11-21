@@ -19,6 +19,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
               ...initialTaskStates.product,
               raw: action.value || '',
             },
+            errors: Object.assign({}, state.errors, action.errors),
           };
           if (!action.value || !action.value.startsWith('http')) {
             break;
@@ -41,6 +42,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
             },
             username: null,
             password: null,
+            errors: Object.assign({}, state.errors, action.errors),
           };
           break;
         }
@@ -50,12 +52,14 @@ export function taskReducer(state = initialTaskStates.task, action) {
               site: action.value,
               username: null,
               password: null,
+              errors: Object.assign({}, state.errors, action.errors),
             };
           } else {
             change = {
               site: initialTaskStates.site,
               username: initialTaskStates.task.username,
               password: initialTaskStates.task.password,
+              errors: Object.assign({}, state.errors, action.errors),
             };
           }
           break;
@@ -66,16 +70,13 @@ export function taskReducer(state = initialTaskStates.task, action) {
             nextSizes = initialTaskStates.task.sizes;
           } else if (action.value && action.value.length > state.sizes.length) {
             nextSizes.unshift(
-              ...action.value.filter(
-                s => !state.sizes.find(({ id }) => s.id === id),
-              ),
+              ...action.value.filter(s => !state.sizes.find(v => s === v)),
             );
           } else {
             nextSizes = state.sizes.filter(s =>
-              action.value.find(({ id }) => s.id === id),
+              action.value.find(v => s === v),
             );
           }
-
           change = {
             sizes: nextSizes,
             errors: Object.assign({}, state.errors, action.errors),
@@ -105,11 +106,11 @@ export function taskReducer(state = initialTaskStates.task, action) {
             change = {
               edits: {
                 ...state.edits,
-                errors: Object.assign({}, state.edits.errors, action.errors),
                 product: {
                   ...initialTaskStates.product,
                   raw: action.value,
                 },
+                errors: Object.assign({}, state.edits.errors, action.errors),
               },
             };
             if (!action.value.startsWith('http')) {
@@ -134,6 +135,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 },
                 username: null,
                 password: null,
+                errors: Object.assign({}, state.edits.errors, action.errors),
               },
             };
           } else {
@@ -175,24 +177,17 @@ export function taskReducer(state = initialTaskStates.task, action) {
           let nextSizes = JSON.parse(JSON.stringify(state.edits.sizes));
           if (nextSizes === null) {
             if (action.value) {
-              nextSizes = [
-                {
-                  ...initialTaskStates.task.sizes,
-                  id: action.value[0].id,
-                  label: action.value[0].label,
-                  value: action.value[0].value,
-                },
-              ];
+              nextSizes = action.value;
             }
           } else if (action.value && action.value.length > nextSizes.length) {
             nextSizes.unshift(
               ...action.value.filter(
-                s => !state.edits.sizes.find(({ id }) => s.id === id),
+                s => !state.edits.sizes.find(v => s === v),
               ),
             );
           } else {
             nextSizes = state.edits.sizes.filter(s =>
-              action.value.find(({ id }) => s.id === id),
+              action.value.find(v => s === v),
             );
           }
 
@@ -237,8 +232,13 @@ export function newTaskReducer(state = initialTaskStates.task, action) {
       break;
     }
     case TASK_ACTIONS.ADD: {
+      if (action.errors) {
+        return Object.assign({}, state, {
+          errors: Object.assign({}, state.errors, action.errors),
+        });
+      }
       // If we have a response error, we should do nothing
-      if (!action.response || (action.response && !action.response.task)) {
+      if (!action.response || !action.response.task) {
         return Object.assign({}, state);
       }
       // If adding a new task, we should reset the current task to default values

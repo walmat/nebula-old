@@ -120,8 +120,10 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          state: testValid ? 'invalid' : 'PR',
-          country: testValid ? 'invalid' : 'US',
+          state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
+          country: testValid
+            ? 'invalid'
+            : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -132,8 +134,10 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          state: testValid ? 'invalid' : 'PR',
-          country: testValid ? 'invalid' : 'US',
+          state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
+          country: testValid
+            ? 'invalid'
+            : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -523,7 +527,7 @@ describe('profile form validation middleware', () => {
         describe('country', () => {
           it('should not generate error flag when valid', () =>
             _testErrorFlag({
-              value: 'US',
+              value: { value: 'US', label: 'United States' },
               valid: true,
               subField: LOCATION_FIELDS.COUNTRY,
             }));
@@ -539,7 +543,7 @@ describe('profile form validation middleware', () => {
         describe('state', () => {
           it('should not generate error flag when valid', () =>
             _testErrorFlag({
-              value: 'PR',
+              value: { label: 'Puerto Rico', value: 'PR' },
               valid: true,
               subField: LOCATION_FIELDS.STATE,
             }));

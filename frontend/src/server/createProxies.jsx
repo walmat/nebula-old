@@ -7,6 +7,7 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import addTestId from '../utils/addTestId';
+import { buildStyle } from '../utils/styles';
 
 export class CreateProxiesPrimitive extends Component {
   createServerInfoChangeHandler(field) {
@@ -20,7 +21,7 @@ export class CreateProxiesPrimitive extends Component {
   }
 
   render() {
-    const { serverInfo, serverListOptions, onKeyPress } = this.props;
+    const { serverInfo, serverListOptions, onKeyPress, errors } = this.props;
     const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
     return (
       <div className="proxy-options col col--start col--no-gutter">
@@ -33,6 +34,7 @@ export class CreateProxiesPrimitive extends Component {
                   value={serverInfo.proxyOptions.numProxies}
                   format="##"
                   placeholder="00"
+                  style={buildStyle(false, null)}
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
                   required
@@ -47,7 +49,7 @@ export class CreateProxiesPrimitive extends Component {
                   components={{ DropdownIndicator }}
                   classNamePrefix="select"
                   className="proxy-options__input--location"
-                  styles={colourStyles}
+                  styles={colourStyles(buildStyle(false, null))}
                   value={serverInfo.proxyOptions.location}
                   options={serverListOptions.locations}
                   data-testid={addTestId('CreateProxies.location')}
@@ -66,6 +68,7 @@ export class CreateProxiesPrimitive extends Component {
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
                   type="text"
                   placeholder="Desired Username"
+                  style={buildStyle(false, null)}
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
                   value={serverInfo.proxyOptions.username}
                   required
@@ -84,6 +87,7 @@ export class CreateProxiesPrimitive extends Component {
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
                   type="text"
                   placeholder="Desired Password"
+                  style={buildStyle(false, null)}
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
                   value={serverInfo.proxyOptions.password}
                   required
@@ -139,6 +143,8 @@ CreateProxiesPrimitive.propTypes = {
 
 CreateProxiesPrimitive.defaultProps = {
   onKeyPress: () => {},
+  // eslint-disable-next-line react/default-props-match-prop-types
+  errors: {}, // TODO - add proper error object
 };
 
 export const mapStateToProps = state => ({

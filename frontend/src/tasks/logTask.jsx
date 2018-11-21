@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
-import { taskActions } from '../state/actions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 export class LogTaskPrimitive extends Component {

@@ -135,6 +135,13 @@ describe('task list reducer', () => {
         });
       });
 
+      test('when errors map exists', () => {
+        testNoop({
+          response: { task: { ...initialTaskStates.task } },
+          errors: {},
+        });
+      });
+
       test('when response is null', () => {
         testNoop({
           response: null,
@@ -212,6 +219,12 @@ describe('task list reducer', () => {
       test('task is not given', () => {
         testNoop({
           response: {},
+        });
+      });
+
+      test('when errors map exists', () => {
+        testNoop({
+          errors: {},
         });
       });
 
@@ -455,6 +468,12 @@ describe('task list reducer', () => {
       test('task is not given', () => {
         testNoop({
           response: { id: 1 },
+        });
+      });
+
+      test('when errors map exists', () => {
+        testNoop({
+          errors: {},
         });
       });
 

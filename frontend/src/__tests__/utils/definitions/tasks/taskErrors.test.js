@@ -25,7 +25,4 @@ describe('taskError definitions', () => {
   testErrorKey('sizes', [null, true, false], [{}, 'test', 3]);
   testErrorKey('username', [null, true, false], [{}, 'test', 3]);
   testErrorKey('password', [null, true, false], [{}, 'test', 3]);
-  testErrorKey('status', [null, true, false], [{}, 'test', 3]);
-  testErrorKey('errorDelay', [null, false, true], [{}, 'test', 3]);
-  testErrorKey('monitorDelay', [null, false, true], [{}, 'test', 3]);
 });

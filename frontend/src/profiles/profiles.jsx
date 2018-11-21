@@ -11,7 +11,7 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import './profiles.css';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
-
+import { buildStyle } from '../utils/styles';
 // images
 import checkboxChecked from '../_assets/Check_icons-01.svg';
 import checkboxUnchecked from '../_assets/Check_icons-02.svg';
@@ -119,7 +119,7 @@ export class ProfilesPrimitive extends Component {
             components={{ DropdownIndicator }}
             id="profile-load"
             classNamePrefix="select"
-            styles={colourStyles}
+            styles={colourStyles(buildStyle(false, true))}
             onChange={this.onProfileChange}
             value={selectProfileValue}
             options={this.buildProfileOptions()}
@@ -211,7 +211,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onClickBillingMatchesShipping: () => {
-    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING));
+    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''));
   },
   onProfileNameChange: (event) => {
     dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));

@@ -1,4 +1,6 @@
+import _ from 'underscore';
 import makeActionCreator from '../actionCreator';
+import regexes from '../../../utils/validation';
 
 // Top level Actions
 export const TASK_ACTIONS = {
@@ -16,40 +18,34 @@ export const TASK_ACTIONS = {
 // Private API Requests
 const _addTaskRequest = async task =>
   new Promise((resolve, reject) => {
-    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/i;
-    const keywordRegex = /^[+-][A-Za-z0-9&]+$/;
-    const variantRegex = /^\d+$/;
     const copy = JSON.parse(JSON.stringify(task));
-    const kws = task.product.raw
+    const kws = copy.product.raw
       .split(',')
       .reduce((a, x) => a.concat(x.trim().split(' ')), []);
-    const validKeywords = kws.map(val => keywordRegex.test(val));
+    const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
+    const validKeywords = _.every(testKeywords, isValid => isValid === true);
 
-    if (urlRegex.test(task.product.raw)) {
+    if (regexes.urlRegex.test(task.product.raw)) {
       // test a url match
       copy.product.url = copy.product.raw;
       resolve({ task: copy });
-    } else if (variantRegex.test(task.product.raw)) {
+    } else if (regexes.variantRegex.test(task.product.raw)) {
       // test variant match
       copy.product.variant = copy.product.raw;
       resolve({ task: copy });
     } else if (validKeywords) {
       // test keyword match
-      if (validKeywords.some(v => v === false)) {
-        reject(new Error('Improper keywords'));
-      } else {
-        copy.product.pos_keywords = [];
-        copy.product.neg_keywords = [];
-        kws.map(kw => {
-          if (kw.slice(0, 1) === '+') {
-            // positive keywords
-            return copy.product.pos_keywords.push(kw.slice(1, kw.length));
-          }
-          // negative keywords
-          return copy.product.neg_keywords.push(kw.slice(1, kw.length));
-        });
-        resolve({ task: copy });
-      }
+      copy.product.pos_keywords = [];
+      copy.product.neg_keywords = [];
+      kws.map(kw => {
+        if (kw.slice(0, 1) === '+') {
+          // positive keywords
+          return copy.product.pos_keywords.push(kw.slice(1, kw.length));
+        }
+        // negative keywords
+        return copy.product.neg_keywords.push(kw.slice(1, kw.length));
+      });
+      resolve({ task: copy });
     } else {
       // reject any other input that fails
       reject(new Error('Unknown Input'));
@@ -220,11 +216,9 @@ export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
   EDIT_USERNAME: 'EDIT_USERNAME',
   EDIT_PASSWORD: 'EDIT_PASSWORD',
-  EDIT_METHOD: 'EDIT_METHOD',
   EDIT_SITE: 'EDIT_SITE',
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
-  EDIT_PAIRS: 'EDIT_PAIRS',
 };
 
 export const taskActions = {
@@ -247,5 +241,4 @@ export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZES]: 'sizes',
-  [TASK_FIELDS.EDIT_PAIRS]: 'pairs',
 };

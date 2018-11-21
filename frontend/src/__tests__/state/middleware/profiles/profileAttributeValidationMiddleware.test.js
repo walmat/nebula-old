@@ -343,14 +343,16 @@ describe('profile attribute validation middleware', () => {
         describe('country field', () => {
           const testWith = (value, valid) =>
             testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
-          test('when valid', () => testWith('US', true));
+          test('when valid', () =>
+            testWith({ value: 'US', label: 'United States' }, true));
           test('when invalid', () => testWith('invalid', false));
         });
 
         describe('state field', () => {
           const testWith = (value, valid) =>
             testWithField(LOCATION_FIELDS.STATE, value, valid);
-          test('when valid', () => testWith('PR', true));
+          test('when valid', () =>
+            testWith({ label: 'Puerto Rico', value: 'PR' }, true));
           test('when invalid', () => testWith('invalid', false));
         });
       });
@@ -416,14 +418,16 @@ describe('profile attribute validation middleware', () => {
         describe('country field', () => {
           const testWith = (value, valid) =>
             testWithField(LOCATION_FIELDS.COUNTRY, value, valid);
-          test('when valid', () => testWith('US', true));
+          test('when valid', () =>
+            testWith({ value: 'US', label: 'United States' }, true));
           test('when invalid', () => testWith('invalid', false));
         });
 
         describe('state field', () => {
           const testWith = (value, valid) =>
             testWithField(LOCATION_FIELDS.STATE, value, valid);
-          test('when valid', () => testWith('PR', true));
+          test('when valid', () =>
+            testWith({ label: 'Puerto Rico', value: 'PR' }, true));
           test('when invalid', () => testWith('invalid', false));
         });
       });

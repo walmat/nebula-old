@@ -150,13 +150,12 @@ describe('settings reducer', () => {
       settingsReducer(undefined, {
         type: actionType,
         defaults: initialSettingsStates.defaults,
-        errors: 'testing',
+        errors: initialSettingsStates.settingsErrors,
       });
 
     beforeAll(() => {
       expected = {
         ...initialSettingsStates.settings,
-        errors: 'testing',
       };
     });
 

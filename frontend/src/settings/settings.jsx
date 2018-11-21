@@ -10,7 +10,8 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
-import { settingsActions, SETTINGS_FIELDS } from '../state/actions';
+import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
+import { buildStyle } from '../utils/styles';
 
 export class SettingsPrimitive extends Component {
   /*
@@ -73,6 +74,7 @@ export class SettingsPrimitive extends Component {
   }
 
   render() {
+    const { errors } = this.props;
     let defaultProfileValue = null;
     if (this.props.settings.defaults.profile.id !== null) {
       defaultProfileValue = {
@@ -100,6 +102,7 @@ export class SettingsPrimitive extends Component {
           id="discord-input"
           placeholder="https://discordapp.com/api/webhooks/..."
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
+          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]])}
           value={this.props.settings.discord}
         />
         <p id="slack-label">Slack URL</p>
@@ -107,6 +110,7 @@ export class SettingsPrimitive extends Component {
           id="slack-input"
           placeholder="https://hooks.slack.com/services/..."
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
+          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]])}
           value={this.props.settings.slack}
         />
 
@@ -120,7 +124,7 @@ export class SettingsPrimitive extends Component {
           components={{ DropdownIndicator }}
           id="default-profile"
           classNamePrefix="select"
-          styles={colourStyles}
+          styles={colourStyles(buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]]))}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE)}
           value={defaultProfileValue}
           options={this.buildProfileOptions()}
@@ -135,7 +139,7 @@ export class SettingsPrimitive extends Component {
           components={{ DropdownIndicator }}
           id="default-sizes"
           classNamePrefix="select"
-          styles={colourStyles}
+          styles={colourStyles(buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]]))}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
           value={this.props.settings.defaults.sizes.map(size =>
             ({ value: size.value, label: size.label }))}
@@ -165,6 +169,7 @@ export class SettingsPrimitive extends Component {
           value={this.props.settings.monitorDelay}
           placeholder="1500"
           id="monitor-input"
+          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_MONITOR_DELAY]])}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_MONITOR_DELAY)}
           required
         />
@@ -174,6 +179,7 @@ export class SettingsPrimitive extends Component {
           value={this.props.settings.errorDelay}
           placeholder="1500"
           id="error-input"
+          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ERROR_DELAY]])}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_ERROR_DELAY)}
           required
         />
@@ -189,6 +195,7 @@ SettingsPrimitive.propTypes = {
   onKeyPress: PropTypes.func,
   profiles: pDefns.profileList.isRequired,
   settings: sDefns.settings.isRequired,
+  errors: sDefns.settingsErrors.isRequired,
 };
 
 SettingsPrimitive.defaultProps = {
@@ -198,6 +205,7 @@ SettingsPrimitive.defaultProps = {
 export const mapStateToProps = state => ({
   profiles: state.profiles,
   settings: state.settings,
+  errors: state.settings.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({

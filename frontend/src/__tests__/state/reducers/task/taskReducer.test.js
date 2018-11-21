@@ -201,17 +201,9 @@ describe('task reducer', () => {
           checkGeneralFieldEdit(TASK_FIELDS.EDIT_PROFILE, { id: 1 });
         });
 
-        test('sizes', () => {
-          checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, [
-            { id: 1, value: 'test', label: 'test' },
-          ]);
-        });
-
         describe('sizes', () => {
           test('when adding sizes to an empty list', () => {
-            checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, [
-              { id: 1, value: 'test', label: 'test' },
-            ]);
+            checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, ['test']);
           });
 
           test('when resetting sizes to an empty list', () => {
@@ -234,23 +226,16 @@ describe('task reducer', () => {
           test('when adding sizes to an existing list', () => {
             const initialState = {
               ...initialTaskStates.task,
-              sizes: [{ id: 1, value: 'test', label: 'test' }],
+              sizes: ['test'],
             };
             const expected = {
               ...initialState,
-              sizes: [
-                { id: 2, value: 'test2', label: 'test2' },
-                { id: 3, value: 'test3', label: 'test3' },
-                { id: 1, value: 'test', label: 'test' },
-              ],
+              sizes: ['test2', 'test3', 'test'],
             };
             const actual = taskReducer(initialState, {
               type: TASK_ACTIONS.EDIT,
               field: TASK_FIELDS.EDIT_SIZES,
-              value: [
-                { id: 2, value: 'test2', label: 'test2' },
-                { id: 3, value: 'test3', label: 'test3' },
-              ],
+              value: ['test2', 'test3'],
             });
             expect(actual).toEqual(expected);
           });
@@ -258,26 +243,16 @@ describe('task reducer', () => {
           test('when removing sizes from an existing list', () => {
             const initialState = {
               ...initialTaskStates.task,
-              sizes: [
-                { id: 1, value: 'test', label: 'test' },
-                { id: 2, value: 'test2', label: 'test2' },
-                { id: 3, value: 'test3', label: 'test3' },
-              ],
+              sizes: ['test', 'test2', 'test3'],
             };
             const expected = {
               ...initialState,
-              sizes: [
-                { id: 2, value: 'test2', label: 'test2' },
-                { id: 3, value: 'test3', label: 'test3' },
-              ],
+              sizes: ['test2', 'test3'],
             };
             const actual = taskReducer(initialState, {
               type: TASK_ACTIONS.EDIT,
               field: TASK_FIELDS.EDIT_SIZES,
-              value: [
-                { id: 2, value: 'test2', label: 'test2' },
-                { id: 3, value: 'test3', label: 'test3' },
-              ],
+              value: ['test2', 'test3'],
             });
             expect(actual).toEqual(expected);
           });
@@ -537,11 +512,27 @@ describe('task reducer', () => {
 
         describe('sizes', () => {
           test('when adding sizes to an empty list', () => {
-            checkExistingFieldEdit(
-              TASK_FIELDS.EDIT_SIZES,
-              [{ id: 1, value: 'test', label: 'test' }],
-              1,
-            );
+            checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, ['test'], 1);
+          });
+
+          test('when resetting sizes to an empty list', () => {
+            const initialState = {
+              ...initialTaskStates.task,
+              edits: {
+                ...initialTaskStates.edit,
+                sizes: ['test'],
+              },
+            };
+            const expected = {
+              ...initialState,
+              sizes: [],
+            };
+            const actual = taskReducer(initialState, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SIZES,
+              value: null,
+            });
+            expect(actual).toEqual(expected);
           });
 
           test('when adding sizes to an existing list', () => {
@@ -549,28 +540,21 @@ describe('task reducer', () => {
               ...initialTaskStates.task,
               edits: {
                 ...initialTaskStates.edit,
-                sizes: [{ id: 1, value: 'test', label: 'test' }],
+                sizes: ['test'],
               },
             };
             const expected = {
               ...initialState,
               edits: {
                 ...initialState.edits,
-                sizes: [
-                  { id: 2, value: 'test2', label: 'test2' },
-                  { id: 3, value: 'test3', label: 'test3' },
-                  { id: 1, value: 'test', label: 'test' },
-                ],
+                sizes: ['test2', 'test3', 'test'],
               },
             };
             const actual = taskReducer(initialState, {
               type: TASK_ACTIONS.EDIT,
               id: 1,
               field: TASK_FIELDS.EDIT_SIZES,
-              value: [
-                { id: 2, value: 'test2', label: 'test2' },
-                { id: 3, value: 'test3', label: 'test3' },
-              ],
+              value: ['test2', 'test3'],
             });
             expect(actual).toEqual(expected);
           });
@@ -580,31 +564,21 @@ describe('task reducer', () => {
               ...initialTaskStates.task,
               edits: {
                 ...initialTaskStates.edit,
-                sizes: [
-                  { id: 1, value: 'test', label: 'test' },
-                  { id: 2, value: 'test2', label: 'test2' },
-                  { id: 3, value: 'test3', label: 'test3' },
-                ],
+                sizes: ['test', 'test2', 'test3'],
               },
             };
             const expected = {
               ...initialState,
               edits: {
                 ...initialState.edits,
-                sizes: [
-                  { id: 2, value: 'test2', label: 'test2' },
-                  { id: 3, value: 'test3', label: 'test3' },
-                ],
+                sizes: ['test2', 'test3'],
               },
             };
             const actual = taskReducer(initialState, {
               type: TASK_ACTIONS.EDIT,
               id: 1,
               field: TASK_FIELDS.EDIT_SIZES,
-              value: [
-                { id: 2, value: 'test2', label: 'test2' },
-                { id: 3, value: 'test3', label: 'test3' },
-              ],
+              value: ['test2', 'test3'],
             });
             expect(actual).toEqual(expected);
           });
