@@ -19,7 +19,7 @@ class TaskRunner {
         /**
          * Logger Instance
          */
-        this._logger = createLogger({ dir: this._taskManager._loggerPath, name: `TaskRunner-${id}`, filename: `runner-${id}.log` });;
+        this._logger = createLogger({ dir: this._taskManager.loggerPath, name: `TaskRunner-${id}`, filename: `runner-${id}.log` });;
 
         /**
          * Internal Task Runner State

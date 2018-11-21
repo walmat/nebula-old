@@ -8,6 +8,11 @@ const { Events } = require('./classes/utils/constants').TaskManager;
 const { createLogger } = require('../common/logger');
 
 class TaskManager {
+
+  get loggerPath() {
+    return this._loggerPath;
+  }
+
   constructor(loggerPath) {
     // Event Emitter for this manager
     this._events = new EventEmitter();
