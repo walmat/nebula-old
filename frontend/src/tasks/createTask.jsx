@@ -2,10 +2,11 @@ import React, { Component } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
-import getAllSizes from '../constants/getAllSizes';
-import getAllSites from '../constants/getAllSites';
+import * as getAllSizes from '../constants/getAllSizes';
+import getAllSupportedSitesSorted from '../constants/getAllSites';
 
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -15,6 +16,16 @@ import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
 export class CreateTaskPrimitive extends Component {
+  static buildSizesForCategory(task, onAddNewTask, category, region) {
+    _.each(getAllSizes.getCategory(category).options, size => {
+      if (size.value !== `${region} Random` && size.value !== `${region} FSR`) {
+        // eslint-disable-next-line no-param-reassign
+        task.sizes = [size.value];
+        onAddNewTask(task);
+      }
+    });
+  }
+
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
@@ -23,42 +34,72 @@ export class CreateTaskPrimitive extends Component {
   }
 
   buildProfileOptions() {
-    return this.props.profiles.map(profile => ({ value: profile.id, label: profile.profileName }));
+    return this.props.profiles.map(profile => ({
+      value: profile.id,
+      label: profile.profileName,
+    }));
   }
 
   saveTask(e) {
     const { task, onAddNewTask } = this.props;
     e.preventDefault();
-    onAddNewTask(task);
+    if (task.sizes.some(s => s === 'US FSR')) {
+      CreateTaskPrimitive.buildSizesForCategory(
+        task,
+        onAddNewTask,
+        "US Men's",
+        'US',
+      );
+    } else if (task.sizes.some(s => s === 'UK FSR')) {
+      CreateTaskPrimitive.buildSizesForCategory(
+        task,
+        onAddNewTask,
+        "UK Men's",
+        'UK',
+      );
+    } else if (task.sizes.some(s => s === 'EU FSR')) {
+      CreateTaskPrimitive.buildSizesForCategory(
+        task,
+        onAddNewTask,
+        "EU Men's",
+        'EU',
+      );
+    } else {
+      onAddNewTask(task);
+    }
   }
 
   createOnChangeHandler(field) {
     switch (field) {
       case TASK_FIELDS.EDIT_SITE:
-        return (event) => {
-          const site = { name: event.label, url: event.value, auth: event.auth };
+        return event => {
+          const site = {
+            name: event.label,
+            url: event.value,
+            auth: event.auth,
+          };
           this.props.onFieldChange({ field, value: site });
         };
       case TASK_FIELDS.EDIT_PROFILE:
-        return (event) => {
+        return event => {
           const change = this.props.profiles.find(p => p.id === event.value);
           if (change) {
             this.props.onFieldChange({ field, value: change });
           }
         };
       case TASK_FIELDS.EDIT_SIZES:
-        return (event) => {
+        return event => {
           const values = event.map(s => s.value);
           this.props.onFieldChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
-        return (event) => {
+        return event => {
           this.props.onFieldChange({ field, value: event.target.value });
         };
       default:
         // should never be called, but nice to have just in case
-        return (event) => {
+        return event => {
           this.props.onFieldChange({ field, value: event.target.value });
         };
     }
@@ -96,9 +137,14 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="Variant, Keywords, Link"
-                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
+                  onChange={this.createOnChangeHandler(
+                    TASK_FIELDS.EDIT_PRODUCT,
+                  )}
                   value={task.product.raw}
-                  style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
+                  style={buildStyle(
+                    false,
+                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]],
+                  )}
                   required
                   data-testid={addTestId('CreateTask.productInput')}
                 />
@@ -110,10 +156,15 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--field"
                   placeholder="Choose Site"
                   components={{ DropdownIndicator }}
-                  styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]))}
+                  styles={colourStyles(
+                    buildStyle(
+                      false,
+                      errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]],
+                    ),
+                  )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
-                  options={getAllSites()}
+                  options={getAllSupportedSitesSorted()}
                   data-testid={addTestId('CreateTask.siteSelect')}
                 />
               </div>
@@ -129,7 +180,12 @@ export class CreateTaskPrimitive extends Component {
                 className="tasks-create__input tasks-create__input--field"
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
-                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]))}
+                styles={colourStyles(
+                  buildStyle(
+                    false,
+                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]],
+                  ),
+                )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 value={newTaskProfileValue}
                 options={this.buildProfileOptions()}
@@ -144,10 +200,15 @@ export class CreateTaskPrimitive extends Component {
                 isClearable={false}
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
-                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]))}
+                styles={colourStyles(
+                  buildStyle(
+                    false,
+                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]],
+                  ),
+                )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
                 value={sizes}
-                options={getAllSizes()}
+                options={getAllSizes.default()}
                 className="tasks-create__input tasks-create__input--field"
                 data-testid={addTestId('CreateTask.sizesSelect')}
               />
@@ -163,11 +224,16 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="johndoe@example.com"
-                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
+                  onChange={this.createOnChangeHandler(
+                    TASK_FIELDS.EDIT_USERNAME,
+                  )}
                   value={task.username || ''}
                   required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
-                  style={buildStyle(accountFieldsDisabled, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]])}
+                  style={buildStyle(
+                    accountFieldsDisabled,
+                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]],
+                  )}
                   data-testid={addTestId('CreateTask.usernameInput')}
                 />
               </div>
@@ -177,9 +243,14 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="***********"
-                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
+                  onChange={this.createOnChangeHandler(
+                    TASK_FIELDS.EDIT_PASSWORD,
+                  )}
                   value={task.password || ''} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
-                  style={buildStyle(accountFieldsDisabled, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PASSWORD]])}
+                  style={buildStyle(
+                    accountFieldsDisabled,
+                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PASSWORD]],
+                  )}
                   required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
                   data-testid={addTestId('CreateTask.passwordInput')}
@@ -197,7 +268,7 @@ export class CreateTaskPrimitive extends Component {
               onClick={this.saveTask}
               data-testid={addTestId('CreateTask.submitButton')}
             >
-            Submit
+              Submit
             </button>
           </div>
         </div>
@@ -226,12 +297,15 @@ export const mapStateToProps = (state, ownProps) => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onFieldChange: (changes) => {
+  onFieldChange: changes => {
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
-  onAddNewTask: (newTask) => {
+  onAddNewTask: newTask => {
     dispatch(taskActions.add(newTask));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateTaskPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CreateTaskPrimitive);

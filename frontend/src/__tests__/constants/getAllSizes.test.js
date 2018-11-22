@@ -9,6 +9,7 @@ describe('getAllSizes', () => {
       {
         label: 'Clothing',
         options: [
+          { value: 'Random', label: 'Random' },
           { value: 'XXS', label: 'Extra Extra Small' },
           { value: 'XS', label: 'Extra Small' },
           { value: 'S', label: 'Small' },
