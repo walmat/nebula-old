@@ -139,6 +139,12 @@ export function getCategory(category) {
   return sizes.find(c => c.label === category);
 }
 
+export function buildSizesForCategory(category) {
+  return getCategory(category).options.filter(
+    size => size.label !== 'Random' && size.label !== 'Full Size Run',
+  );
+}
+
 export function getSize(size, category) {
   return getCategory(category).options.find(s => s.label === size).label;
 }

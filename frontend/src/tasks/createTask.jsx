@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
 import * as getAllSizes from '../constants/getAllSizes';
@@ -16,16 +15,6 @@ import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
 export class CreateTaskPrimitive extends Component {
-  static buildSizesForCategory(task, onAddNewTask, category, region) {
-    _.each(getAllSizes.getCategory(category).options, size => {
-      if (size.value !== `${region} Random` && size.value !== `${region} FSR`) {
-        // eslint-disable-next-line no-param-reassign
-        task.sizes = [size.value];
-        onAddNewTask(task);
-      }
-    });
-  }
-
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
@@ -43,27 +32,19 @@ export class CreateTaskPrimitive extends Component {
   saveTask(e) {
     const { task, onAddNewTask } = this.props;
     e.preventDefault();
-    if (task.sizes.some(s => s === 'US FSR')) {
-      CreateTaskPrimitive.buildSizesForCategory(
-        task,
-        onAddNewTask,
-        "US Men's",
-        'US',
-      );
-    } else if (task.sizes.some(s => s === 'UK FSR')) {
-      CreateTaskPrimitive.buildSizesForCategory(
-        task,
-        onAddNewTask,
-        "UK Men's",
-        'UK',
-      );
-    } else if (task.sizes.some(s => s === 'EU FSR')) {
-      CreateTaskPrimitive.buildSizesForCategory(
-        task,
-        onAddNewTask,
-        "EU Men's",
-        'EU',
-      );
+    const fsrMap = {
+      'US FSR': "US Men's",
+      'UK FSR': "UK Men's",
+      'EU FSR': "EU Men's",
+    };
+    const fsrSize = task.sizes.find(s => fsrMap[s]);
+    if (fsrSize) {
+      const fsrCategory = fsrMap[fsrSize];
+      const sizes = getAllSizes.buildSizesForCategory(fsrCategory);
+      sizes.forEach(s => {
+        task.sizes = [s.value];
+        onAddNewTask(task);
+      });
     } else {
       onAddNewTask(task);
     }

@@ -78,26 +78,19 @@ class Monitor {
             // if we're choosing a random size ..generate a random size for now for each respective category
             // TODO - implement a "stock checker" to choose the one with the most stock
             // (this will give our users a better chance of at least getting one)
-            let s;
-            if (size === 'Random') {
+            let idx = -1;
+            switch(size) {
+            case 'Random': idx = 0; break;
+            case 'US Random': idx = 1; break;
+            case 'UK Random': idx = 2; break;
+            case 'EU Random': idx = 3; break;
+            default: idx = -1; break;
+            }
+            if (idx !== -1) {
+                let s;
                 do {
-                    s = generateRandom(getAllSizes[0]);
-                } while (!variantsBySize[s]);
-                return variantsBySize[s];
-            } else if (size === 'US Random') {
-                do {
-                    s = generateRandom(getAllSizes[1]);
-                } while (!variantsBySize[s]);
-                return variantsBySize[s];
-            } else if (size === 'UK Random') {
-                do {
-                    s = generateRandom(getAllSizes[2]);
-                } while (!variantsBySize[s]);
-                return variantsBySize[s];
-            } else if (size === 'EU Random') {
-                do {
-                    s = generateRandom(getAllSizes[3]);
-                } while (!variantsBySize[s]);
+                    s = generateRandom(getAllSizes[idx]);
+                } while (!variantsBySize[s]); // TODO - infinite loop if variants array is improper size
                 return variantsBySize[s];
             }
             return variantsBySize[size];

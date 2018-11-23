@@ -76,12 +76,9 @@ function capitalizeFirstLetter(word) {
 module.exports.capitalizeFirstLetter = capitalizeFirstLetter;
 
 function generateRandom(objList) {
-    let rand = objList.options[Math.floor(Math.random() * objList.options.length)];
-    while (rand.label.includes('Random') || rand.label.includes('Full Size Run')) {
-        rand = objList.options[Math.floor(Math.random() * objList.options.length)];
-    }
-    console.log(rand);
-    return rand.value;
+    const options = objList.options.filter(({ label }) => label !== 'Random' && label !== 'Full Size Run');
+    const { value } = options[Math.floor(Math.random() * options.length)];
+    return value;
 }
 module.exports.generateRandom = generateRandom;
 
