@@ -6,7 +6,8 @@ const rp = require('request-promise').defaults({
 });
 
 const { AtomParser, JsonParser, XmlParser } = require('./parsers');
-const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
+const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay, generateRandom } = require('./utils');
+const { getAllSizes } = require('./utils/constants');
 const { States } = require('./utils/constants').TaskRunner;
 const { ParseType, getParseType } = require('./utils/parse');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
@@ -72,7 +73,33 @@ class Monitor {
             return variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
         });
         // Get the groups in the same order as the sizes
+
         const mappedVariants = sizes.map((size) => {
+            // if we're choosing a random size ..generate a random size for now for each respective category
+            // TODO - implement a "stock checker" to choose the one with the most stock
+            // (this will give our users a better chance of at least getting one)
+            let s;
+            if (size === 'Random') {
+                do {
+                    s = generateRandom(getAllSizes[0]);
+                } while (!variantsBySize[s]);
+                return variantsBySize[s];
+            } else if (size === 'US Random') {
+                do {
+                    s = generateRandom(getAllSizes[1]);
+                } while (!variantsBySize[s]);
+                return variantsBySize[s];
+            } else if (size === 'UK Random') {
+                do {
+                    s = generateRandom(getAllSizes[2]);
+                } while (!variantsBySize[s]);
+                return variantsBySize[s];
+            } else if (size === 'EU Random') {
+                do {
+                    s = generateRandom(getAllSizes[3]);
+                } while (!variantsBySize[s]);
+                return variantsBySize[s];
+            }
             return variantsBySize[size];
         });
         // Flatten the groups to a one-level array and remove null elements

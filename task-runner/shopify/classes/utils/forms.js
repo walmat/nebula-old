@@ -134,6 +134,7 @@ function buildBillingForm(task, authenticity_token, previousStep, price, payment
 module.exports.buildBillingForm = buildBillingForm;
 
 function buildCartForm(task, variant) {
+
     switch(task.site.name) {
         case 'DSM US': {
             return {
