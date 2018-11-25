@@ -26,7 +26,6 @@ class Checkout {
             GeneratePaymentToken: 'GENERATE_PAYMENT_TOKEN',
             ProceedToCheckout: 'PROCEED_TO_CHECKOUT',
             CheckoutQueue: 'CHECKOUT_QUEUE',
-            OutOfStock: 'OUT_OF_STOCK',
             Restock: 'RESTOCK',
             GetShipping: 'GET_SHIPPING',
             RequestCaptcha: 'REQUEST_CAPTCHA',
@@ -94,10 +93,11 @@ class Checkout {
         this._paymentGateway;
 
         this._variantIndex = 0;
+        this._runThroughs = 0;
         
-        // TODO - adjust these if needed (ms)
         this.DELAYS = {
             CHECKOUT_QUEUE: 500,
+            RESTOCK_DELAY: 650,
         }
 
         this._request = require('request-promise').defaults({
@@ -193,7 +193,7 @@ class Checkout {
         if (res.state === this._cart.CART_STATES.CheckoutQueue) {
             return { message: 'Waiting in queue', nextState: Checkout.States.CheckoutQueue };
         } else if (res.state === this._cart.CART_STATES.OutOfStock) {
-            return { message: 'Out of stock, handling..', nextState: Checkout.States.OutOfStock };
+            return { message: 'Running for restocks', nextState: Checkout.States.Restock };
         } else if (res.state === this._cart.CART_STATES.Success) {         
             this._checkoutUrl = res.checkoutUrl.split('?')[0];
             this._authToken = res.authToken;
@@ -221,33 +221,34 @@ class Checkout {
     }
 
     /**
-     * Run restocks/swap sizes
-     * @returns {STATE} next checkout state
+     * Run 
      */
-    async _handleOutOfStock() {
-        this._logger.verbose('CHECKOUT: Handling Out of Stock...');
-        this._variantIndex++;
-        if (this._variantIndex >= this._task.sizes.length) {
-            this._variantIndex = 0;
-        }
-        if (this._task.sizes.length > 1) {
+    async _handleRestocks() {
+        // run through each size, finally run restocks on first size if all OOS
+        if (this._task.sizes.length > 1 && this._runThroughs === 0) {
+            this._variantIndex++;
+            if (this._variantIndex >= this._task.sizes.length) {
+                this._variantIndex = 0;
+                this._runThroughs++;
+            }
             // TODO - make a CartManager that will be able to handle multiple carts
             // create background thread to run for restocks, and check next size?
             this._logger.info('Swapping to Next Size...');
             const res = await this._cart.clearCart();
             
             if (res.errors) {
-                return { message: 'Failed: clearing cart', nextState: Checkout.States.OutOfStock };
+                return { message: 'Failed: clearing cart', nextState: Checkout.States.Restock };
             }
 
             if (res.cleared) {
                 return { message: 'Adding next size to cart', nextState: Checkout.States.AddToCart };
             }
-            return Checkout.States.Stopped;
+            return { message: 'Failed: swapping to next size', nextState: Checkout.States.Stopped };
         } else {
             // run restocks for the one size..
             this._logger.info('Running for Restocks');
-            return { message: 'Running for Restocks', nextState: Checkout.States.Restock };
+            waitForDelay(this.DELAYS.RESTOCK_DELAY);
+            return { message: 'Running for restocks', nextState: Checkout.States.ProceedToCheckout };
         }
     }
 
@@ -386,7 +387,7 @@ class Checkout {
             [Checkout.States.AddToCart]: this._handleAddToCart,
             [Checkout.States.GeneratePaymentToken]: this._handlePaymentToken,
             [Checkout.States.ProceedToCheckout]: this._handleProceedToCheckout,
-            [Checkout.States.OutOfStock]: this._handleOutOfStock,
+            [Checkout.States.Restock]: this._handleRestocks,
             [Checkout.States.CheckoutQueue]: this._handleCheckoutQueue,
             [Checkout.States.GetShipping]: this._handleGetShipping,
             [Checkout.States.PostShipping]: this._handlePostShipping,

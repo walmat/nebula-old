@@ -220,6 +220,12 @@ const s = [
   { value: 'https://soleheaven.com', label: 'Sole Heaven' },
   { value: 'https://solestop.com', label: 'Sole Stop' },
   { value: 'http://usgstore.com.au', label: 'Urban Street Gear' },
+  {
+    value: 'https://nebulabots.com',
+    label: 'Test Site',
+    supported: true,
+    auth: false,
+  },
 ];
 
 export default function getAllSupportedSitesSorted() {

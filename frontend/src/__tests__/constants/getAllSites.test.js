@@ -111,6 +111,12 @@ describe('getAllSites', () => {
         auth: false,
       },
       {
+        value: 'https://nebulabots.com',
+        label: 'Test Site',
+        supported: true,
+        auth: false,
+      },
+      {
         value: 'https://shop.travisscott.com',
         label: 'Travis Scott',
         supported: true,
