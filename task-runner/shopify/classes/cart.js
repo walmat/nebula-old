@@ -93,6 +93,46 @@ class Cart {
         })
     }
 
+    createCheckout() {
+        return this._request({
+            uri: `${this._task.site.url}/wallets/checkouts.json`,
+            method: 'post',
+            proxy: formatProxy(this._proxy),
+            followAllRedirects: true,
+            simple: false,
+            json: true,
+            rejectUnauthorized: false,
+            resolveWithFullResponse: true,
+            headers: {
+                'User-Agent': userAgent,
+                Host: `${this._task.site.url}`,
+                'Content-Type': 'application/json',
+            },
+            formData: JSON.stringify({
+                "checkout":{
+                  "email": this._task.profile.payment.email,
+                  "line_items": [{
+                    "variant_id": 16907588960325,
+                    "quantity": 1
+                  }],
+                  "shipping_address": {
+                    "first_name": this._task.profile.shipping.firstName,
+                    "last_name": this._task.profile.shipping.lastName,
+                    "address1": this._task.profile.shipping.address,
+                    "city": this._task.profile.shipping.city,
+                    "province_code": this._task.profile.shipping.state,
+                    "country_code": this._task.profile.shipping.country,
+                    "phone": this._task.profile.shipping.phone,
+                    "zip": this._task.profile.shipping.zipCode
+                  }
+                }
+            })
+        })
+        .then((res) => {
+            return res.body;
+        })
+    }
+
     proceedToCheckout() {
         this._timer.start(now());
         this._logger.verbose('Starting proceed to checkout request...');
