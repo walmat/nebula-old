@@ -93,10 +93,6 @@ class Cart {
         })
     }
 
-    patchCart() {
-        
-    }
-
     proceedToCheckout() {
         this._timer.start(now());
         this._logger.verbose('Starting proceed to checkout request...');

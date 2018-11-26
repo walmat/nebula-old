@@ -94,6 +94,7 @@ class Checkout {
         this._paymentGateway;
 
         this._variantIndex = 0;
+        this._runThroughs = 0;
         
         this.DELAYS = {
             CHECKOUT_QUEUE: 500,
@@ -221,33 +222,38 @@ class Checkout {
     }
 
     /**
-     * Run restocks/swap sizes
-     * @returns {STATE} next checkout state
+     * Handle state `OutOfStock` 
+     * @returns {STATE} next checkout `Restock`
      */
     async _handleOutOfStock() {
         this._logger.verbose('CHECKOUT: Handling Out of Stock...');
         return { message: 'Running for restocks', nextState: Checkout.States.Restock };
     }
 
+    /**
+     * Run 
+     */
     async _handleRestocks() {
-        this._variantIndex++;
-        if (this._variantIndex >= this._task.sizes.length) {
-            this._variantIndex = 0;
-        }
-        if (this._task.sizes.length > 1) {
+        // run through each size, finally run restocks on first size if all OOS
+        if (this._task.sizes.length > 1 && this._runThroughs === 0) {
+            this._variantIndex++;
+            if (this._variantIndex >= this._task.sizes.length) {
+                this._variantIndex = 0;
+                this._runThroughs++;
+            }
             // TODO - make a CartManager that will be able to handle multiple carts
             // create background thread to run for restocks, and check next size?
             this._logger.info('Swapping to Next Size...');
             const res = await this._cart.clearCart();
             
             if (res.errors) {
-                return { message: 'Failed: clearing cart', nextState: Checkout.States.OutOfStock };
+                return { message: 'Failed: clearing cart', nextState: Checkout.States.Restock };
             }
 
             if (res.cleared) {
                 return { message: 'Adding next size to cart', nextState: Checkout.States.AddToCart };
             }
-            return Checkout.States.Stopped;
+            return { message: 'Failed: swapping to next size', nextState: Checkout.States.Stopped };
         } else {
             // run restocks for the one size..
             this._logger.info('Running for Restocks');
