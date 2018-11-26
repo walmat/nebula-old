@@ -105,6 +105,7 @@ const urlToOptionIndex = {
     "https://solefly.com": 2, 
     "https://solestop.com": 1,
     "http://usgstore.com.au": 2,
+    "https://nebulabots.com": 1,
 };
 
 // Generate the correct "option<index>" from the optionIndex map
