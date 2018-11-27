@@ -5,7 +5,7 @@ const rp = require('request-promise').defaults({
     jar: jar,
 });
 
-const { AtomParser, JsonParser, XmlParser } = require('./parsers');
+const { Parser, AtomParser, JsonParser, XmlParser } = require('./parsers');
 const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay, generateRandom } = require('./utils');
 const { getAllSizes } = require('./utils/constants');
 const { States } = require('./utils/constants').TaskRunner;
@@ -129,7 +129,7 @@ class Monitor {
         this._context.task.product.name = capitalizeFirstLetter(parsed.title);
         this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
         return { message: `Found product: ${this._context.task.product.name}`, nextState: States.Checkout };
-        }
+    }
 
     async _monitorUrl() {
         const { url } = this._context.task.product;
@@ -148,7 +148,7 @@ class Monitor {
             });
             // Response Succeeded -- Get Product Info
             this._logger.verbose('MONITOR: Url %s responded with status code %s. Getting full info', url, response.statusCode);
-            const fullProductInfo = await JsonParser.getFullProductInfo(url, this._logger);
+            const fullProductInfo = await Parser.getFullProductInfo(url, this._logger);
 
             // Generate Variants
             this._logger.verbose('MONITOR: Retrieve Full Product %s, Generating Variants List...', fullProductInfo.title);

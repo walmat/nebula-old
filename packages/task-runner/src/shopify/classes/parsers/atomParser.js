@@ -1,6 +1,5 @@
-const JsonParser = require('./jsonParser');
-const _ = require('underscore');
-const utils = require('../utils/parse');
+const Parser = require('./parser');
+const { ParseType, convertToJson } = require('../utils/parse');
 const {
   formatProxy,
   userAgent,
@@ -12,7 +11,7 @@ const rp = require('request-promise').defaults({
 });
 
 
-class AtomParser extends JsonParser {
+class AtomParser extends Parser {
   /**
    * Construct a new AtomParser
    * 
@@ -26,7 +25,7 @@ class AtomParser extends JsonParser {
 
   async run () {
     this._logger.silly('%s: starting run...', this._name);
-    if (this._type !== utils.ParseType.Keywords) {
+    if (this._type !== ParseType.Keywords) {
       throw new Error('Atom parsing is only supported for keyword searching');
     }
     let responseJson;
@@ -43,7 +42,7 @@ class AtomParser extends JsonParser {
             'User-Agent': userAgent,
         }
       });
-      responseJson = await utils.convertToJson(response);
+      responseJson = await convertToJson(response);
     } catch (error) {
       this._logger.silly('%s: ERROR making request!', this._name, error);
       const rethrow = new Error('unable to make request');
@@ -53,7 +52,7 @@ class AtomParser extends JsonParser {
 
     this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
     const responseItems = responseJson.feed.entry;
-    const products = _.map(responseItems, (item) => {
+    const products = responseItems.map((item) => {
       return {
         id_raw: item.id[0],
         id: item.id[0].substring(item.id[0].lastIndexOf('/') + 1),
@@ -75,7 +74,7 @@ class AtomParser extends JsonParser {
     this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
     let fullProductInfo = null;
     try {
-      fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url, this._logger);
+      fullProductInfo = await Parser.getFullProductInfo(matchedProduct.url, this._logger);
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
       return {
         ...matchedProduct,
