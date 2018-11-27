@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const { parseString } = require('xml2js');
+const { isSpecialSite } = require('./siteOptions');
 
 module.exports = {};
 
@@ -8,6 +9,7 @@ const ParseType = {
   Variant: 'VARIANT',
   Url: 'URL',
   Keywords: 'KEYWORDS',
+  Special: 'SPECIAL',
 };
 module.exports.ParseType = ParseType;
 
@@ -18,12 +20,17 @@ module.exports.ParseType = ParseType;
  * 
  * @param {TaskProduct} product 
  */
-function getParseType(product, logger) {
+function getParseType(product, logger, site) {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Determining Parse Type for Product...');
   if(!product) {
     _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
     return ParseType.Unknown;
+  }
+
+  if (site && isSpecialSite(site)) {
+    _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
+    return ParseType.Special;
   }
 
   if (product.variant) {
