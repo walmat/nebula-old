@@ -5,7 +5,7 @@ const rp = require('request-promise').defaults({
     jar: jar,
 });
 
-const { Parser, AtomParser, JsonParser, XmlParser } = require('./parsers');
+const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
 const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay, generateRandom } = require('./utils');
 const { getAllSizes } = require('./utils/constants');
 const { States } = require('./utils/constants').TaskRunner;
@@ -167,13 +167,35 @@ class Monitor {
         }
     }
 
+    async _monitorSpecial() {
+        // Get the correct special parser
+        const ParserCreator = getSpecialParser(this._task.site);
+        const parser = ParserCreator(this._context.task, this._context.proxy, this._context.logger);
+        
+        let parsed;
+        try {
+            await parser.run();
+        } catch (error) {
+            this._logger.debug('MONITOR: Error with special parsing!', error);
+            return this._delay(error.status);
+        }
+        this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
+        this._logger.verbose('MONITOR: Generating variant lists now...');
+        const variants = this._generateValidVariants(parsed);
+        this._logger.verbose('MONITOR: Variants Generated, updating context...');
+        this._context.task.product.variants = variants;
+        this._context.task.product.name = capitalizeFirstLetter(parsed.title);
+        this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
+        return { message: `Found product: ${this._context.task.product.name}`, nextState: States.Checkout };
+    }
+
     async run() {
         if (this._context.aborted) {
             this._logger.info('Abort Detected, Stopping...');
             return { nextState: States.Aborted };
         }
 
-        const parseType = getParseType(this._context.task.product, this._logger);
+        const parseType = getParseType(this._context.task.product, this._logger, this._context.task.site);
         switch(parseType) {
             case ParseType.Variant: {
                 // TODO: Add a way to determine if variant is correct
@@ -188,7 +210,11 @@ class Monitor {
             }
             case ParseType.Keywords: {
                 this._logger.verbose('MONITOR: Keyword Parsing Detected');
-                return this._monitorKeywords();;
+                return this._monitorKeywords();
+            }
+            case ParseType.Special: {
+                this._logger.verbose('MONITOR: Special Parsing Detected');
+                return this._monitorSpecial();
             }
             default: {
                 this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);

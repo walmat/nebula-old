@@ -14,11 +14,11 @@ function getSpecialParser(site) {
     case 'DSM JP':
     case 'DSM US':
     case 'DSM EU': {
-      return DsmParser;
+      return (...params) => new DsmParser(...params);
     }
     case 'Yeezy Supply':
     default: {
-      return Parser;
+      return (...params) => new Parser(...params);
     }
   }
 }

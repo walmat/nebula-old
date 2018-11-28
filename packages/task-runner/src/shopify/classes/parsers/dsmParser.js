@@ -25,7 +25,6 @@ class DsmParser extends SpecialParser {
       throw new Error('No Items Found');
     }
 
-    
     let items = parsedItems;
     // If parsing keywords, reduce the number of pages to search by matching the title
     if (this._type === ParseType.Keywords) {
