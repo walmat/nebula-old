@@ -90,6 +90,13 @@ class Parser {
     this._logger.log('silly', '%s: constructed', this._name);
   }
 
+  /**
+   * Getter to determine if the parser is special or not
+   */
+  get isSpecial() {
+    return false;
+  }
+
   async run() {
     throw new Error('Not Implemented! This should be implemented by subclasses!');
   }
