@@ -1,4 +1,4 @@
-const { ParseType, getParseType } = require('../utils/parse');
+const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
@@ -109,7 +109,7 @@ class Parser {
     switch(this._type) {
       case ParseType.Variant: {
         this._logger.silly('%s: parsing type %s detected', this._name, this._type);
-        const product = utils.matchVariant(products, this._task.product.variant, this._logger);
+        const product = matchVariant(products, this._task.product.variant, this._logger);
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           throw new Error('ProductNotFound');
@@ -123,7 +123,7 @@ class Parser {
           pos: this._task.product.pos_keywords,
           neg: this._task.product.neg_keywords,
         };
-        const product = utils.matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
+        const product = matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           throw new Error('ProductNotFound');

@@ -18,7 +18,7 @@ class JsonParser extends Parser {
   }
 
   async run() {
-    this._logger.log('silly', '%s: Starting run...', this._name);
+    this._logger.silly('%s: Starting run...', this._name);
     let products;
     try {
       this._logger.silly('%s: Making request for %s/products.json ...', this._name, this._task.site.url);

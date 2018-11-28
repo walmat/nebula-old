@@ -186,7 +186,8 @@ function matchKeywords(products, keywords, filter, logger) {
 
   const matches = _.filter(products, (product) => {
     const title = product.title.toUpperCase();
-    const handle = product.handle.replace(new RegExp('-', 'g'), ' ').toUpperCase();
+    const rawHandle = product.handle || '';
+    const handle = rawHandle.replace(new RegExp('-', 'g'), ' ').toUpperCase();
 
     // defaults
     let pos = true;
