@@ -2,6 +2,7 @@ const sizes = [
   {
     label: 'Clothing',
     options: [
+      { value: 'Random', label: 'Random' },
       { value: 'XXS', label: 'Extra Extra Small' },
       { value: 'XS', label: 'Extra Small' },
       { value: 'S', label: 'Small' },
@@ -136,6 +137,12 @@ export default function getAllSizes() {
 
 export function getCategory(category) {
   return sizes.find(c => c.label === category);
+}
+
+export function buildSizesForCategory(category) {
+  return getCategory(category).options.filter(
+    size => size.label !== 'Random' && size.label !== 'Full Size Run',
+  );
 }
 
 export function getSize(size, category) {

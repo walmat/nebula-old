@@ -5,6 +5,9 @@ node_modules/
 package-lock.json
 dynamoConfig.json
 
+# debug
+shopify/classes/debug*
+
 # misc
 .DS_Store
 .env.local

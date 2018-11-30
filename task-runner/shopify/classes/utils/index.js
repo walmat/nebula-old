@@ -75,5 +75,12 @@ function capitalizeFirstLetter(word) {
 }
 module.exports.capitalizeFirstLetter = capitalizeFirstLetter;
 
+function generateRandom(objList) {
+    const options = objList.options.filter(({ label }) => label !== 'Random' && label !== 'Full Size Run');
+    const { value } = options[Math.floor(Math.random() * options.length)];
+    return value;
+}
+module.exports.generateRandom = generateRandom;
+
 // Add in utils from other files
 module.exports.rfrl = rfrl;
