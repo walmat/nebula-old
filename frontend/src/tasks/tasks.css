@@ -160,6 +160,7 @@
 .tasks .tasks-table {
   border-collapse: collapse;
   border-spacing: 0 10px;
+  max-height: 265px;
   height: 100%;
   overflow-y: scroll;
   overflow-x: hidden;
