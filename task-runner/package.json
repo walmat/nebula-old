@@ -5,7 +5,7 @@
   "main": "./shopify/taskRunner.js",
   "devDependencies": {
     "eslint-config-google": "^0.9.1",
-    "nodemon": "^1.17.3"
+    "nodemon": "^1.18.7"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
