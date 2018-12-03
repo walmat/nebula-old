@@ -1,15 +1,15 @@
 /**
  * Local class includes
  */
-const Cart = require('./cart');
+const Cart = require('../cart');
 const Shipping = require('./shipping');
 const Payment = require('./payment');
-const Account = require('./account');
-const Timer = require('./timer');
-const { States } = require('./utils/constants').TaskRunner;
+const Account = require('../account');
+const Timer = require('../timer');
+const { States } = require('../utils/constants').TaskRunner;
 const {
     waitForDelay, 
-} = require('./utils');
+} = require('../utils');
 
 class Checkout {
 
@@ -294,28 +294,7 @@ class Checkout {
         return { message: 'Posting shipping', nextState: Checkout.States.PostShipping };
     }
 
-    /**
-     * Handle CAPTCHA requests
-     */
-    async _handleRequestCaptcha() {
-        this._logger.verbose('CHECKOUT: Getting Solved Captcha...');
-        const token = await this._context.getCaptcha();
-        this._logger.debug('CHECKOUT: Received token from captcha harvesting: %s', token);
 
-        let opts = await this._shipping.submitShippingOptions(this._authToken, token);
-        if (opts.errors) {
-            return { message: 'Failed: submitting shipping', nextState: Checkout.States.Stopped };
-        }
-
-        this._shippingOpts = {
-            type: opts.type,
-            value: opts.value,
-            authToken: opts.authToken,
-        }
-
-        this._context.stopHarvestCaptcha();
-        return { message: 'Posting shipping', nextState: Checkout.States.PostShipping };
-    }
 
     /**
      * Submit `POST` Shipping details

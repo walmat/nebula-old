@@ -256,37 +256,7 @@ class Cart {
         });
     }
 
-     /**
-     * TODO..
-     * Can be made asynchronous at any point in the checkout process
-     */
-    async getPaymentToken() {
-        this._timer.start(now());
-        this._logger.verbose('Getting Payment Token...');
-        return this._request({
-            uri: `https://elb.deposit.shopifycs.com/sessions`,
-            followAllRedirects: true,
-            proxy: formatProxy(this._proxy),
-            method: 'post',
-            headers: {
-                'User-Agent': userAgent,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(buildPaymentForm(this._task)),
-        })
-        .then((res) => {
-            this._timer.stop(now());
-            this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
-            return {
-                paymentToken: JSON.parse(res).id
-            }
-        })
-        .catch((err) => {
-            this._logger.debug('CART: Error getting payment token: %s', err);
-            return {
-                errors: err,
-            }
-        });
+
     }
 
     removeTrailingZeros(value) {

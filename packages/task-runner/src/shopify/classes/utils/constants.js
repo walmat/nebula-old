@@ -23,6 +23,7 @@ const TaskRunnerEvents = {
 const TaskRunnerStates = {
   Initialized: 'INIT',
   Started: 'STARTED',
+  TaskSetup: 'TASK_SETUP',
   GenAltCheckout: 'GEN_ALT_CHECKOUT',
   Monitor: 'MONITOR',
   Restock: 'RESTOCK',

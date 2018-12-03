@@ -1,5 +1,9 @@
 const EventEmitter = require('events');
 const { jar } = require('request');
+const request = require('request-promise').defaults({
+  timeout: 10000,
+  jar: jar(),
+});
 
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
@@ -45,6 +49,7 @@ class TaskRunner {
       id,
       task,
       proxy: proxy ? proxy.proxy : null,
+      request,
       jar: this._jar,
       logger: this._logger,
       aborted: false,
@@ -231,25 +236,9 @@ class TaskRunner {
 
   async _handleStarted() {
     this._emitTaskEvent({
-      message: 'Starting!',
+      message: 'Starting Task Setup',
     });
-    return States.GenAltCheckout;
-  }
-
-  async _handleGenAltCheckout() {
-    // TODO: Add this back in!
-    // const res = await this._checkout.geenerateAlternativeCheckout();
-    this._logger.silly('TODO: Implement the alt checkout process!');
-    const res = {};
-    if (res.errors) {
-      this._logger.verbose('Alt Checkout Handler completed with errors: %j', res.errors);
-      this._emitTaskEvent({
-        message: 'Unable to Generate alternative checkout! Continuing on...',
-        errors: res.errors,
-      });
-      await this._waitForErrorDelay();
-    }
-    return States.Monitor;
+    return States.TaskSetup;
   }
 
   async _handleMonitor() {
