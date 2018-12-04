@@ -1,11 +1,13 @@
+const Timer = require('./timer');
 const { States } = require('./utils/constants').TaskRunner;
 const {
     waitForDelay,
     formatProxy,
+    now,
     userAgent,
     formatter,
 } = require('./utils');
-const { buildCheckoutForm, buildShippingRatesForm } = require('./utils/forms');
+const { buildCheckoutForm, buildShippingRatesForm, buildPaymentForm } = require('./utils/forms');
 
 class Checkout {
 
@@ -84,13 +86,21 @@ class Checkout {
          * Current state of the checkout state machine
          * @type {String}
          */
-        this._state = Checkout.States.GeneratePaymentToken;
+        this._state = Checkout.States.GetPaymentToken;
 
         /**
          * Timer for the entire checkout process and it's sub-models
          * @type {Timer}
          */
         this._timer = new Timer();
+    }
+
+    static _handlePoll(delay, message, nextState) {
+        waitForDelay(delay);
+        return {
+            message: message,
+            nextState: nextState,
+        };
     }
 
     async _handleCreateCheckout() {
@@ -108,13 +118,14 @@ class Checkout {
                 Host: `${this._task.site.url}`,
                 'Content-Type': 'application/json',
             },
-            formData: buildCheckoutForm(this._task),
+            formData: JSON.stringify(buildCheckoutForm(this._task)),
         })
         .then((res) => {
+            console.log(res);
             if (res.statusCode === 303) {
                 this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
                 // poll queue
-                return this._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
+                return Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
             } else if (res.statusCode >= 200 && res.statusCode < 300){
                 // proceed to `GeneratePaymentToken`
                 this._timer.stop(now());
@@ -125,55 +136,8 @@ class Checkout {
                 }
             }
         })
-    }
-
-    async _handlePoll(delay, message, nextState) {
-        waitForDelay(delay);
-        return {
-            message: message,
-            nextState: nextState,
-        };
-    }
-
-    async _handleGetShippingRates() {
-        this._timer.start(now());
-        this._logger.verbose('Starting get shipping method request...');
-
-        return this._request({
-            uri: `${this._task.site.url}/cart/shipping_rates.json`,
-            proxy: formatProxy(this._proxy),
-            followAllRedirects: true,
-            method: 'get',
-            headers: {
-                Origin: this._task.site.url,
-                'User-Agent': userAgent,
-                Referer: this._task.product.url,
-            },
-            qs: buildShippingRatesForm(this._task),
-        })
-        .then((res) => {
-            const rates = JSON.parse(res);
-
-            if (rates && rates.shipping_rates) {
-                let shippingMethod = _.min(rates.shipping_rates, (rate) => {
-                    return rate.price;
-                })
-                this._timer.stop(now());
-                this._logger.info('Got shipping method in %d ms', this._timer.getRunTime());
-                return {
-                    rate: `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`,
-                    name: `${shippingMethod.name}`,
-                    price: `${shippingMethod.price.split('.')[0]}`,
-                }
-            } else { 
-                // TODO -- limit this more?
-                this._logger.info('No shipping rates availabel, polling %d ms', Checkout.Delays.PollShippingRates);
-                // poll queue
-                return this._handlePoll(Checkout.Delays.PollShippingRates, 'Waiting for shipping rates..', Checkout.States.GetShippingRates)
-            } 
-        })
         .catch((err) => {
-            this._logger.debug('CART: Error getting shipping method: %s', err);
+            this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
             return {
                 errors: err,
             }
@@ -206,7 +170,7 @@ class Checkout {
             if (body && body.id) { 
                 // MARK: set payment token
                 this._logger.verbose('Payment token: %s', body.id);
-                this._context.task.paymentToken = body.id;
+                this._task.paymentToken = body.id;
                 return {
                     message: 'Patching cart',
                     nextState: Checkout.States.PatchCart,
@@ -214,7 +178,7 @@ class Checkout {
             }
         })
         .catch((err) => {
-            this._logger.debug('CART: Error getting payment token: %s', err);
+            this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
             return {
                 errors: err,
             }
@@ -223,6 +187,62 @@ class Checkout {
 
     async _handlePatchCart() {
         // TODO
+        return this._request({
+            uri: `${this._task.checkoutUrl}/cart/`
+        })
+        // return {
+        //     message: 'Added to cart!',
+        //     nextState: Checkout.States.GetShippingRates,
+        // }
+    }
+
+    async _handleGetShippingRates() {
+        this._timer.start(now());
+        this._logger.verbose('Starting get shipping method request...');
+
+        return this._request({
+            uri: `${this._task.site.url}/cart/shipping_rates.json`,
+            proxy: formatProxy(this._proxy),
+            followAllRedirects: true,
+            method: 'get',
+            headers: {
+                Origin: this._task.site.url,
+                'User-Agent': userAgent,
+                Referer: this._task.product.url,
+            },
+            qs: buildShippingRatesForm(this._task),
+        })
+        .then((res) => {
+            const rates = JSON.parse(res);
+
+            if (rates && rates.shipping_rates) {
+                let shippingMethod = _.min(rates.shipping_rates, (rate) => {
+                    return rate.price;
+                })
+                this._timer.stop(now());
+                this._logger.info('Got shipping method in %d ms', this._timer.getRunTime());
+                this._task.product.shipping = {
+                    rate: `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`,
+                    name: `${shippingMethod.name}`,
+                    price: `${shippingMethod.price.split('.')[0]}`,
+                };
+                return {
+                    message: `Using shipping method ${shippingMethod.name}`,
+                    nextState: Checkout.States.SubmitPayment,
+                }
+            } else { 
+                // TODO -- limit this more maybe?
+                this._logger.info('No shipping rates available, polling %d ms', Checkout.Delays.PollShippingRates);
+                // poll queue
+                return Checkout._handlePoll(Checkout.Delays.PollShippingRates, 'Waiting for shipping rates..', Checkout.States.GetShippingRates)
+            } 
+        })
+        .catch((err) => {
+            this._logger.debug('CART: Error getting shipping method: %s', err);
+            return {
+                errors: err,
+            }
+        });
     }
 
     /**
@@ -246,9 +266,9 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Handling State: %s ...', currentState);
         const stateMap = {
             [Checkout.States.CreateCheckout]: this._handleCreateCheckout,
-            [Checkout.States.PollCheckoutQueue]: this._handlePollCheckoutQueue,
             [Checkout.States.GetPaymentToken]: this._handleGetPaymentToken,
             [Checkout.States.PatchCart]: this._handlePatchCart,
+            [Checkout.States.GetShippingRates]: this._handleGetShippingRates,
             [Checkout.States.RequestCaptcha]: this._handleRequestCaptcha,
             [Checkout.States.SubmitPayment]: this._handleSubmitPayment,
             [Checkout.States.Stopped]: this._handleStopped,

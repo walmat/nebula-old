@@ -86,9 +86,9 @@ module.exports.buildCheckoutForm = buildCheckoutForm;
 
 function buildShippingRatesForm(task) {
     return {
-        'shipping_address[zip]': this._task.profile.shipping.zipCode,
-        'shipping_address[country]': this._task.profile.shipping.country.label,
-        'shipping_address[province]': this._task.profile.shipping.state.label,
+        'shipping_address[zip]': task.profile.shipping.zipCode,
+        'shipping_address[country]': task.profile.shipping.country.label,
+        'shipping_address[province]': task.profile.shipping.state.label,
     };
 }
 module.exports.buildShippingRatesForm = buildShippingRatesForm;

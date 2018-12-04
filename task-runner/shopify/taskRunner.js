@@ -206,6 +206,9 @@ class TaskRunner {
 
     async _handleTaskSetup() {
         // TODO - https://drive.google.com/drive/folders/1QNNzxSlI3-RU0l0FCPlj_Qbl_iXEsMFT
+        const checkoutUrl  = await this._checkout._handleCreateCheckout();
+        console.log(checkoutUrl);
+        return;
         return States.Monitor;
     }
 
@@ -310,6 +313,7 @@ class TaskRunner {
 
         const stepMap = {
             [States.Started]: this._handleStarted,
+            [States.TaskSetup]: this._handleTaskSetup,
             [States.GenAltCheckout]: this._handleGenAltCheckout,
             [States.Monitor]: this._handleMonitor,
             [States.SwapProxies]: this._handleSwapProxies,
