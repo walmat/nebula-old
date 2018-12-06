@@ -59,87 +59,28 @@ function buildCheckoutForm(task) {
 }
 module.exports.buildCheckoutForm = buildCheckoutForm;
 
-function buildShippingRatesForm(task) {
+function buildPaymentForm(paymentToken, shippingMethod, captchaToken) {
     return {
-        'shipping_address[zip]': task.profile.shipping.zipCode,
-        'shipping_address[country]': task.profile.shipping.country.label,
-        'shipping_address[province]': task.profile.shipping.state.label,
+        utf8: '✓',
+        _method: 'patch',
+        authenticity_token: '',
+        previous_step: 'payment_method',
+        step: '',
+        s: paymentToken,
+        'checkout[remember_me]': 0,
+        'checkout[total_price]': '',
+        'complete': 1,
+        'checkout[client_details][browser_width]': '979',
+        'checkout[client_details][browser_height]': '631',
+        'checkout[client_details][javascript_enabled]': '1',
+        'checkout[shipping_rate][id]': shippingMethod,
+        button: '',
+        "g-captcha-response": captchaToken,
     };
 }
-module.exports.buildShippingRatesForm = buildShippingRatesForm;
+module.exports.buildPaymentForm = buildPaymentForm;
 
-function buildBillingForm(task, authenticity_token, previousStep, price, paymentGateway, shippingValue, captchaResponse) {
-
-    if (task.profile.billingMatchesShipping) {
-        return {
-            utf8: '✓',
-            _method: 'patch',
-            authenticity_token: authenticity_token,
-            previous_step: previousStep,
-            step: 'payment_method',
-            s: shippingValue,
-            'checkout[payment_gateway]': paymentGateway,
-            'checkout[credit_card][vault]': 'false',
-            'checkout[different_billing_address]': 'false',
-            'checkout[billing_address][first_name]': task.profile.shipping.firstName,
-            'checkout[billing_address][last_name]': task.profile.shipping.lastName,
-            'checkout[billing_address][company]': '',
-            'checkout[billing_address][address1]': task.profile.shipping.address,
-            'checkout[billing_address][address2]': task.profile.shipping.apt,
-            'checkout[billing_address][city]': task.profile.shipping.city,
-            'checkout[billing_address][country]': task.profile.shipping.country.label,
-            'checkout[billing_address][province]': task.profile.shipping.state.label,
-            'checkout[billing_address][zip]': task.profile.shipping.zipCode,
-            'checkout[billing_address][phone]': phoneFormatter.format(
-                task.profile.shipping.phone,
-                '(NNN) NNN-NNNN'
-            ),
-            'checkout[total_price]': price,
-            complete: '1',
-            'checkout[client_details][browser_width]': '979',
-            'checkout[client_details][browser_height]': '631',
-            'checkout[client_details][javascript_enabled]': '1',
-            button: '',
-            'g-recaptcha-response': captchaResponse,
-            'secret': 'true',
-        };
-    } else {
-        return {
-            utf8: '✓',
-            _method: 'patch',
-            authenticity_token: authenticity_token,
-            previous_step: previousStep,
-            step: '',
-            s: shippingValue,
-            'checkout[payment_gateway]': paymentGateway,
-            'checkout[credit_card][vault]': 'false',
-            'checkout[different_billing_address]': 'true',
-            'checkout[billing_address][first_name]': task.profile.billing.firstName,
-            'checkout[billing_address][last_name]': task.profile.billing.lastName,
-            'checkout[billing_address][company]': '',
-            'checkout[billing_address][address1]': task.profile.billing.address,
-            'checkout[billing_address][address2]': task.profile.billing.apt,
-            'checkout[billing_address][city]': task.profile.billing.city,
-            'checkout[billing_address][country]': task.profile.billing.country.label,
-            'checkout[billing_address][province]': task.profile.billing.state.label,
-            'checkout[billing_address][zip]': task.profile.billing.zipCode,
-            'checkout[billing_address][phone]': phoneFormatter.format(
-                task.profile.billing.phone,
-                '(NNN) NNN-NNNN'
-            ),
-            'checkout[total_price]': price,
-            complete: '1',
-            'checkout[client_details][browser_width]': '979',
-            'checkout[client_details][browser_height]': '631',
-            'checkout[client_details][javascript_enabled]': '1',
-            button: '',
-            'g-recaptcha-response': captchaResponse,
-            'secret': 'true',
-        }
-    }
-}
-module.exports.buildBillingForm = buildBillingForm;
-
+// TODO - frontend payment submission for dsm
 function buildCartForm(task, variant) {
     switch(task.site.name) {
         case 'DSM US': {
@@ -173,3 +114,17 @@ function buildCartForm(task, variant) {
 }
 module.exports.buildCartForm = buildCartForm;
 
+function buildPatchCartForm(task) {
+    return {
+        "checkout": {
+            "line_items": [{ 
+                "variant_id": task.product.variant,
+                "quantity": 1,
+                "properties": {
+                    "MVZtkB3gY9f5SnYz": "nky2UHRAKKeTk8W8"
+                }
+            }]
+        }
+    };
+}
+module.exports.buildPatchCartForm = buildPatchCartForm;

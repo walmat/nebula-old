@@ -7,7 +7,7 @@ const {
     userAgent,
     formatter,
 } = require('./utils');
-const { buildCheckoutForm, buildShippingRatesForm, buildPaymentTokenForm } = require('./utils/forms');
+const { buildCheckoutForm, buildPaymentTokenForm } = require('./utils/forms');
 
 class Checkout {
 
@@ -21,7 +21,8 @@ class Checkout {
             GetShippingRates: 'GET_SHIPPING_RATES',
             PollQueue: 'POLL_QUEUE',
             RequestCaptcha: 'REQUEST_CAPTCHA',
-            SubmitPayment: 'SUBMIT_PAYMENT',
+            PostPayment: 'POST_PAYMENT',
+            Stopped: 'STOPPED',
         };
     }
 
@@ -69,6 +70,18 @@ class Checkout {
         this._proxy = this._context.proxy;
 
         /**
+         * Payment tokens
+         * @type {Stack}
+         */
+        this._paymentTokens = this._context.paymentTokens;
+
+        /**
+         * Checkout sessions
+         * @type {Stack}
+         */
+        this._checkouts = this._context.checkouts;
+
+        /**
          * Whether this task runner has aborted
          * @type {Boolean}
          */
@@ -91,6 +104,10 @@ class Checkout {
          * @type {Timer}
          */
         this._timer = new Timer();
+
+        this._checkoutUrl = null;
+        this._captchaToken = null;
+        this._shippingMethod = null;
     }
 
     static _handlePoll(delay, message, nextState) {
@@ -160,18 +177,13 @@ class Checkout {
             console.log(res.body);
             if (res.statusCode === 303) {
                 this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
-                // poll queue
                 Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
                 return null;
-            } else if (res.statusCode >= 200 && res.statusCode < 300){
-                // proceed to `GeneratePaymentToken`
+            } else if (res.checkout){
                 this._timer.stop(now());
                 this._logger.info('Created checkout in %d ms', this._timer.getRunTime());
 
-                return {
-                    message: 'Creating payment token',
-                    nextState: Checkout.States.GetPaymentToken,
-                }
+                return res.web_url;
             }
         })
         .catch((err) => {
@@ -182,31 +194,68 @@ class Checkout {
         });
     }
 
+    /**
+     * @example
+     * PATCH https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6.json
+     * payload: {"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}
+    */
     async _handlePatchCart() {
-        /**
-         * // TODO
-         * PATCH https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6.json
-         * payload: {"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}
-         */
-        return this._request({
-            uri: `${this._task.checkoutUrl}/cart/`
-        })
-        // return {
-        //     message: 'Added to cart!',
-        //     nextState: Checkout.States.GetShippingRates,
-        // }
+        if (!this._checkouts.isEmpty()) {
+            this._checkoutUrl = this._checkouts.pop();
+            return this._request({
+                uri: `${this._checkoutUrl.split('?')[0]}.json`,
+                method: 'PATCH',
+                proxy: formatProxy(this._proxy),
+                followAllRedirects: true,
+                simple: false,
+                json: true,
+                rejectUnauthorized: false,
+                resolveWithFullResponse: true,
+                headers: {
+                    'User-Agent': userAgent,
+                    Host: `${this._task.site.url}`,
+                    'Content-Type': 'application/json',
+                },
+                formData: JSON.stringify(buildPatchCartForm(this._task)),
+            })
+            .then((res) => {
+                if (res.statusCode === 202) {
+                    return {
+                        message: 'Added to cart',
+                        nextState: Checkout.States.GetShippingRates,
+                    }
+                } else {
+                    return {
+                        message: 'Failed add to cart',
+                        nextState: Checkout.States.PatchCart,
+                    }
+                }
+            })
+            .catch((err) => {
+                this._logger.debug('CHECKOUT: Error creating checkout %s', err);
+                return {
+                    errors: err,
+                }
+            });
+        } else { 
+            // we're out of valid checkout session...
+            return {
+                message: 'Failed: add to cart',
+                nextState: Checkout.States.Stopped,
+            }
+        }
     }
 
     /**
-     * // TODO
+     * @example
      * GET https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6/shipping_rates.json
      */
     async _handleGetShippingRates() {
         this._timer.start(now());
-        this._logger.verbose('Starting get shipping method request...');
+        this._logger.verbose('Starting get shipping rates method');
 
         return this._request({
-            uri: `${this._task.site.url}/cart/shipping_rates.json`,
+            uri: `${this._checkoutUrl.split('?')[0]}/shipping_rates.json`,
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
             method: 'get',
@@ -215,7 +264,6 @@ class Checkout {
                 'User-Agent': userAgent,
                 Referer: this._task.product.url,
             },
-            qs: buildShippingRatesForm(this._task),
         })
         .then((res) => {
             const rates = JSON.parse(res);
@@ -226,20 +274,17 @@ class Checkout {
                 })
                 this._timer.stop(now());
                 this._logger.info('Got shipping method in %d ms', this._timer.getRunTime());
-                this._task.product.shipping = {
-                    rate: `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`,
-                    name: `${shippingMethod.name}`,
-                    price: `${shippingMethod.price.split('.')[0]}`,
-                };
+                this._shippingMethod `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`;
+                
                 return {
                     message: `Using shipping method ${shippingMethod.name}`,
-                    nextState: Checkout.States.SubmitPayment,
+                    nextState: Checkout.States.PostPayment,
                 }
             } else { 
                 // TODO -- limit this more maybe?
                 this._logger.info('No shipping rates available, polling %d ms', Checkout.Delays.PollShippingRates);
                 // poll queue
-                return Checkout._handlePoll(Checkout.Delays.PollShippingRates, 'Waiting for shipping rates..', Checkout.States.GetShippingRates)
+                return Checkout._handlePoll(Checkout.Delays.PollShippingRates, 'Polling for shipping rates..', Checkout.States.GetShippingRates);
             } 
         })
         .catch((err) => {
@@ -256,12 +301,73 @@ class Checkout {
     async _handleRequestCaptcha() {
         this._logger.verbose('CHECKOUT: Getting Solved Captcha...');
         const token = await this._context.getCaptcha();
-        this._logger.debug('CHECKOUT: Received token from captcha harvesting: %s', token);
-        // TODO - proceed to next state `SubmitPayment`
+        if (token) {
+            this._logger.debug('CHECKOUT: Received token from captcha harvesting: %s', token);
+            this._captchaToken = token;
+        }
+        return {
+            message: 'Submitting payment',
+            nextState: Checkout.States.PostPayment,
+        }
     }
 
-    async _handleSubmitPayment() {
-        // TODO
+    /**
+     * @example
+     * 
+     */
+    async _handlePostPayment() {
+        return this._request({
+            uri: `${this._checkoutUrl}`,
+            method: 'POST',
+            proxy: formatProxy(this._proxy),
+            followAllRedirects: true,
+            simple: false,
+            json: true,
+            rejectUnauthorized: false,
+            resolveWithFullResponse: true,
+            headers: {
+                'User-Agent': userAgent,
+                Host: `${this._task.site.url}`,
+                'Content-Type': 'application/json',
+            },
+            formData: JSON.stringify(buildPaymentForm(this._paymentTokens.pop(), this._shippingMethod, this._captchaToken)),
+        })
+        .then((res) => {
+            if (res.request.href.indexOf('payments')) {
+                const errorMessage = res.payments.payment_processin_error_message;
+                const status = res.payments.transactions.status;
+                if (status.toUpperCase().indexOf('SUCCESS')) {
+                    return {
+                        message: 'Success: check email',
+                        nextState: Checkout.States.Stopped,
+                    }
+                } else {
+                    return {
+                        message: `${status}: ${errorMessage}`,
+                        nextState: Checkout.States.Stopped,
+                    }
+                }
+
+            } else {
+                return {
+                    message: 'Failed: posting payment',
+                    nextState: Checkout.States.Stopped,
+                }
+            }
+        })
+        .catch((err) => {
+            this._logger.debug('CHECKOUT: Error posting payment %s', err);
+            return {
+                errors: err,
+            }
+        })
+    }
+
+    async _handleStopped() {
+        return {
+            message: 'Stopping...',
+            nextState: Checkout.States.Stopped,
+        }
     }
 
     async _handleStepLogic(currentState) {
@@ -275,7 +381,7 @@ class Checkout {
             [Checkout.States.PatchCart]: this._handlePatchCart,
             [Checkout.States.GetShippingRates]: this._handleGetShippingRates,
             [Checkout.States.RequestCaptcha]: this._handleRequestCaptcha,
-            [Checkout.States.SubmitPayment]: this._handleSubmitPayment,
+            [Checkout.States.PostPayment]: this._handlePostPayment,
             [Checkout.States.Stopped]: this._handleStopped,
         }
 
@@ -291,16 +397,10 @@ class Checkout {
 
         const res = await this._handleStepLogic(this._state);
 
-        if (res.nextState === Checkout.States.CheckoutErrors) {
-            this._logger.verbose('CHECKOUT: Errored out: %j', res.message)
-            return {
-                message: res.message,
-                nextState: States.Errored,
-            };
-        } else if (res) {
+       if (res) {
             this._state = res.nextState;
 
-            if (this._state !== Checkout.States.Finished) {
+            if (this._state !== Checkout.States.Stopped) {
                 return {
                     message: res.message,
                     nextState: States.Checkout,

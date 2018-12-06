@@ -1,45 +1,69 @@
 class Stack {
-    constructor(...items){
-      this._items = []
+  /**
+   * Construct a new stack
+   * @param  {...any} items - (optional) items to add to stack
+   */  
+  constructor(...items){
+      this._items = [];
   
-      if(items.length>0)
-        items.forEach(item => this._items.push(item) )
-  
+      if(items.length > 0) {
+        items.forEach(item => this._items.push(item));
+      }
     }
   
+    /**
+     * Push all items onto to the stack incrementally
+     * @param  {...any} items 
+     * @returns {Array}
+     */
     push(...items){
-      //push item to the stack
-       items.forEach(item => this._items.push(item) )
+       items.forEach(item => this._items.push(item));
        return this._items;
-  
     }
   
+    /**
+     * Pops the top-most (last) item from the stack
+     * @param {Number} count
+     * @returns {any}
+     */
     pop(count=0){
-      //pull out the topmost item (last item) from stack
-      if(count===0)
-        return this._items.pop()
-       else
-         return this._items.splice( -count, count )
+      if(count === 0) {
+        return this._items.pop();
+      } else {
+         return this._items.splice(-count, count);
+       }
     }
   
+    /**
+     * See what the last item on the stack is
+     * @returns {any} stack item
+     */
     peek(){
-      // see what's the last item in stack
-      return this._items[this._items.length-1]
+      return this._items[this._items.length - 1];
     }
   
+    /**
+     * See the number of items on the stack
+     * @returns {Number} size
+     */
     size(){
-      //no. of items in stack
       return this._items.length
     }
   
+    /**
+     * See if the stack is empty of not
+     * @returns {Boolean} empty
+     */
     isEmpty(){
-      // return whether the stack is empty or not
-      return this._items.length==0
+      return this._items.length === 0;
     }
   
+    /**
+     * Unnecessary, but for readability purposes.
+     * @returns {Array} stack
+     */
     toArray(){
       return this._items;
     }
 }
-
 module.exports.Stack = Stack;

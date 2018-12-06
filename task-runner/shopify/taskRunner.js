@@ -231,15 +231,15 @@ class TaskRunner {
     // Generate checkout links to be used for checking out
     async _handleGenerateCheckouts() {
 
-        // TODO - Find random in-stock product through our parsers
+        // TODO - Find random in-stock product through our parsing methods
         // ^^ if this fails, we shouldn't do the next while() loop
         // instead, do task setup later
 
         // TODO - decide how many checkouts to actually preharvest
         while (this._checkouts.size() < 3) {
-            const res = await this._checkout.createCheckout();
-            // break if we're in a checkout queue..
-            if (res && res.checkout) {
+            const checkout = await this._checkout.createCheckout();
+
+            if(checkout) {
                 this._checkouts.push(checkout);
             }
         }
