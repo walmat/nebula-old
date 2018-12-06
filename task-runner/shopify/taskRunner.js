@@ -214,26 +214,29 @@ class TaskRunner {
         return States.GeneratePaymentTokens;
     }
 
+    /**
+     * Preharvest payment tokens
+     */
     async _handleGeneratePaymentTokens() {
 
-        // preharvest tokens
         while (this._paymentTokens.size() < 5) {
             const token = await this._checkout.generatePaymentToken();
             if (token) {
                 this._paymentTokens.push(token);
             }
         }
-        return States.GenAltCheckout;
+        return States.GenerateCheckouts;
     }
 
-    async _handleGenAltCheckout() {
+    // Generate checkout links to be used for checking out
+    async _handleGenerateCheckouts() {
 
-        // precart & create checkout tokens
+        // TODO - Find random in-stock product through our parsers
+        // ^^ if this fails, we shouldn't do the next while() loop
+        // instead, do task setup later
 
-        /**
-         * Harvest three checkout links in case of errors
-         */
-        while (this._checkouts.size() < 1) {
+        // TODO - decide how many checkouts to actually preharvest
+        while (this._checkouts.size() < 3) {
             const res = await this._checkout.createCheckout();
             // break if we're in a checkout queue..
             if (res && res.checkout) {
@@ -328,7 +331,7 @@ class TaskRunner {
         const stepMap = {
             [States.Started]: this._handleStarted,
             [States.GeneratePaymentTokens]: this._handleGeneratePaymentTokens,
-            [States.GenAltCheckout]: this._handleGenAltCheckout,
+            [States.GenerateCheckouts]: this._handleGenerateCheckouts,
             [States.Monitor]: this._handleMonitor,
             [States.SwapProxies]: this._handleSwapProxies,
             [States.Checkout]: this._handleCheckout,
