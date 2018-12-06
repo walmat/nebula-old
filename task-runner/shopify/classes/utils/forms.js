@@ -1,37 +1,6 @@
 const phoneFormatter = require('phone-formatter');
 
-function buildShippingForm(task, authenticity_token, captchaResponse, step, previousStep) {
-    return {
-        "utf8": "✓",
-        "_method": "patch",
-        "authenticity_token": authenticity_token,
-        "previous_step": previousStep,
-        "checkout[email]": task.profile.payment.email,
-        "checkout[buyer_accepts_marketing]": 0,
-        "checkout[shipping_address][first_name]": task.profile.shipping.firstName,
-        "checkout[shipping_address][last_name]": task.profile.shipping.lastName,
-        "checkout[shipping_address][address1]": task.profile.shipping.address,
-        "checkout[shipping_address][address2]": task.profile.shipping.apt,
-        "checkout[shipping_address][city]": task.profile.shipping.city,
-        "checkout[shipping_address][country]": task.profile.shipping.country.label,
-        "checkout[shipping_address][province]": task.profile.shipping.state.label,
-        "checkout[shipping_address][zip]": task.profile.shipping.zipCode,
-        "checkout[shipping_address][phone]": phoneFormatter.format(
-            task.profile.shipping.phone,
-            '(NNN) NNN-NNNN'
-        ),
-        "step": step,
-        "g-captcha-response": captchaResponse,
-        'checkout[client_details][browser_width]': '979',
-        'checkout[client_details][browser_height]': '631',
-        'checkout[client_details][javascript_enabled]': '1',
-        'checkout[remember_me]': '0',
-        "button": ''
-    }
-}
-module.exports.buildShippingForm = buildShippingForm;
-
-function buildPaymentForm(task) {
+function buildPaymentTokenForm(task) {
     return {
         'credit_card': {
             'number': task.profile.payment.cardNumber,
@@ -42,44 +11,50 @@ function buildPaymentForm(task) {
         }
     }
 }
-module.exports.buildPaymentForm = buildPaymentForm;
-
-function buildShippingMethodForm(authenticity_token, shippingMethod) {
-    return {
-        utf8: '✓',
-        _method: 'patch',
-        authenticity_token: authenticity_token,
-        button: '',
-        previous_step: 'shipping_method',
-        step: 'payment_method',
-        'checkout[shipping_rate][id]': shippingMethod,
-        'checkout[client_details][browser_width]': '1410',
-        'checkout[client_details][browser_height]': '781',
-        'checkout[client_details][javascript_enabled]': '1',
-        'secret': 'true',
-    }
-}
-module.exports.buildShippingMethodForm = buildShippingMethodForm;
+module.exports.buildPaymentTokenForm = buildPaymentTokenForm;
 
 function buildCheckoutForm(task) {
     return {
-        "checkout":{
+        "card_source": "vault",
+        "pollingOptions": {
+            "poll": false
+        },
+        "checkout": {
+            "wallet_name": "default",
+            "secret": true,
+            "is_upstream_button": true,
             "email": task.profile.payment.email,
-            "line_items": [{
-              "variant_id": 16907588960325,
-              "quantity": 1
-            }],
             "shipping_address": {
-              "first_name": task.profile.shipping.firstName,
-              "last_name": task.profile.shipping.lastName,
-              "address1": task.profile.shipping.address,
-              "city": task.profile.shipping.city,
-              "province_code": task.profile.shipping.state,
-              "country_code": task.profile.shipping.country,
-              "phone": task.profile.shipping.phone,
-              "zip": task.profile.shipping.zipCode
+                "first_name": task.profile.shipping.firstName,
+                "last_name": task.profile.shipping.lastName,
+                "address1": task.profile.shipping.address,
+                "address2": task.profile.shipping.apt,
+                "company": null,
+                "city": task.profile.shipping.city.label,
+                "country_code": task.profile.shipping.country.label,
+                "province_code": task.profile.shipping.state.label,
+                "phone": phoneFormatter.format(
+                    task.profile.shipping.phone,
+                    '(NNN) NNN-NNNN'
+                ),
+                "zip": task.profile.shipping.zipCode
+            },
+            "billing_address": {
+                "first_name": task.profile.billing.firstName,
+                "last_name": task.profile.billing.lastName,
+                "address1": task.profile.billing.address,
+                "address2": task.profile.billing.apt,
+                "company": null,
+                "city": task.profile.billing.city.label,
+                "country_code": task.profile.billing.country.label,
+                "province_code": task.profile.billing.state.label,
+                "phone": phoneFormatter.format(
+                    task.profile.billing.phone,
+                    '(NNN) NNN-NNNN'
+                ),
+                "zip": task.profile.billing.zipCode
             }
-        }
+        },
     }
 }
 module.exports.buildCheckoutForm = buildCheckoutForm;

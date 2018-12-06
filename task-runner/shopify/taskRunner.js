@@ -1,9 +1,9 @@
 const EventEmitter = require('events');
 
+const { Stack } = require('./classes/stack');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const Account = require('./classes/account');
-const QueueBypass = require('./classes/bypass');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const { createLogger } = require('../common/logger');
 const jar = require('request').jar();
@@ -33,6 +33,16 @@ class TaskRunner {
         this._state = States.Initialized;
 
         /**
+         * Stack of successfully created payment tokens for the runner
+         */
+        this._paymentTokens = new Stack();
+        
+        /**
+         * Stack of successfully created checkout sessions for the runner 
+         */
+        this._checkouts = new Stack();
+
+        /**
          * The context of this task runner
          * 
          * This is a wrapper that contains all data about the task runner.
@@ -47,8 +57,6 @@ class TaskRunner {
             aborted: false,
         };
 
-        this._queueBypass = new QueueBypass(this._context);
-
         /**
          * Create a new monitor object to be used for the task
          */
@@ -60,6 +68,8 @@ class TaskRunner {
         this._checkout = new Checkout({
             ...this._context,
             getCaptcha: this.getCaptcha.bind(this),
+            paymentTokens: this._paymentTokens,
+            checkouts: this._checkouts,
             stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
         });
 
@@ -199,32 +209,36 @@ class TaskRunner {
 
     async _handleStarted() {
         this._emitTaskEvent({
-            message: 'Starting!',
+            message: 'Initializing...',
         });
-        return States.TaskSetup;
+        return States.GeneratePaymentTokens;
     }
 
-    async _handleTaskSetup() {
-        // TODO - https://drive.google.com/drive/folders/1QNNzxSlI3-RU0l0FCPlj_Qbl_iXEsMFT
-        const checkoutUrl  = await this._checkout._handleCreateCheckout();
-        console.log(checkoutUrl);
-        return;
-        return States.Monitor;
+    async _handleGeneratePaymentTokens() {
+
+        // preharvest tokens
+        while (this._paymentTokens.size() < 5) {
+            const token = await this._checkout.generatePaymentToken();
+            if (token) {
+                this._paymentTokens.push(token);
+            }
+        }
+        return States.GenAltCheckout;
     }
 
-    // TODO - implement this later once the new checkout process is polished
     async _handleGenAltCheckout() {
-        // TODO: Add this back in!
-        // const res = await this._checkout.geenerateAlternativeCheckout();
-        this._logger.silly('TODO: Implement the alt checkout process!');
-        const res = {};
-        if(res.errors) {
-            this._logger.verbose('Alt Checkout Handler completed with errors: %j', res.errors);
-            this._emitTaskEvent({
-                message: 'Unable to Generate alternative checkout! Continuing on...',
-                errors: res.errors,
-            });
-            await this._waitForErrorDelay();
+
+        // precart & create checkout tokens
+
+        /**
+         * Harvest three checkout links in case of errors
+         */
+        while (this._checkouts.size() < 1) {
+            const res = await this._checkout.createCheckout();
+            // break if we're in a checkout queue..
+            if (res && res.checkout) {
+                this._checkouts.push(checkout);
+            }
         }
         return States.Monitor;
     }
@@ -313,7 +327,7 @@ class TaskRunner {
 
         const stepMap = {
             [States.Started]: this._handleStarted,
-            [States.TaskSetup]: this._handleTaskSetup,
+            [States.GeneratePaymentTokens]: this._handleGeneratePaymentTokens,
             [States.GenAltCheckout]: this._handleGenAltCheckout,
             [States.Monitor]: this._handleMonitor,
             [States.SwapProxies]: this._handleSwapProxies,

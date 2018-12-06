@@ -20,7 +20,7 @@ const TaskRunnerEvents = {
 const TaskRunnerStates = {
   Initialized: 'INIT',
   Started: 'STARTED',
-  TaskSetup: 'TASK_SETUP',
+  GeneratePaymentTokens: 'GENERATE_PAYMENT_TOKENS',
   GenAltCheckout: 'GEN_ALT_CHECKOUT',
   Monitor: 'MONITOR',
   Restock: 'RESTOCK',

@@ -7,7 +7,7 @@ const {
     userAgent,
     formatter,
 } = require('./utils');
-const { buildCheckoutForm, buildShippingRatesForm, buildPaymentForm } = require('./utils/forms');
+const { buildCheckoutForm, buildShippingRatesForm, buildPaymentTokenForm } = require('./utils/forms');
 
 class Checkout {
 
@@ -17,7 +17,6 @@ class Checkout {
     static get States() {
         return {
             CreateCheckout: 'CREATE_CHECKOUT',
-            GetPaymentToken: 'GET_PAYMENT_TOKEN',
             PatchCart: 'PATCH_CART',
             GetShippingRates: 'GET_SHIPPING_RATES',
             PollQueue: 'POLL_QUEUE',
@@ -28,9 +27,8 @@ class Checkout {
 
     static get Delays() {
         return {
-            CheckoutErrors: 'CHECKOUT_ERRORS',
-            PollShippingRates: 'POLL_SHIPPING_RATES',
-            PollCheckoutQueue: 'POLL_CHECKOUT_QUEUE',
+            PollShippingRates: 750,
+            PollCheckoutQueue: 500,
         }
     }
     
@@ -86,7 +84,7 @@ class Checkout {
          * Current state of the checkout state machine
          * @type {String}
          */
-        this._state = Checkout.States.GetPaymentToken;
+        this._state = Checkout.States.PatchCart;
 
         /**
          * Timer for the entire checkout process and it's sub-models
@@ -103,9 +101,47 @@ class Checkout {
         };
     }
 
-    async _handleCreateCheckout() {
+    /**
+     * Called 5 times at the start of the task
+     * Generates a payment token using the task data provided from the task runner
+     * @returns {String} payment token
+     */
+    generatePaymentToken() {
+        this._timer.start(now());
+        this._logger.verbose('Getting Payment Token.');
         return this._request({
-            uri: `${this._task.site.url}/wallets/checkouts.json`,
+            uri: `https://elb.deposit.shopifycs.com/sessions`,
+            followAllRedirects: true,
+            proxy: formatProxy(this._proxy),
+            method: 'post',
+            headers: {
+                'User-Agent': userAgent,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(buildPaymentTokenForm(this._task)),
+        })
+        .then((res) => {
+            this._timer.stop(now());
+            this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
+            const body = JSON.parse(res);
+            if (body && body.id) { 
+                // MARK: set payment token
+                this._logger.verbose('Payment token: %s', body.id);
+                return body.id;
+            }
+            return null;
+        })
+        .catch((err) => {
+            this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
+            return {
+                errors: err,
+            }
+        });
+    }
+
+    createCheckout() {
+        return this._request({
+            uri: `${this._task.site.url}/wallets/checkouts`,
             method: 'post',
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
@@ -121,15 +157,17 @@ class Checkout {
             formData: JSON.stringify(buildCheckoutForm(this._task)),
         })
         .then((res) => {
-            console.log(res);
+            console.log(res.body);
             if (res.statusCode === 303) {
                 this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
                 // poll queue
-                return Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
+                Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
+                return null;
             } else if (res.statusCode >= 200 && res.statusCode < 300){
                 // proceed to `GeneratePaymentToken`
                 this._timer.stop(now());
                 this._logger.info('Created checkout in %d ms', this._timer.getRunTime());
+
                 return {
                     message: 'Creating payment token',
                     nextState: Checkout.States.GetPaymentToken,
@@ -144,49 +182,12 @@ class Checkout {
         });
     }
 
-    /**
-     * ~~ Can be called at start of task! ~~
-     * Generates a payment token using the task data provided from the task runner
-     * @returns {String} payment token
-     */
-    async _handleGetPaymentToken() {
-        this._timer.start(now());
-        this._logger.verbose('Getting Payment Token.');
-        return this._request({
-            uri: `https://elb.deposit.shopifycs.com/sessions`,
-            followAllRedirects: true,
-            proxy: formatProxy(this._proxy),
-            method: 'post',
-            headers: {
-                'User-Agent': userAgent,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(buildPaymentForm(this._task)),
-        })
-        .then((res) => {
-            this._timer.stop(now());
-            this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
-            const body = JSON.parse(res);
-            if (body && body.id) { 
-                // MARK: set payment token
-                this._logger.verbose('Payment token: %s', body.id);
-                this._task.paymentToken = body.id;
-                return {
-                    message: 'Patching cart',
-                    nextState: Checkout.States.PatchCart,
-                }
-            }
-        })
-        .catch((err) => {
-            this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
-            return {
-                errors: err,
-            }
-        });
-    }
-
     async _handlePatchCart() {
-        // TODO
+        /**
+         * // TODO
+         * PATCH https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6.json
+         * payload: {"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}
+         */
         return this._request({
             uri: `${this._task.checkoutUrl}/cart/`
         })
@@ -196,6 +197,10 @@ class Checkout {
         // }
     }
 
+    /**
+     * // TODO
+     * GET https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6/shipping_rates.json
+     */
     async _handleGetShippingRates() {
         this._timer.start(now());
         this._logger.verbose('Starting get shipping method request...');
