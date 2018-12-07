@@ -3,8 +3,7 @@ const { spawn, config } = Threads;
 
 class TaskThreadManager extends TaskManager {
     constructor(context) {
-
-        // TODO - construct properly
+        super(context);
 
         config.set({
             basepath: {
@@ -14,8 +13,7 @@ class TaskThreadManager extends TaskManager {
     }
 
     async start(task) {
-        const taskThread = spawn('task.js');
-        
+        const taskThread = spawn(super.start);
     }
 
 }

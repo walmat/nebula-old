@@ -9,17 +9,12 @@ const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
 
 class TaskRunner {
-  constructor(id, task, proxy, manager) {
-    /**
-     * The manager of this task runner
-     */
-    this._taskManager = manager;
-
+  constructor(id, task, proxy, manager, loggerPath) {
     /**
      * Logger Instance
      */
     this._logger = createLogger({
-      dir: this._taskManager.loggerPath,
+      dir: loggerPath,
       name: `TaskRunner-${id}`,
       filename: `runner-${id}.log`,
     });
@@ -71,7 +66,7 @@ class TaskRunner {
 
     this._handleAbort = this._handleAbort.bind(this);
 
-    this._taskManager._events.on('abort', this._handleAbort);
+    this._events.on('abort', this._handleAbort);
   }
 
   _waitForErrorDelay() {
@@ -86,17 +81,17 @@ class TaskRunner {
   }
 
   _cleanup() {
-    this._taskManager._events.removeListener('abort', this._handleAbort);
+    this._events.removeListener('abort', this._handleAbort);
   }
 
   // MARK: Event Registration
 
   async getCaptcha() {
-    return this._taskManager.startHarvestCaptcha(this._context.id);
+    return this.startHarvestCaptcha(this._context.id);
   }
 
   stopHarvestCaptcha() {
-    this._taskManager.stopHarvestCaptcha(this._context.id);
+    this.stopHarvestCaptcha(this._context.id);
   }
 
   registerForEvent(event, callback) {
@@ -239,7 +234,7 @@ class TaskRunner {
   }
 
   async _handleSwapProxies() {
-    const res = await this._taskManager.swapProxies(this._context.id, this._context.proxy);
+    const res = await this.swapProxies(this._context.id, this._context.proxy);
     if (res.errors) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %j', res.errors);
       this._emitTaskEvent({

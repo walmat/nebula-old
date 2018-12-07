@@ -397,7 +397,7 @@ class TaskManager {
     this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
 
     const openProxy = await this.reserveProxy(runnerId);
-    const runner = new TaskRunner(runnerId, task, openProxy, this);
+    const runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
     this._runners[runnerId] = runner;
 
     // Register for status updates
