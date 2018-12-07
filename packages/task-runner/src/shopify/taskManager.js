@@ -3,7 +3,6 @@ const hash = require('object-hash');
 const shortid = require('shortid');
 
 const TaskRunner = require('./taskRunner');
-const AsyncQueue = require('./classes/asyncQueue');
 const { Events } = require('./classes/utils/constants').TaskManager;
 const { createLogger } = require('../common/logger');
 
@@ -39,6 +38,8 @@ class TaskManager {
     });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
+    this.handleStartHarvest = this.handleStartHarvest.bind(this);
+    this.handleStopHarvest = this.handleStopHarvest.bind(this);
   }
 
   // MARK: Event Related Methods
@@ -240,24 +241,24 @@ class TaskManager {
     return this.reserveProxy(runnerId);
   }
 
-  /**
-   * Generate Harvest Captcha Handler
-   *
-   * Generate a handler that will be used to capture
-   * harvested captcha tokens. Tokens will be inserted
-   * into the given queue only if they are for the given
-   * runner id.
-   *
-   * @param {String} runnerId the runner to test against
-   * @param {AsyncQueue} queue the queue to insert tokens into
-   */
-  static _generateHarvestCaptchaHandler(runnerId, queue) {
-    return (rId, token) => {
-      if (runnerId === rId) {
-        queue.insert(token);
-      }
-    };
-  }
+  // /**
+  //  * Generate Harvest Captcha Handler
+  //  *
+  //  * Generate a handler that will be used to capture
+  //  * harvested captcha tokens. Tokens will be inserted
+  //  * into the given queue only if they are for the given
+  //  * runner id.
+  //  *
+  //  * @param {String} runnerId the runner to test against
+  //  * @param {AsyncQueue} queue the queue to insert tokens into
+  //  */
+  // _generateHarvestCaptchaHandler(runnerId, queue) {
+  //   return (rId, token) => {
+  //     if (runnerId === rId) {
+  //       queue.insert(token);
+  //     }
+  //   }
+  // }
 
   /**
    * Harvest Captcha
@@ -280,7 +281,11 @@ class TaskManager {
         this.harvestCaptchaToken(rId, token);
       }
       // Container exists, run the updater for this runner id
-      container.updater(rId, token);
+      const runner = this._runners[rId];
+
+      // TEMPORARY FIX
+      runner._events.emit(Events.Harvest, rId, token);
+
       // Add the runner back into the token queue
       this._tokenReserveQueue.unshift(rId);
     }
@@ -293,21 +298,13 @@ class TaskManager {
    * the captcha harvesting has not started for this runner, it will be
    * started.
    *
-   * This method will return the next available captcha token for this
-   * runner.
-   *
    * @param {String} runnerId the runner for which to register captcha events
    */
-  async startHarvestCaptcha(runnerId) {
+  handleStartHarvest(ev, runnerId) {
     let container = this._captchaQueues.get(runnerId);
     if (!container) {
       // We haven't started harvesting for this runner yet, create a queue and start harvesting
-      const queue = new AsyncQueue();
-      const updater = TaskManager._generateHarvestCaptchaHandler(runnerId, queue);
-      container = {
-        queue,
-        updater,
-      };
+      container = {};
       // Store the container on the captcha queue map
       this._captchaQueues.set(runnerId, container);
 
@@ -317,7 +314,6 @@ class TaskManager {
       // Emit an event to start harvesting
       this._events.emit(Events.StartHarvest, runnerId);
     }
-    return container.queue.next();
   }
 
   /**
@@ -329,7 +325,7 @@ class TaskManager {
    * If the runner was not previously harvesting captchas, this method does
    * nothing.
    */
-  stopHarvestCaptcha(runnerId) {
+  handleStopHarvest(ev, runnerId) {
     const container = this._captchaQueues.get(runnerId);
 
     // If this container was never started, there's no need to do anything further
@@ -337,10 +333,7 @@ class TaskManager {
       return;
     }
 
-    // Cleanup the container and remove it from the queues list
-    this._events.removeListener(Events.Harvest, container.updater);
     // FYI this will reject all calls currently waiting for a token
-    container.queue.destroy();
     this._captchaQueues.delete(runnerId);
 
     // Emit an event to stop harvesting
@@ -404,6 +397,12 @@ class TaskManager {
     this._logger.verbose('Registering for TaskRunner Events ...');
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
 
+    // TEMPORARY FIX
+    this.runner._events.on(Events.StartHarvest, this.handleStartHarvest);
+    this.runner._events.on(Events.StopHarvest, this.handleStopHarvest);
+
+    console.log('---------here---------');
+
     // Start the runner asynchronously
     this._logger.verbose('Starting Runner ...');
     runner
@@ -423,6 +422,11 @@ class TaskManager {
         this._logger.verbose('Performing cleanup for runner %s', runnerId);
         // Cleanup handlers
         runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+
+        // TEMPORARY FIX
+        runner._events.removeListener(Events.StartHarvest, this.handleStartHarvest);
+        runner._events.removeListener(Events.StopHarvest, this.handleStopHarvest);
+
         // Remove from runners map
         delete this._runners[runnerId];
         // Release proxy

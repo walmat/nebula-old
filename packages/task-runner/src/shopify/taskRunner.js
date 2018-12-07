@@ -4,12 +4,14 @@ const { jar } = require('request');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const QueueBypass = require('./classes/bypass');
+const AsyncQueue = require('./classes/asyncQueue');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
+const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
 
 class TaskRunner {
-  constructor(id, task, proxy, manager, loggerPath) {
+  constructor(id, task, proxy, loggerPath) {
     /**
      * Logger Instance
      */
@@ -25,6 +27,8 @@ class TaskRunner {
     this._state = States.Initialized;
 
     this._jar = jar();
+
+    this._captchaQueue = null;
 
     /**
      * The context of this task runner
@@ -65,6 +69,7 @@ class TaskRunner {
     this._events = new EventEmitter();
 
     this._handleAbort = this._handleAbort.bind(this);
+    this._handleHarvest = this._handleHarvest.bind(this);
 
     this._events.on('abort', this._handleAbort);
   }
@@ -80,18 +85,35 @@ class TaskRunner {
     }
   }
 
+  _handleHarvest(id, token) {
+    if (id === this._context.id) {
+      this._captchaQueue.insert(token);
+    }
+  }
+
   _cleanup() {
+    this.stopHarvestCaptcha();
     this._events.removeListener('abort', this._handleAbort);
   }
 
   // MARK: Event Registration
 
   async getCaptcha() {
-    return this.startHarvestCaptcha(this._context.id);
+    if (!this._captchaQueue) {
+      this._captchaQueue = new AsyncQueue();
+      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest);
+      this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
+    }
+    return this._captchaQueue.next();
   }
 
   stopHarvestCaptcha() {
-    this.stopHarvestCaptcha(this._context.id);
+    if (this._captchaQueue) {
+      this._captchaQueue.destroy();
+      this._captchaQueue = null;
+      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest);
+    }
   }
 
   registerForEvent(event, callback) {
