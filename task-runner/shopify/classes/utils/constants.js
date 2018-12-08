@@ -21,7 +21,7 @@ const TaskRunnerStates = {
   Initialized: 'INIT',
   Started: 'STARTED',
   GeneratePaymentTokens: 'GENERATE_PAYMENT_TOKENS',
-  GenerateCheckouts: 'GENERATE_CHECKOUTS',
+  CreateCheckout: 'CREATE_CHECKOUT',
   Monitor: 'MONITOR',
   Restock: 'RESTOCK',
   SwapProxies: 'SWAP_PROXIES',

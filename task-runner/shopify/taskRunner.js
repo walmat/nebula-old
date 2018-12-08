@@ -33,23 +33,29 @@ class TaskRunner {
         this._state = States.Initialized;
 
         /**
+         * Should we do task setup?
+         * (always attempt to do task setup at beginning of task)
+         */
+        this._setup = true;
+
+        /**
          * Stack of successfully created payment tokens for the runner
          */
         this._paymentTokens = new Stack();
-        
+
         /**
          * Stack of shipping methods
          */
         this._shippingMethods = new Stack();
 
         /**
-         * Stack of successfully created checkout sessions for the runner 
+         * Stack of successfully created checkout sessions for the runner
          */
         this._checkouts = new Stack();
 
         /**
          * The context of this task runner
-         * 
+         *
          * This is a wrapper that contains all data about the task runner.
          * @type {TaskRunnerContext}
          */
@@ -72,6 +78,7 @@ class TaskRunner {
          */
         this._checkout = new Checkout({
             ...this._context,
+            setup: this._setup,
             paymentTokens: this._paymentTokens,
             shippingMethods: this._shippingMethods,
             checkouts: this._checkouts,
@@ -83,7 +90,7 @@ class TaskRunner {
 
         /**
          * Create a new event emitter to handle all IPC communication
-         * 
+         *
          * Events will provide the task id, a message, and a message group
          */
         this._events = new EventEmitter();
@@ -224,153 +231,138 @@ class TaskRunner {
      * Preharvest payment tokens
      */
     async _handleGeneratePaymentTokens() {
-
         while (this._paymentTokens.size() < 5) {
             const token = await this._checkout.generatePaymentToken();
             if (token) {
                 this._paymentTokens.push(token);
             }
         }
-        return States.GenerateCheckouts;
+        return States.CreateCheckout;
     }
 
     // Generate checkout links to be used for checking out
-    async _handleGenerateCheckouts() {
+    async _handleCreateCheckout() {
+      // TODO - Find random in-stock product through our parsing methods
+      // ^^ if this fails, we shouldn't do the next while() loop
+      // instead, do task setup later (this._setup = false)
 
-        // TODO - Find random in-stock product through our parsing methods
-        // ^^ if this fails, we shouldn't do the next while() loop
-        // instead, do task setup later
-        // const product = await this._monitor._parseAll();
-        
-        const visited = await this._checkout.visitProduct();
-        console.log(visited);
-        // TODO - decide how many checkouts to actually preharvest
+      this._setup = false;
+
+      if (this._setup) {
         while (this._checkouts.size() < 3) {
-            const checkout = await this._checkout.createCheckout();
-
-            if(checkout) {
-                this._checkouts.push(checkout);
-            }
-        }
-        return States.Monitor;
-    }
-
-    async _handleMonitor() {
-        const res = await this._monitor.run();
-        if(res.errors) {
-            this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
+          const checkout = await this._checkout._handleCreateCheckout();
+          if (res.errors) {
+            this._logger.verbose('Create Checkout Handler completed with errors: %j', res.errors);
             this._emitTaskEvent({
-                message: 'Error monitoring product...',
+                message: 'Error creating checkout, retrying...',
                 errors: res.errors,
             });
             await this._waitForErrorDelay();
+          } else if(checkout) {
+            this._checkouts.push(checkout);
+          }
         }
+      }
+      return States.Monitor;
+  }
+
+    async _handleMonitor() {
+      const res = await this._monitor.run();
+      console.log(res);
+      if(res.errors) {
+        this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
         this._emitTaskEvent({
-            message: res.message,
+            message: 'Error monitoring product...',
+            errors: res.errors,
         });
-        // Monitor will be in charge of choosing the next state
-        return res.nextState;
+        await this._waitForErrorDelay();
+      }
+      this._emitTaskEvent({
+        message: res.message,
+      });
+      // Monitor will be in charge of choosing the next state
+      return res.nextState;
     }
 
     async _handleSwapProxies() {
-        const res = await this._taskManager.swapProxies(this._context.id, this._context.proxy);
-        if (res.errors) {
-            this._logger.verbose('Swap Proxies Handler completed with errors: %j', res.errors);
-            this._emitTaskEvent({
-                message: 'Error Swapping Proxies! Retrying Monitor...',
-                errors: res.errors,
-            });
-            await this._waitForErrorDelay();
-        }
-        // Swap Proxies will be in charge of choosing the next state
-        return res.nextState;
+      const res = await this._taskManager.swapProxies(this._context.id, this._context.proxy);
+      if (res.errors) {
+          this._logger.verbose('Swap Proxies Handler completed with errors: %j', res.errors);
+          this._emitTaskEvent({
+              message: 'Error Swapping Proxies! Retrying Monitor...',
+              errors: res.errors,
+          });
+          await this._waitForErrorDelay();
+      }
+      // Swap Proxies will be in charge of choosing the next state
+      return res.nextState;
     }
 
     async _handleCheckout() {
-        const res = await this._checkout.run();
-        if (res.errors) {
-            this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
-            this._emitTaskEvent({
-                message: 'Errors during Checkout!',
-                errors: res.errors,
-            });
-            await this._waitForErrorDelay();
-        }
-        this._emitTaskEvent({
-            message: res.message,
-        });
-        // Checkout will be in charge of choosing the next state
-        return res.nextState;
+      const res = await this._checkout.run();
+      console.log(res);
+      if (res.errors) {
+          this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
+          this._emitTaskEvent({
+              message: 'Errors during Checkout!',
+              errors: res.errors,
+          });
+          await this._waitForErrorDelay();
+      }
+      this._emitTaskEvent({
+          message: res.message,
+      });
+      // Checkout will be in charge of choosing the next state
+      return res.nextState;
     }
 
-    _generateEndStateHandler(state) {
-        let status = 'stopped';
-        switch (state) {
-            case States.Aborted: {
-                status = 'aborted';
-                break;
-            }
-            case States.Errored: {
-                status = 'errored out';
-                break;
-            }
-            case States.Finished: {
-                status = 'finished';
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-        return () => {
-            this._emitTaskEvent({
-                message: this._context.status || `Task has ${status}!`,
-            });
-            return States.Stopped;
-        }
+    _generateEndStateHandler() {
+      return () => {
+          return States.Stopped;
+      }
     }
 
     async _handleStepLogic(currentState) {
-        async function defaultHandler() {
-            throw new Error('Reached Unknown State!');
-        }
+      async function defaultHandler() {
+          throw new Error('Reached Unknown State!');
+      }
 
-        this._logger.verbose('Handling state: %s', currentState);
+      this._logger.verbose('Handling state: %s', currentState);
 
-        const stepMap = {
-            [States.Started]: this._handleStarted,
-            [States.GeneratePaymentTokens]: this._handleGeneratePaymentTokens,
-            [States.GenerateCheckouts]: this._handleGenerateCheckouts,
-            [States.Monitor]: this._handleMonitor,
-            [States.SwapProxies]: this._handleSwapProxies,
-            [States.Checkout]: this._handleCheckout,
-            [States.Finished]: this._generateEndStateHandler(States.Finished),
-            [States.Errored]: this._generateEndStateHandler(States.Errored),
-            [States.Aborted]: this._generateEndStateHandler(States.Aborted),
-        }
-        const handler = stepMap[currentState] || defaultHandler;
-        return await handler.call(this);
+      const stepMap = {
+          [States.Started]: this._handleStarted,
+          [States.GeneratePaymentTokens]: this._handleGeneratePaymentTokens,
+          [States.CreateCheckout]: this._handleCreateCheckout,
+          [States.Monitor]: this._handleMonitor,
+          [States.SwapProxies]: this._handleSwapProxies,
+          [States.Checkout]: this._handleCheckout,
+          [States.Finished]: this._generateEndStateHandler(),
+          [States.Errored]: this._generateEndStateHandler(),
+          [States.Aborted]: this._generateEndStateHandler(),
+      }
+      const handler = stepMap[currentState] || defaultHandler;
+      return await handler.call(this);
     }
 
     // MARK: State Machine Run Loop
 
     async start() {
-        this._state = States.Started;
-        while(this._state !== States.Stopped) {
-            if (this._context.aborted) {
-                this._state = States.Aborted;
-            }
-            try {
-                this._state = await this._handleStepLogic(this._state);
-            } catch (e) {
-                this._logger.debug('Run loop errored out! %s', e);
-                this._state = States.Errored;
-            }
-            this._logger.verbose('Run Loop finished, state transitioned to: %s', this._state);
-        }
+      this._state = States.Started;
+      while(this._state !== States.Stopped) {
+          if (this._context.aborted) {
+              this._state = States.Aborted;
+          }
+          try {
+              this._state = await this._handleStepLogic(this._state);
+          } catch (e) {
+              this._logger.debug('Run loop errored out! %s', e);
+              this._state = States.Errored;
+          }
+          this._logger.verbose('Run Loop finished, state transitioned to: %s', this._state);
+      }
 
-        this._cleanup();
-        return;
+      this._cleanup();
+      return;
     }
 }
 
