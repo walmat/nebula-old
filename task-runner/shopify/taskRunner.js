@@ -241,7 +241,9 @@ class TaskRunner {
         // ^^ if this fails, we shouldn't do the next while() loop
         // instead, do task setup later
         // const product = await this._monitor._parseAll();
-
+        
+        const visited = await this._checkout.visitProduct();
+        console.log(visited);
         // TODO - decide how many checkouts to actually preharvest
         while (this._checkouts.size() < 3) {
             const checkout = await this._checkout.createCheckout();

@@ -162,6 +162,28 @@ class Checkout {
         });
     }
 
+    visitProduct() {
+        return this._request({
+            uri: 'https://kith.com/collections/footwear/products/nike-air-jordan-12-retro-gym-red-black',
+            method: 'get',
+            proxy: formatProxy(this._proxy),
+            followAllRedirects: true,
+            simple: false,
+            json: true,
+            rejectUnauthorized: false,
+            resolveWithFullResponse: true,
+            headers: {
+                'User-Agent': userAgent,
+                Host: `${this._task.site.url}`,
+                'Content-Type': 'application/json',
+            },
+        }).
+        then((res) => {
+            console.log(this._request.jar().getCookies());
+            return res.request.headers;
+        });
+    }
+
     createCheckout() {
         return this._request({
             uri: `${this._task.site.url}/wallets/checkouts`,
