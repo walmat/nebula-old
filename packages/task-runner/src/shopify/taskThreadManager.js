@@ -1,21 +1,12 @@
-const Threads = require('threads');
-const { spawn, config } = Threads;
+const { spawn } = require('threads');
+
+const TaskManager = require('./taskManager');
 
 class TaskThreadManager extends TaskManager {
-    constructor(context) {
-        super(context);
-
-        config.set({
-            basepath: {
-                node: `${__dirname}/thread-scripts/`,
-            },
-        });
-    }
-
-    async start(task) {
-        const taskThread = spawn(super.start);
-    }
-
+  async _start([runnerId, task, openProxy]) {
+    const thread = spawn(super._start);
+    thread.send([runnerId, task, openProxy]);
+  }
 }
 
 module.exports = TaskThreadManager;

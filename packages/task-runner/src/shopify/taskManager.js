@@ -241,25 +241,6 @@ class TaskManager {
     return this.reserveProxy(runnerId);
   }
 
-  // /**
-  //  * Generate Harvest Captcha Handler
-  //  *
-  //  * Generate a handler that will be used to capture
-  //  * harvested captcha tokens. Tokens will be inserted
-  //  * into the given queue only if they are for the given
-  //  * runner id.
-  //  *
-  //  * @param {String} runnerId the runner to test against
-  //  * @param {AsyncQueue} queue the queue to insert tokens into
-  //  */
-  // _generateHarvestCaptchaHandler(runnerId, queue) {
-  //   return (rId, token) => {
-  //     if (runnerId === rId) {
-  //       queue.insert(token);
-  //     }
-  //   }
-  // }
-
   /**
    * Harvest Captcha
    *
@@ -362,6 +343,29 @@ class TaskManager {
     }
   }
 
+  // setupPreTaskRunner(task) {
+
+  // }
+
+  async setupRunner() {
+    let runnerId;
+    do {
+      runnerId = shortid.generate();
+    } while (this._runners[runnerId]);
+    const openProxy = await this.reserveProxy(runnerId);
+    return {
+      runnerId,
+      openProxy,
+    };
+  }
+
+  async cleanupRunner(proxy, runnerId) {
+    delete this._runners[runnerId];
+    if (proxy) {
+      this.releaseProxy(runnerId, proxy.id);
+    }
+  }
+
   // MARK: Task Related Methods
 
   /**
@@ -383,13 +387,15 @@ class TaskManager {
       return;
     }
 
-    let runnerId;
-    do {
-      runnerId = shortid.generate();
-    } while (this._runners[runnerId]);
+    const { runnerId, openProxy } = await this.setupRunner();
     this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
 
-    const openProxy = await this.reserveProxy(runnerId);
+    this._start([runnerId, task, openProxy]).then(() => {
+      this.cleanupRunner(openProxy, runnerId);
+    });
+  }
+
+  async _start([runnerId, task, openProxy]) {
     const runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
     this._runners[runnerId] = runner;
 
@@ -397,15 +403,14 @@ class TaskManager {
     this._logger.verbose('Registering for TaskRunner Events ...');
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
 
-    // TEMPORARY FIX
-    this.runner._events.on(Events.StartHarvest, this.handleStartHarvest);
-    this.runner._events.on(Events.StopHarvest, this.handleStopHarvest);
-
-    console.log('---------here---------');
+    // TEMPORARY
+    this._events.on('abort', runner._handleAbort);
+    runner._events.on(Events.StartHarvest, this.handleStartHarvest);
+    runner._events.on(Events.StopHarvest, this.handleStopHarvest);
 
     // Start the runner asynchronously
     this._logger.verbose('Starting Runner ...');
-    runner
+    return runner
       .start()
       .then(() => {
         this._logger.info('Runner %s finished without errors', runnerId);
@@ -426,13 +431,7 @@ class TaskManager {
         // TEMPORARY FIX
         runner._events.removeListener(Events.StartHarvest, this.handleStartHarvest);
         runner._events.removeListener(Events.StopHarvest, this.handleStopHarvest);
-
-        // Remove from runners map
-        delete this._runners[runnerId];
-        // Release proxy
-        if (openProxy) {
-          this.releaseProxy(runnerId, openProxy.id);
-        }
+        this._events.removeListener('abort', runner._handleAbort);
       });
   }
 

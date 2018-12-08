@@ -70,8 +70,6 @@ class TaskRunner {
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleHarvest = this._handleHarvest.bind(this);
-
-    this._events.on('abort', this._handleAbort);
   }
 
   _waitForErrorDelay() {
@@ -93,7 +91,6 @@ class TaskRunner {
 
   _cleanup() {
     this.stopHarvestCaptcha();
-    this._events.removeListener('abort', this._handleAbort);
   }
 
   // MARK: Event Registration
