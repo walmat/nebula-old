@@ -11,28 +11,29 @@ class DsmParser extends SpecialParser {
 
   parseInitialPage($) {
     // Look for all `.grid-view-item`'s
-    const parsedItems = $('.grid-view-item').map((i, el) => {
-      const link = $('.grid-view-item__link', this).attr('href');
-      const title = $('.grid-view-item__title', this).text();
+    let parsedItems = [];
+    $('.grid-view-item').each((i, el) => {
+      const link = $('.grid-view-item__link', el).attr('href');
+      const title = $('.grid-view-item__title', el).text();
 
       if (!link || !title) {
-        return null;
+        return;
       }
-      return { link, title };
-    }).filter(i => !!(i));
+      parsedItems.push({ link, title });
+    });
 
-    if(!items.length) {
+    if(!parsedItems.length) {
       throw new Error('No Items Found');
     }
 
     let items = parsedItems;
     // If parsing keywords, reduce the number of pages to search by matching the title
-    if (this._type === ParseType.Keywords) {
+    if (this._type === ParseType.Keywords && items.length !== 0) {
       const keywords = {
         pos: this._task.product.pos_keywords,
         neg: this._task.product.neg_keywords,
       }
-      items = matchKeywords(parsedItems, keywords);
+      items = matchKeywords(parsedItems, keywords, null, null, true) || [];
     }
     this._logger.silly('%s: parsing inital page, found %d items', this._name, items.length);
 
@@ -50,7 +51,7 @@ class DsmParser extends SpecialParser {
     if(!product || product.attr('type') !== 'application/json') {
       throw new Error('Could not find product data!');
     }
-    return JSON.parse(product.text());
+    return JSON.parse(product.html());
   }
 }
 

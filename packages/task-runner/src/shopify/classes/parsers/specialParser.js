@@ -6,6 +6,7 @@ const rp = require('request-promise').defaults({
 });
 const Parser = require('./parser');
 const { ParseType } = require('../utils/parse');
+const { formatProxy, userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
   constructor(task, proxy, logger, name) {
@@ -24,7 +25,7 @@ class SpecialParser extends Parser {
 
     // If parse type is url, use the product's url, otherwise use the site url
     let url = this._task.site.url;
-    if (this._parseType === ParseType.Url) {
+    if (this._type === ParseType.Url) {
       url = this._task.product.url;
     }
 
@@ -38,20 +39,23 @@ class SpecialParser extends Parser {
         proxy: formatProxy(this._proxy) || undefined,
         json: false,
         simple: true,
-        followRedirects: false,
+        followRedirect: false,
         gzip: true,
         headers: {
           'User-Agent': userAgent,
         },
         transform2xxOnly: true,
         transform: (body) => {
-          return cheerio.load(body);
+          return cheerio.load(body, {
+            normalizeWhitespace: true,
+            xmlMode: true,
+          });
         },
       });
     } catch (error) {
       // Handle Redirect response (wait for refresh delay)
       if (error.statusCode === 302) {
-        this._logger.debug('%s: Redirect Detected!');
+        this._logger.debug('%s: Redirect Detected!', this._name);
         const rethrow = new Error('RedirectDetected');
         rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay
         throw rethrow;
@@ -79,14 +83,14 @@ class SpecialParser extends Parser {
         rethrow.status = error.statusCode || 404;
         throw rethrow;
       }
-      this._logger.silly('%s: Generated Product Pages, capturing product page info...', this._name);
+      this._logger.silly('%s: Generated Product Pages, capturing product page info...', this._name, productsToVisit);
 
       // Visit Product Pages and Parse them for product info
       let products;
       try {
         products = await Promise.all(
           productsToVisit.map(url =>
-            this.getProductInfoPage(url).then(this.parseProductInfoPage)
+            this.getProductInfoPage(url).then(this.parseProductInfoPage.bind(this))
           ),
         );
       } catch (error) {
@@ -97,6 +101,7 @@ class SpecialParser extends Parser {
       }
 
       // Attempt to Match Product
+      this._logger.silly('%s: Received Product info, matching now...', this._name, products);
       try {
         matchedProduct = super.match(products);
       } catch (error) {
@@ -106,7 +111,7 @@ class SpecialParser extends Parser {
         throw rethrow;
       }
     } else {
-      this._logger.silly('%s: Received Response, attempt to parse a product page...', this._name);
+      this._logger.silly('%s: Received Response, attempt to parse as product page...', this._name);
 
       // Attempt to parse the response as a product page and get the product info
       try {
@@ -153,7 +158,7 @@ class SpecialParser extends Parser {
     this._logger.log('silly', '%s: Getting Full Product Info...', this._name);
     return rp({
       method: 'GET',
-      productUrl,
+      uri: productUrl,
       proxy: formatProxy(this._proxy) || undefined,
       json: false,
       simple: true,
@@ -163,7 +168,10 @@ class SpecialParser extends Parser {
         'User-Agent': userAgent,
       },
       transform: (body) => {
-        return cheerio.load(body);
+        return cheerio.load(body, {
+          normalizeWhitespace: true,
+          xmlMode: true,
+        });
       }
     });
   }

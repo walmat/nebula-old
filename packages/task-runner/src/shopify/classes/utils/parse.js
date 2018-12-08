@@ -22,7 +22,7 @@ module.exports.ParseType = ParseType;
  */
 function getParseType(product, logger, site) {
   const _logger = logger || { log: () => {} };
-  _logger.log('silly', 'Determining Parse Type for Product...');
+  _logger.log('silly', 'Determining Parse Type for Product...', product);
   if(!product) {
     _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
     return ParseType.Unknown;
@@ -129,6 +129,14 @@ function matchVariant(products, variantId, logger) {
     _logger.log('silly', 'No variant id given! Returning null');
     return null;
   }
+  // Sometimes the objects in the variants list don't include a product_id hook back to the associated product.
+  // In order to counteract this, we first add this hook in (if it doesn't exist)
+  _.forEach(products, p => {
+    _.forEach(p.variants, v => {
+      v.product_id = v.product_id || p.id;
+    });
+  });
+
   // Step 1: Map products list to a list of variant lists
   // Step 2: flatten the list of lists, so we only have one total list of all variants
   // Step 3: Search for the variant in the resulting variant list

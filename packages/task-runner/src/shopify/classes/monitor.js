@@ -41,17 +41,19 @@ class Monitor {
     // delay and start the monitor again...
     async _delay(status) {
         let delay = this._waitForRefreshDelay;
+        let waitTime = this._context.task.monitorDelay;
         switch (status || 404) {
             case 401:
             case 404: {
                 delay = this._waitForErrorDelay;
+                waitTime = this._context.task.errorDelay;
                 break;
             }
             default: break;
         }
         await delay.call(this);
         this._logger.info('Monitoring not complete, remonitoring...');
-        return { message: `Delaying ${delay}`, nextState: States.Monitor };
+        return { message: `Delaying ${waitTime}`, nextState: States.Monitor };
     }
 
     _parseAll() {
@@ -169,12 +171,12 @@ class Monitor {
 
     async _monitorSpecial() {
         // Get the correct special parser
-        const ParserCreator = getSpecialParser(this._task.site);
+        const ParserCreator = getSpecialParser(this._context.task.site);
         const parser = ParserCreator(this._context.task, this._context.proxy, this._context.logger);
         
         let parsed;
         try {
-            await parser.run();
+            parsed = await parser.run();
         } catch (error) {
             this._logger.debug('MONITOR: Error with special parsing!', error);
             return this._delay(error.status);

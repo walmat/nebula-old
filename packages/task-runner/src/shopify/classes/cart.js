@@ -72,7 +72,7 @@ class Cart {
             ),
         })
         .then((res) => {
-            if (res.body.status === 404) {
+            if (res.statusCode === 404) {
                 this._logger.debug('CART: Error in add to cart response: %s', res.body.description);
                 return {
                     errors: res.body.description,
