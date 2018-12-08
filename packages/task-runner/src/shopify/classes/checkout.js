@@ -7,7 +7,7 @@ const {
     userAgent,
     formatter,
 } = require('./utils');
-const { buildCheckoutForm, buildPaymentTokenForm } = require('./utils/forms');
+const { buildCheckoutForm, buildPaymentTokenForm, buildPatchCartForm } = require('./utils/forms');
 
 class Checkout {
 
@@ -115,7 +115,7 @@ class Checkout {
        */
       this._timer = new Timer();
 
-      this._checkoutUrl;
+      this._checkoutToken;
       this._captchaToken;
     }
 
@@ -165,52 +165,88 @@ class Checkout {
           }
       });
     }
-
-    async _handleCreateCheckout() {
-        return this._request({
-          uri: `${this._task.site.url}/wallets/checkouts`,
-          method: 'post',
-          proxy: formatProxy(this._proxy),
-          followAllRedirects: true,
-          simple: false,
-          json: false,
-          rejectUnauthorized: false,
-          resolveWithFullResponse: true,
-          headers: {
-              'User-Agent': userAgent,
-              Host: `${this._task.site.url}`,
-              'Content-Type': 'application/json',
-          },
-          formData: JSON.stringify(buildCheckoutForm(this._task)),
+    async visitSite() {
+      return this._request({
+        uri: `https://kith.com/collections/footwear/products/nike-air-jordan-12-retro-gym-red-black`,
+        method: 'get',
+        proxy: formatProxy(this._proxy),
+        followAllRedirects: true,
+        simple: false,
+        json: false,
+        rejectUnauthorized: false,
+        resolveWithFullResponse: true,
+        headers: {
+            'User-Agent': userAgent,
+            Host: `${this._task.site.url}`,
+            'Content-Type': 'application/json',
+        },
       })
       .then((res) => {
-          if (res.statusCode === 303) {
-              this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
-              Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
-          } else if (res.checkout){
-              this._timer.stop(now());
-              this._logger.info('Created checkout in %d ms', this._timer.getRunTime());
-              if (!this._setup) {
-                return {
-                  message: 'Created checkout session',
-                  nextState: Checkout.States.PatchCart,
-                }
+        console.log(this._request.jar().getCookies());
+        return res.request.href;
+      });
+    }
+
+    async _handleCreateCheckout() {
+
+      var headers = {
+        'Accept': 'application/json',
+        'cache-control': 'no-store',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
+        'host': 'kith.com',
+        'cookie': '_shopify_y=1f2261ba-cda9-4d05-a201-c530440ca585; _orig_referrer=; secure_customer_sig=; _landing_page=%2Fcollections%2Ffootwear%2Fproducts%2Fnike-air-jordan-12-retro-gym-red-black; cart_sig=; _secure_session_id=6a81c7fa821fc501b88da259028e3104',
+        'authorization': 'Basic MDg0MzBiOTZjNDdkZDJhYzhlMTdlMzA1ZGIzYjcxZTg6Og=='
+      };
+
+      return this._request({
+        uri: `${this._task.site.url}/wallets/checkouts`,
+        method: 'POST',
+        proxy: formatProxy(this._proxy),
+        simple: false,
+        json: true,
+        rejectUnauthorized: false,
+        resolveWithFullResponse: true,
+        headers,
+        body: JSON.stringify(buildCheckoutForm(this._task)),
+      })
+      .then((res) => {
+        if (res.statusCode === 303) {
+            this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
+            Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
+        } else if (res.body.checkout){
+            this._timer.stop(now());
+            this._logger.info('Created checkout in %d ms', this._timer.getRunTime());
+
+            // push the checkout token to the stack
+            this._checkouts.push(res.body.checkout.web_url.split('/')[5]);
+
+            // proceed straight to checkout if setup never happened
+            if (!this._setup) {
+              return {
+                message: 'Created checkout session',
+                nextState: Checkout.States.PatchCart,
               }
-              return res.web_url;
-          } else {
-            // might not ever get called, but just a failsafe
+            }
+            // otherwise, during setup, patch cart.
             return {
-              message: 'Failed: Created checkout session',
-              nextState: Checkout.States.Stopped,
-            };
-          }
+              message: 'Created checkout session',
+              nextState: Checkout.States.PatchCart,
+            }
+        } else {
+          // might not ever get called, but just a failsafe
+          return {
+            message: 'Failed: Created checkout session',
+            nextState: Checkout.States.Stopped,
+          };
+        }
       })
       .catch((err) => {
-          this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
-          return {
-              errors: 'Failed: Creating checkout session',
-              nextState: Checkout.States.Error,
-          }
+        this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
+        return {
+            errors: 'Failed: Creating checkout session',
+            nextState: Checkout.States.Error,
+        }
       });
     }
 
@@ -220,26 +256,33 @@ class Checkout {
      * payload: {"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}
     */
     async _handlePatchCart() {
+
+      var headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Shopify-Checkout-Version': '2016-09-06',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
+        'host': 'kith.com',
+        'cookie': '_shopify_y=1f2261ba-cda9-4d05-a201-c530440ca585; _orig_referrer=; secure_customer_sig=; _landing_page=%2Fcollections%2Ffootwear%2Fproducts%2Fnike-air-jordan-12-retro-gym-red-black; cart_sig=; _secure_session_id=6a81c7fa821fc501b88da259028e3104',
+        'authorization': 'Basic MDg0MzBiOTZjNDdkZDJhYzhlMTdlMzA1ZGIzYjcxZTg6Og=='
+      };
+
       if (!this._checkouts.isEmpty()) {
-          this._checkoutUrl = this._checkouts.pop();
-          return this._request({
-              uri: `${this._checkoutUrl.split('?')[0]}.json`,
+          this._checkoutToken = this._checkouts.pop();
+           return this._request({
+              uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}.json`,
               method: 'PATCH',
               proxy: formatProxy(this._proxy),
-              followAllRedirects: true,
               simple: false,
               json: true,
               rejectUnauthorized: false,
               resolveWithFullResponse: true,
-              headers: {
-                  'User-Agent': userAgent,
-                  Host: `${this._task.site.url}`,
-                  'Content-Type': 'application/json',
-              },
-              formData: JSON.stringify(buildPatchCartForm(this._task)),
+              headers,
+              body: JSON.stringify(buildPatchCartForm(this._task.product.variants[0])),
           })
           .then((res) => {
-              if (res.statusCode === 202) {
+            console.log(res.body);
+              if (res.statusCode === 202 && res.body.checkout.line_items.length > 0) {
                   return {
                       message: 'Added to cart',
                       nextState: Checkout.States.GetShippingRates,
@@ -275,16 +318,24 @@ class Checkout {
         this._timer.start(now());
         this._logger.verbose('Starting get shipping rates method');
 
+        var headers = {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Shopify-Checkout-Version': '2016-09-06',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
+          'host': 'kith.com',
+          'cookie': '_shopify_y=1f2261ba-cda9-4d05-a201-c530440ca585; _orig_referrer=; secure_customer_sig=; _landing_page=%2Fcollections%2Ffootwear%2Fproducts%2Fnike-air-jordan-12-retro-gym-red-black; cart_sig=; _secure_session_id=6a81c7fa821fc501b88da259028e3104',
+          'authorization': 'Basic MDg0MzBiOTZjNDdkZDJhYzhlMTdlMzA1ZGIzYjcxZTg6Og=='
+        };
+
+        console.log(`${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`);
+
         return this._request({
-            uri: `${this._checkoutUrl.split('?')[0]}/shipping_rates.json`,
+            uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
             method: 'get',
-            headers: {
-                Origin: this._task.site.url,
-                'User-Agent': userAgent,
-                Referer: this._task.product.url,
-            },
+            headers,
         })
         .then((res) => {
             const rates = JSON.parse(res);
@@ -344,7 +395,7 @@ class Checkout {
      */
     async _handlePostPayment() {
         return this._request({
-            uri: `${this._checkoutUrl}`,
+            uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}`,
             method: 'POST',
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,

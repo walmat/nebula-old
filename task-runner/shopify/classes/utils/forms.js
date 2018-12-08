@@ -15,7 +15,7 @@ module.exports.buildPaymentTokenForm = buildPaymentTokenForm;
 
 function buildCheckoutForm(task) {
 
-    let form = {
+    return {
         "card_source": "vault",
         "pollingOptions": {
             "poll": false
@@ -57,8 +57,6 @@ function buildCheckoutForm(task) {
             }
         },
     }
-    console.log(form);
-    return form;
 }
 module.exports.buildCheckoutForm = buildCheckoutForm;
 
@@ -117,17 +115,17 @@ function buildCartForm(task, variant) {
 }
 module.exports.buildCartForm = buildCartForm;
 
-function buildPatchCartForm(task) {
-    return {
-        "checkout": {
-            "line_items": [{ 
-                "variant_id": task.product.variant,
-                "quantity": 1,
-                "properties": {
-                    "MVZtkB3gY9f5SnYz": "nky2UHRAKKeTk8W8"
-                }
-            }]
-        }
-    };
+function buildPatchCartForm(variant) {
+  let form = {
+      "checkout": {
+          "line_items": [{
+              "variant_id": variant,
+              "quantity": 1,
+          }]
+      }
+  };
+
+  console.log(form.checkout.line_items[0]);
+  return form;
 }
 module.exports.buildPatchCartForm = buildPatchCartForm;

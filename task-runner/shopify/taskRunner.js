@@ -1,4 +1,9 @@
 const EventEmitter = require('events');
+const jar = require('request-promise').jar();
+const request = require('request-promise').defaults({
+    timeout: 10000,
+    jar: jar,
+})
 
 const { Stack } = require('./classes/stack');
 const Monitor = require('./classes/monitor');
@@ -6,14 +11,7 @@ const Checkout = require('./classes/checkout');
 const Account = require('./classes/account');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const { createLogger } = require('../common/logger');
-const jar = require('request').jar();
-const request = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
-})
-const {
-    waitForDelay
-} = require('./classes/utils');
+const { waitForDelay } = require('./classes/utils');
 
 class TaskRunner {
     constructor(id, task, proxy, manager) {
@@ -246,6 +244,9 @@ class TaskRunner {
       // ^^ if this fails, we shouldn't do the next while() loop
       // instead, do task setup later (this._setup = false)
 
+      const visited = await this._checkout.visitSite();
+      console.log(visited);
+
       this._setup = false;
 
       if (this._setup) {
@@ -268,7 +269,6 @@ class TaskRunner {
 
     async _handleMonitor() {
       const res = await this._monitor.run();
-      console.log(res);
       if(res.errors) {
         this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
         this._emitTaskEvent({
@@ -300,7 +300,6 @@ class TaskRunner {
 
     async _handleCheckout() {
       const res = await this._checkout.run();
-      console.log(res);
       if (res.errors) {
           this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
           this._emitTaskEvent({
