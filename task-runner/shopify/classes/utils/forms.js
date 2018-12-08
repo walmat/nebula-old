@@ -14,7 +14,8 @@ function buildPaymentTokenForm(task) {
 module.exports.buildPaymentTokenForm = buildPaymentTokenForm;
 
 function buildCheckoutForm(task) {
-    return {
+
+    let form = {
         "card_source": "vault",
         "pollingOptions": {
             "poll": false
@@ -30,9 +31,9 @@ function buildCheckoutForm(task) {
                 "address1": task.profile.shipping.address,
                 "address2": task.profile.shipping.apt,
                 "company": null,
-                "city": task.profile.shipping.city.label,
-                "country_code": task.profile.shipping.country.label,
-                "province_code": task.profile.shipping.state.label,
+                "city": task.profile.shipping.city,
+                "country_code": task.profile.shipping.country.value,
+                "province_code": task.profile.shipping.state.value,
                 "phone": phoneFormatter.format(
                     task.profile.shipping.phone,
                     '(NNN) NNN-NNNN'
@@ -45,9 +46,9 @@ function buildCheckoutForm(task) {
                 "address1": task.profile.billing.address,
                 "address2": task.profile.billing.apt,
                 "company": null,
-                "city": task.profile.billing.city.label,
-                "country_code": task.profile.billing.country.label,
-                "province_code": task.profile.billing.state.label,
+                "city": task.profile.billing.city,
+                "country_code": task.profile.billing.country.value,
+                "province_code": task.profile.billing.state.value,
                 "phone": phoneFormatter.format(
                     task.profile.billing.phone,
                     '(NNN) NNN-NNNN'
@@ -56,6 +57,8 @@ function buildCheckoutForm(task) {
             }
         },
     }
+    console.log(form);
+    return form;
 }
 module.exports.buildCheckoutForm = buildCheckoutForm;
 

@@ -38,6 +38,11 @@ class TaskRunner {
         this._paymentTokens = new Stack();
         
         /**
+         * Stack of shipping methods
+         */
+        this._shippingMethods = new Stack();
+
+        /**
          * Stack of successfully created checkout sessions for the runner 
          */
         this._checkouts = new Stack();
@@ -67,9 +72,10 @@ class TaskRunner {
          */
         this._checkout = new Checkout({
             ...this._context,
-            getCaptcha: this.getCaptcha.bind(this),
             paymentTokens: this._paymentTokens,
+            shippingMethods: this._shippingMethods,
             checkouts: this._checkouts,
+            getCaptcha: this.getCaptcha.bind(this),
             stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
         });
 
@@ -234,6 +240,7 @@ class TaskRunner {
         // TODO - Find random in-stock product through our parsing methods
         // ^^ if this fails, we shouldn't do the next while() loop
         // instead, do task setup later
+        // const product = await this._monitor._parseAll();
 
         // TODO - decide how many checkouts to actually preharvest
         while (this._checkouts.size() < 3) {

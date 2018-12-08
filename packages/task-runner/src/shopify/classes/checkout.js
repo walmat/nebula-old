@@ -76,6 +76,13 @@ class Checkout {
         this._paymentTokens = this._context.paymentTokens;
 
         /**
+         * Shipping methods
+         * @type {Stack}
+         */
+        this._shippingMethods = this._context.shippingMethods;
+        this._chosenShippingMethod = null;
+
+        /**
          * Checkout sessions
          * @type {Stack}
          */
@@ -105,9 +112,8 @@ class Checkout {
          */
         this._timer = new Timer();
 
-        this._checkoutUrl = null;
-        this._captchaToken = null;
-        this._shippingMethod = null;
+        this._checkoutUrl;
+        this._captchaToken;
     }
 
     static _handlePoll(delay, message, nextState) {
@@ -174,7 +180,6 @@ class Checkout {
             formData: JSON.stringify(buildCheckoutForm(this._task)),
         })
         .then((res) => {
-            console.log(res.body);
             if (res.statusCode === 303) {
                 this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
                 Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
@@ -269,15 +274,20 @@ class Checkout {
             const rates = JSON.parse(res);
 
             if (rates && rates.shipping_rates) {
-                let shippingMethod = _.min(rates.shipping_rates, (rate) => {
+                rates.forEach((rate) => {
+                    this._shippingMethods.push(rate);
+                });
+
+                const cheapest = _.min(this._shippingMethods.toArray(), (rate) => {
                     return rate.price;
-                })
+                });
+
                 this._timer.stop(now());
                 this._logger.info('Got shipping method in %d ms', this._timer.getRunTime());
-                this._shippingMethod `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`;
+                this._chosenShippingMethod = `shopify-${cheapest.name.replace('%20', ' ')}-${cheapest.price}`;
                 
                 return {
-                    message: `Using shipping method ${shippingMethod.name}`,
+                    message: `Using shipping method ${cheapest.name}`,
                     nextState: Checkout.States.PostPayment,
                 }
             } else { 
