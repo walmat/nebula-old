@@ -1,0 +1,21 @@
+{
+  "endOfLine": "lf",
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "overrides": [
+    {
+      "files": ["*.json"],
+      "options": {
+        "parser": "json5",
+        "singleQuote": false
+      }
+    },
+    {
+      "files": ["package.json"],
+      "options": {
+        "parser": "json",
+        "singleQuote": false
+      }
+    }
+  ]
+}
