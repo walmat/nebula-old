@@ -233,6 +233,13 @@ const s = [
     supported: true,
     auth: false,
   },
+  {
+    url: 'http://localhost:9000',
+    name: 'Mock Server',
+    supported: true,
+    auth: false,
+    special: true,
+  },
 ];
 
 function getAllSupportedSites() {

@@ -10,6 +10,10 @@ const DsmParser = require('./dsmParser');
 function getSpecialParser(site) {
   // TODO: Figure out a better way to do this!
   switch(site.name) {
+    case 'Mock Server': {
+      // Temporary!
+      return (...params) => new DsmParser(...params);
+    }
     case 'DSM SG':
     case 'DSM JP':
     case 'DSM US':
