@@ -18,6 +18,13 @@ function validateProduct(product) {
   const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
   const validKeywords = _.every(testKeywords, isValid => isValid === true);
 
+  // TEMPORARY! - for testing with the mock server:
+  const localhostUrlRegex = /https?:\/\/localhost:\d{2,5}/;
+  if (localhostUrlRegex.test(product)) {
+    return true;
+  }
+  // END TEMPORARY
+
   if (regexes.urlRegex.test(product)) {
     return true;
   } else if (regexes.variantRegex.test(product)) {

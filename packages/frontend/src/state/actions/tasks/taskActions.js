@@ -23,6 +23,13 @@ const _parseTaskProduct = product => {
 
   const validKeywords = kws.every(kw => regexes.keywordRegex.test(kw));
 
+  // TEMPORARY! - for testing with the mock server:
+  const localhostUrlRegex = /https?:\/\/localhost:\d{2,5}/;
+  if (localhostUrlRegex.test(product.raw)) {
+    return true;
+  }
+  // END TEMPORARY
+
   if (regexes.urlRegex.test(product.raw)) {
     // test a url match
     return {
