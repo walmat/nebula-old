@@ -1,5 +1,6 @@
 const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
+const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
     timeout: 10000,
@@ -112,7 +113,10 @@ class Parser {
         const product = matchVariant(products, this._task.product.variant, this._logger);
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
-          throw new Error('ProductNotFound');
+          // TODO: Maybe replace with a custom error object?
+          const error = new Error('ProductNotFound');
+          error.status = ErrorCodes.ProductNotFound;
+          throw error;
         }
         this._logger.silly('%s: Product found!', this._name);
         return product;
@@ -126,13 +130,17 @@ class Parser {
         const product = matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
-          throw new Error('ProductNotFound');
+          // TODO: Maybe replace with a custom error object?
+          const error = new Error('ProductNotFound');
+          error.status = ErrorCodes.ProductNotFound;
+          throw error;
         }
         this._logger.silly('%s: Matching Product found!', this._name);
         return product;
       }
       default: {
         this._logger.silly('%s: Invalid parsing type %s! throwing error', this._name, this._type);
+        // TODO: Create an ErrorCode for this
         throw new Error('InvalidParseType');
       }
     }

@@ -6,6 +6,7 @@ const rp = require('request-promise').defaults({
 });
 const Parser = require('./parser');
 const { ParseType } = require('../utils/parse');
+const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
 const { formatProxy, userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
@@ -56,6 +57,7 @@ class SpecialParser extends Parser {
       // Handle Redirect response (wait for refresh delay)
       if (error.statusCode === 302) {
         this._logger.debug('%s: Redirect Detected!', this._name);
+        // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('RedirectDetected');
         rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay
         throw rethrow;
@@ -79,8 +81,9 @@ class SpecialParser extends Parser {
         productsToVisit = this.parseInitialPage(response);
       } catch (error) {
         this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
+        // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('unable to parse initial page');
-        rethrow.status = error.statusCode || 404;
+        rethrow.status = error.statusCode || error.status || 404;
         throw rethrow;
       }
       this._logger.silly('%s: Generated Product Pages, capturing product page info...', this._name, productsToVisit);
@@ -95,8 +98,9 @@ class SpecialParser extends Parser {
         );
       } catch (error) {
         this._logger.debug('%s: ERROR parsing product info page', this._name, error);
+        // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('unable to parse product info pages!');
-        rethrow.status = error.statusCode || 404;
+        rethrow.status = error.statusCode || error.status || 404;
         throw rethrow;
       }
 
@@ -106,8 +110,9 @@ class SpecialParser extends Parser {
         matchedProduct = super.match(products);
       } catch (error) {
         this._logger.debug('%s: ERROR matching product!', this._name, error);
+        // TODO: Maybe replace with a custom error object?
         const rethrow = new Error(error.message);
-        rethrow.status = 404;
+        rethrow.status = error.status || 404;
         throw rethrow;
       }
     } else {
@@ -118,15 +123,19 @@ class SpecialParser extends Parser {
         matchedProduct = this.parseProductInfoPage(response);
       } catch (error) {
         this._logger.debug('%s: ERROR getting product!', this._name, error);
+        // TODO: Maybe replace with a custom error object?
         const rethrow = new Error(error.message);
-        rethrow.status = 404;
+        rethrow.status = error.status || 404;
         throw rethrow;
       }
     }
 
     if(!matchedProduct) {
       this._logger.silly('%s: Couldn\'t find a match!', this._name);
-      throw new Error('unable to match the product');
+      // TODO: Maybe replace with a custom error object?
+      const rethrow = new Error('unable to match the product');
+      rethrow.status = ErrorCodes.ProductNotFound;
+      throw rethrow;
     }
     this._logger.silly('%s: Product Found!', this._name);
     return matchedProduct;

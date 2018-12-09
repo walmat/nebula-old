@@ -9,6 +9,7 @@ const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require(
 const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay, generateRandom } = require('./utils');
 const { getAllSizes } = require('./utils/constants');
 const { States } = require('./utils/constants').TaskRunner;
+const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
 
@@ -179,6 +180,10 @@ class Monitor {
             parsed = await parser.run();
         } catch (error) {
             this._logger.debug('MONITOR: Error with special parsing!', error);
+            // Check for a product not found error
+            if (error.status === ErrorCodes.Parser.ProductNotFound) {
+                return { message: 'Error: Product Not Found!', nextState: States.Errored };
+            }
             return this._delay(error.status);
         }
         this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
@@ -198,33 +203,41 @@ class Monitor {
         }
 
         const parseType = getParseType(this._context.task.product, this._logger, this._context.task.site);
+        let result;
         switch(parseType) {
             case ParseType.Variant: {
                 // TODO: Add a way to determine if variant is correct
                 this._logger.verbose('MONITOR: Variant Parsing Detected');
                 this._context.task.product.variants = [this._context.task.product.variant];
                 this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
-                return { message: 'Adding to cart', nextState: States.Checkout };
+                result = { message: 'Adding to cart', nextState: States.Checkout };
+                break;
             }
             case ParseType.Url: {
                 this._logger.verbose('MONITOR: Url Parsing Detected');
-                return this._monitorUrl();
+                result = await this._monitorUrl();
+                break;
             }
             case ParseType.Keywords: {
                 this._logger.verbose('MONITOR: Keyword Parsing Detected');
-                return this._monitorKeywords();
+                result = await this._monitorKeywords();
+                break;
             }
             case ParseType.Special: {
                 this._logger.verbose('MONITOR: Special Parsing Detected');
-                return this._monitorSpecial();
+                result = await this._monitorSpecial();
+                break;
             }
             default: {
                 this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
-                // Update status and error out
-                this._context.status = 'Invalid Product Input given!';
                 return { message: 'Invalid Product Input given!', nextState: States.Errored };
             }
         }
+        // If the next state is an error, use the message as the ending status
+        if (result.nextState === States.Errored) {
+            this._context.status = result.message;
+        }
+        return result;
     }
 }
 

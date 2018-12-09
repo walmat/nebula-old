@@ -31,6 +31,13 @@ const TaskRunnerStates = {
   Stopped: 'STOPPED',
 };
 
+/**
+ * Parser Error Codes
+ */
+const ParserErrorCodes = {
+  ProductNotFound: 'PRODUCT_MISSING',
+}
+
 const getAllSizes = [
   {
     label: 'Clothing',
@@ -172,5 +179,8 @@ module.exports = {
   TaskRunner: {
     Events: TaskRunnerEvents,
     States: TaskRunnerStates,
+  },
+  ErrorCodes: {
+    Parser: ParserErrorCodes,
   },
 };

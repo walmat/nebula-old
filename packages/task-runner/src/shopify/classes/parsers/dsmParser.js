@@ -1,5 +1,6 @@
 const SpecialParser = require('./specialParser');
 const { ParseType, matchKeywords } = require('../utils/parse');
+const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
 
 /**
  * Special Parser for all DSM sites
@@ -22,10 +23,6 @@ class DsmParser extends SpecialParser {
       parsedItems.push({ link, title });
     });
 
-    if(!parsedItems.length) {
-      throw new Error('No Items Found');
-    }
-
     let items = parsedItems;
     // If parsing keywords, reduce the number of pages to search by matching the title
     if (this._type === ParseType.Keywords && items.length !== 0) {
@@ -36,6 +33,14 @@ class DsmParser extends SpecialParser {
       items = matchKeywords(parsedItems, keywords, null, null, true) || [];
     }
     this._logger.silly('%s: parsing inital page, found %d items', this._name, items.length);
+
+    if(!items.length) {
+      // If no products are found, throw an error, but specify a special status to stop the task
+      // TODO: Maybe replace with a custom error object?
+      const error = new Error('No Items Found');
+      error.status = ErrorCodes.ProductNotFound;
+      throw error;
+    }
 
     // Convert items to full urls
     const productUrls = items.map(({ link }) => {
@@ -49,7 +54,11 @@ class DsmParser extends SpecialParser {
     // Look for the script tag containing the product json
     const product = $('script#ProductJson-product-template');
     if(!product || product.attr('type') !== 'application/json') {
-      throw new Error('Could not find product data!');
+      // If no products are found, throw an error, but specify a special status to stop the task
+      // TODO: Maybe replace with a custom error object?
+      const error = new Error('No Items Found');
+      error.status = ErrorCodes.ProductNotFound;
+      throw error;
     }
     return JSON.parse(product.html());
   }
