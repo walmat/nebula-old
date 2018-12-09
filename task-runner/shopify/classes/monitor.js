@@ -192,8 +192,9 @@ class Monitor {
             }
             default: {
                 this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
-                await this._waitForErrorDelay();
-                return { message: 'Monitoring...', nextState: States.Monitor };
+                // Update status and error out
+                this._context.status = 'Invalid Product Input given!';
+                return { message: 'Invalid Product Input given!', nextState: States.Errored };
             }
         }
     }
