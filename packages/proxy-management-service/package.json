@@ -6,6 +6,7 @@
   "main": "build/index.js",
   "scripts": {
     "build": "babel src -d build",
+    "ci": "exit 0",
     "lint-fix": "eslint --fix src",
     "lint": "eslint src/",
     "prestart": "npm run build",

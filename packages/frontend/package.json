@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
-    "ci": "npm run test -- --ci",
+    "ci": "CI=true npm run test",
     "coverage": "npm run test -- --coverage",
     "dev-server": "cross-env HTTPS=true react-scripts start",
     "dev": "cross-env NODE_ENV=development electron .",
@@ -69,6 +69,7 @@
     "@babel/preset-env": "^7.2.0",
     "@babel/preset-react": "^7.0.0",
     "@types/react": "^16.7.13",
+    "babel-jest": "^23.6.0",
     "cross-env": "^5.2.0",
     "discord.js": "^11.3.2",
     "electron": "^3.0.6",
