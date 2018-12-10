@@ -57,8 +57,8 @@ module.exports.autoParse = autoParse;
  * Takes in either the pos_keywords/neg_keywords and trims the
  * +/- off of them while converting them to uppercase ahead of
  * time to be used in string comparison algorithms.
- * 
- * @param {Array} input 
+ *
+ * @param {Array} input
  * @return {Array} array of trimmed keywords
  */
 function trimKeywords(input) {

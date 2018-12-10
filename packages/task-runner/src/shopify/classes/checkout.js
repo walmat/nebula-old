@@ -1,18 +1,21 @@
 const Timer = require('./timer');
 const { States } = require('./utils/constants').TaskRunner;
 const {
-    waitForDelay,
-    formatProxy,
-    now,
-    userAgent,
-    formatter,
+  waitForDelay,
+  formatProxy,
+  now,
+  userAgent,
 } = require('./utils');
-const { buildCheckoutForm, buildPaymentTokenForm, buildPatchCartForm } = require('./utils/forms');
+const {
+  buildCheckoutForm,
+  buildPaymentTokenForm,
+  buildPatchCartForm
+} = require('./utils/forms');
 
 class Checkout {
 
     /**
-     * Checkout States
+     * Get Checkout States for checkout module
      */
     static get States() {
         return {
@@ -27,6 +30,9 @@ class Checkout {
         };
     }
 
+    /**
+     * Get delays for checkout module
+     */
     static get Delays() {
         return {
             PollShippingRates: 750,
@@ -35,13 +41,22 @@ class Checkout {
     }
 
     constructor(context) {
+      // MARK: All globals inside of context
+
       /**
        * All data needed for monitor to run
        * This includes:
        * - current runner id
        * - current task
        * - current proxy
+       * - request include
+       * - logger for task
        * - whether or not we should abort
+       * - has it been setup?
+       * - payment tokens
+       * - shipping methods
+       * - checkout tokens
+       * - both getCaptcha() & stopHarvestCaptcha() FNs
        * @type {TaskRunnerContext}
        */
       this._context = context;
@@ -59,18 +74,35 @@ class Checkout {
       this._task = this._context.task;
 
       /**
+       * Proxy to run the task with
+       * @type {String}
+       */
+      this._proxy = this._context.proxy;
+
+      /**
        * Request with Cookie Jar
        * @type {HTTPRequest}
        */
       this._request = this._context.request;
 
-      this._setup = this._context.setup;
+      this._jar = this._context.jar;
 
       /**
-       * Proxy to run the task with
-       * @type {String}
+       * Logger Instance
+       * @type {Logger}
        */
-      this._proxy = this._context.proxy;
+      this._logger = this._context.logger;
+
+      /**
+       * Whether this task runner has aborted
+       * @type {Boolean}
+       */
+      this._aborted = this._context.aborted;
+
+      /**
+       * Has the task been setup yet?
+       */
+      this._setup = this._context.setup;
 
       /**
        * Payment tokens
@@ -83,7 +115,6 @@ class Checkout {
        * @type {Stack}
        */
       this._shippingMethods = this._context.shippingMethods;
-      this._chosenShippingMethod = null;
 
       /**
        * Checkout sessions
@@ -91,17 +122,13 @@ class Checkout {
        */
       this._checkouts = this._context.checkouts;
 
-      /**
-       * Whether this task runner has aborted
-       * @type {Boolean}
-       */
-      this._aborted = this._context.aborted;
+
+      // MARK: All globals outside of context
 
       /**
-       * Logger Instance
-       * @type {Logger}
+       * Shipping method that is being used
        */
-      this._logger = this._context.logger;
+      this._chosenShippingMethod = null;
 
       /**
        * Current state of the checkout state machine
@@ -115,7 +142,14 @@ class Checkout {
        */
       this._timer = new Timer();
 
+      /**
+       * Current checkout token
+       */
       this._checkoutToken;
+
+      /**
+       * Current captcha token
+       */
       this._captchaToken;
     }
 
@@ -144,18 +178,19 @@ class Checkout {
               'User-Agent': userAgent,
               'Content-Type': 'application/json',
           },
+          jar: this._jar,
           body: JSON.stringify(buildPaymentTokenForm(this._task)),
       })
       .then((res) => {
-          this._timer.stop(now());
-          this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
-          const body = JSON.parse(res);
-          if (body && body.id) {
-              // MARK: set payment token
-              this._logger.verbose('Payment token: %s', body.id);
-              return body.id;
-          }
-          return null;
+        this._timer.stop(now());
+        this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
+        const body = JSON.parse(res);
+        if (body && body.id) {
+            // MARK: set payment token
+            this._logger.verbose('Payment token: %s', body.id);
+            return body.id;
+        }
+        return null;
       })
       .catch((err) => {
           this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
@@ -168,16 +203,8 @@ class Checkout {
 
     async _handleCreateCheckout() {
 
-      var headers = {
-        'Accept': 'application/json',
-        'cache-control': 'no-store',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
-        'host': 'kith.com',
-        'cookie': '_shopify_y=1f2261ba-cda9-4d05-a201-c530440ca585; _orig_referrer=; secure_customer_sig=; _landing_page=%2Fcollections%2Ffootwear%2Fproducts%2Fnike-air-jordan-12-retro-gym-red-black; cart_sig=; _secure_session_id=6a81c7fa821fc501b88da259028e3104',
-        'authorization': 'Basic MDg0MzBiOTZjNDdkZDJhYzhlMTdlMzA1ZGIzYjcxZTg6Og=='
-      };
-
+      // TODO - need cookies to get set?? idk..
+      // need `authorization: Basic <hash>` in header as well
       return this._request({
         uri: `${this._task.site.url}/wallets/checkouts`,
         method: 'POST',
@@ -186,11 +213,18 @@ class Checkout {
         json: true,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
-        headers,
+        jar: this._jar,
+        headers: {
+          'Accept': 'application/json',
+          'cache-control': 'no-store',
+          'Content-Type': 'application/json',
+          'User-Agent': userAgent,
+          'host': `${this._task.site.url}`,
+        },
         body: JSON.stringify(buildCheckoutForm(this._task)),
       })
       .then((res) => {
-        console.log(res.body);
+        console.log(res);
         if (res.statusCode === 303) {
             this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
             Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
@@ -258,6 +292,7 @@ class Checkout {
               rejectUnauthorized: false,
               resolveWithFullResponse: true,
               headers,
+              jar: this._jar,
               body: JSON.stringify(buildPatchCartForm(this._task.product.variants[0])),
           })
           .then((res) => {

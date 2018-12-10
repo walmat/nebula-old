@@ -1,10 +1,4 @@
 const EventEmitter = require('events');
-const jar = require('request-promise').jar();
-const request = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
-})
-
 const { Stack } = require('./classes/stack');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
@@ -51,6 +45,12 @@ class TaskRunner {
          */
         this._checkouts = new Stack();
 
+        this._jar = require('request-promise').jar();
+        this._request = require('request-promise').defaults({
+          timeout: 10000,
+          jar: this._jar,
+        });
+
         /**
          * The context of this task runner
          *
@@ -61,7 +61,8 @@ class TaskRunner {
             id,
             task,
             proxy,
-            request,
+            request: this._request,
+            jar: this._jar,
             logger: this._logger,
             aborted: false,
         };
@@ -84,7 +85,7 @@ class TaskRunner {
             stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
         });
 
-        this._account = new Account(this._context, this._timer, request);
+        this._account = new Account(this._context, this._timer, this._request);
 
         /**
          * Create a new event emitter to handle all IPC communication
@@ -243,6 +244,7 @@ class TaskRunner {
       // TODO - Find random in-stock product through our parsing methods
       // ^^ if this fails, we shouldn't do the next while() loop
       // instead, do task setup later (this._setup = false)
+
       this._setup = false;
 
       if (this._setup) {
