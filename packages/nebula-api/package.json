@@ -1,0 +1,25 @@
+{
+  "name": "@nebula/api",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "cross-env": "^5.2.0",
+    "eslint-config-google": "^0.9.1",
+    "nodemon": "^1.18.7"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.229.1",
+    "cors": "^2.8.4",
+    "dotenv": "^5.0.1",
+    "express": "^4.16.3",
+    "jsonwebtoken": "^8.2.2",
+    "moment": "^2.22.2",
+    "node-fetch": "^2.1.2",
+    "recaptcha-verify": "^0.1.1"
+  },
+  "scripts": {
+    "start": "npm run prod",
+    "dev": "cross-env NODE_ENV=development nodemon src/app.js",
+    "prod": "cross-env NODE_ENV=production nodemon src/app.js"
+  }
+}

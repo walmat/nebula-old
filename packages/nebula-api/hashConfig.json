@@ -1,0 +1,5 @@
+{
+  salt: 'iENoBERAthectanEsTAYrOnse',
+  algo: 'sha256',
+  output: 'hex',
+}

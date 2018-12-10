@@ -1,8 +1,0 @@
-# Created by .ignore support plugin (hsz.mobi)
-
-# dependencies
-node_modules
-
-# private files
-.eslintrc.json
-config.json

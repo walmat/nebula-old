@@ -1,9 +1,26 @@
-node_modules/*
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+# Don't forget that .gitignore files cascade!
+
+# dependencies
+node_modules/
 package-lock.json
+# testing
+coverage/
+# production
 build/
+# misc
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 dynamodb_local/
 _dynamodb_local/
 _design-files/
 _legal/
 .DS_Store
-.vscode/
+.vscode/*
+!.vscode/extensions.json

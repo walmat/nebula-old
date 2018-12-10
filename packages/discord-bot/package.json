@@ -1,0 +1,26 @@
+{
+  "name": "@nebula/discord-bot",
+  "version": "0.1.0",
+  "description": "nebula discord bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "Matthew Wall",
+  "license": "MIT",
+  "devDependencies": {
+    "discord.js": "^11.3.2"
+  },
+  "dependencies": {
+    "bufferutil": "^3.0.3",
+    "dotenv": "^6.0.0",
+    "erlpack": "discordapp/erlpack",
+    "fs": "0.0.1-security",
+    "node-fetch": "^2.1.2",
+    "node-opus": "^0.2.7",
+    "nodemon": "^1.18.7",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2"
+  }
+}
