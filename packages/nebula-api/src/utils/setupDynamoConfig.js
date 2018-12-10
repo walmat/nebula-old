@@ -13,7 +13,7 @@ function getConfig() {
     accessKeyId: process.env.NEBULA_API_DYNAMODB_ACCESS_KEY || baseConfig.accessKeyId,
     secretAccessKey: process.env.NEBULA_API_DYNAMODB_SECRET_KEY || baseConfig.secretAccessKey,
   };
-  
+
   return config;
 }
 module.exports.getConfig = getConfig;

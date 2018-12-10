@@ -1,16 +1,14 @@
+const AWS = require("aws-sdk");
 const authenticate = require('../../middleware/authenticate');
+const nebulaEnv = require('../../utils/env');
+nebulaEnv.setUpEnvironment();
+var config = require('../../utils/setupDynamoConfig').getConfig();
+AWS.config = new AWS.Config(config);
+const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+
+const LATEST_VERSION = process.env.NEBULA_API_SITES_LATEST_VERSION || "1.0.0";
 
 async function getAllSites() {
-    var AWS = require("aws-sdk");
-    const nebulaEnv = require('../../utils/env');
-    nebulaEnv.setUpEnvironment();
-    var config = require('../../utils/setupDynamoConfig').getConfig();
-
-    AWS.config = new AWS.Config(config);
-    const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-
-    AWS.config.update(config);
-
     try {
       let params = {
         TableName: "Sites"
@@ -24,17 +22,46 @@ async function getAllSites() {
         console.log(err);
       return null;
     }
-  }
+}
+
+async function getSiteListVersion() {
+    try {
+        let params = {
+            TableName: "Versions"
+        }
+    }
+}
 
 module.exports = async function(app) {
+    /**
+     * Get a specific sitelist veresion
+     */
     app.get('/config/sites/:version', authenticate, async (req, res) => {
-        const sites = await getAllSites();
+
+        const version = req.params.version;
+        const sites = await getAllSites(version);
         if (sites) {
             res.status(200).json({ sites: sites });
         } else {
             res.status(404).json({
                 name: 'NotFound',
-                message: 'Site list not found'
+                message: 'Site list not found',
+            });
+        }
+    });
+
+    /**
+     * Get the latest sitelist version
+     */
+    app.get('/config/sites/latest', authenticate, async (req, res) => {
+        const version = await getSiteListVersion();
+
+        if (version) {
+            res.status(200).json({ version: LATEST_VERSION });
+        } else {
+            res.status(404).json({
+                name: 'NotFound',
+                message: 'Latest version not found',
             });
         }
     });
