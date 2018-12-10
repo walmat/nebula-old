@@ -48,9 +48,24 @@ var keys = {
     }
 };
 
+var sites = {
+    TableName: "Sites",
+    KeySchema: [
+        { AttributeName: "label", KeyType: "HASH" }, // Partition Key
+
+    ],
+    AttributeDefinitions: [
+        { AttributeName: "label", AttributeType: "S" },
+    ],
+    ProvisionedThroughput: {
+        ReadCapacityUnits: 5,
+        WriteCapacityUnits: 5,
+    }
+}
+
 dynamodb.createTable(users, function(err, data) {
     if (err) {
-        console.log("Error creating table users.", JSON.stringify(err, null, 2));
+        console.log("Error creating table users %s", JSON.stringify(err, null, 2));
     } else {
         console.log("Created table: Users.", JSON.stringify(data, null, 2));
     }
@@ -58,7 +73,7 @@ dynamodb.createTable(users, function(err, data) {
 
 dynamodb.createTable(discord, function(err, data) {
     if (err) {
-        console.log("Error creating table Discord.", JSON.stringify(err, null, 2));
+        console.log("Error creating table Discord %s", JSON.stringify(err, null, 2));
     } else {
         console.log("Created table: Discord.", JSON.stringify(data, null, 2));
     }
@@ -66,8 +81,16 @@ dynamodb.createTable(discord, function(err, data) {
 
 dynamodb.createTable(keys, function(err, data) {
     if (err) {
-        console.error("Unable to create table Key.", JSON.stringify(err, null, 2));
+        console.error("Unable to create table Key: %s", JSON.stringify(err, null, 2));
     } else {
         console.log("Created table: Keys.", JSON.stringify(data, null, 2));
+    }
+});
+
+dynamodb.createTable(sites, function(err, data) {
+    if (err) {
+        console.error("Unable to create table Sites: %s", JSON.stringify(err, null, 2));
+    } else {
+        console.log("Created table: Sites.", JSON.stringify(data, null, 2));
     }
 });
