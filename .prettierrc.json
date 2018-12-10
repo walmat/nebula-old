@@ -20,15 +20,10 @@
       "files": ["*.json"],
       "excludeFiles": ["package.json"],
       "options": {
-        "parser": "json5"
-      }
-    },
-    {
-      "files": ["package.json"],
-      "options": {
         "parser": "json"
       }
     },
+
     {
       "files": ["*.css", "*.css3", "*.css4"],
       "options": {
