@@ -54,16 +54,7 @@ module.exports = async function(app) {
      * Get the latest sitelist version
      */
     app.get('/config/sites/latest', authenticate, async (req, res) => {
-        const version = await getSiteListVersion();
-
-        if (version) {
-            res.status(200).json({ version: LATEST_VERSION });
-        } else {
-            res.status(404).json({
-                name: 'NotFound',
-                message: 'Latest version not found',
-            });
-        }
+        res.status(200).json({ version: LATEST_VERSION });
     });
 
     // do not allow ANY post requests to this endpoint
