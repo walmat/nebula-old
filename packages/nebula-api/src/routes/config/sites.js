@@ -24,15 +24,14 @@ async function getAllSites() {
     }
 }
 
-async function getSiteListVersion() {
-    try {
-        let params = {
-            TableName: "Versions"
-        }
-    }
-}
-
 module.exports = async function(app) {
+    /**
+     * Get the latest sitelist version
+     */
+    app.get('/config/sites/latest', authenticate, async (req, res) => {
+        res.status(200).json({ version: LATEST_VERSION });
+    });
+    
     /**
      * Get a specific sitelist veresion
      */
@@ -48,13 +47,6 @@ module.exports = async function(app) {
                 message: 'Site list not found',
             });
         }
-    });
-
-    /**
-     * Get the latest sitelist version
-     */
-    app.get('/config/sites/latest', authenticate, async (req, res) => {
-        res.status(200).json({ version: LATEST_VERSION });
     });
 
     // do not allow ANY post requests to this endpoint
