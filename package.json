@@ -48,7 +48,7 @@
       "git add"
     ],
     "*.jsx?": [
-      "prettier --write",
+      "eslint --no-ignore --fix",
       "git add"
     ]
   }
