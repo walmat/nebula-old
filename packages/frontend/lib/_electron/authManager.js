@@ -1,6 +1,9 @@
 const Store = require('electron-store');
 const fetch = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
 
+const AppSetup = require('./appSetup');
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
 const nebulaCheckUpdates = require('./checkUpdates');
@@ -88,6 +91,7 @@ class AuthManager {
           'session',
           JSON.stringify({ accessToken, refreshToken, expiry }),
         );
+
         return { accessToken, refreshToken, expiry };
       }
       const { error } = await res.json();
@@ -184,6 +188,13 @@ class AuthManager {
         windowManager.transitionToDeauthedState();
       }
     } else {
+      // setup app – pull in site list for now
+      const appSetup = new AppSetup(this._context);
+      const sites = await appSetup.fetchSiteList();
+      if (sites) {
+        fs.writeFileSync(path.join(__dirname, 'sites.json'), sites);
+      }
+
       const win = windowManager.transitiontoAuthedState();
       // TODO - write proper check for updates functionality
       // nebulaCheckUpdates.checkForUpdates(win);
