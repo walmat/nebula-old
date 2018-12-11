@@ -194,10 +194,9 @@ class AuthManager {
       if (sites) {
         fs.writeFileSync(path.join(__dirname, 'sites.json'), sites);
       }
-
-      const win = windowManager.transitiontoAuthedState();
       // TODO - write proper check for updates functionality
       // nebulaCheckUpdates.checkForUpdates(win);
+      const win = windowManager.transitiontoAuthedState();
     }
   }
 
