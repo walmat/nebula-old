@@ -51,11 +51,11 @@ var keys = {
 var sites = {
     TableName: "Sites",
     KeySchema: [
-        { AttributeName: "label", KeyType: "HASH" }, // Partition Key
+        { AttributeName: "name", KeyType: "HASH" }, // Partition Key
 
     ],
     AttributeDefinitions: [
-        { AttributeName: "label", AttributeType: "S" },
+        { AttributeName: "name", AttributeType: "S" },
     ],
     ProvisionedThroughput: {
         ReadCapacityUnits: 5,

@@ -3,7 +3,7 @@
         "name": "12AM Run",
         "url": "https://12amrun.com",
         "apiKey": "e5b0d0dc103ac126c494f8cc1fd70fe9",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -11,7 +11,7 @@
         "name": "A-Ma-Maniere",
         "url": "https://a-ma-maniere.com",
         "apiKey": "23348e90253d0a4895d5524b79914bbe",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -19,7 +19,7 @@
         "name": "APB Store",
         "url": "https://apbstore.com",
         "apiKey": "cf7dd82098a4388648acb12a5a9aa063",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -27,7 +27,7 @@
         "name": "Addict Miami",
         "url": "https://addictmiami.com",
         "apiKey": "902bdaf4657c0001f57576ff2d7e9950",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -35,7 +35,7 @@
         "name": "Anti Social Social Club",
         "url": "https://shop.antisocialsocialclub.com",
         "apiKey": "4189262a3c6b7c3fea963c5602c51182",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -43,7 +43,7 @@
         "name": "BBC Ice Cream US",
         "url": "https://shop.bbcicecream.com",
         "apiKey": "344bd1cc389a1b9d715d6a9103761258",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -51,7 +51,7 @@
         "name": "BBC Ice Cream EU",
         "url": "https://bbcicecream.eu",
         "apiKey": "5d18d2cf2f1179ec99f8c127120d5d88",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -59,7 +59,7 @@
         "name": "Bape",
         "url": "https://us.bape.com",
         "apiKey": "a45de9ba54947c6286e329042853dafc",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": ""
     },
@@ -67,7 +67,7 @@
         "name": "Beatnic Online",
         "url": "https://beatniconline.com",
         "apiKey": "f40672d49a69047fc526dceb4255ae7a",
-        "auth": "false",
+        "auth": false,
         "supported": "unsupported",
         "sizeOptionIndex": "1"
     },
@@ -75,7 +75,7 @@
         "name": "Black Market US",
         "url": "https://blkmkt.us",
         "apiKey": "8fe3dbccac6a59eefb67a5bbeb490b42",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -83,7 +83,7 @@
         "name": "Blends",
         "url": "https://blendsus.com",
         "apiKey": "a695a9ac76b89f50663628617f8498f6",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -91,7 +91,7 @@
         "name": "Bodega",
         "url": "https://shop.bdgastore.com",
         "apiKey": "dbd316d5c797eb8e3caede9dd08f92ef",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -99,7 +99,7 @@
         "name": "Bows & Arrows",
         "url": "https://bowsandarrowsberkeley.com",
         "apiKey": "4e1a1ec97a4ba0c0b8c4042f75b3e6dd",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -107,7 +107,7 @@
         "name": "Burn Rubber",
         "url": "https://burnrubbersneakers.com",
         "apiKey": "7bbda6e82f72c3dba50a7f27be6227ec",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -115,7 +115,7 @@
         "name": "Commonwealth",
         "url": "https://commonwealth-ftgg.com",
         "apiKey": "9f57a59e7362969406227b0d77620ba9",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -123,7 +123,7 @@
         "name": "Concepts",
         "url": "https://cncpts.com",
         "apiKey": "41d0a419f6f4c191d52037d17a58e6df",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -131,7 +131,7 @@
         "name": "Courtside Sneakers",
         "url": "https://courtsidesneakers.com",
         "apiKey": "df3f69558213cc0733a48de759c86409",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
 
@@ -140,7 +140,7 @@
         "name": "DSM US",
         "url": "https://eflash-us.doverstreetmarket.com",
         "apiKey": "c61dfd7121456f05d58cedf7a0b068b6",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "special": "true",
         "sizeOptionIndex": "1"
@@ -149,7 +149,7 @@
         "name": "DSM UK",
         "url": "https://eflash.doverstreetmarket.com",
         "apiKey": "0386ed516cfb121c71eee5a33b357cc6",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "special": "true",
         "sizeOptionIndex": "1"
@@ -158,7 +158,7 @@
         "name": "DSM SG",
         "url": "https://eflash-sg.doverstreetmarket.com",
         "apiKey": "0867cfd02e49786c54fd1a9fd02f03cd",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "special": "true",
         "sizeOptionIndex": "1"
@@ -167,7 +167,7 @@
         "name": "DSM JP",
         "url": "https://eflash-jp.doverstreetmarket.com",
         "apiKey": "8cbefa53e1484d3a39a41396a00b9fe9",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "special": "true",
         "sizeOptionIndex": "1"
@@ -176,7 +176,7 @@
         "name": "Exclucity",
         "url": "https://shop.exclucitylife.com",
         "apiKey": "c4fc1d7d22415da024299c8629e85d3a",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -184,7 +184,7 @@
         "name": "Extra Butter",
         "url": "https://shop.extrabutterny.com",
         "apiKey": "9474824e25b8e9a0f6ecd7d8be9a79de",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -192,7 +192,7 @@
         "name": "Feature",
         "url": "https://featuresneakerboutique.com",
         "apiKey": "d3ced42695b5dc27734d4638c3a97ae1",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -200,7 +200,7 @@
         "name": "Funko Shop",
         "url": "https://funko-shop.myshopify.com",
         "apiKey": "a861544cb572058d21ab033f62010615",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -208,7 +208,7 @@
         "name": "Graffiti Prints",
         "url": "https://graffitiprints.myshopify.com",
         "apiKey": "ae5f37d01a094736115bd94fb9b94db5",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -216,7 +216,7 @@
         "name": "Haven",
         "url": "https://shop.havenshop.ca",
         "apiKey": "b2d28cc6049fca1d79dbc390a0fef334",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -224,7 +224,7 @@
         "name": "Highs & Lows",
         "url": "https://highsandlows.net.au",
         "apiKey": "29452cd62f80a6435ff15e311766261d",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -232,7 +232,7 @@
         "name": "History Of NY",
         "url": "https://shophny.com",
         "apiKey": "f3eaf4a05d9a5476835fd1ca23b1845b",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -240,7 +240,7 @@
         "name": "Hotoveli",
         "url": "https://hotoveli.com",
         "apiKey": "c15497edebc46d4178eb823ce3b7b695",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -248,7 +248,7 @@
         "name": "John Geigerco",
         "url": "https://johngeigerco.com",
         "apiKey": "74710b3ac1c583d3e1e17aef8ba07c84",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -256,7 +256,7 @@
         "name": "Kith",
         "url": "https://kith.com",
         "apiKey": "08430b96c47dd2ac8e17e305db3b71e8",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -264,7 +264,7 @@
         "name": "Kylie Cosmetics",
         "url": "https://kyliecosmetics.com",
         "apiKey": "d3ec1d3b053a5239a379cb3f1d99cf90",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -272,7 +272,7 @@
         "name": "Lapstone & Hammer",
         "url": "https://lapstoneandhammer.com",
         "apiKey": "49b214ac5d8865c0b591436dc44be785",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -280,7 +280,7 @@
         "name": "Livestock",
         "url": "https://deadstock.ca",
         "apiKey": "29c1e1054770e9694717256c270f4359",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -288,7 +288,7 @@
         "name": "Machus",
         "url": "https://machusonline.com",
         "apiKey": "85ef1c2852f958c66504c5bf1768c729",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -296,7 +296,7 @@
         "name": "Mini Shop Madrid",
         "url": "https://minishopmadrid.com",
         "apiKey": "2c6add37c950bfc5f979b2bcc75da4ac",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -304,7 +304,7 @@
         "name": "Nebula Test Site",
         "url": "https://nebulabots.com",
         "apiKey": "6526a5b5393b6316a64853cfe091841c",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -312,7 +312,7 @@
         "name": "NRML",
         "url": "https://nrml.ca",
         "apiKey": "6f55f8c75577c1063d8489c94d9ab122",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -320,7 +320,7 @@
         "name": "Noirfonce",
         "url": "https://noirfonce.eu",
         "apiKey": "39aa752c77d4ac53e9daf9d49f61c0ad",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -328,7 +328,7 @@
         "name": "Notre",
         "url": "https://notre-shop.com",
         "apiKey": "2f85af10bb30c1b7a78259b6c1c49d53",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -336,7 +336,7 @@
         "name": "Obey Giant",
         "url": "https://store.obeygiant.com",
         "apiKey": "2aaaddc9a967cab510a9f6e00dfba13c",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -344,7 +344,7 @@
         "name": "Octobers Very Own CA",
         "url": "https://ca.octobersveryown.com",
         "apiKey": "97f3874f6d268f1c681d88ef789edee3",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -352,7 +352,7 @@
         "name": "Octobers Very Own US",
         "url": "https://us.octobersveryown.com",
         "apiKey": "97f3874f6d268f1c681d88ef789edee3",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -360,7 +360,7 @@
         "name": "Octobers Very Own UK",
         "url": "https://uk.octobersveryown.com",
         "apiKey": "a388ac8dce2553267e06840eda2f07c4",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -368,7 +368,7 @@
         "name": "Off The Hook",
         "url": "https://offthehook.ca",
         "apiKey": "2e0e6c2f045e1c04714f65b0a0b30b0c",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -376,7 +376,7 @@
         "name": "Oipolloi",
         "url": "https://oipolloi.com",
         "apiKey": "fc5579f3adf2889237757219239a7f40",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -384,7 +384,7 @@
         "name": "Omocat",
         "url": "https://www.omocat-shop.com",
         "apiKey": "c981c52d7e758c188f193028d90b4eb4",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -392,7 +392,7 @@
         "name": "Oneness 287",
         "url": "https://onenessboutique.com",
         "apiKey": "5de5d471976e82ceba582a81606e0ac5",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -400,7 +400,7 @@
         "name": "Packer Shoes",
         "url": "https://packershoes.com",
         "apiKey": "b26bacc7a6c3fb5ea949af1df91f3d1b",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -408,7 +408,7 @@
         "name": "Palace US",
         "url": "https://shop-usa.palaceskateboards.com",
         "apiKey": "59571a4e503fc3164848c544a5fda777",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -416,7 +416,7 @@
         "name": "Palace UK",
         "url": "https://shop.palaceskateboards.com",
         "apiKey": "c1369ef0027f554f66e555f2c1347048",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -424,7 +424,7 @@
         "name": "Palace JP",
         "url": "https://shop-jp.palaceskateboards.com",
         "apiKey": "174834a020c4994e48f0405e0017ea51",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -432,7 +432,7 @@
         "name": "Par-5 Milano Yeezy",
         "url": "https://par5-milano-yeezy.com",
         "apiKey": "a5ed56888e0d5653c9f59687ed58b0fe",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -440,7 +440,7 @@
         "name": "Places+Faces",
         "url": "https://shop.placesplusfaces.com",
         "apiKey": "5a3ea828f3e6dbe89acd803835adcfca",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -448,7 +448,7 @@
         "name": "Premier",
         "url": "https://thepremierstore.com",
         "apiKey": "8c89a0773c5d8422ed2309eccd694464",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -456,7 +456,7 @@
         "name": "Proper LBC",
         "url": "https://properlbc.com",
         "apiKey": "5c6d8f621dc3cd0cc5f37886ea8aa34f",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -464,7 +464,7 @@
         "name": "RSVP Gallery",
         "url": "https://rsvpgallery.com",
         "apiKey": "68861eece3d19735546a05faf429e759",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -472,7 +472,7 @@
         "name": "Reigning Champ",
         "url": "https://us.reigningchamp.com",
         "apiKey": "cdecb98ef85c1fac66576864dbd5ab9c",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -480,7 +480,7 @@
         "name": "Renarts",
         "url": "https://renarts.com",
         "apiKey": "fe288dcbb1f39f890295118d31cef77e",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -488,7 +488,7 @@
         "name": "Rime NYC",
         "url": "https://rimenyc.com",
         "apiKey": "1b12b20efde8a2055a4b11b7821a4e02",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -496,7 +496,7 @@
         "name": "Rise 45",
         "url": "https://rise45.com",
         "apiKey": "f2be3597cd0ea22e67c89a3b5b5b22fd",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -504,7 +504,7 @@
         "name": "Rock City Kicks",
         "url": "https://rockcitykicks.com",
         "apiKey": "0e2c941e4486f31180e1385a50546d2d",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -512,7 +512,7 @@
         "name": "Ronin Division",
         "url": "https://ronindivision.com",
         "apiKey": "ce83c8b3b27a07c74b13ada3f4d492f4",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -520,7 +520,7 @@
         "name": "Ronnie Fieg",
         "url": "https://shop.ronniefieg.com",
         "apiKey": "918f5b1828654f4587fca2eba1f6c8fb",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -528,7 +528,7 @@
         "name": "Saint Alfred",
         "url": "https://saintalfred.com",
         "apiKey": "849af6fa065de14b021e119a4ad12bc0",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -536,7 +536,7 @@
         "name": "Shoe Gallery Miami",
         "url": "https://shoegallerymiami.com",
         "apiKey": "4b29eb8c96c04b163ae2fac313043717",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -544,7 +544,7 @@
         "name": "Shop Nice Kicks",
         "url": "https://shopnicekicks.com",
         "apiKey": "9d6556dc3ee20bf6b1a0971ad22f8238",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -552,7 +552,7 @@
         "name": "Sneaker Politics",
         "url": "https://sneakerpolitics.com",
         "apiKey": "e7f4837ec5196326af7949de4b8381fe",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -560,7 +560,7 @@
         "name": "Sneaker World Shop",
         "url": "https://sneakerworldshop.com",
         "apiKey": "16237dc64c7903f7ba0eab11b553137a",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -568,7 +568,7 @@
         "name": "Social Status PGH",
         "url": "https://socialstatuspgh.com",
         "apiKey": "a62a7cdb1689c171a551ac61e92dc08a",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -576,7 +576,7 @@
         "name": "Solefly",
         "url": "https://solefly.com",
         "apiKey": "b51037e17cfc5e142a20ef01f0b44751",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -584,7 +584,7 @@
         "name": "Soleheaven",
         "url": "https://soleheaven.com",
         "apiKey": "f66897bb7b81a7e1e39961a21b014629",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -592,7 +592,7 @@
         "name": "Staple Pigeon",
         "url": "https://staplepigeon.com",
         "apiKey": "2d91ae06229ae2f075a0db19de909e7c",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -600,7 +600,7 @@
         "name": "Stone Island",
         "url": "https://stoneisland.co.uk",
         "apiKey": "aa1ba753ddfb01280ad3bcdc72f34206",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -608,7 +608,7 @@
         "name": "Suede",
         "url": "https://suede-store.com",
         "apiKey": "71f164fa1c603d9d3da229312d52cc1d",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -616,7 +616,7 @@
         "name": "Trophy Room",
         "url": "https://trophyroomstore.com",
         "apiKey": "1b124ca786ab5fc9065699f1a383a139",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -624,7 +624,7 @@
         "name": "Undefeated",
         "url": "https://undefeated.myshopify.com",
         "apiKey": "a0faf54ad7ec6fbbab86cd3f949c3cb9",
-        "auth": "true",
+        "auth": true,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -632,7 +632,7 @@
         "name": "Unknown",
         "url": "https://unknwn.com",
         "apiKey": "5ba2ba340438b8d9aaca1a5ddb1ad0f5",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -640,7 +640,7 @@
         "name": "Vlone",
         "url": "https://vlone.co",
         "apiKey": "9230a93fa2cc3d0ade7bc1ebdc4c57ab",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -648,7 +648,7 @@
         "name": "Wish ATL",
         "url": "https://wishatl.com",
         "apiKey": "7678df516143cdcb4c72168e8556b583",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
     },
@@ -656,7 +656,7 @@
         "name": "World Of Hombre",
         "url": "https://worldofhombre.com",
         "apiKey": "4fb4d606b320228541a5d97b0ce8b614",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -664,7 +664,7 @@
         "name": "Xhibition",
         "url": "https://xhibition.co",
         "apiKey": "7f11f1a79cb6f8d07bca2f1d113177ef",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -672,7 +672,7 @@
         "name": "Yeezy Supply",
         "url": "https://yeezysupply.com",
         "apiKey": "afa13d942580749aa2985b086cc0bdcb",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "special": "true",
         "sizeOptionIndex": "1"
@@ -681,7 +681,7 @@
         "name": "Justin Timberlake",
         "url": "https://shop.justintimberlake.com",
         "apiKey": "912ee12555b1728feefb55f85c6d7ba8",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -689,7 +689,7 @@
         "name": "The Closet Inc",
         "url": "https://theclosetinc.com",
         "apiKey": "5e2769503be62e4bc6e746fb31678180",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -697,7 +697,7 @@
         "name": "Fear Of God",
         "url": "https://fearofgod.com",
         "apiKey": "0cf616930515540d894572734816ed6a",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -705,7 +705,7 @@
         "name": "Stampd",
         "url": "https://stampd.com",
         "apiKey": "fa5d510170a2da81eaaea8c83437f2c5",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -713,7 +713,7 @@
         "name": "Travis Scott Store",
         "url": "https://store.travisscott.com",
         "apiKey": "8eadffbda47bb8f4167fbf8a086590e0",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -721,7 +721,7 @@
         "name": "Travis Scott Shop",
         "url": "https://shop.travisscott.com",
         "apiKey": "8eadffbda47bb8f4167fbf8a086590e0",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -729,7 +729,7 @@
         "name": "Just Don",
         "url": "https://justdon.com",
         "apiKey": "2df51fc89cc41bbe749aed235d8e0df9",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -737,7 +737,7 @@
         "name": "Less One Seven",
         "url": "https://lessoneseven.com",
         "apiKey": "29d7874ed8083fa025a2e863ef87f145",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -745,7 +745,7 @@
         "name": "The Dark Side Initiative",
         "url": "https://thedarksideinitiative.com",
         "apiKey": "3332f96a11efce8997d46bc4962c9737",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -753,7 +753,7 @@
         "name": "Fice Gallery",
         "url": "https://ficegallery.com",
         "apiKey": "1b5be89fa110de5f11243a85cce0e119",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -761,7 +761,7 @@
         "name": "Hanon Shop",
         "url": "https://hanon-shop.com",
         "apiKey": "f73913c594921bdd6a18a32bc2e2d7df",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -769,7 +769,7 @@
         "name": "Good As Gold",
         "url": "https://shop.goodasgoldshop.com",
         "apiKey": "07db20111ebed93006480b20356a4c7a",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -777,7 +777,7 @@
         "name": "Lace Up NYC",
         "url": "https://laceupnyc.com",
         "apiKey": "299490a7a803c9be7370c4805e897bca",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -785,7 +785,7 @@
         "name": "Ellen Shop",
         "url": "https://www.ellenshop.com",
         "apiKey": "7ab71d2c78d37b30c90d7cdd32aa92e4",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     },
@@ -793,7 +793,7 @@
         "name": "Toy Tokyo",
         "url": "https://launch.toytokyo.com",
         "apiKey": "5def25a5a53c2da81aac5a6aee9733d1",
-        "auth": "false",
+        "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "1"
     }

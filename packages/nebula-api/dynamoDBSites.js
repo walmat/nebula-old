@@ -24,7 +24,7 @@ async function storeSite(site) {
           S: site.supported,
         },
         "special": {
-          BOOL: site.special
+          BOOL: site.special || false,
         },
         "sizeOptionIndex": {
           N: site.sizeOptionIndex,

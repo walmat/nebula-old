@@ -191,8 +191,12 @@ class AuthManager {
       // setup app – pull in site list for now
       const appSetup = new AppSetup(this._context);
       const sites = await appSetup.fetchSiteList();
+      console.log(sites);
       if (sites) {
-        fs.writeFileSync(path.join(__dirname, 'sites.json'), sites);
+        sites.forEach(site => {
+          fs.appendFileSync(path.join(__dirname, 'sites.json'), site);
+        });
+        // fs.writeFileSync(path.join(__dirname, 'sites.json'), sites);
       }
       // TODO - write proper check for updates functionality
       // nebulaCheckUpdates.checkForUpdates(win);
