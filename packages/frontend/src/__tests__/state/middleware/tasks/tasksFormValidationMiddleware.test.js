@@ -444,10 +444,13 @@ describe('task form validation middleware', () => {
           testErrorFlag({
             field: TASK_FIELDS.EDIT_SITE,
             value: {
-              url: 'https://amongstfew.com',
-              name: 'Amongst Few',
-              supported: true,
+              special: false,
+              apiKey: '8fe3dbccac6a59eefb67a5bbeb490b42',
               auth: false,
+              name: 'Black Market US',
+              url: 'https://blkmkt.us',
+              supported: 'experimental',
+              sizeOptionIndex: 1,
             },
             valid: true,
           }));

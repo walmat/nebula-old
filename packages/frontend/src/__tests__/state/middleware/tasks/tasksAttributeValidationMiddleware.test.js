@@ -164,10 +164,13 @@ describe('task attribute validation middleware', () => {
             getActions(
               TASK_FIELDS.EDIT_SITE,
               {
-                url: 'https://amongstfew.com',
-                name: 'Amongst Few',
-                supported: true,
+                special: false,
+                apiKey: '8fe3dbccac6a59eefb67a5bbeb490b42',
                 auth: false,
+                name: 'Black Market US',
+                url: 'https://blkmkt.us',
+                supported: 'experimental',
+                sizeOptionIndex: 1,
               },
               true,
             ),

@@ -38,7 +38,7 @@ function validateProduct(product) {
 
 function validateSite(site) {
   const sites = getAllSupportedSitesSorted();
-  return site && site.name && sites.some(s => s.label === site.name);
+  return site && site.name && sites.some(s => s.name === site.name);
 }
 
 /**

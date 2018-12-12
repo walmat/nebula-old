@@ -15,6 +15,14 @@ import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
 export class CreateTaskPrimitive extends Component {
+  static buildSitesOptions() {
+    return getAllSupportedSitesSorted().map(s => ({
+      label: s.name,
+      value: s.url,
+      ...s,
+    }));
+  }
+
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
@@ -57,9 +65,13 @@ export class CreateTaskPrimitive extends Component {
       case TASK_FIELDS.EDIT_SITE:
         return event => {
           const site = {
+            special: event.special,
+            apiKey: event.apiKey,
+            auth: event.auth,
             name: event.label,
             url: event.value,
-            auth: event.auth,
+            supported: event.supported,
+            sizeOptionIndex: event.sizeOptionIndex,
           };
           onFieldChange({ field, value: site });
         };
@@ -139,7 +151,7 @@ export class CreateTaskPrimitive extends Component {
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
-                  options={getAllSupportedSitesSorted()}
+                  options={CreateTaskPrimitive.buildSitesOptions()}
                   data-testid={addTestId('CreateTask.siteSelect')}
                 />
               </div>

@@ -35,7 +35,7 @@ async function storeSite(site) {
     };
     return await dynamodb.putItem(params).promise().then(
       (data) => {
-        console.log('[SUCCESS]: Successfully added new site: %s', site.label);
+        console.log('[SUCCESS]: Successfully added new site: %s', site.name);
         return;
       },
       (err) => {
@@ -50,8 +50,8 @@ async function storeSite(site) {
     const dynamodb = new AWS.DynamoDB();
     const params = {
       Key: {
-        "label": {
-          S: site.label,
+        "name": {
+          S: site.name,
         },
       },
       ReturnConsumedCapacity: "TOTAL", 
@@ -59,7 +59,7 @@ async function storeSite(site) {
     };
     return await dynamodb.deleteItem(params).promise().then(
       (data) => {
-        console.log('[SUCCESS]: Successfully deleted site: %s', site.label);
+        console.log('[SUCCESS]: Successfully deleted site: %s', site.name);
         return true;
       },
       (err) => {

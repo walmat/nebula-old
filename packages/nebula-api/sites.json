@@ -61,7 +61,7 @@
         "apiKey": "a45de9ba54947c6286e329042853dafc",
         "auth": false,
         "supported": "experimental",
-        "sizeOptionIndex": ""
+        "sizeOptionIndex": "3"
     },
     {
         "name": "Beatnic Online",
@@ -134,7 +134,6 @@
         "auth": false,
         "supported": "experimental",
         "sizeOptionIndex": "2"
-
     },
     {
         "name": "DSM US",
@@ -142,7 +141,7 @@
         "apiKey": "c61dfd7121456f05d58cedf7a0b068b6",
         "auth": false,
         "supported": "experimental",
-        "special": "true",
+        "special": true,
         "sizeOptionIndex": "1"
     },
     {
@@ -151,7 +150,7 @@
         "apiKey": "0386ed516cfb121c71eee5a33b357cc6",
         "auth": false,
         "supported": "experimental",
-        "special": "true",
+        "special": true,
         "sizeOptionIndex": "1"
     },
     {
@@ -160,7 +159,7 @@
         "apiKey": "0867cfd02e49786c54fd1a9fd02f03cd",
         "auth": false,
         "supported": "experimental",
-        "special": "true",
+        "special": true,
         "sizeOptionIndex": "1"
     },
     {
@@ -169,7 +168,7 @@
         "apiKey": "8cbefa53e1484d3a39a41396a00b9fe9",
         "auth": false,
         "supported": "experimental",
-        "special": "true",
+        "special": true,
         "sizeOptionIndex": "1"
     },
     {
@@ -674,7 +673,7 @@
         "apiKey": "afa13d942580749aa2985b086cc0bdcb",
         "auth": false,
         "supported": "experimental",
-        "special": "true",
+        "special": true,
         "sizeOptionIndex": "1"
     },
     {

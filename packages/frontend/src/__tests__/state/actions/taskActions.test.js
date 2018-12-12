@@ -360,10 +360,13 @@ describe('task actions', () => {
       test('when updating site', async () => {
         const update = {
           site: {
-            name: 'test',
-            url: 'http://test.com',
-            supported: true,
+            special: false,
+            apiKey: '8fe3dbccac6a59eefb67a5bbeb490b42',
             auth: false,
+            name: 'Black Market US',
+            url: 'https://blkmkt.us',
+            supported: 'experimental',
+            sizeOptionIndex: 1,
           },
           username: 'test',
           password: 'test',
@@ -379,10 +382,13 @@ describe('task actions', () => {
       test('when updating username', async () => {
         const update = {
           site: {
-            name: 'test',
-            url: 'http://test.com',
-            supported: true,
+            special: false,
+            apiKey: '8fe3dbccac6a59eefb67a5bbeb490b42',
             auth: true,
+            name: 'Black Market US',
+            url: 'https://blkmkt.us',
+            supported: 'experimental',
+            sizeOptionIndex: 1,
           },
           username: 'testing',
           password: null,
@@ -393,10 +399,13 @@ describe('task actions', () => {
       test('when updating password', async () => {
         const update = {
           site: {
-            name: 'test',
-            url: 'http://test.com',
-            supported: true,
+            special: false,
+            apiKey: '8fe3dbccac6a59eefb67a5bbeb490b42',
             auth: true,
+            name: 'Black Market US',
+            url: 'https://blkmkt.us',
+            supported: 'experimental',
+            sizeOptionIndex: 1,
           },
           password: 'testing',
           username: null,
@@ -434,10 +443,13 @@ describe('task actions', () => {
         ...initialTaskState,
         product: validProduct,
         site: {
-          name: 'test',
-          url: 'http://test.com',
-          supported: true,
+          special: false,
+          apiKey: 'a0faf54ad7ec6fbbab86cd3f949c3cb9',
           auth: true,
+          label: 'Undefeated',
+          value: 'https://undefeated.myshopify.com',
+          supported: 'experimental',
+          sizeOptionIndex: 2,
         },
         username: 'og_username',
         password: 'og_password',

@@ -1,7 +1,7 @@
 import { parseURL } from 'whatwg-url';
 import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
-import getAllSites from '../../../constants/getAllSites';
+import getAllSupportedSitesSorted from '../../../constants/getAllSites';
 // import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
 
 export function taskReducer(state = initialTaskStates.task, action) {
@@ -28,16 +28,17 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (!URL || !URL.host) {
             break;
           }
-          const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
+          const site = getAllSupportedSitesSorted().filter(s =>
+            URL.host.includes(s.url.split('/')[2]),
+          );
           if (site.length === 0) {
             break;
           }
           change = {
             ...change,
-            site: {
-              url: site[0].value,
-              name: site[0].label,
-            },
+            site: getAllSupportedSitesSorted().filter(
+              s => s.name === site[0].name,
+            )[0],
             username: null,
             password: null,
             errors: Object.assign({}, state.errors, action.errors),
@@ -110,20 +111,26 @@ export function taskReducer(state = initialTaskStates.task, action) {
               break;
             }
             const URL = parseURL(action.value);
+            console.log(URL);
             if (!URL || !URL.host) {
               break;
             }
+<<<<<<< HEAD:packages/frontend/src/state/reducers/tasks/taskReducer.js
             const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
+=======
+            const site = getAllSupportedSitesSorted().filter(s =>
+              URL.host.includes(s.url.split('/')[2]),
+            );
+>>>>>>> attached frontend, fixed test cases:frontend/src/state/reducers/tasks/taskReducer.js
             if (site.length === 0) {
               break;
             }
             change = {
               edits: {
                 ...change.edits,
-                site: {
-                  url: site[0].value,
-                  name: site[0].label,
-                },
+                site: getAllSupportedSitesSorted().filter(
+                  s => s.name === site[0].name,
+                )[0],
                 username: null,
                 password: null,
                 errors: Object.assign({}, state.edits.errors, action.errors),
