@@ -174,9 +174,11 @@ class Checkout {
           followAllRedirects: true,
           proxy: formatProxy(this._proxy),
           method: 'post',
+          resolveWithFullResponse: true,
           headers: {
               'User-Agent': userAgent,
               'Content-Type': 'application/json',
+              'Connection': 'Keep-Alive',
           },
           jar: this._jar,
           body: JSON.stringify(buildPaymentTokenForm(this._task)),
@@ -184,9 +186,9 @@ class Checkout {
       .then((res) => {
         this._timer.stop(now());
         this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
-        const body = JSON.parse(res);
+        const body = JSON.parse(res.body);
+        console.log(res.headers);
         if (body && body.id) {
-            // MARK: set payment token
             this._logger.verbose('Payment token: %s', body.id);
             return body.id;
         }
@@ -224,7 +226,7 @@ class Checkout {
         body: JSON.stringify(buildCheckoutForm(this._task)),
       })
       .then((res) => {
-        console.log(res);
+        console.log(res.headers['set-cookie']);
         if (res.statusCode === 303) {
             this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
             Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)

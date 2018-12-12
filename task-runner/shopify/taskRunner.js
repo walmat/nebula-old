@@ -1,4 +1,6 @@
 const EventEmitter = require('events');
+const rp = require('request-promise');
+
 const { Stack } = require('./classes/stack');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
@@ -45,11 +47,11 @@ class TaskRunner {
          */
         this._checkouts = new Stack();
 
-        this._jar = require('request-promise').jar();
-        this._request = require('request-promise').defaults({
-          timeout: 10000,
-          jar: this._jar,
-        });
+        const j = rp.jar();
+        const request = rp.defaults({jar:j});
+
+        this._jar = j;
+        this._request = request;
 
         /**
          * The context of this task runner
