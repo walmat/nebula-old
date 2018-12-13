@@ -10,12 +10,12 @@
     "email": "hello@nebulabots.com"
   },
   "scripts": {
-    "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "cross-env GENERATE_SOURCEMAP=false react-app-rewired build",
     "ci": "CI=true npm run test",
     "coverage": "npm run test -- --coverage",
-    "dev-server": "cross-env HTTPS=true react-scripts start",
+    "dev-server": "cross-env HTTPS=true react-app-rewired start",
     "dev": "cross-env NODE_ENV=development electron .",
-    "eject": "react-scripts eject",
+    "eject": "react-app-rewired eject",
     "lint": "eslint --ext js,jsx src/",
     "pack:linux": "run-s private:clean private:compile private:build:linux",
     "pack:mac": "run-s private:clean private:compile private:build:mac",
@@ -34,7 +34,7 @@
     "prod": "cross-env NODE_ENV=production electron .",
     "sass": "./tool/compile_css.sh",
     "start": "npm run prod",
-    "test": "react-scripts test --env=jsdom"
+    "test": "react-app-rewired test --env=jsdom"
   },
   "dependencies": {
     "@nebula/task-runner": "^0.1.0",
@@ -87,6 +87,8 @@
     "jest": "^23.6.0",
     "jest-enzyme": "^6.1.2",
     "npm-run-all": "^4.1.5",
+    "react-app-rewire-yarn-workspaces": "^1.0.3",
+    "react-app-rewired": "^1.6.2",
     "redux-mock-store": "^1.5.3",
     "replace": "^1.0.0",
     "rimraf": "^2.6.2",
@@ -105,6 +107,10 @@
       "!src/registerServiceWorker.js",
       "!src/tasks/old/*.{js,jsx}",
       "!src/server/old/*.{js,jsx}"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      ".eslintrc.js"
     ]
   }
 }
