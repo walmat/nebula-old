@@ -81,7 +81,7 @@ class Monitor {
       product.variants,
       variant =>
         // Use the variant option or the title segment
-        variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title),
+        variant[urlToVariantOption(site)] || urlToTitleSegment(site, variant.title),
     );
     // Get the groups in the same order as the sizes
 

@@ -115,22 +115,16 @@ export function taskReducer(state = initialTaskStates.task, action) {
             if (!URL || !URL.host) {
               break;
             }
-<<<<<<< HEAD:packages/frontend/src/state/reducers/tasks/taskReducer.js
-            const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
-=======
             const site = getAllSupportedSitesSorted().filter(s =>
               URL.host.includes(s.url.split('/')[2]),
             );
->>>>>>> attached frontend, fixed test cases:frontend/src/state/reducers/tasks/taskReducer.js
             if (site.length === 0) {
               break;
             }
             change = {
               edits: {
                 ...change.edits,
-                site: getAllSupportedSitesSorted().filter(
-                  s => s.name === site[0].name,
-                )[0],
+                site: getAllSupportedSitesSorted().filter(s => s.name === site[0].name)[0],
                 username: null,
                 password: null,
                 errors: Object.assign({}, state.edits.errors, action.errors),
