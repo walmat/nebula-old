@@ -89,23 +89,20 @@ class SpecialParser extends Parser {
       this._logger.silly('%s: Generated Product Pages, capturing product page info...', this._name, productsToVisit);
 
       // Visit Product Pages and Parse them for product info
-      let products;
-      try {
-        products = await Promise.all(
-          productsToVisit.map(url =>
-            this.getProductInfoPage(url).then(this.parseProductInfoPage.bind(this))
-          ),
-        );
-      } catch (error) {
-        this._logger.debug('%s: ERROR parsing product info page', this._name, error);
-        // TODO: Maybe replace with a custom error object?
-        const rethrow = new Error('unable to parse product info pages!');
-        rethrow.status = error.statusCode || error.status || 404;
-        throw rethrow;
-      }
+      const products = (await Promise.all(
+        productsToVisit.map(async url => {
+          try {
+            const $ = await this.getProductInfoPage(url);
+            return this.parseProductInfoPage.call(this, $);
+          } catch (err) {
+            this._logger.debug('%s: ERROR parsing product info page', this._name, err.statusCode || err.status, err.message);
+            return null;
+          }
+        }),
+      )).filter(p => p);
 
       // Attempt to Match Product
-      this._logger.silly('%s: Received Product info, matching now...', this._name, products);
+      this._logger.silly('%s: Received Product info from %d products, matching now...', this._name, products.length);
       try {
         matchedProduct = super.match(products);
       } catch (error) {
@@ -164,7 +161,7 @@ class SpecialParser extends Parser {
   }
 
   getProductInfoPage(productUrl) {
-    this._logger.log('silly', '%s: Getting Full Product Info...', this._name);
+    this._logger.log('silly', '%s: Getting Full Product Info... %s', this._name, productUrl);
     return rp({
       method: 'GET',
       uri: productUrl,
