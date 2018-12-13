@@ -10,7 +10,11 @@ class DsmParser extends SpecialParser {
     super(task, proxy, logger, 'DsmParser');
   }
 
-  parseInitialPage($) {
+  get initialPageContainsProducts() {
+    return false;
+  }
+
+  parseInitialPageForUrls($) {
     // Look for all `.grid-view-item`'s
     let parsedItems = [];
     $('.grid-view-item').each((i, el) => {
@@ -50,7 +54,7 @@ class DsmParser extends SpecialParser {
     return productUrls;
   }
 
-  parseProductInfoPage($) {
+  parseProductInfoPageForProduct($) {
     // Look for the script tag containing the product json
     const product = $('script#ProductJson-product-template');
     if(!product || product.attr('type') !== 'application/json') {

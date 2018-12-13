@@ -74,32 +74,46 @@ class SpecialParser extends Parser {
     let matchedProduct;
     if (this._type !== ParseType.Url) {
       this._logger.silly('%s: Received Response, Generating Product Info Pages to visit...', this._name);
-    
-      // Generate Product Pages to Visit
-      let productsToVisit;
-      try {
-        productsToVisit = this.parseInitialPage(response);
-      } catch (error) {
-        this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
-        // TODO: Maybe replace with a custom error object?
-        const rethrow = new Error('unable to parse initial page');
-        rethrow.status = error.statusCode || error.status || 404;
-        throw rethrow;
-      }
-      this._logger.silly('%s: Generated Product Pages, capturing product page info...', this._name, productsToVisit);
 
-      // Visit Product Pages and Parse them for product info
-      const products = (await Promise.all(
-        productsToVisit.map(async url => {
-          try {
-            const $ = await this.getProductInfoPage(url);
-            return this.parseProductInfoPage.call(this, $);
-          } catch (err) {
-            this._logger.debug('%s: ERROR parsing product info page', this._name, err.statusCode || err.status, err.message);
-            return null;
-          }
-        }),
-      )).filter(p => p);
+      let products;
+      if (this.initialPageContainsProducts) {
+        // Attempt to parse the initial page for product data
+        try {
+          products = this.parseInitialPageForProducts(response);
+        } catch(error) {
+          this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
+          // TODO: Maybe replace with a custom error object?
+          const rethrow = new Error('unable to parse initial page');
+          rethrow.status = error.statusCode || error.status || 404;
+          throw rethrow;
+        }
+      } else {
+        // Generate Product Pages to Visit
+        let productsToVisit;
+        try {
+          productsToVisit = this.parseInitialPageForUrls(response);
+        } catch (error) {
+          this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
+          // TODO: Maybe replace with a custom error object?
+          const rethrow = new Error('unable to parse initial page');
+          rethrow.status = error.statusCode || error.status || 404;
+          throw rethrow;
+        }
+        this._logger.silly('%s: Generated Product Pages, capturing product page info...', this._name, productsToVisit);
+
+        // Visit Product Pages and Parse them for product info
+        products = (await Promise.all(
+          productsToVisit.map(async url => {
+            try {
+              const $ = await this.getProductInfoPage(url);
+              return this.parseProductInfoPageForProduct.call(this, $);
+            } catch (err) {
+              this._logger.debug('%s: ERROR parsing product info page', this._name, err.statusCode || err.status, err.message);
+              return null;
+            }
+          }),
+        )).filter(p => p);
+      }
 
       // Attempt to Match Product
       this._logger.silly('%s: Received Product info from %d products, matching now...', this._name, products.length);
@@ -117,7 +131,7 @@ class SpecialParser extends Parser {
 
       // Attempt to parse the response as a product page and get the product info
       try {
-        matchedProduct = this.parseProductInfoPage(response);
+        matchedProduct = this.parseProductInfoPageForProduct(response);
       } catch (error) {
         this._logger.debug('%s: ERROR getting product!', this._name, error);
         // TODO: Maybe replace with a custom error object?
@@ -139,13 +153,39 @@ class SpecialParser extends Parser {
   }
 
   /**
+   * Getter to signify whether or not the specific site has product info in the
+   * initial site page, or if product specific pages need to be parsed.
+   * 
+   * If this is set to true, then `parseInitialPageForProducts()` will get called
+   * If this is set to false, then `parseInitialPageForUrls()` will get called
+   */
+  get initialPageContainsProducts() {
+    throw new Error('Not Implemented! This should be implemented by subclasses!');
+  }
+
+  /**
+   * Parse the given html (loaded by cheerio) for a list of 
+   * products available. This is a site dependent method, so it should be 
+   * implemented by subclasses of this class
+   * 
+   * This method should return a list of products that should be matched
+   * 
+   * NOTE: This method is only run if `this.initialPageContainsProducts` is true
+   */
+  parseInitialPageForProducts($) {
+    throw new Error('Not Implemented! This should be implemented by subclasses!')
+  }
+
+  /**
    * Parse the given html (loaded by cheerio) for a list of 
    * product pages to visit. This is a site dependent method, so it should be 
    * implemented by subclasses of this class
    * 
    * This method should return a list of product urls that should be visited for more info
+   * 
+   * NOTE: This method is only run if `this.initialPageContainsProducts` is true
    */
-  parseInitialPage($) {
+  parseInitialPageForUrls($) {
     throw new Error('Not Implemented! This should be implemented by subclasses!')
   }
 
@@ -156,7 +196,7 @@ class SpecialParser extends Parser {
    * 
    * This method should a valid product object that can be further matched
    */
-  parseProductInfoPage($) {
+  parseProductInfoPageForProduct($) {
     throw new Error('Not Implemented! This should be implemented by subclasses!');
   }
 
