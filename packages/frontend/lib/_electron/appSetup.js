@@ -10,8 +10,6 @@ class AppSetup {
   }
 
   async fetchSiteList() {
-    // TOOD - maybe do something different if we're in dev mode?
-
     // get the current version of the user's sitelist
     const currentVersion = this._store.get('siteListVersion');
     // get the latest version of the sitelist
@@ -19,7 +17,7 @@ class AppSetup {
     // if they're equal, don't update the list
     if (res.ok) {
       const data = await res.json();
-      const { version } = data;
+      const { version } = JSON.parse(data);
       if (currentVersion && currentVersion === version) {
         return null;
       }
