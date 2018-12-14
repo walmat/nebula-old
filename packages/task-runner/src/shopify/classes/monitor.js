@@ -5,10 +5,11 @@ const rp = require('request-promise').defaults({
     jar: jar,
 });
 
-const { AtomParser, JsonParser, XmlParser } = require('./parsers');
+const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
 const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay, generateRandom } = require('./utils');
 const { getAllSizes } = require('./utils/constants');
 const { States } = require('./utils/constants').TaskRunner;
+const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
 const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
 
@@ -41,17 +42,19 @@ class Monitor {
     // delay and start the monitor again...
     async _delay(status) {
         let delay = this._waitForRefreshDelay;
+        let waitTime = this._context.task.monitorDelay;
         switch (status || 404) {
             case 401:
             case 404: {
                 delay = this._waitForErrorDelay;
+                waitTime = this._context.task.errorDelay;
                 break;
             }
             default: break;
         }
         await delay.call(this);
         this._logger.info('Monitoring not complete, remonitoring...');
-        return { message: `Delaying ${delay}`, nextState: States.Monitor };
+        return { message: `Monitoring for Product...`, nextState: States.Monitor };
     }
 
     _parseAll() {
@@ -129,7 +132,7 @@ class Monitor {
         this._context.task.product.name = capitalizeFirstLetter(parsed.title);
         this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
         return { message: `Found product: ${this._context.task.product.name}`, nextState: States.Checkout };
-        }
+    }
 
     async _monitorUrl() {
         const { url } = this._context.task.product;
@@ -148,7 +151,7 @@ class Monitor {
             });
             // Response Succeeded -- Get Product Info
             this._logger.verbose('MONITOR: Url %s responded with status code %s. Getting full info', url, response.statusCode);
-            const fullProductInfo = await JsonParser.getFullProductInfo(url, this._logger);
+            const fullProductInfo = await Parser.getFullProductInfo(url, this._logger);
 
             // Generate Variants
             this._logger.verbose('MONITOR: Retrieve Full Product %s, Generating Variants List...', fullProductInfo.title);
@@ -167,36 +170,74 @@ class Monitor {
         }
     }
 
+    async _monitorSpecial() {
+        // Get the correct special parser
+        const ParserCreator = getSpecialParser(this._context.task.site);
+        const parser = ParserCreator(this._context.task, this._context.proxy, this._context.logger);
+        
+        let parsed;
+        try {
+            parsed = await parser.run();
+        } catch (error) {
+            this._logger.debug('MONITOR: Error with special parsing!', error);
+            // Check for a product not found error
+            if (error.status === ErrorCodes.Parser.ProductNotFound) {
+                return { message: 'Error: Product Not Found!', nextState: States.Errored };
+            }
+            return this._delay(error.status);
+        }
+        this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
+        this._logger.verbose('MONITOR: Generating variant lists now...');
+        const variants = this._generateValidVariants(parsed);
+        this._logger.verbose('MONITOR: Variants Generated, updating context...');
+        this._context.task.product.variants = variants;
+        this._context.task.product.name = capitalizeFirstLetter(parsed.title);
+        this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
+        return { message: `Found product: ${this._context.task.product.name}`, nextState: States.Checkout };
+    }
+
     async run() {
         if (this._context.aborted) {
             this._logger.info('Abort Detected, Stopping...');
             return { nextState: States.Aborted };
         }
 
-        const parseType = getParseType(this._context.task.product, this._logger);
+        const parseType = getParseType(this._context.task.product, this._logger, this._context.task.site);
+        let result;
         switch(parseType) {
             case ParseType.Variant: {
                 // TODO: Add a way to determine if variant is correct
                 this._logger.verbose('MONITOR: Variant Parsing Detected');
                 this._context.task.product.variants = [this._context.task.product.variant];
                 this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
-                return { message: 'Adding to cart', nextState: States.Checkout };
+                result = { message: 'Adding to cart', nextState: States.Checkout };
+                break;
             }
             case ParseType.Url: {
                 this._logger.verbose('MONITOR: Url Parsing Detected');
-                return this._monitorUrl();
+                result = await this._monitorUrl();
+                break;
             }
             case ParseType.Keywords: {
                 this._logger.verbose('MONITOR: Keyword Parsing Detected');
-                return this._monitorKeywords();;
+                result = await this._monitorKeywords();
+                break;
+            }
+            case ParseType.Special: {
+                this._logger.verbose('MONITOR: Special Parsing Detected');
+                result = await this._monitorSpecial();
+                break;
             }
             default: {
                 this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
-                // Update status and error out
-                this._context.status = 'Invalid Product Input given!';
                 return { message: 'Invalid Product Input given!', nextState: States.Errored };
             }
         }
+        // If the next state is an error, use the message as the ending status
+        if (result.nextState === States.Errored) {
+            this._context.status = result.message;
+        }
+        return result;
     }
 }
 

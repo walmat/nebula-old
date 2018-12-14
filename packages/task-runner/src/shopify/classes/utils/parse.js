@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const { parseString } = require('xml2js');
+const { isSpecialSite } = require('./siteOptions');
 
 module.exports = {};
 
@@ -8,6 +9,7 @@ const ParseType = {
   Variant: 'VARIANT',
   Url: 'URL',
   Keywords: 'KEYWORDS',
+  Special: 'SPECIAL',
 };
 module.exports.ParseType = ParseType;
 
@@ -18,12 +20,17 @@ module.exports.ParseType = ParseType;
  * 
  * @param {TaskProduct} product 
  */
-function getParseType(product, logger) {
+function getParseType(product, logger, site) {
   const _logger = logger || { log: () => {} };
-  _logger.log('silly', 'Determining Parse Type for Product...');
+  _logger.log('silly', 'Determining Parse Type for Product...', product);
   if(!product) {
     _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
     return ParseType.Unknown;
+  }
+
+  if (site && isSpecialSite(site)) {
+    _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
+    return ParseType.Special;
   }
 
   if (product.variant) {
@@ -122,6 +129,14 @@ function matchVariant(products, variantId, logger) {
     _logger.log('silly', 'No variant id given! Returning null');
     return null;
   }
+  // Sometimes the objects in the variants list don't include a product_id hook back to the associated product.
+  // In order to counteract this, we first add this hook in (if it doesn't exist)
+  _.forEach(products, p => {
+    _.forEach(p.variants, v => {
+      v.product_id = v.product_id || p.id;
+    });
+  });
+
   // Step 1: Map products list to a list of variant lists
   // Step 2: flatten the list of lists, so we only have one total list of all variants
   // Step 3: Search for the variant in the resulting variant list
@@ -161,9 +176,9 @@ module.exports.matchVariant = matchVariant;
  * @param {Object} keywords an object containing two arrays of strings (`pos` and `neg`)
  * @see filterAndLimit
  */
-function matchKeywords(products, keywords, filter, logger) {
+function matchKeywords(products, keywords, filter, logger, returnAll) {
   const _logger = logger || { log: () => {} };
-  _logger.log('silly', 'Starting keyword matching for keywords: %s', JSON.stringify(keywords, null, 2));
+  _logger.log('silly', 'Starting keyword matching for keywords: %s', JSON.stringify(keywords, null, 2), keywords);
   if (!products) {
     _logger.log('silly', 'No product list given! Returning null');
     return null;
@@ -179,7 +194,8 @@ function matchKeywords(products, keywords, filter, logger) {
 
   const matches = _.filter(products, (product) => {
     const title = product.title.toUpperCase();
-    const handle = product.handle.replace(new RegExp('-', 'g'), ' ').toUpperCase();
+    const rawHandle = product.handle || '';
+    const handle = rawHandle.replace(new RegExp('-', 'g'), ' ').toUpperCase();
 
     // defaults
     let pos = true;
@@ -209,17 +225,32 @@ function matchKeywords(products, keywords, filter, logger) {
     _logger.log('silly', 'Searched %d products. %d Products Found', products.length, matches.length, JSON.stringify(matches.map(({ title }) => title), null, 2));
     if (filter && filter.sorter && filter.limit) {
       _logger.log('silly', 'Using given filtering heuristic on the products...');
-      filtered = filterAndLimit(matches, filter.sorter, filter.limit, this._logger);
-      _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
-      return filtered[0];
+      let limit = filter.limit;
+      if (returnAll) {
+        _logger.log('silly', 'Overriding filter\'s limit and returning all products...');
+        limit = 0;
+      }
+      filtered = filterAndLimit(matches, filter.sorter, limit, this._logger);
+      if (!returnAll) {
+        _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
+        return filtered[0];
+      }
+      _logger.log('silly', 'Returning %d Matched Products', filtered.length);
+      return filtered;
     }
     _logger.log('silly', 'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...');
+    if (returnAll) {
+      _logger.log('silly', 'Returning all products...');
+      filtered = filterAndLimit(matches, 'updated_at', 0, this._logger);
+      _logger.log('silly', 'Returning %d Matched Products', filtered);
+      return filtered;
+    }
     filtered = filterAndLimit(matches, 'updated_at', -1, this._logger);
     _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
     return filtered[0];
   }
   _logger.log('silly', 'Searched %d products. Matching Product Found: %s', products.length, matches[0].title);
-  return matches[0];
+  return returnAll ? matches : matches[0];
 }
 module.exports.matchKeywords = matchKeywords;
 

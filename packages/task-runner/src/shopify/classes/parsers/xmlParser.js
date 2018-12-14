@@ -1,6 +1,5 @@
-const JsonParser = require('./jsonParser');
-const _ = require('underscore');
-const utils = require('../utils/parse');
+const Parser = require('./parser');
+const { ParseType, convertToJson } = require('../utils/parse');
 const {
   formatProxy,
   userAgent,
@@ -12,7 +11,7 @@ const rp = require('request-promise').defaults({
 });
 
 
-class XmlParser extends JsonParser {
+class XmlParser extends Parser {
   /**
    * Construct a new XmlParser
    * 
@@ -25,7 +24,7 @@ class XmlParser extends JsonParser {
 
   async run () {
     this._logger.silly('%s: starting run...', this._name);
-    if (this._type !== utils.ParseType.Keywords) {
+    if (this._type !== ParseType.Keywords) {
       throw new Error('xml parsing is only supported for keyword searching');
     }
     let responseJson;
@@ -42,7 +41,7 @@ class XmlParser extends JsonParser {
             'User-Agent': userAgent,
         }
       });
-      responseJson = await utils.convertToJson(response);
+      responseJson = await convertToJson(response);
     } catch (error) {
       this._logger.silly('%s: ERROR making request!', this._name, error);
       const rethrow = new Error('unable to make request');
@@ -50,8 +49,8 @@ class XmlParser extends JsonParser {
       throw rethrow;
     }
     this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
-    const responseItems = _.filter(responseJson.urlset.url, (i => i['image:image']))
-    const products = _.map(responseItems, (item) => {
+    const responseItems = responseJson.urlset.url.filter((i => i['image:image']));
+    const products = responseItems.map((item) => {
       return {
         url: item.loc[0],
         updated_at: item.lastmod[0],
@@ -69,7 +68,7 @@ class XmlParser extends JsonParser {
     this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
     let fullProductInfo = null;
     try {
-      fullProductInfo = await JsonParser.getFullProductInfo(matchedProduct.url, this._logger);
+      fullProductInfo = await Parser.getFullProductInfo(matchedProduct.url, this._logger);
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
       return {
         ...matchedProduct,

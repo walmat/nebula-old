@@ -96,16 +96,17 @@ const urlToOptionIndex = {
     "https://pampamlondon.com": 1, // TODO - (option 1 looks like: UK3)
     "https://www.rooneyshop.com": 2,
     "https://saintalfred.com": 1,
-    "https://eflash-sg.doverstreetmarket.com": 1, // TODO - special frontend parsing needed
-    "https://eflash-jp.doverstreetmarket.com": 1, // TODO - special frontend parsing needed
-    "https://eflash-us.doverstreetmarket.com": 1, // TODO - special frontend parsing needed
-    "https://eflash.doverstreetmarket.com": 1, // TODO - special frontend parsing needed
+    "https://eflash-sg.doverstreetmarket.com": 1,
+    "https://eflash-jp.doverstreetmarket.com": 1,
+    "https://eflash-us.doverstreetmarket.com": 1,
+    "https://eflash.doverstreetmarket.com": 1,
     "https://sneakerworldshop.com": 1, // TODO - (option 1 looks like: US 7 - EU 40 - UK 6)
     "https://socialstatuspgh.com": 1, // TODO (option 1 small sizes appended with a 'Y' - e.g. 6Y)
     "https://solefly.com": 2, 
     "https://solestop.com": 1,
     "http://usgstore.com.au": 2,
     "https://nebulabots.com": 1,
+    // "http://localhost:9000": 1, // TEMPORARY for testing purposes only...
 };
 
 // Generate the correct "option<index>" from the optionIndex map
