@@ -22,7 +22,7 @@
     "pack:win": "run-s private:clean private:compile private:build:win",
     "pack": "run-s private:clean private:compile private:build:all",
     "postinstall": "electron-builder install-app-deps",
-    "prebuild": "./node_modules/.bin/replace 'file-loader' 'url-loader' $(git rev-parse --show-toplevel)/node_modules/react-scripts/config/webpack.config.prod.js",
+    "prebuild": "replace 'file-loader' 'url-loader' ../../node_modules/react-scripts/config/webpack.config.prod.js",
     "private:build:all": "electron-builder -mwl",
     "private:build:linux": "electron-builder --linux",
     "private:build:mac": "electron-builder --mac",

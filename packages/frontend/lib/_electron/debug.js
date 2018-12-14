@@ -1,6 +1,6 @@
 const { ipcMain } = require('electron');
+const { setLevels } = require('@nebula/task-runner/src/common/logger');
 const nebulaEnv = require('./env');
-const { setLevels } = require('task-runner/common/logger');
 
 nebulaEnv.setUpEnvironment();
 

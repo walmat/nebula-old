@@ -1,6 +1,5 @@
 const Electron = require('electron');
-
-const TaskManager = require('task-runner/shopify/taskManager');
+const TaskManager = require('@nebula/task-runner/src/shopify/taskManager');
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 
