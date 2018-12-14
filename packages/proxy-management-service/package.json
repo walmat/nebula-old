@@ -1,0 +1,25 @@
+{
+  "name": "@nebula/aws-service",
+  "version": "0.0.0",
+  "description": "For Handling aws commands",
+  "private": true,
+  "main": "build/index.js",
+  "scripts": {
+    "build": "babel src -d build",
+    "ci": "exit 0",
+    "lint-fix": "eslint --fix src",
+    "lint": "eslint src/",
+    "prestart": "npm run build",
+    "start": "node build/index.js",
+    "test": "echo \"Warning: no test specified\" && exit 0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.373.0",
+    "ssh2": "^0.6.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.0",
+    "@babel/core": "^7.2.0",
+    "eslint": "5.6.0"
+  }
+}

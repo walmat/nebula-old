@@ -1,0 +1,28 @@
+// Tasks Page Specific Rules
+
+.view-line {
+  margin: 0;
+  border: 1px solid #edbcc6;
+  flex: 1 1 100%;
+}
+
+.section-header {
+  max-height: 32px;
+  margin: 6px 0;
+
+  &.section-header--no-top {
+    margin-top: 0;
+  }
+}
+
+.tasks__title {
+  padding-top: 1px !important;
+  padding-bottom: 3px !important;
+}
+
+.bulk-action-sidebar {
+  & &__button {
+    padding-bottom: 15px;
+    cursor: pointer;
+  }
+}
