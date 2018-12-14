@@ -93,12 +93,12 @@ describe('getAllSites', () => {
         auth: false,
       },
       // TEMPORARY -- For Testing purposes only!
-      {
-        value: 'http://localhost:9000',
-        label: 'Mock Server',
-        supported: true,
-        auth: false,
-      },
+      // {
+      //   value: 'http://localhost:9000',
+      //   label: 'Mock Server',
+      //   supported: true,
+      //   auth: false,
+      // },
       {
         value: 'https://offthehook.ca',
         label: 'Off the Hook',

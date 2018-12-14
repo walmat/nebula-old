@@ -227,12 +227,12 @@ const s = [
     auth: false,
   },
   // TEMPORARY -- For Testing purposes only!
-  {
-    value: 'http://localhost:9000',
-    label: 'Mock Server',
-    supported: true,
-    auth: false,
-  },
+  // {
+  //   value: 'http://localhost:9000',
+  //   label: 'Mock Server',
+  //   supported: true,
+  //   auth: false,
+  // },
 ];
 
 export default function getAllSupportedSitesSorted() {

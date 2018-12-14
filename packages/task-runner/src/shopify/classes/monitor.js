@@ -54,7 +54,7 @@ class Monitor {
         }
         await delay.call(this);
         this._logger.info('Monitoring not complete, remonitoring...');
-        return { message: `Delaying ${waitTime}`, nextState: States.Monitor };
+        return { message: `Monitoring for Product...`, nextState: States.Monitor };
     }
 
     _parseAll() {

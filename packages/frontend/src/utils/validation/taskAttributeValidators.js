@@ -19,10 +19,10 @@ function validateProduct(product) {
   const validKeywords = _.every(testKeywords, isValid => isValid === true);
 
   // TEMPORARY! - for testing with the mock server:
-  const localhostUrlRegex = /https?:\/\/localhost:\d{2,5}/;
-  if (localhostUrlRegex.test(product)) {
-    return true;
-  }
+  // const localhostUrlRegex = /https?:\/\/localhost:\d{2,5}/;
+  // if (localhostUrlRegex.test(product)) {
+  //   return true;
+  // }
   // END TEMPORARY
 
   if (regexes.urlRegex.test(product)) {
