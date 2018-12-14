@@ -1,4 +1,3 @@
-const Timer = require('./timer');
 const { States } = require('./utils/constants').TaskRunner;
 const {
   waitForDelay,
@@ -117,10 +116,10 @@ class Checkout {
       this._shippingMethods = this._context.shippingMethods;
 
       /**
-       * Checkout sessions
+       * Checkout tokens
        * @type {Stack}
        */
-      this._checkouts = this._context.checkouts;
+      this._checkoutTokens = this._context.checkoutTokens;
 
 
       // MARK: All globals outside of context
@@ -135,12 +134,6 @@ class Checkout {
        * @type {String}
        */
       this._state = Checkout.States.PatchCart;
-
-      /**
-       * Timer for the entire checkout process and it's sub-models
-       * @type {Timer}
-       */
-      this._timer = new Timer();
 
       /**
        * Current checkout token
@@ -167,8 +160,7 @@ class Checkout {
      * @returns {String} payment token
      */
     generatePaymentToken() {
-      this._timer.start(now());
-      this._logger.verbose('Getting Payment Token.');
+      this._logger.verbose('Generating Payment Token.');
       return this._request({
           uri: `https://elb.deposit.shopifycs.com/sessions`,
           followAllRedirects: true,
@@ -184,10 +176,7 @@ class Checkout {
           body: JSON.stringify(buildPaymentTokenForm(this._task)),
       })
       .then((res) => {
-        this._timer.stop(now());
-        this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
         const body = JSON.parse(res.body);
-        console.log(res.headers);
         if (body && body.id) {
             this._logger.verbose('Payment token: %s', body.id);
             return body.id;
@@ -204,9 +193,7 @@ class Checkout {
     }
 
     async _handleCreateCheckout() {
-
-      // TODO - need cookies to get set?? idk..
-      // need `authorization: Basic <hash>` in header as well
+      this._logger.verbose('Generating Checkout Token.');
       return this._request({
         uri: `${this._task.site.url}/wallets/checkouts`,
         method: 'POST',
@@ -220,18 +207,17 @@ class Checkout {
           'Accept': 'application/json',
           'cache-control': 'no-store',
           'Content-Type': 'application/json',
+          'Authorization': Buffer.from('08430b96c47dd2ac8e17e305db3b71e8::').toString('base64'),
           'User-Agent': userAgent,
           'host': `${this._task.site.url}`,
         },
         body: JSON.stringify(buildCheckoutForm(this._task)),
       })
       .then((res) => {
-        console.log(res.headers['set-cookie']);
         if (res.statusCode === 303) {
             this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
             Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
         } else if (res.body.checkout){
-            this._timer.stop(now());
             this._logger.info('Created checkout in %d ms', this._timer.getRunTime());
 
             // push the checkout token to the stack
@@ -244,10 +230,10 @@ class Checkout {
                 nextState: Checkout.States.PatchCart,
               }
             }
-            // otherwise, during setup, patch cart.
+            // otherwise, during setup, keep creating checkout tokens.
             return {
               message: 'Created checkout session',
-              nextState: Checkout.States.PatchCart,
+              nextState: Checkout.States.CreateCheckout,
             }
         } else {
           // might not ever get called, but just a failsafe
@@ -283,8 +269,8 @@ class Checkout {
         'authorization': 'Basic MDg0MzBiOTZjNDdkZDJhYzhlMTdlMzA1ZGIzYjcxZTg6Og=='
       };
 
-      if (!this._checkouts.isEmpty()) {
-          this._checkoutToken = this._checkouts.pop();
+      if (!this._checkoutTokens.isEmpty()) {
+          this._checkoutToken = this._checkoutTokens.pop();
            return this._request({
               uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}.json`,
               method: 'PATCH',

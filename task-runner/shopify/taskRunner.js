@@ -2,12 +2,13 @@ const EventEmitter = require('events');
 const rp = require('request-promise');
 
 const { Stack } = require('./classes/stack');
+const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const Account = require('./classes/account');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const { createLogger } = require('../common/logger');
-const { waitForDelay } = require('./classes/utils');
+const { waitForDelay, now } = require('./classes/utils');
 
 class TaskRunner {
     constructor(id, task, proxy, manager) {
@@ -45,13 +46,12 @@ class TaskRunner {
         /**
          * Stack of successfully created checkout sessions for the runner
          */
-        this._checkouts = new Stack();
+        this._checkoutTokens = new Stack();
 
-        const j = rp.jar();
-        const request = rp.defaults({jar:j});
+        this._jar = rp.jar();
+        this._request = rp.defaults({ jar: this._jar });
 
-        this._jar = j;
-        this._request = request;
+        this._timer = new Timer();
 
         /**
          * The context of this task runner
@@ -64,7 +64,7 @@ class TaskRunner {
             task,
             proxy,
             request: this._request,
-            jar: this._jar,
+            timer: this._timer,
             logger: this._logger,
             aborted: false,
         };
@@ -82,7 +82,7 @@ class TaskRunner {
             setup: this._setup,
             paymentTokens: this._paymentTokens,
             shippingMethods: this._shippingMethods,
-            checkouts: this._checkouts,
+            checkoutTokens: this._checkoutTokens,
             getCaptcha: this.getCaptcha.bind(this),
             stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
         });
@@ -232,16 +232,21 @@ class TaskRunner {
      * Preharvest payment tokens
      */
     async _handleGeneratePaymentTokens() {
+        this._timer.start(now());
         while (this._paymentTokens.size() < 5) {
             const token = await this._checkout.generatePaymentToken();
             if (token) {
                 this._paymentTokens.push(token);
             }
         }
+        this._timer.stop(now());
+        this._logger.info('Took %d ms to generate payment tokens', this._timer.getRunTime());
         return States.CreateCheckout;
     }
 
-    // Generate checkout links to be used for checking out
+    /**
+     * Generate checkout tokens
+     */
     async _handleCreateCheckout() {
       // TODO - Find random in-stock product through our parsing methods
       // ^^ if this fails, we shouldn't do the next while() loop
