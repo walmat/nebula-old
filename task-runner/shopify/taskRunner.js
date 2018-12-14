@@ -251,7 +251,6 @@ class TaskRunner {
       // TODO - Find random in-stock product through our parsing methods
       // ^^ if this fails, we shouldn't do the next while() loop
       // instead, do task setup later (this._setup = false)
-
       this._setup = false;
 
       if (this._setup) {

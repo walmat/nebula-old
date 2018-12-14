@@ -84,8 +84,6 @@ class Checkout {
        */
       this._request = this._context.request;
 
-      this._jar = this._context.jar;
-
       /**
        * Logger Instance
        * @type {Logger}
@@ -213,7 +211,7 @@ class Checkout {
         },
         body: JSON.stringify(buildCheckoutForm(this._task)),
       })
-      .then((res) => {
+      .then(async (res) => {
         if (res.statusCode === 303) {
             this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
             Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
