@@ -26,7 +26,10 @@ const _parseTaskProduct = product => {
   // TEMPORARY! - for testing with the mock server:
   const localhostUrlRegex = /https?:\/\/localhost:\d{2,5}/;
   if (localhostUrlRegex.test(product.raw)) {
-    return true;
+    return {
+      ...product,
+      url: product.raw,
+    };
   }
   // END TEMPORARY
 
