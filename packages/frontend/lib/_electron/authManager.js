@@ -1,7 +1,5 @@
 const Store = require('electron-store');
 const fetch = require('node-fetch');
-const fs = require('fs');
-const path = require('path');
 
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
