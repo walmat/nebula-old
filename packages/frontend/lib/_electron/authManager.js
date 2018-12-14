@@ -3,7 +3,6 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 
-const AppSetup = require('./appSetup');
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
 const nebulaCheckUpdates = require('./checkUpdates');
@@ -46,10 +45,7 @@ class AuthManager {
    * @return {Store} Electron Store.
    */
   get Store() {
-    if (nebulaEnv.isDevelopment()) {
-      return this._store;
-    }
-    return null;
+    return this._store;
   }
 
   /**
@@ -188,17 +184,13 @@ class AuthManager {
         windowManager.transitionToDeauthedState();
       }
     } else {
-      // setup app – pull in site list for now
-      const appSetup = new AppSetup(this._context);
-      const sites = await appSetup.fetchSiteList();
-      if (sites) {
-        fs.writeFileSync(
-          path.join(__dirname, '../../src/constants/sites.json'),
-          JSON.stringify(sites, null, 2),
-        );
-      }
+      // setup app – only pulls in site list for now
+      await this._context.appSetup.fetchSiteList();
+
       // TODO - write proper check for updates functionality
       // nebulaCheckUpdates.checkForUpdates(win);
+
+      // transition to authed state
       const win = windowManager.transitiontoAuthedState();
     }
   }

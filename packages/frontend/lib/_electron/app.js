@@ -3,6 +3,7 @@ const CaptchaServerManager = require('./captchaServerManager');
 const MainMenu = require('./mainMenu');
 const DialogManager = require('./dialogManager');
 const WindowManager = require('./windowManager');
+const AppSetup = require('./appSetup');
 const AuthManager = require('./authManager');
 const TaskManagerWrapper = require('./taskManagerWrapper');
 const nebulaEnv = require('./env');
@@ -47,6 +48,8 @@ class App {
      * @type {DialogManager}
      */
     this._dialogManager = new DialogManager(this);
+
+    this._appSetup = new AppSetup(this);
 
     /**
      * Manage the auth workflow
@@ -108,6 +111,15 @@ class App {
    */
   get windowManager() {
     return this._windowManager;
+  }
+
+  /**
+   * Get the app setup.
+   *
+   * @return {AppSetup} Instance of the app setup manager.
+   */
+  get appSetup() {
+    return this._appSetup;
   }
 
   /**

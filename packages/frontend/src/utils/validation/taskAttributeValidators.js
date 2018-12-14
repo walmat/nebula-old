@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import regexes from '../validation';
 import { TASK_FIELDS } from '../../state/actions';
-import getAllSupportedSitesSorted from '../../constants/getAllSites';
+import { getAllSupportedSitesSorted } from '../../constants/getAllSites';
 
 function validateProduct(product) {
   if (!product) {

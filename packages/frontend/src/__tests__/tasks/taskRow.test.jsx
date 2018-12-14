@@ -10,7 +10,9 @@ import {
 import { TASK_FIELDS, taskActions } from '../../state/actions';
 import { initialTaskStates } from '../../utils/definitions/taskDefinitions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
-import getAllSupportedSitesSorted from '../../constants/getAllSites';
+import buildSitesOptions, {
+  getAllSupportedSitesSorted,
+} from '../../constants/getAllSites';
 import getAllSizes from '../../constants/getAllSizes';
 
 import getByTestId from '../../__testUtils__/getByTestId';
@@ -955,13 +957,7 @@ describe('<TaskRow />', () => {
       expect(input.prop('className')).toEqual(
         expect.stringContaining('edit-field__select'),
       );
-      expect(input.prop('options')).toEqual(
-        getAllSupportedSitesSorted().map(s => ({
-          value: s.url,
-          label: s.name,
-          ...s,
-        })),
-      );
+      expect(input.prop('options')).toEqual(buildSitesOptions());
       expect(input.prop('required')).toBeTruthy();
       expect(input.prop('onChange')).toBeDefined();
     });
@@ -981,10 +977,8 @@ describe('<TaskRow />', () => {
         value: {
           special: false,
           apiKey: '08430b96c47dd2ac8e17e305db3b71e8',
-          label: 'Kith',
           auth: false,
           name: 'Kith',
-          value: 'https://kith.com',
           url: 'https://kith.com',
           supported: 'experimental',
           sizeOptionIndex: 1,

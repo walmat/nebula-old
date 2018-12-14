@@ -10,5 +10,5 @@ describe('taskSite definitions', () => {
 
   testSiteKey('name', 'valid_name', [1, true, {}]);
   testSiteKey('url', 'valid_url', [1, true, {}]);
-  testSiteKey('supported', ['stable', 'experimental'], [{}, 1]);
+  testSiteKey('supported', ['stable', 'experimental'], [{}, false, 1]);
 });

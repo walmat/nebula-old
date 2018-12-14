@@ -1,7 +1,7 @@
 import { parseURL } from 'whatwg-url';
 import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
-import getAllSupportedSitesSorted from '../../../constants/getAllSites';
+import { getAllSupportedSitesSorted } from '../../../constants/getAllSites';
 // import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
 
 export function taskReducer(state = initialTaskStates.task, action) {
@@ -111,7 +111,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
               break;
             }
             const URL = parseURL(action.value);
-            console.log(URL);
             if (!URL || !URL.host) {
               break;
             }

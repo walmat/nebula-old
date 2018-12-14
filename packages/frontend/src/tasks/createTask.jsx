@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
 import * as getAllSizes from '../constants/getAllSizes';
-import getAllSupportedSitesSorted from '../constants/getAllSites';
+import buildSitesOptions from '../constants/getAllSites';
 
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -15,14 +15,6 @@ import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
 export class CreateTaskPrimitive extends Component {
-  static buildSitesOptions() {
-    return getAllSupportedSitesSorted().map(s => ({
-      label: s.name,
-      value: s.url,
-      ...s,
-    }));
-  }
-
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
@@ -63,15 +55,11 @@ export class CreateTaskPrimitive extends Component {
     const { onFieldChange, profiles } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE:
-        return event => {
+        return ({ label, value, ...siteData }) => {
           const site = {
-            special: event.special,
-            apiKey: event.apiKey,
-            auth: event.auth,
-            name: event.label,
-            url: event.value,
-            supported: event.supported,
-            sizeOptionIndex: event.sizeOptionIndex,
+            ...siteData,
+            name: label,
+            url: value,
           };
           onFieldChange({ field, value: site });
         };
@@ -151,7 +139,7 @@ export class CreateTaskPrimitive extends Component {
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
-                  options={CreateTaskPrimitive.buildSitesOptions()}
+                  options={buildSitesOptions()}
                   data-testid={addTestId('CreateTask.siteSelect')}
                 />
               </div>

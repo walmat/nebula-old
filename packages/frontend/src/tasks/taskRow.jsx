@@ -3,7 +3,9 @@ import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import getAllSizes from '../constants/getAllSizes';
-import getAllSupportedSitesSorted from '../constants/getAllSites';
+import buildSitesOptions, {
+  getAllSupportedSitesSorted,
+} from '../constants/getAllSites';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -18,29 +20,22 @@ import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 
 export class TaskRowPrimitive extends Component {
-  static buildSitesOptions() {
-    return getAllSupportedSitesSorted().map(s => ({
-      label: s.name,
-      value: s.url,
-      ...s,
-    }));
-  }
-
   createOnChangeHandler(field) {
     const { onEditTask, task } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE: {
         return event => {
+<<<<<<< HEAD:packages/frontend/src/tasks/taskRow.jsx
           const site = TaskRowPrimitive.buildSitesOptions().find(s => s.value === event.value);
+=======
+          const site = getAllSupportedSitesSorted().find(
+            s => s.url === event.value,
+          );
+>>>>>>> PR Changes && test case fixes:frontend/src/tasks/taskRow.jsx
           if (site) {
             onEditTask(task, {
               field,
-              value: {
-                ...site,
-                url: site.value,
-                name: site.label,
-                auth: site.auth,
-              },
+              value: site,
             });
           }
         };
@@ -180,7 +175,7 @@ export class TaskRowPrimitive extends Component {
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
-                options={TaskRowPrimitive.buildSitesOptions()}
+                options={buildSitesOptions()}
                 data-testid={addTestId(`${testIdBase}.siteSelect`)}
               />
             </div>
