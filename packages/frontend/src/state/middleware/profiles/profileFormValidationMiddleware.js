@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import {
   PROFILE_ACTIONS,
   PROFILE_FIELDS,
@@ -30,8 +31,8 @@ const profileFormValidationMiddleware = store => next => action => {
       Object.entries(profileAttributeValidatorMap).forEach(pair => {
         // look at pairs of the attribute validator map, where pair[0] is the field and
         // pair[1] is the validator or sub validator map
-        const field = pair[0];
-        switch (pair[0]) {
+        const [field] = pair;
+        switch (field) {
           case PROFILE_FIELDS.EDIT_BILLING:
           case PROFILE_FIELDS.EDIT_SHIPPING:
           case PROFILE_FIELDS.EDIT_PAYMENT:
@@ -47,8 +48,7 @@ const profileFormValidationMiddleware = store => next => action => {
             Object.entries(validatorMap).forEach(subPair => {
               // look at sub pairs where subPair[0] is the subField and
               // subPair[1] is the validator
-              const subField = subPair[0];
-              const validator = subPair[1];
+              const [subField, validator] = subPair;
               profileField.errors[subField] = !validator(
                 profile[mapProfileFieldToKey[sourceField]][subField],
               );

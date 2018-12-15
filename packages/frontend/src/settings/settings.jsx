@@ -53,19 +53,20 @@ export class SettingsPrimitive extends Component {
   }
 
   createOnChangeHandler(field) {
+    const { profiles, onSettingsChange } = this.props;
     switch (field) {
       case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
         return event => {
-          const change = this.props.profiles.find(p => p.id === event.value);
-          this.props.onSettingsChange({ field, value: change });
+          const change = profiles.find(p => p.id === event.value);
+          onSettingsChange({ field, value: change });
         };
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES:
         return event => {
-          this.props.onSettingsChange({ field, value: event });
+          onSettingsChange({ field, value: event });
         };
       default:
         return event => {
-          this.props.onSettingsChange({
+          onSettingsChange({
             field,
             value: event.target.value,
           });
@@ -74,12 +75,12 @@ export class SettingsPrimitive extends Component {
   }
 
   render() {
-    const { errors } = this.props;
+    const { errors, settings, onKeyPress, onSaveDefaults, onClearDefaults } = this.props;
     let defaultProfileValue = null;
-    if (this.props.settings.defaults.profile.id !== null) {
+    if (settings.defaults.profile.id !== null) {
       defaultProfileValue = {
-        value: this.props.settings.defaults.profile.id,
-        label: this.props.settings.defaults.profile.profileName,
+        value: settings.defaults.profile.id,
+        label: settings.defaults.profile.profileName,
       };
     }
     return (
@@ -96,11 +97,15 @@ export class SettingsPrimitive extends Component {
         <ProxyList id="proxy-list-text" />
 
         {/* CAPTCHA Window */}
-        {/* <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
-        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester}>
+        {/* <button type="button" id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
+        <button type="button" id="proxy-button-captcha" onClick={SettingsPrimitive.harvester}>
           Captcha Window
         </button>
-        <button id="proxy-button-captcha-close" onClick={SettingsPrimitive.closeAllCaptchaWindows}>
+        <button
+          type="button"
+          id="proxy-button-captcha-close"
+          onClick={SettingsPrimitive.closeAllCaptchaWindows}
+        >
           Close All Windows
         </button>
 
@@ -111,7 +116,7 @@ export class SettingsPrimitive extends Component {
           placeholder="https://discordapp.com/api/webhooks/..."
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
           style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]])}
-          value={this.props.settings.discord}
+          value={settings.discord}
         />
         <p id="slack-label">Slack URL</p>
         <input
@@ -119,7 +124,7 @@ export class SettingsPrimitive extends Component {
           placeholder="https://hooks.slack.com/services/..."
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
           style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]])}
-          value={this.props.settings.slack}
+          value={settings.slack}
         />
 
         {/* DEFAULTS */}
@@ -155,29 +160,31 @@ export class SettingsPrimitive extends Component {
             buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]]),
           )}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
-          value={this.props.settings.defaults.sizes.map(size => ({
+          value={settings.defaults.sizes.map(size => ({
             value: size.value,
             label: size.label,
           }))}
           options={SettingsPrimitive.buildSizeOptions()}
         />
         <button
+          type="button"
           id="save-defaults"
           tabIndex={0}
-          onKeyPress={this.props.onKeyPress}
+          onKeyPress={onKeyPress}
           onClick={() => {
-            this.props.onSaveDefaults(this.props.settings.defaults);
+            onSaveDefaults(settings.defaults);
           }}
         >
           Save
         </button>
 
         <button
+          type="button"
           id="clear-defaults"
           tabIndex={0}
-          onKeyPress={this.props.onKeyPress}
+          onKeyPress={onKeyPress}
           onClick={() => {
-            this.props.onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
+            onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
           }}
         >
           Clear
@@ -186,7 +193,7 @@ export class SettingsPrimitive extends Component {
         {/* Delays */}
         <p id="monitor-label">Monitor Delay</p>
         <NumberFormat
-          value={this.props.settings.monitorDelay}
+          value={settings.monitorDelay}
           placeholder="1500"
           id="monitor-input"
           style={buildStyle(
@@ -199,7 +206,7 @@ export class SettingsPrimitive extends Component {
 
         <p id="error-label">Error Delay</p>
         <NumberFormat
-          value={this.props.settings.errorDelay}
+          value={settings.errorDelay}
           placeholder="1500"
           id="error-input"
           style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ERROR_DELAY]])}

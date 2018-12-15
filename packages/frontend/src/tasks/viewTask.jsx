@@ -11,8 +11,8 @@ export class ViewTaskPrimitive extends Component {
   }
 
   createTable() {
-    const table = this.props.tasks.map(task => <TaskRow key={task.id} task={task} />);
-    return table;
+    const { tasks } = this.props;
+    return tasks.map(task => <TaskRow key={task.id} task={task} />);
   }
 
   render() {

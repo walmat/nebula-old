@@ -103,7 +103,7 @@ class TaskRow extends Component {
               // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
             />
             <div className="submit-edit">
-              <button
+              <button type="button"
                 className="submit-edit__button"
                 tabIndex={0}
                 onKeyPress={() => {}}

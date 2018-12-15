@@ -38,7 +38,8 @@ export class TaskRowPrimitive extends Component {
       }
       case TASK_FIELDS.EDIT_PROFILE: {
         return event => {
-          const value = this.props.profiles.find(p => p.id === event.value);
+          const { profiles } = this.props;
+          const value = profiles.find(p => p.id === event.value);
           if (value) {
             onEditTask(task, { field, value });
           }
@@ -79,16 +80,18 @@ export class TaskRowPrimitive extends Component {
   }
 
   buildProfileOptions() {
-    return this.props.profiles.map(profile => ({ value: profile.id, label: profile.profileName }));
+    const { profiles } = this.props;
+    return profiles.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
   renderTableRowButton(tag, desc, src, className, onClick) {
+    const { onKeyPress } = this.props;
     return (
       <div
         role="button"
         tabIndex={0}
         title={desc}
-        onKeyPress={this.props.onKeyPress}
+        onKeyPress={onKeyPress}
         onClick={onClick}
         data-testid={addTestId(`TaskRow.button.${tag}`)}
       >
@@ -106,7 +109,8 @@ export class TaskRowPrimitive extends Component {
   }
 
   renderEditMenu() {
-    if (!this.props.isEditing) {
+    const { isEditing, task, onKeyPress } = this.props;
+    if (!isEditing) {
       return null;
     }
     const testIdBase = 'TaskRow.edit';
@@ -136,7 +140,7 @@ export class TaskRowPrimitive extends Component {
       editAccountFieldDisabled = !edits.site.auth;
     }
     return (
-      <div key={`${this.props.task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
+      <div key={`${task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
         <div className="col">
           <div className="row row--start">
             <div className="col edit-field">
@@ -243,9 +247,10 @@ export class TaskRowPrimitive extends Component {
           <div className="row row--end">
             <div className="col action">
               <button
+                type="button"
                 className="action__button action__button--save"
                 tabIndex={0}
-                onKeyPress={this.props.onKeyPress}
+                onKeyPress={onKeyPress}
                 onClick={() => {
                   this.saveTask();
                 }}
@@ -256,9 +261,10 @@ export class TaskRowPrimitive extends Component {
             </div>
             <div className="col action">
               <button
+                type="button"
                 className="action__button action__button--cancel"
                 tabIndex={0}
-                onKeyPress={this.props.onKeyPress}
+                onKeyPress={onKeyPress}
                 onClick={() => {
                   this.cancelEdits();
                 }}

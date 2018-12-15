@@ -146,7 +146,13 @@ class CreateTask extends Component {
           id="pairs"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
         />
-        <button id="submit-tasks" tabIndex={0} onKeyPress={() => {}} onClick={this.saveTask}>
+        <button
+          type="button"
+          id="submit-tasks"
+          tabIndex={0}
+          onKeyPress={() => {}}
+          onClick={this.saveTask}
+        >
           Submit
         </button>
       </div>

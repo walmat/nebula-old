@@ -183,7 +183,7 @@ class Server extends Component {
           value={this.props.serverInfo.credentials.AWSSecretKey}
           required
         />
-        <button id="submit-aws-login" onClick={loggedInAws ? this.logoutAws : this.validateAws}>
+        <button type="button" id="submit-aws-login" onClick={loggedInAws ? this.logoutAws : this.validateAws}>
           {loggedInAws ? 'Log out' : 'Submit'}
         </button>
 
@@ -219,7 +219,7 @@ class Server extends Component {
           value={this.props.serverInfo.proxyOptions.password}
           required
         />
-        <button
+        <button type="button"
           disabled={!loggedInAws}
           id="generate-proxies"
           title={!loggedInAws ? 'Login Required' : ''}
@@ -228,7 +228,7 @@ class Server extends Component {
         >
           Generate
         </button>
-        <button
+        <button type="button"
           disabled={!loggedInAws}
           id="destroy-proxies"
           title={!loggedInAws ? 'Login Required' : ''}
@@ -246,7 +246,7 @@ class Server extends Component {
         {this.renderServerTypeComponent()}
         {this.renderServerSizeComponent()}
         {this.renderServerLocationComponent()}
-        <button
+        <button type="button"
           disabled={!loggedInAws}
           id="create-server"
           title={!loggedInAws ? 'Login Required' : ''}
@@ -255,7 +255,7 @@ class Server extends Component {
         >
           Create
         </button>
-        <button
+        <button type="button"
           disabled={!loggedInAws}
           id="destroy-server"
           title={!loggedInAws ? 'Login Required' : ''}

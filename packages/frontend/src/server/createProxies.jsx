@@ -100,6 +100,7 @@ export class CreateProxiesPrimitive extends Component {
         <div className="row row--end row--expand row--gutter">
           <div className="col">
             <button
+              type="button"
               className="proxy-options__destroy"
               tabIndex={0}
               disabled={!loggedInAws}
@@ -114,6 +115,7 @@ export class CreateProxiesPrimitive extends Component {
           </div>
           <div className="col">
             <button
+              type="button"
               className="proxy-options__generate"
               tabIndex={0}
               disabled={!loggedInAws}

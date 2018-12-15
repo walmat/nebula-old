@@ -16,7 +16,7 @@ export const PROFILE_ACTIONS = {
 // TODO this is only temporary until we get registration key stuff implemented
 // profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY
 
-// TEMPERARILY DISABLED FOR TESTING
+// TEMPORARILY DISABLED FOR TESTING
 /* Store the profile in the db */
 // try {
 //     let response = await fetch('http://localhost:8080/profiles',

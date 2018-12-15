@@ -83,6 +83,7 @@ export class AWSCredentialsPrimitive extends Component {
         <div className="row row--end row--expand row--gutter">
           <div className="col">
             <button
+              type="button"
               className="server-credentials__submit"
               tabIndex={0}
               onKeyPress={this.props.onKeyPress}

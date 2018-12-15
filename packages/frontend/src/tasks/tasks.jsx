@@ -35,7 +35,7 @@ export class TasksPrimitive extends Component {
   }
 
   render() {
-    const { newTask } = this.props;
+    const { newTask, onKeyPress } = this.props;
     return (
       <div className="container tasks">
         <div className="row">
@@ -145,7 +145,7 @@ export class TasksPrimitive extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={this.props.onKeyPress}
+                    onKeyPress={onKeyPress}
                     onClick={() => {
                       this.startAllTasks();
                     }}
@@ -159,7 +159,7 @@ export class TasksPrimitive extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={this.props.onKeyPress}
+                    onKeyPress={onKeyPress}
                     onClick={() => {
                       this.stopAllTasks();
                     }}
@@ -173,7 +173,7 @@ export class TasksPrimitive extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={this.props.onKeyPress}
+                    onKeyPress={onKeyPress}
                     onClick={() => {
                       this.destroyAllTasks();
                     }}

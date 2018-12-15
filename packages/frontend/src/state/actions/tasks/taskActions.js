@@ -1,4 +1,4 @@
-import _ from 'underscore';
+// import _ from 'lodash';
 import makeActionCreator from '../actionCreator';
 import regexes from '../../../utils/validation';
 
@@ -159,7 +159,8 @@ const _statusTaskRequest = async (id, message) => {
   throw new Error('Invalid task structure');
 };
 
-const _startTaskRequest = async (task, proxies) => {
+// eslint-disable-next-line no-unused-vars
+const _startTaskRequest = async (task, proxies = []) => {
   if (task.status === 'running') {
     throw new Error('Already running');
   } else {
