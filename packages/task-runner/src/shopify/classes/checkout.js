@@ -7,6 +7,7 @@ const {
 } = require('./utils');
 const {
   buildPaymentTokenForm,
+  buildCheckoutForm,
 } = require('./utils/forms');
 
 class Checkout {
@@ -197,7 +198,7 @@ class Checkout {
     async _handleCreateCheckout() {
       this._logger.verbose('Creating checkout token.');
       const auth = Buffer.from(`${this._task.site.apiKey}`).toString('base64');
-      const dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${this._task.profile.payment.email}","shipping_address":{"first_name":"${this._task.profile.shipping.firstName}","last_name":"${this._task.profile.shipping.lastName}","address1":"${this._task.profile.shipping.address}","address2":"${this._task.profile.shipping.apt}","company":null,"city":"${this._task.profile.shipping.city}","country_code":"${this._task.profile.shipping.country.value}","province_code":"${this._task.profile.shipping.state.value}","phone":"${phoneFormatter.format(this._task.profile.shipping.phone,'(NNN) NNN-NNNN')}","zip":"${this._task.profile.shipping.zipCode}"},"billing_address":{"first_name":"${this._task.profile.billing.firstName}","last_name":"${this._task.profile.billing.lastName}","address1":"${this._task.profile.billing.address}","address2":"${this._task.profile.billing.apt}","company":null,"city":"${this._task.profile.billing.city}","country_code":"${this._task.profile.billing.country.value}","province_code":"${this._task.profile.billing.state.value}","phone":"${phoneFormatter.format(this._task.profile.billing.phone,'(NNN) NNN-NNNN')}","zip":"${this._task.profile.billing.zipCode}"}}}`;
+      // const dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${this._task.profile.payment.email}","shipping_address":{"first_name":"${this._task.profile.shipping.firstName}","last_name":"${this._task.profile.shipping.lastName}","address1":"${this._task.profile.shipping.address}","address2":"${this._task.profile.shipping.apt}","company":null,"city":"${this._task.profile.shipping.city}","country_code":"${this._task.profile.shipping.country.value}","province_code":"${this._task.profile.shipping.state.value}","phone":"${phoneFormatter.format(this._task.profile.shipping.phone,'(NNN) NNN-NNNN')}","zip":"${this._task.profile.shipping.zipCode}"},"billing_address":{"first_name":"${this._task.profile.billing.firstName}","last_name":"${this._task.profile.billing.lastName}","address1":"${this._task.profile.billing.address}","address2":"${this._task.profile.billing.apt}","company":null,"city":"${this._task.profile.billing.city}","country_code":"${this._task.profile.billing.country.value}","province_code":"${this._task.profile.billing.state.value}","phone":"${phoneFormatter.format(this._task.profile.billing.phone,'(NNN) NNN-NNNN')}","zip":"${this._task.profile.billing.zipCode}"}}}`;
       const headers = {
         'Accept': 'application/json',
         'cache-control': 'no-store',
@@ -216,10 +217,10 @@ class Checkout {
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers,
-        body: dataString,
+        formData: JSON.stringify(buildCheckoutForm(this._task)),
       })
       .then(async (res) => {
-        // console.log(res.headers);
+        console.log(res.body);
         if (res.statusCode === 303) {
             this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
             Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
