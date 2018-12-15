@@ -1,12 +1,12 @@
 const fs = require('fs');
 const dotenv = require('dotenv');
 
-let _isDevelopment = process.env.NEBULA_API_ENV === 'development';
+const _isDevelopment = process.env.NEBULA_API_ENV === 'development';
 
 function _setUpEnvironment(envFname) {
   const envConfig = dotenv.parse(fs.readFileSync(envFname));
   if (envConfig) {
-    Object.keys(envConfig).forEach((k) => {
+    Object.keys(envConfig).forEach(k => {
       if (k.startsWith('NEBULA_')) {
         process.env[k] = envConfig[k];
       }

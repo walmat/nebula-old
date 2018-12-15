@@ -6,7 +6,7 @@ function getConfig() {
   dotenv.load();
   nebulaenv.setUpEnvironment();
 
-  config = {
+  const config = {
     ...baseConfig,
     endpoint: process.env.NEBULA_API_DYNAMODB_ENDPOINT,
     accessKeyId: process.env.NEBULA_API_DYNAMODB_ACCESS_KEY || baseConfig.accessKeyId,

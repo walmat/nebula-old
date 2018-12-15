@@ -10,50 +10,48 @@ const { salt, algo, output } = require('../../../hashConfig.json');
  * @param {*} userData – contains: licenseKey (non-hashed) and discordId
  */
 async function createDiscordUser(res, userData) {
+  const key = userData.licenseKey;
+  const { discordId } = userData;
 
-    const key = userData.licenseKey;
-    const discordId = userData.discordId;
+  const discordIdHash = hash(algo, discordId, salt, output);
 
-    const discordIdHash = hash(algo, discordId, salt, output);
-  
-    const keyHash = await authUtils.checkValidKey(key);
-    if (!keyHash) {
-      return res.status(401).json({
-        name: 'Invalid Request',
-        message: 'Invalid Key or Already in use.'
-      });
-    }
+  const keyHash = await authUtils.checkValidKey(key);
+  if (!keyHash) {
+    return res.status(401).json({
+      name: 'Invalid Request',
+      message: 'Invalid Key or Already in use.',
+    });
+  }
 
-    const discord = await authUtils.getDiscordUser(keyHash);
+  const discord = await authUtils.getDiscordUser(keyHash);
 
-    if (discord && discord.discordId === discordIdHash) {
-        return res.status(200).json({
-            name: 'Success',
-            message: `You've already bound this key!`,
-        });
-    
-    } else if(discord) {
-        return res.status(401).json({
-            name: 'InvalidRequest',
-            message: 'Invalid Key or Already in use.'
-        });
-    }
+  if (discord && discord.discordId === discordIdHash) {
+    return res.status(200).json({
+      name: 'Success',
+      message: `You've already bound this key!`,
+    });
+  }
+  if (discord) {
+    return res.status(401).json({
+      name: 'InvalidRequest',
+      message: 'Invalid Key or Already in use.',
+    });
+  }
 
-    const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(discordIdHash);
+  const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(discordIdHash);
 
-    if (!isDiscordAccountPresent) {
-        await authUtils.addDiscordUser(keyHash, discordIdHash);
+  if (!isDiscordAccountPresent) {
+    await authUtils.addDiscordUser(keyHash, discordIdHash);
 
-        return res.status(200).json({
-            name: 'Success',
-            message: 'Key Bound Successfully'
-        });
-    } else {
-        return res.status(401).json({
-            name: 'InvalidRequest',
-            message: 'You already have a key bound.'
-        });
-    }
+    return res.status(200).json({
+      name: 'Success',
+      message: 'Key Bound Successfully',
+    });
+  }
+  return res.status(401).json({
+    name: 'InvalidRequest',
+    message: 'You already have a key bound.',
+  });
 }
 
 /**
@@ -62,76 +60,73 @@ async function createDiscordUser(res, userData) {
  * @param {*} userData – contains licenseKey && discordId
  */
 async function deactivateUser(res, userData) {
-    const key = userData.licenseKey;
-    const discordId = userData.discordId;
+  const key = userData.licenseKey;
+  const { discordId } = userData;
 
-    const discordIdHash = hash(algo, discordId, salt, output);
+  const discordIdHash = hash(algo, discordId, salt, output);
 
-    const keyHash = await authUtils.checkValidKey(key);
+  const keyHash = await authUtils.checkValidKey(key);
 
-    if (!keyHash) {
-        return res.status(401).json({
-            name: 'MalformedRequest',
-            message: 'Invalid Key'
-        });
-    }
-    const discord = await authUtils.getDiscordUser(keyHash);
-
-    // verify it's the proper discord user
-    if (discord && discord.discordId === discordIdHash) {
-        let isRemoved = await authUtils.removeUser(keyHash);
-
-        if (!isRemoved) {
-            return res.status(200).json({
-                name: 'Success',
-                message: 'Deactivated!'
-            });
-        } else {
-            return res.status(500).json({
-                name: 'InvalidRequest',
-                message: 'Already deactivated.'
-            });
-        }
-    } else if(discord) {
-        return res.status(401).json({
-            name: 'InvalidRequest',
-            message: 'Invalid Key or Unauthorized'
-        })
-    }
-
+  if (!keyHash) {
     return res.status(401).json({
-        name: 'InvalidRequest',
-        message: 'Invalid Key or Inactive'
-    })
+      name: 'MalformedRequest',
+      message: 'Invalid Key',
+    });
+  }
+  const discord = await authUtils.getDiscordUser(keyHash);
+
+  // verify it's the proper discord user
+  if (discord && discord.discordId === discordIdHash) {
+    const isRemoved = await authUtils.removeUser(keyHash);
+
+    if (!isRemoved) {
+      return res.status(200).json({
+        name: 'Success',
+        message: 'Deactivated!',
+      });
+    }
+    return res.status(500).json({
+      name: 'InvalidRequest',
+      message: 'Already deactivated.',
+    });
+  }
+  if (discord) {
+    return res.status(401).json({
+      name: 'InvalidRequest',
+      message: 'Invalid Key or Unauthorized',
+    });
+  }
+
+  return res.status(401).json({
+    name: 'InvalidRequest',
+    message: 'Invalid Key or Inactive',
+  });
 }
 
 module.exports = function(app) {
+  app.post('/auth/discord', async (req, res) => {
+    const userData = req.body;
 
-    app.post('/auth/discord', async function(req, res) {
+    if (!userData.licenseKey || !userData.discordId) {
+      res.status(401).json({
+        name: 'MalformedRequest',
+        message: 'Malformed Request',
+      });
+    } else {
+      await createDiscordUser(res, userData);
+    }
+  });
 
-        const userData = req.body;
-        
-        if (!userData.licenseKey || !userData.discordId) {
-            res.status(401).json({
-                name: 'MalformedRequest',
-                message: 'Malformed Request'
-            })
-        } else {
-            await createDiscordUser(res, userData);
-        }
-    });
+  app.delete('/auth/discord', async (req, res) => {
+    const userData = req.body;
 
-    app.delete('/auth/discord', async function(req, res) {
-
-        const userData = req.body;
-
-        if(!userData.licenseKey || !userData.discordId) {
-            res.status(401).json({
-                name: 'MalformedRequest',
-                message: 'Malformed Request'
-            });
-        } else {
-            await deactivateUser(res, userData);
-        }
-    });
+    if (!userData.licenseKey || !userData.discordId) {
+      res.status(401).json({
+        name: 'MalformedRequest',
+        message: 'Malformed Request',
+      });
+    } else {
+      await deactivateUser(res, userData);
+    }
+  });
 };
