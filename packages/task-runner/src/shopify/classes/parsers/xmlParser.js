@@ -35,6 +35,7 @@ class XmlParser extends Parser {
         method: 'GET',
         uri: `${this._task.site.url}/sitemap_products_1.xml`,
         proxy: formatProxy(this._proxy) || undefined,
+        rejectUnauthorized: false,
         json: false,
         simple: true,
         gzip: true,

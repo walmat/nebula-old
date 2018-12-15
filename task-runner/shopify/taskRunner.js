@@ -69,7 +69,6 @@ class TaskRunner {
             logger: this._logger,
             aborted: false,
         };
-        console.log(this._context);
 
         /**
          * Create a new monitor object to be used for the task

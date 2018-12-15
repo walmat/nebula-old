@@ -15,7 +15,7 @@ module.exports.buildPaymentTokenForm = buildPaymentTokenForm;
 
 function buildCheckoutForm(task) {
 
-    return {
+    let form = {
         "card_source": "vault",
         "pollingOptions": {
             "poll": false
@@ -57,6 +57,8 @@ function buildCheckoutForm(task) {
             }
         },
     }
+    console.log(form);
+    return form;
 }
 module.exports.buildCheckoutForm = buildCheckoutForm;
 
@@ -115,17 +117,19 @@ function buildCartForm(task, variant) {
 }
 module.exports.buildCartForm = buildCartForm;
 
-function buildPatchCartForm(variant) {
+function buildPatchCartForm(opts) {
+  // might need hash included in the properties for DSM checkout
   let form = {
-      "checkout": {
-          "line_items": [{
-              "variant_id": variant,
-              "quantity": 1,
-          }]
-      }
-  };
+    "checkout":{
+      "line_items":[{
+        "variant_id":`"${opts.variant}"`,
+        "quantity":"1",
+        "properties":{}
+      }]
+    }
+  }
 
-  console.log(form.checkout.line_items[0]);
+  console.log(form);
   return form;
 }
 module.exports.buildPatchCartForm = buildPatchCartForm;

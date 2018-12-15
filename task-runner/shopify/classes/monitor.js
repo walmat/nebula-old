@@ -66,6 +66,7 @@ class Monitor {
 
     _generateValidVariants(product) {
         const { sizes, site } = this._context.task;
+
         // Group variants by their size
         const variantsBySize = _.groupBy(product.variants, (variant) => {
             // Use the variant option or the title segment
@@ -73,7 +74,7 @@ class Monitor {
         });
         // Get the groups in the same order as the sizes
         const mappedVariants = sizes.map((size) => {
-            return variantsBySize[size];
+          return variantsBySize[size];
         });
         // Flatten the groups to a one-level array and remove null elements
         const validVariants = _.filter(
@@ -119,6 +120,7 @@ class Monitor {
                 uri: url,
                 proxy: formatProxy(this._context.proxy),
                 resolveWithFullResponse: true,
+                rejectUnauthorized: false,
                 simple: true,
                 followRedirect: false,
                 gzip: true,

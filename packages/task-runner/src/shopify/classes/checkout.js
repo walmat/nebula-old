@@ -1,15 +1,12 @@
-const tough = require('tough-cookie');
+const phoneFormatter = require('phone-formatter');
 const { States } = require('./utils/constants').TaskRunner;
 const {
   waitForDelay,
   formatProxy,
-  now,
   userAgent,
 } = require('./utils');
 const {
-  buildCheckoutForm,
   buildPaymentTokenForm,
-  buildPatchCartForm
 } = require('./utils/forms');
 
 class Checkout {
@@ -166,6 +163,7 @@ class Checkout {
           uri: `https://elb.deposit.shopifycs.com/sessions`,
           followAllRedirects: true,
           proxy: formatProxy(this._proxy),
+          rejectUnauthorized: false,
           method: 'post',
           resolveWithFullResponse: true,
           headers: {
@@ -193,10 +191,13 @@ class Checkout {
       });
     }
 
+    /**
+     * Create a valid checkout token with user data
+     */
     async _handleCreateCheckout() {
-      this._logger.verbose('Generating Checkout Token.');
+      this._logger.verbose('Creating checkout token.');
       const auth = Buffer.from(`${this._task.site.apiKey}`).toString('base64');
-
+      const dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${this._task.profile.payment.email}","shipping_address":{"first_name":"${this._task.profile.shipping.firstName}","last_name":"${this._task.profile.shipping.lastName}","address1":"${this._task.profile.shipping.address}","address2":"${this._task.profile.shipping.apt}","company":null,"city":"${this._task.profile.shipping.city}","country_code":"${this._task.profile.shipping.country.value}","province_code":"${this._task.profile.shipping.state.value}","phone":"${phoneFormatter.format(this._task.profile.shipping.phone,'(NNN) NNN-NNNN')}","zip":"${this._task.profile.shipping.zipCode}"},"billing_address":{"first_name":"${this._task.profile.billing.firstName}","last_name":"${this._task.profile.billing.lastName}","address1":"${this._task.profile.billing.address}","address2":"${this._task.profile.billing.apt}","company":null,"city":"${this._task.profile.billing.city}","country_code":"${this._task.profile.billing.country.value}","province_code":"${this._task.profile.billing.state.value}","phone":"${phoneFormatter.format(this._task.profile.billing.phone,'(NNN) NNN-NNNN')}","zip":"${this._task.profile.billing.zipCode}"}}}`;
       const headers = {
         'Accept': 'application/json',
         'cache-control': 'no-store',
@@ -215,31 +216,27 @@ class Checkout {
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers,
-        body: JSON.stringify(buildCheckoutForm(this._task)),
+        body: dataString,
       })
       .then(async (res) => {
-        console.log(res.body, res.headers);
+        // console.log(res.headers);
         if (res.statusCode === 303) {
             this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
             Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
         } else if (res.body.checkout){
             // push the checkout token to the stack
+            this._logger.info('Created checkout token: %s', res.body.checkout.web_url.split('/')[5]);
             this._checkoutTokens.push(res.body.checkout.web_url.split('/')[5]);
 
-            // proceed straight to checkout if setup never happened
-            if (!this._setup) {
-              return {
-                message: 'Created checkout session',
-                nextState: Checkout.States.PatchCart,
-              }
-            }
-            // otherwise, during setup, keep creating checkout tokens.
+            // proceed to add to cart regardless if we're setup or not.
             return {
+
               message: 'Created checkout session',
               nextState: Checkout.States.PatchCart,
             }
         } else {
           // might not ever get called, but just a failsafe
+          this._logger.debug('Failed: Creating checkout session %s', res);
           return {
             message: 'Failed: Creating checkout session',
             nextState: Checkout.States.Stopped,
@@ -261,21 +258,20 @@ class Checkout {
      * payload: {"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}
     */
     async _handlePatchCart() {
-
       const auth = Buffer.from(`${this._task.site.apiKey}`).toString('base64');
-
-      var headers = {
+      const dataString = {"checkout":{"line_items":[{"variant_id":this._task.product.variants[0],"quantity":"1","properties":{}}]}};
+      const headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-Shopify-Checkout-Version': '2016-09-06',
+        'X-Shopify-Access-Token': `${this._task.site.apiKey}`,
         'User-Agent': userAgent,
         'host': `${this._task.site.url.split('/')[2]}`,
         'authorization': `Basic ${auth}`
       };
 
-      // var dataString = '{"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}';
-
       if (!this._checkoutTokens.isEmpty()) {
+        this._logger.verbose('Adding to cart.');
           this._checkoutToken = this._checkoutTokens.pop();
            return this._request({
               uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}.json`,
@@ -286,12 +282,13 @@ class Checkout {
               rejectUnauthorized: false,
               resolveWithFullResponse: true,
               headers,
-              body: JSON.stringify(buildPatchCartForm(this._task.product.variants[0])),
+              body: dataString,
           })
           .then((res) => {
             console.log(res.body);
-              if (res.statusCode === 202 && res.body.checkout.line_items.length > 0) {
-                  return {
+              if (res.body.checkout.line_items.length > 0) {
+                this._logger.verbose('Generating Checkout Token.');
+                return {
                       message: 'Added to cart',
                       nextState: Checkout.States.GetShippingRates,
                   }
@@ -310,6 +307,8 @@ class Checkout {
               }
           });
       } else {
+        this._logger.verbose('Creating checkout token.');
+
         // we're out of valid checkout session OR we need to create one due to task setup later flag
         return {
           message: 'Creating checkout session',
@@ -323,32 +322,30 @@ class Checkout {
      * GET https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6/shipping_rates.json
      */
     async _handleGetShippingRates() {
-        this._timer.start(now());
-        this._logger.verbose('Starting get shipping rates method');
+        this._logger.verbose('Getting shipping rates');
+        const auth = Buffer.from(`${this._task.site.apiKey}`).toString('base64');
 
-        var headers = {
+        const headers = {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'X-Shopify-Checkout-Version': '2016-09-06',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
-          'host': 'kith.com',
-          'cookie': '_shopify_y=1f2261ba-cda9-4d05-a201-c530440ca585; _orig_referrer=; secure_customer_sig=; _landing_page=%2Fcollections%2Ffootwear%2Fproducts%2Fnike-air-jordan-12-retro-gym-red-black; cart_sig=; _secure_session_id=6a81c7fa821fc501b88da259028e3104',
-          'authorization': 'Basic MDg0MzBiOTZjNDdkZDJhYzhlMTdlMzA1ZGIzYjcxZTg6Og=='
+          'X-Shopify-Access-Token': `${this._task.site.apiKey}`,
+          'User-Agent': userAgent,
+          'host': `${this._task.site.url.split('/')[2]}`,
+          'authorization': `Basic ${auth}`
         };
-
-        console.log(`${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`);
 
         return this._request({
             uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
+            rejectUnauthorized: false,
+            json: true,
             method: 'get',
             headers,
         })
         .then((res) => {
-            const rates = JSON.parse(res);
-
-            if (rates && rates.shipping_rates) {
+            if (res.rates && res.rates.shipping_rates) {
                 rates.forEach((rate) => {
                     this._shippingMethods.push(rate);
                 });
@@ -357,7 +354,6 @@ class Checkout {
                     return rate.price;
                 });
 
-                this._timer.stop(now());
                 this._logger.info('Got shipping method in %d ms', this._timer.getRunTime());
                 this._chosenShippingMethod = `shopify-${cheapest.name.replace('%20', ' ')}-${cheapest.price}`;
 

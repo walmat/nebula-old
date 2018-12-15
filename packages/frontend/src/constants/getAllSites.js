@@ -52,6 +52,7 @@ const s = [
     value: 'https://blendsus.com',
     label: 'Blends',
     supported: true,
+    apiKey: 'a695a9ac76b89f50663628617f8498f6',
     auth: false,
   },
   {

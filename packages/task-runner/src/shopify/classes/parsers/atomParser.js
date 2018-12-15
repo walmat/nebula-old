@@ -36,6 +36,7 @@ class AtomParser extends Parser {
         method: 'GET',
         uri: `${this._task.site.url}/collections/all.atom`,
         proxy: formatProxy(this._proxy) || undefined,
+        rejectUnauthorized: false,
         json: false,
         simple: true,
         gzip: true,
