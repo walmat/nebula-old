@@ -1,3 +1,4 @@
+const tough = require('tough-cookie');
 const { States } = require('./utils/constants').TaskRunner;
 const {
   waitForDelay,
@@ -83,6 +84,8 @@ class Checkout {
        * @type {HTTPRequest}
        */
       this._request = this._context.request;
+
+      this._jar = this._context.jar;
 
       /**
        * Logger Instance
@@ -192,6 +195,17 @@ class Checkout {
 
     async _handleCreateCheckout() {
       this._logger.verbose('Generating Checkout Token.');
+      const auth = Buffer.from(`${this._task.site.apiKey}`).toString('base64');
+
+      const headers = {
+        'Accept': 'application/json',
+        'cache-control': 'no-store',
+        'Content-Type': 'application/json',
+        'User-Agent': userAgent,
+        'host': `${this._task.site.url.split('/')[2]}`,
+        'authorization': `Basic ${auth}`
+      };
+
       return this._request({
         uri: `${this._task.site.url}/wallets/checkouts`,
         method: 'POST',
@@ -200,26 +214,17 @@ class Checkout {
         json: true,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
-        jar: this._jar,
-        headers: {
-          'Accept': 'application/json',
-          'cache-control': 'no-store',
-          'Content-Type': 'application/json',
-          'Authorization': Buffer.from('08430b96c47dd2ac8e17e305db3b71e8::').toString('base64'),
-          'User-Agent': userAgent,
-          'host': `${this._task.site.url}`,
-        },
+        headers,
         body: JSON.stringify(buildCheckoutForm(this._task)),
       })
       .then(async (res) => {
+        console.log(res.body, res.headers);
         if (res.statusCode === 303) {
             this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
             Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
         } else if (res.body.checkout){
-            this._logger.info('Created checkout in %d ms', this._timer.getRunTime());
-
             // push the checkout token to the stack
-            this._checkouts.push(res.body.checkout.web_url.split('/')[5]);
+            this._checkoutTokens.push(res.body.checkout.web_url.split('/')[5]);
 
             // proceed straight to checkout if setup never happened
             if (!this._setup) {
@@ -231,12 +236,12 @@ class Checkout {
             // otherwise, during setup, keep creating checkout tokens.
             return {
               message: 'Created checkout session',
-              nextState: Checkout.States.CreateCheckout,
+              nextState: Checkout.States.PatchCart,
             }
         } else {
           // might not ever get called, but just a failsafe
           return {
-            message: 'Failed: Created checkout session',
+            message: 'Failed: Creating checkout session',
             nextState: Checkout.States.Stopped,
           };
         }
@@ -257,15 +262,18 @@ class Checkout {
     */
     async _handlePatchCart() {
 
+      const auth = Buffer.from(`${this._task.site.apiKey}`).toString('base64');
+
       var headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-Shopify-Checkout-Version': '2016-09-06',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
-        'host': 'kith.com',
-        'cookie': '_shopify_y=1f2261ba-cda9-4d05-a201-c530440ca585; _orig_referrer=; secure_customer_sig=; _landing_page=%2Fcollections%2Ffootwear%2Fproducts%2Fnike-air-jordan-12-retro-gym-red-black; cart_sig=; _secure_session_id=6a81c7fa821fc501b88da259028e3104',
-        'authorization': 'Basic MDg0MzBiOTZjNDdkZDJhYzhlMTdlMzA1ZGIzYjcxZTg6Og=='
+        'User-Agent': userAgent,
+        'host': `${this._task.site.url.split('/')[2]}`,
+        'authorization': `Basic ${auth}`
       };
+
+      // var dataString = '{"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}';
 
       if (!this._checkoutTokens.isEmpty()) {
           this._checkoutToken = this._checkoutTokens.pop();
@@ -278,7 +286,6 @@ class Checkout {
               rejectUnauthorized: false,
               resolveWithFullResponse: true,
               headers,
-              jar: this._jar,
               body: JSON.stringify(buildPatchCartForm(this._task.product.variants[0])),
           })
           .then((res) => {

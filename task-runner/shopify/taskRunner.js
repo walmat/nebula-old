@@ -64,10 +64,12 @@ class TaskRunner {
             task,
             proxy,
             request: this._request,
+            jar: this._jar,
             timer: this._timer,
             logger: this._logger,
             aborted: false,
         };
+        console.log(this._context);
 
         /**
          * Create a new monitor object to be used for the task
