@@ -5,7 +5,11 @@ import DDU from '../../_assets/dropdown-up.svg';
 
 export const DropdownIndicator = props => (
   <components.DropdownIndicator {...props}>
-    <img src={props.selectProps.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
+    <img
+      src={props.selectProps.menuIsOpen ? DDU : DDD}
+      style={{ marginRight: '-5px', cursor: 'pointer' }}
+      alt=""
+    />
   </components.DropdownIndicator>
 );
 

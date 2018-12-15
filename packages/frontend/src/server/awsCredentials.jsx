@@ -15,8 +15,9 @@ export class AWSCredentialsPrimitive extends Component {
 
   logoutAws(e) {
     e.preventDefault();
-    const message = 'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
-    window.Bridge.confirmDialog(message).then((logout) => {
+    const message =
+      'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
+    window.Bridge.confirmDialog(message).then(logout => {
       if (logout) {
         this.props.onLogoutAws(this.props.serverInfo.coreServer.path);
       }
@@ -46,7 +47,10 @@ export class AWSCredentialsPrimitive extends Component {
                   className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                   type="text"
                   placeholder="IAM User Access"
-                  style={buildStyle(false, errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]])}
+                  style={buildStyle(
+                    false,
+                    errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]],
+                  )}
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={serverInfo.credentials.AWSAccessKey}
                   required
@@ -64,7 +68,10 @@ export class AWSCredentialsPrimitive extends Component {
                 className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                 type="password"
                 placeholder="IAM User Secret"
-                style={buildStyle(false, errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]])}
+                style={buildStyle(
+                  false,
+                  errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]],
+                )}
                 onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                 value={serverInfo.credentials.AWSSecretKey}
                 required
@@ -113,12 +120,15 @@ export const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
-  onValidateAws: (credentials) => {
+  onValidateAws: credentials => {
     dispatch(serverActions.validateAws(credentials));
   },
-  onLogoutAws: (path) => {
+  onLogoutAws: path => {
     dispatch(serverActions.logoutAws(path));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(AWSCredentialsPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(AWSCredentialsPrimitive);

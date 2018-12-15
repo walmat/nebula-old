@@ -10,7 +10,7 @@ import { buildStyle } from '../utils/styles';
 
 export class CreateServerPrimitive extends Component {
   static changeServerChoice(options, onChange) {
-    return (event) => {
+    return event => {
       const change = options.find(o => o.id === event.value);
       if (change) {
         onChange(change);
@@ -38,8 +38,13 @@ export class CreateServerPrimitive extends Component {
   }
 
   static renderServerOptionComponent(
-    tag, label, defaultOption, value,
-    disabled, onChange, optionGenerator,
+    tag,
+    label,
+    defaultOption,
+    value,
+    disabled,
+    onChange,
+    optionGenerator,
   ) {
     return (
       <div className="row row--start row--gutter">
@@ -93,11 +98,8 @@ export class CreateServerPrimitive extends Component {
         this.props.serverListOptions.sizes,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE),
       ),
-      CreateServerPrimitive.buildServerOptionChoices(
-        this.props.serverListOptions.sizes,
-        (s => (this.props.serverType
-          ? s.types.some(t => t === this.props.serverType.id)
-          : true)),
+      CreateServerPrimitive.buildServerOptionChoices(this.props.serverListOptions.sizes, s =>
+        this.props.serverType ? s.types.some(t => t === this.props.serverType.id) : true,
       ),
     );
   }
@@ -134,10 +136,7 @@ export class CreateServerPrimitive extends Component {
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={this.props.onKeyPress}
               onClick={() => {
-                this.props.onDestroyServers(
-                  this.props.servers,
-                  this.props.serverInfo.credentials,
-                );
+                this.props.onDestroyServers(this.props.servers, this.props.serverInfo.credentials);
               }}
               data-testid={addTestId('CreateServer.serversButton.destroy')}
             >
@@ -212,4 +211,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateServerPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CreateServerPrimitive);

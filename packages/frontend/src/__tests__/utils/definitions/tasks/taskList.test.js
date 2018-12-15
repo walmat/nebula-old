@@ -1,11 +1,6 @@
 /* global describe it expect */
-import tDefns, {
-  initialTaskStates,
-} from '../../../../utils/definitions/taskDefinitions';
-import {
-  setupConsoleErrorSpy,
-  testArray,
-} from '../../../../__testUtils__/definitionTestUtils';
+import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
+import { setupConsoleErrorSpy, testArray } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskList definitions', () => {
   const spy = setupConsoleErrorSpy();

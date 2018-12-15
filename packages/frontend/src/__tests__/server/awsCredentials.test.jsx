@@ -2,7 +2,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { AWSCredentialsPrimitive, mapStateToProps, mapDispatchToProps } from '../../server/awsCredentials';
+import {
+  AWSCredentialsPrimitive,
+  mapStateToProps,
+  mapDispatchToProps,
+} from '../../server/awsCredentials';
 import { SERVER_FIELDS, serverActions } from '../../state/actions';
 import { initialServerStates } from '../../utils/definitions/serverDefinitions';
 import getByTestId from '../../__testUtils__/getByTestId';
@@ -10,18 +14,20 @@ import getByTestId from '../../__testUtils__/getByTestId';
 describe('<AWSCredentials />', () => {
   let defaultProps;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return shallow(<AWSCredentialsPrimitive
-      serverInfo={renderProps.serverInfo}
-      onEditServerInfo={renderProps.onEditServerInfo}
-      onValidateAws={renderProps.onValidateAws}
-      onLogoutAws={renderProps.onLogoutAws}
-      onKeyPress={renderProps.onKeyPress}
-    />);
+    return shallow(
+      <AWSCredentialsPrimitive
+        serverInfo={renderProps.serverInfo}
+        onEditServerInfo={renderProps.onEditServerInfo}
+        onValidateAws={renderProps.onValidateAws}
+        onLogoutAws={renderProps.onLogoutAws}
+        onKeyPress={renderProps.onKeyPress}
+      />,
+    );
   };
 
   beforeEach(() => {
@@ -221,7 +227,10 @@ describe('<AWSCredentials />', () => {
       const wrapper = renderShallowWithProps(customProps);
       const accessKeyInput = getByTestId(wrapper, 'AWSCredentials.accessKeyInput');
       accessKeyInput.simulate('change', { target: { value: 'newAccess' } });
-      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY, 'newAccess');
+      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
+        SERVER_FIELDS.EDIT_AWS_ACCESS_KEY,
+        'newAccess',
+      );
     });
 
     test('aws secret key', () => {
@@ -239,7 +248,10 @@ describe('<AWSCredentials />', () => {
       const wrapper = renderShallowWithProps(customProps);
       const secretKeyInput = getByTestId(wrapper, 'AWSCredentials.secretKeyInput');
       secretKeyInput.simulate('change', { target: { value: 'newSecret' } });
-      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(SERVER_FIELDS.EDIT_AWS_SECRET_KEY, 'newSecret');
+      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
+        SERVER_FIELDS.EDIT_AWS_SECRET_KEY,
+        'newSecret',
+      );
     });
   });
 
@@ -261,7 +273,10 @@ describe('<AWSCredentials />', () => {
     actual.onValidateAws({ access: 'test', secret: 'test' });
     actual.onLogoutAws('logout');
 
-    expect(dispatch).toHaveBeenNthCalledWith(1, serverActions.edit(null, 'test_field', 'test_value'));
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      serverActions.edit(null, 'test_field', 'test_value'),
+    );
     expect(dispatch).toHaveBeenNthCalledWith(2, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(3, expect.any(Function));
   });

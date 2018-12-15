@@ -13,19 +13,21 @@ import getByTestId from '../../__testUtils__/getByTestId';
 describe('<CreateTask />', () => {
   let defaultProps;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return shallow(<CreateTaskPrimitive
-      profiles={renderProps.profiles}
-      task={renderProps.task}
-      onFieldChange={renderProps.onFieldChange}
-      onAddNewTask={renderProps.onAddNewTask}
-      onKeyPress={renderProps.onKeyPress}
-      errors={renderProps.errors}
-    />);
+    return shallow(
+      <CreateTaskPrimitive
+        profiles={renderProps.profiles}
+        task={renderProps.task}
+        onFieldChange={renderProps.onFieldChange}
+        onAddNewTask={renderProps.onAddNewTask}
+        onKeyPress={renderProps.onKeyPress}
+        errors={renderProps.errors}
+      />,
+    );
   };
 
   beforeEach(() => {
@@ -55,7 +57,9 @@ describe('<CreateTask />', () => {
     it('should render correctly with default props', () => {
       const wrapper = renderShallowWithProps();
       const productInput = getByTestId(wrapper, 'CreateTask.productInput');
-      expect(productInput.prop('className')).toEqual(expect.stringContaining('tasks-create__input'));
+      expect(productInput.prop('className')).toEqual(
+        expect.stringContaining('tasks-create__input'),
+      );
       expect(productInput.prop('type')).toBe('text');
       expect(productInput.prop('onChange')).toBeDefined();
       expect(productInput.prop('value')).toBe('');
@@ -74,7 +78,9 @@ describe('<CreateTask />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const productInput = getByTestId(wrapper, 'CreateTask.productInput');
-      expect(productInput.prop('className')).toEqual(expect.stringContaining('tasks-create__input'));
+      expect(productInput.prop('className')).toEqual(
+        expect.stringContaining('tasks-create__input'),
+      );
       expect(productInput.prop('type')).toBe('text');
       expect(productInput.prop('onChange')).toBeDefined();
       expect(productInput.prop('value')).toBe('test');
@@ -155,7 +161,9 @@ describe('<CreateTask />', () => {
     it('should render correctly with default props', () => {
       const wrapper = renderShallowWithProps();
       const profileSelect = getByTestId(wrapper, 'CreateTask.profileSelect');
-      expect(profileSelect.prop('className')).toEqual(expect.stringContaining('tasks-create__input'));
+      expect(profileSelect.prop('className')).toEqual(
+        expect.stringContaining('tasks-create__input'),
+      );
       expect(profileSelect.prop('onChange')).toBeDefined();
       expect(profileSelect.prop('value')).toBeNull();
       expect(profileSelect.prop('options')).toEqual([]);
@@ -175,7 +183,9 @@ describe('<CreateTask />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const profileSelect = getByTestId(wrapper, 'CreateTask.profileSelect');
-      expect(profileSelect.prop('className')).toEqual(expect.stringContaining('tasks-create__input'));
+      expect(profileSelect.prop('className')).toEqual(
+        expect.stringContaining('tasks-create__input'),
+      );
       expect(profileSelect.prop('onChange')).toBeDefined();
       expect(profileSelect.prop('value')).toEqual({
         value: 1,
@@ -194,7 +204,9 @@ describe('<CreateTask />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const profileSelect = getByTestId(wrapper, 'CreateTask.profileSelect');
-      expect(profileSelect.prop('className')).toEqual(expect.stringContaining('tasks-create__input'));
+      expect(profileSelect.prop('className')).toEqual(
+        expect.stringContaining('tasks-create__input'),
+      );
       expect(profileSelect.prop('onChange')).toBeDefined();
       expect(profileSelect.prop('value')).toBeNull();
       expect(profileSelect.prop('options')).toEqual([
@@ -205,7 +217,7 @@ describe('<CreateTask />', () => {
     });
 
     describe('should handle change events', () => {
-      test('when given profile doesn\'t match profile list', () => {
+      test("when given profile doesn't match profile list", () => {
         const customProps = {
           onFieldChange: jest.fn(),
         };
@@ -271,9 +283,7 @@ describe('<CreateTask />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const sizesSelect = getByTestId(wrapper, 'CreateTask.sizesSelect');
-      sizesSelect.simulate('change', [
-        { value: '4', label: '4.0' },
-      ]);
+      sizesSelect.simulate('change', [{ value: '4', label: '4.0' }]);
       expect(customProps.onFieldChange).toHaveBeenCalledWith({
         field: TASK_FIELDS.EDIT_SIZES,
         value: ['4'],
@@ -285,7 +295,9 @@ describe('<CreateTask />', () => {
     it('should render correctly with default props', () => {
       const wrapper = renderShallowWithProps();
       const usernameInput = getByTestId(wrapper, 'CreateTask.usernameInput');
-      expect(usernameInput.prop('className')).toEqual(expect.stringContaining('tasks-create__input'));
+      expect(usernameInput.prop('className')).toEqual(
+        expect.stringContaining('tasks-create__input'),
+      );
       expect(usernameInput.prop('type')).toBe('text');
       expect(usernameInput.prop('onChange')).toBeDefined();
       expect(usernameInput.prop('value')).toBe('');
@@ -381,7 +393,9 @@ describe('<CreateTask />', () => {
     it('should render correctly with default props', () => {
       const wrapper = renderShallowWithProps();
       const passwordInput = getByTestId(wrapper, 'CreateTask.passwordInput');
-      expect(passwordInput.prop('className')).toEqual(expect.stringContaining('tasks-create__input'));
+      expect(passwordInput.prop('className')).toEqual(
+        expect.stringContaining('tasks-create__input'),
+      );
       expect(passwordInput.prop('type')).toBe('text');
       expect(passwordInput.prop('onChange')).toBeDefined();
       expect(passwordInput.prop('value')).toBe('');
@@ -477,7 +491,9 @@ describe('<CreateTask />', () => {
     it('should render correctly with default props', () => {
       const wrapper = renderShallowWithProps();
       const submitButton = getByTestId(wrapper, 'CreateTask.submitButton');
-      expect(submitButton.prop('className')).toEqual(expect.stringContaining('tasks-create__submit'));
+      expect(submitButton.prop('className')).toEqual(
+        expect.stringContaining('tasks-create__submit'),
+      );
       expect(submitButton.prop('onKeyPress')).toBeDefined();
       expect(submitButton.prop('onClick')).toBeDefined();
       expect(submitButton.text()).toEqual('Submit');

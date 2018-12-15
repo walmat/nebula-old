@@ -241,10 +241,7 @@ const _validateAwsRequest = async awsCredentials =>
     const sKey = awsCredentials.AWSSecretKey;
 
     // test the string inputs
-    if (
-      regexes.aws_access_key.test(aKey) &&
-      regexes.aws_secret_key.test(sKey)
-    ) {
+    if (regexes.aws_access_key.test(aKey) && regexes.aws_secret_key.test(sKey)) {
       resolve('access_token');
     } else {
       reject(new Error('Keys should be valid!'));
@@ -256,31 +253,16 @@ const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
 const _startServer = makeActionCreator(SERVER_ACTIONS.START, 'serverPath');
 const _stopServer = makeActionCreator(SERVER_ACTIONS.STOP, 'serverPath');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
-const _destroyAllServers = makeActionCreator(
-  SERVER_ACTIONS.DESTROY_ALL,
-  'credentials',
-);
-const _generateProxies = makeActionCreator(
-  SERVER_ACTIONS.GEN_PROXIES,
-  'proxies',
-);
-const _connectServer = makeActionCreator(
-  SERVER_ACTIONS.CONNECT,
-  'serverInfo',
-  'credentials',
-);
+const _destroyAllServers = makeActionCreator(SERVER_ACTIONS.DESTROY_ALL, 'credentials');
+const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
+const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'serverInfo', 'credentials');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS);
 
 // Public Actions
 const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error');
-const editServer = makeActionCreator(
-  SERVER_ACTIONS.EDIT,
-  'id',
-  'field',
-  'value',
-);
+const editServer = makeActionCreator(SERVER_ACTIONS.EDIT, 'id', 'field', 'value');
 
 // Public Thunks
 const createServer = (serverOptions, awsCredentials) => dispatch =>

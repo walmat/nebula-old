@@ -12,9 +12,7 @@ function validateProduct(product) {
     product = product.raw;
   }
 
-  const kws = product
-    .split(',')
-    .reduce((a, x) => a.concat(x.trim().split(' ')), []);
+  const kws = product.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
   const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
   const validKeywords = _.every(testKeywords, isValid => isValid === true);
 
@@ -27,9 +25,11 @@ function validateProduct(product) {
 
   if (regexes.urlRegex.test(product)) {
     return true;
-  } else if (regexes.variantRegex.test(product)) {
+  }
+  if (regexes.variantRegex.test(product)) {
     return true;
-  } else if (validKeywords) {
+  }
+  if (validKeywords) {
     return true;
   }
   return false; // default to not valid

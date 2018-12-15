@@ -55,13 +55,17 @@ class Tasks extends Component {
     const { newTask } = this.props;
     return (
       <div className="container">
-        <h1 className="text-header" id="task-header">Tasks</h1>
+        <h1 className="text-header" id="task-header">
+          Tasks
+        </h1>
         <div className="flex-container">
           {/* CREATE TASK */}
           <CreateTask taskToEdit={newTask} />
 
           {/* TASK LOG */}
-          <p className="body-text" id="log-label">Log</p>
+          <p className="body-text" id="log-label">
+            Log
+          </p>
           <div id="log-box" />
           <p id="log-num">#</p>
           <p id="log-site">Site</p>
@@ -70,7 +74,9 @@ class Tasks extends Component {
           <div id="log-scroll-box" />
 
           {/* VIEW TASK */}
-          <p className="body-text" id="view-label">View</p>
+          <p className="body-text" id="view-label">
+            View
+          </p>
           <div id="view-box" />
           <p id="view-num">#</p>
           <p id="view-product">Product</p>
@@ -87,7 +93,9 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={() => { this.startAllTasks(); }}
+            onClick={() => {
+              this.startAllTasks();
+            }}
           >
             <img src={startAll} alt="start all tasks" id="start-all" draggable="false" />
           </div>
@@ -95,7 +103,9 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={() => { this.stopAllTasks(); }}
+            onClick={() => {
+              this.stopAllTasks();
+            }}
           >
             <img src={stopAll} alt="stop all tasks" id="stop-all" draggable="false" />
           </div>
@@ -103,7 +113,9 @@ class Tasks extends Component {
             role="button"
             tabIndex={0}
             onKeyPress={() => {}}
-            onClick={() => { this.destroyAllTasks(); }}
+            onClick={() => {
+              this.destroyAllTasks();
+            }}
           >
             <img src={destroyAll} alt="destroy all tasks" id="destroy-all" draggable="false" />
           </div>
@@ -129,22 +141,22 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onLoadTask: (task) => {
+  onLoadTask: task => {
     dispatch(taskActions.load(task));
   },
-  onSelectTask: (task) => {
+  onSelectTask: task => {
     dispatch(taskActions.select(task));
   },
-  onUpdateTask: (task) => {
+  onUpdateTask: task => {
     dispatch(taskActions.update(task.editId, task));
   },
   onRemoveTask: () => {
     dispatch(taskActions.remove(null));
   },
-  onStartTask: (task) => {
+  onStartTask: task => {
     dispatch(taskActions.start(task.id));
   },
-  onStopTask: (task) => {
+  onStopTask: task => {
     dispatch(taskActions.stop(task.id));
   },
   onChangeField: (change, field, event) => {
@@ -152,4 +164,9 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default EnsureAuthorization(connect(mapStateToProps, mapDispatchToProps)(Tasks));
+export default EnsureAuthorization(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(Tasks),
+);

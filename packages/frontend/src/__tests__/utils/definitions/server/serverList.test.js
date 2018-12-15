@@ -1,7 +1,5 @@
 /* global describe */
-import sDefns, {
-  initialServerStates,
-} from '../../../../utils/definitions/serverDefinitions';
+import sDefns, { initialServerStates } from '../../../../utils/definitions/serverDefinitions';
 import {
   setupConsoleErrorSpy,
   testKey,
@@ -12,14 +10,7 @@ describe('serverList definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   const testServerRowKey = (keyName, valid, invalid) =>
-    testKey(
-      keyName,
-      valid,
-      invalid,
-      sDefns.server,
-      initialServerStates.server,
-      spy,
-    );
+    testKey(keyName, valid, invalid, sDefns.server, initialServerStates.server, spy);
 
   testServerRowKey('charges', [null, 'test'], [{}, 3, false]);
   testServerRowKey('status', [null, 'test'], [{}, 3, false]);

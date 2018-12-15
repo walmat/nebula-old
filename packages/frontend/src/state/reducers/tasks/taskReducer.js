@@ -28,9 +28,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (!URL || !URL.host) {
             break;
           }
-          const site = getAllSites().filter(s =>
-            URL.host.includes(s.value.split('/')[2]),
-          );
+          const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
           if (site.length === 0) {
             break;
           }
@@ -69,13 +67,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (nextSizes === null) {
             nextSizes = initialTaskStates.task.sizes;
           } else if (action.value && action.value.length > state.sizes.length) {
-            nextSizes.unshift(
-              ...action.value.filter(s => !state.sizes.find(v => s === v)),
-            );
+            nextSizes.unshift(...action.value.filter(s => !state.sizes.find(v => s === v)));
           } else {
-            nextSizes = state.sizes.filter(s =>
-              action.value.find(v => s === v),
-            );
+            nextSizes = state.sizes.filter(s => action.value.find(v => s === v));
           }
           change = {
             sizes: nextSizes,
@@ -89,8 +83,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
           }
           change = {
             [mapTaskFieldsToKey[action.field]]:
-              action.value ||
-              initialTaskStates.task[mapTaskFieldsToKey[action.field]],
+              action.value || initialTaskStates.task[mapTaskFieldsToKey[action.field]],
             errors: Object.assign({}, state.errors, action.errors),
           };
         }
@@ -120,9 +113,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
             if (!URL || !URL.host) {
               break;
             }
-            const site = getAllSites().filter(s =>
-              URL.host.includes(s.value.split('/')[2]),
-            );
+            const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
             if (site.length === 0) {
               break;
             }
@@ -180,15 +171,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
               nextSizes = action.value;
             }
           } else if (action.value && action.value.length > nextSizes.length) {
-            nextSizes.unshift(
-              ...action.value.filter(
-                s => !state.edits.sizes.find(v => s === v),
-              ),
-            );
+            nextSizes.unshift(...action.value.filter(s => !state.edits.sizes.find(v => s === v)));
           } else {
-            nextSizes = state.edits.sizes.filter(s =>
-              action.value.find(v => s === v),
-            );
+            nextSizes = state.edits.sizes.filter(s => action.value.find(v => s === v));
           }
 
           change = {
@@ -207,8 +192,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
             edits: {
               ...state.edits,
               [mapTaskFieldsToKey[action.field]]:
-                action.value ||
-                initialTaskStates.task.edits[mapTaskFieldsToKey[action.field]],
+                action.value || initialTaskStates.task.edits[mapTaskFieldsToKey[action.field]],
               errors: Object.assign({}, state.edits.errors, action.errors),
             },
           };

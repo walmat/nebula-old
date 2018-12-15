@@ -118,14 +118,9 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="Variant, Keywords, Link"
-                  onChange={this.createOnChangeHandler(
-                    TASK_FIELDS.EDIT_PRODUCT,
-                  )}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
                   value={task.product.raw}
-                  style={buildStyle(
-                    false,
-                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]],
-                  )}
+                  style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
                   required
                   data-testid={addTestId('CreateTask.productInput')}
                 />
@@ -138,10 +133,7 @@ export class CreateTaskPrimitive extends Component {
                   placeholder="Choose Site"
                   components={{ DropdownIndicator }}
                   styles={colourStyles(
-                    buildStyle(
-                      false,
-                      errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]],
-                    ),
+                    buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
@@ -162,10 +154,7 @@ export class CreateTaskPrimitive extends Component {
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
-                  buildStyle(
-                    false,
-                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]],
-                  ),
+                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 value={newTaskProfileValue}
@@ -182,10 +171,7 @@ export class CreateTaskPrimitive extends Component {
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
-                  buildStyle(
-                    false,
-                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]],
-                  ),
+                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
                 value={sizes}
@@ -205,9 +191,7 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="johndoe@example.com"
-                  onChange={this.createOnChangeHandler(
-                    TASK_FIELDS.EDIT_USERNAME,
-                  )}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
                   value={task.username || ''}
                   required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
@@ -224,9 +208,7 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="***********"
-                  onChange={this.createOnChangeHandler(
-                    TASK_FIELDS.EDIT_PASSWORD,
-                  )}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
                   value={task.password || ''} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
                   style={buildStyle(
                     accountFieldsDisabled,

@@ -11,16 +11,12 @@ export class ViewTaskPrimitive extends Component {
   }
 
   createTable() {
-    const table = this.props.tasks.map(task => (<TaskRow key={task.id} task={task} />));
+    const table = this.props.tasks.map(task => <TaskRow key={task.id} task={task} />);
     return table;
   }
 
   render() {
-    return (
-      <div className="tasks-table">
-        {this.createTable()}
-      </div>
-    );
+    return <div className="tasks-table">{this.createTable()}</div>;
   }
 }
 

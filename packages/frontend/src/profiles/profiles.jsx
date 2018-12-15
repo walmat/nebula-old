@@ -54,8 +54,9 @@ export class ProfilesPrimitive extends Component {
       // make sure the profile id exists in profiles before call in the load
       if (this.props.profiles.some(p => p.id === this.props.currentProfile.editId)) {
         // first off, check to see if the profileName is taken..
-        const profileExists = this.props.profiles.find(p =>
-          p.profileName === this.props.currentProfile.profileName);
+        const profileExists = this.props.profiles.find(
+          p => p.profileName === this.props.currentProfile.profileName,
+        );
 
         if (profileExists) {
           const { id } = profileExists;
@@ -88,7 +89,7 @@ export class ProfilesPrimitive extends Component {
   buildProfileOptions() {
     const { profiles } = this.props;
     const opts = [];
-    profiles.forEach((profile) => {
+    profiles.forEach(profile => {
       opts.push({ value: profile.id, label: profile.profileName });
     });
     return opts;
@@ -107,10 +108,14 @@ export class ProfilesPrimitive extends Component {
       <form>
         <div className="container">
           {/* HEADER */}
-          <h1 className="text-header" id="profiles-header">Profiles</h1>
+          <h1 className="text-header" id="profiles-header">
+            Profiles
+          </h1>
 
           {/* LOAD PROFILE */}
-          <p className="body-text" id="load-profile-label">Load Profile</p>
+          <p className="body-text" id="load-profile-label">
+            Load Profile
+          </p>
           <div id="load-profile-box" />
           <p id="profile-name-label">Profile Name</p>
           <Select
@@ -124,12 +129,21 @@ export class ProfilesPrimitive extends Component {
             value={selectProfileValue}
             options={this.buildProfileOptions()}
           />
-          <button id="load-profile" type="button" onClick={this.loadProfile}>Load</button>
+          <button id="load-profile" type="button" onClick={this.loadProfile}>
+            Load
+          </button>
 
           {/* SHIPPING INFORMATION */}
           <div className="flex-col">
-            <p className="body-text" id="shipping-label">Shipping</p>
-            <LocationFields id="shipping" profileToEdit={currentProfile} fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING} disabled={false} />
+            <p className="body-text" id="shipping-label">
+              Shipping
+            </p>
+            <LocationFields
+              id="shipping"
+              profileToEdit={currentProfile}
+              fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
+              disabled={false}
+            />
           </div>
 
           {/* BILLING MATCHES SHIPPING */}
@@ -141,7 +155,11 @@ export class ProfilesPrimitive extends Component {
           >
             <img
               src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
-              alt={currentProfile.billingMatchesShipping ? 'Billing Matches Shipping' : 'Billing does not Match Shipping'}
+              alt={
+                currentProfile.billingMatchesShipping
+                  ? 'Billing Matches Shipping'
+                  : 'Billing does not Match Shipping'
+              }
               id="billing-match-shipping"
               draggable="false"
             />
@@ -149,14 +167,16 @@ export class ProfilesPrimitive extends Component {
 
           {/* BILLING INFORMATION */}
           <div className="flex-col">
-            <p className="body-text" id="billing-label">Billing</p>
+            <p className="body-text" id="billing-label">
+              Billing
+            </p>
             <LocationFields
               id="billing"
               profileToEdit={currentProfile}
               fieldToEdit={
-                currentProfile.billingMatchesShipping ?
-                  PROFILE_FIELDS.EDIT_SHIPPING :
-                  PROFILE_FIELDS.EDIT_BILLING
+                currentProfile.billingMatchesShipping
+                  ? PROFILE_FIELDS.EDIT_SHIPPING
+                  : PROFILE_FIELDS.EDIT_BILLING
               }
               disabled={currentProfile.billingMatchesShipping}
             />
@@ -171,14 +191,19 @@ export class ProfilesPrimitive extends Component {
             required
             onChange={this.props.onProfileNameChange}
             value={currentProfile.profileName}
-            style={validationStatus(currentProfile
-                .errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]])}
+            style={validationStatus(
+              currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
+            )}
             placeholder="Profile Name"
           />
-          <button id="submit-profile" onClick={this.saveProfile}>Save</button>
+          <button id="submit-profile" onClick={this.saveProfile}>
+            Save
+          </button>
 
           {/* DELETE PROFILE */}
-          <button id="delete-profile" onClick={this.deleteProfile}>Delete</button>
+          <button id="delete-profile" onClick={this.deleteProfile}>
+            Delete
+          </button>
         </div>
       </form>
     );
@@ -213,24 +238,27 @@ export const mapDispatchToProps = dispatch => ({
   onClickBillingMatchesShipping: () => {
     dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''));
   },
-  onProfileNameChange: (event) => {
+  onProfileNameChange: event => {
     dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));
   },
-  onAddNewProfile: (newProfile) => {
+  onAddNewProfile: newProfile => {
     dispatch(profileActions.add(newProfile));
   },
-  onLoadProfile: (profile) => {
+  onLoadProfile: profile => {
     dispatch(profileActions.load(profile));
   },
-  onDestroyProfile: (profile) => {
+  onDestroyProfile: profile => {
     dispatch(profileActions.remove(profile.id));
   },
-  onSelectProfile: (profile) => {
+  onSelectProfile: profile => {
     dispatch(profileActions.select(profile));
   },
-  onUpdateProfile: (profile) => {
+  onUpdateProfile: profile => {
     dispatch(profileActions.update(profile.editId, profile));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ProfilesPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ProfilesPrimitive);

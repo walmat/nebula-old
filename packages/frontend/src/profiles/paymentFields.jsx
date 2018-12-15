@@ -11,14 +11,13 @@ import info from '../_assets/info.svg';
 import './profiles.css';
 
 export class PaymentFieldsPrimitive extends Component {
-
   createOnChangeHandler(field) {
     if (field === PAYMENT_FIELDS.CARD_NUMBER) {
-      return (event) => {
+      return event => {
         this.props.onChange({ field, value: event.target.value.replace(/\s/g, '') });
       };
     }
-    return (event) => {
+    return event => {
       this.props.onChange({ field, value: event.target.value });
     };
   }
@@ -27,11 +26,42 @@ export class PaymentFieldsPrimitive extends Component {
     const { errors } = this.props;
     return (
       <div className="flex-col">
-        <p className="body-text" id="payment-label">Payment</p>
-        <input required id="email" placeholder="Email Address" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)} value={this.props.value.email} style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])} />
-        <NumberFormat format="#### #### #### ####" placeholder="XXXX XXXX XXXX XXXX" id="card-number" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)} value={this.props.value.cardNumber} style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])} />
-        <NumberFormat format="##/##" id="expiration" placeholder="MM/YY" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)} value={this.props.value.exp} style={validationStatus(errors[PAYMENT_FIELDS.EXP])} mask={['M', 'M', 'Y', 'Y']} />
-        <input required id="cvv" placeholder="CVV" onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)} value={this.props.value.cvv} style={validationStatus(errors[PAYMENT_FIELDS.CVV])} />
+        <p className="body-text" id="payment-label">
+          Payment
+        </p>
+        <input
+          required
+          id="email"
+          placeholder="Email Address"
+          onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)}
+          value={this.props.value.email}
+          style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])}
+        />
+        <NumberFormat
+          format="#### #### #### ####"
+          placeholder="XXXX XXXX XXXX XXXX"
+          id="card-number"
+          onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)}
+          value={this.props.value.cardNumber}
+          style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])}
+        />
+        <NumberFormat
+          format="##/##"
+          id="expiration"
+          placeholder="MM/YY"
+          onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)}
+          value={this.props.value.exp}
+          style={validationStatus(errors[PAYMENT_FIELDS.EXP])}
+          mask={['M', 'M', 'Y', 'Y']}
+        />
+        <input
+          required
+          id="cvv"
+          placeholder="CVV"
+          onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)}
+          value={this.props.value.cvv}
+          style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
+        />
         <img src={info} alt="payment info" id="payment-info-btn" />
       </div>
     );
@@ -50,13 +80,15 @@ export const mapStateToProps = (state, ownProps) => ({
 });
 
 export const mapDispatchToProps = (dispatch, ownProps) => ({
-  onChange: (changes) => {
-    dispatch(profileActions.edit(
-      ownProps.profileToEdit.id,
-      PROFILE_FIELDS.EDIT_PAYMENT,
-      changes.value,
-      changes.field,
-    ));
+  onChange: changes => {
+    dispatch(
+      profileActions.edit(
+        ownProps.profileToEdit.id,
+        PROFILE_FIELDS.EDIT_PAYMENT,
+        changes.value,
+        changes.field,
+      ),
+    );
   },
 });
 

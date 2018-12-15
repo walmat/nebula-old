@@ -1,24 +1,12 @@
 /* global describe */
-import sDefns, {
-  initialServerStates,
-} from '../../../../utils/definitions/serverDefinitions';
-import {
-  setupConsoleErrorSpy,
-  testKey,
-} from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, { initialServerStates } from '../../../../utils/definitions/serverDefinitions';
+import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('serverInfo definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   const testServerInfoKey = (keyName, valid, invalid) =>
-    testKey(
-      keyName,
-      valid,
-      invalid,
-      sDefns.serverInfo,
-      initialServerStates.serverInfo,
-      spy,
-    );
+    testKey(keyName, valid, invalid, sDefns.serverInfo, initialServerStates.serverInfo, spy);
 
   testServerInfoKey(
     'proxies',

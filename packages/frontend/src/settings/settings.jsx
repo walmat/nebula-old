@@ -15,9 +15,9 @@ import { buildStyle } from '../utils/styles';
 
 export class SettingsPrimitive extends Component {
   /*
-  * Launch a sub-window with built in AI for image recognition
-  * and capabilities of one-click harvesting
-  */
+   * Launch a sub-window with built in AI for image recognition
+   * and capabilities of one-click harvesting
+   */
   static harvester() {
     if (window.Bridge) {
       window.Bridge.launchCaptchaHarvester();
@@ -28,8 +28,8 @@ export class SettingsPrimitive extends Component {
   }
 
   /*
-    * Signs current google user out. Will clear cookies as well
-    */
+   * Signs current google user out. Will clear cookies as well
+   */
   static closeAllCaptchaWindows() {
     if (window.Bridge) {
       window.Bridge.closeAllCaptchaWindows();
@@ -46,7 +46,7 @@ export class SettingsPrimitive extends Component {
   buildProfileOptions() {
     const { profiles } = this.props;
     const opts = [];
-    profiles.forEach((profile) => {
+    profiles.forEach(profile => {
       opts.push({ value: profile.id, label: profile.profileName });
     });
     return opts;
@@ -55,16 +55,16 @@ export class SettingsPrimitive extends Component {
   createOnChangeHandler(field) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
-        return (event) => {
+        return event => {
           const change = this.props.profiles.find(p => p.id === event.value);
           this.props.onSettingsChange({ field, value: change });
         };
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES:
-        return (event) => {
+        return event => {
           this.props.onSettingsChange({ field, value: event });
         };
       default:
-        return (event) => {
+        return event => {
           this.props.onSettingsChange({
             field,
             value: event.target.value,
@@ -84,17 +84,25 @@ export class SettingsPrimitive extends Component {
     }
     return (
       <div className="container">
-        <h1 className="text-header" id="setting-header">Settings</h1>
+        <h1 className="text-header" id="setting-header">
+          Settings
+        </h1>
 
         {/* Proxy List */}
-        <p className="body-text" id="proxy-list-label">Proxy List</p>
+        <p className="body-text" id="proxy-list-label">
+          Proxy List
+        </p>
         <div id="proxy-list-box" />
         <ProxyList id="proxy-list-text" />
 
         {/* CAPTCHA Window */}
         {/* <button id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
-        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester} >Captcha Window</button>
-        <button id="proxy-button-captcha-close" onClick={SettingsPrimitive.closeAllCaptchaWindows} >Close All Windows</button>
+        <button id="proxy-button-captcha" onClick={SettingsPrimitive.harvester}>
+          Captcha Window
+        </button>
+        <button id="proxy-button-captcha-close" onClick={SettingsPrimitive.closeAllCaptchaWindows}>
+          Close All Windows
+        </button>
 
         {/* EXTRAS */}
         <p id="discord-label">Discord URL</p>
@@ -115,7 +123,9 @@ export class SettingsPrimitive extends Component {
         />
 
         {/* DEFAULTS */}
-        <p className="body-text" id="defaults-label">Defaults</p>
+        <p className="body-text" id="defaults-label">
+          Defaults
+        </p>
         <div id="defaults-box" />
         <p id="default-profile-label">Profile</p>
         <Select
@@ -124,7 +134,9 @@ export class SettingsPrimitive extends Component {
           components={{ DropdownIndicator }}
           id="default-profile"
           classNamePrefix="select"
-          styles={colourStyles(buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]]))}
+          styles={colourStyles(
+            buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]]),
+          )}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE)}
           value={defaultProfileValue}
           options={this.buildProfileOptions()}
@@ -139,28 +151,36 @@ export class SettingsPrimitive extends Component {
           components={{ DropdownIndicator }}
           id="default-sizes"
           classNamePrefix="select"
-          styles={colourStyles(buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]]))}
+          styles={colourStyles(
+            buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]]),
+          )}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
-          value={this.props.settings.defaults.sizes.map(size =>
-            ({ value: size.value, label: size.label }))}
+          value={this.props.settings.defaults.sizes.map(size => ({
+            value: size.value,
+            label: size.label,
+          }))}
           options={SettingsPrimitive.buildSizeOptions()}
         />
         <button
           id="save-defaults"
           tabIndex={0}
           onKeyPress={this.props.onKeyPress}
-          onClick={() => { this.props.onSaveDefaults(this.props.settings.defaults); }}
+          onClick={() => {
+            this.props.onSaveDefaults(this.props.settings.defaults);
+          }}
         >
-        Save
+          Save
         </button>
 
         <button
           id="clear-defaults"
           tabIndex={0}
           onKeyPress={this.props.onKeyPress}
-          onClick={() => { this.props.onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS); }}
+          onClick={() => {
+            this.props.onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
+          }}
         >
-        Clear
+          Clear
         </button>
 
         {/* Delays */}
@@ -169,7 +189,10 @@ export class SettingsPrimitive extends Component {
           value={this.props.settings.monitorDelay}
           placeholder="1500"
           id="monitor-input"
-          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_MONITOR_DELAY]])}
+          style={buildStyle(
+            false,
+            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_MONITOR_DELAY]],
+          )}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_MONITOR_DELAY)}
           required
         />
@@ -209,18 +232,18 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onSettingsChange: (changes) => {
-    dispatch(settingsActions.edit(
-      changes.field,
-      changes.value,
-    ));
+  onSettingsChange: changes => {
+    dispatch(settingsActions.edit(changes.field, changes.value));
   },
-  onSaveDefaults: (defaults) => {
+  onSaveDefaults: defaults => {
     dispatch(settingsActions.save(defaults));
   },
-  onClearDefaults: (changes) => {
+  onClearDefaults: changes => {
     dispatch(settingsActions.clear(changes));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(SettingsPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(SettingsPrimitive);

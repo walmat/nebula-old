@@ -110,4 +110,4 @@ const Server = () => (
   </div>
 );
 
-export default (Server);
+export default Server;

@@ -69,7 +69,7 @@ export class ProxyListPrimitive extends Component {
     e.stopPropagation();
 
     // Get the clipboard data and sanitize the text
-    const data = (e.clipboardData || window.clipboardData);
+    const data = e.clipboardData || window.clipboardData;
     const text = ProxyListPrimitive.sanitize(data.getData('text'));
 
     // Perform the insert using the plain text to mimic the paste
@@ -90,7 +90,9 @@ export class ProxyListPrimitive extends Component {
     // TODO: Figure out a better way to do this without using innerText
     // Get the new proxies from the domNodes innerText,
     //   then mapping it to sanitized input, then removing empty lines
-    const newProxies = this.domNode.current.innerText.trim().split('\n')
+    const newProxies = this.domNode.current.innerText
+      .trim()
+      .split('\n')
       .map(proxy => ProxyListPrimitive.sanitize(proxy.trim()))
       .filter(proxy => proxy.length > 0);
 
@@ -109,29 +111,35 @@ export class ProxyListPrimitive extends Component {
 
     // If we are in editing mode, don't apply any styling
     if (this.state.editing) {
-      return this.state.proxies.map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`).join('');
+      return this.state.proxies
+        .map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`)
+        .join('');
     }
     // Return proxies, styled in red if that proxy is invalid
-    return this.state.proxies.map((proxy, idx) => `<div${this.props.errors.includes(idx) ? ' class="invalidProxy"' : ''}>${ProxyListPrimitive.sanitize(proxy)}</div>`).join('');
+    return this.state.proxies
+      .map(
+        (proxy, idx) =>
+          `<div${
+            this.props.errors.includes(idx) ? ' class="invalidProxy"' : ''
+          }>${ProxyListPrimitive.sanitize(proxy)}</div>`,
+      )
+      .join('');
   }
 
   render() {
     const { id } = this.props;
     // Create a div with the innerHtml set dangerously
     // This is to allow styling, while still allowing content to be editable
-    return React.createElement(
-      'div',
-      {
-        ref: this.domNode,
-        id,
-        onInput: this.handleUpdate,
-        onFocus: this.focus,
-        onBlur: this.blur,
-        onPaste: this.paste,
-        dangerouslySetInnerHTML: { __html: this.renderProxies() },
-        contentEditable: true,
-      },
-    );
+    return React.createElement('div', {
+      ref: this.domNode,
+      id,
+      onInput: this.handleUpdate,
+      onFocus: this.focus,
+      onBlur: this.blur,
+      onPaste: this.paste,
+      dangerouslySetInnerHTML: { __html: this.renderProxies() },
+      contentEditable: true,
+    });
   }
 }
 
@@ -152,9 +160,12 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onUpdateProxies: (data) => {
+  onUpdateProxies: data => {
     dispatch(settingsActions.edit(SETTINGS_FIELDS.EDIT_PROXIES, data));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ProxyListPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ProxyListPrimitive);

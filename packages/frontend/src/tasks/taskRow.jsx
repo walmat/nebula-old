@@ -22,7 +22,7 @@ export class TaskRowPrimitive extends Component {
     const { onEditTask, task } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE: {
-        return (event) => {
+        return event => {
           const site = getAllSites().find(s => s.value === event.value);
           if (site) {
             onEditTask(task, {
@@ -37,7 +37,7 @@ export class TaskRowPrimitive extends Component {
         };
       }
       case TASK_FIELDS.EDIT_PROFILE: {
-        return (event) => {
+        return event => {
           const value = this.props.profiles.find(p => p.id === event.value);
           if (value) {
             onEditTask(task, { field, value });
@@ -45,13 +45,13 @@ export class TaskRowPrimitive extends Component {
         };
       }
       case TASK_FIELDS.EDIT_SIZES: {
-        return (event) => {
+        return event => {
           const values = event.map(s => s.value);
           onEditTask(task, { field, value: values });
         };
       }
       default: {
-        return (event) => {
+        return event => {
           onEditTask(task, { field, value: event.target.value });
         };
       }
@@ -92,12 +92,7 @@ export class TaskRowPrimitive extends Component {
         onClick={onClick}
         data-testid={addTestId(`TaskRow.button.${tag}`)}
       >
-        <img
-          src={src}
-          alt={desc}
-          draggable="false"
-          className={className}
-        />
+        <img src={src} alt={desc} draggable="false" className={className} />
       </div>
     );
   }
@@ -165,7 +160,9 @@ export class TaskRowPrimitive extends Component {
                 classNamePrefix="select"
                 placeholder="Choose Site"
                 components={{ DropdownIndicator }}
-                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]))}
+                styles={colourStyles(
+                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
+                )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
                 options={getAllSites()}
@@ -180,7 +177,9 @@ export class TaskRowPrimitive extends Component {
                 className="edit-field__select"
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
-                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]))}
+                styles={colourStyles(
+                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
+                )}
                 value={editProfile}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 options={this.buildProfileOptions()}
@@ -197,7 +196,9 @@ export class TaskRowPrimitive extends Component {
                 className="edit-field__select"
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
-                styles={colourStyles(buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]))}
+                styles={colourStyles(
+                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
+                )}
                 value={editSizes}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
                 options={getAllSizes()}
@@ -212,7 +213,10 @@ export class TaskRowPrimitive extends Component {
                 placeholder="johndoe@example.com"
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
                 value={edits.username || ''}
-                style={buildStyle(editAccountFieldDisabled, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]])}
+                style={buildStyle(
+                  editAccountFieldDisabled,
+                  errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]],
+                )}
                 required={!editAccountFieldDisabled}
                 disabled={editAccountFieldDisabled}
                 data-testid={addTestId(`${testIdBase}.usernameInput`)}
@@ -226,7 +230,10 @@ export class TaskRowPrimitive extends Component {
                 placeholder="***********"
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
                 value={edits.password || ''}
-                style={buildStyle(editAccountFieldDisabled, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PASSWORD]])}
+                style={buildStyle(
+                  editAccountFieldDisabled,
+                  errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PASSWORD]],
+                )}
                 required={!editAccountFieldDisabled}
                 disabled={editAccountFieldDisabled}
                 data-testid={addTestId(`${testIdBase}.passwordInput`)}
@@ -239,7 +246,9 @@ export class TaskRowPrimitive extends Component {
                 className="action__button action__button--save"
                 tabIndex={0}
                 onKeyPress={this.props.onKeyPress}
-                onClick={() => { this.saveTask(); }}
+                onClick={() => {
+                  this.saveTask();
+                }}
                 data-testid={addTestId(`${testIdBase}.button.save`)}
               >
                 Save
@@ -250,7 +259,9 @@ export class TaskRowPrimitive extends Component {
                 className="action__button action__button--cancel"
                 tabIndex={0}
                 onKeyPress={this.props.onKeyPress}
-                onClick={() => { this.cancelEdits(); }}
+                onClick={() => {
+                  this.cancelEdits();
+                }}
                 data-testid={addTestId(`${testIdBase}.button.cancel`)}
               >
                 Cancel
@@ -269,7 +280,9 @@ export class TaskRowPrimitive extends Component {
       'Start Task',
       start,
       task.status === 'running' ? 'active' : '',
-      () => { onStartTask(task, proxies); },
+      () => {
+        onStartTask(task, proxies);
+      },
     );
   }
 
@@ -280,30 +293,24 @@ export class TaskRowPrimitive extends Component {
       'Stop Task',
       stop,
       task.status === 'stopped' ? 'active' : '',
-      () => { onStopTask(task); },
+      () => {
+        onStopTask(task);
+      },
     );
   }
 
   renderTableRowDestroyActionButton() {
     const { task, onDestroyTask } = this.props;
-    return this.renderTableRowActionButton(
-      'destroy',
-      'Destroy Task',
-      destroy,
-      '',
-      () => { onDestroyTask(task); },
-    );
+    return this.renderTableRowActionButton('destroy', 'Destroy Task', destroy, '', () => {
+      onDestroyTask(task);
+    });
   }
 
   renderTableRowEditButton() {
     const { isEditing } = this.props;
-    return this.renderTableRowButton(
-      'edit',
-      'Edit Task',
-      edit,
-      isEditing ? 'active' : '',
-      () => { this.selectTask(); },
-    );
+    return this.renderTableRowButton('edit', 'Edit Task', edit, isEditing ? 'active' : '', () => {
+      this.selectTask();
+    });
   }
 
   renderTableRow() {
@@ -322,13 +329,13 @@ export class TaskRowPrimitive extends Component {
     }
     return (
       <div key={task.id} className="tasks-row row">
-        <div className="col col--no-gutter tasks-edit">
-          {this.renderTableRowEditButton()}
-        </div>
+        <div className="col col--no-gutter tasks-edit">{this.renderTableRowEditButton()}</div>
         <div className="col col--no-gutter tasks-row__id">{id}</div>
         <div className="col col--no-gutter tasks-row__product">{task.product.raw || 'None'}</div>
         <div className="col col--no-gutter tasks-row__sites">{task.site.name || 'None'}</div>
-        <div className="col col--no-gutter tasks-row__profile">{task.profile.profileName || 'None'}</div>
+        <div className="col col--no-gutter tasks-row__profile">
+          {task.profile.profileName || 'None'}
+        </div>
         <div className="col col--no-gutter tasks-row__sizes">{sizes}</div>
         <div className="col col--no-gutter tasks-row__account">{taskAccountValue}</div>
         <div className="col col--no-gutter tasks-row__actions">
@@ -345,8 +352,8 @@ export class TaskRowPrimitive extends Component {
   render() {
     return (
       <div className="tasks-row-container col">
-        { this.renderTableRow() }
-        { this.renderEditMenu() }
+        {this.renderTableRow()}
+        {this.renderEditMenu()}
       </div>
     );
   }
@@ -386,28 +393,30 @@ export const mapDispatchToProps = dispatch => ({
   onEditTask: (task, changes) => {
     dispatch(taskActions.edit(task.id, changes.field, changes.value));
   },
-  onCancelEdits: (task) => {
+  onCancelEdits: task => {
     dispatch(taskActions.clearEdits(task.id, task));
   },
-  onCommitEdits: (task) => {
+  onCommitEdits: task => {
     dispatch(taskActions.update(task.id, task));
   },
-  onSelectTask: (task) => {
+  onSelectTask: task => {
     dispatch(taskActions.select(task));
   },
-  onUpdateTask: (task) => {
+  onUpdateTask: task => {
     dispatch(taskActions.update(task.id, task));
   },
   onStartTask: (task, proxies) => {
     dispatch(taskActions.start(task, proxies));
   },
-  onStopTask: (task) => {
+  onStopTask: task => {
     dispatch(taskActions.stop(task));
   },
-  onDestroyTask: (task) => {
+  onDestroyTask: task => {
     dispatch(taskActions.destroy(task, 'one'));
   },
 });
 
-
-export default connect(mapStateToProps, mapDispatchToProps)(TaskRowPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(TaskRowPrimitive);

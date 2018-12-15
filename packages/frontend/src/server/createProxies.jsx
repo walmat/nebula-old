@@ -15,7 +15,7 @@ export class CreateProxiesPrimitive extends Component {
   }
 
   createProxyLocationChangeHandle(field) {
-    return (event) => {
+    return event => {
       this.props.onEditServerInfo(field, event);
     };
   }
@@ -156,7 +156,7 @@ export const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
-  onGenerateProxies: (options) => {
+  onGenerateProxies: options => {
     dispatch(serverActions.generateProxies(options));
   },
   onDestroyProxies: () => {
@@ -164,4 +164,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateProxiesPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CreateProxiesPrimitive);

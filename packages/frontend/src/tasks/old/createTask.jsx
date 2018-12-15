@@ -39,31 +39,32 @@ class CreateTask extends Component {
     e.preventDefault();
     this.props.onAddNewTask(this.props.value);
   }
+
   createOnChangeHandler(field) {
     switch (field) {
       case TASK_FIELDS.EDIT_SITE:
-        return (event) => {
+        return event => {
           const site = { name: event.label, url: event.value };
           this.props.onChange({ field, value: site });
         };
       case TASK_FIELDS.EDIT_PROFILE:
-        return (event) => {
+        return event => {
           const change = this.props.profiles.find(p => p.id === event.value);
           this.props.onChange({ field, value: change });
         };
       case TASK_FIELDS.EDIT_SIZES:
-        return (event) => {
+        return event => {
           const values = event.map(s => s.value);
           this.props.onChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
-        return (event) => {
+        return event => {
           this.props.onChange({ field, value: event.target.value });
         };
       default:
-      // should never be called, but nice to have just in case
-        return (event) => {
+        // should never be called, but nice to have just in case
+        return event => {
           this.props.onChange({ field, value: event.target.value });
         };
     }
@@ -86,7 +87,9 @@ class CreateTask extends Component {
     }
     return (
       <div>
-        <p className="body-text" id="create-label">Create</p>
+        <p className="body-text" id="create-label">
+          Create
+        </p>
         <div id="create-box" />
         <p id="product-label">Product</p>
         <input
@@ -143,13 +146,8 @@ class CreateTask extends Component {
           id="pairs"
           onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
         />
-        <button
-          id="submit-tasks"
-          tabIndex={0}
-          onKeyPress={() => {}}
-          onClick={this.saveTask}
-        >
-        Submit
+        <button id="submit-tasks" tabIndex={0} onKeyPress={() => {}} onClick={this.saveTask}>
+          Submit
         </button>
       </div>
     );
@@ -164,7 +162,6 @@ CreateTask.propTypes = {
   onAddNewTask: PropTypes.func.isRequired,
 };
 
-
 const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   value: ownProps.taskToEdit,
@@ -172,12 +169,15 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onChange: (changes) => {
+  onChange: changes => {
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
-  onAddNewTask: (newTask) => {
+  onAddNewTask: newTask => {
     dispatch(taskActions.add(newTask));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateTask);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CreateTask);

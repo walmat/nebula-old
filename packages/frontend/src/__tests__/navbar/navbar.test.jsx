@@ -14,25 +14,27 @@ describe('<Navbar />', () => {
   let history;
   let props;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...props,
       ...customProps,
     };
 
-    return shallow(<NavbarPrimitive
-      history={renderProps.history}
-      navbar={renderProps.navbar}
-      onRouteTasks={renderProps.onRouteTasks}
-      onRouteProfiles={renderProps.onRouteProfiles}
-      onRouteServer={renderProps.onRouteServer}
-      onRouteSettings={renderProps.onRouteSettings}
-      onKeyPress={renderProps.onKeyPress}
-    />);
+    return shallow(
+      <NavbarPrimitive
+        history={renderProps.history}
+        navbar={renderProps.navbar}
+        onRouteTasks={renderProps.onRouteTasks}
+        onRouteProfiles={renderProps.onRouteProfiles}
+        onRouteServer={renderProps.onRouteServer}
+        onRouteSettings={renderProps.onRouteSettings}
+        onKeyPress={renderProps.onKeyPress}
+      />,
+    );
   };
 
   const renderWrapperWithLocation = loc => renderShallowWithProps({ navbar: { location: loc } });
-  
+
   beforeEach(() => {
     history = createMemoryHistory();
     props = {
@@ -77,14 +79,16 @@ describe('<Navbar />', () => {
     const onRouteProfiles = jest.fn();
     const onRouteServer = jest.fn();
     const onRouteSettings = jest.fn();
-    const wrapper = shallow(<NavbarPrimitive
-      history={history}
-      navbar={{ ...initialNavbarState }}
-      onRouteTasks={onRouteTasks}
-      onRouteProfiles={onRouteProfiles}
-      onRouteServer={onRouteServer}
-      onRouteSettings={onRouteSettings}
-    />);
+    const wrapper = shallow(
+      <NavbarPrimitive
+        history={history}
+        navbar={{ ...initialNavbarState }}
+        onRouteTasks={onRouteTasks}
+        onRouteProfiles={onRouteProfiles}
+        onRouteServer={onRouteServer}
+        onRouteSettings={onRouteSettings}
+      />,
+    );
     expect(wrapper.find(NavbarPrimitive)).toBeDefined();
     expect(wrapper.find(Bodymovin)).toBeDefined();
     expect(wrapper.find('.active')).toBeDefined();

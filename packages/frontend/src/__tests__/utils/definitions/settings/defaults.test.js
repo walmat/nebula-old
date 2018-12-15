@@ -1,24 +1,12 @@
 /* global describe */
-import sDefns, {
-  initialSettingsStates,
-} from '../../../../utils/definitions/settingsDefinitions';
-import {
-  setupConsoleErrorSpy,
-  testKey,
-} from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
+import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('defaults definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   const testDefaultsKey = (keyName, valid, invalid) =>
-    testKey(
-      keyName,
-      valid,
-      invalid,
-      sDefns.defaults,
-      initialSettingsStates.defaults,
-      spy,
-    );
+    testKey(keyName, valid, invalid, sDefns.defaults, initialSettingsStates.defaults, spy);
 
   testDefaultsKey(
     'profile',

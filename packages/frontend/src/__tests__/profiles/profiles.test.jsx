@@ -11,24 +11,26 @@ import PaymentFields from '../../profiles/paymentFields';
 describe('<Profiles />', () => {
   let defaultProps;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return shallow(<ProfilesPrimitive
-      profiles={renderProps.profiles}
-      currentProfile={renderProps.currentProfile}
-      selectedProfile={renderProps.selectedProfile}
-      onClickBillingMatchesShipping={renderProps.onClickBillingMatchesShipping}
-      onProfileNameChange={renderProps.onProfileNameChange}
-      onAddNewProfile={renderProps.onAddNewProfile}
-      onLoadProfile={renderProps.onLoadProfile}
-      onDestroyProfile={renderProps.onDestroyProfile}
-      onSelectProfile={renderProps.onSelectProfile}
-      onUpdateProfile={renderProps.onUpdateProfile}
-      onKeyPress={renderProps.onKeyPress}
-    />);
+    return shallow(
+      <ProfilesPrimitive
+        profiles={renderProps.profiles}
+        currentProfile={renderProps.currentProfile}
+        selectedProfile={renderProps.selectedProfile}
+        onClickBillingMatchesShipping={renderProps.onClickBillingMatchesShipping}
+        onProfileNameChange={renderProps.onProfileNameChange}
+        onAddNewProfile={renderProps.onAddNewProfile}
+        onLoadProfile={renderProps.onLoadProfile}
+        onDestroyProfile={renderProps.onDestroyProfile}
+        onSelectProfile={renderProps.onSelectProfile}
+        onUpdateProfile={renderProps.onUpdateProfile}
+        onKeyPress={renderProps.onKeyPress}
+      />,
+    );
   };
 
   beforeEach(() => {
@@ -58,7 +60,10 @@ describe('<Profiles />', () => {
     expect(wrapper.find('#profile-save')).toHaveLength(1);
     expect(wrapper.find('#submit-profile')).toHaveLength(1);
     expect(wrapper.find('#delete-profile')).toHaveLength(1);
-    wrapper.find('#billing-match-shipping').parent().simulate('keyPress');
+    wrapper
+      .find('#billing-match-shipping')
+      .parent()
+      .simulate('keyPress');
   });
 
   describe('should render correct values for', () => {
@@ -144,7 +149,7 @@ describe('<Profiles />', () => {
         expect(billingFields.prop('disabled')).toBeTruthy();
       });
 
-      test('when billing doesn\'t match shipping', () => {
+      test("when billing doesn't match shipping", () => {
         const customProps = {
           currentProfile: {
             ...initialProfileStates.profile,
@@ -256,7 +261,7 @@ describe('<Profiles />', () => {
     });
 
     describe('saving a profile', () => {
-      const testSaving = (customProps) => {
+      const testSaving = customProps => {
         const wrapper = renderShallowWithProps(customProps);
         const submitProfile = wrapper.find('#submit-profile');
         const event = { preventDefault: jest.fn() };
@@ -265,7 +270,7 @@ describe('<Profiles />', () => {
         expect(customProps.onAddNewProfile).toHaveBeenCalledWith(customProps.currentProfile);
       };
 
-      test('when it hasn\'t been loaded before', () => {
+      test("when it hasn't been loaded before", () => {
         const customProps = {
           currentProfile: {
             ...initialProfileStates.profile,
@@ -377,7 +382,7 @@ describe('<Profiles />', () => {
         ...initialProfileStates.profile,
       },
       other: 'stuff',
-      that: 'should\'t',
+      that: "should't",
       be: 'in',
       map: 'structure',
     };

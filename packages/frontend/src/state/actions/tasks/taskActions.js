@@ -17,9 +17,7 @@ export const TASK_ACTIONS = {
 
 // Utility
 const _parseTaskProduct = product => {
-  const kws = product.raw
-    .split(',')
-    .reduce((a, x) => a.concat(x.trim().split(' ')), []);
+  const kws = product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
 
   const validKeywords = kws.every(kw => regexes.keywordRegex.test(kw));
 

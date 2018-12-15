@@ -28,7 +28,7 @@ class Bodymovin extends React.Component {
   }
 
   render() {
-    const storeWrapper = (el) => {
+    const storeWrapper = el => {
       this.wrapper = el;
     };
 

@@ -1,15 +1,11 @@
 import task, { initialTaskState } from './tasks/task';
 import taskEdit, { initialTaskEditState } from './tasks/taskEdit';
-import taskEditErrors, {
-  initialTaskEditErrorState,
-} from './tasks/taskEditErrors';
+import taskEditErrors, { initialTaskEditErrorState } from './tasks/taskEditErrors';
 import taskErrors, { initialTaskErrorState } from './tasks/taskErrors';
 import taskLog, { initialTaskLogState } from './tasks/taskLog';
 import taskList, { initialTaskListState } from './tasks/taskList';
 import taskProduct, { initialTaskProductState } from './tasks/taskProduct';
-import taskProductErrors, {
-  initialTaskProductErrorState,
-} from './tasks/taskProductErrors';
+import taskProductErrors, { initialTaskProductErrorState } from './tasks/taskProductErrors';
 import taskSite, { initialTaskSiteState } from './tasks/taskSite';
 
 export const initialTaskStates = {

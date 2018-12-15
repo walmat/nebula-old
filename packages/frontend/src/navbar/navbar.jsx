@@ -24,7 +24,6 @@ const bodymovinOptions = {
   },
 };
 
-
 export class NavbarPrimitive extends PureComponent {
   static _getAppData() {
     if (window.Bridge) {
@@ -47,7 +46,9 @@ export class NavbarPrimitive extends PureComponent {
             tabIndex={0}
             title="TASKS"
             onKeyPress={onKeyPress}
-            className={navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null}
+            className={
+              navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null
+            }
             onClick={() => {
               this.props.onRouteTasks(history);
             }}
@@ -64,7 +65,13 @@ export class NavbarPrimitive extends PureComponent {
               this.props.onRouteProfiles(history);
             }}
           >
-            <img src={profiles} className="main-icons" id="icon-profiles" alt="profiles" draggable="false" />
+            <img
+              src={profiles}
+              className="main-icons"
+              id="icon-profiles"
+              alt="profiles"
+              draggable="false"
+            />
           </div>
           <div
             role="button"
@@ -76,7 +83,13 @@ export class NavbarPrimitive extends PureComponent {
               this.props.onRouteServer(history);
             }}
           >
-            <img src={server} className="main-icons" id="icon-server" alt="server" draggable="false" />
+            <img
+              src={server}
+              className="main-icons"
+              id="icon-server"
+              alt="server"
+              draggable="false"
+            />
           </div>
           <div
             role="button"
@@ -88,7 +101,13 @@ export class NavbarPrimitive extends PureComponent {
               this.props.onRouteSettings(history);
             }}
           >
-            <img src={settings} className="main-icons" id="icon-settings" alt="settings" draggable="false" />
+            <img
+              src={settings}
+              className="main-icons"
+              id="icon-settings"
+              alt="settings"
+              draggable="false"
+            />
           </div>
           <div className="appName">
             <p>{name.replace('-', ' ')}</p>
@@ -127,4 +146,7 @@ export const mapDispatchToProps = dispatch => ({
   onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withRouter(NavbarPrimitive));
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withRouter(NavbarPrimitive));
