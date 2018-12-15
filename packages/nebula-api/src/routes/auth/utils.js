@@ -10,37 +10,41 @@ const SECRET_KEY = process.env.NEBULA_API_JWT_SECRET;
 
 function generateTokens(key, refreshPayload) {
   // Generate Access Token
-  const accessToken = jwt.sign({
-    key,
-  },
-  SECRET_KEY,
-  {
-    issuer: process.env.NEBULA_API_ID,
-    subject: 'feauth',
-    audience: 'fe',
-    expiresIn: '2d',
-  });
+  const accessToken = jwt.sign(
+    {
+      key,
+    },
+    SECRET_KEY,
+    {
+      issuer: process.env.NEBULA_API_ID,
+      subject: 'feauth',
+      audience: 'fe',
+      expiresIn: '2d',
+    },
+  );
   const { exp } = jwt.decode(accessToken);
 
   // Generate Refresh token
-  const refreshToken = jwt.sign({
-    ref: refreshPayload,
-    key,
-  },
-  SECRET_KEY,
-  {
-    issuer: process.env.NEBULA_API_ID,
-    subject: 'feref',
-    audience: 'api',
-    expiresIn: '90d',
-  });
+  const refreshToken = jwt.sign(
+    {
+      ref: refreshPayload,
+      key,
+    },
+    SECRET_KEY,
+    {
+      issuer: process.env.NEBULA_API_ID,
+      subject: 'feref',
+      audience: 'api',
+      expiresIn: '90d',
+    },
+  );
 
   // Craft response
   const response = {
     tokenType: 'bearer',
-    accessToken: accessToken,
+    accessToken,
     expiry: exp,
-    refreshToken: refreshToken,
+    refreshToken,
   };
   return response;
 }
@@ -48,7 +52,9 @@ module.exports.generateTokens = generateTokens;
 
 function checkValidKey(key) {
   AWS.config = new AWS.Config(config);
-  const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
   const keyHash = hash(algo, key, salt, output);
   console.log('[DEBUG]: checking for hash: ', keyHash);
   const params = {
@@ -62,19 +68,22 @@ function checkValidKey(key) {
       ':licenseKey': keyHash,
     },
   };
-  return docClient.query(params).promise().then(
-    (data) => {
-      console.log('[DEBUG]: CHECK KEY RESPONSE: ', data);
-      if (data.Items.length && data.Items[0].licenseKey) {
-        return data.Items[0].licenseKey;
-      }
-      return null;
-    },
-    (err) => {
-      console.log('[ERROR]: CHECK KEY RESPONSE: ', err, err.stack);
-      return null;
-    }
-  );
+  return docClient
+    .query(params)
+    .promise()
+    .then(
+      data => {
+        console.log('[DEBUG]: CHECK KEY RESPONSE: ', data);
+        if (data.Items.length && data.Items[0].licenseKey) {
+          return data.Items[0].licenseKey;
+        }
+        return null;
+      },
+      err => {
+        console.log('[ERROR]: CHECK KEY RESPONSE: ', err, err.stack);
+        return null;
+      },
+    );
 }
 module.exports.checkValidKey = checkValidKey;
 
@@ -84,8 +93,10 @@ module.exports.checkValidKey = checkValidKey;
  */
 async function getDiscordUser(keyHash) {
   AWS.config = new AWS.Config(config);
-  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  let params = {
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
+  const params = {
     TableName: 'Discord',
     Key: keyHash,
     KeyConditionExpression: '#licenseKey = :licenseKey',
@@ -96,30 +107,35 @@ async function getDiscordUser(keyHash) {
       ':licenseKey': keyHash,
     },
   };
-  return docClient.query(params).promise().then(
-    (data) => {
-      console.log('[DEBUG]: CHECK DISCORD USER RESPONSE: ', data);
-      if(data.Items.length) {
-        if (data.Items.length > 1) {
-          console.log('[WARN]: Data Items is longer than one! Using first response');
+  return docClient
+    .query(params)
+    .promise()
+    .then(
+      data => {
+        console.log('[DEBUG]: CHECK DISCORD USER RESPONSE: ', data);
+        if (data.Items.length) {
+          if (data.Items.length > 1) {
+            console.log('[WARN]: Data Items is longer than one! Using first response');
+          }
+          return data.Items[0];
         }
-        return data.Items[0];
-      }
-      return null;
-    },
-    (err) => {
-      console.log('[ERROR]: CHECK DISCORD USER RESPONSE: ', err, err.stack);
-      return null;
-    }
-  );
+        return null;
+      },
+      err => {
+        console.log('[ERROR]: CHECK DISCORD USER RESPONSE: ', err, err.stack);
+        return null;
+      },
+    );
 }
 module.exports.getDiscordUser = getDiscordUser;
 
 async function isDiscordAccountPresent(discordIdHash) {
   AWS.config = new AWS.Config(config);
-  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
 
-  let params = {
+  const params = {
     TableName: 'Discord',
     FilterExpression: '#discordId = :discordId',
     ExpressionAttributeNames: {
@@ -130,32 +146,37 @@ async function isDiscordAccountPresent(discordIdHash) {
     },
   };
 
-  return docClient.scan(params).promise().then(
-    (data) => {
-      console.log(data);
-      if (data.Items.length) {
-        if (data.Items.length > 1) {
-          console.log('[WARN]: Data Items is longer than one! Using first response');
+  return docClient
+    .scan(params)
+    .promise()
+    .then(
+      data => {
+        console.log(data);
+        if (data.Items.length) {
+          if (data.Items.length > 1) {
+            console.log('[WARN]: Data Items is longer than one! Using first response');
+          }
+          return data.Items[0];
         }
-        return data.Items[0];
-      }
-      return null;
-    },
-    (err) => {
-      console.log('[ERROR]: CHECK DISCORD IN USE RESPONSE: ', err, err.stack);
-      return null;
-    }
-  );
+        return null;
+      },
+      err => {
+        console.log('[ERROR]: CHECK DISCORD IN USE RESPONSE: ', err, err.stack);
+        return null;
+      },
+    );
 }
 module.exports.isDiscordAccountPresent = isDiscordAccountPresent;
 
 async function addDiscordUser(keyHash, discordIdHash) {
   AWS.config = new AWS.Config(config);
-  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  
-  let params = {
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
+
+  const params = {
     TableName: 'Discord',
-    Item: { licenseKey: keyHash, discordId: discordIdHash, }
+    Item: { licenseKey: keyHash, discordId: discordIdHash },
   };
   await docClient.put(params).promise();
 }
@@ -163,37 +184,44 @@ module.exports.addDiscordUser = addDiscordUser;
 
 async function removeUser(keyHash) {
   AWS.config = new AWS.Config(config);
-  let docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
-  
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
+
   const keyId = hash(algo, keyHash, salt, output);
 
   const params = {
-    TableName: "Users",
+    TableName: 'Users',
     Key: {
-      "keyId": keyId,
+      keyId,
     },
     Exists: true,
-    ReturnConsumedCapacity: "TOTAL"
+    ReturnConsumedCapacity: 'TOTAL',
   };
-  await docClient.delete(params).promise().then(
-    (data) => {
-      console.log('[SUCCESS]: Successfully deleted user');
-      return true;
-    },
-    (err) => {
-      console.log('[ERROR]: ', err, err.stack);
-      return false;
-    }
-  );
+  await docClient
+    .delete(params)
+    .promise()
+    .then(
+      () => {
+        console.log('[SUCCESS]: Successfully deleted user');
+        return true;
+      },
+      err => {
+        console.log('[ERROR]: ', err, err.stack);
+        return false;
+      },
+    );
 }
 module.exports.removeUser = removeUser;
 
 async function checkIsInUse(key) {
   AWS.config = new AWS.Config(config);
-  const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
   const keyHash = hash(algo, key, salt, output);
 
-  let params = {
+  const params = {
     TableName: 'Users',
     Key: keyHash,
     KeyConditionExpression: '#keyId = :keyId',
@@ -204,30 +232,33 @@ async function checkIsInUse(key) {
       ':keyId': keyHash,
     },
   };
-  
-  return docClient.query(params).promise().then(
-    (data) => {
-      console.log('[DEBUG]: CHECK IN USE RESPONSE: ', data);
-      if(data.Items.length) {
-        if (data.Items.length > 1) {
-          console.log('[WARN]: Data Items is longer than one! Using first response');
+
+  return docClient
+    .query(params)
+    .promise()
+    .then(
+      data => {
+        console.log('[DEBUG]: CHECK IN USE RESPONSE: ', data);
+        if (data.Items.length) {
+          if (data.Items.length > 1) {
+            console.log('[WARN]: Data Items is longer than one! Using first response');
+          }
+          return data.Items[0];
         }
-        return data.Items[0];
-      }
-      return null;
-    },
-    (err) => {
-      console.log('[ERROR]: CHECK IN USE RESPONSE: ', err, err.stack);
-      return null;
-    }
-  );
+        return null;
+      },
+      err => {
+        console.log('[ERROR]: CHECK IN USE RESPONSE: ', err, err.stack);
+        return null;
+      },
+    );
 }
 module.exports.checkIsInUse = checkIsInUse;
 
 async function verifyKey(key) {
   console.log(`[TRACE]: Starting Key Verification with key: ${key} ...`);
   const keyHash = await checkValidKey(key);
-  if(!keyHash) {
+  if (!keyHash) {
     console.log('[TRACE]: KEY IS INVALID, returning error...');
     return {
       error: {
@@ -235,10 +266,10 @@ async function verifyKey(key) {
         message: 'Invalid Key',
       },
     };
-  };
+  }
 
   const inUse = await checkIsInUse(keyHash);
-  if(inUse) {
+  if (inUse) {
     console.log('[TRACE]: KEY IS IN USE, returning error...');
     return {
       error: {
@@ -249,7 +280,7 @@ async function verifyKey(key) {
   }
 
   const refreshTokenPayload = await storeUser(keyHash);
-  if(!refreshTokenPayload) {
+  if (!refreshTokenPayload) {
     console.log('[TRACE]: UNABLE TO STORE USER, returning error...');
     return {
       error: {
@@ -289,7 +320,7 @@ async function verifyToken(token) {
   }
 
   // Handle no payload...
-  if(!decoded) {
+  if (!decoded) {
     console.log('[ERROR]: JWT VERIFICATION: invalid decoding');
     return {
       error: {
@@ -303,7 +334,7 @@ async function verifyToken(token) {
 
   // Check if key is valid
   const keyHash = await checkValidKey(decoded.key);
-  if(!keyHash) {
+  if (!keyHash) {
     console.log('[ERROR]: INVALID KEY!');
     return {
       error: {
@@ -315,7 +346,7 @@ async function verifyToken(token) {
 
   // Check if key has been previously registered
   const inUse = await checkIsInUse(keyHash);
-  if(!inUse) {
+  if (!inUse) {
     console.log('[ERROR]: INVALID STATE: Key has not been registered');
     return {
       error: {
@@ -342,7 +373,7 @@ async function verifyToken(token) {
 
   // Update store with new refresh payload
   const refreshTokenPayload = await storeUser(keyHash);
-  if(!refreshTokenPayload) {
+  if (!refreshTokenPayload) {
     console.log('[TRACE]: UNABLE TO UPDATE USER, returning error...');
     return {
       error: {
@@ -364,7 +395,7 @@ async function deleteKey(key) {
 
   // Ensure key is valid
   const keyHash = await checkValidKey(key);
-  if(!keyHash) {
+  if (!keyHash) {
     console.log('[ERROR]: INVALID KEY!');
     return {
       error: {
@@ -376,7 +407,7 @@ async function deleteKey(key) {
 
   // Ensure key is in use
   const inUse = await checkIsInUse(keyHash);
-  if(!inUse) {
+  if (!inUse) {
     console.log('[ERROR]: INVALID STATE: Key has not been registered');
     return {
       error: {
@@ -388,7 +419,7 @@ async function deleteKey(key) {
 
   // Perform deletion
   const response = await deleteUser(keyHash);
-  if(response) {
+  if (response) {
     return {
       response: 'success',
     };
