@@ -1,8 +1,8 @@
 /**
  * Async Queue
- * 
- * A variant of a Queue with synchronous inserts and 
- * asynchronous returns. If there is a backlog, the 
+ *
+ * A variant of a Queue with synchronous inserts and
+ * asynchronous returns. If there is a backlog, the
  * returns are synchronous
  */
 class AsyncQueue {
@@ -21,9 +21,9 @@ class AsyncQueue {
 
   insert(datum) {
     // Check if we have anybody waiting for data
-    if(this._waitQueue.length) {
+    if (this._waitQueue.length) {
       // Get the resolution and invoke it with the data
-      const resolution = this._waitQueue.pop()
+      const resolution = this._waitQueue.pop();
       resolution.resolve(datum);
     } else {
       // Add data to the backlog
@@ -52,7 +52,7 @@ class AsyncQueue {
 
   destroy() {
     // Reject all resolutions in the wait queue
-    this._waitQueue.forEach((r) => {
+    this._waitQueue.forEach(r => {
       r.reject('Queue was destroyed');
     });
     this._waitQueue = [];

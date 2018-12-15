@@ -2,7 +2,7 @@ const TaskManagerEvents = {
   StartHarvest: 'START_CAPTCHA_HARVEST',
   StopHarvest: 'STOP_CAPTCHA_HARVEST',
   Harvest: 'CAPTCHA_HARVEST',
-}
+};
 
 /**
  * Task Runner Event Channel Constants
@@ -36,7 +36,7 @@ const TaskRunnerStates = {
  */
 const ParserErrorCodes = {
   ProductNotFound: 'PRODUCT_MISSING',
-}
+};
 
 const getAllSizes = [
   {

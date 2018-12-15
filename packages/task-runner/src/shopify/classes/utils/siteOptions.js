@@ -2,7 +2,7 @@ const _ = require('underscore');
 
 module.exports = {};
 
-const s = [
+const sites = [
   {
     url: 'https://kith.com',
     name: 'Kith',
@@ -243,23 +243,23 @@ const s = [
 ];
 
 function getAllSupportedSites() {
-  return s.filter(val => val.supported === true);
+  return sites.filter(val => val.supported === true);
 }
 module.exports.getAllSupportedSites = getAllSupportedSites;
 
 function getAllSupportedSitesSorted() {
-  const supported = s.filter(val => val.supported === true);
+  const supported = sites.filter(val => val.supported === true);
   return _.sortBy(supported, 'name');
 }
-module.exports.getAllSupportedSitesSorted = getAllSupportedSitesSorted
+module.exports.getAllSupportedSitesSorted = getAllSupportedSitesSorted;
 
 function getAllSpecialSites() {
-  return s.filter(val => val.special === true);
+  return sites.filter(val => val.special === true);
 }
 module.exports.getAllSpecialSites = getAllSpecialSites;
 
 function isSpecialSite(site) {
   const specialSites = getAllSpecialSites();
-  return !!(specialSites.find(s => s.name === site.name || s.url === site.url));
+  return !!specialSites.find(s => s.name === site.name || s.url === site.url);
 }
 module.exports.isSpecialSite = isSpecialSite;

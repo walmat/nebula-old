@@ -1,12 +1,12 @@
+/* eslint-disable no-console, camelcase */
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
+  timeout: 10000,
+  jar,
 });
-const {
-  userAgent,
-} = require('../classes/utils');
 const tough = require('tough-cookie');
+
+const { userAgent } = require('../classes/utils');
 
 const info = {
   email: 'test@test.com',
@@ -20,15 +20,16 @@ const info = {
     country: 'United States',
     province: 'Iowa',
     zip: '50613',
-    phone: '(319) 123-4534', 
+    phone: '(319) 123-4534',
   },
-}
+};
 
 const url_base = 'http://www.blendsus.com';
 
 // THESE VARIABLES ARE SPECIFIC EACH TIME
 const checkout_url = 'https://www.blendsus.com/1529745/checkouts/cdd7a5b395e0eaf9a5d204ba730ff670';
-const authenticity_token = 'uJsNxvtbEOFT8aDTXo74UBiXYzEihFaL9kxe+R7T6UzrRKgqUOkireubdngEG3B/qwkBm68CnfmLjQ4Z+XXyWw==';
+const authenticity_token =
+  'uJsNxvtbEOFT8aDTXo74UBiXYzEihFaL9kxe+R7T6UzrRKgqUOkireubdngEG3B/qwkBm68CnfmLjQ4Z+XXyWw==';
 const cookies = [
   '_shopify_s=e28434d2-315A-4AAE-56C3-8514B47B7A4F; path=/; expires=Mon, 05 Nov 2018 07:09:47 -0000',
   '_shopify_y=b627374a-5254-441f-a6ad-146f78f0b6d9; path=/; expires=Wed, 04 Nov 2020 18:18:11 -0000',
@@ -37,29 +38,27 @@ const cookies = [
 ].map(tough.Cookie.parse);
 // End Group
 
-cookies.forEach((c) => jar.setCookie(c, url_base));
+cookies.forEach(c => jar.setCookie(c, url_base));
 
-const generateFormData = () => {
-  return {
-    "utf8": encodeURIComponent("✓"),
-    "_method": "patch",
-    "authenticity_token": (authenticity_token),
-    "previous_step": "contact_information",
-    "checkout[email]": (info.email),
-    "checkout[buyer_accepts_marketing]": '0',
-    "checkout[shipping_address][first_name]": (info.shipping_address.first_name),
-    "checkout[shipping_address][last_name]": (info.shipping_address.last_name),
-    "checkout[shipping_address][address1]": (info.shipping_address.address1),
-    "checkout[shipping_address][address2]": (info.shipping_address.address2),
-    "checkout[shipping_address][city]": (info.shipping_address.city),
-    "checkout[shipping_address][country]": (info.shipping_address.country),
-    "checkout[shipping_address][province]": (info.shipping_address.province),
-    "checkout[shipping_address][zip]": (info.shipping_address.zip),
-    "checkout[shipping_address][phone]": (info.shipping_address.phone),
-    "step": "contact_information",
-    "button": ''
-  };
-};
+const generateFormData = () => ({
+  utf8: encodeURIComponent('✓'),
+  _method: 'patch',
+  authenticity_token,
+  previous_step: 'contact_information',
+  'checkout[email]': info.email,
+  'checkout[buyer_accepts_marketing]': '0',
+  'checkout[shipping_address][first_name]': info.shipping_address.first_name,
+  'checkout[shipping_address][last_name]': info.shipping_address.last_name,
+  'checkout[shipping_address][address1]': info.shipping_address.address1,
+  'checkout[shipping_address][address2]': info.shipping_address.address2,
+  'checkout[shipping_address][city]': info.shipping_address.city,
+  'checkout[shipping_address][country]': info.shipping_address.country,
+  'checkout[shipping_address][province]': info.shipping_address.province,
+  'checkout[shipping_address][zip]': info.shipping_address.zip,
+  'checkout[shipping_address][phone]': info.shipping_address.phone,
+  step: 'contact_information',
+  button: '',
+});
 
 rp({
   uri: checkout_url,
@@ -74,8 +73,10 @@ rp({
     Referer: `https://blendsus.com/cart`,
   },
   qs: generateFormData(),
-}).then((res) => {
-  console.log(res.body);
-}).catch((error) => {
-  console.log(error.statusCode);
-});
+})
+  .then(res => {
+    console.log(res.body);
+  })
+  .catch(error => {
+    console.log(error.statusCode);
+  });

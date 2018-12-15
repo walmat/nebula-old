@@ -8,7 +8,6 @@ const { Events } = require('./classes/utils/constants').TaskManager;
 const { createLogger } = require('../common/logger');
 
 class TaskManager {
-
   get loggerPath() {
     return this._loggerPath;
   }
@@ -33,7 +32,11 @@ class TaskManager {
     this._proxies = [];
 
     // Logger
-    this._logger = createLogger({ dir: this._loggerPath, name: 'TaskManager', filename: 'manager.log' });
+    this._logger = createLogger({
+      dir: this._loggerPath,
+      name: 'TaskManager',
+      filename: 'manager.log',
+    });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }
@@ -42,8 +45,8 @@ class TaskManager {
 
   /**
    * Register a listener for status events
-   * 
-   * @param {Callback} callback 
+   *
+   * @param {Callback} callback
    */
   registerForTaskEvents(callback) {
     this._events.on('status', callback);
@@ -51,8 +54,8 @@ class TaskManager {
 
   /**
    * Remove a listener from status events
-   * 
-   * @param {Callback} callback 
+   *
+   * @param {Callback} callback
    */
   deregisterForTaskEvents(callback) {
     this._events.removeListener('status', callback);
@@ -62,27 +65,29 @@ class TaskManager {
 
   /**
    * Register a Proxy
-   * 
-   * This method adds a given proxy to the availability proxy pool if it has 
-   * not been added already. Once added, task runners are able to reserve 
+   *
+   * This method adds a given proxy to the availability proxy pool if it has
+   * not been added already. Once added, task runners are able to reserve
    * the given proxy.
-   * 
+   *
    * @param {Proxy} proxy the proxy to register
    */
   registerProxy(proxy) {
     this._logger.verbose('Registering proxy...');
     let proxyId;
     const proxyHash = hash(proxy);
-    if (Object.keys(this._proxies)
+    if (
+      Object.keys(this._proxies)
         .map(key => this._proxies[key].hash)
-        .includes(proxyHash)) {
+        .includes(proxyHash)
+    ) {
       this._logger.verbose('Proxy already exists with hash %s! proxy not added', proxyHash);
       return;
     }
     this._logger.verbose('New Proxy Detected with hash %s. Adding now', proxyHash);
     do {
       proxyId = uuidv4();
-    } while(this._proxies[proxyId]);
+    } while (this._proxies[proxyId]);
 
     this._proxies[proxyId] = {
       id: proxyId,
@@ -94,10 +99,10 @@ class TaskManager {
 
   /**
    * Register Multiple Proxies
-   * 
+   *
    * This is a convenience method to handle registering multiple proxies with
    * a single call.
-   * 
+   *
    * @param {List<Proxy>} proxies list of proxies to register
    */
   registerProxies(proxies) {
@@ -106,12 +111,12 @@ class TaskManager {
 
   /**
    * Deregister a Proxy
-   * 
-   * This method removes a given proxy from the availability pool, but does 
-   * not stop the proxy from being used if already in use. A task runner 
-   * that has reserved this proxy will continue to use it until the task 
+   *
+   * This method removes a given proxy from the availability pool, but does
+   * not stop the proxy from being used if already in use. A task runner
+   * that has reserved this proxy will continue to use it until the task
    * stops or until the task runner attempts to swap the proxy.
-   * 
+   *
    * @param {Proxy} proxy the proxy to deregister
    */
   deregisterProxy(proxy) {
@@ -124,17 +129,17 @@ class TaskManager {
       return;
     }
     this._logger.verbose('Proxy found with hash %s. Removing now', proxyHash);
-    
+
     delete this._proxies[storedProxy.id];
     this._logger.verbose('Proxy removed with id %s', storedProxy.id);
   }
 
   /**
    * Deregister Multiple Proxies
-   * 
+   *
    * This is a convenience method to handle deregistering multiple proxies with
    * a single call.
-   * 
+   *
    * @param {List<Proxy>} proxies list of proxies to deregister
    */
   deregisterProxies(proxies) {
@@ -143,13 +148,13 @@ class TaskManager {
 
   /**
    * Reserve a proxy
-   * 
+   *
    * @param {String} runnerId the id of the runner for whom the proxy will be reserved
    * @param {String} waitForOpenProxy whether or not this method should wait for an open proxy
    */
   async reserveProxy(runnerId, waitForOpenProxy) {
     this._logger.verbose('Reserving proxy for runner %s ...', runnerId);
-    const proxy = this._proxies.find(p => !p.assignedRunner && !p.banned)
+    const proxy = this._proxies.find(p => !p.assignedRunner && !p.banned);
     if (proxy) {
       proxy.assignedRunner = runnerId;
       this._logger.verbose('Returning proxy: %s', proxy.id);
@@ -160,14 +165,14 @@ class TaskManager {
       return null;
     }
     this._logger.verbose('All proxies are reserved, waiting for open proxy...');
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       setTimeout(() => resolve(this.reserveProxy(runnerId, waitForOpenProxy)), 1000); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
     });
   }
 
   /**
    * Release a proxy
-   * 
+   *
    * @param {String} runnerId the id of the runner this proxy is being released from
    * @param {String} proxyId the id of the proxy to release
    */
@@ -184,10 +189,11 @@ class TaskManager {
 
   /**
    * Ban a proxy
-   * 
+   *
+   * @param {String} runnerId the id of the runner
    * @param {String} proxyId the id of the proxy to ban
    */
-  banProxy(proxyId) {
+  banProxy(runnerId, proxyId) {
     this._logger.verbose('Banning proxy %s for runner %s ...', proxyId, runnerId);
     const proxy = this._proxies[proxyId];
     if (!proxy) {
@@ -200,17 +206,22 @@ class TaskManager {
 
   /**
    * Swap a proxy for a runner
-   * 
-   * This method swaps a proxy for a given runner. If the proxy needs to 
-   * banned, that is done as well. A fresh proxy is returned for further 
+   *
+   * This method swaps a proxy for a given runner. If the proxy needs to
+   * banned, that is done as well. A fresh proxy is returned for further
    * use.
-   *  
+   *
    * @param {String} runnerId the runner who needs the proxy
    * @param {String} proxyId the old proxy to release
    * @param {bool} shouldBan whether the old proxy should be banned
    */
   async swapProxy(runnerId, proxyId, shouldBan) {
-    this._logger.verbose('Swapping Proxy %s for runner %s. Should ban? %s ...', proxyId, runnerId, shouldBan);
+    this._logger.verbose(
+      'Swapping Proxy %s for runner %s. Should ban? %s ...',
+      proxyId,
+      runnerId,
+      shouldBan,
+    );
     let shouldRelease = true;
     if (!this._proxies[proxyId]) {
       this._logger.verbose('No proxy found, skipping release/ban');
@@ -221,12 +232,12 @@ class TaskManager {
     if (shouldRelease) {
       // Check if we need to ban the old proxy
       if (shouldBan) {
-        this.banProxy(proxyId);
+        this.banProxy(runnerId, proxyId);
       }
       this.releaseProxy(runnerId, proxyId);
     }
     // Return the new reserved proxy
-    return await this.reserveProxy(runnerId);
+    return this.reserveProxy(runnerId);
   }
 
   /**
@@ -236,23 +247,23 @@ class TaskManager {
    * harvested captcha tokens. Tokens will be inserted
    * into the given queue only if they are for the given
    * runner id.
-   * 
+   *
    * @param {String} runnerId the runner to test against
    * @param {AsyncQueue} queue the queue to insert tokens into
    */
-  _generateHarvestCaptchaHandler(runnerId, queue) {
+  static _generateHarvestCaptchaHandler(runnerId, queue) {
     return (rId, token) => {
       if (runnerId === rId) {
         queue.insert(token);
       }
-    }
+    };
   }
 
   /**
    * Harvest Captcha
-   * 
+   *
    * Harvest a given captcha token for a given runner
-   * 
+   *
    * @param {String} runnerId the runner to update
    * @param {String} token the captcha token to harvest
    */
@@ -263,8 +274,8 @@ class TaskManager {
       const rId = this._tokenReserveQueue.pop();
       // Use the runner id to get the container
       const container = this._captchaQueues.get(rId);
-      if(!container) {
-        // The current container no longer exists in the captcha queue, 
+      if (!container) {
+        // The current container no longer exists in the captcha queue,
         // Call recursively to get the next runner
         this.harvestCaptchaToken(rId, token);
       }
@@ -278,13 +289,13 @@ class TaskManager {
   /**
    * Start Harvesting Captcha
    *
-   * Register and retrieve a captcha token for the given runner id. If 
-   * the captcha harvesting has not started for this runner, it will be 
+   * Register and retrieve a captcha token for the given runner id. If
+   * the captcha harvesting has not started for this runner, it will be
    * started.
-   * 
+   *
    * This method will return the next available captcha token for this
    * runner.
-   * 
+   *
    * @param {String} runnerId the runner for which to register captcha events
    */
   async startHarvestCaptcha(runnerId) {
@@ -292,7 +303,7 @@ class TaskManager {
     if (!container) {
       // We haven't started harvesting for this runner yet, create a queue and start harvesting
       const queue = new AsyncQueue();
-      const updater = this._generateHarvestCaptchaHandler(runnerId, queue);
+      const updater = TaskManager._generateHarvestCaptchaHandler(runnerId, queue);
       container = {
         queue,
         updater,
@@ -306,23 +317,23 @@ class TaskManager {
       // Emit an event to start harvesting
       this._events.emit(Events.StartHarvest, runnerId);
     }
-    return await container.queue.next();
+    return container.queue.next();
   }
 
   /**
    * Stop Harvesting Captchas
-   * 
+   *
    * Deregister this runner id from looking for captcha tokens and send an
    * event to stop harvesting captchas for this id.
-   * 
+   *
    * If the runner was not previously harvesting captchas, this method does
    * nothing.
    */
   stopHarvestCaptcha(runnerId) {
-    let container = this._captchaQueues.get(runnerId);
+    const container = this._captchaQueues.get(runnerId);
 
     // If this container was never started, there's no need to do anything further
-    if(!container) {
+    if (!container) {
       return;
     }
 
@@ -339,11 +350,11 @@ class TaskManager {
 
   /**
    * Callback for Task Runner Events
-   * 
-   * This method is registered as a callback for all running tasks. The method 
-   * is used to merge all task runner events into a single stream, so only one 
+   *
+   * This method is registered as a callback for all running tasks. The method
+   * is used to merge all task runner events into a single stream, so only one
    * event handler is needed to consume all task runner events.
-   * 
+   *
    * @param {String} runnerId the id of the runner that emitted the event
    * @param {String} message the status message
    * @param {TaskRunner.Event} event the type of event that was emitted
@@ -362,19 +373,19 @@ class TaskManager {
 
   /**
    * Start a task
-   * 
+   *
    * This method starts a given task if it has not already been started. The
-   * requisite data is generated (id, open proxy if it is available, etc.) and 
+   * requisite data is generated (id, open proxy if it is available, etc.) and
    * starts the task runner asynchronously.
-   * 
+   *
    * If the given task has already started, this method does nothing.
-   * @param {Task} task 
+   * @param {Task} task
    */
   async start(task) {
     this._logger.info('Starting task %s', task.id);
 
     const alreadyStarted = this._runners.find(r => r.task.id === task.id);
-    if(alreadyStarted) {
+    if (alreadyStarted) {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
@@ -382,7 +393,7 @@ class TaskManager {
     let runnerId;
     do {
       runnerId = uuidv4();
-    } while(this._runners[runnerId]);
+    } while (this._runners[runnerId]);
     this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
 
     const openProxy = await this.reserveProxy(runnerId);
@@ -392,16 +403,22 @@ class TaskManager {
     // Register for status updates
     this._logger.verbose('Registering for TaskRunner Events ...');
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-    
+
     // Start the runner asynchronously
     this._logger.verbose('Starting Runner ...');
-    runner.start()
+    runner
+      .start()
       .then(() => {
         this._logger.info('Runner %s finished without errors', runnerId);
-      }) 
-      .catch((error) => {
-        this._logger.error('Runner %s was stopped due to an errors: %s', runnerId, error.toString(), error);
-      }) 
+      })
+      .catch(error => {
+        this._logger.error(
+          'Runner %s was stopped due to an errors: %s',
+          runnerId,
+          error.toString(),
+          error,
+        );
+      })
       .then(() => {
         this._logger.verbose('Performing cleanup for runner %s', runnerId);
         // Cleanup handlers
@@ -417,11 +434,11 @@ class TaskManager {
 
   /**
    * Start multiple tasks
-   * 
+   *
    * This method is a convenience method to start multiple tasks
-   * with a single call. The `start()` method is called for all 
+   * with a single call. The `start()` method is called for all
    * tasks in the given list.
-   * 
+   *
    * @param {List<Task>} tasks list of tasks to start
    */
   startAll(tasks) {
@@ -430,21 +447,23 @@ class TaskManager {
 
   /**
    * Stop a task
-   * 
-   * This method stops a given task if it is running. This is done by sending 
-   * an abort signal to force the task to stop and cleanup anything it needs 
-   * to. 
-   * 
-   * This method does nothing if the given task has already stopped or 
+   *
+   * This method stops a given task if it is running. This is done by sending
+   * an abort signal to force the task to stop and cleanup anything it needs
+   * to.
+   *
+   * This method does nothing if the given task has already stopped or
    * if it was never started.
-   * 
+   *
    * @param {Task} task the task to stop
    */
   stop(task) {
     this._logger.info('Attempting to stop runner with task id: %s', task.id);
     const rId = Object.keys(this._runners).find(k => this._runners[k]._context.task.id === task.id);
     if (!rId) {
-      this._logger.warn('This task was not previously running or has already been stopped! Skipping stop');
+      this._logger.warn(
+        'This task was not previously running or has already been stopped! Skipping stop',
+      );
       return;
     }
 
@@ -455,11 +474,11 @@ class TaskManager {
 
   /**
    * Stop multiple tasks
-   * 
+   *
    * This method is a convenience method to stop multiple tasks
-   * with a single call. The `stop()` method is called for all 
+   * with a single call. The `stop()` method is called for all
    * tasks in the given list.
-   * 
+   *
    * @param {List<Task>} tasks list of tasks to stop
    */
   stopAll(tasks) {
@@ -468,11 +487,11 @@ class TaskManager {
 
   /**
    * Check if a task is running
-   * 
+   *
    * @param {Task} task the task to check
    */
   isRunning(task) {
-    return !!(this._runners.find(r => r.task.id === task.id));
+    return !!this._runners.find(r => r.task.id === task.id);
   }
 }
 

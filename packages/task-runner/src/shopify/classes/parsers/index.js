@@ -11,7 +11,7 @@ const DsmParser = require('./dsmParser');
 
 function getSpecialParser(site) {
   // TODO: Figure out a better way to do this!
-  switch(site.name) {
+  switch (site.name) {
     case 'Mock Server': {
       return getSpecialParser({ name: MOCK_SPECIAL_PARSER });
     }

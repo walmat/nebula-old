@@ -1,15 +1,15 @@
-const { formatProxy, userAgent } = require('../utils');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
+  timeout: 10000,
+  jar,
 });
+const { formatProxy, userAgent } = require('../utils');
 const Parser = require('./parser');
 
 class JsonParser extends Parser {
   /**
    * Construct a new JsonParser
-   * 
+   *
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
@@ -21,7 +21,11 @@ class JsonParser extends Parser {
     this._logger.silly('%s: Starting run...', this._name);
     let products;
     try {
-      this._logger.silly('%s: Making request for %s/products.json ...', this._name, this._task.site.url);
+      this._logger.silly(
+        '%s: Making request for %s/products.json ...',
+        this._name,
+        this._task.site.url,
+      );
       const response = await rp({
         method: 'GET',
         uri: `${this._task.site.url}/products.json`,
@@ -30,10 +34,10 @@ class JsonParser extends Parser {
         simple: true,
         gzip: true,
         headers: {
-            'User-Agent': userAgent,
-        }
+          'User-Agent': userAgent,
+        },
       });
-      products = JSON.parse(response).products;
+      ({ products } = JSON.parse(response));
     } catch (error) {
       this._logger.silly('%s: ERROR making request!', this._name, error);
       const rethrow = new Error('unable to make request');
@@ -43,8 +47,8 @@ class JsonParser extends Parser {
     this._logger.silly('%s: Received Response, Attempting to match...', this._name);
     const matchedProduct = super.match(products);
 
-    if(!matchedProduct) {
-      this._logger.silly('%s: Couldn\'t find a match!', this._name);
+    if (!matchedProduct) {
+      this._logger.silly("%s: Couldn't find a match!", this._name);
       throw new Error('unable to match the product');
     }
     this._logger.silly('%s: Product Found!', this._name);

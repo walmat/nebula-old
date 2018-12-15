@@ -1,4 +1,6 @@
+/* eslint-disable no-console */
 const AtomParser = require('../classes/parsers/atomParser');
+
 const task1 = {
   id: 1,
   site: {
@@ -7,13 +9,8 @@ const task1 = {
   },
   product: {
     raw: '+clarks, +gtx, -vans',
-    pos_keywords: [
-      'clarks',
-      'gtx',
-    ],
-    neg_keywords: [
-      'vans'
-    ],
+    pos_keywords: ['clarks', 'gtx'],
+    neg_keywords: ['vans'],
   },
 };
 const task2 = {
@@ -30,8 +27,8 @@ async function _runMatching(taskToRun) {
   try {
     const product = await parser.run();
     return product.title;
-  } catch(err) {
-    console.log('parser for task: ' + taskToRun.id);
+  } catch (err) {
+    console.log(`parser for task: ${taskToRun.id}`);
     console.log('parser failed with error:');
     console.log(err);
     return 'ERROR';
@@ -43,8 +40,8 @@ async function runMatching() {
   const variant = await _runMatching(task2);
 
   console.log('Finished both parsers!');
-  console.log('Keyword Parser: ' + keyword);
-  console.log('Variant Parser: ' + variant);
+  console.log(`Keyword Parser: ${keyword}`);
+  console.log(`Variant Parser: ${variant}`);
 }
 
 runMatching();

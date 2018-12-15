@@ -8,6 +8,49 @@ const path = require('path');
 const _isDevelopment = process.env.NEBULA_ENV === 'development';
 let _levels = null;
 
+/**
+ * Set the levels of all loggers or a specific logger
+ *
+ * Use the given levels object to set the levels of a
+ * given logger (based on name) or all loggers (no
+ * name given).
+ *
+ * The levels object should contain individual keys
+ * for each transport:
+ * - 'specific': The logger specific file
+ * - 'combined': The combined level
+ * - 'console': The console transport
+ * Optionally, you can set the level for all
+ * transports by passing the 'all' key. Individual
+ * settings will override the 'all' key if both
+ * are passed.
+ */
+function _setLevels(levels, name) {
+  if (!levels) {
+    return; // if no levels are given, don't do anything...
+  }
+  function adjustLevels(lvls, logger) {
+    /* eslint-disable no-param-reassign */
+    logger.transports.forEach(t => {
+      if (!t.name) {
+        t.level = lvls.all || t.level; // No name given, try setting to 'all' key if given
+      } else {
+        t.level = lvls[t.name] || lvls.all || t.level; // try setting specific name, then 'all', then no change
+      }
+    });
+    /* eslint-enable no-param-reassign */
+  }
+  if (name) {
+    const logger = winston.loggers.get(name);
+    if (logger) {
+      adjustLevels(levels, logger);
+    }
+  } else {
+    _levels = levels; // Update the state of levels for future loggers
+    winston.loggers.loggers.forEach(l => adjustLevels(levels, l));
+  }
+}
+
 function _createLogger({ dir, name, filename }) {
   // Check if the logs directory exists and create it if needed
   const dirname = path.join(dir, 'Nebula Orion');
@@ -22,15 +65,19 @@ function _createLogger({ dir, name, filename }) {
   ];
   if (_isDevelopment || process.env.NEBULA_ENABLE_CONSOLE) {
     // Add console transport only when in dev mode or if we define the enable flag
-    transports.push(new winston.transports.Console({
-      name: 'console',
-      format: winston.format.combine(
-        winston.format.colorize({ all: true }),
-        winston.format.label({ label: name }),
-        winston.format.timestamp(),
-        winston.format.printf(info => `${info.timestamp}: [${info.level}] [${info.label}] - ${info.message}`),
-      ),
-    }));
+    transports.push(
+      new winston.transports.Console({
+        name: 'console',
+        format: winston.format.combine(
+          winston.format.colorize({ all: true }),
+          winston.format.label({ label: name }),
+          winston.format.timestamp(),
+          winston.format.printf(
+            info => `${info.timestamp}: [${info.level}] [${info.label}] - ${info.message}`,
+          ),
+        ),
+      }),
+    );
   }
 
   // Add the logger with default format options
@@ -49,47 +96,6 @@ function _createLogger({ dir, name, filename }) {
   // Update levels to the global state
   _setLevels(_levels, name);
   return winston.loggers.get(name);
-}
-
-/**
- * Set the levels of all loggers or a specific logger
- * 
- * Use the given levels object to set the levels of a 
- * given logger (based on name) or all loggers (no 
- * name given).
- * 
- * The levels object should contain individual keys
- * for each transport:
- * - 'specific': The logger specific file
- * - 'combined': The combined level
- * - 'console': The console transport
- * Optionally, you can set the level for all 
- * transports by passing the 'all' key. Individual
- * settings will override the 'all' key if both
- * are passed.
- */
-function _setLevels(levels, name) {
-  if (!levels) {
-    return; // if no levels are given, don't do anything...
-  }
-  function adjustLevels(lvls, logger) {
-    logger.transports.forEach(t => {
-      if (!t.name) {
-        t.level = lvls.all || t.level; // No name given, try setting to 'all' key if given
-      } else {
-        t.level = lvls[t.name] || lvls.all || t.level; // try setting specific name, then 'all', then no change
-      }
-    })
-  }
-  if (name) {
-    const logger = winston.loggers.get(name);
-    if (logger) {
-      adjustLevels(levels, logger);
-    }
-  } else {
-    _levels = levels; // Update the state of levels for future loggers
-    winston.loggers.loggers.forEach(l => adjustLevels(levels, l));
-  }
 }
 
 module.exports = {

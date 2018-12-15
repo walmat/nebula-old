@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 const SpecialParser = require('./specialParser');
 const { ParseType, matchKeywords } = require('../utils/parse');
 const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
@@ -16,7 +17,7 @@ class DsmParser extends SpecialParser {
 
   parseInitialPageForUrls($) {
     // Look for all `.grid-view-item`'s
-    let parsedItems = [];
+    const parsedItems = [];
     $('.grid-view-item').each((i, el) => {
       const link = $('.grid-view-item__link', el).attr('href');
       const title = $('.grid-view-item__title', el).text();
@@ -33,12 +34,12 @@ class DsmParser extends SpecialParser {
       const keywords = {
         pos: this._task.product.pos_keywords,
         neg: this._task.product.neg_keywords,
-      }
+      };
       items = matchKeywords(parsedItems, keywords, null, null, true) || [];
     }
     this._logger.silly('%s: parsing inital page, found %d items', this._name, items.length);
 
-    if(!items.length) {
+    if (!items.length) {
       // If no products are found, throw an error, but specify a special status to stop the task
       // TODO: Maybe replace with a custom error object?
       const error = new Error('No Items Found');
@@ -47,9 +48,7 @@ class DsmParser extends SpecialParser {
     }
 
     // Convert items to full urls
-    const productUrls = items.map(({ link }) => {
-      return new URL(link, this._task.site.url).href;
-    });
+    const productUrls = items.map(({ link }) => new URL(link, this._task.site.url).href);
 
     return productUrls;
   }
@@ -57,7 +56,7 @@ class DsmParser extends SpecialParser {
   parseProductInfoPageForProduct($) {
     // Look for the script tag containing the product json
     const product = $('script#ProductJson-product-template');
-    if(!product || product.attr('type') !== 'application/json') {
+    if (!product || product.attr('type') !== 'application/json') {
       // If no products are found, throw an error, but specify a special status to stop the task
       // TODO: Maybe replace with a custom error object?
       const error = new Error('No Items Found');

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const Monitor = require('../classes/monitor');
 const { States } = require('../taskRunner');
 
@@ -10,13 +11,8 @@ const tasks = [
     },
     product: {
       raw: '+clarks, +gtx, -vans',
-      pos_keywords: [
-        'clarks',
-        'gtx',
-      ],
-      neg_keywords: [
-        'vans'
-      ],
+      pos_keywords: ['clarks', 'gtx'],
+      neg_keywords: ['vans'],
     },
     sizes: ['9', '7.5', '10', '8'],
     errorDelay: 2000,
@@ -61,16 +57,16 @@ const context = {
 
 async function delay(time) {
   return new Promise(resolve => setTimeout(resolve, time));
-};
+}
 
 const monitor = new Monitor(context);
 
 async function testMonitorAbort() {
   // check to make sure aborted works properly...
   context.aborted = true;
-  let state = await monitor.run();
-  if(state !== States.Aborted) {
-    throw new Error('Aborting doesn\'t work!');
+  const state = await monitor.run();
+  if (state !== States.Aborted) {
+    throw new Error("Aborting doesn't work!");
   }
   context.aborted = false;
   console.log('Abort works fine');
@@ -78,24 +74,26 @@ async function testMonitorAbort() {
 
 async function testMonitorKeyword() {
   let state;
-  context.task = tasks[0];
+  [context.task] = tasks;
 
   // Keep running until we get a checkout
-  while(state !== States.Checkout) {
+  while (state !== States.Checkout) {
+    // eslint-disable-next-line no-await-in-loop
     state = await monitor.run();
     console.log(`Run loop finished with state: ${state}`);
   }
 
   console.log(`Variants to Checkout:\n${JSON.stringify(context.task.product.variants, null, 2)}`);
-
 }
 
 async function testMonitorVariant() {
   let state;
-  context.task = tasks[1];
+  // get the second element
+  [, context.task] = tasks;
 
   // Keep running until we get a checkout
-  while(state !== States.Checkout) {
+  while (state !== States.Checkout) {
+    // eslint-disable-next-line no-await-in-loop
     state = await monitor.run();
     console.log(`Run loop finished with state: ${state}`);
   }
@@ -105,10 +103,12 @@ async function testMonitorVariant() {
 
 async function testMonitorUrl() {
   let state;
-  context.task = tasks[2];
+  // get the third element
+  [, , context.task] = tasks;
 
   // Keep running until we get a checkout
-  while(state !== States.Checkout) {
+  while (state !== States.Checkout) {
+    // eslint-disable-next-line no-await-in-loop
     state = await monitor.run();
     console.log(`Run loop finished with state: ${state}`);
   }
