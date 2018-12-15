@@ -1,31 +1,32 @@
+/* eslint-disable class-methods-use-this */
+const jar = require('request-promise').jar();
+const rp = require('request-promise').defaults({
+  timeout: 10000,
+  jar,
+});
 const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
 const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
-});
 
 class Parser {
   /**
    * Retrieve the full product info for a given product
-   * 
-   * This method takes a given single product url and attempts to 
-   * get the full info for the product, filling in the gaps missed 
-   * by xml or atom parsing. This method sends out two requests, 
-   * one for the `.json` file and one for the `.oembed` file. The 
+   *
+   * This method takes a given single product url and attempts to
+   * get the full info for the product, filling in the gaps missed
+   * by xml or atom parsing. This method sends out two requests,
+   * one for the `.json` file and one for the `.oembed` file. The
    * first request to complete returns the full product info. If
-   * both requests error out, a list of errors is returned. 
-   * 
-   * @param {String} productUrl 
+   * both requests error out, a list of errors is returned.
+   *
+   * @param {String} productUrl
    */
   static getFullProductInfo(productUrl, logger) {
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Parser: Getting Full Product Info...');
     _logger.log('silly', 'Parser: Requesting %s.(json|oembed) in a race', productUrl);
-    const genRequestPromise = (uri) => {
-      return rp({
+    const genRequestPromise = uri =>
+      rp({
         method: 'GET',
         uri,
         proxy: formatProxy(this._proxy) || undefined,
@@ -36,46 +37,46 @@ class Parser {
           'User-Agent': userAgent,
         },
       });
-    }
 
-    return rfrl([
-      genRequestPromise(`${productUrl}.json`).then(
-        (res) => {
-          // product.json contains the format we need -- just return it
-          return JSON.parse(res).product;
-        },
-        (error) => {
-          // Error occured, return a rejection with the status code attached
-          return Promise.reject({
-            status: error.statusCode || 404,
-            message: error.message,
-          });
-        }),
-      genRequestPromise(`${productUrl}.oembed`).then(
-        (res) => {
-          // product.oembed requires a little transformation before returning:
-          const json = JSON.parse(res);
+    return rfrl(
+      [
+        genRequestPromise(`${productUrl}.json`).then(
+          res =>
+            // product.json contains the format we need -- just return it
+            JSON.parse(res).product,
+          error => {
+            // Error occured, return a rejection with the status code attached
+            const err = new Error(error.message);
+            err.status = error.statusCode || 404;
+            throw err;
+          },
+        ),
+        genRequestPromise(`${productUrl}.oembed`).then(
+          res => {
+            // product.oembed requires a little transformation before returning:
+            const json = JSON.parse(res);
 
-          return {
-            title: json.title,
-            vendor: json.provider,
-            handle: json.product_id,
-            variants: json.offers.map(offer => ({
-              title: offer.title,
-              id: offer.offer_id,
-              price: `${offer.price}`
-            })),
-          };
-        },
-        (error) => {
-          // Error occurred, return a rejection with the status code attached
-          return Promise.reject({
-            status: error.statusCode || 404,
-            message: error.message,
-          });
-        },
-      ),
-    ], `productInfo - ${productUrl}`);
+            return {
+              title: json.title,
+              vendor: json.provider,
+              handle: json.product_id,
+              variants: json.offers.map(offer => ({
+                title: offer.title,
+                id: offer.offer_id,
+                price: `${offer.price}`,
+              })),
+            };
+          },
+          error => {
+            // Error occured, return a rejection with the status code attached
+            const err = new Error(error.message);
+            err.status = error.statusCode || 404;
+            throw err;
+          },
+        ),
+      ],
+      `productInfo - ${productUrl}`,
+    );
   }
 
   /**
@@ -107,7 +108,7 @@ class Parser {
    */
   match(products) {
     this._logger.silly('%s: starting parse...', this._name);
-    switch(this._type) {
+    switch (this._type) {
       case ParseType.Variant: {
         this._logger.silly('%s: parsing type %s detected', this._name, this._type);
         const product = matchVariant(products, this._task.product.variant, this._logger);

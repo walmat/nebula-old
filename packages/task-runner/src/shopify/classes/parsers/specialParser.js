@@ -1,8 +1,9 @@
+/* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
   timeout: 10000,
-  jar: jar,
+  jar,
 });
 const Parser = require('./parser');
 const { ParseType } = require('../utils/parse');
@@ -25,18 +26,18 @@ class SpecialParser extends Parser {
     this._logger.silly('%s: Starting run...', this._name);
 
     // If parse type is url, use the product's url, otherwise use the site url
-    let url = this._task.site.url;
+    let initialUrl = this._task.site.url;
     if (this._type === ParseType.Url) {
-      url = this._task.product.url;
+      initialUrl = this._task.product.url;
     }
 
     // Make initial request to site
     let response;
     try {
-      this._logger.silly('%s: Making request for %s ...', this._name, url);
+      this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
       response = await rp({
         method: 'GET',
-        uri: url,
+        uri: initialUrl,
         proxy: formatProxy(this._proxy) || undefined,
         json: false,
         simple: true,
@@ -46,12 +47,11 @@ class SpecialParser extends Parser {
           'User-Agent': userAgent,
         },
         transform2xxOnly: true,
-        transform: (body) => {
-          return cheerio.load(body, {
+        transform: body =>
+          cheerio.load(body, {
             normalizeWhitespace: true,
             xmlMode: true,
-          });
-        },
+          }),
       });
     } catch (error) {
       // Handle Redirect response (wait for refresh delay)
@@ -73,14 +73,17 @@ class SpecialParser extends Parser {
     // a direct link (when the parse type is url)
     let matchedProduct;
     if (this._type !== ParseType.Url) {
-      this._logger.silly('%s: Received Response, Generating Product Info Pages to visit...', this._name);
+      this._logger.silly(
+        '%s: Received Response, Generating Product Info Pages to visit...',
+        this._name,
+      );
 
       let products;
       if (this.initialPageContainsProducts) {
         // Attempt to parse the initial page for product data
         try {
           products = this.parseInitialPageForProducts(response);
-        } catch(error) {
+        } catch (error) {
           this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
@@ -99,7 +102,11 @@ class SpecialParser extends Parser {
           rethrow.status = error.statusCode || error.status || 404;
           throw rethrow;
         }
-        this._logger.silly('%s: Generated Product Pages, capturing product page info...', this._name, productsToVisit);
+        this._logger.silly(
+          '%s: Generated Product Pages, capturing product page info...',
+          this._name,
+          productsToVisit,
+        );
 
         // Visit Product Pages and Parse them for product info
         products = (await Promise.all(
@@ -108,7 +115,12 @@ class SpecialParser extends Parser {
               const $ = await this.getProductInfoPage(url);
               return this.parseProductInfoPageForProduct.call(this, $);
             } catch (err) {
-              this._logger.debug('%s: ERROR parsing product info page', this._name, err.statusCode || err.status, err.message);
+              this._logger.debug(
+                '%s: ERROR parsing product info page',
+                this._name,
+                err.statusCode || err.status,
+                err.message,
+              );
               return null;
             }
           }),
@@ -116,7 +128,11 @@ class SpecialParser extends Parser {
       }
 
       // Attempt to Match Product
-      this._logger.silly('%s: Received Product info from %d products, matching now...', this._name, products.length);
+      this._logger.silly(
+        '%s: Received Product info from %d products, matching now...',
+        this._name,
+        products.length,
+      );
       try {
         matchedProduct = super.match(products);
       } catch (error) {
@@ -141,8 +157,8 @@ class SpecialParser extends Parser {
       }
     }
 
-    if(!matchedProduct) {
-      this._logger.silly('%s: Couldn\'t find a match!', this._name);
+    if (!matchedProduct) {
+      this._logger.silly("%s: Couldn't find a match!", this._name);
       // TODO: Maybe replace with a custom error object?
       const rethrow = new Error('unable to match the product');
       rethrow.status = ErrorCodes.ProductNotFound;
@@ -155,7 +171,7 @@ class SpecialParser extends Parser {
   /**
    * Getter to signify whether or not the specific site has product info in the
    * initial site page, or if product specific pages need to be parsed.
-   * 
+   *
    * If this is set to true, then `parseInitialPageForProducts()` will get called
    * If this is set to false, then `parseInitialPageForUrls()` will get called
    */
@@ -164,38 +180,47 @@ class SpecialParser extends Parser {
   }
 
   /**
-   * Parse the given html (loaded by cheerio) for a list of 
-   * products available. This is a site dependent method, so it should be 
+   * Parse the given html (loaded by cheerio) for a list of
+   * products available. This is a site dependent method, so it should be
    * implemented by subclasses of this class
-   * 
+   *
    * This method should return a list of products that should be matched
-   * 
+   *
    * NOTE: This method is only run if `this.initialPageContainsProducts` is true
+   *
+   * @param {Cheerio Instance} $ - Instance of cheerio loaded with html content
    */
+  // eslint-disable-next-line no-unused-vars
   parseInitialPageForProducts($) {
-    throw new Error('Not Implemented! This should be implemented by subclasses!')
+    throw new Error('Not Implemented! This should be implemented by subclasses!');
   }
 
   /**
-   * Parse the given html (loaded by cheerio) for a list of 
-   * product pages to visit. This is a site dependent method, so it should be 
+   * Parse the given html (loaded by cheerio) for a list of
+   * product pages to visit. This is a site dependent method, so it should be
    * implemented by subclasses of this class
-   * 
+   *
    * This method should return a list of product urls that should be visited for more info
-   * 
+   *
    * NOTE: This method is only run if `this.initialPageContainsProducts` is true
+   *
+   * @param {Cheerio Instance} $ - Instance of cheerio loaded with html content
    */
+  // eslint-disable-next-line no-unused-vars
   parseInitialPageForUrls($) {
-    throw new Error('Not Implemented! This should be implemented by subclasses!')
+    throw new Error('Not Implemented! This should be implemented by subclasses!');
   }
 
   /**
    * Parse the given html (loaded by cheerio) as the product info page
    * for one product of interest. This is a site dependent method, so it should be
    * implemented by subclasses of this class
-   * 
+   *
    * This method should a valid product object that can be further matched
+   *
+   * @param {Cheerio Instance} $ - Instance of cheerio loaded with html content
    */
+  // eslint-disable-next-line no-unused-vars
   parseProductInfoPageForProduct($) {
     throw new Error('Not Implemented! This should be implemented by subclasses!');
   }
@@ -213,12 +238,11 @@ class SpecialParser extends Parser {
       headers: {
         'User-Agent': userAgent,
       },
-      transform: (body) => {
-        return cheerio.load(body, {
+      transform: body =>
+        cheerio.load(body, {
           normalizeWhitespace: true,
           xmlMode: true,
-        });
-      }
+        }),
     });
   }
 }

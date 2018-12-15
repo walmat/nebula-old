@@ -1,20 +1,17 @@
-const Parser = require('./parser');
-const { ParseType, convertToJson } = require('../utils/parse');
-const {
-  formatProxy,
-  userAgent,
-} = require('../utils');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
-    timeout: 10000,
-    jar: jar,
+  timeout: 10000,
+  jar,
 });
 
+const Parser = require('./parser');
+const { ParseType, convertToJson } = require('../utils/parse');
+const { formatProxy, userAgent } = require('../utils');
 
 class XmlParser extends Parser {
   /**
    * Construct a new XmlParser
-   * 
+   *
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
@@ -22,14 +19,18 @@ class XmlParser extends Parser {
     super(task, proxy, logger, 'XmlParser');
   }
 
-  async run () {
+  async run() {
     this._logger.silly('%s: starting run...', this._name);
     if (this._type !== ParseType.Keywords) {
       throw new Error('xml parsing is only supported for keyword searching');
     }
     let responseJson;
     try {
-      this._logger.silly('%s: Making request for %s/sitemap_products_1.xml ...', this._name, this._task.site.url);
+      this._logger.silly(
+        '%s: Making request for %s/sitemap_products_1.xml ...',
+        this._name,
+        this._task.site.url,
+      );
       const response = await rp({
         method: 'GET',
         uri: `${this._task.site.url}/sitemap_products_1.xml`,
@@ -38,8 +39,8 @@ class XmlParser extends Parser {
         simple: true,
         gzip: true,
         headers: {
-            'User-Agent': userAgent,
-        }
+          'User-Agent': userAgent,
+        },
       });
       responseJson = await convertToJson(response);
     } catch (error) {
@@ -49,20 +50,18 @@ class XmlParser extends Parser {
       throw rethrow;
     }
     this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
-    const responseItems = responseJson.urlset.url.filter((i => i['image:image']));
-    const products = responseItems.map((item) => {
-      return {
-        url: item.loc[0],
-        updated_at: item.lastmod[0],
-        title: item['image:image'][0]['image:title'][0],
-        handle: '-', // put an empty placeholder since we only have the title provided
-      }
-    });
+    const responseItems = responseJson.urlset.url.filter(i => i['image:image']);
+    const products = responseItems.map(item => ({
+      url: item.loc[0],
+      updated_at: item.lastmod[0],
+      title: item['image:image'][0]['image:title'][0],
+      handle: '-', // put an empty placeholder since we only have the title provided
+    }));
     this._logger.silly('%s: Translated Structure, attempting to match', this._name);
     const matchedProduct = super.match(products);
 
-    if(!matchedProduct) {
-      this._logger.silly('%s: Couldn\'t find a match!', this._name);
+    if (!matchedProduct) {
+      this._logger.silly("%s: Couldn't find a match!", this._name);
       throw new Error('unable to match the product');
     }
     this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
@@ -75,7 +74,7 @@ class XmlParser extends Parser {
         ...fullProductInfo,
       };
     } catch (errors) {
-      this._logger.silly('%s: Couldn\'t Find Variant Info', this._name, errors);
+      this._logger.silly("%s: Couldn't Find Variant Info", this._name, errors);
       throw new Error('unable to get full product info');
     }
   }
