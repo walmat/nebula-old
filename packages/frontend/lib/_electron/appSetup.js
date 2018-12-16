@@ -8,7 +8,6 @@ const IPCKeys = require('../common/constants');
 nebulaEnv.setUpEnvironment();
 
 class AppSetup {
-
   constructor(context) {
     this._context = context;
     this._store = context.authManager.Store;
@@ -44,59 +43,63 @@ class AppSetup {
 
     if (!res.ok) {
       const { error } = await res.json();
-      console.log('[ERROR] Unable to fetch latest site list version %s: ', error);
+      console.log(
+        '[ERROR] Unable to fetch latest site list version %s: ',
+        error,
+      );
       if (this._currentVersion) {
         // fallback to the current version
-        setSiteListKeys(this._currentVersion);
+        this.setSiteListKeys(this._currentVersion);
         this._store.set(this._siteListLocationKey, this._siteListLocation);
         await this.fetchSiteListFromVersion(this._currentVersion);
-        return;
       }
-      // get the version
-      const data = await res.json();
-      const { version } = JSON.parse(data);
-
-      // otherwise, get the current version and compare the two
-      if (this._currentVersion && this._currentVersion === version) {
-        // TODO - if equal, just load in the current version somehow?
-        setSiteListKeys(this._currentVersion);
-        this._store.set(this._siteListLocationKey, this._siteListLocation);
-        await this.fetchSiteListFromVersion(this._currentVersion);
-        return;
-      }
-      // otherwise, fetch the new version's list and read it in
-      await this.fetchSiteListFromVersion(version);
+      return;
     }
+    // get the version
+    const data = await res.json();
+    const { version } = JSON.parse(JSON.stringify(data));
+
+    // otherwise, get the current version and compare the two
+    if (this._currentVersion && this._currentVersion === version) {
+      // TODO - if equal, just load in the current version somehow?
+      this.setSiteListKeys(this._currentVersion);
+      this._store.set(this._siteListLocationKey, this._siteListLocation);
+      await this.fetchSiteListFromVersion(this._currentVersion);
+      return;
+    }
+    // otherwise, fetch the new version's list and read it in
+    await this.fetchSiteListFromVersion(version);
   }
 
   async fetchSiteListFromVersion(version) {
     // fetch site list from version
-    const res = await fetch(`${process.env.NEBULA_API_URL}/config/sites/${version}`);
+    const res = await fetch(
+      `${process.env.NEBULA_API_URL}/config/sites/${version}`,
+    );
 
     if (!res.ok) {
       const { error } = await res.json();
-      console.log(
-        '[ERROR] Unable to fetch version %s: %s: ',
-        version,
-        error,
-      );
+      console.log('[ERROR] Unable to fetch version %s: %s: ', version, error);
       // if we can't fetch the version, fallback to current version site data
       if (this._currentVersion && this._currentVersion !== version) {
         // recursive – if the version tried before isn't equal to the current version and we have a current version
         await this.fetchSiteListFromVersion(this._currentVersion);
-      } else {
-        // TODO – otherwise, fallback to the `sites.json` preshipped version in constants
       }
+      return;
     }
     // SUCCESSFUL response, get the site list data
     const body = await res.json();
-    const { sites } = JSON.parse(body);
+    const { sites } = JSON.parse(JSON.stringify(body));
 
     // check to see if it exists
     if (!sites) {
       const { error } = await res.json();
-      console.log('[ERROR] Unable to fetch sites for version %s: %s ', version, error);
-      setSiteListKeys(this._currentVersion);
+      console.log(
+        '[ERROR] Unable to fetch sites for version %s: %s ',
+        version,
+        error,
+      );
+      this.setSiteListKeys(this._currentVersion);
       this._store.set(this._siteListLocationKey, this._siteListLocation);
       await this.fetchSiteListFromVersion(this._currentVersion);
       return;
@@ -105,7 +108,7 @@ class AppSetup {
     this._sites = sites;
     // update the current version at this point
     this._store.set('siteListVersion', version);
-    setSiteListKeys(version);
+    this.setSiteListKeys(version);
     this._store.set(this._siteListLocationKey, this._siteListLocation);
 
     // write to the new file
@@ -115,7 +118,7 @@ class AppSetup {
   setSiteListKeys(version) {
     const appDataPath = app.getPath('appData');
     this._siteListLocationKey = `siteListLocation${version}`;
-    this._siteListLocation = `${appDataPath}/sites/sites_${version}.json`;
+    this._siteListLocation = `${appDataPath}/nebula-orion/sites_${version}.json`;
   }
 
   static readSiteListFromFile(location) {

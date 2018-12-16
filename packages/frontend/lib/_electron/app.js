@@ -49,13 +49,12 @@ class App {
      */
     this._dialogManager = new DialogManager(this);
 
-    this._appSetup = new AppSetup(this);
-
     /**
      * Manage the auth workflow
      * @type {AuthManager}
      */
     this._authManager = new AuthManager(this);
+    this._appSetup = new AppSetup(this);
 
     /**
      * Wrapper for the TaskManager

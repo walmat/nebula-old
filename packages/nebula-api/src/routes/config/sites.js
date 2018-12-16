@@ -38,7 +38,9 @@ module.exports = async function(app) {
     app.get('/config/sites/:version', authenticate, async (req, res) => {
 
         const version = req.params.version;
+        console.log(version);
         const sites = await getAllSites(version);
+        console.log(sites);
         if (sites) {
             res.status(200).json({ sites: sites });
         } else {

@@ -236,13 +236,14 @@ const _removeProxies = proxies => {
  */
 const _requestSiteData = () => {
   _sendEvent(IPCKeys.RequestSiteData);
-  ipcRenderer.once(IPC.ReceiveSiteData, (event, sites) => {
+  ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
+    console.log(sites);
     if (sites) {
       _sendEvent(IPCKeys.SendSites, sites);
     } else {
       console.error('Unable to receieve sites from API');
     }
-  })
+  });
 };
 
 // Disable eval in the preload context
