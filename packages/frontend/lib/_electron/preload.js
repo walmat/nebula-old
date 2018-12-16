@@ -232,18 +232,15 @@ const _removeProxies = proxies => {
 
 /**
  * Sends site data to the appSetup.js
- * from main -> appSetup.js
  */
 const _requestSiteData = () => {
   _sendEvent(IPCKeys.RequestSiteData);
-  ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => 
-    new Promise((resolve, reject) => {
+  ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
       if (sites) {
-        resolve(sites);
+        return sites;
       }
-      reject(new Error('Unable to receive site data'));
-    })
-  );
+      return null;
+  });
 };
 
 // Disable eval in the preload context

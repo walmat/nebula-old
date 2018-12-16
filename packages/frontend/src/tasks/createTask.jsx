@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import Select from 'react-select';
+import AsyncSelect from 'react-select/lib/Async';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
 import * as getAllSizes from '../constants/getAllSizes';
-import fetchSites from '../constants/getAllSites';
+import fetchSites, { buildSitesOptions } from '../constants/getAllSites';
 
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -13,6 +14,7 @@ import tDefns from '../utils/definitions/taskDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
+import sites from '../constants/sites.json';
 
 export class CreateTaskPrimitive extends Component {
   constructor(props) {
@@ -130,7 +132,7 @@ export class CreateTaskPrimitive extends Component {
               </div>
               <div className="col col--no-gutter tasks-create__input-group--site">
                 <p className="tasks-create__label">Site</p>
-                <Select
+                <AsyncSelect
                   required
                   className="tasks-create__input tasks-create__input--field"
                   placeholder="Choose Site"
@@ -140,7 +142,8 @@ export class CreateTaskPrimitive extends Component {
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
-                  options={fetchSites()}
+                  defaultOptions={buildSitesOptions(sites)}
+                  loadOptions={fetchSites()}
                   data-testid={addTestId('CreateTask.siteSelect')}
                 />
               </div>

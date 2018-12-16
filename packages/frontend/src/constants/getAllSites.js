@@ -9,7 +9,6 @@ export function getAllSupportedSitesSorted(s) {
 }
 
 export function buildSitesOptions(s) {
-  console.log(s);
   return getAllSupportedSitesSorted(s).map(({ name, url, ...metadata }) => ({
     ...metadata,
     label: name,
