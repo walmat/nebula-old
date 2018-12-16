@@ -1,7 +1,8 @@
-const nebulaEnv = require('./env');
+const { app } = require('electron');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
+const nebulaEnv = require('./env');
 
 nebulaEnv.setUpEnvironment();
 
@@ -69,25 +70,20 @@ class AppSetup {
 
     // update the current version at this point
     this._store.set('siteListVersion', version);
+    const appDataPath = app.getPath('appData');
+
+    const siteListLocationKey = `siteListLocation${version}`;
+    const siteListLocation = `${appDataPath}/sites/sites_${version}.json`;
 
     // store the new versions path to the file
-    this._store.set(
-      `siteListLocation${version}`,
-      `../common/sites/sites_${version}.json`,
-    );
+    this._store.set(siteListLocationKey, siteListLocation);
 
-    // write the new file
-    AppSetup.writeSiteListToFile(
-      sites,
-      this._store.get(`siteListLocation${version}`),
-    );
+    // write to the new file
+    AppSetup.writeSiteListToFile(siteListLocation, sites);
   }
 
-  static writeSiteListToFile(sites, location) {
-    fs.writeFileSync(
-      path.join(__dirname, location),
-      JSON.stringify(sites, null, 2),
-    );
+  static writeSiteListToFile(location, sites) {
+    fs.writeFileSync(location, JSON.stringify(sites));
   }
 }
 
