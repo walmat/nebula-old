@@ -198,6 +198,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.ERROR: {
+      // TODO: Handle error
       console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
       break;
     }

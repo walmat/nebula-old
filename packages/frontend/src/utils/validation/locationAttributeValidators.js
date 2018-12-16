@@ -8,7 +8,7 @@ function validateAddress(address) {
   return address && address !== '';
 }
 
-function validateApt(apt) {
+function validateApt() {
   // no validation needed
   return true;
 }

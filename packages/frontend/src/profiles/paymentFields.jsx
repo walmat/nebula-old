@@ -12,18 +12,19 @@ import './profiles.css';
 
 export class PaymentFieldsPrimitive extends Component {
   createOnChangeHandler(field) {
+    const { onChange } = this.props;
     if (field === PAYMENT_FIELDS.CARD_NUMBER) {
       return event => {
-        this.props.onChange({ field, value: event.target.value.replace(/\s/g, '') });
+        onChange({ field, value: event.target.value.replace(/\s/g, '') });
       };
     }
     return event => {
-      this.props.onChange({ field, value: event.target.value });
+      onChange({ field, value: event.target.value });
     };
   }
 
   render() {
-    const { errors } = this.props;
+    const { errors, value } = this.props;
     return (
       <div className="flex-col">
         <p className="body-text" id="payment-label">
@@ -34,7 +35,7 @@ export class PaymentFieldsPrimitive extends Component {
           id="email"
           placeholder="Email Address"
           onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)}
-          value={this.props.value.email}
+          value={value.email}
           style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])}
         />
         <NumberFormat
@@ -42,7 +43,7 @@ export class PaymentFieldsPrimitive extends Component {
           placeholder="XXXX XXXX XXXX XXXX"
           id="card-number"
           onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)}
-          value={this.props.value.cardNumber}
+          value={value.cardNumber}
           style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])}
         />
         <NumberFormat
@@ -50,7 +51,7 @@ export class PaymentFieldsPrimitive extends Component {
           id="expiration"
           placeholder="MM/YY"
           onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)}
-          value={this.props.value.exp}
+          value={value.exp}
           style={validationStatus(errors[PAYMENT_FIELDS.EXP])}
           mask={['M', 'M', 'Y', 'Y']}
         />
@@ -59,7 +60,7 @@ export class PaymentFieldsPrimitive extends Component {
           id="cvv"
           placeholder="CVV"
           onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)}
-          value={this.props.value.cvv}
+          value={value.cvv}
           style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
         />
         <img src={info} alt="payment info" id="payment-info-btn" />

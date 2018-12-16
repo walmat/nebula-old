@@ -66,9 +66,6 @@ describe('settings attribute validatation middleware', () => {
         field: SETTINGS_FIELDS.EDIT_PROXIES,
         value: ['123.123.123.123:8080', '123.123.123.123:8080:user:pass'],
       };
-      const expectedAction = {
-        ...action,
-      };
       invoke(action);
       expect(next).toHaveBeenCalledWith(action);
       expect(store.getState).toHaveBeenCalled();

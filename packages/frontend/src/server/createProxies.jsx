@@ -11,18 +11,26 @@ import { buildStyle } from '../utils/styles';
 
 export class CreateProxiesPrimitive extends Component {
   createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event.target.value);
+    const { onEditServerInfo } = this.props;
+    return event => onEditServerInfo(field, event.target.value);
   }
 
   createProxyLocationChangeHandle(field) {
+    const { onEditServerInfo } = this.props;
     return event => {
-      this.props.onEditServerInfo(field, event);
+      onEditServerInfo(field, event);
     };
   }
 
   render() {
-    const { serverInfo, serverListOptions, onKeyPress, errors } = this.props;
-    const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
+    const {
+      serverInfo,
+      serverListOptions,
+      onKeyPress,
+      onDestroyProxies,
+      onGenerateProxies,
+    } = this.props;
+    const loggedInAws = serverInfo.credentials.accessToken != null;
     return (
       <div className="proxy-options col col--start col--no-gutter">
         <div className="row row--start row--gutter">
@@ -106,8 +114,12 @@ export class CreateProxiesPrimitive extends Component {
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={this.props.onKeyPress}
-              onClick={() => loggedInAws && this.props.onDestroyProxies()}
+              onKeyPress={onKeyPress}
+              onClick={() => {
+                if (loggedInAws) {
+                  onDestroyProxies();
+                }
+              }}
               data-testid={addTestId('CreateProxies.destroyProxiesButton')}
             >
               Destroy All
@@ -122,7 +134,11 @@ export class CreateProxiesPrimitive extends Component {
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={onKeyPress}
-              onClick={() => loggedInAws && this.props.onGenerateProxies(serverInfo.proxyOptions)}
+              onClick={() => {
+                if (loggedInAws) {
+                  onGenerateProxies(serverInfo.proxyOptions);
+                }
+              }}
               data-testid={addTestId('CreateProxies.generateProxiesButton')}
             >
               Generate

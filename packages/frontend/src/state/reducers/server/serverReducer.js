@@ -10,7 +10,7 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
   if (action.type === SERVER_ACTIONS.EDIT) {
     // Choose what to change based on the field
     switch (action.field) {
-      case SERVER_FIELDS.EDIT_SERVER_TYPE:
+      case SERVER_FIELDS.EDIT_SERVER_TYPE: {
         const { type, size } = state[mapServerFieldToKey[action.field]];
         change = {
           type: action.value,
@@ -18,7 +18,8 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
           size: type && type.id === action.value.id ? size : null,
         };
         break;
-      case SERVER_FIELDS.EDIT_PROXY_NUMBER:
+      }
+      case SERVER_FIELDS.EDIT_PROXY_NUMBER: {
         const intValue = action.value === '' ? 0 : parseInt(action.value, 10);
         change = {
           numProxies: Number.isNaN(intValue)
@@ -26,11 +27,13 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
             : intValue,
         };
         break;
-      default:
+      }
+      default: {
         change = {
           [subMapToKey[action.field]]: action.value,
         };
         break;
+      }
     }
 
     // Update the correct errors map
@@ -81,13 +84,14 @@ export function serverListReducer(state = initialServerStates.serverList, action
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
-    case SERVER_ACTIONS.CONNECT:
+    case SERVER_ACTIONS.CONNECT: {
       const server = nextState.find(s => s.id === action.id);
       if (server) {
         server.status = 'Connected';
       }
       break;
-    case SERVER_ACTIONS.CREATE:
+    }
+    case SERVER_ACTIONS.CREATE: {
       // perform a deep copy of given profile
       const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
       const newServer = {
@@ -100,16 +104,20 @@ export function serverListReducer(state = initialServerStates.serverList, action
       };
       nextState.push(newServer);
       break;
-    case SERVER_ACTIONS.DESTROY:
+    }
+    case SERVER_ACTIONS.DESTROY: {
       nextState = nextState.filter(
         s => s.id !== action.serverPath.TerminatingInstances[0].InstanceId,
       );
       break;
-    case SERVER_ACTIONS.DESTROY_ALL:
+    }
+    case SERVER_ACTIONS.DESTROY_ALL: {
       nextState = [];
       break;
-    default:
+    }
+    default: {
       break;
+    }
   }
   return nextState;
 }

@@ -17,25 +17,28 @@ export class AWSCredentialsPrimitive extends Component {
     e.preventDefault();
     const message =
       'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
+    const { onLogoutAws, serverInfo } = this.props;
     window.Bridge.confirmDialog(message).then(logout => {
       if (logout) {
-        this.props.onLogoutAws(this.props.serverInfo.coreServer.path);
+        onLogoutAws(serverInfo.coreServer.path);
       }
     });
   }
 
   createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event.target.value);
+    const { onEditServerInfo } = this.props;
+    return event => onEditServerInfo(field, event.target.value);
   }
 
   validateAws(e) {
     e.preventDefault();
-    this.props.onValidateAws(this.props.serverInfo.credentials);
+    const { onValidateAws, serverInfo } = this.props;
+    onValidateAws(serverInfo.credentials);
   }
 
   render() {
-    const { serverInfo, errors } = this.props;
-    const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
+    const { serverInfo, errors, onKeyPress } = this.props;
+    const loggedInAws = serverInfo.credentials.accessToken != null;
     return (
       <div className="server-credentials col col--start col--no-gutter">
         <div className="row row--start row--gutter">
@@ -86,7 +89,7 @@ export class AWSCredentialsPrimitive extends Component {
               type="button"
               className="server-credentials__submit"
               tabIndex={0}
-              onKeyPress={this.props.onKeyPress}
+              onKeyPress={onKeyPress}
               onClick={loggedInAws ? this.logoutAws : this.validateAws}
               data-testid={addTestId('AWSCredentials.submitButton')}
             >
@@ -105,6 +108,7 @@ AWSCredentialsPrimitive.propTypes = {
   onValidateAws: PropTypes.func.isRequired,
   onLogoutAws: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
+  errors: PropTypes.objectOf(PropTypes.any),
 };
 
 AWSCredentialsPrimitive.defaultProps = {

@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "cross-env GENERATE_SOURCEMAP=false react-app-rewired build",
-    "ci": "CI=true npm run test",
+    "ci": "cross-env CI=true npm run test",
     "coverage": "npm run test -- --coverage",
     "dev-server": "cross-env HTTPS=true react-app-rewired start",
     "dev": "cross-env NODE_ENV=development electron .",

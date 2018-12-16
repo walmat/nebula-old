@@ -89,7 +89,7 @@ describe('<ProxyList />', () => {
       errors: [1],
     };
     const expectedInnerHtml =
-      '<div>test</div><div>testinvalid</div>' + '<div>testvalid</div><div>divtestsanitize</div>';
+      '<div>test</div><div>testinvalid</div><div>testvalid</div><div>divtestsanitize</div>';
     const wrapper = renderShallowWithProps(customProps);
     wrapper.setState({
       editing: true,
@@ -172,7 +172,7 @@ describe('<ProxyList />', () => {
   });
 
   describe('should handle paste', () => {
-    const performComponentSetup = ev => {
+    const performComponentSetup = () => {
       const wrapper = renderMountWithProps();
       const domNodeRef = wrapper.instance().domNode;
       expect(wrapper.state('reduxUpdate')).toBeFalsy();

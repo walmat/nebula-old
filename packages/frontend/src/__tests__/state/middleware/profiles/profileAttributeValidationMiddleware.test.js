@@ -146,7 +146,7 @@ describe('profile attribute validation middleware', () => {
     describe('sub field is not given', () => testNoopSubfield(undefined));
   });
 
-  const performErrorInjectionTest = ({ id, action, expectedAction }) => {
+  const performErrorInjectionTest = ({ action, expectedAction }) => {
     const { store, next, invoke } = create();
     store.getState = jest.fn(() => ({
       currentProfile: {

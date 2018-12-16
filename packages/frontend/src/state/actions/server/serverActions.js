@@ -158,8 +158,9 @@ const _destroyAllServerRequest = async (servers, awsCredentials) =>
       });
   });
 
-const _generateProxiesRequest = async (serverOptions, awsCredentials) =>
-  new Promise((resolve, reject) => {
+// TODO: Use awsCredentials in this method to check authorization if needed
+const _generateProxiesRequest = async serverOptions =>
+  new Promise(resolve => {
     // todo - finish this implementation
     resolve(serverOptions);
   });

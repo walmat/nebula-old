@@ -32,8 +32,9 @@ export class ProxyListPrimitive extends Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
+    const { reduxUpdate, editing } = this.state;
     // If we are re-rendering due to the proxy action being invoked, update the state and re-render
-    if (this.state.reduxUpdate && !nextState.reduxUpdate) {
+    if (reduxUpdate && !nextState.reduxUpdate) {
       this.setState({
         proxies: nextProps.proxies,
       });
@@ -41,13 +42,15 @@ export class ProxyListPrimitive extends Component {
     }
 
     // re-render only if we are not editing or are changing are editing state
-    return !(this.state.editing && nextState.editing);
+    return !(editing && nextState.editing);
   }
 
-  blur(e) {
+  blur() {
+    const { onUpdateProxies } = this.props;
+    const { reduxUpdate, proxies } = this.state;
     // Check if we need to call a redux update
-    if (this.state.reduxUpdate) {
-      this.props.onUpdateProxies(this.state.proxies.map(proxy => proxy.trim()));
+    if (reduxUpdate) {
+      onUpdateProxies(proxies.map(proxy => proxy.trim()));
     }
     // Force an editing transition to color invalid proxies
     this.setState({
@@ -56,7 +59,7 @@ export class ProxyListPrimitive extends Component {
     });
   }
 
-  focus(e) {
+  focus() {
     // Force an editing transition to not color invalid proxies
     this.setState({
       editing: true,
@@ -83,7 +86,7 @@ export class ProxyListPrimitive extends Component {
     this.handleUpdate(null);
   }
 
-  handleUpdate(e) {
+  handleUpdate() {
     // If we don't have the dom node, there's nothing to do here.
     if (!this.domNode.current) return;
 
@@ -104,24 +107,24 @@ export class ProxyListPrimitive extends Component {
   }
 
   renderProxies() {
+    const { errors } = this.props;
+    const { editing, proxies } = this.state;
     // If we don't have any proxies, return an empty list
-    if (this.state.proxies.length === 0) {
+    if (proxies.length === 0) {
       return '<div><br /></div>';
     }
 
     // If we are in editing mode, don't apply any styling
-    if (this.state.editing) {
-      return this.state.proxies
-        .map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`)
-        .join('');
+    if (editing) {
+      return proxies.map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`).join('');
     }
     // Return proxies, styled in red if that proxy is invalid
-    return this.state.proxies
+    return proxies
       .map(
         (proxy, idx) =>
-          `<div${
-            this.props.errors.includes(idx) ? ' class="invalidProxy"' : ''
-          }>${ProxyListPrimitive.sanitize(proxy)}</div>`,
+          `<div${errors.includes(idx) ? ' class="invalidProxy"' : ''}>${ProxyListPrimitive.sanitize(
+            proxy,
+          )}</div>`,
       )
       .join('');
   }

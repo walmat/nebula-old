@@ -9,7 +9,6 @@ import conn from '../_assets/connect.svg';
 
 import defns from '../utils/definitions/serverDefinitions';
 import { serverActions } from '../state/actions/server/serverActions';
-import './server';
 import addTestId from '../utils/addTestId';
 
 export class ServerRowPrimitive extends Component {
@@ -22,12 +21,13 @@ export class ServerRowPrimitive extends Component {
   }
 
   renderTableRowButton(tag, desc, src, className, onClick) {
+    const { onKeyPress } = this.props;
     return (
       <div
         role="button"
         tabIndex={0}
         title={desc}
-        onKeyPress={this.props.onKeyPress}
+        onKeyPress={onKeyPress}
         onClick={onClick}
         data-testid={addTestId(`ServerRow.tableRowButton.${tag}`)}
       >

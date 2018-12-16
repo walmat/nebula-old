@@ -3,7 +3,6 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 import { ViewLogPrimitive, mapStateToProps } from '../../server/viewLog';
-import { initialServerStates } from '../../utils/definitions/serverDefinitions';
 import ServerRow from '../../server/serverRow';
 
 describe('<ViewLog />', () => {

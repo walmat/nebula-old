@@ -8,27 +8,28 @@ function validateProduct(product) {
     return false;
   }
 
+  let rawProduct = product;
   if (typeof product === 'object') {
-    product = product.raw;
+    rawProduct = product.raw;
   }
-
-  const kws = product.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
-  const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
-  const validKeywords = _.every(testKeywords, isValid => isValid === true);
 
   // TEMPORARY! - for testing with the mock server:
   // const localhostUrlRegex = /https?:\/\/localhost:\d{2,5}/;
-  // if (localhostUrlRegex.test(product)) {
+  // if (localhostUrlRegex.test(rawProduct)) {
   //   return true;
   // }
   // END TEMPORARY
 
-  if (regexes.urlRegex.test(product)) {
+  if (regexes.urlRegex.test(rawProduct)) {
     return true;
   }
-  if (regexes.variantRegex.test(product)) {
+  if (regexes.variantRegex.test(rawProduct)) {
     return true;
   }
+
+  const kws = rawProduct.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
+  const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
+  const validKeywords = _.every(testKeywords, isValid => isValid === true);
   if (validKeywords) {
     return true;
   }

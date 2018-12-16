@@ -80,6 +80,7 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       break;
     }
     case PROFILE_ACTIONS.ERROR: {
+      // TODO: Handle Error
       console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
       break;
     }
