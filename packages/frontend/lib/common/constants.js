@@ -1,4 +1,3 @@
-
 /**
  * IPC keys.
  * @type {Object}
@@ -32,6 +31,10 @@ const IPCKeys = {
   RequestCloseWindow: 'RequestCloseWindow',
   RequestEndSession: 'RequestEndSession',
   RequestGetAppVersion: 'RequestGetAppVersion',
+
+  RequestSiteData: 'RequestSiteData',
+  ReceiveSiteData: 'ReceiveSiteData',
+  SendSites: 'SendSites',
 
   StartHarvestCaptcha: 'StartHarvestCaptcha',
   StopHarvestCaptcha: 'StopHarvestCaptcha',

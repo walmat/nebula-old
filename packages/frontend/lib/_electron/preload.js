@@ -230,6 +230,29 @@ const _removeProxies = proxies => {
   _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
 };
 
+/**
+ * Sends site data to the appSetup.js
+ * from main -> appSetup.js
+ */
+const _requestSiteData = () => {
+  _sendEvent(IPCKeys.RequestSiteData);
+};
+
+/**
+ * Sends task(s) that should be removed to taskManagerWrapper.js
+ */
+const _receiveSiteData = async () => {
+  _sendEvent(IPCKeys.ReceiveSiteData);
+  ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
+    // Check and make sure we have a key to deregister from
+    if (sites) {
+      _sendEvent(IPCKeys.SendSites, sites);
+    } else {
+      console.error('Unable to Deregister from Task Events!');
+    }
+  });
+};
+
 // Disable eval in the preload context
 // eslint-disable-next-line
 window.eval = global.eval = function() {
