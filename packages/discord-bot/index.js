@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const dotenv = require('dotenv');
 
 const { bind, deactivate, purge } = require('./auth');
+// eslint-disable-next-line import/no-unresolved
 const { token } = require('./config.json');
 
 const client = new Discord.Client();
