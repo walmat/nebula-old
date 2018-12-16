@@ -1,4 +1,5 @@
-import SpecialParser from './specialParser';
+const SpecialParser = require('./specialParser');
+const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
 
 class YeezyParser extends SpecialParser {
   constructor(task, proxy, logger) {
@@ -13,13 +14,25 @@ class YeezyParser extends SpecialParser {
   parseInitialPageForProducts($) {
     // Look for all `.js-product-json`'s
     const products = [];
-    $('script.js-product-json').each((idx, el) => {
+    const scriptTags = $('script.js-product-json');
+
+    const validateArray = arr => {
+      if (arr.length === 0) {
+        // If no products are found, throw an error, but specify a special status to stop the task
+        // TODO: Maybe replace with a custom error object?
+        const error = new Error('No Items Found');
+        error.status = ErrorCodes.ProductNotFound;
+        throw error;
+      }
+    };
+
+    const parseTag = el => {
       if (el.attr('type') !== 'application/json') {
         return;
       }
 
-      const html = el.html();
       try {
+        const html = el.html();
         const product = JSON.parse(html);
         products.push(product);
       } catch (err) {
@@ -28,8 +41,20 @@ class YeezyParser extends SpecialParser {
           this._name,
         );
       }
-    });
+    };
 
+    validateArray(scriptTags);
+    if (scriptTags.length === 1) {
+      // scriptTags is the only element, parse it
+      parseTag(scriptTags);
+    } else {
+      // scriptTags has multiple elements, parse each one
+      scriptTags.each((_, el) => {
+        parseTag($(el));
+      });
+    }
+
+    validateArray(products);
     this._logger.silly(
       '%s: Found %d potential products, validating...',
       this._name,
@@ -40,6 +65,7 @@ class YeezyParser extends SpecialParser {
       ({ id, title, handle, variants }) => id && variants && (title || handle),
     );
 
+    validateArray(validatedProducts);
     this._logger.silly('%s: Found %d products!', this._name, validatedProducts.length);
 
     return validatedProducts;
