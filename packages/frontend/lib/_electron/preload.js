@@ -236,21 +236,13 @@ const _removeProxies = proxies => {
  */
 const _requestSiteData = () => {
   _sendEvent(IPCKeys.RequestSiteData);
-};
-
-/**
- * Sends task(s) that should be removed to taskManagerWrapper.js
- */
-const _receiveSiteData = async () => {
-  _sendEvent(IPCKeys.ReceiveSiteData);
-  ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
-    // Check and make sure we have a key to deregister from
+  ipcRenderer.once(IPC.ReceiveSiteData, (event, sites) => {
     if (sites) {
       _sendEvent(IPCKeys.SendSites, sites);
     } else {
-      console.error('Unable to Deregister from Task Events!');
+      console.error('Unable to receieve sites from API');
     }
-  });
+  })
 };
 
 // Disable eval in the preload context
@@ -292,6 +284,8 @@ process.once('loaded', () => {
   window.Bridge.stopTasks = _stopTasks;
   window.Bridge.addProxies = _addProxies;
   window.Bridge.removeProxies = _removeProxies;
+
+  window.Bridge.requestSiteData = _requestSiteData;
 
   if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (...params) => {

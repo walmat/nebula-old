@@ -8,9 +8,11 @@ const IPCKeys = require('../common/constants');
 nebulaEnv.setUpEnvironment();
 
 class AppSetup {
+
   constructor(context) {
     this._context = context;
     this._store = context.authManager.Store;
+    this._currentVersion = null;
     this._sites = null;
     this._siteListLocationKey = null;
     this._siteListLocation = null;
@@ -18,8 +20,8 @@ class AppSetup {
     context.ipc.on(IPCKeys.RequestSiteData, this._onRequestSiteData.bind(this));
   }
 
-  async fetchSiteList() {
-    // dev overrides
+  async run() {
+    // TODO - dev overrides
     if (process.env.NEBULA_ENV_SITE_CONFIG) {
       switch (process.env.NEBULA_ENV_SITE_CONFIG) {
         case 'bypass': {
@@ -35,63 +37,89 @@ class AppSetup {
     }
 
     // get the current version of the user's sitelist
-    const currentVersion = this._store.get('siteListVersion');
+    this._currentVersion = this._store.get('siteListVersion');
+
     // get the latest version of the sitelist
     let res = await fetch(`${process.env.NEBULA_API_URL}/config/sites/latest`);
-    if (!res.ok) {
-      // TODO - can't fetch latest site, fall back to their current version
-      // if current version, ship out current version site data
-      // if no current version, fallback to sites.json
-      const { error } = await res.json();
-      console.log('[ERROR] Unable to fetch version %s: ', error);
-      return;
-    }
-    // get the version
-    const data = await res.json();
-    const { version } = JSON.parse(data);
 
-    // otherwise, get the current version and compare the two
-    if (currentVersion && currentVersion === version) {
-      // TODO - if equal, load in the current content
-      return;
-    }
-    // TODO - otherwise, fetch the new list and read it in
-    res = await fetch(`${process.env.NEBULA_API_URL}/config/sites/${version}`);
     if (!res.ok) {
-      // TODO - if unable to fetch new list, fallback to users current version
+      const { error } = await res.json();
+      console.log('[ERROR] Unable to fetch latest site list version %s: ', error);
+      if (this._currentVersion) {
+        // fallback to the current version
+        setSiteListKeys(this._currentVersion);
+        this._store.set(this._siteListLocationKey, this._siteListLocation);
+        await this.fetchSiteListFromVersion(this._currentVersion);
+        return;
+      }
+      // get the version
+      const data = await res.json();
+      const { version } = JSON.parse(data);
+
+      // otherwise, get the current version and compare the two
+      if (this._currentVersion && this._currentVersion === version) {
+        // TODO - if equal, just load in the current version somehow?
+        setSiteListKeys(this._currentVersion);
+        this._store.set(this._siteListLocationKey, this._siteListLocation);
+        await this.fetchSiteListFromVersion(this._currentVersion);
+        return;
+      }
+      // otherwise, fetch the new version's list and read it in
+      await this.fetchSiteListFromVersion(version);
+    }
+  }
+
+  async fetchSiteListFromVersion(version) {
+    // fetch site list from version
+    const res = await fetch(`${process.env.NEBULA_API_URL}/config/sites/${version}`);
+
+    if (!res.ok) {
       const { error } = await res.json();
       console.log(
-        '[ERROR] Unable to fetch newest version %s: %s: ',
+        '[ERROR] Unable to fetch version %s: %s: ',
         version,
         error,
       );
-      return;
+      // if we can't fetch the version, fallback to current version site data
+      if (this._currentVersion && this._currentVersion !== version) {
+        // recursive – if the version tried before isn't equal to the current version and we have a current version
+        await this.fetchSiteListFromVersion(this._currentVersion);
+      } else {
+        // TODO – otherwise, fallback to the `sites.json` preshipped version in constants
+      }
     }
-    // get the site list data
+    // SUCCESSFUL response, get the site list data
     const body = await res.json();
     const { sites } = JSON.parse(body);
 
     // check to see if it exists
     if (!sites) {
-      // TODO - if no site data, fall back to users current version
       const { error } = await res.json();
-      console.log('[ERROR] Unable to fetch sites: ', error);
+      console.log('[ERROR] Unable to fetch sites for version %s: %s ', version, error);
+      setSiteListKeys(this._currentVersion);
+      this._store.set(this._siteListLocationKey, this._siteListLocation);
+      await this.fetchSiteListFromVersion(this._currentVersion);
       return;
     }
-    // TODO - otherwise, ship new version
+    // update the sites
     this._sites = sites;
     // update the current version at this point
     this._store.set('siteListVersion', version);
-    const appDataPath = app.getPath('appData');
-
-    this._siteListLocationKey = `siteListLocation${version}`;
-    this._siteListLocation = `${appDataPath}/sites/sites_${version}.json`;
-
-    // store the new versions path to the file
+    setSiteListKeys(version);
     this._store.set(this._siteListLocationKey, this._siteListLocation);
 
     // write to the new file
     AppSetup.writeSiteListToFile(this._siteListLocation, sites);
+  }
+
+  setSiteListKeys(version) {
+    const appDataPath = app.getPath('appData');
+    this._siteListLocationKey = `siteListLocation${version}`;
+    this._siteListLocation = `${appDataPath}/sites/sites_${version}.json`;
+  }
+
+  static readSiteListFromFile(location) {
+    return fs.readFileSync(location);
   }
 
   static writeSiteListToFile(location, sites) {
@@ -99,7 +127,7 @@ class AppSetup {
   }
 
   async _onRequestSiteData(ev) {
-    ev.sender.send(this._sites);
+    ev.sender.send(IPCKeys.ReceiveSiteData, this._sites);
   }
 }
 

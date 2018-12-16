@@ -183,7 +183,7 @@ class AuthManager {
       }
     } else {
       // setup app – only pulls in site list for now
-      await this._context.appSetup.fetchSiteList();
+      await this._context.appSetup.run();
 
       // TODO - write proper check for updates functionality
       // nebulaCheckUpdates.checkForUpdates(win);
