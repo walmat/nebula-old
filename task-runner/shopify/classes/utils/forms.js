@@ -76,9 +76,9 @@ function buildPaymentForm(paymentToken, shippingMethod, captchaToken) {
         'checkout[client_details][browser_width]': '979',
         'checkout[client_details][browser_height]': '631',
         'checkout[client_details][javascript_enabled]': '1',
+        'checkout[buyer_accepts_marketing]': '0',
         'checkout[shipping_rate][id]': shippingMethod,
         button: '',
-        "g-captcha-response": captchaToken,
     };
 }
 module.exports.buildPaymentForm = buildPaymentForm;
