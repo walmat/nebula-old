@@ -2,19 +2,25 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { LocationFieldsPrimitive, mapStateToProps, mapDispatchToProps } from '../../profiles/locationFields';
+import {
+  LocationFieldsPrimitive,
+  mapStateToProps,
+  mapDispatchToProps,
+} from '../../profiles/locationFields';
 import { PROFILE_FIELDS, LOCATION_FIELDS, profileActions } from '../../state/actions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
 
 describe('<LocationFields />', () => {
   it('should render with required props', () => {
-    const wrapper = shallow(<LocationFieldsPrimitive
-      errors={{ ...initialProfileStates.locationErrors }}
-      onChange={() => {}}
-      disabled={false}
-      id="test"
-      value={{ ...initialProfileStates.location }}
-    />);
+    const wrapper = shallow(
+      <LocationFieldsPrimitive
+        errors={{ ...initialProfileStates.locationErrors }}
+        onChange={() => {}}
+        disabled={false}
+        id="test"
+        value={{ ...initialProfileStates.location }}
+      />,
+    );
     expect(wrapper.find('#test-first-name')).toHaveLength(1);
     expect(wrapper.find('#test-last-name')).toHaveLength(1);
     expect(wrapper.find('#test-address-one')).toHaveLength(1);
@@ -36,13 +42,15 @@ describe('<LocationFields />', () => {
   });
 
   it('should render with disabled styling', () => {
-    const wrapper = shallow(<LocationFieldsPrimitive
-      errors={{ ...initialProfileStates.locationErrors }}
-      onChange={() => {}}
-      disabled
-      id="test"
-      value={{ ...initialProfileStates.location }}
-    />);
+    const wrapper = shallow(
+      <LocationFieldsPrimitive
+        errors={{ ...initialProfileStates.locationErrors }}
+        onChange={() => {}}
+        disabled
+        id="test"
+        value={{ ...initialProfileStates.location }}
+      />,
+    );
     expect(wrapper.find('#test-first-name').prop('disabled')).toBeTruthy();
     expect(wrapper.find('#test-last-name').prop('disabled')).toBeTruthy();
     expect(wrapper.find('#test-address-one').prop('disabled')).toBeTruthy();
@@ -60,13 +68,15 @@ describe('<LocationFields />', () => {
         ...initialProfileStates.location,
         [field]: value1,
       };
-      const wrapper = shallow(<LocationFieldsPrimitive
-        id="test"
-        value={input}
-        onChange={() => {}}
-        errors={input.errors}
-        disabled={disabled}
-      />);
+      const wrapper = shallow(
+        <LocationFieldsPrimitive
+          id="test"
+          value={input}
+          onChange={() => {}}
+          errors={input.errors}
+          disabled={disabled}
+        />,
+      );
       let inputField = wrapper.find(`#test-${id}`);
       expect(inputField.prop('value')).toEqual(value1);
       input[field] = value2;
@@ -110,7 +120,8 @@ describe('<LocationFields />', () => {
 
     describe('state', () => {
       testField(
-        'state', 'state',
+        'state',
+        'state',
         { value: 'testState1', label: 'testStateLabel1' },
         { value: 'testState2', label: 'testStateLabel2' },
       );
@@ -122,7 +133,8 @@ describe('<LocationFields />', () => {
 
     describe('country', () => {
       testField(
-        'country', 'country',
+        'country',
+        'country',
         { value: 'testCountry1', label: 'testCountryLabel1' },
         { value: 'testCountry2', label: 'testCountryLabel2' },
       );
@@ -137,13 +149,15 @@ describe('<LocationFields />', () => {
     const testOnChange = (id, event, expectedCall) => {
       const input = { ...initialProfileStates.location };
       const onChangeHandler = jest.fn();
-      const wrapper = shallow(<LocationFieldsPrimitive
-        id="test"
-        value={input}
-        onChange={onChangeHandler}
-        errors={input.errors}
-        disabled={false}
-      />);
+      const wrapper = shallow(
+        <LocationFieldsPrimitive
+          id="test"
+          value={input}
+          onChange={onChangeHandler}
+          errors={input.errors}
+          disabled={false}
+        />,
+      );
       const inputField = wrapper.find(`#test-${id}`);
       inputField.simulate('change', event);
       expect(onChangeHandler).toHaveBeenCalledWith(expectedCall);
@@ -191,11 +205,7 @@ describe('<LocationFields />', () => {
 
     test('state', () => {
       const event = { value: 'testState', label: 'testStateLabel' };
-      testOnChange(
-        'state',
-        event,
-        { field: LOCATION_FIELDS.STATE, value: event },
-      );
+      testOnChange('state', event, { field: LOCATION_FIELDS.STATE, value: event });
     });
 
     test('zip code', () => {
@@ -208,11 +218,7 @@ describe('<LocationFields />', () => {
 
     test('country', () => {
       const event = { value: 'testCountry', label: 'testCountryLabel' };
-      testOnChange(
-        'country',
-        event,
-        { field: LOCATION_FIELDS.COUNTRY, value: event },
-      );
+      testOnChange('country', event, { field: LOCATION_FIELDS.COUNTRY, value: event });
     });
 
     test('phone number', () => {
@@ -271,8 +277,12 @@ describe('<LocationFields />', () => {
       field: LOCATION_FIELDS.FIRST_NAME,
       value: 'test',
     };
-    const expectedAction =
-      profileActions.edit(profile.id, PROFILE_FIELDS.EDIT_BILLING, changes.value, changes.field);
+    const expectedAction = profileActions.edit(
+      profile.id,
+      PROFILE_FIELDS.EDIT_BILLING,
+      changes.value,
+      changes.field,
+    );
     const dispatch = jest.fn();
     const actual = mapDispatchToProps(dispatch, ownProps);
     expect(actual.onChange).toBeDefined();

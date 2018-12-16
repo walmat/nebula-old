@@ -1,5 +1,5 @@
 /* global describe it expect beforeEach */
-import { globalActions, GLOBAL_ACTIONS } from '../../state/actions';
+import { globalActions } from '../../state/actions';
 import topLevelReducer, { initialState } from '../../state/reducers';
 
 describe('top level reducer', () => {

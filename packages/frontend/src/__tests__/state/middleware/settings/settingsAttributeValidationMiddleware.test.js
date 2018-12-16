@@ -11,8 +11,7 @@ describe('settings attribute validatation middleware', () => {
     };
     const next = jest.fn();
 
-    const invoke = action =>
-      settingsAttributeValidationMiddleware(store)(next)(action);
+    const invoke = action => settingsAttributeValidationMiddleware(store)(next)(action);
 
     return { store, next, invoke };
   };
@@ -66,9 +65,6 @@ describe('settings attribute validatation middleware', () => {
         type: SETTINGS_ACTIONS.EDIT,
         field: SETTINGS_FIELDS.EDIT_PROXIES,
         value: ['123.123.123.123:8080', '123.123.123.123:8080:user:pass'],
-      };
-      const expectedAction = {
-        ...action,
       };
       invoke(action);
       expect(next).toHaveBeenCalledWith(action);

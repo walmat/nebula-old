@@ -31,9 +31,7 @@ describe('profile actions', () => {
 
   it('should create an action to add a profile', async () => {
     const action = profileActions.add(initialProfileState);
-    const expectedActions = [
-      { type: PROFILE_ACTIONS.ADD, profile: initialProfileState },
-    ];
+    const expectedActions = [{ type: PROFILE_ACTIONS.ADD, profile: initialProfileState }];
     await asyncProfileTests(action, expectedActions);
   });
 
@@ -44,12 +42,7 @@ describe('profile actions', () => {
   });
 
   it('should create an action to edit a profile', () => {
-    const action = profileActions.edit(
-      23,
-      'test_field',
-      'test_value',
-      'test_subField',
-    );
+    const action = profileActions.edit(23, 'test_field', 'test_value', 'test_subField');
     const expectedActions = [
       {
         type: PROFILE_ACTIONS.EDIT,
@@ -64,17 +57,13 @@ describe('profile actions', () => {
 
   it('should create an action to select a profile', () => {
     const action = profileActions.select(initialProfileState);
-    const expectedActions = [
-      { type: PROFILE_ACTIONS.SELECT, profile: initialProfileState },
-    ];
+    const expectedActions = [{ type: PROFILE_ACTIONS.SELECT, profile: initialProfileState }];
     simpleProfileTests(action, expectedActions);
   });
 
   it('should create an action to load a profile', () => {
     const action = profileActions.load(initialProfileState);
-    const expectedActions = [
-      { type: PROFILE_ACTIONS.LOAD, profile: initialProfileState },
-    ];
+    const expectedActions = [{ type: PROFILE_ACTIONS.LOAD, profile: initialProfileState }];
     simpleProfileTests(action, expectedActions);
   });
 

@@ -15,26 +15,30 @@ export class AWSCredentialsPrimitive extends Component {
 
   logoutAws(e) {
     e.preventDefault();
-    const message = 'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
-    window.Bridge.confirmDialog(message).then((logout) => {
+    const message =
+      'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
+    const { onLogoutAws, serverInfo } = this.props;
+    window.Bridge.confirmDialog(message).then(logout => {
       if (logout) {
-        this.props.onLogoutAws(this.props.serverInfo.coreServer.path);
+        onLogoutAws(serverInfo.coreServer.path);
       }
     });
   }
 
   createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event.target.value);
+    const { onEditServerInfo } = this.props;
+    return event => onEditServerInfo(field, event.target.value);
   }
 
   validateAws(e) {
     e.preventDefault();
-    this.props.onValidateAws(this.props.serverInfo.credentials);
+    const { onValidateAws, serverInfo } = this.props;
+    onValidateAws(serverInfo.credentials);
   }
 
   render() {
-    const { serverInfo, errors } = this.props;
-    const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
+    const { serverInfo, errors, onKeyPress } = this.props;
+    const loggedInAws = serverInfo.credentials.accessToken != null;
     return (
       <div className="server-credentials col col--start col--no-gutter">
         <div className="row row--start row--gutter">
@@ -46,7 +50,10 @@ export class AWSCredentialsPrimitive extends Component {
                   className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                   type="text"
                   placeholder="IAM User Access"
-                  style={buildStyle(false, errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]])}
+                  style={buildStyle(
+                    false,
+                    errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]],
+                  )}
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={serverInfo.credentials.AWSAccessKey}
                   required
@@ -64,7 +71,10 @@ export class AWSCredentialsPrimitive extends Component {
                 className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                 type="password"
                 placeholder="IAM User Secret"
-                style={buildStyle(false, errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]])}
+                style={buildStyle(
+                  false,
+                  errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]],
+                )}
                 onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                 value={serverInfo.credentials.AWSSecretKey}
                 required
@@ -76,9 +86,10 @@ export class AWSCredentialsPrimitive extends Component {
         <div className="row row--end row--expand row--gutter">
           <div className="col">
             <button
+              type="button"
               className="server-credentials__submit"
               tabIndex={0}
-              onKeyPress={this.props.onKeyPress}
+              onKeyPress={onKeyPress}
               onClick={loggedInAws ? this.logoutAws : this.validateAws}
               data-testid={addTestId('AWSCredentials.submitButton')}
             >
@@ -97,6 +108,7 @@ AWSCredentialsPrimitive.propTypes = {
   onValidateAws: PropTypes.func.isRequired,
   onLogoutAws: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
+  errors: PropTypes.objectOf(PropTypes.any),
 };
 
 AWSCredentialsPrimitive.defaultProps = {
@@ -113,12 +125,15 @@ export const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
-  onValidateAws: (credentials) => {
+  onValidateAws: credentials => {
     dispatch(serverActions.validateAws(credentials));
   },
-  onLogoutAws: (path) => {
+  onLogoutAws: path => {
     dispatch(serverActions.logoutAws(path));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(AWSCredentialsPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(AWSCredentialsPrimitive);

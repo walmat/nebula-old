@@ -14,27 +14,29 @@ import getByTestId from '../../__testUtils__/getByTestId';
 describe('<TaskRow />', () => {
   let defaultProps;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return shallow(<TaskRowPrimitive
-      isEditing={renderProps.isEditing}
-      task={renderProps.task}
-      edits={renderProps.edits}
-      proxies={renderProps.proxies}
-      profiles={renderProps.profiles}
-      onSelectTask={renderProps.onSelectTask}
-      onStartTask={renderProps.onStartTask}
-      onStopTask={renderProps.onStopTask}
-      onDestroyTask={renderProps.onDestroyTask}
-      onEditTask={renderProps.onEditTask}
-      onCommitEdits={renderProps.onCommitEdits}
-      onCancelEdits={renderProps.onCancelEdits}
-      onKeyPress={renderProps.onKeyPress}
-      errors={renderProps.errors}
-    />);
+    return shallow(
+      <TaskRowPrimitive
+        isEditing={renderProps.isEditing}
+        task={renderProps.task}
+        edits={renderProps.edits}
+        proxies={renderProps.proxies}
+        profiles={renderProps.profiles}
+        onSelectTask={renderProps.onSelectTask}
+        onStartTask={renderProps.onStartTask}
+        onStopTask={renderProps.onStopTask}
+        onDestroyTask={renderProps.onDestroyTask}
+        onEditTask={renderProps.onEditTask}
+        onCommitEdits={renderProps.onCommitEdits}
+        onCancelEdits={renderProps.onCancelEdits}
+        onKeyPress={renderProps.onKeyPress}
+        errors={renderProps.errors}
+      />,
+    );
   };
 
   beforeEach(() => {
@@ -55,7 +57,7 @@ describe('<TaskRow />', () => {
     };
   });
 
-  const testIfTableRowComponentsAreRendered = (wrapper) => {
+  const testIfTableRowComponentsAreRendered = wrapper => {
     expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
     expect(wrapper.find('.tasks-row').length).toBeGreaterThanOrEqual(1);
     expect(wrapper.find('.tasks-row__id')).toHaveLength(1);
@@ -100,9 +102,7 @@ describe('<TaskRow />', () => {
   const testActionButtonValues = (wrapper, tag, title, className) =>
     testButtonValues(wrapper, `action.${tag}`, title, className);
 
-  const testTableRowValues = (wrapper, {
-    id, product, siteName, profileName, sizes, account,
-  }) => {
+  const testTableRowValues = (wrapper, { id, product, siteName, profileName, sizes, account }) => {
     expect(wrapper.find('.tasks-row__id').text()).toBe(id || '--');
     expect(wrapper.find('.tasks-row__product').text()).toBe(product || 'None');
     expect(wrapper.find('.tasks-row__sites').text()).toBe(siteName || 'None');
@@ -111,12 +111,12 @@ describe('<TaskRow />', () => {
     expect(wrapper.find('.tasks-row__account').text()).toBe(account || 'None');
   };
 
-  const testEditMenuValues = (wrapper, {
-    product, site, profile, sizes, username, password,
-  }) => {
+  const testEditMenuValues = (wrapper, { product, site, profile, sizes, username, password }) => {
     expect(getByTestId(wrapper, 'TaskRow.edit.productInput').prop('value')).toBe(product || null);
     expect(getByTestId(wrapper, 'TaskRow.edit.siteSelect').prop('value')).toEqual(site || null);
-    expect(getByTestId(wrapper, 'TaskRow.edit.profileSelect').prop('value')).toEqual(profile || null);
+    expect(getByTestId(wrapper, 'TaskRow.edit.profileSelect').prop('value')).toEqual(
+      profile || null,
+    );
     expect(getByTestId(wrapper, 'TaskRow.edit.sizesSelect').prop('value')).toEqual(sizes || []);
     expect(getByTestId(wrapper, 'TaskRow.edit.usernameInput').prop('value')).toBe(username || '');
     expect(getByTestId(wrapper, 'TaskRow.edit.passwordInput').prop('value')).toBe(password || '');
@@ -153,7 +153,7 @@ describe('<TaskRow />', () => {
   });
 
   describe('should render when not editing with given values', () => {
-    const initialTests = (wrapper) => {
+    const initialTests = wrapper => {
       // Table Row Components Are Present
       testIfTableRowComponentsAreRendered(wrapper);
       // no edit menu items
@@ -311,7 +311,7 @@ describe('<TaskRow />', () => {
   });
 
   describe('should render when editing with given values', () => {
-    const initialTests = (wrapper) => {
+    const initialTests = wrapper => {
       // Table Row Components Are Present
       testIfTableRowComponentsAreRendered(wrapper);
       // no edit menu items
@@ -920,7 +920,9 @@ describe('<TaskRow />', () => {
       expect(customProps.onEditTask).toHaveBeenCalledWith(defaultProps.task, {
         field: TASK_FIELDS.EDIT_SITE,
         value: {
-          url: 'https://kith.com', name: 'Kith', auth: false,
+          url: 'https://kith.com',
+          name: 'Kith',
+          auth: false,
         },
       });
     });

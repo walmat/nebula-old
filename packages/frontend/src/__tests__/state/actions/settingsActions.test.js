@@ -36,9 +36,7 @@ describe('settings actions', () => {
       def3: 'test3',
     };
     const action = settingsActions.save(testDefaults);
-    const expectedActions = [
-      { type: SETTINGS_ACTIONS.SAVE, defaults: testDefaults },
-    ];
+    const expectedActions = [{ type: SETTINGS_ACTIONS.SAVE, defaults: testDefaults }];
     settingsTests(action, expectedActions);
   });
 

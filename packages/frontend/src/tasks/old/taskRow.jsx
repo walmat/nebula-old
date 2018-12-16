@@ -59,7 +59,10 @@ class TaskRow extends Component {
   renderEditMenu() {
     if (this.props.isEditing) {
       return (
-        <div key={`${this.props.value.id}-edit`} className="tasks-row tasks-row--edit-orig tasks-row--edit">
+        <div
+          key={`${this.props.value.id}-edit`}
+          className="tasks-row tasks-row--edit-orig tasks-row--edit"
+        >
           <div className="edit-billing">
             <p className="edit-billing__label">Billing Profiles</p>
             <Select
@@ -100,7 +103,7 @@ class TaskRow extends Component {
               // onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PAIRS)}
             />
             <div className="submit-edit">
-              <button
+              <button type="button"
                 className="submit-edit__button"
                 tabIndex={0}
                 onKeyPress={() => {}}
@@ -120,16 +123,63 @@ class TaskRow extends Component {
   renderTableRow() {
     return (
       <div key={this.props.value.id} id={this.props.value.id} className="tasks-row">
-        <div className="tasks-edit pad-left"><img src={edit} onKeyPress={() => {}} onClick={() => { this.selectTask(this.props.value); }} alt="edit" draggable="false" className={this.props.value.status === 'editing' ? 'active' : ''} /></div>
-        <div className="tasks-id">{this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}</div>
+        <div className="tasks-edit pad-left">
+          <img
+            src={edit}
+            onKeyPress={() => {}}
+            onClick={() => {
+              this.selectTask(this.props.value);
+            }}
+            alt="edit"
+            draggable="false"
+            className={this.props.value.status === 'editing' ? 'active' : ''}
+          />
+        </div>
+        <div className="tasks-id">
+          {this.props.value.id < 10 ? `0${this.props.value.id}` : this.props.value.id}
+        </div>
         <div className="tasks-product">{this.props.value.product}</div>
         <div className="tasks-sites">{this.props.value.site.name}</div>
         <div className="tasks-profile">{this.props.value.profile.profileName}</div>
         <div className="tasks-sizes">{this.props.value.sizes}</div>
-        <div className="tasks-pairs">{this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}</div>
-        <div className="tasks-start"><img src={this.props.value.status === 'running' ? startDim : start} onKeyPress={() => {}} onClick={() => { this.startTask(this.props.value); }} alt="start" draggable="false" className={this.props.value.status === 'running' ? 'active' : ''} /></div>
-        <div className="tasks-stop"><img src={this.props.value.status === 'running' ? stop : stopDim} onKeyPress={() => {}} onClick={() => { this.stopTask(this.props.value); }} alt="stop" draggable="false" className={this.props.value.status === 'stopped' ? 'active' : ''} /></div>
-        <div className="tasks-destroy"><img src={destroy} onKeyPress={() => {}} onClick={() => { this.destroyTask(this.props.value); }} alt="destroy" draggable="false" /></div>
+        <div className="tasks-pairs">
+          {this.props.value.pairs < 10 ? `0${this.props.value.pairs}` : this.props.value.pairs}
+        </div>
+        <div className="tasks-start">
+          <img
+            src={this.props.value.status === 'running' ? startDim : start}
+            onKeyPress={() => {}}
+            onClick={() => {
+              this.startTask(this.props.value);
+            }}
+            alt="start"
+            draggable="false"
+            className={this.props.value.status === 'running' ? 'active' : ''}
+          />
+        </div>
+        <div className="tasks-stop">
+          <img
+            src={this.props.value.status === 'running' ? stop : stopDim}
+            onKeyPress={() => {}}
+            onClick={() => {
+              this.stopTask(this.props.value);
+            }}
+            alt="stop"
+            draggable="false"
+            className={this.props.value.status === 'stopped' ? 'active' : ''}
+          />
+        </div>
+        <div className="tasks-destroy">
+          <img
+            src={destroy}
+            onKeyPress={() => {}}
+            onClick={() => {
+              this.destroyTask(this.props.value);
+            }}
+            alt="destroy"
+            draggable="false"
+          />
+        </div>
         <div className="extend" />
       </div>
     );
@@ -138,8 +188,8 @@ class TaskRow extends Component {
   render() {
     return (
       <div className="tasks-row-container">
-        { this.renderTableRow() }
-        { this.renderEditMenu() }
+        {this.renderTableRow()}
+        {this.renderEditMenu()}
       </div>
     );
   }
@@ -165,28 +215,30 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onChange: (changes) => {
+  onChange: changes => {
     dispatch(taskActions.edit(ownProps.task.id, changes.field, changes.value));
   },
   onEditTask: (task, changes) => {
     dispatch(taskActions.edit(task.id, changes.field, changes.value));
   },
-  onSelectTask: (task) => {
+  onSelectTask: task => {
     dispatch(taskActions.select(task));
   },
-  onUpdateTask: (task) => {
+  onUpdateTask: task => {
     dispatch(taskActions.update(task.id, task));
   },
-  onStartTask: (task) => {
+  onStartTask: task => {
     dispatch(taskActions.start(task.id));
   },
-  onStopTask: (task) => {
+  onStopTask: task => {
     dispatch(taskActions.stop(task.id));
   },
-  onDestroyTask: (task) => {
+  onDestroyTask: task => {
     dispatch(taskActions.remove(task.id));
   },
 });
 
-
-export default connect(mapStateToProps, mapDispatchToProps)(TaskRow);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(TaskRow);

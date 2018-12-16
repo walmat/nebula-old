@@ -9,20 +9,22 @@ import getByTestId from '../../__testUtils__/getByTestId';
 describe('<ServerRow />', () => {
   let defaultProps;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return shallow(<ServerRowPrimitive
-      server={renderProps.server}
-      serverInfo={renderProps.serverInfo}
-      onConnectServer={renderProps.onConnectServer}
-      onStartServer={renderProps.onStartServer}
-      onStopServer={renderProps.onStopServer}
-      onDestroyServer={renderProps.onDestroyServer}
-      onKeyPress={renderProps.onKeyPress}
-    />);
+    return shallow(
+      <ServerRowPrimitive
+        server={renderProps.server}
+        serverInfo={renderProps.serverInfo}
+        onConnectServer={renderProps.onConnectServer}
+        onStartServer={renderProps.onStartServer}
+        onStopServer={renderProps.onStopServer}
+        onDestroyServer={renderProps.onDestroyServer}
+        onKeyPress={renderProps.onKeyPress}
+      />,
+    );
   };
 
   beforeEach(() => {

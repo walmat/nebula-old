@@ -27,38 +27,33 @@ const profileAttributeValidationMiddleware = store => next => action => {
 
   // Check for valid payload structure and dispatch an error if invalid
   if (!action.field || (!action.value && action.value !== '')) {
-    return store.dispatch(
-      profileActions.error(action.type, 'invalid action structure!'),
-    );
+    return store.dispatch(profileActions.error(action.type, 'invalid action structure!'));
   }
 
   const newAction = JSON.parse(JSON.stringify(action));
 
   // Get the correct errors object and call the correct validator
   if (
-    newAction.field === PROFILE_FIELDS.EDIT_NAME ||
-    newAction.field === PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING ||
-    newAction.field === PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING
+    [
+      PROFILE_FIELDS.EDIT_NAME,
+      PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING,
+      PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING,
+    ].includes(newAction.field)
   ) {
     newAction.errors = Object.assign({}, profile.errors);
     // Call the correct validator to fill in the new error state
-    newAction.errors[
-      mapProfileFieldToKey[newAction.field]
-    ] = !profileAttributeValidatorMap[newAction.field](newAction.value);
-  } else if (!action.subField) {
-    // Required subfield is not given, throw an error
-    return store.dispatch(
-      profileActions.error(action.type, 'invalid action structure!'),
-    );
-  } else {
-    newAction.errors = Object.assign(
-      {},
-      profile[mapProfileFieldToKey[newAction.field]].errors,
-    );
-    // Call the correct validator to fill in the new error state
-    newAction.errors[newAction.subField] = !profileAttributeValidatorMap[
+    newAction.errors[mapProfileFieldToKey[newAction.field]] = !profileAttributeValidatorMap[
       newAction.field
-    ][newAction.subField](newAction.value);
+    ](newAction.value);
+  } else if (!action.subField) {
+    // Required sub-field is not given, throw an error
+    return store.dispatch(profileActions.error(action.type, 'invalid action structure!'));
+  } else {
+    newAction.errors = Object.assign({}, profile[mapProfileFieldToKey[newAction.field]].errors);
+    // Call the correct validator to fill in the new error state
+    newAction.errors[newAction.subField] = !profileAttributeValidatorMap[newAction.field][
+      newAction.subField
+    ](newAction.value);
   }
 
   // Continue on to next middleware/reducer with errors map filled in.

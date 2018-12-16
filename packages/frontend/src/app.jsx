@@ -62,14 +62,15 @@ export class App extends PureComponent {
   }
 
   render() {
-    const stateLocation = this.props.store.getState().navbar.location;
+    const { store, onKeyPress } = this.props;
+    const stateLocation = store.getState().navbar.location;
     const windowLocation = window.location.pathname;
     let redirectRoute = ROUTES.TASKS;
     if (windowLocation !== stateLocation) {
       redirectRoute = stateLocation;
     }
     return (
-      <Provider store={this.props.store}>
+      <Provider store={store}>
         <BrowserRouter>
           <div id="container-wrapper">
             <div className="titlebar">
@@ -78,8 +79,8 @@ export class App extends PureComponent {
                 role="button"
                 tabIndex={0}
                 title="deactivate"
-                onKeyPress={this.props.onKeyPress}
-                onClick={App.deactivate(this.props.store)}
+                onKeyPress={onKeyPress}
+                onClick={App.deactivate(store)}
                 draggable="false"
                 data-testid={addTestId('App.button.deactivate')}
               >
@@ -103,7 +104,7 @@ export class App extends PureComponent {
                 role="button"
                 tabIndex={0}
                 title="close"
-                onKeyPress={this.props.onKeyPress}
+                onKeyPress={onKeyPress}
                 onClick={App.close}
                 draggable="false"
                 data-testid={addTestId('App.button.close')}

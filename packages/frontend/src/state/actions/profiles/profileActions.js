@@ -16,7 +16,7 @@ export const PROFILE_ACTIONS = {
 // TODO this is only temporary until we get registration key stuff implemented
 // profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY
 
-// TEMPERARILY DISABLED FOR TESTING
+// TEMPORARILY DISABLED FOR TESTING
 /* Store the profile in the db */
 // try {
 //     let response = await fetch('http://localhost:8080/profiles',
@@ -137,20 +137,10 @@ const _removeProfileRequest = async id =>
 // Private Actions
 const _addProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
 const _removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
-const _updateProfile = makeActionCreator(
-  PROFILE_ACTIONS.UPDATE,
-  'id',
-  'profile',
-);
+const _updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE, 'id', 'profile');
 
 // Public Actions
-const editProfile = makeActionCreator(
-  PROFILE_ACTIONS.EDIT,
-  'id',
-  'field',
-  'value',
-  'subField',
-);
+const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
 const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
@@ -170,8 +160,7 @@ const removeProfile = id => dispatch =>
 
 const updateProfile = (id, profile) => dispatch =>
   _updateProfileRequest(id, profile).then(
-    updatedProfile =>
-      dispatch(_updateProfile(updatedProfile.id, updatedProfile)),
+    updatedProfile => dispatch(_updateProfile(updatedProfile.id, updatedProfile)),
     error => dispatch(handleError(PROFILE_ACTIONS.UPDATE, error)),
   );
 

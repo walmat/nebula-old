@@ -1,24 +1,12 @@
 /* global describe */
-import tDefns, {
-  initialTaskStates,
-} from '../../../../utils/definitions/taskDefinitions';
-import {
-  setupConsoleErrorSpy,
-  testKey,
-} from '../../../../__testUtils__/definitionTestUtils';
+import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
+import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskEditErrors definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   const testErrorKey = (keyName, valid, invalid) =>
-    testKey(
-      keyName,
-      valid,
-      invalid,
-      tDefns.taskEditErrors,
-      initialTaskStates.editErrors,
-      spy,
-    );
+    testKey(keyName, valid, invalid, tDefns.taskEditErrors, initialTaskStates.editErrors, spy);
 
   testErrorKey('product', [null, true, false], [{}, 'test', 3]);
   testErrorKey('sizes', [null, true, false], [{}, 'test', 3]);

@@ -4,10 +4,7 @@ import { PROFILE_ACTIONS } from '../../actions';
 import { profileReducer } from './profileReducer';
 import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
-export default function profileListReducer(
-  state = initialProfileStates.list,
-  action,
-) {
+export default function profileListReducer(state = initialProfileStates.list, action) {
   // perform deep copy of given state
   let nextState = JSON.parse(JSON.stringify(state));
 
@@ -83,9 +80,8 @@ export default function profileListReducer(
       break;
     }
     case PROFILE_ACTIONS.ERROR: {
-      console.error(
-        `Error trying to perform: ${action.action}! Reason: ${action.error}`,
-      );
+      // TODO: Handle Error
+      console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
       break;
     }
     default:

@@ -21,19 +21,8 @@ class ServerRow extends Component {
 
   static renderTableRowButton(desc, src, className, onClick) {
     return (
-      <div
-        role="button"
-        tabIndex={0}
-        title={desc}
-        onKeyPress={() => {}}
-        onClick={onClick}
-      >
-        <img
-          src={src}
-          alt={desc}
-          draggable="false"
-          className={className}
-        />
+      <div role="button" tabIndex={0} title={desc} onKeyPress={() => {}} onClick={onClick}>
+        <img src={src} alt={desc} draggable="false" className={className} />
       </div>
     );
   }
@@ -44,7 +33,9 @@ class ServerRow extends Component {
       'Start Server',
       start,
       server.status === 'running' ? 'active' : '',
-      () => { this.props.onStartServer(server, serverInfo.credentials); },
+      () => {
+        this.props.onStartServer(server, serverInfo.credentials);
+      },
     );
   }
 
@@ -54,18 +45,17 @@ class ServerRow extends Component {
       'Stop Server',
       stop,
       server.status === 'stopped' ? 'active' : '',
-      () => { this.props.onStopServer(server, serverInfo.credentials); },
+      () => {
+        this.props.onStopServer(server, serverInfo.credentials);
+      },
     );
   }
 
   renderTableRowDestroyActionButton() {
     const { server, serverInfo } = this.props;
-    return ServerRow.renderTableRowActionButton(
-      'Destroy Server',
-      destroy,
-      '',
-      () => { this.props.onDestroyServer(server, serverInfo.credentials); },
-    );
+    return ServerRow.renderTableRowActionButton('Destroy Server', destroy, '', () => {
+      this.props.onDestroyServer(server, serverInfo.credentials);
+    });
   }
 
   renderTableRow() {
@@ -89,11 +79,7 @@ class ServerRow extends Component {
   }
 
   render() {
-    return (
-      <div className="server-row-container col">
-        { this.renderTableRow() }
-      </div>
-    );
+    return <div className="server-row-container col">{this.renderTableRow()}</div>;
   }
 }
 
@@ -122,4 +108,7 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ServerRow);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ServerRow);

@@ -2,7 +2,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { PaymentFieldsPrimitive, mapStateToProps, mapDispatchToProps } from '../../profiles/paymentFields';
+import {
+  PaymentFieldsPrimitive,
+  mapStateToProps,
+  mapDispatchToProps,
+} from '../../profiles/paymentFields';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../../state/actions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
 
@@ -11,11 +15,9 @@ describe('<PaymentFields />', () => {
     const payment = {
       ...initialProfileStates.payment,
     };
-    const wrapper = shallow(<PaymentFieldsPrimitive
-      onChange={() => {}}
-      value={payment}
-      errors={payment.errors}
-    />);
+    const wrapper = shallow(
+      <PaymentFieldsPrimitive onChange={() => {}} value={payment} errors={payment.errors} />,
+    );
     expect(wrapper.find('#email')).toHaveLength(1);
     expect(wrapper.find('#expiration')).toHaveLength(1);
     expect(wrapper.find('#card-number')).toHaveLength(1);
@@ -28,11 +30,9 @@ describe('<PaymentFields />', () => {
         ...initialProfileStates.payment,
         [field]: value1,
       };
-      const wrapper = shallow(<PaymentFieldsPrimitive
-        onChange={() => {}}
-        value={payment}
-        errors={payment.errors}
-      />);
+      const wrapper = shallow(
+        <PaymentFieldsPrimitive onChange={() => {}} value={payment} errors={payment.errors} />,
+      );
       let inputField = wrapper.find(`#${id}`);
       expect(inputField).toHaveLength(1);
       expect(inputField.prop('value')).toBe(value1);
@@ -52,7 +52,12 @@ describe('<PaymentFields />', () => {
     });
 
     test('card number', () => {
-      testFieldValue('card-number', PAYMENT_FIELDS.CARD_NUMBER, '1234 5678 9012 3456', '4111 1111 1111 1111');
+      testFieldValue(
+        'card-number',
+        PAYMENT_FIELDS.CARD_NUMBER,
+        '1234 5678 9012 3456',
+        '4111 1111 1111 1111',
+      );
     });
 
     test('expiration', () => {
@@ -68,11 +73,9 @@ describe('<PaymentFields />', () => {
     const testOnChange = (id, event, expectedCall) => {
       const input = { ...initialProfileStates.payment };
       const onChangeHandler = jest.fn();
-      const wrapper = shallow(<PaymentFieldsPrimitive
-        onChange={onChangeHandler}
-        value={input}
-        errors={input.errors}
-      />);
+      const wrapper = shallow(
+        <PaymentFieldsPrimitive onChange={onChangeHandler} value={input} errors={input.errors} />,
+      );
       const inputField = wrapper.find(`#${id}`);
       expect(inputField).toHaveLength(1);
       inputField.simulate('change', event);
@@ -138,6 +141,8 @@ describe('<PaymentFields />', () => {
     const actual = mapDispatchToProps(dispatch, { profileToEdit: profile });
     expect(actual.onChange).toBeDefined();
     actual.onChange(changes);
-    expect(dispatch).toHaveBeenCalledWith(profileActions.edit('test', PROFILE_FIELDS.EDIT_PAYMENT, changes.value, changes.field));
+    expect(dispatch).toHaveBeenCalledWith(
+      profileActions.edit('test', PROFILE_FIELDS.EDIT_PAYMENT, changes.value, changes.field),
+    );
   });
 });

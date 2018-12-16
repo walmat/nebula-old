@@ -13,20 +13,22 @@ import getByTestId from '../../__testUtils__/getByTestId';
 describe('<Tasks />', () => {
   let defaultProps;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return shallow(<TasksPrimitive
-      newTask={renderProps.newTask}
-      tasks={renderProps.tasks}
-      proxies={renderProps.proxies}
-      onDestroyTask={renderProps.onDestroyTask}
-      onStartTask={renderProps.onStartTask}
-      onStopTask={renderProps.onStopTask}
-      onKeyPress={renderProps.onKeyPress}
-    />);
+    return shallow(
+      <TasksPrimitive
+        newTask={renderProps.newTask}
+        tasks={renderProps.tasks}
+        proxies={renderProps.proxies}
+        onDestroyTask={renderProps.onDestroyTask}
+        onStartTask={renderProps.onStartTask}
+        onStopTask={renderProps.onStopTask}
+        onKeyPress={renderProps.onKeyPress}
+      />,
+    );
   };
 
   beforeEach(() => {
@@ -95,12 +97,21 @@ describe('<Tasks />', () => {
         expect(customProps.onKeyPress).toHaveBeenCalled();
         button.simulate('click');
         expect(customProps.onStartTask).toHaveBeenCalledTimes(3);
-        expect(customProps.onStartTask)
-          .toHaveBeenNthCalledWith(1, customProps.tasks[0], customProps.proxies);
-        expect(customProps.onStartTask)
-          .toHaveBeenNthCalledWith(2, customProps.tasks[1], customProps.proxies);
-        expect(customProps.onStartTask)
-          .toHaveBeenNthCalledWith(3, customProps.tasks[2], customProps.proxies);
+        expect(customProps.onStartTask).toHaveBeenNthCalledWith(
+          1,
+          customProps.tasks[0],
+          customProps.proxies,
+        );
+        expect(customProps.onStartTask).toHaveBeenNthCalledWith(
+          2,
+          customProps.tasks[1],
+          customProps.proxies,
+        );
+        expect(customProps.onStartTask).toHaveBeenNthCalledWith(
+          3,
+          customProps.tasks[2],
+          customProps.proxies,
+        );
       });
 
       it('should not call start task if tasks is empty', () => {
@@ -142,12 +153,9 @@ describe('<Tasks />', () => {
         expect(customProps.onKeyPress).toHaveBeenCalled();
         button.simulate('click');
         expect(customProps.onStopTask).toHaveBeenCalledTimes(3);
-        expect(customProps.onStopTask)
-          .toHaveBeenNthCalledWith(1, customProps.tasks[0]);
-        expect(customProps.onStopTask)
-          .toHaveBeenNthCalledWith(2, customProps.tasks[1]);
-        expect(customProps.onStopTask)
-          .toHaveBeenNthCalledWith(3, customProps.tasks[2]);
+        expect(customProps.onStopTask).toHaveBeenNthCalledWith(1, customProps.tasks[0]);
+        expect(customProps.onStopTask).toHaveBeenNthCalledWith(2, customProps.tasks[1]);
+        expect(customProps.onStopTask).toHaveBeenNthCalledWith(3, customProps.tasks[2]);
       });
 
       it('should not call start task if tasks is empty', () => {
@@ -188,12 +196,9 @@ describe('<Tasks />', () => {
         expect(customProps.onKeyPress).toHaveBeenCalled();
         button.simulate('click');
         expect(customProps.onDestroyTask).toHaveBeenCalledTimes(3);
-        expect(customProps.onDestroyTask)
-          .toHaveBeenNthCalledWith(1, customProps.tasks[0]);
-        expect(customProps.onDestroyTask)
-          .toHaveBeenNthCalledWith(2, customProps.tasks[1]);
-        expect(customProps.onDestroyTask)
-          .toHaveBeenNthCalledWith(3, customProps.tasks[2]);
+        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(1, customProps.tasks[0]);
+        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(2, customProps.tasks[1]);
+        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(3, customProps.tasks[2]);
       });
 
       it('should not call start task if tasks is empty', () => {
@@ -222,11 +227,7 @@ describe('<Tasks />', () => {
       ],
       proxies: ['invalid'],
       settings: {
-        proxies: [
-          'proxyPlaceholder1',
-          'proxyPlaceholder2',
-          'proxyPlaceholder3',
-        ],
+        proxies: ['proxyPlaceholder1', 'proxyPlaceholder2', 'proxyPlaceholder3'],
       },
       extra: 'field',
     };
@@ -239,11 +240,7 @@ describe('<Tasks />', () => {
         { ...initialTaskStates.task, id: 2 },
         { ...initialTaskStates.task, id: 3 },
       ],
-      proxies: [
-        'proxyPlaceholder1',
-        'proxyPlaceholder2',
-        'proxyPlaceholder3',
-      ],
+      proxies: ['proxyPlaceholder1', 'proxyPlaceholder2', 'proxyPlaceholder3'],
     };
     expect(mapStateToProps(state)).toEqual(expected);
   });

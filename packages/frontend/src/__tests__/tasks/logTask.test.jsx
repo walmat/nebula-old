@@ -7,9 +7,7 @@ import LogTaskRow from '../../tasks/logTaskRow';
 
 describe('<LogTask />', () => {
   it('should render', () => {
-    const wrapper = shallow(<LogTaskPrimitive
-      tasks={[]}
-    />);
+    const wrapper = shallow(<LogTaskPrimitive tasks={[]} />);
     expect(wrapper.find('.tasks-table')).toHaveLength(1);
   });
 
@@ -20,9 +18,7 @@ describe('<LogTask />', () => {
       { status: 'running' },
       { status: 'idle' },
     ];
-    const wrapper = shallow(<LogTaskPrimitive
-      tasks={tasks}
-    />);
+    const wrapper = shallow(<LogTaskPrimitive tasks={tasks} />);
     expect(wrapper.find(LogTaskRow)).toHaveLength(2);
   });
 

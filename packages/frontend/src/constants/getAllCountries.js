@@ -9,8 +9,5 @@ export default function getAllCountries() {
 }
 
 export function getCountry(countryCode) {
-  return Object.assign(
-    {},
-    countries.find(country => country.value === countryCode),
-  );
+  return Object.assign({}, countries.find(country => country.value === countryCode));
 }

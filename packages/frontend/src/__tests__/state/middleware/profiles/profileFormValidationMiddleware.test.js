@@ -17,8 +17,7 @@ describe('profile form validation middleware', () => {
     };
     const next = jest.fn();
 
-    const invoke = action =>
-      profileFormValidationMiddleware(store)(next)(action);
+    const invoke = action => profileFormValidationMiddleware(store)(next)(action);
 
     return { store, next, invoke };
   };
@@ -121,9 +120,7 @@ describe('profile form validation middleware', () => {
           apt: 'test',
           city: testValid ? '' : 'test',
           state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
-          country: testValid
-            ? 'invalid'
-            : { value: 'US', label: 'United States' },
+          country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -135,9 +132,7 @@ describe('profile form validation middleware', () => {
           apt: 'test',
           city: testValid ? '' : 'test',
           state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
-          country: testValid
-            ? 'invalid'
-            : { value: 'US', label: 'United States' },
+          country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -246,8 +241,7 @@ describe('profile form validation middleware', () => {
           : {
               ...action.profile[mapProfileFieldToKey[field]],
               errors: {
-                ...expectedActionBase.profile[mapProfileFieldToKey[field]]
-                  .errors,
+                ...expectedActionBase.profile[mapProfileFieldToKey[field]].errors,
                 [subField]: !testValid,
               },
             },
@@ -283,13 +277,7 @@ describe('profile form validation middleware', () => {
           valid: false,
         };
     const { store, next, invoke } = create();
-    const { action, expectedAction } = generateActions(
-      type,
-      field,
-      value,
-      valid,
-      subField,
-    );
+    const { action, expectedAction } = generateActions(type, field, value, valid, subField);
     if (genNoErrors) {
       // delete expected errors field if we aren't generating errors
       delete expectedAction.errors;

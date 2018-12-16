@@ -5,17 +5,14 @@ import tDefns from '../utils/definitions/taskDefinitions';
 
 export class LogTaskPrimitive extends Component {
   createTable() {
-    const runningTasks = this.props.tasks.filter(task => task.status === 'running');
-    const table = runningTasks.map(t => (<LogTaskRow task={t} />));
+    const { tasks } = this.props;
+    const runningTasks = tasks.filter(task => task.status === 'running');
+    const table = runningTasks.map(t => <LogTaskRow task={t} />);
     return table;
   }
 
   render() {
-    return (
-      <div className="tasks-table">
-        {this.createTable()}
-      </div>
-    );
+    return <div className="tasks-table">{this.createTable()}</div>;
   }
 }
 

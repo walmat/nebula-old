@@ -28,49 +28,37 @@ describe('navbar actions', () => {
 
   it('should create an action to route anywhere', () => {
     const routeAction = navbarActions.route('ROUTE_SOMEWHERE', mockHistory);
-    const expectedActions = [
-      { type: NAVBAR_ACTIONS.ROUTE_HOME, history: mockHistory },
-    ];
+    const expectedActions = [{ type: NAVBAR_ACTIONS.ROUTE_HOME, history: mockHistory }];
     routeTests(routeAction, ROUTES.HOME, expectedActions);
   });
 
   it('should create an action to route to home', () => {
     const routeAction = navbarActions.routeHome(mockHistory);
-    const expectedActions = [
-      { type: NAVBAR_ACTIONS.ROUTE_HOME, history: mockHistory },
-    ];
+    const expectedActions = [{ type: NAVBAR_ACTIONS.ROUTE_HOME, history: mockHistory }];
     routeTests(routeAction, ROUTES.HOME, expectedActions);
   });
 
   it('should create an action to route to profiles', () => {
     const routeAction = navbarActions.routeProfiles(mockHistory);
-    const expectedActions = [
-      { type: NAVBAR_ACTIONS.ROUTE_PROFILES, history: mockHistory },
-    ];
+    const expectedActions = [{ type: NAVBAR_ACTIONS.ROUTE_PROFILES, history: mockHistory }];
     routeTests(routeAction, ROUTES.PROFILES, expectedActions);
   });
 
   it('should create an action to route to tasks', () => {
     const routeAction = navbarActions.routeTasks(mockHistory);
-    const expectedActions = [
-      { type: NAVBAR_ACTIONS.ROUTE_TASKS, history: mockHistory },
-    ];
+    const expectedActions = [{ type: NAVBAR_ACTIONS.ROUTE_TASKS, history: mockHistory }];
     routeTests(routeAction, ROUTES.TASKS, expectedActions);
   });
 
   it('should create an action to route to server', () => {
     const routeAction = navbarActions.routeServer(mockHistory);
-    const expectedActions = [
-      { type: NAVBAR_ACTIONS.ROUTE_SERVER, history: mockHistory },
-    ];
+    const expectedActions = [{ type: NAVBAR_ACTIONS.ROUTE_SERVER, history: mockHistory }];
     routeTests(routeAction, ROUTES.SERVER, expectedActions);
   });
 
   it('should create an action to route to settings', () => {
     const routeAction = navbarActions.routeSettings(mockHistory);
-    const expectedActions = [
-      { type: NAVBAR_ACTIONS.ROUTE_SETTINGS, history: mockHistory },
-    ];
+    const expectedActions = [{ type: NAVBAR_ACTIONS.ROUTE_SETTINGS, history: mockHistory }];
     routeTests(routeAction, ROUTES.SETTINGS, expectedActions);
   });
 });

@@ -14,7 +14,7 @@ configure({ adapter: new Adapter() });
 // Local storage mock
 // /////////////////////////////////////
 const localStorageMock = {
-  getItem: jest.fn(key => '{}'),
+  getItem: jest.fn(() => '{}'),
   setItem: jest.fn(),
   clear: jest.fn(),
 };

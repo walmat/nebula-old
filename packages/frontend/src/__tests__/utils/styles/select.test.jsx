@@ -7,19 +7,21 @@ import { DropdownIndicator, colourStyles } from '../../../utils/styles/select';
 describe('Custom Select', () => {
   describe('<DropdownIndicator />', () => {
     it('should render with given props', () => {
-      const wrapper = mount(<Select
-        className="test-class"
-        placeholder="placeholder test"
-        components={{ DropdownIndicator }}
-        styles={colourStyles()}
-        value={{ value: 'test1', label: 'testLabel1' }}
-        options={[
-          { value: 'test1', label: 'testLabel1' },
-          { value: 'test2', label: 'testLabel2' },
-          { value: 'test3', label: 'testLabel3' },
-        ]}
-        menuIsOpen={false}
-      />);
+      const wrapper = mount(
+        <Select
+          className="test-class"
+          placeholder="placeholder test"
+          components={{ DropdownIndicator }}
+          styles={colourStyles()}
+          value={{ value: 'test1', label: 'testLabel1' }}
+          options={[
+            { value: 'test1', label: 'testLabel1' },
+            { value: 'test2', label: 'testLabel2' },
+            { value: 'test3', label: 'testLabel3' },
+          ]}
+          menuIsOpen={false}
+        />,
+      );
       expect(wrapper.find(components.DropdownIndicator)).toHaveLength(1);
       let indicator = wrapper.find(components.DropdownIndicator);
       expect(indicator.find('img')).toHaveLength(1);

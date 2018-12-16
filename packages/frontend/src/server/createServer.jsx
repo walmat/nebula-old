@@ -10,7 +10,7 @@ import { buildStyle } from '../utils/styles';
 
 export class CreateServerPrimitive extends Component {
   static changeServerChoice(options, onChange) {
-    return (event) => {
+    return event => {
       const change = options.find(o => o.id === event.value);
       if (change) {
         onChange(change);
@@ -34,12 +34,18 @@ export class CreateServerPrimitive extends Component {
   }
 
   createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event);
+    const { onEditServerInfo } = this.props;
+    return event => onEditServerInfo(field, event);
   }
 
   static renderServerOptionComponent(
-    tag, label, defaultOption, value,
-    disabled, onChange, optionGenerator,
+    tag,
+    label,
+    defaultOption,
+    value,
+    disabled,
+    onChange,
+    optionGenerator,
   ) {
     return (
       <div className="row row--start row--gutter">
@@ -68,57 +74,61 @@ export class CreateServerPrimitive extends Component {
   }
 
   renderServerTypeComponent() {
+    const { serverType, serverListOptions } = this.props;
     return CreateServerPrimitive.renderServerOptionComponent(
       'type',
       'Type',
       'Choose Server',
-      this.props.serverType,
+      serverType,
       false,
       CreateServerPrimitive.changeServerChoice(
-        this.props.serverListOptions.types,
+        serverListOptions.types,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_TYPE),
       ),
-      CreateServerPrimitive.buildServerOptionChoices(this.props.serverListOptions.types),
+      CreateServerPrimitive.buildServerOptionChoices(serverListOptions.types),
     );
   }
 
   renderServerSizeComponent() {
+    const { serverSize, serverType, serverListOptions } = this.props;
+
     return CreateServerPrimitive.renderServerOptionComponent(
       'size',
       'Size',
       'Choose Size',
-      this.props.serverSize,
-      !this.props.serverType,
+      serverSize,
+      !serverType,
       CreateServerPrimitive.changeServerChoice(
-        this.props.serverListOptions.sizes,
+        serverListOptions.sizes,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE),
       ),
-      CreateServerPrimitive.buildServerOptionChoices(
-        this.props.serverListOptions.sizes,
-        (s => (this.props.serverType
-          ? s.types.some(t => t === this.props.serverType.id)
-          : true)),
+      CreateServerPrimitive.buildServerOptionChoices(serverListOptions.sizes, s =>
+        serverType ? s.types.some(t => t === serverType.id) : true,
       ),
     );
   }
 
   renderServerLocationComponent() {
+    const { serverLocation, serverListOptions } = this.props;
+
     return CreateServerPrimitive.renderServerOptionComponent(
       'location',
       'Location',
       'Choose Location',
-      this.props.serverLocation,
+      serverLocation,
       false,
       CreateServerPrimitive.changeServerChoice(
-        this.props.serverListOptions.locations,
+        serverListOptions.locations,
         this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_LOCATION),
       ),
-      CreateServerPrimitive.buildServerOptionChoices(this.props.serverListOptions.locations),
+      CreateServerPrimitive.buildServerOptionChoices(serverListOptions.locations),
     );
   }
 
   render() {
-    const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
+    const { onKeyPress, serverInfo, onDestroyServers, onCreateServer, servers } = this.props;
+
+    const loggedInAws = serverInfo.credentials.accessToken != null;
     return (
       <div className="server-options col col--start col--no-gutter">
         {this.renderServerTypeComponent()}
@@ -127,17 +137,15 @@ export class CreateServerPrimitive extends Component {
         <div className="row row--end row--expand row--gutter">
           <div className="col">
             <button
+              type="button"
               className="server-options__destroy"
               tabIndex={0}
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={this.props.onKeyPress}
+              onKeyPress={onKeyPress}
               onClick={() => {
-                this.props.onDestroyServers(
-                  this.props.servers,
-                  this.props.serverInfo.credentials,
-                );
+                onDestroyServers(servers, serverInfo.credentials);
               }}
               data-testid={addTestId('CreateServer.serversButton.destroy')}
             >
@@ -146,17 +154,15 @@ export class CreateServerPrimitive extends Component {
           </div>
           <div className="col">
             <button
+              type="button"
               className="server-options__create"
               tabIndex={0}
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={this.props.onKeyPress}
+              onKeyPress={onKeyPress}
               onClick={() => {
-                this.props.onCreateServer(
-                  this.props.serverInfo.serverOptions,
-                  this.props.serverInfo.credentials,
-                );
+                onCreateServer(serverInfo.serverOptions, serverInfo.credentials);
               }}
               data-testid={addTestId('CreateServer.serversButton.create')}
             >
@@ -212,4 +218,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateServerPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CreateServerPrimitive);

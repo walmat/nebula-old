@@ -3,11 +3,16 @@ import React from 'react';
 import DDD from '../../_assets/dropdown-down.svg';
 import DDU from '../../_assets/dropdown-up.svg';
 
-export const DropdownIndicator = props => (
-  <components.DropdownIndicator {...props}>
-    <img src={props.selectProps.menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
-  </components.DropdownIndicator>
-);
+export const DropdownIndicator = props => {
+  const {
+    selectProps: { menuIsOpen },
+  } = props;
+  return (
+    <components.DropdownIndicator {...props}>
+      <img src={menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
+    </components.DropdownIndicator>
+  );
+};
 
 export const colourStyles = provided => ({
   control: (styles, { isDisabled }) => ({
@@ -26,19 +31,45 @@ export const colourStyles = provided => ({
       cursor: 'pointer',
     },
   }),
-  option: (styles, { isDisabled, isFocused, isSelected }) => ({
-    ...styles,
-    backgroundColor: isFocused ? '#EDBCC6' : isDisabled ? '#ccc' : isSelected ? '#fff' : '#fff',
-    color: '#161318',
-    cursor: isDisabled ? 'not-allowed' : 'pointer',
-    outline: 'none',
-    boxShadow: 'none',
-    overflow: 'hidden',
-  }),
+  option: (styles, { isDisabled, isFocused, isSelected }) => {
+    if (isDisabled) {
+      return {
+        ...styles,
+        backgroundColor: '#ccc',
+        color: '#161318',
+        cursor: 'not-allowed',
+        outline: 'none',
+        boxShadow: 'none',
+        overflow: 'hidden',
+      };
+    }
+    const retVal = {
+      ...styles,
+      color: '#161318',
+      cursor: 'pointer',
+      outline: 'none',
+      boxShadow: 'none',
+      overflow: 'hidden',
+      backgroundColor: '#fff', // fallback
+    };
+    if (isFocused) {
+      return { ...retVal, backgroundColor: '#EDBCC6' };
+    }
+    if (isSelected) {
+      return { ...retVal, backgroundColor: '#fff' };
+    }
+    return retVal;
+  },
   valueContainer: (styles, { isMulti }) => {
-    let multiStyle = {};
+    const ret = {
+      ...styles,
+      maxHeight: '29px',
+      height: '29px',
+      cursor: 'pointer',
+    };
     if (isMulti) {
-      multiStyle = {
+      return {
+        ...ret,
         'overflow-x': 'scroll',
         'overflow-y': 'hidden',
         'flex-wrap': 'nowrap',
@@ -49,13 +80,7 @@ export const colourStyles = provided => ({
         },
       };
     }
-    return {
-      ...styles,
-      ...multiStyle,
-      maxHeight: '29px',
-      height: '29px',
-      cursor: 'pointer',
-    };
+    return ret;
   },
   multiValue: styles => ({
     ...styles,

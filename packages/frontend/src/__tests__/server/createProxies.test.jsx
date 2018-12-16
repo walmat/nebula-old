@@ -2,7 +2,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { CreateProxiesPrimitive, mapStateToProps, mapDispatchToProps } from '../../server/createProxies';
+import {
+  CreateProxiesPrimitive,
+  mapStateToProps,
+  mapDispatchToProps,
+} from '../../server/createProxies';
 import { SERVER_FIELDS, serverActions } from '../../state/actions';
 import { initialServerStates } from '../../utils/definitions/serverDefinitions';
 import getByTestId from '../../__testUtils__/getByTestId';
@@ -10,19 +14,21 @@ import getByTestId from '../../__testUtils__/getByTestId';
 describe('<CreateProxies />', () => {
   let defaultProps;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return shallow(<CreateProxiesPrimitive
-      serverInfo={renderProps.serverInfo}
-      serverListOptions={renderProps.serverListOptions}
-      onEditServerInfo={renderProps.onEditServerInfo}
-      onGenerateProxies={renderProps.onGenerateProxies}
-      onDestroyProxies={renderProps.onDestroyProxies}
-      onKeyPress={renderProps.onKeyPress}
-    />);
+    return shallow(
+      <CreateProxiesPrimitive
+        serverInfo={renderProps.serverInfo}
+        serverListOptions={renderProps.serverListOptions}
+        onEditServerInfo={renderProps.onEditServerInfo}
+        onGenerateProxies={renderProps.onGenerateProxies}
+        onDestroyProxies={renderProps.onDestroyProxies}
+        onKeyPress={renderProps.onKeyPress}
+      />,
+    );
   };
 
   beforeEach(() => {
@@ -96,7 +102,11 @@ describe('<CreateProxies />', () => {
     expect(numProxiesInput).toHaveLength(1);
     expect(numProxiesInput.prop('value')).toBe(10);
     expect(locationSelect).toHaveLength(1);
-    expect(locationSelect.prop('value')).toEqual({ id: 1, label: 'US East (Ohio)', value: 'us-east-2' });
+    expect(locationSelect.prop('value')).toEqual({
+      id: 1,
+      label: 'US East (Ohio)',
+      value: 'us-east-2',
+    });
     expect(usernameInput).toHaveLength(1);
     expect(usernameInput.prop('value')).toBe('testUsername');
     expect(passwordInput).toHaveLength(1);
@@ -137,10 +147,11 @@ describe('<CreateProxies />', () => {
       const locationSelect = getByTestId(wrapper, 'CreateProxies.location');
       locationSelect.simulate('change', { id: 1, label: 'US East (Ohio)', value: 'us-east-2' });
       expect(customProps.onEditServerInfo).toHaveBeenCalledTimes(1);
-      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
-        SERVER_FIELDS.EDIT_PROXY_LOCATION,
-        { id: 1, label: 'US East (Ohio)', value: 'us-east-2' },
-      );
+      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(SERVER_FIELDS.EDIT_PROXY_LOCATION, {
+        id: 1,
+        label: 'US East (Ohio)',
+        value: 'us-east-2',
+      });
     });
 
     test('proxy username', () => {
@@ -303,7 +314,10 @@ describe('<CreateProxies />', () => {
     actual.onGenerateProxies('options');
     actual.onDestroyProxies();
     expect(dispatch).toHaveBeenCalledTimes(3);
-    expect(dispatch).toHaveBeenNthCalledWith(1, serverActions.edit(null, 'test_field', 'test_value'));
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      serverActions.edit(null, 'test_field', 'test_value'),
+    );
     expect(dispatch).toHaveBeenNthCalledWith(2, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(3, expect.any(Function));
   });

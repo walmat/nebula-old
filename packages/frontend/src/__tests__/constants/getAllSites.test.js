@@ -1,6 +1,4 @@
 /* global describe it expect beforeEach */
-import _ from 'underscore';
-
 import getAllSites, { getSite } from '../../constants/getAllSites';
 
 describe('getAllSites', () => {

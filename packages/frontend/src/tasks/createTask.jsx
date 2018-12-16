@@ -23,6 +23,7 @@ export class CreateTaskPrimitive extends Component {
   }
 
   buildProfileOptions() {
+    // eslint-disable-next-line react/destructuring-assignment
     return this.props.profiles.map(profile => ({
       value: profile.id,
       label: profile.profileName,
@@ -51,6 +52,7 @@ export class CreateTaskPrimitive extends Component {
   }
 
   createOnChangeHandler(field) {
+    const { onFieldChange, profiles } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE:
         return event => {
@@ -59,35 +61,35 @@ export class CreateTaskPrimitive extends Component {
             url: event.value,
             auth: event.auth,
           };
-          this.props.onFieldChange({ field, value: site });
+          onFieldChange({ field, value: site });
         };
       case TASK_FIELDS.EDIT_PROFILE:
         return event => {
-          const change = this.props.profiles.find(p => p.id === event.value);
+          const change = profiles.find(p => p.id === event.value);
           if (change) {
-            this.props.onFieldChange({ field, value: change });
+            onFieldChange({ field, value: change });
           }
         };
       case TASK_FIELDS.EDIT_SIZES:
         return event => {
           const values = event.map(s => s.value);
-          this.props.onFieldChange({ field, value: values });
+          onFieldChange({ field, value: values });
         };
       case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
         return event => {
-          this.props.onFieldChange({ field, value: event.target.value });
+          onFieldChange({ field, value: event.target.value });
         };
       default:
         // should never be called, but nice to have just in case
         return event => {
-          this.props.onFieldChange({ field, value: event.target.value });
+          onFieldChange({ field, value: event.target.value });
         };
     }
   }
 
   render() {
-    const { task, errors } = this.props;
+    const { task, errors, onKeyPress } = this.props;
     let newTaskProfileValue = null;
     if (task.profile.id) {
       newTaskProfileValue = {
@@ -118,14 +120,9 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="Variant, Keywords, Link"
-                  onChange={this.createOnChangeHandler(
-                    TASK_FIELDS.EDIT_PRODUCT,
-                  )}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
                   value={task.product.raw}
-                  style={buildStyle(
-                    false,
-                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]],
-                  )}
+                  style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
                   required
                   data-testid={addTestId('CreateTask.productInput')}
                 />
@@ -138,10 +135,7 @@ export class CreateTaskPrimitive extends Component {
                   placeholder="Choose Site"
                   components={{ DropdownIndicator }}
                   styles={colourStyles(
-                    buildStyle(
-                      false,
-                      errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]],
-                    ),
+                    buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
@@ -162,10 +156,7 @@ export class CreateTaskPrimitive extends Component {
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
-                  buildStyle(
-                    false,
-                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]],
-                  ),
+                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 value={newTaskProfileValue}
@@ -182,10 +173,7 @@ export class CreateTaskPrimitive extends Component {
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
-                  buildStyle(
-                    false,
-                    errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]],
-                  ),
+                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
                 value={sizes}
@@ -205,9 +193,7 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="johndoe@example.com"
-                  onChange={this.createOnChangeHandler(
-                    TASK_FIELDS.EDIT_USERNAME,
-                  )}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
                   value={task.username || ''}
                   required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
@@ -224,9 +210,7 @@ export class CreateTaskPrimitive extends Component {
                   className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                   type="text"
                   placeholder="***********"
-                  onChange={this.createOnChangeHandler(
-                    TASK_FIELDS.EDIT_PASSWORD,
-                  )}
+                  onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
                   value={task.password || ''} // change this to only show :onFocus later https://github.com/walmat/nebula/pull/68#discussion_r216173245
                   style={buildStyle(
                     accountFieldsDisabled,
@@ -243,9 +227,10 @@ export class CreateTaskPrimitive extends Component {
         <div className="row row--end row--expand row--gutter">
           <div className="col">
             <button
+              type="button"
               className="tasks-create__submit"
               tabIndex={0}
-              onKeyPress={this.props.onKeyPress}
+              onKeyPress={onKeyPress}
               onClick={this.saveTask}
               data-testid={addTestId('CreateTask.submitButton')}
             >

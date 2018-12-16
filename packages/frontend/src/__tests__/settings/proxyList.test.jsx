@@ -14,19 +14,19 @@ describe('<ProxyList />', () => {
       ...defaultProps,
       ...customProps,
     };
-    return method(<ProxyListPrimitive
-      id={renderProps.id}
-      proxies={renderProps.proxies}
-      errors={renderProps.errors}
-      onUpdateProxies={renderProps.onUpdateProxies}
-    />);
+    return method(
+      <ProxyListPrimitive
+        id={renderProps.id}
+        proxies={renderProps.proxies}
+        errors={renderProps.errors}
+        onUpdateProxies={renderProps.onUpdateProxies}
+      />,
+    );
   };
 
-  const renderShallowWithProps = customProps =>
-    getWrapper(shallow, customProps);
+  const renderShallowWithProps = customProps => getWrapper(shallow, customProps);
 
-  const renderMountWithProps = customProps =>
-    getWrapper(mount, customProps);
+  const renderMountWithProps = customProps => getWrapper(mount, customProps);
 
   beforeEach(() => {
     defaultProps = {
@@ -59,7 +59,12 @@ describe('<ProxyList />', () => {
 
   it('should render proxies when not editing', () => {
     const customProps = {
-      proxies: ['test', 'testinvalid', 'testvalid', '<script>invalid</script><div>div</div>testsanitize'],
+      proxies: [
+        'test',
+        'testinvalid',
+        'testvalid',
+        '<script>invalid</script><div>div</div>testsanitize',
+      ],
       errors: [1],
     };
     const expectedInnerHtml =
@@ -75,12 +80,16 @@ describe('<ProxyList />', () => {
 
   it('should render proxies when editing', () => {
     const customProps = {
-      proxies: ['test', 'testinvalid', 'testvalid', '<script>invalid</script><div>div</div>testsanitize'],
+      proxies: [
+        'test',
+        'testinvalid',
+        'testvalid',
+        '<script>invalid</script><div>div</div>testsanitize',
+      ],
       errors: [1],
     };
     const expectedInnerHtml =
-      '<div>test</div><div>testinvalid</div>' +
-      '<div>testvalid</div><div>divtestsanitize</div>';
+      '<div>test</div><div>testinvalid</div><div>testvalid</div><div>divtestsanitize</div>';
     const wrapper = renderShallowWithProps(customProps);
     wrapper.setState({
       editing: true,
@@ -98,13 +107,11 @@ describe('<ProxyList />', () => {
     expect(wrapper.state('proxies')).toEqual([]);
 
     const component = wrapper.instance();
-    component.domNode.current.innerText = '<div>testing</div> \n and this \n\n \n<script>nothing</script> \n';
+    component.domNode.current.innerText =
+      '<div>testing</div> \n and this \n\n \n<script>nothing</script> \n';
     wrapper.simulate('input');
     expect(wrapper.state('reduxUpdate')).toBeTruthy();
-    expect(wrapper.state('proxies')).toEqual([
-      'testing',
-      'and this',
-    ]);
+    expect(wrapper.state('proxies')).toEqual(['testing', 'and this']);
   });
 
   it('should not respond to input when dom node is not defined', () => {
@@ -160,15 +167,12 @@ describe('<ProxyList />', () => {
       expect(wrapper.state('editing')).toBeFalsy();
       expect(wrapper.state('reduxUpdate')).toBeFalsy();
       expect(customProps.onUpdateProxies).toHaveBeenCalledTimes(1);
-      expect(customProps.onUpdateProxies.mock.calls[0][0]).toEqual([
-        'test',
-        'test2',
-      ]);
+      expect(customProps.onUpdateProxies.mock.calls[0][0]).toEqual(['test', 'test2']);
     });
   });
 
   describe('should handle paste', () => {
-    const performComponentSetup = (ev) => {
+    const performComponentSetup = () => {
       const wrapper = renderMountWithProps();
       const domNodeRef = wrapper.instance().domNode;
       expect(wrapper.state('reduxUpdate')).toBeFalsy();
@@ -189,7 +193,7 @@ describe('<ProxyList />', () => {
       global.window.clipboardData = clipboardData;
     };
 
-    const performWindowDocumentCleanup = (supportedCommand) => {
+    const performWindowDocumentCleanup = supportedCommand => {
       // clean up document implementation to prevent cross test pollution
       global.__deregisterSupportedCommand(supportedCommand);
       global.__clearNextExecCommandHandler();
@@ -201,7 +205,7 @@ describe('<ProxyList />', () => {
         preventDefault: jest.fn(),
         stopPropagation: jest.fn(),
         clipboardData: {
-          getData: jest.fn((type) => {
+          getData: jest.fn(type => {
             if (type === 'text') {
               return '<div>testing</div> \n and this \n\n \n<script>nothing</script> \n';
             }
@@ -229,10 +233,7 @@ describe('<ProxyList />', () => {
       );
       expect(wrapper.state('reduxUpdate')).toBeTruthy();
       expect(wrapper.state('editing')).toBeTruthy();
-      expect(wrapper.state('proxies')).toEqual([
-        'testing',
-        'and this',
-      ]);
+      expect(wrapper.state('proxies')).toEqual(['testing', 'and this']);
 
       performWindowDocumentCleanup('insertText');
     });
@@ -250,7 +251,7 @@ describe('<ProxyList />', () => {
         return true;
       });
       performWindowDocumentSetup('insertText', execCommandHandler, {
-        getData: jest.fn((type) => {
+        getData: jest.fn(type => {
           if (type === 'text') {
             return '<div>testing</div> \n and this \n\n \n<script>nothing</script> \n';
           }
@@ -269,10 +270,7 @@ describe('<ProxyList />', () => {
       );
       expect(wrapper.state('reduxUpdate')).toBeTruthy();
       expect(wrapper.state('editing')).toBeTruthy();
-      expect(wrapper.state('proxies')).toEqual([
-        'testing',
-        'and this',
-      ]);
+      expect(wrapper.state('proxies')).toEqual(['testing', 'and this']);
 
       performWindowDocumentCleanup('insertText');
     });
@@ -282,7 +280,7 @@ describe('<ProxyList />', () => {
         preventDefault: jest.fn(),
         stopPropagation: jest.fn(),
         clipboardData: {
-          getData: jest.fn((type) => {
+          getData: jest.fn(type => {
             if (type === 'text') {
               return '<div>testing</div> \n and this \n\n \n<script>nothing</script> \n';
             }
@@ -310,10 +308,7 @@ describe('<ProxyList />', () => {
       );
       expect(wrapper.state('reduxUpdate')).toBeTruthy();
       expect(wrapper.state('editing')).toBeTruthy();
-      expect(wrapper.state('proxies')).toEqual([
-        'testing',
-        'and this',
-      ]);
+      expect(wrapper.state('proxies')).toEqual(['testing', 'and this']);
 
       performWindowDocumentCleanup('paste');
     });
@@ -326,7 +321,7 @@ describe('<ProxyList />', () => {
   });
 
   it('should sanitize input correctly', () => {
-    const dirty = '<script>console.log(\'hello\');</script><div>Hello</div>World';
+    const dirty = "<script>console.log('hello');</script><div>Hello</div>World";
     const expected = 'HelloWorld';
     expect(ProxyListPrimitive.sanitize(dirty)).toBe(expected);
   });

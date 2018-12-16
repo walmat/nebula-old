@@ -31,16 +31,12 @@ class ViewTask extends Component {
   }
 
   createTable() {
-    const table = this.props.tasks.map(task => (<TaskRow key={task.id} task={task} />));
+    const table = this.props.tasks.map(task => <TaskRow key={task.id} task={task} />);
     return table;
   }
 
   render() {
-    return (
-      <div className="tasks-table">
-        {this.createTable()}
-      </div>
-    );
+    return <div className="tasks-table">{this.createTable()}</div>;
   }
 }
 
@@ -52,16 +48,16 @@ const mapDispatchToProps = dispatch => ({
   onChange: (task, changes) => {
     dispatch(taskActions.edit(task.id, changes.field, changes.value));
   },
-  onUpdateTask: (task) => {
+  onUpdateTask: task => {
     dispatch(taskActions.update(task.id, task));
   },
-  onStartTask: (task) => {
+  onStartTask: task => {
     dispatch(taskActions.start(task.id));
   },
-  onStopTask: (task) => {
+  onStopTask: task => {
     dispatch(taskActions.stop(task.id));
   },
-  onDestroyTask: (task) => {
+  onDestroyTask: task => {
     dispatch(taskActions.remove(task.id));
   },
 });
@@ -73,4 +69,7 @@ ViewTask.propTypes = {
   onDestroyTask: PropTypes.func.isRequired,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ViewTask);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ViewTask);

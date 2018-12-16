@@ -24,7 +24,6 @@ const bodymovinOptions = {
   },
 };
 
-
 export class NavbarPrimitive extends PureComponent {
   static _getAppData() {
     if (window.Bridge) {
@@ -34,7 +33,15 @@ export class NavbarPrimitive extends PureComponent {
   }
 
   render() {
-    const { history, navbar, onKeyPress } = this.props;
+    const {
+      history,
+      navbar,
+      onKeyPress,
+      onRouteTasks,
+      onRouteProfiles,
+      onRouteServer,
+      onRouteSettings,
+    } = this.props;
     const { name, version } = NavbarPrimitive._getAppData();
 
     return (
@@ -47,9 +54,11 @@ export class NavbarPrimitive extends PureComponent {
             tabIndex={0}
             title="TASKS"
             onKeyPress={onKeyPress}
-            className={navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null}
+            className={
+              navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null
+            }
             onClick={() => {
-              this.props.onRouteTasks(history);
+              onRouteTasks(history);
             }}
           >
             <img src={tasks} className="main-icons" id="icon-tasks" alt="tasks" draggable="false" />
@@ -61,10 +70,16 @@ export class NavbarPrimitive extends PureComponent {
             onKeyPress={onKeyPress}
             className={navbar.location === ROUTES.PROFILES ? 'active' : null}
             onClick={() => {
-              this.props.onRouteProfiles(history);
+              onRouteProfiles(history);
             }}
           >
-            <img src={profiles} className="main-icons" id="icon-profiles" alt="profiles" draggable="false" />
+            <img
+              src={profiles}
+              className="main-icons"
+              id="icon-profiles"
+              alt="profiles"
+              draggable="false"
+            />
           </div>
           <div
             role="button"
@@ -73,10 +88,16 @@ export class NavbarPrimitive extends PureComponent {
             onKeyPress={onKeyPress}
             className={navbar.location === ROUTES.SERVER ? 'active' : null}
             onClick={() => {
-              this.props.onRouteServer(history);
+              onRouteServer(history);
             }}
           >
-            <img src={server} className="main-icons" id="icon-server" alt="server" draggable="false" />
+            <img
+              src={server}
+              className="main-icons"
+              id="icon-server"
+              alt="server"
+              draggable="false"
+            />
           </div>
           <div
             role="button"
@@ -85,10 +106,16 @@ export class NavbarPrimitive extends PureComponent {
             onKeyPress={onKeyPress}
             className={navbar.location === ROUTES.SETTINGS ? 'active' : null}
             onClick={() => {
-              this.props.onRouteSettings(history);
+              onRouteSettings(history);
             }}
           >
-            <img src={settings} className="main-icons" id="icon-settings" alt="settings" draggable="false" />
+            <img
+              src={settings}
+              className="main-icons"
+              id="icon-settings"
+              alt="settings"
+              draggable="false"
+            />
           </div>
           <div className="appName">
             <p>{name.replace('-', ' ')}</p>
@@ -127,4 +154,7 @@ export const mapDispatchToProps = dispatch => ({
   onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withRouter(NavbarPrimitive));
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withRouter(NavbarPrimitive));

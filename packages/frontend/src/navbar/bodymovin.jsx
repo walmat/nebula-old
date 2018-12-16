@@ -9,11 +9,12 @@ class Bodymovin extends React.Component {
     if (!isDOM) {
       return;
     }
-    const options = Object.assign({}, this.props.options);
-    options.wrapper = this.wrapper;
-    options.renderer = 'svg';
-    options.preserveAspectRatio = 'xMaxYMax meet';
-    this.animation = bodymovin.loadAnimation(options);
+    const { options } = this.props;
+    const bodymovinOptions = { ...options };
+    bodymovinOptions.wrapper = this.wrapper;
+    bodymovinOptions.renderer = 'svg';
+    bodymovinOptions.preserveAspectRatio = 'xMaxYMax meet';
+    this.animation = bodymovin.loadAnimation(bodymovinOptions);
   }
 
   shouldComponentUpdate() {
@@ -28,13 +29,14 @@ class Bodymovin extends React.Component {
   }
 
   render() {
-    const storeWrapper = (el) => {
+    const { children } = this.props;
+    const storeWrapper = el => {
       this.wrapper = el;
     };
 
     return (
       <div className="react-bodymovin-container" ref={storeWrapper}>
-        {this.props.children}
+        {children}
       </div>
     );
   }

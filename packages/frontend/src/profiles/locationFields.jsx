@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import getAllCountries from '../constants/getAllCountries';
 import getAllStates from '../constants/getAllStates';
@@ -21,64 +20,123 @@ export class LocationFieldsPrimitive extends Component {
   }
 
   createOnChangeHandler(field) {
+    const { onChange } = this.props;
     switch (field) {
       case LOCATION_FIELDS.STATE:
-      case LOCATION_FIELDS.COUNTRY:
-        return (event) => {
-          this.props.onChange({
+      case LOCATION_FIELDS.COUNTRY: {
+        return event => {
+          onChange({
             field,
             value: event,
           });
         };
-      default:
-        return (event) => {
-          this.props.onChange({
+      }
+      default: {
+        return event => {
+          onChange({
             field,
             value: event.target.value,
           });
         };
+      }
     }
   }
 
   isStatesDisabled() {
-    return (this.props.value.country && this.props.value.country.label !== 'United States') || this.props.disabled;
+    const { value, disabled } = this.props;
+    return (value.country && value.country.label !== 'United States') || disabled;
   }
 
   render() {
-    const { errors, disabled } = this.props;
+    const { id, value, errors, disabled } = this.props;
     return (
       <div>
-        <input id={`${this.props.id}-first-name`} required placeholder="First Name" onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)} value={this.props.value.firstName} style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])} disabled={disabled} />
-        <input id={`${this.props.id}-last-name`} required placeholder="Last Name" onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)} value={this.props.value.lastName} style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])} disabled={disabled} />
-        <input id={`${this.props.id}-address-one`} required placeholder="Address Line 1" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)} value={this.props.value.address} style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])} disabled={disabled} />
-        <input id={`${this.props.id}-address-two`} placeholder="Address Line 2" onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)} value={this.props.value.apt} style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])} disabled={disabled} />
-        <input id={`${this.props.id}-city`} required placeholder="City" onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)} value={this.props.value.city} style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])} disabled={disabled} />
+        <input
+          id={`${id}-first-name`}
+          required
+          placeholder="First Name"
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)}
+          value={value.firstName}
+          style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
+          disabled={disabled}
+        />
+        <input
+          id={`${id}-last-name`}
+          required
+          placeholder="Last Name"
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)}
+          value={value.lastName}
+          style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
+          disabled={disabled}
+        />
+        <input
+          id={`${id}-address-one`}
+          required
+          placeholder="Address Line 1"
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)}
+          value={value.address}
+          style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
+          disabled={disabled}
+        />
+        <input
+          id={`${id}-address-two`}
+          placeholder="Address Line 2"
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)}
+          value={value.apt}
+          style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
+          disabled={disabled}
+        />
+        <input
+          id={`${id}-city`}
+          required
+          placeholder="City"
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)}
+          value={value.city}
+          style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
+          disabled={disabled}
+        />
         <Select
           required
           placeholder="State"
           components={{ DropdownIndicator }}
-          id={`${this.props.id}-state`}
+          id={`${id}-state`}
           classNamePrefix="select"
           options={LocationFieldsPrimitive.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
-          value={this.props.value.state}
+          value={value.state}
           styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.STATE]))}
           isDisabled={this.isStatesDisabled()}
         />
-        <input id={`${this.props.id}-zip-code`} required placeholder="Zip Code" onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)} value={this.props.value.zipCode} style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])} disabled={disabled} />
+        <input
+          id={`${id}-zip-code`}
+          required
+          placeholder="Zip Code"
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
+          value={value.zipCode}
+          style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
+          disabled={disabled}
+        />
         <Select
           required
           placeholder="Country"
           components={{ DropdownIndicator }}
-          id={`${this.props.id}-country`}
+          id={`${id}-country`}
           classNamePrefix="select"
           options={LocationFieldsPrimitive.buildCountryOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
-          value={this.props.value.country}
+          value={value.country}
           styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]))}
           isDisabled={disabled}
         />
-        <input id={`${this.props.id}-phone`} required placeholder="Phone" onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)} value={this.props.value.phone} style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])} disabled={disabled} />
+        <input
+          id={`${id}-phone`}
+          required
+          placeholder="Phone"
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
+          value={value.phone}
+          style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
+          disabled={disabled}
+        />
       </div>
     );
   }
@@ -100,13 +158,15 @@ export const mapStateToProps = (state, ownProps) => ({
 });
 
 export const mapDispatchToProps = (dispatch, ownProps) => ({
-  onChange: (changes) => {
-    dispatch(profileActions.edit(
-      ownProps.profileToEdit.id,
-      ownProps.fieldToEdit,
-      changes.value,
-      changes.field,
-    ));
+  onChange: changes => {
+    dispatch(
+      profileActions.edit(
+        ownProps.profileToEdit.id,
+        ownProps.fieldToEdit,
+        changes.value,
+        changes.field,
+      ),
+    );
   },
 });
 

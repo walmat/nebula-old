@@ -35,7 +35,7 @@ export class TasksPrimitive extends Component {
   }
 
   render() {
-    const { newTask } = this.props;
+    const { newTask, onKeyPress } = this.props;
     return (
       <div className="container tasks">
         <div className="row">
@@ -63,7 +63,9 @@ export class TasksPrimitive extends Component {
           <div className="col col--start">
             <div className="row row--start">
               <div className="col">
-                <p className="body-text section-header section-header--no-top tasks-log__section-header">Log</p>
+                <p className="body-text section-header section-header--no-top tasks-log__section-header">
+                  Log
+                </p>
               </div>
             </div>
             <div className="row">
@@ -143,8 +145,10 @@ export class TasksPrimitive extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={this.props.onKeyPress}
-                    onClick={() => { this.startAllTasks(); }}
+                    onKeyPress={onKeyPress}
+                    onClick={() => {
+                      this.startAllTasks();
+                    }}
                     data-testid={addTestId('Tasks.bulkActionButton.start')}
                   >
                     <img src={startAll} alt="start all tasks" draggable="false" />
@@ -155,8 +159,10 @@ export class TasksPrimitive extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={this.props.onKeyPress}
-                    onClick={() => { this.stopAllTasks(); }}
+                    onKeyPress={onKeyPress}
+                    onClick={() => {
+                      this.stopAllTasks();
+                    }}
                     data-testid={addTestId('Tasks.bulkActionButton.stop')}
                   >
                     <img src={stopAll} alt="stop all tasks" draggable="false" />
@@ -167,8 +173,10 @@ export class TasksPrimitive extends Component {
                     className="bulk-action-sidebar__button"
                     role="button"
                     tabIndex={0}
-                    onKeyPress={this.props.onKeyPress}
-                    onClick={() => { this.destroyAllTasks(); }}
+                    onKeyPress={onKeyPress}
+                    onClick={() => {
+                      this.destroyAllTasks();
+                    }}
                     data-testid={addTestId('Tasks.bulkActionButton.destroy')}
                   >
                     <img src={destroyAll} alt="destroy all tasks" draggable="false" />
@@ -204,15 +212,18 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onDestroyTask: (task) => {
+  onDestroyTask: task => {
     dispatch(taskActions.destroy(task, 'all'));
   },
   onStartTask: (task, proxies) => {
     dispatch(taskActions.start(task, proxies));
   },
-  onStopTask: (task) => {
+  onStopTask: task => {
     dispatch(taskActions.stop(task));
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(TasksPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(TasksPrimitive);

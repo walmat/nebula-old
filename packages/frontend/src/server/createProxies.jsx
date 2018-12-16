@@ -11,18 +11,26 @@ import { buildStyle } from '../utils/styles';
 
 export class CreateProxiesPrimitive extends Component {
   createServerInfoChangeHandler(field) {
-    return event => this.props.onEditServerInfo(field, event.target.value);
+    const { onEditServerInfo } = this.props;
+    return event => onEditServerInfo(field, event.target.value);
   }
 
   createProxyLocationChangeHandle(field) {
-    return (event) => {
-      this.props.onEditServerInfo(field, event);
+    const { onEditServerInfo } = this.props;
+    return event => {
+      onEditServerInfo(field, event);
     };
   }
 
   render() {
-    const { serverInfo, serverListOptions, onKeyPress, errors } = this.props;
-    const loggedInAws = this.props.serverInfo.credentials.accessToken != null;
+    const {
+      serverInfo,
+      serverListOptions,
+      onKeyPress,
+      onDestroyProxies,
+      onGenerateProxies,
+    } = this.props;
+    const loggedInAws = serverInfo.credentials.accessToken != null;
     return (
       <div className="proxy-options col col--start col--no-gutter">
         <div className="row row--start row--gutter">
@@ -100,13 +108,18 @@ export class CreateProxiesPrimitive extends Component {
         <div className="row row--end row--expand row--gutter">
           <div className="col">
             <button
+              type="button"
               className="proxy-options__destroy"
               tabIndex={0}
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
-              onKeyPress={this.props.onKeyPress}
-              onClick={() => loggedInAws && this.props.onDestroyProxies()}
+              onKeyPress={onKeyPress}
+              onClick={() => {
+                if (loggedInAws) {
+                  onDestroyProxies();
+                }
+              }}
               data-testid={addTestId('CreateProxies.destroyProxiesButton')}
             >
               Destroy All
@@ -114,13 +127,18 @@ export class CreateProxiesPrimitive extends Component {
           </div>
           <div className="col">
             <button
+              type="button"
               className="proxy-options__generate"
               tabIndex={0}
               disabled={!loggedInAws}
               style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={onKeyPress}
-              onClick={() => loggedInAws && this.props.onGenerateProxies(serverInfo.proxyOptions)}
+              onClick={() => {
+                if (loggedInAws) {
+                  onGenerateProxies(serverInfo.proxyOptions);
+                }
+              }}
               data-testid={addTestId('CreateProxies.generateProxiesButton')}
             >
               Generate
@@ -156,7 +174,7 @@ export const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
-  onGenerateProxies: (options) => {
+  onGenerateProxies: options => {
     dispatch(serverActions.generateProxies(options));
   },
   onDestroyProxies: () => {
@@ -164,4 +182,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CreateProxiesPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CreateProxiesPrimitive);

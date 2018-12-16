@@ -18,20 +18,13 @@ describe('profile reducer', () => {
   });
 
   describe('should handle an edit', () => {
-    const checkFieldEdit = ({
-      message,
-      field,
-      subField,
-      initialFieldState,
-      value,
-    }) => {
+    const checkFieldEdit = ({ message, field, subField, initialFieldState, value }) => {
       test(`${message} when valid`, () => {
         const expected = {
           ...initialProfileStates.profile,
           [mapProfileFieldToKey[field]]: {
             ...initialFieldState,
-            [mapLocationFieldToKey[subField] ||
-            mapPaymentFieldToKey[subField]]: value,
+            [mapLocationFieldToKey[subField] || mapPaymentFieldToKey[subField]]: value,
           },
         };
         const actual = profileReducer(initialProfileStates.profile, {

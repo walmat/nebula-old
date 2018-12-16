@@ -11,20 +11,22 @@ import getAllSizes from '../../constants/getAllSizes';
 describe('<Settings />', () => {
   let defaultProps;
 
-  const renderShallowWithProps = (customProps) => {
+  const renderShallowWithProps = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return shallow(<SettingsPrimitive
-      profiles={renderProps.profiles}
-      settings={renderProps.settings}
-      onSettingsChange={renderProps.onSettingsChange}
-      onSaveDefaults={renderProps.onSaveDefaults}
-      onClearDefaults={renderProps.onClearDefaults}
-      onKeyPress={renderProps.onKeyPress}
-      errors={renderProps.settings.errors}
-    />);
+    return shallow(
+      <SettingsPrimitive
+        profiles={renderProps.profiles}
+        settings={renderProps.settings}
+        onSettingsChange={renderProps.onSettingsChange}
+        onSaveDefaults={renderProps.onSaveDefaults}
+        onClearDefaults={renderProps.onClearDefaults}
+        onKeyPress={renderProps.onKeyPress}
+        errors={renderProps.settings.errors}
+      />,
+    );
   };
 
   beforeEach(() => {
@@ -308,7 +310,7 @@ describe('<Settings />', () => {
         slack: 'slackTest',
       },
       extra: 'fields',
-      that: 'aren\'t included',
+      that: "aren't included",
     };
     const expected = {
       profiles: state.profiles,
@@ -330,11 +332,17 @@ describe('<Settings />', () => {
       sizes: [],
     });
     actual.onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
-    expect(dispatch).toHaveBeenNthCalledWith(1, settingsActions.edit(SETTINGS_FIELDS.EDIT_DISCORD, 'test'));
-    expect(dispatch).toHaveBeenNthCalledWith(2, settingsActions.save({
-      profile: {},
-      sizes: [],
-    }));
+    expect(dispatch).toHaveBeenNthCalledWith(
+      1,
+      settingsActions.edit(SETTINGS_FIELDS.EDIT_DISCORD, 'test'),
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      settingsActions.save({
+        profile: {},
+        sizes: [],
+      }),
+    );
     expect(dispatch).toHaveBeenNthCalledWith(3, settingsActions.clear(SETTINGS_FIELDS.CLEAR));
   });
 });

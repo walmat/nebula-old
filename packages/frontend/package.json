@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "cross-env GENERATE_SOURCEMAP=false react-app-rewired build",
-    "ci": "CI=true npm run test",
+    "ci": "cross-env CI=true npm run test",
     "coverage": "npm run test -- --coverage",
     "dev-server": "cross-env HTTPS=true react-app-rewired start",
     "dev": "cross-env NODE_ENV=development electron .",
@@ -45,6 +45,7 @@
     "dotenv": "^6.0.0",
     "electron-store": "^2.0.0",
     "express": "^4.16.3",
+    "lodash": "^4.17.11",
     "moment": "^2.22.2",
     "node-fetch": "^2.2.0",
     "prop-types": "^15.6.2",

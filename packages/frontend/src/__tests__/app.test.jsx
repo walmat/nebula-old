@@ -74,7 +74,6 @@ describe('Top Level App', () => {
         expect.assertions(5);
         const wrapper = appProvider();
         const { store } = wrapper.instance().props;
-        const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
         const ev = {
           preventDefault: jest.fn(),
         };
@@ -106,7 +105,6 @@ describe('Top Level App', () => {
         expect.assertions(5);
         const wrapper = appProvider();
         const { store } = wrapper.instance().props;
-        const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
         const ev = {
           preventDefault: jest.fn(),
         };
@@ -132,7 +130,6 @@ describe('Top Level App', () => {
         expect.assertions(4);
         const wrapper = appProvider();
         const { store } = wrapper.instance().props;
-        const deactivateButton = getByTestId(wrapper, 'App.button.deactivate');
         const ev = {
           preventDefault: jest.fn(),
         };
@@ -275,9 +272,7 @@ describe('Top Level App', () => {
         ...defaultProps,
         ...customProps,
       };
-      return shallow(
-        <App store={renderProps.store} onKeyPress={renderProps.onKeyPress} />,
-      );
+      return shallow(<App store={renderProps.store} onKeyPress={renderProps.onKeyPress} />);
     };
 
     testApp(appProvider);
