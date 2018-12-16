@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 const nebulaenv = require('./env');
+// eslint-disable-next-line import/no-unresolved
 const baseConfig = require('../../dynamoConfig.json');
 
 function getConfig() {
