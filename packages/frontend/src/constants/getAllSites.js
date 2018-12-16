@@ -5,6 +5,7 @@ const s = [
     value: 'https://kith.com',
     label: 'Kith',
     supported: true,
+    apiKey: '08430b96c47dd2ac8e17e305db3b71e8',
     auth: false,
   },
   {

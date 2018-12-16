@@ -57,7 +57,7 @@ function buildCheckoutForm(task) {
             }
         },
     }
-    // console.log(form);
+    console.log(JSON.stringify(form));
     return form;
 }
 module.exports.buildCheckoutForm = buildCheckoutForm;
