@@ -109,6 +109,7 @@ export class CreateTaskPrimitive extends Component {
     if (task.site !== null) {
       accountFieldsDisabled = !task.site.auth;
     }
+
     return (
       <div className="tasks-create col col--start col--no-gutter">
         <div className="row row--start row--gutter">
