@@ -63,7 +63,7 @@ function buildCheckoutForm(task) {
 module.exports.buildCheckoutForm = buildCheckoutForm;
 
 function buildPaymentForm(paymentToken, shippingMethod, captchaToken) {
-    return {
+    let form = {
         utf8: '✓',
         _method: 'patch',
         authenticity_token: '',
@@ -80,6 +80,9 @@ function buildPaymentForm(paymentToken, shippingMethod, captchaToken) {
         'checkout[shipping_rate][id]': shippingMethod,
         button: '',
     };
+
+    console.log(form);
+    return form;
 }
 module.exports.buildPaymentForm = buildPaymentForm;
 

@@ -1,5 +1,7 @@
 const phoneFormatter = require('phone-formatter');
 const _ = require('underscore');
+const fs = require('fs');
+const path = require('path');
 const {
   States
 } = require('./utils/constants').TaskRunner;
@@ -228,7 +230,6 @@ class Checkout {
       })
       .then((res) => {
         const body = JSON.parse(res.body.toString());
-        console.log(body);
         if (res.statusCode === 303) {
           this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
           Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
@@ -293,6 +294,7 @@ class Checkout {
 
     if (!this._checkoutTokens.isEmpty()) {
       this._logger.verbose('Adding to cart.');
+      // check to see if checkout token was already set, useful for restocks
       this._checkoutToken = this._checkoutTokens.pop();
       return this._request({
           uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}.json`,
@@ -306,13 +308,30 @@ class Checkout {
           body: dataString,
         })
         .then((res) => {
+          // error handling
           console.log(res.body);
-          if (res.body.errors && res.body.errors.line_items[0].quantity[0].code.includes('not_enough_in_stock')) {
-            this._logger.info('Out of stock, running for restocks');
-            return { // TODO - implement this bitch again
-              message: 'Running for restocks',
-              nextState: Checkout.States.Stopped,
+          if (res.body.errors && res.body.errors.line_items) {
+            const error = res.body.errors.line_items[0];
+            if (error.quantity) {
+              this._logger.info('Out of stock, running for restocks');
+              return { // TODO - implement this bitch again
+                message: 'Running for restocks',
+                nextState: Checkout.States.Stopped,
+              }
+            } else if (error.variant_id) {
+              this._logger.info('Wrong size type specified, stopping..');
+              return {
+                message: 'Failed: Invalid size',
+                nextState: Checkout.States.Stopped,
+              }
+            } else {
+              this._logger.info('');
+              return {
+                message: `Failed: ${error}`,
+                nextState: Checkout.States.Stopped,
+              }
             }
+            // otherwise, check to see if line_items was updated
           } else if (res.body.checkout && res.body.checkout.line_items.length > 0) {
             this._logger.info('Added to cart.');
             return {
@@ -382,11 +401,11 @@ class Checkout {
             return rate.price;
           });
 
-          this._chosenShippingMethod = cheapest.id;
+          this._chosenShippingMethod = { id: cheapest.id, name: cheapest.title };
           this._logger.info('Got shipping method in %s', this._chosenShippingMethod);
 
           return {
-            message: `Using shipping method ${this._chosenShippingMethod}`,
+            message: `Found shipping rate: ${this._chosenShippingMethod.name}`,
             nextState: Checkout.States.PostPayment,
           }
         } else {
@@ -427,11 +446,12 @@ class Checkout {
    */
   async _handlePostPayment() {
     this._logger.verbose('Posting payment.');
+    const auth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
 
-    var headers = {
+    const headers = {
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
-      'Content-Type': 'multipart/form-data; boundary=--------------------------621336444578710673040704',
+      'Content-Type': 'multipart/form-data',
       'Upgrade-Insecure-Requests': '1',
       'X-Shopify-Checkout-Version': '2016-09-06',
       'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
@@ -449,22 +469,25 @@ class Checkout {
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers,
-        formData: JSON.stringify(buildPaymentForm(this._paymentTokens.pop(), this._chosenShippingMethod, this._captchaToken)),
-      })
-      .then((res) => {
-        console.log(res.request.href, res.statusCode);
-        // TODO - move to ./utils/forms.js
-        const form = {
-          utf8: '✓',
-          _method: 'patch',
-          authenticity_token: '',
+        formData: {
+          'utf8': '✓',
+          '_method': 'patch',
+          'authenticity_token': '',
+          'previous_step': 'payment_method',
+          'step': '',
+          's': this._paymentTokens.pop(),
+          'checkout[remember_me]': 0,
           'checkout[total_price]': '',
           'complete': 1,
-          button: '',
           'checkout[client_details][browser_width]': '979',
           'checkout[client_details][browser_height]': '631',
           'checkout[client_details][javascript_enabled]': '1',
-        }
+          'checkout[buyer_accepts_marketing]': '0',
+          'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
+          'button': '',
+        },
+      })
+      .then((res) => {
         return this._request({
           uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
           method: 'POST',
@@ -475,14 +498,46 @@ class Checkout {
           rejectUnauthorized: false,
           resolveWithFullResponse: true,
           headers,
-          formData: JSON.stringify(form)
+          formData: {
+            'utf8': '✓',
+            '_method': 'patch',
+            'authenticity_token': '',
+            'checkout[total_price]': '',
+            'complete': 1,
+            'button': '',
+            'checkout[client_details][browser_width]': '979',
+            'checkout[client_details][browser_height]': '631',
+            'checkout[client_details][javascript_enabled]': '1',
+          },
         })
         .then((res) => {
-          console.log(res.request.href, res.statusCode);
-          return {
-            message: 'TODO - implement payment processing',
-            nextState: Checkout.States.Stopped,
-          }
+          fs.writeFileSync(path.join(__dirname, 'payment.html'), res.body);
+          const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Shopify-Checkout-Version': '2016-09-06',
+            'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
+            'User-Agent': userAgent,
+            'host': `${this._task.site.url.split('/')[2]}`,
+            'authorization': `Basic ${auth}`
+          };
+          return this._request({
+            uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/payments`,
+            method: 'GET',
+            proxy: formatProxy(this._proxy),
+            simple: false,
+            json: true,
+            rejectUnauthorized: false,
+            resolveWithFullResponse: true,
+            headers,
+          })
+          .then((res) => {
+            console.log(res.statusCode, res.request.href, res.body);
+            return {
+              message: 'Payment failed.',
+              nextState: Checkout.States.Stopped,
+            };
+          });
         })
       })
       .catch((err) => {
