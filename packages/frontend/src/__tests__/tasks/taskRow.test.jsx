@@ -2,17 +2,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import {
-  TaskRowPrimitive,
-  mapStateToProps,
-  mapDispatchToProps,
-} from '../../tasks/taskRow';
+import { TaskRowPrimitive, mapStateToProps, mapDispatchToProps } from '../../tasks/taskRow';
 import { TASK_FIELDS, taskActions } from '../../state/actions';
 import { initialTaskStates } from '../../utils/definitions/taskDefinitions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
-import buildSitesOptions, {
-  getAllSupportedSitesSorted,
-} from '../../constants/getAllSites';
+import buildSitesOptions, { getAllSupportedSitesSorted } from '../../constants/getAllSites';
 import getAllSizes from '../../constants/getAllSizes';
 
 import getByTestId from '../../__testUtils__/getByTestId';
@@ -78,39 +72,21 @@ describe('<TaskRow />', () => {
     expect(getByTestId(wrapper, 'TaskRow.button.edit')).toHaveLength(1);
     expect(getByTestId(wrapper, 'TaskRow.button.action.start')).toHaveLength(1);
     expect(getByTestId(wrapper, 'TaskRow.button.action.stop')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'TaskRow.button.action.destroy')).toHaveLength(
-      1,
-    );
+    expect(getByTestId(wrapper, 'TaskRow.button.action.destroy')).toHaveLength(1);
   };
 
   const testIfEditMenuComponentsAreRendered = (wrapper, isShowing) => {
     const expected = isShowing ? 1 : 0;
     expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
     expect(wrapper.find('.tasks-row--edit')).toHaveLength(expected);
-    expect(getByTestId(wrapper, 'TaskRow.edit.productInput')).toHaveLength(
-      expected,
-    );
-    expect(getByTestId(wrapper, 'TaskRow.edit.siteSelect')).toHaveLength(
-      expected,
-    );
-    expect(getByTestId(wrapper, 'TaskRow.edit.profileSelect')).toHaveLength(
-      expected,
-    );
-    expect(getByTestId(wrapper, 'TaskRow.edit.sizesSelect')).toHaveLength(
-      expected,
-    );
-    expect(getByTestId(wrapper, 'TaskRow.edit.usernameInput')).toHaveLength(
-      expected,
-    );
-    expect(getByTestId(wrapper, 'TaskRow.edit.passwordInput')).toHaveLength(
-      expected,
-    );
-    expect(getByTestId(wrapper, 'TaskRow.edit.button.save')).toHaveLength(
-      expected,
-    );
-    expect(getByTestId(wrapper, 'TaskRow.edit.button.cancel')).toHaveLength(
-      expected,
-    );
+    expect(getByTestId(wrapper, 'TaskRow.edit.productInput')).toHaveLength(expected);
+    expect(getByTestId(wrapper, 'TaskRow.edit.siteSelect')).toHaveLength(expected);
+    expect(getByTestId(wrapper, 'TaskRow.edit.profileSelect')).toHaveLength(expected);
+    expect(getByTestId(wrapper, 'TaskRow.edit.sizesSelect')).toHaveLength(expected);
+    expect(getByTestId(wrapper, 'TaskRow.edit.usernameInput')).toHaveLength(expected);
+    expect(getByTestId(wrapper, 'TaskRow.edit.passwordInput')).toHaveLength(expected);
+    expect(getByTestId(wrapper, 'TaskRow.edit.button.save')).toHaveLength(expected);
+    expect(getByTestId(wrapper, 'TaskRow.edit.button.cancel')).toHaveLength(expected);
   };
 
   const testButtonValues = (wrapper, tag, title, className) => {
@@ -126,42 +102,24 @@ describe('<TaskRow />', () => {
   const testActionButtonValues = (wrapper, tag, title, className) =>
     testButtonValues(wrapper, `action.${tag}`, title, className);
 
-  const testTableRowValues = (
-    wrapper,
-    { id, product, siteName, profileName, sizes, account },
-  ) => {
+  const testTableRowValues = (wrapper, { id, product, siteName, profileName, sizes, account }) => {
     expect(wrapper.find('.tasks-row__id').text()).toBe(id || '--');
     expect(wrapper.find('.tasks-row__product').text()).toBe(product || 'None');
     expect(wrapper.find('.tasks-row__sites').text()).toBe(siteName || 'None');
-    expect(wrapper.find('.tasks-row__profile').text()).toBe(
-      profileName || 'None',
-    );
+    expect(wrapper.find('.tasks-row__profile').text()).toBe(profileName || 'None');
     expect(wrapper.find('.tasks-row__sizes').text()).toBe(sizes || 'None');
     expect(wrapper.find('.tasks-row__account').text()).toBe(account || 'None');
   };
 
-  const testEditMenuValues = (
-    wrapper,
-    { product, site, profile, sizes, username, password },
-  ) => {
-    expect(
-      getByTestId(wrapper, 'TaskRow.edit.productInput').prop('value'),
-    ).toBe(product || null);
-    expect(
-      getByTestId(wrapper, 'TaskRow.edit.siteSelect').prop('value'),
-    ).toEqual(site || null);
-    expect(
-      getByTestId(wrapper, 'TaskRow.edit.profileSelect').prop('value'),
-    ).toEqual(profile || null);
-    expect(
-      getByTestId(wrapper, 'TaskRow.edit.sizesSelect').prop('value'),
-    ).toEqual(sizes || []);
-    expect(
-      getByTestId(wrapper, 'TaskRow.edit.usernameInput').prop('value'),
-    ).toBe(username || '');
-    expect(
-      getByTestId(wrapper, 'TaskRow.edit.passwordInput').prop('value'),
-    ).toBe(password || '');
+  const testEditMenuValues = (wrapper, { product, site, profile, sizes, username, password }) => {
+    expect(getByTestId(wrapper, 'TaskRow.edit.productInput').prop('value')).toBe(product || null);
+    expect(getByTestId(wrapper, 'TaskRow.edit.siteSelect').prop('value')).toEqual(site || null);
+    expect(getByTestId(wrapper, 'TaskRow.edit.profileSelect').prop('value')).toEqual(
+      profile || null,
+    );
+    expect(getByTestId(wrapper, 'TaskRow.edit.sizesSelect').prop('value')).toEqual(sizes || []);
+    expect(getByTestId(wrapper, 'TaskRow.edit.usernameInput').prop('value')).toBe(username || '');
+    expect(getByTestId(wrapper, 'TaskRow.edit.passwordInput').prop('value')).toBe(password || '');
   };
 
   it('should render with required default props', () => {
@@ -802,10 +760,7 @@ describe('<TaskRow />', () => {
       startButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       startButton.simulate('click');
-      expect(customProps.onStartTask).toHaveBeenCalledWith(
-        customProps.task,
-        customProps.proxies,
-      );
+      expect(customProps.onStartTask).toHaveBeenCalledWith(customProps.task, customProps.proxies);
     });
   });
 
@@ -924,9 +879,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const input = getByTestId(wrapper, 'TaskRow.edit.productInput');
-      expect(input.prop('className')).toEqual(
-        expect.stringContaining('edit-field__input'),
-      );
+      expect(input.prop('className')).toEqual(expect.stringContaining('edit-field__input'));
       expect(input.prop('type')).toBe('text');
       expect(input.prop('required')).toBeTruthy();
       expect(input.prop('onChange')).toBeDefined();
@@ -954,9 +907,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const input = getByTestId(wrapper, 'TaskRow.edit.siteSelect');
-      expect(input.prop('className')).toEqual(
-        expect.stringContaining('edit-field__select'),
-      );
+      expect(input.prop('className')).toEqual(expect.stringContaining('edit-field__select'));
       expect(input.prop('options')).toEqual(buildSitesOptions());
       expect(input.prop('required')).toBeTruthy();
       expect(input.prop('onChange')).toBeDefined();
@@ -998,9 +949,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const input = getByTestId(wrapper, 'TaskRow.edit.profileSelect');
-      expect(input.prop('className')).toEqual(
-        expect.stringContaining('edit-field__select'),
-      );
+      expect(input.prop('className')).toEqual(expect.stringContaining('edit-field__select'));
       expect(input.prop('options')).toEqual([
         { value: 1, label: 'profile1' },
         { value: 2, label: 'profile2' },
@@ -1037,9 +986,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const input = getByTestId(wrapper, 'TaskRow.edit.sizesSelect');
-      expect(input.prop('className')).toEqual(
-        expect.stringContaining('edit-field__select'),
-      );
+      expect(input.prop('className')).toEqual(expect.stringContaining('edit-field__select'));
       expect(input.prop('options')).toEqual(getAllSizes());
       expect(input.prop('required')).toBeTruthy();
       expect(input.prop('onChange')).toBeDefined();
@@ -1072,9 +1019,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const input = getByTestId(wrapper, 'TaskRow.edit.usernameInput');
-      expect(input.prop('className')).toEqual(
-        expect.stringContaining('edit-field__input'),
-      );
+      expect(input.prop('className')).toEqual(expect.stringContaining('edit-field__input'));
       expect(input.prop('type')).toBe('text');
       expect(input.prop('required')).toBeFalsy();
       expect(input.prop('disabled')).toBeTruthy();
@@ -1094,9 +1039,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const input = getByTestId(wrapper, 'TaskRow.edit.usernameInput');
-      expect(input.prop('className')).toEqual(
-        expect.stringContaining('edit-field__input'),
-      );
+      expect(input.prop('className')).toEqual(expect.stringContaining('edit-field__input'));
       expect(input.prop('type')).toBe('text');
       expect(input.prop('required')).toBeTruthy();
       expect(input.prop('disabled')).toBeFalsy();
@@ -1125,9 +1068,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const input = getByTestId(wrapper, 'TaskRow.edit.passwordInput');
-      expect(input.prop('className')).toEqual(
-        expect.stringContaining('edit-field__input'),
-      );
+      expect(input.prop('className')).toEqual(expect.stringContaining('edit-field__input'));
       expect(input.prop('type')).toBe('text');
       expect(input.prop('required')).toBeFalsy();
       expect(input.prop('disabled')).toBeTruthy();
@@ -1147,9 +1088,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const input = getByTestId(wrapper, 'TaskRow.edit.passwordInput');
-      expect(input.prop('className')).toEqual(
-        expect.stringContaining('edit-field__input'),
-      );
+      expect(input.prop('className')).toEqual(expect.stringContaining('edit-field__input'));
       expect(input.prop('type')).toBe('text');
       expect(input.prop('required')).toBeTruthy();
       expect(input.prop('disabled')).toBeFalsy();
@@ -1178,12 +1117,8 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const button = getByTestId(wrapper, 'TaskRow.edit.button.save');
-      expect(button.prop('className')).toEqual(
-        expect.stringContaining('action__button'),
-      );
-      expect(button.prop('className')).toEqual(
-        expect.stringContaining('action__button--save'),
-      );
+      expect(button.prop('className')).toEqual(expect.stringContaining('action__button'));
+      expect(button.prop('className')).toEqual(expect.stringContaining('action__button--save'));
       expect(button.prop('onClick')).toBeDefined();
       expect(button.prop('onKeyPress')).toBeDefined();
       expect(button.text()).toBe('Save');
@@ -1215,12 +1150,8 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const button = getByTestId(wrapper, 'TaskRow.edit.button.cancel');
-      expect(button.prop('className')).toEqual(
-        expect.stringContaining('action__button'),
-      );
-      expect(button.prop('className')).toEqual(
-        expect.stringContaining('action__button--cancel'),
-      );
+      expect(button.prop('className')).toEqual(expect.stringContaining('action__button'));
+      expect(button.prop('className')).toEqual(expect.stringContaining('action__button--cancel'));
       expect(button.prop('onClick')).toBeDefined();
       expect(button.prop('onKeyPress')).toBeDefined();
       expect(button.text()).toBe('Cancel');
@@ -1310,10 +1241,7 @@ describe('<TaskRow />', () => {
     actual.onDestroyTask(testTask);
 
     expect(dispatch).toHaveBeenCalledTimes(8);
-    expect(dispatch).toHaveBeenNthCalledWith(
-      1,
-      taskActions.edit(1, 'test_field', 'test_value'),
-    );
+    expect(dispatch).toHaveBeenNthCalledWith(1, taskActions.edit(1, 'test_field', 'test_value'));
     expect(dispatch).toHaveBeenNthCalledWith(2, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(3, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(4, taskActions.select(testTask));

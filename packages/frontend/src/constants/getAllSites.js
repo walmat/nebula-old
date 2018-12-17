@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import sites from './sites.json';
 
 export function buildSitesOptions(siteList) {
@@ -9,18 +8,21 @@ export function buildSitesOptions(siteList) {
   }));
 }
 
-export default async function fetchSites() {
-  if (window.Bridge) {
-    const newSites = await window.Bridge.requestSiteData();
-    console.log(newSites);
-    // TODO - newSites is always undefined..
-    if (newSites) {
-      return buildSitesOptions(newSites);
+export default function fetchSites() {
+  return new Promise(async resolve => {
+    let fetched;
+    if (window.Bridge) {
+      const newSites = await window.Bridge.requestSiteData();
+      if (newSites) {
+        fetched = buildSitesOptions(newSites);
+      } else {
+        fetched = buildSitesOptions(sites);
+      }
     }
-  }
-  return buildSitesOptions(sites);
+    resolve(fetched);
+  });
 }
 
 export function getSite(list, name) {
-  return list.find(s => s.name === name);
+  return list.find(s => s.label === name);
 }

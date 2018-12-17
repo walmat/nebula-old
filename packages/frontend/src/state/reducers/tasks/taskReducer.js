@@ -1,10 +1,10 @@
 import { parseURL } from 'whatwg-url';
 import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
-import { getAllSupportedSitesSorted } from '../../../constants/getAllSites';
+import fetchSites from '../../../constants/getAllSites';
 // import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
 
-export function taskReducer(state = initialTaskStates.task, action) {
+export async function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
   if (action.type === TASK_ACTIONS.EDIT) {
     // Check if we are editing a new task or an existing one
@@ -28,17 +28,14 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (!URL || !URL.host) {
             break;
           }
-          const site = getAllSupportedSitesSorted().filter(s =>
-            URL.host.includes(s.url.split('/')[2]),
-          );
+          const sites = await fetchSites();
+          const site = sites.filter(s => URL.host.includes(s.value.split('/')[2]));
           if (site.length === 0) {
             break;
           }
           change = {
             ...change,
-            site: getAllSupportedSitesSorted().filter(
-              s => s.name === site[0].name,
-            )[0],
+            site: sites.filter(s => s.label === site[0].label)[0],
             username: null,
             password: null,
             errors: Object.assign({}, state.errors, action.errors),
@@ -114,16 +111,15 @@ export function taskReducer(state = initialTaskStates.task, action) {
             if (!URL || !URL.host) {
               break;
             }
-            const site = getAllSupportedSitesSorted().filter(s =>
-              URL.host.includes(s.url.split('/')[2]),
-            );
+            const sites = await fetchSites();
+            const site = sites.filter(s => URL.host.includes(s.value.split('/')[2]));
             if (site.length === 0) {
               break;
             }
             change = {
               edits: {
                 ...change.edits,
-                site: getAllSupportedSitesSorted().filter(s => s.name === site[0].name)[0],
+                site: sites.filter(s => s.label === site[0].label)[0],
                 username: null,
                 password: null,
                 errors: Object.assign({}, state.edits.errors, action.errors),

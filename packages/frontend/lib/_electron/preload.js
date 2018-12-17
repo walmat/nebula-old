@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 const _ = require('underscore');
 const { remote } = require('electron');
 const { dialog, app } = require('electron').remote;
@@ -53,7 +54,7 @@ const _deactivate = () => {
  */
 window.addEventListener(
   'dragover',
-  (event) => {
+  event => {
     event.preventDefault();
     return false;
   },
@@ -65,7 +66,7 @@ window.addEventListener(
  */
 window.addEventListener(
   'drop',
-  (event) => {
+  event => {
     event.preventDefault();
     return false;
   },
@@ -77,7 +78,7 @@ window.addEventListener(
  *
  * @param {String} key user's license key (XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)
  */
-const _authenticate = (key) => {
+const _authenticate = key => {
   _sendEvent(IPCKeys.AuthRequestActivate, key);
 };
 
@@ -122,19 +123,19 @@ const _harvestCaptchaToken = (runnerId, token, siteKey) => {
   _sendEvent(IPCKeys.HarvestCaptcha, runnerId, token, siteKey);
 };
 
-const _registerForStartHarvestCaptcha = (callback) => {
+const _registerForStartHarvestCaptcha = callback => {
   _handleEvent(IPCKeys.StartHarvestCaptcha, callback);
 };
 
-const _deregisterForStartHarvestCaptcha = (callback) => {
+const _deregisterForStartHarvestCaptcha = callback => {
   _removeEvent(IPCKeys.StartHarvestCaptcha, callback);
 };
 
-const _registerForStopHarvestCaptcha = (callback) => {
+const _registerForStopHarvestCaptcha = callback => {
   _handleEvent(IPCKeys.StopHarvestCaptcha, callback);
 };
 
-const _deregisterForStopHarvestCaptcha = (callback) => {
+const _deregisterForStopHarvestCaptcha = callback => {
   _removeEvent(IPCKeys.StopHarvestCaptcha, callback);
 };
 
@@ -154,7 +155,8 @@ const _getAppData = () => ({ name: app.getName(), version: app.getVersion() });
  * ... TODO!
  * Sends the confirmation dialog trigger to windowManager.js
  */
-const _confirmDialog = async message => new Promise((resolve) => {
+const _confirmDialog = async message =>
+  new Promise(resolve => {
     dialog.showMessageBox(
       {
         type: 'question',
@@ -169,79 +171,74 @@ const _confirmDialog = async message => new Promise((resolve) => {
 /**
  * Sends a listener for task events to taskManagerWrapper.js
  */
-const _registerForTaskEvents = (handler) => {
+const _registerForTaskEvents = handler => {
   _sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
-  ipcRenderer.once(
-    IPCKeys.RequestRegisterTaskEventHandler,
-    (event, eventKey) => {
-      // Check and make sure we have a key to listen on
-      if (eventKey) {
-        _handleEvent(eventKey, handler);
-      } else {
-        console.error('Unable to Register for Task Events!');
-      }
-    },
-  );
+  ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to listen on
+    if (eventKey) {
+      _handleEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Register for Task Events!');
+    }
+  });
 };
 
 /**
  * Removes a listener for task events to taskManagerWrapper.js
  */
-const _deregisterForTaskEvents = (handler) => {
+const _deregisterForTaskEvents = handler => {
   _sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
-  ipcRenderer.once(
-    IPCKeys.RequestDeregisterTaskEventHandler,
-    (event, eventKey) => {
-      // Check and make sure we have a key to deregister from
-      if (eventKey) {
-        _removeEvent(eventKey, handler);
-      } else {
-        console.error('Unable to Deregister from Task Events!');
-      }
-    },
-  );
+  ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to deregister from
+    if (eventKey) {
+      _removeEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Deregister from Task Events!');
+    }
+  });
 };
 
 /**
  * Sends task(s) that should be started to taskManagerWrapper.js
  */
-const _startTasks = (tasks) => {
+const _startTasks = tasks => {
   _sendEvent(IPCKeys.RequestStartTasks, tasks);
 };
 
 /**
  * Sends task(s) that should be stopped to taskManagerWrapper.js
  */
-const _stopTasks = (tasks) => {
+const _stopTasks = tasks => {
   _sendEvent(IPCKeys.RequestStopTasks, tasks);
 };
 
 /**
  * Sends proxies(s) that should be add to taskManagerWrapper.js
  */
-const _addProxies = (proxies) => {
+const _addProxies = proxies => {
   _sendEvent(IPCKeys.RequestAddProxies, proxies);
 };
 
 /**
  * Sends task(s) that should be removed to taskManagerWrapper.js
  */
-const _removeProxies = (proxies) => {
+const _removeProxies = proxies => {
   _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
 };
 
 /**
  * Sends site data to the appSetup.js
  */
-const _requestSiteData = () => new Promise((resolve) => {
-  _sendEvent(IPCKeys.RequestSiteData);
-  ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
-    const supported = nebulaEnv.isDevelopment()
-      ? sites.filter(site => site.supported === 'stable' || site.supported === 'experimental')
-      : sites.filter(site => site.supported === 'stable');
-    resolve(_.sortBy(supported, 'name'));
+const _requestSiteData = () =>
+  new Promise(resolve => {
+    _sendEvent(IPCKeys.RequestSiteData);
+    ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
+      const supported = nebulaEnv.isDevelopment()
+        ? sites.filter(site => site.supported === 'stable' || site.supported === 'experimental')
+        : sites.filter(site => site.supported === 'stable');
+      resolve(_.sortBy(supported, 'name'));
+    });
   });
-});
 
 // Disable eval in the preload context
 // eslint-disable-next-line

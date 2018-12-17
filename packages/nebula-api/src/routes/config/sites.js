@@ -1,58 +1,59 @@
-const AWS = require("aws-sdk");
+const AWS = require('aws-sdk');
 const authenticate = require('../../middleware/authenticate');
 const nebulaEnv = require('../../utils/env');
+
 nebulaEnv.setUpEnvironment();
-var config = require('../../utils/setupDynamoConfig').getConfig();
+const config = require('../../utils/setupDynamoConfig').getConfig();
+
 AWS.config = new AWS.Config(config);
 const docClient = new AWS.DynamoDB.DocumentClient({ endpoint: new AWS.Endpoint(config.endpoint) });
 
-const LATEST_VERSION = process.env.NEBULA_API_SITES_LATEST_VERSION || "1.0.0";
+const LATEST_VERSION = process.env.NEBULA_API_SITES_LATEST_VERSION || '1.0.0';
 
 async function getAllSites() {
-    try {
-      let params = {
-        TableName: "Sites"
-      }
-      let result = await docClient.scan(params).promise();
-      if (result.Items.length > 0) {
-        return result.Items;
-      }
-      return null;
-    } catch (err) {
-        console.log(err);
-      return null;
+  try {
+    const params = {
+      TableName: 'Sites',
+    };
+    const result = await docClient.scan(params).promise();
+    if (result.Items.length > 0) {
+      return result.Items;
     }
+    return null;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
 }
 
+// eslint-disable-next-line func-names
 module.exports = async function(app) {
-    /**
-     * Get the latest sitelist version
-     */
-    app.get('/config/sites/latest', authenticate, async (req, res) => {
-        res.status(200).json({ version: LATEST_VERSION });
-    });
-    
-    /**
-     * Get a specific sitelist veresion
-     */
-    app.get('/config/sites/:version', authenticate, async (req, res) => {
+  /**
+   * Get the latest sitelist version
+   */
+  app.get('/config/sites/latest', authenticate, async (req, res) => {
+    res.status(200).json({ version: LATEST_VERSION });
+  });
 
-        const version = req.params.version;
-        const sites = await getAllSites(version);
-        if (sites) {
-            console.log('here');
-            res.status(200).json({ sites: sites });
-        } else {
-            console.log('actually here');
-            res.status(404).json({
-                name: 'NotFound',
-                message: 'Site list not found',
-            });
-        }
-    });
+  /**
+   * Get a specific sitelist veresion
+   */
+  app.get('/config/sites/:version', authenticate, async (req, res) => {
+    const { version } = req.params;
+    const sites = await getAllSites(version);
+    if (sites) {
+      res.status(200).json({ sites });
+    } else {
+      console.log('actually here');
+      res.status(404).json({
+        name: 'NotFound',
+        message: 'Site list not found',
+      });
+    }
+  });
 
-    // do not allow ANY post requests to this endpoint
-    app.post('/config/sites/:version', authenticate, (req, res) => {
-        res.status(403).json({ auth: false });
-    });
-}
+  // do not allow ANY post requests to this endpoint
+  app.post('/config/sites/:version', authenticate, (req, res) => {
+    res.status(403).json({ auth: false });
+  });
+};

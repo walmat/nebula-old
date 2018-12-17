@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
+import AsyncSelect from 'react-select/lib/Async';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import getAllSizes from '../constants/getAllSizes';
-import buildSitesOptions, {
-  getAllSupportedSitesSorted,
-} from '../constants/getAllSites';
+import fetchSites from '../constants/getAllSites';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -24,14 +23,9 @@ export class TaskRowPrimitive extends Component {
     const { onEditTask, task } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE: {
-        return event => {
-<<<<<<< HEAD:packages/frontend/src/tasks/taskRow.jsx
-          const site = TaskRowPrimitive.buildSitesOptions().find(s => s.value === event.value);
-=======
-          const site = getAllSupportedSitesSorted().find(
-            s => s.url === event.value,
-          );
->>>>>>> PR Changes && test case fixes:frontend/src/tasks/taskRow.jsx
+        return async event => {
+          const siteList = await fetchSites();
+          const site = siteList.find(s => s.value === event.value);
           if (site) {
             onEditTask(task, {
               field,
@@ -84,7 +78,8 @@ export class TaskRowPrimitive extends Component {
   }
 
   buildProfileOptions() {
-    return this.props.profiles.map(profile => ({
+    const { profiles } = this.props;
+    return profiles.map(profile => ({
       value: profile.id,
       label: profile.profileName,
     }));
@@ -146,7 +141,7 @@ export class TaskRowPrimitive extends Component {
       editAccountFieldDisabled = !edits.site.auth;
     }
     return (
-      <div key={`${this.props.task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
+      <div key={`${task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
         <div className="col">
           <div className="row row--start">
             <div className="col edit-field">
@@ -164,7 +159,7 @@ export class TaskRowPrimitive extends Component {
             </div>
             <div className="col edit-field">
               <p className="edit-field__label">Site</p>
-              <Select
+              <AsyncSelect
                 required
                 className="edit-field__select"
                 classNamePrefix="select"
@@ -175,7 +170,9 @@ export class TaskRowPrimitive extends Component {
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
-                options={buildSitesOptions()}
+                cacheOptions
+                // defaultOptions={buildSitesOptions(sites)}
+                loadOptions={fetchSites()}
                 data-testid={addTestId(`${testIdBase}.siteSelect`)}
               />
             </div>
@@ -256,7 +253,7 @@ export class TaskRowPrimitive extends Component {
                 type="button"
                 className="action__button action__button--save"
                 tabIndex={0}
-                onKeyPress={this.props.onKeyPress}
+                onKeyPress={onKeyPress}
                 onClick={() => {
                   this.saveTask();
                 }}
@@ -270,7 +267,7 @@ export class TaskRowPrimitive extends Component {
                 type="button"
                 className="action__button action__button--cancel"
                 tabIndex={0}
-                onKeyPress={this.props.onKeyPress}
+                onKeyPress={onKeyPress}
                 onClick={() => {
                   this.cancelEdits();
                 }}

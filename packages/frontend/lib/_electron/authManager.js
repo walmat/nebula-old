@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
-const nebulaCheckUpdates = require('./checkUpdates');
+// const nebulaCheckUpdates = require('./checkUpdates');
 
 // Set up nebula environment variables
 nebulaEnv.setUpEnvironment();
@@ -24,18 +24,9 @@ class AuthManager {
      */
     this._store = new Store();
 
-    context.ipc.on(
-      IPCKeys.AuthRequestActivate,
-      this._onAuthRequestActivate.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.AuthRequestDeactivate,
-      this._onAuthRequestDeactivate.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.AuthRequestStatus,
-      this._onAuthRequestStatus.bind(this),
-    );
+    context.ipc.on(IPCKeys.AuthRequestActivate, this._onAuthRequestActivate.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestDeactivate, this._onAuthRequestDeactivate.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestStatus, this._onAuthRequestStatus.bind(this));
   }
 
   /**
@@ -81,10 +72,7 @@ class AuthManager {
       if (res.ok) {
         const data = await res.json();
         const { accessToken, refreshToken, expiry } = data;
-        this._store.set(
-          'session',
-          JSON.stringify({ accessToken, refreshToken, expiry }),
-        );
+        this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
 
         return { accessToken, refreshToken, expiry };
       }
@@ -114,7 +102,7 @@ class AuthManager {
           'Content-Type': 'application/json',
         },
       });
-      if (!res.ok && res.status != 403) {
+      if (!res.ok && res.status !== 403) {
         const { error } = await res.json();
         console.log('[ERROR]: Unable to Delete: ', error);
         return false;
@@ -154,10 +142,7 @@ class AuthManager {
     if (res.ok) {
       const data = await res.json();
       const { accessToken, refreshToken, expiry } = data;
-      this._store.set(
-        'session',
-        JSON.stringify({ accessToken, refreshToken, expiry }),
-      );
+      this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
 
       return { accessToken, refreshToken, expiry };
     }
@@ -182,9 +167,6 @@ class AuthManager {
         windowManager.transitionToDeauthedState();
       }
     } else {
-      // setup app – only pulls in site list for now
-      await this._context.appSetup.run();
-
       // TODO - write proper check for updates functionality
       // nebulaCheckUpdates.checkForUpdates(win);
 

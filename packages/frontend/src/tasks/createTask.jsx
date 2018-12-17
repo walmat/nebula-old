@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
 import * as getAllSizes from '../constants/getAllSizes';
-import fetchSites, { buildSitesOptions } from '../constants/getAllSites';
+import fetchSites from '../constants/getAllSites';
 
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -14,7 +14,6 @@ import tDefns from '../utils/definitions/taskDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
-import sites from '../constants/sites.json';
 
 export class CreateTaskPrimitive extends Component {
   constructor(props) {
@@ -142,7 +141,8 @@ export class CreateTaskPrimitive extends Component {
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
                   value={newTaskSiteValue}
-                  defaultOptions={buildSitesOptions(sites)}
+                  cacheOptions
+                  // defaultOptions={buildSitesOptions(sites)}
                   loadOptions={fetchSites()}
                   data-testid={addTestId('CreateTask.siteSelect')}
                 />

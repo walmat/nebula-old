@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 const jwt = require('jsonwebtoken');
 const authUtils = require('../routes/auth/utils');
 

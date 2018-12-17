@@ -147,6 +147,7 @@ class App {
       await App.installExtensions();
     }
 
+    await this._appSetup.run();
     await this._windowManager.createNewWindow('main');
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);

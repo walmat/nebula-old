@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import regexes from '../validation';
 import { TASK_FIELDS } from '../../state/actions';
-import { getAllSupportedSitesSorted } from '../../constants/getAllSites';
+import fetchSites from '../../constants/getAllSites';
 
 function validateProduct(product) {
   if (!product) {
@@ -36,9 +36,9 @@ function validateProduct(product) {
   return false; // default to not valid
 }
 
-function validateSite(site) {
-  const sites = getAllSupportedSitesSorted();
-  return site && site.name && sites.some(s => s.name === site.name);
+async function validateSite(site) {
+  const sites = await fetchSites();
+  return site && site.label && sites.some(s => s.label === site.label);
 }
 
 /**
