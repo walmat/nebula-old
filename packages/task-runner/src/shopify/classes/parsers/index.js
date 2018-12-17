@@ -8,6 +8,7 @@ const MOCK_SPECIAL_PARSER = process.env.NEBULA_RUNNER_MOCK_SPECIAL_PARSER || 'DS
 
 // Special Parsers
 const DsmParser = require('./dsmParser');
+const YeezyParser = require('./yeezyParser');
 
 function getSpecialParser(site) {
   // TODO: Figure out a better way to do this!
@@ -23,7 +24,7 @@ function getSpecialParser(site) {
     }
     case 'Yeezy Supply':
     default: {
-      return (...params) => new Parser(...params);
+      return (...params) => new YeezyParser(...params);
     }
   }
 }
