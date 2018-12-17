@@ -70,6 +70,12 @@ class YeezyParser extends SpecialParser {
 
     return validatedProducts;
   }
+
+  parseProductInfoPageForProduct($) {
+    // Proxy the initial page parsing since it works for product pages as well...
+    const [matchedProduct] = this.parseInitialPageForProducts($);
+    return matchedProduct;
+  }
 }
 
 module.exports = YeezyParser;
