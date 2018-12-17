@@ -34,7 +34,6 @@ const IPCKeys = {
 
   RequestSiteData: 'RequestSiteData',
   ReceiveSiteData: 'ReceiveSiteData',
-  SendSites: 'SendSites',
 
   StartHarvestCaptcha: 'StartHarvestCaptcha',
   StopHarvestCaptcha: 'StopHarvestCaptcha',

@@ -39,7 +39,7 @@ class AppSetup {
     this._currentVersion = this._store.get('siteListVersion');
 
     // get the latest version of the sitelist
-    let res = await fetch(`${process.env.NEBULA_API_URL}/config/sites/latest`);
+    const res = await fetch(`${process.env.NEBULA_API_URL}/config/sites/latest`);
 
     if (!res.ok) {
       const { error } = await res.json();
@@ -56,8 +56,7 @@ class AppSetup {
       return;
     }
     // get the version
-    const data = await res.json();
-    const { version } = JSON.parse(JSON.stringify(data));
+    const { version } = await res.json();
 
     // otherwise, get the current version and compare the two
     if (this._currentVersion && this._currentVersion === version) {
@@ -87,9 +86,8 @@ class AppSetup {
       }
       return;
     }
-    // SUCCESSFUL response, get the site list data
-    const body = await res.json();
-    const { sites } = JSON.parse(JSON.stringify(body));
+    // successful response, get the site list data
+    const { sites } = await res.json();
 
     // check to see if it exists
     if (!sites) {
@@ -112,7 +110,7 @@ class AppSetup {
     this._store.set(this._siteListLocationKey, this._siteListLocation);
 
     // write to the new file
-    AppSetup.writeSiteListToFile(this._siteListLocation, sites);
+    fs.writeFileSync(this._siteListLocation, sites);
   }
 
   setSiteListKeys(version) {
@@ -121,16 +119,7 @@ class AppSetup {
     this._siteListLocation = `${appDataPath}/nebula-orion/sites_${version}.json`;
   }
 
-  static readSiteListFromFile(location) {
-    return fs.readFileSync(location);
-  }
-
-  static writeSiteListToFile(location, sites) {
-    fs.writeFileSync(location, JSON.stringify(sites));
-  }
-
-  async _onRequestSiteData(ev) {
-    console.log(this._sites);
+  _onRequestSiteData(ev) {
     ev.sender.send(IPCKeys.ReceiveSiteData, this._sites);
   }
 }

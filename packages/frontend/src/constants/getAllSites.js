@@ -1,15 +1,8 @@
 import _ from 'underscore';
 import sites from './sites.json';
 
-export function getAllSupportedSitesSorted(s) {
-  const supported = s.filter(
-    site => site.supported === 'experimental' || site.supported === 'stable',
-  );
-  return _.sortBy(supported, 'name');
-}
-
-export function buildSitesOptions(s) {
-  return getAllSupportedSitesSorted(s).map(({ name, url, ...metadata }) => ({
+export function buildSitesOptions(siteList) {
+  return siteList.map(({ name, url, ...metadata }) => ({
     ...metadata,
     label: name,
     value: url,
