@@ -20,6 +20,7 @@ export default async function fetchSites() {
   if (window.Bridge) {
     const newSites = await window.Bridge.requestSiteData();
     console.log(newSites);
+    // TODO - newSites is always undefined..
     if (newSites) {
       return buildSitesOptions(newSites);
     }

@@ -130,6 +130,7 @@ class AppSetup {
   }
 
   async _onRequestSiteData(ev) {
+    console.log(this._sites);
     ev.sender.send(IPCKeys.ReceiveSiteData, this._sites);
   }
 }

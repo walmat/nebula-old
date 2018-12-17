@@ -235,11 +235,10 @@ const _removeProxies = proxies => {
  */
 const _requestSiteData = () => {
   _sendEvent(IPCKeys.RequestSiteData);
-  ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
-      if (sites) {
-        return sites;
-      }
-      return null;
+  new Promise((resolve) => {
+    ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
+      resolve(sites);
+    });
   });
 };
 
