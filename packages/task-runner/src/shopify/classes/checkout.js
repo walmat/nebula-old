@@ -228,6 +228,7 @@ class Checkout {
       })
       .then((res) => {
         const body = JSON.parse(res.body.toString());
+        console.log(body);
         if (res.statusCode === 303) {
           this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
           Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
@@ -305,13 +306,14 @@ class Checkout {
           body: dataString,
         })
         .then((res) => {
-          if (res.body.errors && res.body.errors.line_items[0].quantity.code.includes('not_enough_in_stock')) {
+          console.log(res.body);
+          if (res.body.errors && res.body.errors.line_items[0].quantity[0].code.includes('not_enough_in_stock')) {
             this._logger.info('Out of stock, running for restocks');
             return { // TODO - implement this bitch again
               message: 'Running for restocks',
               nextState: Checkout.States.Stopped,
             }
-          } else if (res.body.checkout.line_items.length > 0) {
+          } else if (res.body.checkout && res.body.checkout.line_items.length > 0) {
             this._logger.info('Added to cart.');
             return {
               message: 'Added to cart',
@@ -320,7 +322,7 @@ class Checkout {
           } else {
             this._logger.debug('Failed: Adding to cart, retrying...');
             return {
-              message: 'Failed: Adding to cart, retrying...',
+              message: 'Failed: Add to cart, retrying...',
               nextState: Checkout.States.PatchCart,
             }
           }
