@@ -160,7 +160,7 @@ class Checkout {
    * Generates a payment token using the task data provided from the task runner
    * @returns {String} payment token
    */
-  generatePaymentToken() {
+  async generatePaymentToken() {
     this._logger.verbose('Generating Payment Token.');
     return this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
@@ -181,16 +181,14 @@ class Checkout {
         const body = JSON.parse(res.body);
         if (body && body.id) {
           this._logger.verbose('Payment token: %s', body.id);
+          this._paymentTokens.push(body.id);
           return body.id;
         }
         return null;
       })
       .catch((err) => {
         this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
-        return {
-          errors: 'Failed: Getting payment tokens',
-          nextState: Checkout.States.Error,
-        }
+        return null;
       });
   }
 
@@ -233,21 +231,12 @@ class Checkout {
           this._logger.info('Created checkout token: %s', body.checkout.clone_url.split('/')[5]);
           this._storeId = body.checkout.clone_url.split('/')[3];
           this._paymentUrlWithKey = body.checkout.web_url;
-          console.log(this._paymentUrlWithKey);
           this._checkoutTokens.push(body.checkout.clone_url.split('/')[5]);
-
-          // proceed to add to cart regardless if we're setup or not.
-          return {
-            message: 'Created checkout session',
-            nextState: Checkout.States.PatchCart,
-          }
+          return body.checkout.clone_url.split('/')[5];
         } else {
           // might not ever get called, but just a failsafe
           this._logger.debug('Failed: Creating checkout session %s', res);
-          return {
-            message: 'Failed: Creating checkout session',
-            nextState: Checkout.States.Stopped,
-          };
+          return null;
         }
       })
       .catch((err) => {

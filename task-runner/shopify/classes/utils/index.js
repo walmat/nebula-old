@@ -80,3 +80,8 @@ module.exports.capitalizeFirstLetter = capitalizeFirstLetter;
 
 // Add in utils from other files
 module.exports.rfrl = rfrl;
+
+const reflect = p =>
+  p.then(v =>({v, status: "fulfilled" }),
+    e => ({e, status: "rejected" }));
+module.exports.reflect = reflect;

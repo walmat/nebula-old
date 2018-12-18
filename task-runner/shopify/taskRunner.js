@@ -8,7 +8,7 @@ const Checkout = require('./classes/checkout');
 const Account = require('./classes/account');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const { createLogger } = require('../common/logger');
-const { waitForDelay, now } = require('./classes/utils');
+const { waitForDelay, now, reflect } = require('./classes/utils');
 
 class TaskRunner {
     constructor(id, task, proxy, manager) {
@@ -243,17 +243,10 @@ class TaskRunner {
     createCheckout() {
         return new Promise(async (resolve, reject) => {
             const checkout = await this._checkout._handleCreateCheckout();
-            if (res.errors) {
-                this._logger.verbose('Create Checkout Handler completed with errors: %j', res.errors);
-                this._emitTaskEvent({
-                    message: 'Error creating checkout, retrying...',
-                    errors: res.errors,
-                });
-                reject(new Error(res.errors));
-            } else if (checkout) {
-                resolve(checkout);
+            if (!checkout) {
+                reject(new Error('Unable to create checkout'));
             }
-            reject(new Error('Unable to create checkout'));
+            resolve(checkout);
         });
     }
 
@@ -267,33 +260,15 @@ class TaskRunner {
     }
 
     async _handleTaskSetup() {
-        this._timer.start(now());
-        Promise
-            .all([this.generatePaymentToken(), this.findRandomProduct() ,this.createCheckout()])
-            .then((res) => {
-                this._timer.stop(now());
-                // figure out the return values
-                this._paymentTokens.push(res[0]);
-                this._checkoutTokens.push(res[2]);
-                return {
-                    message: 'Monitoring for product...',
-                    nextState: States.Monitor,
-                }
-            })
-            .catch((err) => {
-                // either caused by checkout queue, or password page.. 
-                
-                // if checkout queue, poll queue and skip to monitor once out
-                
-                // if password page, do task setup later..
-                this._setup = false;
-                return {
-                    message: 'Password page. Doing task setup later',
-                    nextState: States.Monitor,
-                }
-            })
+      this._timer.start(now());
+      const promises = [this.generatePaymentToken(), this.findRandomProduct(), this.createCheckout()];
+      const results = await Promise.all(promises.map(reflect));
+      this._timer.stop(now());
+      this._emitTaskEvent({
+        message: 'Monitor for product...',
+      });
+      return States.Monitor;
     }
-
     async _handleMonitor() {
       const res = await this._monitor.run();
       if(res.errors) {
