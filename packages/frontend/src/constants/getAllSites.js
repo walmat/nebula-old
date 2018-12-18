@@ -120,6 +120,7 @@ const s = [
     value: 'https://shop.undefeated.com',
     label: 'Undefeated',
     supported: true,
+    apiKey: 'a0faf54ad7ec6fbbab86cd3f949c3cb9',
     auth: true,
   },
   {

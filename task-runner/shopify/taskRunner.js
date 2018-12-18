@@ -31,7 +31,7 @@ class TaskRunner {
          * Should we do task setup?
          * (always attempt to do task setup at beginning of task)
          */
-        this._setup = true;
+        this._isSetup = true;
 
         /**
          * Stack of successfully created payment tokens for the runner
@@ -80,7 +80,7 @@ class TaskRunner {
          */
         this._checkout = new Checkout({
             ...this._context,
-            setup: this._setup,
+            setup: this._isSetup,
             paymentTokens: this._paymentTokens,
             shippingMethods: this._shippingMethods,
             checkoutTokens: this._checkoutTokens,
@@ -232,7 +232,7 @@ class TaskRunner {
     }
 
     // Task Setup Promise 2 - find random product
-    findRandomProduct() {
+    findRandomInStockVariant() {
         return new Promise(async (resolve, reject) => {
         // TODO - find random product to choose the prefilled shipping/payment info
             resolve();
@@ -261,8 +261,12 @@ class TaskRunner {
 
     async _handleTaskSetup() {
       this._timer.start(now());
-      const promises = [this.generatePaymentToken(), this.findRandomProduct(), this.createCheckout()];
+      const promises = [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()];
       const results = await Promise.all(promises.map(reflect));
+      if (results[2].status === 'rejected') {
+        // do task setup later, will happen on password pages...
+        this._isSetup = false;
+      }
       this._timer.stop(now());
       this._emitTaskEvent({
         message: 'Monitor for product...',

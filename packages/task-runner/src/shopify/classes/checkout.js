@@ -223,9 +223,10 @@ class Checkout {
       })
       .then((res) => {
         const body = JSON.parse(res.body.toString());
+        console.log(body);
         if (res.statusCode === 303) {
           this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
-          Checkout._handlePoll(Checkout.Delays.PollCheckoutQueue, 'Waiting in checkout queue..', Checkout.States.CreateCheckout)
+          return null;
         } else if (body.checkout) {
           // push the checkout token to the stack
           this._logger.info('Created checkout token: %s', body.checkout.clone_url.split('/')[5]);
@@ -240,6 +241,7 @@ class Checkout {
         }
       })
       .catch((err) => {
+        console.log(err);
         this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
         return {
           errors: 'Failed: Creating checkout session',
@@ -505,6 +507,7 @@ class Checkout {
             'host': `${this._task.site.url.split('/')[2]}`,
             'authorization': `Basic ${auth}`
           };
+
           return this._request({
             uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/payments`,
             method: 'GET',
@@ -522,7 +525,7 @@ class Checkout {
               nextState: Checkout.States.Stopped,
             };
           });
-        })
+        });
       })
       .catch((err) => {
         this._logger.debug('CHECKOUT: Error posting payment %s', err);
