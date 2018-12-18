@@ -44,8 +44,6 @@ class Checkout {
   }
 
   constructor(context) {
-    // MARK: All globals inside of context
-
     /**
      * All data needed for monitor to run
      * This includes:
@@ -124,9 +122,6 @@ class Checkout {
      * @type {Stack}
      */
     this._checkoutTokens = this._context.checkoutTokens;
-
-
-    // MARK: All globals outside of context
 
     /**
      * Shipping method that is being used

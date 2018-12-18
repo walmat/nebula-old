@@ -220,58 +220,79 @@ class TaskRunner {
         this._emitEvent(Events.CheckoutStatus, payload);
     }
 
+    // Task Setup Promise 1 - generate payment token
+    generatePaymentToken() {
+        return new Promise(async (resolve, reject) => {
+            const token = await this._checkout.generatePaymentToken();
+            if (token) {
+                resolve(token);
+            }
+            reject(new Error('Unable to generate payment token'));
+        });
+    }
+
+    // Task Setup Promise 2 - find random product
+    findRandomProduct() {
+        return new Promise(async (resolve, reject) => {
+        // TODO - find random product to choose the prefilled shipping/payment info
+            resolve();
+        });
+    }
+
+    // Task Setup Promise 3 - create checkout session
+    createCheckout() {
+        return new Promise(async (resolve, reject) => {
+            const checkout = await this._checkout._handleCreateCheckout();
+            if (res.errors) {
+                this._logger.verbose('Create Checkout Handler completed with errors: %j', res.errors);
+                this._emitTaskEvent({
+                    message: 'Error creating checkout, retrying...',
+                    errors: res.errors,
+                });
+                reject(new Error(res.errors));
+            } else if (checkout) {
+                resolve(checkout);
+            }
+            reject(new Error('Unable to create checkout'));
+        });
+    }
+
     // MARK: State Machine Step Logic
 
     async _handleStarted() {
         this._emitTaskEvent({
-            message: 'Initializing...',
+            message: 'Starting task setup',
         });
-        return States.GeneratePaymentTokens;
+        return States.TaskSetup;
     }
 
-    /**
-     * Preharvest payment tokens
-     */
-    async _handleGeneratePaymentTokens() {
+    async _handleTaskSetup() {
         this._timer.start(now());
-        while (this._paymentTokens.size() < 5) {
-            const token = await this._checkout.generatePaymentToken();
-            if (token) {
-                this._paymentTokens.push(token);
-            }
-        }
-        this._timer.stop(now());
-        this._logger.info('Took %d ms to generate payment tokens', this._timer.getRunTime());
-        return States.CreateCheckout;
+        Promise
+            .all([this.generatePaymentToken(), this.findRandomProduct() ,this.createCheckout()])
+            .then((res) => {
+                this._timer.stop(now());
+                // figure out the return values
+                this._paymentTokens.push(res[0]);
+                this._checkoutTokens.push(res[2]);
+                return {
+                    message: 'Monitoring for product...',
+                    nextState: States.Monitor,
+                }
+            })
+            .catch((err) => {
+                // either caused by checkout queue, or password page.. 
+                
+                // if checkout queue, poll queue and skip to monitor once out
+                
+                // if password page, do task setup later..
+                this._setup = false;
+                return {
+                    message: 'Password page. Doing task setup later',
+                    nextState: States.Monitor,
+                }
+            })
     }
-
-    /**
-     * Generate checkout tokens
-     */
-    async _handleCreateCheckout() {
-      // TODO - Find random in-stock product through our parsing methods
-      // ^^ if this fails, we shouldn't do the next while() loop
-      // instead, do task setup later (this._setup = false)
-
-      this._setup = false;
-
-      if (this._setup) {
-        while (this._checkouts.size() < 3) {
-          const checkout = await this._checkout._handleCreateCheckout();
-          if (res.errors) {
-            this._logger.verbose('Create Checkout Handler completed with errors: %j', res.errors);
-            this._emitTaskEvent({
-                message: 'Error creating checkout, retrying...',
-                errors: res.errors,
-            });
-            await this._waitForErrorDelay();
-          } else if(checkout) {
-            this._checkouts.push(checkout);
-          }
-        }
-      }
-      return States.Monitor;
-  }
 
     async _handleMonitor() {
       const res = await this._monitor.run();
@@ -336,8 +357,7 @@ class TaskRunner {
 
       const stepMap = {
           [States.Started]: this._handleStarted,
-          [States.GeneratePaymentTokens]: this._handleGeneratePaymentTokens,
-          [States.CreateCheckout]: this._handleCreateCheckout,
+          [States.TaskSetup]: this._handleTaskSetup,
           [States.Monitor]: this._handleMonitor,
           [States.SwapProxies]: this._handleSwapProxies,
           [States.Checkout]: this._handleCheckout,
