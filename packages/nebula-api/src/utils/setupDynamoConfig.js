@@ -12,8 +12,6 @@ function getConfig() {
     secretAccessKey: process.env.NEBULA_API_DYNAMODB_SECRET_KEY,
   };
 
-  console.log(config);
-
   return config;
 }
 

@@ -1,4 +1,3 @@
-import sites from './sites.json';
 
 export function buildSitesOptions(siteList) {
   return siteList.map(({ name, url, ...metadata }) => ({
@@ -9,17 +8,12 @@ export function buildSitesOptions(siteList) {
 }
 
 export default function fetchSites() {
-  return new Promise(async resolve => {
-    let fetched;
+  return new Promise(async (resolve, reject) => {
     if (window.Bridge) {
-      const newSites = await window.Bridge.requestSiteData();
-      if (newSites) {
-        fetched = buildSitesOptions(newSites);
-      } else {
-        fetched = buildSitesOptions(sites);
-      }
+      const sites = await window.Bridge.requestSiteData();
+      resolve(buildSitesOptions(sites));
     }
-    resolve(fetched);
+    reject(new Error('window.Bridge unavailable.'))
   });
 }
 

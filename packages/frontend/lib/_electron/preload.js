@@ -233,10 +233,7 @@ const _requestSiteData = () =>
   new Promise(resolve => {
     _sendEvent(IPCKeys.RequestSiteData);
     ipcRenderer.once(IPCKeys.ReceiveSiteData, (event, sites) => {
-      const supported = nebulaEnv.isDevelopment()
-        ? sites.filter(site => site.supported === 'stable' || site.supported === 'experimental')
-        : sites.filter(site => site.supported === 'stable');
-      resolve(_.sortBy(supported, 'name'));
+      resolve(sites);
     });
   });
 
