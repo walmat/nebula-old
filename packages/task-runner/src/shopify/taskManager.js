@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
-
-const uuidv4 = require('uuid/v4');
 const hash = require('object-hash');
+const shortid = require('shortid');
+
 const TaskRunner = require('./taskRunner');
 const AsyncQueue = require('./classes/asyncQueue');
 const { Events } = require('./classes/utils/constants').TaskManager;
@@ -86,7 +86,7 @@ class TaskManager {
     }
     this._logger.verbose('New Proxy Detected with hash %s. Adding now', proxyHash);
     do {
-      proxyId = uuidv4();
+      proxyId = shortid.generate();
     } while (this._proxies[proxyId]);
 
     this._proxies[proxyId] = {
@@ -392,7 +392,7 @@ class TaskManager {
 
     let runnerId;
     do {
-      runnerId = uuidv4();
+      runnerId = shortid.generate();
     } while (this._runners[runnerId]);
     this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
 
