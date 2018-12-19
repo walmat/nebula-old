@@ -28,10 +28,11 @@ class TaskRunner {
         this._state = States.Initialized;
 
         /**
-         * Should we do task setup?
+         * Is the task setup yet?
          * (always attempt to do task setup at beginning of task)
          */
-        this._isSetup = true;
+        this._isSetup = false;
+        this._doSetupLater = false;
 
         /**
          * Stack of successfully created payment tokens for the runner
@@ -243,11 +244,19 @@ class TaskRunner {
     // Task Setup Promise 3 - create checkout session
     createCheckout() {
         return new Promise(async (resolve, reject) => {
-            const checkout = await this._checkout._handleCreateCheckout();
-            if (!checkout) {
-                reject();
-            }
-            resolve(checkout);
+          let res;
+          // i think this will work for polling checkout queue?
+          do {
+            res = await this._checkout._handleCreateCheckout();
+            this._emitTaskEvent({
+              message: 'Waiting in queue',
+            });
+          } while(res.queue);
+
+          if (!res.checkout) {
+              reject();
+          }
+          resolve(res.checkout);
         });
     }
 
@@ -268,25 +277,37 @@ class TaskRunner {
      */
     async _handleTaskSetup() {
       this._timer.start(now());
-      const promises = [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()];
+      // TODO - change this back once we have this.findRandomInStockVariant() implemented
+      // const promises = (!this._isSetup && !this._doSetupLater)
+      // ? [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()]
+      // : [this.generatePaymentToken(), this.createCheckout()];
+      const promises = [this.generatePaymentToken(), this.createCheckout()];
       const results = await Promise.all(promises.map(reflect));
 
       if (results.filter(res => res.status === 'rejected').length > 0) {
         // let's do task setup later
         this._isSetup = false;
-        this._logger.verbose('Task setup failed: %j', failed);
+        this._doSetupLater = true;
+        this._logger.verbose('Task setup failed: %j', results.filter(res => res.status === 'rejected'));
         this._emitTaskEvent({
           message: 'Doing task setup later',
         });
       } else {
+        // TODO - not necessary, but will speed things up even more
+        // const randomProductVariant = results[1];
+        // skip to checkout -> return to monitor
+
         this._isSetup = true;
-        this._timer.stop(now());
-        this._emitTaskEvent({
-          message: 'Monitoring for product...',
-        });
+        this._doSetupLater = false;
       }
+      this._timer.stop(now());
+      this._emitTaskEvent({
+        message: 'Monitoring for product...',
+      });
+      // console.log((!this._doSetupLater && this._isSetup) ? States.Checkout : States.Monitor);
       return States.Monitor;
     }
+
     async _handleMonitor() {
       const res = await this._monitor.run();
       if(res.errors) {

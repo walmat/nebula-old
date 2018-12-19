@@ -227,14 +227,14 @@ class Checkout {
         if (res.statusCode === 303) {
           this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
           // TODO
-          return null;
+          return { queue: true };
         } else if (body.checkout) {
           // push the checkout token to the stack
           this._logger.info('Created checkout token: %s', body.checkout.clone_url.split('/')[5]);
           this._storeId = body.checkout.clone_url.split('/')[3];
           this._paymentUrlKey = body.checkout.web_url.split('=')[1];
           this._checkoutTokens.push(body.checkout.clone_url.split('/')[5]);
-          return body.checkout.clone_url.split('/')[5];
+          return {checkout: body.checkout.clone_url.split('/')[5] };
         } else {
           // might not ever get called, but just a failsafe
           this._logger.debug('Failed: Creating checkout session %s', res);
@@ -333,11 +333,9 @@ class Checkout {
         });
     } else {
       this._logger.verbose('Creating checkout token.');
-
-      // we're out of valid checkout session OR we need to create one due to task setup later flag
       return {
-        message: 'Creating checkout session',
-        nextState: States.CreateCheckout,
+        message: 'Failed: Add to cart, stopping..',
+        nextState: States.Stopped,
       }
     }
   }
