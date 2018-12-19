@@ -226,16 +226,7 @@ class Checkout {
         const body = JSON.parse(res.body.toString());
         if (res.statusCode === 303) {
           this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
-          /**
-           * During large sales or other events when many checkouts are being created
-           * in a short period of time, actions that create checkout resources can be
-           * throttled. When this happens, you'll receive an HTTP 303 See Other response
-           * code and a Location header (which includes a URL that you can use to poll
-           * the resource). To view the status of a throttled checkout, perform a GET
-           * request on the URL provided in the Location header, and refer to the polling
-           * guidelines above. After the queue has been processed, you'll receive a
-           * payload indicating that processing is complete.
-           */
+          // TODO
           return null;
         } else if (body.checkout) {
           // push the checkout token to the stack
@@ -252,10 +243,7 @@ class Checkout {
       })
       .catch((err) => {
         this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
-        return {
-          errors: 'Failed: Creating checkout session',
-          nextState: Checkout.States.Error,
-        }
+        return null;
       });
   }
 
@@ -299,27 +287,26 @@ class Checkout {
           body: dataString,
         })
         .then((res) => {
-          // error handling
+          // "error" handling
           if (res.body.errors && res.body.errors.line_items) {
             const error = res.body.errors.line_items[0];
-            console.log(error);
             if (error.quantity) {
-              this._logger.info('Out of stock, running for restocks');
+              this._logger.verbose('Out of stock, running for restocks');
               return { // TODO - implement this bitch again
                 message: 'Running for restocks',
                 nextState: Checkout.States.Restock,
               }
             } else if (error.variant_id) {
-              this._logger.info('Wrong size type specified, stopping..');
+              this._logger.verbose('Wrong size type specified, stopping..');
               return {
                 message: 'Failed: Invalid size',
-                nextState: Checkout.States.Stopped,
+                nextState: Checkout.States.Error,
               }
             } else {
-              this._logger.info('');
+              this._logger.verbose('Error in ATC: %s', error);
               return {
                 message: `Failed: ${error}`,
-                nextState: Checkout.States.Stopped,
+                nextState: Checkout.States.PatchCart,
               }
             }
             // otherwise, check to see if line_items was updated

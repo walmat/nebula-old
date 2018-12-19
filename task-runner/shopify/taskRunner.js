@@ -224,10 +224,10 @@ class TaskRunner {
     generatePaymentToken() {
         return new Promise(async (resolve, reject) => {
             const token = await this._checkout._handleGeneratePaymentToken();
-            if (token) {
-                resolve(token);
+            if (!token) {
+              reject();
             }
-            reject(new Error('Unable to generate payment token'));
+            resolve(token);
         });
     }
 
@@ -245,7 +245,7 @@ class TaskRunner {
         return new Promise(async (resolve, reject) => {
             const checkout = await this._checkout._handleCreateCheckout();
             if (!checkout) {
-                reject(new Error('Unable to create checkout'));
+                reject();
             }
             resolve(checkout);
         });
@@ -270,8 +270,8 @@ class TaskRunner {
       this._timer.start(now());
       const promises = [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()];
       const results = await Promise.all(promises.map(reflect));
-      const failed = results.filter(res => res.status === 'rejected');
-      if (failed.length > 0) {
+
+      if (results.filter(res => res.status === 'rejected').length > 0) {
         // let's do task setup later
         this._isSetup = false;
         this._logger.verbose('Task setup failed: %j', failed);

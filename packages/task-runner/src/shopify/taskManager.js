@@ -410,7 +410,7 @@ class TaskManager {
     } while(this._runners[runnerId]);
     this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
 
-    const openProxy = await this.reserveProxy(runnerId) || `127.0.0.1:8888`;
+    const openProxy = await this.reserveProxy(runnerId);
     const runner = new TaskRunner(runnerId, task, openProxy, this);
     this._runners[runnerId] = runner;
 
