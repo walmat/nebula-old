@@ -399,9 +399,46 @@ class TaskManager {
     const { runnerId, openProxy } = await this.setup();
     this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
+<<<<<<< 3605191a9cf59bf5b110dabcd9ae5bf83ffbb14b:packages/task-runner/src/shopify/taskManager.js
     this._start([runnerId, task, openProxy]).then(() => {
       this.cleanup(runnerId);
     });
+=======
+    let runnerId;
+    do {
+      runnerId = uuidv4();
+    } while(this._runners[runnerId]);
+    this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
+
+    const openProxy = await this.reserveProxy(runnerId) || `127.0.0.1:8888`;
+    const runner = new TaskRunner(runnerId, task, openProxy, this);
+    this._runners[runnerId] = runner;
+
+    // Register for status updates
+    this._logger.verbose('Registering for TaskRunner Events ...');
+    runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+
+    // Start the runner asynchronously
+    this._logger.verbose('Starting Runner ...');
+    runner.start()
+      .then(() => {
+        this._logger.info('Runner %s finished without errors', runnerId);
+      })
+      .catch((error) => {
+        this._logger.error('Runner %s was stopped due to an errors: %s', runnerId, error.toString(), error);
+      })
+      .then(() => {
+        this._logger.verbose('Performing cleanup for runner %s', runnerId);
+        // Cleanup handlers
+        runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+        // Remove from runners map
+        delete this._runners[runnerId];
+        // Release proxy
+        if (openProxy) {
+          this.releaseProxy(runnerId, openProxy.id);
+        }
+      });
+>>>>>>> task runner refactoring progress, switching to PC:task-runner/shopify/taskManager.js
   }
 
   /**

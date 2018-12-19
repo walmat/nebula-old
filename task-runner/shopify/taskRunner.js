@@ -223,7 +223,7 @@ class TaskRunner {
     // Task Setup Promise 1 - generate payment token
     generatePaymentToken() {
         return new Promise(async (resolve, reject) => {
-            const token = await this._checkout.generatePaymentToken();
+            const token = await this._checkout._handleGeneratePaymentToken();
             if (token) {
                 resolve(token);
             }
@@ -235,7 +235,8 @@ class TaskRunner {
     findRandomInStockVariant() {
         return new Promise(async (resolve, reject) => {
         // TODO - find random product to choose the prefilled shipping/payment info
-            resolve();
+          resolve();
+        // reject(new Error('Not implemented yet'));
         });
     }
 
@@ -259,18 +260,31 @@ class TaskRunner {
         return States.TaskSetup;
     }
 
+    /**
+     * RESULTS (INDICES):
+     * 0. Promise 1 – generating payment tokens
+     * 1. Promise 2 – finding random product variant (in stock)
+     * 2. Promise 3 – creating checkout token
+     */
     async _handleTaskSetup() {
       this._timer.start(now());
       const promises = [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()];
       const results = await Promise.all(promises.map(reflect));
-      if (results[2].status === 'rejected') {
-        // do task setup later, will happen on password pages...
+      const failed = results.filter(res => res.status === 'rejected');
+      if (failed.length > 0) {
+        // let's do task setup later
         this._isSetup = false;
+        this._logger.verbose('Task setup failed: %j', failed);
+        this._emitTaskEvent({
+          message: 'Doing task setup later',
+        });
+      } else {
+        this._isSetup = true;
+        this._timer.stop(now());
+        this._emitTaskEvent({
+          message: 'Monitoring for product...',
+        });
       }
-      this._timer.stop(now());
-      this._emitTaskEvent({
-        message: 'Monitor for product...',
-      });
       return States.Monitor;
     }
     async _handleMonitor() {

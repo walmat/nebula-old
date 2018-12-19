@@ -12,7 +12,6 @@ const {
 } = require('./utils');
 const {
   buildPaymentTokenForm,
-  buildPaymentForm,
 } = require('./utils/forms');
 
 class Checkout {
@@ -23,11 +22,13 @@ class Checkout {
   static get States() {
     return {
       CreateCheckout: 'CREATE_CHECKOUT',
+      GeneratePaymentToken: 'GENERATE_PAYMENT_TOKEN',
       PatchCart: 'PATCH_CART',
       GetShippingRates: 'GET_SHIPPING_RATES',
       PollQueue: 'POLL_QUEUE',
       RequestCaptcha: 'REQUEST_CAPTCHA',
       PostPayment: 'POST_PAYMENT',
+      Restock: 'RESTOCK',
       Stopped: 'STOPPED',
       Error: 'ERROR',
     };
@@ -139,7 +140,8 @@ class Checkout {
      */
     this._checkoutToken;
     this._storeId;
-    this._paymentUrlWithKey;
+    this._paymentUrlKey;
+    this._basicAuth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
 
     /**
      * Current captcha token
@@ -160,7 +162,7 @@ class Checkout {
    * Generates a payment token using the task data provided from the task runner
    * @returns {String} payment token
    */
-  async generatePaymentToken() {
+  async _handleGeneratePaymentToken() {
     this._logger.verbose('Generating Payment Token.');
     return this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
@@ -197,8 +199,7 @@ class Checkout {
    */
   async _handleCreateCheckout() {
     this._logger.verbose('Creating checkout token.');
-    const auth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
-    // TODO - move to ./utils/forms.js
+
     const dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${this._task.profile.payment.email}","shipping_address":{"first_name":"${this._task.profile.shipping.firstName}","last_name":"${this._task.profile.shipping.lastName}","address1":"${this._task.profile.shipping.address}","address2":"${this._task.profile.shipping.apt}","company":null,"city":"${this._task.profile.shipping.city}","country_code":"${this._task.profile.shipping.country.value}","province_code":"${this._task.profile.shipping.state.value}","phone":"${phoneFormatter.format(this._task.profile.shipping.phone,'(NNN) NNN-NNNN')}","zip":"${this._task.profile.shipping.zipCode}"},"billing_address":{"first_name":"${this._task.profile.billing.firstName}","last_name":"${this._task.profile.billing.lastName}","address1":"${this._task.profile.billing.address}","address2":"${this._task.profile.billing.apt}","company":null,"city":"${this._task.profile.billing.city}","country_code":"${this._task.profile.billing.country.value}","province_code":"${this._task.profile.billing.state.value}","phone":"${phoneFormatter.format(this._task.profile.billing.phone,'(NNN) NNN-NNNN')}","zip":"${this._task.profile.billing.zipCode}"}}}`;
     const headers = {
       'Accept': 'application/json',
@@ -206,7 +207,7 @@ class Checkout {
       'Content-Type': 'application/json',
       'User-Agent': userAgent,
       'host': `${this._task.site.url.split('/')[2]}`,
-      'authorization': `Basic ${auth}`
+      'authorization': `Basic ${this._basicAuth}`
     };
 
     return this._request({
@@ -223,15 +224,24 @@ class Checkout {
       })
       .then((res) => {
         const body = JSON.parse(res.body.toString());
-        console.log(body);
         if (res.statusCode === 303) {
           this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
+          /**
+           * During large sales or other events when many checkouts are being created
+           * in a short period of time, actions that create checkout resources can be
+           * throttled. When this happens, you'll receive an HTTP 303 See Other response
+           * code and a Location header (which includes a URL that you can use to poll
+           * the resource). To view the status of a throttled checkout, perform a GET
+           * request on the URL provided in the Location header, and refer to the polling
+           * guidelines above. After the queue has been processed, you'll receive a
+           * payload indicating that processing is complete.
+           */
           return null;
         } else if (body.checkout) {
           // push the checkout token to the stack
           this._logger.info('Created checkout token: %s', body.checkout.clone_url.split('/')[5]);
           this._storeId = body.checkout.clone_url.split('/')[3];
-          this._paymentUrlWithKey = body.checkout.web_url;
+          this._paymentUrlKey = body.checkout.web_url.split('=')[1];
           this._checkoutTokens.push(body.checkout.clone_url.split('/')[5]);
           return body.checkout.clone_url.split('/')[5];
         } else {
@@ -241,7 +251,6 @@ class Checkout {
         }
       })
       .catch((err) => {
-        console.log(err);
         this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
         return {
           errors: 'Failed: Creating checkout session',
@@ -256,15 +265,12 @@ class Checkout {
    * payload: {"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}
    */
   async _handlePatchCart() {
-    const auth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
-
-    // TODO - move to ./utils/forms.js
     const dataString = {
       "checkout": {
         "line_items": [{
           "variant_id": this._task.product.variants[0],
           "quantity": "1",
-          "properties": {}
+          "properties": {} // TODO - dsm ny/london needs hash
         }]
       }
     };
@@ -275,12 +281,11 @@ class Checkout {
       'X-Shopify-Access-Token': `${this._task.site.apiKey}`,
       'User-Agent': userAgent,
       'host': `${this._task.site.url.split('/')[2]}`,
-      'authorization': `Basic ${auth}`
+      'authorization': `Basic ${this._basicAuth}`
     };
 
     if (!this._checkoutTokens.isEmpty()) {
       this._logger.verbose('Adding to cart.');
-      // check to see if checkout token was already set, useful for restocks
       this._checkoutToken = this._checkoutTokens.pop();
       return this._request({
           uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}.json`,
@@ -295,14 +300,14 @@ class Checkout {
         })
         .then((res) => {
           // error handling
-          console.log(res.body);
           if (res.body.errors && res.body.errors.line_items) {
             const error = res.body.errors.line_items[0];
+            console.log(error);
             if (error.quantity) {
               this._logger.info('Out of stock, running for restocks');
               return { // TODO - implement this bitch again
                 message: 'Running for restocks',
-                nextState: Checkout.States.Stopped,
+                nextState: Checkout.States.Restock,
               }
             } else if (error.variant_id) {
               this._logger.info('Wrong size type specified, stopping..');
@@ -356,7 +361,6 @@ class Checkout {
    */
   async _handleGetShippingRates() {
     this._logger.verbose('Getting shipping rates');
-    const auth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
 
     const headers = {
       'Accept': 'application/json',
@@ -365,7 +369,7 @@ class Checkout {
       'X-Shopify-Access-Token': `${this._task.site.apiKey}`,
       'User-Agent': userAgent,
       'host': `${this._task.site.url.split('/')[2]}`,
-      'authorization': `Basic ${auth}`
+      'authorization': `Basic ${this._basicAuth}`
     };
 
     return this._request({
@@ -391,7 +395,7 @@ class Checkout {
           this._logger.info('Got shipping method in %s', this._chosenShippingMethod);
 
           return {
-            message: `Found shipping rate: ${this._chosenShippingMethod.name}`,
+            message: `Submitting payment`,
             nextState: Checkout.States.PostPayment,
           }
         } else {
@@ -432,12 +436,10 @@ class Checkout {
    */
   async _handlePostPayment() {
     this._logger.verbose('Posting payment.');
-    const auth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
-
     const headers = {
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
-      'Content-Type': 'multipart/form-data',
+      'Content-Type': 'multipart/form-data;',
       'Upgrade-Insecure-Requests': '1',
       'X-Shopify-Checkout-Version': '2016-09-06',
       'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
@@ -446,12 +448,13 @@ class Checkout {
     };
 
     return this._request({
-        uri: `${this._paymentUrlWithKey}`,
+        uri:  `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._paymentUrlKey}`,
         method: 'POST',
         proxy: formatProxy(this._proxy),
         followAllRedirects: true,
         simple: false,
         json: false,
+        encoding: null,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers,
@@ -459,8 +462,8 @@ class Checkout {
           'utf8': '✓',
           '_method': 'patch',
           'authenticity_token': '',
-          'previous_step': 'payment_method',
-          'step': '',
+          'previous_step': 'shipping_method',
+          'step': 'payment_method',
           's': this._paymentTokens.pop(),
           'checkout[remember_me]': 0,
           'checkout[total_price]': '',
@@ -474,6 +477,20 @@ class Checkout {
         },
       })
       .then((res) => {
+        fs.writeFileSync(path.join(__dirname, 'payment-1.html'), res.body);
+
+        const headers = {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.8',
+          'Connection': 'Keep-Alive',
+          'Content-Type': 'multipart/form-data;',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Checkout-Version': '2016-09-06',
+          'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
+          'User-Agent': userAgent,
+          'host': `${this._task.site.url.split('/')[2]}`,
+        };
+
         return this._request({
           uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
           method: 'POST',
@@ -497,7 +514,8 @@ class Checkout {
           },
         })
         .then((res) => {
-          fs.writeFileSync(path.join(__dirname, 'payment.html'), res.body);
+          console.log(res.statusCode);
+          fs.writeFileSync(path.join(__dirname, 'payment-2.html'), res.body);
           const headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -505,7 +523,7 @@ class Checkout {
             'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
             'User-Agent': userAgent,
             'host': `${this._task.site.url.split('/')[2]}`,
-            'authorization': `Basic ${auth}`
+            'authorization': `Basic ${this._basicAuth}`
           };
 
           return this._request({
@@ -519,7 +537,7 @@ class Checkout {
             headers,
           })
           .then((res) => {
-            console.log(res.statusCode, res.request.href, res.body);
+            fs.writeFileSync(path.join(__dirname, 'payment-3.html'), JSON.stringify(res.body, null, 2));
             return {
               message: 'Payment failed.',
               nextState: Checkout.States.Stopped,
@@ -538,7 +556,7 @@ class Checkout {
 
   async _handleStopped() {
     return {
-      message: 'Stopping...',
+      message: 'Stopping task',
       nextState: Checkout.States.Stopped,
     }
   }
@@ -550,12 +568,12 @@ class Checkout {
     this._logger.verbose('CHECKOUT: Handling State: %s ...', currentState);
     const stateMap = {
       [Checkout.States.CreateCheckout]: this._handleCreateCheckout,
+      [Checkout.States.GeneratePaymentToken]: this._handleGeneratePaymentToken,
       [Checkout.States.GetPaymentToken]: this._handleGetPaymentToken,
       [Checkout.States.PatchCart]: this._handlePatchCart,
       [Checkout.States.GetShippingRates]: this._handleGetShippingRates,
       [Checkout.States.RequestCaptcha]: this._handleRequestCaptcha,
       [Checkout.States.PostPayment]: this._handlePostPayment,
-      [Checkout.States.Stopped]: this._handleStopped,
     }
 
     const handler = stateMap[currentState] || defaultHandler;

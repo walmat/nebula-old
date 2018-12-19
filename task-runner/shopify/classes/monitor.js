@@ -175,7 +175,7 @@ class Monitor {
             default: {
                 this._logger.verbose('MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...', parseType);
                 await this._waitForErrorDelay();
-                return { message: 'Monitoring...', nextState: States.Monitor };
+                return { message: 'Monitoring for product...', nextState: States.Monitor };
             }
         }
     }
