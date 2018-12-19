@@ -1,5 +1,5 @@
 const Electron = require('electron');
-const { TaskManager } = require('@nebula/task-runner').shopify;
+const { TaskManager, TaskProcessManager } = require('@nebula/task-runner').shopify;
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 
@@ -13,7 +13,22 @@ class TaskManagerWrapper {
 
     this._listeners = [];
 
-    this._taskManager = new TaskManager(LOGS_PATH);
+    // Use environment to initialize the right task manager
+    switch (process.env.NEBULA_RUNNER_CONCURRENCY_TYPE) {
+      case 'single': {
+        this._taskManager = new TaskManager(LOGS_PATH);
+        break;
+      }
+      case 'process': {
+        this._taskManager = new TaskProcessManager(LOGS_PATH);
+        break;
+      }
+      default: {
+        // Use single threaded TaskManager as default until more testing can be done
+        this._taskManager = new TaskManager(LOGS_PATH);
+        break;
+      }
+    }
 
     this._taskEventHandler = this._taskEventHandler.bind(this);
     this._startHarvestEventHandler = this._startHarvestEventHandler.bind(this);
