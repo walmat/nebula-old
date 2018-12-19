@@ -19,7 +19,10 @@ class TaskManager {
     this._loggerPath = loggerPath;
 
     // Runner Map
-    this._runners = [];
+    this._runners = {};
+
+    // Handlers Map
+    this._handlers = {};
 
     // Captcha Map
     this._captchaQueues = new Map();
@@ -374,7 +377,7 @@ class TaskManager {
   async start(task) {
     this._logger.info('Starting task %s', task.id);
 
-    const alreadyStarted = this._runners.find(r => r.taskId === task.id);
+    const alreadyStarted = Object.values(this._runners).find(r => r.taskId === task.id);
     if (alreadyStarted) {
       this._logger.warn('This task is already running! skipping start');
       return;
@@ -385,49 +388,6 @@ class TaskManager {
     this._start([runnerId, task, openProxy]).then(() => {
       this.cleanup(runnerId, openProxy);
     });
-  }
-
-  async _start([runnerId, task, openProxy]) {
-    const runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
-    this._runners[runnerId] = runner;
-
-    // Register for status updates
-    this._logger.verbose('Registering for TaskRunner Events ...');
-    runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-
-    // TEMPORARY
-    this._events.on('abort', runner._handleAbort);
-    this._events.on(Events.Harvest, (...args) => {
-      runner._events.emit(Events.Harvest, ...args);
-    });
-    runner._events.on(Events.StartHarvest, this.handleStartHarvest);
-    runner._events.on(Events.StopHarvest, this.handleStopHarvest);
-
-    // Start the runner asynchronously
-    this._logger.verbose('Starting Runner ...');
-    return runner
-      .start()
-      .then(() => {
-        this._logger.info('Runner %s finished without errors', runnerId);
-      })
-      .catch(error => {
-        this._logger.error(
-          'Runner %s was stopped due to an errors: %s',
-          runnerId,
-          error.toString(),
-          error,
-        );
-      })
-      .then(() => {
-        this._logger.verbose('Performing cleanup for runner %s', runnerId);
-        // Cleanup handlers
-        runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-
-        // TEMPORARY FIX
-        runner._events.removeListener(Events.StartHarvest, this.handleStartHarvest);
-        runner._events.removeListener(Events.StopHarvest, this.handleStopHarvest);
-        this._events.removeListener('abort', runner._handleAbort);
-      });
   }
 
   /**
@@ -490,6 +450,75 @@ class TaskManager {
    */
   isRunning(task) {
     return !!this._runners.find(r => r.task.id === task.id);
+  }
+
+  // MARK: Private Methods
+  _setupRunner(runner) {
+    const handlers = {
+      abort: id => {
+        if (id === runner.id) {
+          // TODO: Respect the scope of the runner's methods
+          runner._handleAbort(id);
+        }
+      },
+      harvest: (id, token) => {
+        if (id === runner.id) {
+          // TODO: Respect the scope of the _events variable
+          runner._events.emit(Events.Harvest, id, token);
+        }
+      },
+    };
+    this._handlers[runner.id] = handlers;
+
+    // Attach Runner Handlers to Manager Events
+    this._events.on('abort', handlers.abort);
+    this._events.on(Events.Harvest, handlers.harvest);
+
+    // Attach Manager Handlers to Runner Events
+    // TODO: Respect the scope of the _events variable
+    // Register for status updates
+    runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+    runner._events.on(Events.StartHarvest, this.handleStartHarvest);
+    runner._events.on(Events.StopHarvest, this.handleStopHarvest);
+  }
+
+  _cleanupRunner(runner) {
+    const { abort, harvest } = this._handlers[runner.id];
+    delete this._handlers[runner.id];
+    // Cleanup manager handlers
+    runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+    // TODO: Respect the scope of the _events variable
+    runner._events.removeListener(Events.StartHarvest, this.handleStartHarvest);
+    runner._events.removeListener(Events.StopHarvest, this.handleStopHarvest);
+
+    // Cleanup runner handlers
+    this._events.removeListener('abort', abort);
+    this._events.removeListener(Events.Harvest, harvest);
+  }
+
+  async _start([runnerId, task, openProxy]) {
+    const runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
+    this._runners[runnerId] = runner;
+
+    this._logger.verbose('Wiring up TaskRunner Events ...');
+    this._setupRunner(runner);
+
+    // Start the runner asynchronously
+    this._logger.verbose('Starting Runner ...');
+    try {
+      await runner.start();
+      this._logger.info('Runner %s finished without errors', runnerId);
+    } catch (error) {
+      this._logger.error(
+        'Runner %s was stopped due to an errors: %s',
+        runnerId,
+        error.toString(),
+        error,
+      );
+    }
+
+    this._logger.verbose('Performing cleanup for runner %s', runnerId);
+    this._cleanupRunner(runner);
   }
 }
 
