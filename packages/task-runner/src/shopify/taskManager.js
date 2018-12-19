@@ -355,7 +355,7 @@ class TaskManager {
     };
   }
 
-  async cleanup(runnerId, proxy) {
+  cleanup(runnerId, proxy) {
     delete this._runners[runnerId];
     if (proxy) {
       this.releaseProxy(runnerId, proxy.id);
@@ -453,7 +453,7 @@ class TaskManager {
   }
 
   // MARK: Private Methods
-  _setupRunner(runner) {
+  _setup(runner) {
     const handlers = {
       abort: id => {
         if (id === runner.id) {
@@ -482,7 +482,7 @@ class TaskManager {
     runner._events.on(Events.StopHarvest, this.handleStopHarvest);
   }
 
-  _cleanupRunner(runner) {
+  _cleanup(runner) {
     const { abort, harvest } = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
@@ -501,7 +501,7 @@ class TaskManager {
     this._runners[runnerId] = runner;
 
     this._logger.verbose('Wiring up TaskRunner Events ...');
-    this._setupRunner(runner);
+    this._setup(runner);
 
     // Start the runner asynchronously
     this._logger.verbose('Starting Runner ...');
@@ -518,7 +518,7 @@ class TaskManager {
     }
 
     this._logger.verbose('Performing cleanup for runner %s', runnerId);
-    this._cleanupRunner(runner);
+    this._cleanup(runner);
   }
 }
 
