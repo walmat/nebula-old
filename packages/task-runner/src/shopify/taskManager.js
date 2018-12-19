@@ -261,11 +261,8 @@ class TaskManager {
         // Call recursively to get the next runner
         this.harvestCaptchaToken(rId, token);
       }
-      // Container exists, run the updater for this runner id
-      const runner = this._runners[rId];
-
-      // TEMPORARY FIX
-      runner._events.emit(Events.Harvest, rId, token);
+      // Send event to pass data to runner
+      this._events.emit(Events.Harvest, rId, token);
 
       // Add the runner back into the token queue
       this._tokenReserveQueue.unshift(rId);
@@ -343,11 +340,7 @@ class TaskManager {
     }
   }
 
-  // setupPreTaskRunner(task) {
-
-  // }
-
-  async setupRunner() {
+  async setup() {
     let runnerId;
     do {
       runnerId = shortid.generate();
@@ -359,7 +352,7 @@ class TaskManager {
     };
   }
 
-  async cleanupRunner(proxy, runnerId) {
+  async cleanup(runnerId, proxy) {
     delete this._runners[runnerId];
     if (proxy) {
       this.releaseProxy(runnerId, proxy.id);
@@ -381,17 +374,16 @@ class TaskManager {
   async start(task) {
     this._logger.info('Starting task %s', task.id);
 
-    const alreadyStarted = this._runners.find(r => r.task.id === task.id);
+    const alreadyStarted = this._runners.find(r => r.taskId === task.id);
     if (alreadyStarted) {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
-
-    const { runnerId, openProxy } = await this.setupRunner();
+    const { runnerId, openProxy } = await this.setup();
     this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
 
     this._start([runnerId, task, openProxy]).then(() => {
-      this.cleanupRunner(openProxy, runnerId);
+      this.cleanup(runnerId, openProxy);
     });
   }
 
@@ -405,6 +397,9 @@ class TaskManager {
 
     // TEMPORARY
     this._events.on('abort', runner._handleAbort);
+    this._events.on(Events.Harvest, (...args) => {
+      runner._events.emit(Events.Harvest, ...args);
+    });
     runner._events.on(Events.StartHarvest, this.handleStartHarvest);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest);
 

@@ -12,6 +12,8 @@ const { waitForDelay } = require('./classes/utils');
 
 class TaskRunner {
   constructor(id, task, proxy, loggerPath) {
+    this.taskId = task.id;
+
     /**
      * Logger Instance
      */
