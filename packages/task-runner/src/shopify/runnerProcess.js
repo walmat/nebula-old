@@ -93,8 +93,8 @@ async function _start([rId, task, proxy, loggerPath]) {
 
 // Setup a handler to listen for the start message...
 process.on('message', async ({ target, event, args }) => {
-  // Ensure target is slave, and event correct
-  if (target !== 'slave' || event !== '__start') {
+  // Ensure target is child, and event correct
+  if (target !== 'child' || event !== '__start') {
     return;
   }
 

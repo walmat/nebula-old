@@ -338,7 +338,7 @@ class TaskManager {
     // For now only re emit Task Status Events
     if (event === TaskRunner.Events.TaskStatus) {
       this._logger.info('Reemitting this status update...');
-      const taskId = this._runners[runnerId]._context.task.id;
+      const { taskId } = this._runners[runnerId];
       this._events.emit('status', taskId, message, event);
     }
   }
@@ -383,7 +383,7 @@ class TaskManager {
       return;
     }
     const { runnerId, openProxy } = await this.setup();
-    this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
+    this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
     this._start([runnerId, task, openProxy]).then(() => {
       this.cleanup(runnerId, openProxy);
@@ -417,7 +417,7 @@ class TaskManager {
    */
   stop(task) {
     this._logger.info('Attempting to stop runner with task id: %s', task.id);
-    const rId = Object.keys(this._runners).find(k => this._runners[k]._context.task.id === task.id);
+    const rId = Object.keys(this._runners).find(k => this._runners[k].taskId === task.id);
     if (!rId) {
       this._logger.warn(
         'This task was not previously running or has already been stopped! Skipping stop',
