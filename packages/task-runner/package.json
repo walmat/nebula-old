@@ -2,7 +2,7 @@
   "name": "@nebula/task-runner",
   "version": "0.1.0",
   "private": true,
-  "main": "./build/shopify/taskRunner.js",
+  "main": "./build/index.js",
   "scripts": {
     "build": "babel src -d build",
     "ci": "exit 0",
