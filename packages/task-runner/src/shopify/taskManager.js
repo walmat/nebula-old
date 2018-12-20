@@ -3,7 +3,6 @@ const hash = require('object-hash');
 const shortid = require('shortid');
 
 const TaskRunner = require('./taskRunner');
-const AsyncQueue = require('./classes/asyncQueue');
 const { Events } = require('./classes/utils/constants').TaskManager;
 const { createLogger } = require('../common/logger');
 
@@ -20,7 +19,10 @@ class TaskManager {
     this._loggerPath = loggerPath;
 
     // Runner Map
-    this._runners = [];
+    this._runners = {};
+
+    // Handlers Map
+    this._handlers = {};
 
     // Captcha Map
     this._captchaQueues = new Map();
@@ -39,6 +41,8 @@ class TaskManager {
     });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
+    this.handleStartHarvest = this.handleStartHarvest.bind(this);
+    this.handleStopHarvest = this.handleStopHarvest.bind(this);
   }
 
   // MARK: Event Related Methods
@@ -241,25 +245,6 @@ class TaskManager {
   }
 
   /**
-   * Generate Harvest Captcha Handler
-   *
-   * Generate a handler that will be used to capture
-   * harvested captcha tokens. Tokens will be inserted
-   * into the given queue only if they are for the given
-   * runner id.
-   *
-   * @param {String} runnerId the runner to test against
-   * @param {AsyncQueue} queue the queue to insert tokens into
-   */
-  static _generateHarvestCaptchaHandler(runnerId, queue) {
-    return (rId, token) => {
-      if (runnerId === rId) {
-        queue.insert(token);
-      }
-    };
-  }
-
-  /**
    * Harvest Captcha
    *
    * Harvest a given captcha token for a given runner
@@ -279,8 +264,9 @@ class TaskManager {
         // Call recursively to get the next runner
         this.harvestCaptchaToken(rId, token);
       }
-      // Container exists, run the updater for this runner id
-      container.updater(rId, token);
+      // Send event to pass data to runner
+      this._events.emit(Events.Harvest, rId, token);
+
       // Add the runner back into the token queue
       this._tokenReserveQueue.unshift(rId);
     }
@@ -293,21 +279,13 @@ class TaskManager {
    * the captcha harvesting has not started for this runner, it will be
    * started.
    *
-   * This method will return the next available captcha token for this
-   * runner.
-   *
    * @param {String} runnerId the runner for which to register captcha events
    */
-  async startHarvestCaptcha(runnerId) {
+  handleStartHarvest(ev, runnerId) {
     let container = this._captchaQueues.get(runnerId);
     if (!container) {
       // We haven't started harvesting for this runner yet, create a queue and start harvesting
-      const queue = new AsyncQueue();
-      const updater = TaskManager._generateHarvestCaptchaHandler(runnerId, queue);
-      container = {
-        queue,
-        updater,
-      };
+      container = {};
       // Store the container on the captcha queue map
       this._captchaQueues.set(runnerId, container);
 
@@ -317,7 +295,6 @@ class TaskManager {
       // Emit an event to start harvesting
       this._events.emit(Events.StartHarvest, runnerId);
     }
-    return container.queue.next();
   }
 
   /**
@@ -329,7 +306,7 @@ class TaskManager {
    * If the runner was not previously harvesting captchas, this method does
    * nothing.
    */
-  stopHarvestCaptcha(runnerId) {
+  handleStopHarvest(ev, runnerId) {
     const container = this._captchaQueues.get(runnerId);
 
     // If this container was never started, there's no need to do anything further
@@ -337,10 +314,7 @@ class TaskManager {
       return;
     }
 
-    // Cleanup the container and remove it from the queues list
-    this._events.removeListener(Events.Harvest, container.updater);
     // FYI this will reject all calls currently waiting for a token
-    container.queue.destroy();
     this._captchaQueues.delete(runnerId);
 
     // Emit an event to stop harvesting
@@ -364,8 +338,27 @@ class TaskManager {
     // For now only re emit Task Status Events
     if (event === TaskRunner.Events.TaskStatus) {
       this._logger.info('Reemitting this status update...');
-      const taskId = this._runners[runnerId]._context.task.id;
+      const { taskId } = this._runners[runnerId];
       this._events.emit('status', taskId, message, event);
+    }
+  }
+
+  async setup() {
+    let runnerId;
+    do {
+      runnerId = shortid.generate();
+    } while (this._runners[runnerId]);
+    const openProxy = await this.reserveProxy(runnerId);
+    return {
+      runnerId,
+      openProxy,
+    };
+  }
+
+  cleanup(runnerId, proxy) {
+    delete this._runners[runnerId];
+    if (proxy) {
+      this.releaseProxy(runnerId, proxy.id);
     }
   }
 
@@ -384,52 +377,17 @@ class TaskManager {
   async start(task) {
     this._logger.info('Starting task %s', task.id);
 
-    const alreadyStarted = this._runners.find(r => r.task.id === task.id);
+    const alreadyStarted = Object.values(this._runners).find(r => r.taskId === task.id);
     if (alreadyStarted) {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
+    const { runnerId, openProxy } = await this.setup();
+    this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
-    let runnerId;
-    do {
-      runnerId = shortid.generate();
-    } while (this._runners[runnerId]);
-    this._logger.info('Creating new runner %s for task $s', runnerId, task.id);
-
-    const openProxy = await this.reserveProxy(runnerId);
-    const runner = new TaskRunner(runnerId, task, openProxy, this);
-    this._runners[runnerId] = runner;
-
-    // Register for status updates
-    this._logger.verbose('Registering for TaskRunner Events ...');
-    runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-
-    // Start the runner asynchronously
-    this._logger.verbose('Starting Runner ...');
-    runner
-      .start()
-      .then(() => {
-        this._logger.info('Runner %s finished without errors', runnerId);
-      })
-      .catch(error => {
-        this._logger.error(
-          'Runner %s was stopped due to an errors: %s',
-          runnerId,
-          error.toString(),
-          error,
-        );
-      })
-      .then(() => {
-        this._logger.verbose('Performing cleanup for runner %s', runnerId);
-        // Cleanup handlers
-        runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-        // Remove from runners map
-        delete this._runners[runnerId];
-        // Release proxy
-        if (openProxy) {
-          this.releaseProxy(runnerId, openProxy.id);
-        }
-      });
+    this._start([runnerId, task, openProxy]).then(() => {
+      this.cleanup(runnerId, openProxy);
+    });
   }
 
   /**
@@ -459,7 +417,7 @@ class TaskManager {
    */
   stop(task) {
     this._logger.info('Attempting to stop runner with task id: %s', task.id);
-    const rId = Object.keys(this._runners).find(k => this._runners[k]._context.task.id === task.id);
+    const rId = Object.keys(this._runners).find(k => this._runners[k].taskId === task.id);
     if (!rId) {
       this._logger.warn(
         'This task was not previously running or has already been stopped! Skipping stop',
@@ -492,6 +450,75 @@ class TaskManager {
    */
   isRunning(task) {
     return !!this._runners.find(r => r.task.id === task.id);
+  }
+
+  // MARK: Private Methods
+  _setup(runner) {
+    const handlers = {
+      abort: id => {
+        if (id === runner.id) {
+          // TODO: Respect the scope of the runner's methods (issue #137)
+          runner._handleAbort(id);
+        }
+      },
+      harvest: (id, token) => {
+        if (id === runner.id) {
+          // TODO: Respect the scope of the _events variable (issue #137)
+          runner._events.emit(Events.Harvest, id, token);
+        }
+      },
+    };
+    this._handlers[runner.id] = handlers;
+
+    // Attach Runner Handlers to Manager Events
+    this._events.on('abort', handlers.abort);
+    this._events.on(Events.Harvest, handlers.harvest);
+
+    // Attach Manager Handlers to Runner Events
+    // TODO: Respect the scope of the _events variable (issue #137)
+    // Register for status updates
+    runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+    runner._events.on(Events.StartHarvest, this.handleStartHarvest);
+    runner._events.on(Events.StopHarvest, this.handleStopHarvest);
+  }
+
+  _cleanup(runner) {
+    const { abort, harvest } = this._handlers[runner.id];
+    delete this._handlers[runner.id];
+    // Cleanup manager handlers
+    runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+    // TODO: Respect the scope of the _events variable (issue #137)
+    runner._events.removeListener(Events.StartHarvest, this.handleStartHarvest);
+    runner._events.removeListener(Events.StopHarvest, this.handleStopHarvest);
+
+    // Cleanup runner handlers
+    this._events.removeListener('abort', abort);
+    this._events.removeListener(Events.Harvest, harvest);
+  }
+
+  async _start([runnerId, task, openProxy]) {
+    const runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
+    this._runners[runnerId] = runner;
+
+    this._logger.verbose('Wiring up TaskRunner Events ...');
+    this._setup(runner);
+
+    // Start the runner asynchronously
+    this._logger.verbose('Starting Runner ...');
+    try {
+      await runner.start();
+      this._logger.info('Runner %s finished without errors', runnerId);
+    } catch (error) {
+      this._logger.error(
+        'Runner %s was stopped due to an errors: %s',
+        runnerId,
+        error.toString(),
+        error,
+      );
+    }
+
+    this._logger.verbose('Performing cleanup for runner %s', runnerId);
+    this._cleanup(runner);
   }
 }
 

@@ -1,5 +1,5 @@
 const Electron = require('electron');
-const TaskManager = require('@nebula/task-runner/src/shopify/taskManager');
+const { TaskManager, TaskProcessManager } = require('@nebula/task-runner').shopify;
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 
@@ -13,7 +13,22 @@ class TaskManagerWrapper {
 
     this._listeners = [];
 
-    this._taskManager = new TaskManager(LOGS_PATH);
+    // Use environment to initialize the right task manager
+    switch (process.env.NEBULA_RUNNER_CONCURRENCY_TYPE) {
+      case 'single': {
+        this._taskManager = new TaskManager(LOGS_PATH);
+        break;
+      }
+      case 'process': {
+        this._taskManager = new TaskProcessManager(LOGS_PATH);
+        break;
+      }
+      default: {
+        // Use multiprocess TaskManager as default
+        this._taskManager = new TaskProcessManager(LOGS_PATH);
+        break;
+      }
+    }
 
     this._taskEventHandler = this._taskEventHandler.bind(this);
     this._startHarvestEventHandler = this._startHarvestEventHandler.bind(this);
@@ -21,14 +36,8 @@ class TaskManagerWrapper {
 
     // TODO: Research if this should always listened to, or if we can dynamically
     //       Start/Stop listening like we with task events
-    this._taskManager._events.on(
-      TaskManager.Events.StartHarvest,
-      this._startHarvestEventHandler,
-    );
-    this._taskManager._events.on(
-      TaskManager.Events.StopHarvest,
-      this._stopHarvestEventHandler,
-    );
+    this._taskManager._events.on(TaskManager.Events.StartHarvest, this._startHarvestEventHandler);
+    this._taskManager._events.on(TaskManager.Events.StopHarvest, this._stopHarvestEventHandler);
 
     context.ipc.on(
       IPCKeys.RequestRegisterTaskEventHandler,
@@ -40,25 +49,13 @@ class TaskManagerWrapper {
       this._onDeregisterEventRequest.bind(this),
     );
 
-    context.ipc.on(
-      IPCKeys.RequestStartTasks,
-      this._onStartTasksRequest.bind(this),
-    );
+    context.ipc.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
 
-    context.ipc.on(
-      IPCKeys.RequestStopTasks,
-      this._onStopTasksRequest.bind(this),
-    );
+    context.ipc.on(IPCKeys.RequestStopTasks, this._onStopTasksRequest.bind(this));
 
-    context.ipc.on(
-      IPCKeys.RequestAddProxies,
-      this._onAddProxiesRequest.bind(this),
-    );
+    context.ipc.on(IPCKeys.RequestAddProxies, this._onAddProxiesRequest.bind(this));
 
-    context.ipc.on(
-      IPCKeys.RequestRemoveProxies,
-      this._onRemoveProxiesRequest.bind(this),
-    );
+    context.ipc.on(IPCKeys.RequestRemoveProxies, this._onRemoveProxiesRequest.bind(this));
 
     context.ipc.on(IPCKeys.HarvestCaptcha, this._onHarvestToken.bind(this));
 
@@ -88,17 +85,12 @@ class TaskManagerWrapper {
   }
 
   _taskEventHandler(taskId, statusMessage) {
-    this._listeners.forEach(l =>
-      l.send(_TASK_EVENT_KEY, taskId, statusMessage),
-    );
+    this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
   }
 
   async _startHarvestEventHandler(runnerId, siteKey) {
     const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
-    await this._context.windowManager.onRequestStartHarvestingCaptcha(
-      runnerId,
-      key,
-    );
+    await this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, key);
   }
 
   _stopHarvestEventHandler(runnerId, siteKey) {
@@ -122,10 +114,8 @@ class TaskManagerWrapper {
     }
   }
 
-  _onHarvestToken(event, runnerId, token, siteKey, host) {
-    console.log(
-      `Harvesting Token: ${token}\nRunner: ${runnerId}\nkey: ${siteKey}`,
-    );
+  _onHarvestToken(_, runnerId, token, siteKey) {
+    console.log(`Harvesting Token: ${token}\nRunner: ${runnerId}\nkey: ${siteKey}`);
     this._taskManager.harvestCaptchaToken(runnerId, token);
     if (nebulaEnv.isDevelopment()) {
       this._debugHarvestedTokens.push({
@@ -149,10 +139,7 @@ class TaskManagerWrapper {
       this._addListener(event.sender);
 
       // Send a response with the key to listen on...
-      event.sender.send(
-        IPCKeys.RequestRegisterTaskEventHandler,
-        _TASK_EVENT_KEY,
-      );
+      event.sender.send(IPCKeys.RequestRegisterTaskEventHandler, _TASK_EVENT_KEY);
     } else {
       // Send a response with no key, reporting an error...
       event.sender.send(IPCKeys.RequestRegisterTaskEventHandler, null);
@@ -176,17 +163,14 @@ class TaskManagerWrapper {
       this._removeListener(event.sender);
 
       // Send a response with the key to listen on...
-      event.sender.send(
-        IPCKeys.RequestDeregisterTaskEventHandler,
-        _TASK_EVENT_KEY,
-      );
+      event.sender.send(IPCKeys.RequestDeregisterTaskEventHandler, _TASK_EVENT_KEY);
     } else {
       // Send a response with no key, reporting an error...
       event.sender.send(IPCKeys.RequestDeregisterTaskEventHandler, null);
     }
   }
 
-  _onStartTasksRequest(event, tasks) {
+  _onStartTasksRequest(_, tasks) {
     if (tasks instanceof Array) {
       this._taskManager.startAll(tasks);
     } else {
@@ -194,7 +178,7 @@ class TaskManagerWrapper {
     }
   }
 
-  _onStopTasksRequest(event, tasks) {
+  _onStopTasksRequest(_, tasks) {
     if (tasks instanceof Array) {
       this._taskManager.stopAll(tasks);
     } else {
@@ -202,11 +186,11 @@ class TaskManagerWrapper {
     }
   }
 
-  _onAddProxiesRequest(event, proxies) {
+  _onAddProxiesRequest(_, proxies) {
     this._taskManager.registerProxies(proxies);
   }
 
-  _onRemoveProxiesRequest(event, proxies) {
+  _onRemoveProxiesRequest(_, proxies) {
     this._taskManager.deregisterProxies(proxies);
   }
 }

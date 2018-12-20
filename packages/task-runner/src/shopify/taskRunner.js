@@ -4,22 +4,23 @@ const { jar } = require('request');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const QueueBypass = require('./classes/bypass');
+const AsyncQueue = require('./classes/asyncQueue');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
+const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
 
 class TaskRunner {
-  constructor(id, task, proxy, manager) {
-    /**
-     * The manager of this task runner
-     */
-    this._taskManager = manager;
+  constructor(id, task, proxy, loggerPath) {
+    // Add Ids to object
+    this.taskId = task.id;
+    this.id = id;
 
     /**
      * Logger Instance
      */
     this._logger = createLogger({
-      dir: this._taskManager.loggerPath,
+      dir: loggerPath,
       name: `TaskRunner-${id}`,
       filename: `runner-${id}.log`,
     });
@@ -30,6 +31,8 @@ class TaskRunner {
     this._state = States.Initialized;
 
     this._jar = jar();
+
+    this._captchaQueue = null;
 
     /**
      * The context of this task runner
@@ -70,8 +73,7 @@ class TaskRunner {
     this._events = new EventEmitter();
 
     this._handleAbort = this._handleAbort.bind(this);
-
-    this._taskManager._events.on('abort', this._handleAbort);
+    this._handleHarvest = this._handleHarvest.bind(this);
   }
 
   _waitForErrorDelay() {
@@ -85,18 +87,34 @@ class TaskRunner {
     }
   }
 
+  _handleHarvest(id, token) {
+    if (id === this._context.id) {
+      this._captchaQueue.insert(token);
+    }
+  }
+
   _cleanup() {
-    this._taskManager._events.removeListener('abort', this._handleAbort);
+    this.stopHarvestCaptcha();
   }
 
   // MARK: Event Registration
 
   async getCaptcha() {
-    return this._taskManager.startHarvestCaptcha(this._context.id);
+    if (!this._captchaQueue) {
+      this._captchaQueue = new AsyncQueue();
+      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest);
+      this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
+    }
+    return this._captchaQueue.next();
   }
 
   stopHarvestCaptcha() {
-    this._taskManager.stopHarvestCaptcha(this._context.id);
+    if (this._captchaQueue) {
+      this._captchaQueue.destroy();
+      this._captchaQueue = null;
+      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest);
+    }
   }
 
   registerForEvent(event, callback) {
@@ -239,7 +257,7 @@ class TaskRunner {
   }
 
   async _handleSwapProxies() {
-    const res = await this._taskManager.swapProxies(this._context.id, this._context.proxy);
+    const res = await this.swapProxies(this._context.id, this._context.proxy);
     if (res.errors) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %j', res.errors);
       this._emitTaskEvent({
