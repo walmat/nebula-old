@@ -277,7 +277,6 @@ class TaskRunner {
       // : [this.generatePaymentToken(), this.createCheckout()];
       const promises = [this.generatePaymentToken(), this.createCheckout()];
       const results = await Promise.all(promises.map(reflect));
-      console.log(results);
       if (results.filter(res => res.status === 'rejected').length > 0) {
         // let's do task setup later
         this._context.isSetup = false;

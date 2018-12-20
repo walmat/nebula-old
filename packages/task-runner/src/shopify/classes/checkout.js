@@ -1,4 +1,5 @@
 const phoneFormatter = require('phone-formatter');
+const cheerio = require('cheerio');
 const _ = require('underscore');
 const fs = require('fs');
 const path = require('path');
@@ -142,6 +143,12 @@ class Checkout {
     this._storeId;
     this._paymentUrlKey;
     this._basicAuth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
+    this._prices = {
+      item: 0,
+      shipping: 0,
+      total: 0,
+    };
+    this._gateway;
 
     /**
      * Current captcha token
@@ -216,7 +223,7 @@ class Checkout {
       })
       .then(async (res) => {
         const body = JSON.parse(res.body.toString());
-        console.log(body);
+
         if (res.statusCode === 303) {
           this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
           await waitForDelay(Checkout.Delays.PollCheckoutQueue);
@@ -306,6 +313,10 @@ class Checkout {
             // otherwise, check to see if line_items was updated
           } else if (res.body.checkout && res.body.checkout.line_items.length > 0) {
             this._logger.info('Added to cart.');
+
+            // update item prices
+            this._prices.item = new Number(parseFloat(res.body.checkout.total_price)).toFixed(2);
+
             return {
               message: 'Added to cart',
               nextState: Checkout.States.GetShippingRates,
@@ -373,9 +384,12 @@ class Checkout {
           this._chosenShippingMethod = { id: cheapest.id, name: cheapest.title };
           this._logger.info('Got shipping method in %s', this._chosenShippingMethod);
 
+          // set total price for cart
+          this._prices.shipping = new Number(parseFloat(cheapest.price)).toFixed(2);
+
           return {
             message: `Submitting payment`,
-            nextState: Checkout.States.PostPayment,
+            nextState: Checkout.States.RequestCaptcha,
           }
         } else {
           // TODO -- limit this more maybe?
@@ -411,13 +425,19 @@ class Checkout {
 
   /**
    * @example
-   *
+   * Steps (API):
+   * 1. GET `https://blendsus.com/1529745/checkouts/6eb86de0a19e7d50ec27859a7d43a0e8?previous_step=shipping_method&step=payment_method`
+   * 2. POST `https://blendsus.com/1529745/checkouts/6eb86de0a19e7d50ec27859a7d43a0e8`
+   * 3. POST `https://blendsus.com/1529745/checkouts/6eb86de0a19e7d50ec27859a7d43a0e8`
+   * 4. GET `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/payments`
    */
   async _handlePostPayment() {
     this._logger.verbose('Posting payment.');
+
     const headers = {
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
+      'Connection': 'Keep-Alive',
       'Content-Type': 'multipart/form-data;',
       'Upgrade-Insecure-Requests': '1',
       'X-Shopify-Checkout-Version': '2016-09-06',
@@ -426,51 +446,63 @@ class Checkout {
       'host': `${this._task.site.url.split('/')[2]}`,
     };
 
+    this._prices.total =
+      (parseFloat(this._prices.item) +
+      parseFloat(this._prices.shipping)).toFixed(2);
+
     return this._request({
-        uri:  `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._paymentUrlKey}`,
+      uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?previous_step=shipping_method&step=payment_method`,
+      method: 'get',
+      followAllRedirects: true,
+      resolveWithFullResponse: true,
+      rejectUnauthorized: false,
+      proxy: formatProxy(this._proxy),
+      headers: {
+        'User-Agent': userAgent,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      // transform: body => cheerio.load(body),
+    })
+    .then((res) => {
+      fs.writeFileSync(path.join(__dirname, 'payment-0.html'), res.body);
+      const $ = cheerio.load(res.body);
+      this._gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+
+      const data = {
+        'utf8': '✓',
+        '_method': 'patch',
+        'authenticity_token': '',
+        'previous_step': 'payment_method',
+        'step': '',
+        's': this._paymentTokens.pop(),
+        'checkout[payment_gateway]': this._gateway, // TODO - find out how to get this
+        'checkout[remember_me]': '0',
+        'checkout[total_price]': `${this._prices.total}`,
+        'complete': '1',
+        'checkout[client_details][browser_width]': '941',
+        'checkout[client_details][browser_height]': '640',
+        'checkout[client_details][javascript_enabled]': '1',
+        'checkout[buyer_accepts_marketing]': '0',
+        'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
+        'button': '',
+        'g-recaptcha-response': this._captchaToken,
+      };
+
+      return this._request({
+        uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'POST',
         proxy: formatProxy(this._proxy),
         followAllRedirects: true,
         simple: false,
         json: false,
-        encoding: null,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers,
-        formData: {
-          'utf8': '✓',
-          '_method': 'patch',
-          'authenticity_token': '',
-          'previous_step': 'shipping_method',
-          'step': 'payment_method',
-          's': this._paymentTokens.pop(),
-          'checkout[remember_me]': 0,
-          'checkout[total_price]': '',
-          'complete': 1,
-          'checkout[client_details][browser_width]': '979',
-          'checkout[client_details][browser_height]': '631',
-          'checkout[client_details][javascript_enabled]': '1',
-          'checkout[buyer_accepts_marketing]': '0',
-          'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
-          'button': '',
-          'g-captcha-response': '',
-        },
+        formData: data,
       })
       .then((res) => {
-        console.log(res.request.href);
-        fs.writeFileSync(path.join(__dirname, 'payment-1.html'), res.body);
 
-        const headers = {
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.8',
-          'Connection': 'Keep-Alive',
-          'Content-Type': 'multipart/form-data;',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Checkout-Version': '2016-09-06',
-          'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
-          'User-Agent': userAgent,
-          'host': `${this._task.site.url.split('/')[2]}`,
-        };
+        fs.writeFileSync(path.join(__dirname, 'payment-1.html'), res.body);
 
         return this._request({
           uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
@@ -486,12 +518,13 @@ class Checkout {
             'utf8': '✓',
             '_method': 'patch',
             'authenticity_token': '',
-            'checkout[total_price]': '',
-            'complete': 1,
+            'checkout[total_price]': `${this._prices.total}`,
+            'complete': '1',
             'button': '',
             'checkout[client_details][browser_width]': '979',
             'checkout[client_details][browser_height]': '631',
             'checkout[client_details][javascript_enabled]': '1',
+            'g-captcha-response': `${this._captchaToken}`,
           },
         })
         .then((res) => {
@@ -532,6 +565,7 @@ class Checkout {
           nextState: Checkout.States.Error,
         }
       })
+    })
   }
 
   async _handleStopped() {
