@@ -45,12 +45,12 @@ function wireEventHandlers(runner) {
     // Only Handle Certain Events
     switch (event) {
       case 'abort': {
-        // TODO: Respect the scope of Runner
+        // TODO: Respect the scope of Runner (issue #137)
         runner._handleAbort(...args);
         break;
       }
       case TaskManagerEvents.Harvest: {
-        // TODO: Respect the scope of Runner
+        // TODO: Respect the scope of Runner (issue #137)
         runner._handleHarvest(...args);
         break;
       }
@@ -66,7 +66,7 @@ function wireEventHandlers(runner) {
     TaskManagerEvents.StartHarvest,
     TaskManagerEvents.StopHarvest,
   ].forEach(event => {
-    // TODO: Respect the scope of Runner
+    // TODO: Respect the scope of Runner (issue #137)
     runner._events.on(event, (...args) => {
       process.send({
         target: 'main',
@@ -79,7 +79,7 @@ function wireEventHandlers(runner) {
 
 function cleanupEventHandlers(runner) {
   // Detach runner event listeners
-  // TODO: Respect the scope of Runner
+  // TODO: Respect the scope of Runner (issue #137)
   runner._events.removeAllListeners();
 }
 

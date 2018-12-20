@@ -24,8 +24,8 @@ class TaskManagerWrapper {
         break;
       }
       default: {
-        // Use single threaded TaskManager as default until more testing can be done
-        this._taskManager = new TaskManager(LOGS_PATH);
+        // Use multiprocess TaskManager as default
+        this._taskManager = new TaskProcessManager(LOGS_PATH);
         break;
       }
     }

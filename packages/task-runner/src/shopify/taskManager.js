@@ -457,13 +457,13 @@ class TaskManager {
     const handlers = {
       abort: id => {
         if (id === runner.id) {
-          // TODO: Respect the scope of the runner's methods
+          // TODO: Respect the scope of the runner's methods (issue #137)
           runner._handleAbort(id);
         }
       },
       harvest: (id, token) => {
         if (id === runner.id) {
-          // TODO: Respect the scope of the _events variable
+          // TODO: Respect the scope of the _events variable (issue #137)
           runner._events.emit(Events.Harvest, id, token);
         }
       },
@@ -475,7 +475,7 @@ class TaskManager {
     this._events.on(Events.Harvest, handlers.harvest);
 
     // Attach Manager Handlers to Runner Events
-    // TODO: Respect the scope of the _events variable
+    // TODO: Respect the scope of the _events variable (issue #137)
     // Register for status updates
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest);
@@ -487,7 +487,7 @@ class TaskManager {
     delete this._handlers[runner.id];
     // Cleanup manager handlers
     runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-    // TODO: Respect the scope of the _events variable
+    // TODO: Respect the scope of the _events variable (issue #137)
     runner._events.removeListener(Events.StartHarvest, this.handleStartHarvest);
     runner._events.removeListener(Events.StopHarvest, this.handleStopHarvest);
 
