@@ -331,7 +331,9 @@ describe('<ProxyList />', () => {
       settings: {
         ...initialSettingsStates.settings,
         proxies: ['test1', 'test2'],
-        errors: null,
+        errors: {
+          proxies: null,
+        },
         extra: 'data',
       },
       extra: 'data',
@@ -339,6 +341,9 @@ describe('<ProxyList />', () => {
     const state2 = {
       settings: {
         proxies: ['test1', 'test2'],
+        errors: {
+          proxies: null,
+        },
         extra: 'data',
       },
       extra: 'data',

@@ -1171,6 +1171,9 @@ describe('<TaskRow />', () => {
       profiles: ['profiles'],
       settings: {
         proxies: ['proxies'],
+        errors: {
+          proxies: [],
+        },
       },
       selectedTask: { id: 1 },
       task: 'invalid',

@@ -61,16 +61,19 @@ describe('settings attribute validatation middleware', () => {
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
       }));
+      const expectedErrors = { ...initialSettingsStates.settingsErrors };
+      delete expectedErrors.proxies;
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
         field: SETTINGS_FIELDS.EDIT_PROXIES,
         value: ['123.123.123.123:8080', '123.123.123.123:8080:user:pass'],
+        errors: expectedErrors,
       };
       invoke(action);
       expect(next).toHaveBeenCalledWith(action);
       expect(store.getState).toHaveBeenCalled();
       const nextAction = next.mock.calls[0][0];
-      expect(nextAction.errors).not.toBeDefined();
+      expect(nextAction.errors.proxies).not.toBeDefined();
     });
 
     it('should pass an errors object if some proxies are invalid', () => {

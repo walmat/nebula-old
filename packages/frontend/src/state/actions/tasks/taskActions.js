@@ -159,12 +159,12 @@ const _statusTaskRequest = async (id, message) => {
   throw new Error('Invalid task structure');
 };
 
-// eslint-disable-next-line no-unused-vars
 const _startTaskRequest = async (task, proxies = []) => {
   if (task.status === 'running') {
     throw new Error('Already running');
   } else {
     if (window.Bridge) {
+      window.Bridge.addProxies(proxies);
       window.Bridge.startTasks(task);
     }
     return { task };

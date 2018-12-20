@@ -23,7 +23,7 @@ const settingsAttributeValidationMiddleware = store => next => action => {
     newAction.errors[mapSettingsFieldToKey[newAction.field]] = proxyErrors;
 
     if (!proxyErrors.length) {
-      delete newAction.errors;
+      delete newAction.errors[mapSettingsFieldToKey[newAction.field]];
     }
   }
 
