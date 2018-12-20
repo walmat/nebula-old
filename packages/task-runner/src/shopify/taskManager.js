@@ -43,6 +43,7 @@ class TaskManager {
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
     this.handleStartHarvest = this.handleStartHarvest.bind(this);
     this.handleStopHarvest = this.handleStopHarvest.bind(this);
+    this.handleSwapProxy = this.handleSwapProxy.bind(this);
   }
 
   // MARK: Event Related Methods
@@ -273,6 +274,18 @@ class TaskManager {
   }
 
   /**
+   * Handle Proxy Swapping Events from runner
+   *
+   * @param {String} runnerId
+   * @param {Object} proxy
+   * @param {Bool} shouldBan
+   */
+  async handleSwapProxy(runnerId, proxy, shouldBan) {
+    const newProxy = await this.swapProxy(runnerId, proxy.id, shouldBan);
+    this._events.emit('SendProxy', runnerId, newProxy);
+  }
+
+  /**
    * Start Harvesting Captcha
    *
    * Register and retrieve a captcha token for the given runner id. If
@@ -468,12 +481,19 @@ class TaskManager {
           runner._events.emit(Events.Harvest, id, token);
         }
       },
+      proxy: (id, proxy) => {
+        if (id === runner.id) {
+          // TODO: Respect the scope of the _events variable (issue #137)
+          runner._events.emit('ReceiveProxy', id, proxy);
+        }
+      },
     };
     this._handlers[runner.id] = handlers;
 
     // Attach Runner Handlers to Manager Events
     this._events.on('abort', handlers.abort);
     this._events.on(Events.Harvest, handlers.harvest);
+    this._events.on('SendProxy', handlers.proxy);
 
     // Attach Manager Handlers to Runner Events
     // TODO: Respect the scope of the _events variable (issue #137)
@@ -481,10 +501,11 @@ class TaskManager {
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest);
+    runner._events.on('SwapProxy', this.handleSwapProxy);
   }
 
   _cleanup(runner) {
-    const { abort, harvest } = this._handlers[runner.id];
+    const { abort, harvest, proxy } = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
     runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
@@ -495,6 +516,7 @@ class TaskManager {
     // Cleanup runner handlers
     this._events.removeListener('abort', abort);
     this._events.removeListener(Events.Harvest, harvest);
+    this._events.removeListener('SendProxy', proxy);
   }
 
   async _start([runnerId, task, openProxy]) {

@@ -29,6 +29,17 @@ class TaskProcessManager extends TaskManager {
           });
         }
       },
+      proxy: (id, proxy) => {
+        if (id === child.id) {
+          // eslint-disable-next-line no-param-reassign
+          child.proxy = proxy; // update the latest proxy so we can release it at the end
+          child.send({
+            target: 'child',
+            event: 'ReceiveProxy',
+            args: [id, proxy],
+          });
+        }
+      },
       child: ({ target, event, args }) => {
         // Only handle events that target the main process
         if (target !== 'main') {
@@ -47,6 +58,10 @@ class TaskProcessManager extends TaskManager {
             this.handleStopHarvest(...args);
             break;
           }
+          case 'SwapProxy': {
+            this.handleSwapProxy(...args);
+            break;
+          }
           default: {
             break;
           }
@@ -57,6 +72,7 @@ class TaskProcessManager extends TaskManager {
     // Attach handlers to manager events
     this._events.on('abort', handlers.abort);
     this._events.on(TaskManagerEvents.Harvest, handlers.harvest);
+    this._events.on('SendProxy', handlers.proxy);
     // Attach child handler to child process
     child.on('message', handlers.child);
 
@@ -66,7 +82,7 @@ class TaskProcessManager extends TaskManager {
 
   _cleanup(child) {
     this._logger.verbose('Cleaning up Child Process Handlers for runner: %s', child.id);
-    const { abort, harvest, child: childHandler } = this._handlers[child.id];
+    const { abort, harvest, proxy, child: childHandler } = this._handlers[child.id];
     delete this._handlers[child.id];
 
     // Remove child handler
@@ -75,6 +91,7 @@ class TaskProcessManager extends TaskManager {
     // Remove manager event handlers
     this._events.removeListener('abort', abort);
     this._events.removeListener(TaskManagerEvents.Harvest, harvest);
+    this._events.removeListener('SendProxy', proxy);
   }
 
   async _start([runnerId, task, openProxy]) {
