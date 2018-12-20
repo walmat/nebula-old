@@ -149,14 +149,6 @@ class Checkout {
     this._captchaToken;
   }
 
-  static _handlePoll(delay, message, nextState) {
-    waitForDelay(delay);
-    return {
-      message: message,
-      nextState: nextState,
-    };
-  }
-
   /**
    * Called 5 times at the start of the task
    * Generates a payment token using the task data provided from the task runner
@@ -222,19 +214,21 @@ class Checkout {
         headers,
         body: dataString,
       })
-      .then((res) => {
+      .then(async (res) => {
         const body = JSON.parse(res.body.toString());
+        console.log(body);
         if (res.statusCode === 303) {
           this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
+          await waitForDelay(Checkout.Delays.PollCheckoutQueue);
           // TODO
-          return { queue: true };
+          return {code: 303, res: null };
         } else if (body.checkout) {
           // push the checkout token to the stack
           this._logger.info('Created checkout token: %s', body.checkout.clone_url.split('/')[5]);
           this._storeId = body.checkout.clone_url.split('/')[3];
           this._paymentUrlKey = body.checkout.web_url.split('=')[1];
           this._checkoutTokens.push(body.checkout.clone_url.split('/')[5]);
-          return {checkout: body.checkout.clone_url.split('/')[5] };
+          return {code: 200, res: body.checkout.clone_url.split('/')[5]};
         } else {
           // might not ever get called, but just a failsafe
           this._logger.debug('Failed: Creating checkout session %s', res);
@@ -243,7 +237,7 @@ class Checkout {
       })
       .catch((err) => {
         this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
-        return null;
+        return {code: 400, error: err};
       });
   }
 
@@ -459,9 +453,11 @@ class Checkout {
           'checkout[buyer_accepts_marketing]': '0',
           'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
           'button': '',
+          'g-captcha-response': '',
         },
       })
       .then((res) => {
+        console.log(res.request.href);
         fs.writeFileSync(path.join(__dirname, 'payment-1.html'), res.body);
 
         const headers = {
@@ -499,7 +495,6 @@ class Checkout {
           },
         })
         .then((res) => {
-          console.log(res.statusCode);
           fs.writeFileSync(path.join(__dirname, 'payment-2.html'), res.body);
           const headers = {
             'Accept': 'application/json',
@@ -507,8 +502,8 @@ class Checkout {
             'X-Shopify-Checkout-Version': '2016-09-06',
             'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
             'User-Agent': userAgent,
-            'host': `${this._task.site.url.split('/')[2]}`,
-            'authorization': `Basic ${this._basicAuth}`
+            'Host': `${this._task.site.url.split('/')[2]}`,
+            'Authorization': `Basic ${this._basicAuth}`
           };
 
           return this._request({
@@ -522,7 +517,7 @@ class Checkout {
             headers,
           })
           .then((res) => {
-            fs.writeFileSync(path.join(__dirname, 'payment-3.html'), JSON.stringify(res.body, null, 2));
+            fs.writeFileSync(path.join(__dirname, 'payment-3.html'), JSON.stringify(res.body.toString(), null, 2));
             return {
               message: 'Payment failed.',
               nextState: Checkout.States.Stopped,

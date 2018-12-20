@@ -32,7 +32,6 @@ class TaskRunner {
          * (always attempt to do task setup at beginning of task)
          */
         this._isSetup = false;
-        this._doSetupLater = false;
 
         /**
          * Stack of successfully created payment tokens for the runner
@@ -66,6 +65,8 @@ class TaskRunner {
             proxy,
             request: this._request,
             jar: this._jar,
+            isSetup: this._isSetup,
+            doSetupLater: this._doSetupLater,
             timer: this._timer,
             logger: this._logger,
             aborted: false,
@@ -81,7 +82,6 @@ class TaskRunner {
          */
         this._checkout = new Checkout({
             ...this._context,
-            setup: this._isSetup,
             paymentTokens: this._paymentTokens,
             shippingMethods: this._shippingMethods,
             checkoutTokens: this._checkoutTokens,
@@ -101,6 +101,8 @@ class TaskRunner {
         this._handleAbort = this._handleAbort.bind(this);
 
         this._taskManager._events.on('abort', this._handleAbort);
+
+        this._count = 0;
     }
 
     _waitForErrorDelay() {
@@ -244,19 +246,11 @@ class TaskRunner {
     // Task Setup Promise 3 - create checkout session
     createCheckout() {
         return new Promise(async (resolve, reject) => {
-          let res;
-          // i think this will work for polling checkout queue?
-          do {
-            res = await this._checkout._handleCreateCheckout();
-            this._emitTaskEvent({
-              message: 'Waiting in queue',
-            });
-          } while(res.queue);
-
-          if (!res.checkout) {
-              reject();
+          const checkout = await this._checkout._handleCreateCheckout();
+          if (!checkout.res || checkout.error) {
+              reject(checkout.code);
           }
-          resolve(res.checkout);
+          resolve(checkout.res);
         });
     }
 
@@ -283,10 +277,10 @@ class TaskRunner {
       // : [this.generatePaymentToken(), this.createCheckout()];
       const promises = [this.generatePaymentToken(), this.createCheckout()];
       const results = await Promise.all(promises.map(reflect));
-
+      console.log(results);
       if (results.filter(res => res.status === 'rejected').length > 0) {
         // let's do task setup later
-        this._isSetup = false;
+        this._context.isSetup = false;
         this._doSetupLater = true;
         this._logger.verbose('Task setup failed: %j', results.filter(res => res.status === 'rejected'));
         this._emitTaskEvent({
@@ -296,16 +290,14 @@ class TaskRunner {
         // TODO - not necessary, but will speed things up even more
         // const randomProductVariant = results[1];
         // skip to checkout -> return to monitor
-
-        this._isSetup = true;
-        this._doSetupLater = false;
+        this._context.isSetup = true;
       }
       this._timer.stop(now());
       this._emitTaskEvent({
         message: 'Monitoring for product...',
       });
       // console.log((!this._doSetupLater && this._isSetup) ? States.Checkout : States.Monitor);
-      return States.Monitor;
+      return (!this._isSetup && this._doSetupLater) ? States.Monitor : States.Monitor;
     }
 
     async _handleMonitor() {
