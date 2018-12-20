@@ -83,6 +83,7 @@ class TaskProcessManager extends TaskManager {
     // Setup ids
     child.id = runnerId;
     child.taskId = task.id;
+    child.proxy = openProxy;
     this._runners[runnerId] = child;
 
     // Perform Child Process Setup

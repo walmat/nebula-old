@@ -15,6 +15,7 @@ class TaskRunner {
     // Add Ids to object
     this.taskId = task.id;
     this.id = id;
+    this.proxy = proxy;
 
     /**
      * Logger Instance
@@ -43,7 +44,7 @@ class TaskRunner {
     this._context = {
       id,
       task,
-      proxy,
+      proxy: proxy.proxy,
       jar: this._jar,
       logger: this._logger,
       aborted: false,

@@ -158,7 +158,7 @@ class TaskManager {
    */
   async reserveProxy(runnerId, waitForOpenProxy) {
     this._logger.verbose('Reserving proxy for runner %s ...', runnerId);
-    const proxy = this._proxies.find(p => !p.assignedRunner && !p.banned);
+    const proxy = Object.values(this._proxies).find(p => !p.assignedRunner && !p.banned);
     if (proxy) {
       proxy.assignedRunner = runnerId;
       this._logger.verbose('Returning proxy: %s', proxy.id);
@@ -281,7 +281,7 @@ class TaskManager {
    *
    * @param {String} runnerId the runner for which to register captcha events
    */
-  handleStartHarvest(ev, runnerId) {
+  handleStartHarvest(runnerId) {
     let container = this._captchaQueues.get(runnerId);
     if (!container) {
       // We haven't started harvesting for this runner yet, create a queue and start harvesting
@@ -306,7 +306,7 @@ class TaskManager {
    * If the runner was not previously harvesting captchas, this method does
    * nothing.
    */
-  handleStopHarvest(ev, runnerId) {
+  handleStopHarvest(runnerId) {
     const container = this._captchaQueues.get(runnerId);
 
     // If this container was never started, there's no need to do anything further
@@ -355,7 +355,8 @@ class TaskManager {
     };
   }
 
-  cleanup(runnerId, proxy) {
+  cleanup(runnerId) {
+    const { proxy } = this._runners[runnerId];
     delete this._runners[runnerId];
     if (proxy) {
       this.releaseProxy(runnerId, proxy.id);
@@ -386,7 +387,7 @@ class TaskManager {
     this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
     this._start([runnerId, task, openProxy]).then(() => {
-      this.cleanup(runnerId, openProxy);
+      this.cleanup(runnerId);
     });
   }
 
