@@ -388,7 +388,7 @@ TaskRowPrimitive.defaultProps = {
 
 export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
-  proxies: state.settings.proxies,
+  proxies: state.settings.proxies.filter((_, idx) => !state.settings.errors.proxies.includes(idx)), // Only get the valid proxies
   task: ownProps.task,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
