@@ -2,6 +2,7 @@ const TaskManagerEvents = {
   StartHarvest: 'START_CAPTCHA_HARVEST',
   StopHarvest: 'STOP_CAPTCHA_HARVEST',
   Harvest: 'CAPTCHA_HARVEST',
+  SendProxy: 'SEND_PROXY',
 };
 
 /**
@@ -12,6 +13,8 @@ const TaskRunnerEvents = {
   TaskStatus: 'TASK_STATUS',
   MonitorStatus: 'MONITOR_STATUS',
   CheckoutStatus: 'CHECKOUT_STATUS',
+  SwapProxy: 'SWAP_PROXY',
+  ReceiveProxy: 'RECEIVE_PROXY',
 };
 
 /**

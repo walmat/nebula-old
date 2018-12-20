@@ -35,7 +35,7 @@ class TaskProcessManager extends TaskManager {
           child.proxy = proxy; // update the latest proxy so we can release it at the end
           child.send({
             target: 'child',
-            event: 'ReceiveProxy',
+            event: TaskRunnerEvents.ReceiveProxy,
             args: [id, proxy],
           });
         }
@@ -58,7 +58,7 @@ class TaskProcessManager extends TaskManager {
             this.handleStopHarvest(...args);
             break;
           }
-          case 'SwapProxy': {
+          case TaskRunnerEvents.SwapProxy: {
             this.handleSwapProxy(...args);
             break;
           }
@@ -72,7 +72,7 @@ class TaskProcessManager extends TaskManager {
     // Attach handlers to manager events
     this._events.on('abort', handlers.abort);
     this._events.on(TaskManagerEvents.Harvest, handlers.harvest);
-    this._events.on('SendProxy', handlers.proxy);
+    this._events.on(TaskManagerEvents.SendProxy, handlers.proxy);
     // Attach child handler to child process
     child.on('message', handlers.child);
 
@@ -91,7 +91,7 @@ class TaskProcessManager extends TaskManager {
     // Remove manager event handlers
     this._events.removeListener('abort', abort);
     this._events.removeListener(TaskManagerEvents.Harvest, harvest);
-    this._events.removeListener('SendProxy', proxy);
+    this._events.removeListener(TaskManagerEvents.SendProxy, proxy);
   }
 
   async _start([runnerId, task, openProxy]) {

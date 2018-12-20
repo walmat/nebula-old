@@ -282,7 +282,7 @@ class TaskManager {
    */
   async handleSwapProxy(runnerId, proxy, shouldBan) {
     const newProxy = await this.swapProxy(runnerId, proxy.id, shouldBan);
-    this._events.emit('SendProxy', runnerId, newProxy);
+    this._events.emit(Events.SendProxy, runnerId, newProxy);
   }
 
   /**
@@ -484,7 +484,7 @@ class TaskManager {
       proxy: (id, proxy) => {
         if (id === runner.id) {
           // TODO: Respect the scope of the _events variable (issue #137)
-          runner._events.emit('ReceiveProxy', id, proxy);
+          runner._events.emit(TaskRunner.Events.ReceiveProxy, id, proxy);
         }
       },
     };
@@ -493,7 +493,7 @@ class TaskManager {
     // Attach Runner Handlers to Manager Events
     this._events.on('abort', handlers.abort);
     this._events.on(Events.Harvest, handlers.harvest);
-    this._events.on('SendProxy', handlers.proxy);
+    this._events.on(Events.SendProxy, handlers.proxy);
 
     // Attach Manager Handlers to Runner Events
     // TODO: Respect the scope of the _events variable (issue #137)
@@ -501,7 +501,7 @@ class TaskManager {
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest);
-    runner._events.on('SwapProxy', this.handleSwapProxy);
+    runner._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy);
   }
 
   _cleanup(runner) {
@@ -516,7 +516,7 @@ class TaskManager {
     // Cleanup runner handlers
     this._events.removeListener('abort', abort);
     this._events.removeListener(Events.Harvest, harvest);
-    this._events.removeListener('SendProxy', proxy);
+    this._events.removeListener(Events.SendProxy, proxy);
   }
 
   async _start([runnerId, task, openProxy]) {

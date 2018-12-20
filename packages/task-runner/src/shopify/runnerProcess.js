@@ -54,9 +54,9 @@ function wireEventHandlers(runner) {
         runner._handleHarvest(...args);
         break;
       }
-      case 'ReceiveProxy': {
+      case TaskRunnerEvents.ReceiveProxy: {
         // TODO: Respect the scope of Runner (issue #137)
-        runner._events.emit('ReceiveProxy', ...args);
+        runner._events.emit(TaskRunnerEvents.ReceiveProxy, ...args);
         break;
       }
       default: {
@@ -70,7 +70,7 @@ function wireEventHandlers(runner) {
     TaskRunnerEvents.TaskStatus,
     TaskManagerEvents.StartHarvest,
     TaskManagerEvents.StopHarvest,
-    'SwapProxy',
+    TaskRunnerEvents.SwapProxy,
   ].forEach(event => {
     // TODO: Respect the scope of Runner (issue #137)
     runner._events.on(event, (...args) => {
