@@ -389,7 +389,7 @@ class Checkout {
 
           return {
             message: `Submitting payment`,
-            nextState: Checkout.States.RequestCaptcha,
+            nextState: Checkout.States.PostPayment, //RequestCaptcha
           }
         } else {
           // TODO -- limit this more maybe?
@@ -460,13 +460,16 @@ class Checkout {
       headers: {
         'User-Agent': userAgent,
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': `${this._task.site.url}`,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Referer': `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
       },
       // transform: body => cheerio.load(body),
     })
     .then((res) => {
       fs.writeFileSync(path.join(__dirname, 'payment-0.html'), res.body);
       const $ = cheerio.load(res.body);
-      this._gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+      // this._gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
 
       const data = {
         'utf8': '✓',
@@ -475,7 +478,7 @@ class Checkout {
         'previous_step': 'payment_method',
         'step': '',
         's': this._paymentTokens.pop(),
-        'checkout[payment_gateway]': this._gateway, // TODO - find out how to get this
+        'checkout[payment_gateway]': this._gateway, // this will be null for API mode
         'checkout[remember_me]': '0',
         'checkout[total_price]': `${this._prices.total}`,
         'complete': '1',
@@ -489,7 +492,7 @@ class Checkout {
       };
 
       return this._request({
-        uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
+        uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?step=payment_method&previous_step=shipping_method`,
         method: 'POST',
         proxy: formatProxy(this._proxy),
         followAllRedirects: true,
@@ -550,7 +553,7 @@ class Checkout {
             headers,
           })
           .then((res) => {
-            fs.writeFileSync(path.join(__dirname, 'payment-3.html'), JSON.stringify(res.body.toString(), null, 2));
+            fs.writeFileSync(path.join(__dirname, 'payment-3.html'), JSON.stringify(res.body, null, 2));
             return {
               message: 'Payment failed.',
               nextState: Checkout.States.Stopped,
@@ -565,7 +568,7 @@ class Checkout {
           nextState: Checkout.States.Error,
         }
       })
-    })
+    });
   }
 
   async _handleStopped() {
