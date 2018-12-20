@@ -16,10 +16,11 @@ const TaskRunnerEvents = constants.TaskRunner.Events;
  * @param {Error} error
  */
 function forwardError(error) {
+  const { stack, message } = error;
   process.send({
     target: 'main',
     event: '__error',
-    error,
+    error: { stack, message },
   });
 }
 
