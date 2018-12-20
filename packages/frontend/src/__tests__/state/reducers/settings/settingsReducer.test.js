@@ -20,6 +20,7 @@ describe('settings reducer', () => {
         type: SETTINGS_ACTIONS.EDIT,
         field: SETTINGS_FIELDS.EDIT_PROXIES,
         value: [initialSettingsStates.proxy],
+        errors: {},
       });
       expect(actual).toEqual(expected);
     });

@@ -498,6 +498,7 @@ describe('task actions', () => {
       test('and should call Bridge.startTasks when available', async () => {
         const Bridge = {
           startTasks: jest.fn(),
+          addProxies: jest.fn(),
         };
         global.window.Bridge = Bridge;
         const task = { ...initialTaskState };
@@ -512,6 +513,7 @@ describe('task actions', () => {
         ];
         await asyncTaskTests(action, expectedActions);
         expect(Bridge.startTasks).toHaveBeenCalledWith(task);
+        expect(Bridge.addProxies).toHaveBeenCalled();
         delete global.window.Bridge;
       });
 
