@@ -389,7 +389,7 @@ class Checkout {
 
           return {
             message: `Submitting payment`,
-            nextState: Checkout.States.PostPayment, //RequestCaptcha
+            nextState: Checkout.States.PostPayment, // TODO - RequestCaptcha
           }
         } else {
           // TODO -- limit this more maybe?
