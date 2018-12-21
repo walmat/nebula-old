@@ -10,6 +10,7 @@ const {
   waitForDelay,
   formatProxy,
   userAgent,
+  getRandomIntInclusive,
 } = require('./utils');
 const {
   buildPaymentTokenForm,
@@ -446,13 +447,33 @@ class Checkout {
       'host': `${this._task.site.url.split('/')[2]}`,
     };
 
+    const data = {
+      'utf8': '✓',
+      '_method': 'patch',
+      'authenticity_token': '',
+      'previous_step': 'shipping_method',
+      'step': '',
+      's': this._paymentTokens.pop(),
+      'checkout[payment_gateway]': '', // this will be null for API mode
+      'checkout[remember_me]': '0',
+      'checkout[total_price]': '',
+      'complete': '1',
+      'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+      'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
+      'checkout[client_details][javascript_enabled]': '1',
+      'checkout[buyer_accepts_marketing]': '0',
+      'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
+      'button': '',
+      'g-recaptcha-response': this._captchaToken,
+    };
+
     this._prices.total =
       (parseFloat(this._prices.item) +
       parseFloat(this._prices.shipping)).toFixed(2);
 
     return this._request({
-      uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?previous_step=shipping_method&step=payment_method`,
-      method: 'get',
+      uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
+      method: 'post',
       followAllRedirects: true,
       resolveWithFullResponse: true,
       rejectUnauthorized: false,
@@ -464,49 +485,23 @@ class Checkout {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Referer': `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
       },
-      // transform: body => cheerio.load(body),
+      formData: data,
+      transform: body => cheerio.load(body),
     })
-    .then((res) => {
-      fs.writeFileSync(path.join(__dirname, 'payment-0.html'), res.body);
-      const $ = cheerio.load(res.body);
-      // this._gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+    .then(($) => {
+      let step = $('.step').attr('data-step');
+      if (!step) {
+        step = $('#step').attr('data-step');
+      }
 
-      const data = {
-        'utf8': '✓',
-        '_method': 'patch',
-        'authenticity_token': '',
-        'previous_step': 'payment_method',
-        'step': '',
-        's': this._paymentTokens.pop(),
-        'checkout[payment_gateway]': this._gateway, // this will be null for API mode
-        'checkout[remember_me]': '0',
-        'checkout[total_price]': `${this._prices.total}`,
-        'complete': '1',
-        'checkout[client_details][browser_width]': '941',
-        'checkout[client_details][browser_height]': '640',
-        'checkout[client_details][javascript_enabled]': '1',
-        'checkout[buyer_accepts_marketing]': '0',
-        'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
-        'button': '',
-        'g-recaptcha-response': this._captchaToken,
-      };
-
-      return this._request({
-        uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?step=payment_method&previous_step=shipping_method`,
-        method: 'POST',
-        proxy: formatProxy(this._proxy),
-        followAllRedirects: true,
-        simple: false,
-        json: false,
-        rejectUnauthorized: false,
-        resolveWithFullResponse: true,
-        headers,
-        formData: data,
-      })
-      .then((res) => {
-
-        fs.writeFileSync(path.join(__dirname, 'payment-1.html'), res.body);
-
+      if (step === 'contact_information') {
+        // captcha failed, retry..
+        return {
+          message: 'Waiting for captcha',
+          nextState: Checkout.States.RequestCaptcha,
+        };
+      } else if (step === 'review') {
+        // we're at payment page
         return this._request({
           uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
           method: 'POST',
@@ -560,14 +555,7 @@ class Checkout {
             };
           });
         });
-      })
-      .catch((err) => {
-        this._logger.debug('CHECKOUT: Error posting payment %s', err);
-        return {
-          errors: err,
-          nextState: Checkout.States.Error,
-        }
-      })
+      }
     });
   }
 

@@ -78,6 +78,13 @@ function capitalizeFirstLetter(word) {
 }
 module.exports.capitalizeFirstLetter = capitalizeFirstLetter;
 
+function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+module.exports.getRandomIntInclusive = getRandomIntInclusive;
+
 // Add in utils from other files
 module.exports.rfrl = rfrl;
 
