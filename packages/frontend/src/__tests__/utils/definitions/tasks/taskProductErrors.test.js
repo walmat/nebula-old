@@ -1,6 +1,11 @@
 /* global describe */
-import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import tDefns, {
+  initialTaskStates,
+} from '../../../../utils/definitions/taskDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskProductError definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -12,7 +17,7 @@ describe('taskProductError definitions', () => {
       invalid,
       tDefns.taskProductErrors,
       initialTaskStates.productErrors,
-      spy,
+      spy
     );
 
   testProductErrorKey('raw', [null, true, false], [{}, 'false', 1]);

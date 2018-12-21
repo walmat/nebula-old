@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 
-import locationStateErrors, { initialLocationErrorState } from './locationStateErrors';
+import locationStateErrors, {
+  initialLocationErrorState,
+} from './locationStateErrors';
 
 export const initialLocationState = {
   firstName: '',

@@ -27,7 +27,9 @@ function validateProduct(product) {
     return true;
   }
 
-  const kws = rawProduct.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
+  const kws = rawProduct
+    .split(',')
+    .reduce((a, x) => a.concat(x.trim().split(' ')), []);
   const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
   const validKeywords = _.every(testKeywords, isValid => isValid === true);
   if (validKeywords) {

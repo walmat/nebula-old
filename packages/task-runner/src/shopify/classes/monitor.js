@@ -5,7 +5,13 @@ const rp = require('request-promise').defaults({
   jar,
 });
 
-const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
+const {
+  Parser,
+  AtomParser,
+  JsonParser,
+  XmlParser,
+  getSpecialParser,
+} = require('./parsers');
 const {
   formatProxy,
   userAgent,
@@ -18,7 +24,10 @@ const { getAllSizes } = require('./utils/constants');
 const { States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
-const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
+const {
+  urlToTitleSegment,
+  urlToVariantOption,
+} = require('./utils/urlVariantMaps');
 
 class Monitor {
   constructor(context) {
@@ -36,12 +45,18 @@ class Monitor {
   }
 
   _waitForRefreshDelay() {
-    this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.monitorDelay);
+    this._logger.silly(
+      'MONITOR: Waiting for %d ms...',
+      this._context.task.monitorDelay
+    );
     return waitForDelay(this._context.task.monitorDelay);
   }
 
   _waitForErrorDelay() {
-    this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.errorDelay);
+    this._logger.silly(
+      'MONITOR: Waiting for %d ms...',
+      this._context.task.errorDelay
+    );
     return waitForDelay(this._context.task.errorDelay);
   }
 
@@ -66,9 +81,21 @@ class Monitor {
   _parseAll() {
     // Create the parsers and start the async run methods
     const parsers = [
-      new AtomParser(this._context.task, this._context.proxy, this._context.logger),
-      new JsonParser(this._context.task, this._context.proxy, this._context.logger),
-      new XmlParser(this._context.task, this._context.proxy, this._context.logger),
+      new AtomParser(
+        this._context.task,
+        this._context.proxy,
+        this._context.logger
+      ),
+      new JsonParser(
+        this._context.task,
+        this._context.proxy,
+        this._context.logger
+      ),
+      new XmlParser(
+        this._context.task,
+        this._context.proxy,
+        this._context.logger
+      ),
     ].map(p => p.run());
     // Return the winner of the race
     return rfrl(parsers, 'parseAll', this._context.logger);
@@ -81,7 +108,8 @@ class Monitor {
       product.variants,
       variant =>
         // Use the variant option or the title segment
-        variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title),
+        variant[urlToVariantOption[site.url]] ||
+        urlToTitleSegment[site.url](variant.title)
     );
     // Get the groups in the same order as the sizes
 
@@ -145,7 +173,10 @@ class Monitor {
         return this._delay(checkStatus);
       }
     }
-    this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
+    this._logger.verbose(
+      'MONITOR: %s retrieved as a matched product',
+      parsed.title
+    );
     this._logger.verbose('MONITOR: Generating variant lists now...');
     const variants = this._generateValidVariants(parsed);
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
@@ -177,14 +208,17 @@ class Monitor {
       this._logger.verbose(
         'MONITOR: Url %s responded with status code %s. Getting full info',
         url,
-        response.statusCode,
+        response.statusCode
       );
-      const fullProductInfo = await Parser.getFullProductInfo(url, this._logger);
+      const fullProductInfo = await Parser.getFullProductInfo(
+        url,
+        this._logger
+      );
 
       // Generate Variants
       this._logger.verbose(
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',
-        fullProductInfo.title,
+        fullProductInfo.title
       );
       const variants = this._generateValidVariants(fullProductInfo);
       this._logger.verbose('MONITOR: Variants Generated, updating context...');
@@ -192,7 +226,9 @@ class Monitor {
 
       // Everything is setup -- kick it to checkout
       this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
-      this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
+      this._context.task.product.name = capitalizeFirstLetter(
+        fullProductInfo.title
+      );
       return {
         message: `Found product: ${this._context.task.product.name}`,
         nextState: this._context.isSetup ? States.Checkout : States.TaskSetup,
@@ -202,7 +238,7 @@ class Monitor {
       this._logger.debug(
         'MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...',
         url,
-        error.statusCode,
+        error.statusCode
       );
       return this._delay(error.statusCode);
     }
@@ -211,7 +247,11 @@ class Monitor {
   async _monitorSpecial() {
     // Get the correct special parser
     const ParserCreator = getSpecialParser(this._context.task.site);
-    const parser = ParserCreator(this._context.task, this._context.proxy, this._context.logger);
+    const parser = ParserCreator(
+      this._context.task,
+      this._context.proxy,
+      this._context.logger
+    );
 
     let parsed;
     try {
@@ -220,11 +260,17 @@ class Monitor {
       this._logger.debug('MONITOR: Error with special parsing!', error);
       // Check for a product not found error
       if (error.status === ErrorCodes.Parser.ProductNotFound) {
-        return { message: 'Error: Product Not Found!', nextState: States.Errored };
+        return {
+          message: 'Error: Product Not Found!',
+          nextState: States.Errored,
+        };
       }
       return this._delay(error.status);
     }
-    this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
+    this._logger.verbose(
+      'MONITOR: %s retrieved as a matched product',
+      parsed.title
+    );
     this._logger.verbose('MONITOR: Generating variant lists now...');
     const variants = this._generateValidVariants(parsed);
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
@@ -246,15 +292,19 @@ class Monitor {
     const parseType = getParseType(
       this._context.task.product,
       this._logger,
-      this._context.task.site,
+      this._context.task.site
     );
     let result;
     switch (parseType) {
       case ParseType.Variant: {
         // TODO: Add a way to determine if variant is correct
         this._logger.verbose('MONITOR: Variant Parsing Detected');
-        this._context.task.product.variants = [this._context.task.product.variant];
-        this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
+        this._context.task.product.variants = [
+          this._context.task.product.variant,
+        ];
+        this._logger.verbose(
+          'MONITOR: Skipping Monitor and Going to Checkout Directly...'
+        );
         result = { message: 'Adding to cart', nextState: States.Checkout };
         break;
       }
@@ -276,9 +326,12 @@ class Monitor {
       default: {
         this._logger.verbose(
           'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...',
-          parseType,
+          parseType
         );
-        return { message: 'Invalid Product Input given!', nextState: States.Errored };
+        return {
+          message: 'Invalid Product Input given!',
+          nextState: States.Errored,
+        };
       }
     }
     // If the next state is an error, use the message as the ending status

@@ -24,12 +24,21 @@ function getParseType(product, logger, site) {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Determining Parse Type for Product...', product);
   if (!product) {
-    _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
+    _logger.log(
+      'silly',
+      'Product is not defined, returning: %s',
+      ParseType.Unknown
+    );
     return ParseType.Unknown;
   }
 
   if (site && isSpecialSite(site)) {
-    _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
+    _logger.log(
+      'silly',
+      'Special Site found: %s, returning %s',
+      site.name,
+      ParseType.Special
+    );
     return ParseType.Special;
   }
 
@@ -75,12 +84,21 @@ module.exports.getParseType = getParseType;
  */
 function filterAndLimit(list, sorter, limit, logger) {
   const _logger = logger || { log: () => {} };
-  _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
+  _logger.log(
+    'silly',
+    'Filtering given list with sorter: %s and limit: %d ...',
+    sorter,
+    limit
+  );
   if (!list) {
     _logger.log('silly', 'No list given! returning empty list');
     return [];
   }
-  _logger.log('silly', 'List Detected with %d elements. Proceeding to sorting now...', list.length);
+  _logger.log(
+    'silly',
+    'List Detected with %d elements. Proceeding to sorting now...',
+    list.length
+  );
   let sorted = list;
   if (sorter) {
     _logger.log('silly', 'Sorter detected, sorting...');
@@ -132,31 +150,35 @@ function matchVariant(products, variantId, logger) {
   }
   // Sometimes the objects in the variants list don't include a product_id hook back to the associated product.
   // In order to counteract this, we first add this hook in (if it doesn't exist)
-  const transformedProducts = products.map(({ id, variants, ...otherProductData }) => {
-    const transformedVariants = variants.map(({ product_id, ...otherVariantData }) => ({
-      ...otherVariantData,
-      product_id: product_id || id,
-    }));
-    return {
-      ...otherProductData,
-      id,
-      variants: transformedVariants,
-    };
-  });
+  const transformedProducts = products.map(
+    ({ id, variants, ...otherProductData }) => {
+      const transformedVariants = variants.map(
+        ({ product_id, ...otherVariantData }) => ({
+          ...otherVariantData,
+          product_id: product_id || id,
+        })
+      );
+      return {
+        ...otherProductData,
+        id,
+        variants: transformedVariants,
+      };
+    }
+  );
 
   // Step 1: Map products list to a list of variant lists
   // Step 2: flatten the list of lists, so we only have one total list of all variants
   // Step 3: Search for the variant in the resulting variant list
   const matchedVariant = _.find(
     _.flatten(_.map(transformedProducts, p => p.variants)),
-    v => v.id.toString() === variantId,
+    v => v.id.toString() === variantId
   );
   if (matchedVariant) {
     _logger.log(
       'silly',
       'Searched %d products. Found variant %s}',
       transformedProducts.length,
-      variantId,
+      variantId
     );
     _logger.log('silly', 'Returning product associated with this variant...');
     return _.find(transformedProducts, p => p.id === matchedVariant.product_id);
@@ -165,7 +187,7 @@ function matchVariant(products, variantId, logger) {
     'silly',
     'Searched %d products. Variant %s was not found! Returning null',
     products.length,
-    variantId,
+    variantId
   );
   return null;
 }
@@ -197,7 +219,7 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
     'silly',
     'Starting keyword matching for keywords: %s',
     JSON.stringify(keywords, null, 2),
-    keywords,
+    keywords
   );
   if (!products) {
     _logger.log('silly', 'No product list given! Returning null');
@@ -225,7 +247,9 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
     if (keywords.pos.length > 0) {
       pos = _.every(
         keywords.pos.map(k => k.toUpperCase()),
-        keyword => title.indexOf(keyword.toUpperCase()) > -1 || handle.indexOf(keyword) > -1,
+        keyword =>
+          title.indexOf(keyword.toUpperCase()) > -1 ||
+          handle.indexOf(keyword) > -1
       );
     }
 
@@ -233,14 +257,18 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
     if (keywords.neg.length > 0) {
       neg = _.some(
         keywords.neg.map(k => k.toUpperCase()),
-        keyword => title.indexOf(keyword) > -1 || handle.indexOf(keyword) > -1,
+        keyword => title.indexOf(keyword) > -1 || handle.indexOf(keyword) > -1
       );
     }
     return pos && !neg;
   });
 
   if (!matches.length) {
-    _logger.log('silly', 'Searched %d products. No matches found! Returning null', products.length);
+    _logger.log(
+      'silly',
+      'Searched %d products. No matches found! Returning null',
+      products.length
+    );
     return null;
   }
   if (matches.length > 1) {
@@ -250,18 +278,28 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
       'Searched %d products. %d Products Found',
       products.length,
       matches.length,
-      JSON.stringify(matches.map(({ title }) => title), null, 2),
+      JSON.stringify(matches.map(({ title }) => title), null, 2)
     );
     if (filter && filter.sorter && filter.limit) {
-      _logger.log('silly', 'Using given filtering heuristic on the products...');
+      _logger.log(
+        'silly',
+        'Using given filtering heuristic on the products...'
+      );
       let { limit } = filter;
       if (returnAll) {
-        _logger.log('silly', "Overriding filter's limit and returning all products...");
+        _logger.log(
+          'silly',
+          "Overriding filter's limit and returning all products..."
+        );
         limit = 0;
       }
       filtered = filterAndLimit(matches, filter.sorter, limit, this._logger);
       if (!returnAll) {
-        _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
+        _logger.log(
+          'silly',
+          'Returning Matched Product: %s',
+          filtered[0].title
+        );
         return filtered[0];
       }
       _logger.log('silly', 'Returning %d Matched Products', filtered.length);
@@ -269,7 +307,7 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
     }
     _logger.log(
       'silly',
-      'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...',
+      'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...'
     );
     if (returnAll) {
       _logger.log('silly', 'Returning all products...');
@@ -285,7 +323,7 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
     'silly',
     'Searched %d products. Matching Product Found: %s',
     products.length,
-    matches[0].title,
+    matches[0].title
   );
   return returnAll ? matches : matches[0];
 }

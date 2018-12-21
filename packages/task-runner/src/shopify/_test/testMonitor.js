@@ -39,8 +39,10 @@ const tasks = [
       name: 'blendsus',
     },
     product: {
-      raw: 'https://www.blendsus.com/products/clarks-x-beams-wallabee-gtx-boot-navy',
-      url: 'https://www.blendsus.com/products/clarks-x-beams-wallabee-gtx-boot-navy',
+      raw:
+        'https://www.blendsus.com/products/clarks-x-beams-wallabee-gtx-boot-navy',
+      url:
+        'https://www.blendsus.com/products/clarks-x-beams-wallabee-gtx-boot-navy',
     },
     sizes: ['9', '7.5', '10', '8'],
     errorDelay: 2000,
@@ -83,7 +85,13 @@ async function testMonitorKeyword() {
     console.log(`Run loop finished with state: ${state}`);
   }
 
-  console.log(`Variants to Checkout:\n${JSON.stringify(context.task.product.variants, null, 2)}`);
+  console.log(
+    `Variants to Checkout:\n${JSON.stringify(
+      context.task.product.variants,
+      null,
+      2
+    )}`
+  );
 }
 
 async function testMonitorVariant() {
@@ -98,7 +106,13 @@ async function testMonitorVariant() {
     console.log(`Run loop finished with state: ${state}`);
   }
 
-  console.log(`Variants to Checkout:\n${JSON.stringify(context.task.product.variants, null, 2)}`);
+  console.log(
+    `Variants to Checkout:\n${JSON.stringify(
+      context.task.product.variants,
+      null,
+      2
+    )}`
+  );
 }
 
 async function testMonitorUrl() {
@@ -113,7 +127,13 @@ async function testMonitorUrl() {
     console.log(`Run loop finished with state: ${state}`);
   }
 
-  console.log(`Variants to Checkout:\n${JSON.stringify(context.task.product.variants, null, 2)}`);
+  console.log(
+    `Variants to Checkout:\n${JSON.stringify(
+      context.task.product.variants,
+      null,
+      2
+    )}`
+  );
 }
 
 async function testMonitor() {

@@ -9,7 +9,11 @@ export const DropdownIndicator = props => {
   } = props;
   return (
     <components.DropdownIndicator {...props}>
-      <img src={menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
+      <img
+        src={menuIsOpen ? DDU : DDD}
+        style={{ marginRight: '-5px', cursor: 'pointer' }}
+        alt=""
+      />
     </components.DropdownIndicator>
   );
 };

@@ -27,7 +27,9 @@ const profileAttributeValidationMiddleware = store => next => action => {
 
   // Check for valid payload structure and dispatch an error if invalid
   if (!action.field || (!action.value && action.value !== '')) {
-    return store.dispatch(profileActions.error(action.type, 'invalid action structure!'));
+    return store.dispatch(
+      profileActions.error(action.type, 'invalid action structure!')
+    );
   }
 
   const newAction = JSON.parse(JSON.stringify(action));
@@ -42,18 +44,23 @@ const profileAttributeValidationMiddleware = store => next => action => {
   ) {
     newAction.errors = Object.assign({}, profile.errors);
     // Call the correct validator to fill in the new error state
-    newAction.errors[mapProfileFieldToKey[newAction.field]] = !profileAttributeValidatorMap[
-      newAction.field
-    ](newAction.value);
+    newAction.errors[
+      mapProfileFieldToKey[newAction.field]
+    ] = !profileAttributeValidatorMap[newAction.field](newAction.value);
   } else if (!action.subField) {
     // Required sub-field is not given, throw an error
-    return store.dispatch(profileActions.error(action.type, 'invalid action structure!'));
+    return store.dispatch(
+      profileActions.error(action.type, 'invalid action structure!')
+    );
   } else {
-    newAction.errors = Object.assign({}, profile[mapProfileFieldToKey[newAction.field]].errors);
+    newAction.errors = Object.assign(
+      {},
+      profile[mapProfileFieldToKey[newAction.field]].errors
+    );
     // Call the correct validator to fill in the new error state
-    newAction.errors[newAction.subField] = !profileAttributeValidatorMap[newAction.field][
-      newAction.subField
-    ](newAction.value);
+    newAction.errors[newAction.subField] = !profileAttributeValidatorMap[
+      newAction.field
+    ][newAction.subField](newAction.value);
   }
 
   // Continue on to next middleware/reducer with errors map filled in.

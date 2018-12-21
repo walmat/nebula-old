@@ -63,7 +63,7 @@ function trimKeywords(input) {
     word
       .trim()
       .substring(1, word.length)
-      .toUpperCase(),
+      .toUpperCase()
   );
   return ret;
 }
@@ -79,15 +79,15 @@ function capitalizeFirstLetter(word) {
 module.exports.capitalizeFirstLetter = capitalizeFirstLetter;
 
 function getRandomIntInclusive(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  const randMin = Math.ceil(min);
+  const randMax = Math.floor(max);
+  return Math.floor(Math.random() * (randMax - randMin + 1)) + randMin;
 }
 module.exports.getRandomIntInclusive = getRandomIntInclusive;
 
 function generateRandom(objList) {
   const options = objList.options.filter(
-    ({ label }) => label !== 'Random' && label !== 'Full Size Run',
+    ({ label }) => label !== 'Random' && label !== 'Full Size Run'
   );
   const { value } = options[Math.floor(Math.random() * options.length)];
   return value;
@@ -95,8 +95,7 @@ function generateRandom(objList) {
 module.exports.generateRandom = generateRandom;
 
 const reflect = p =>
-  p.then(v =>({v, status: "fulfilled" }),
-    e => ({e, status: "rejected" }));
+  p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
 module.exports.reflect = reflect;
 
 // Add in utils from other files

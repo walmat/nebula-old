@@ -137,10 +137,20 @@ const _removeProfileRequest = async id =>
 // Private Actions
 const _addProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
 const _removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
-const _updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE, 'id', 'profile');
+const _updateProfile = makeActionCreator(
+  PROFILE_ACTIONS.UPDATE,
+  'id',
+  'profile'
+);
 
 // Public Actions
-const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
+const editProfile = makeActionCreator(
+  PROFILE_ACTIONS.EDIT,
+  'id',
+  'field',
+  'value',
+  'subField'
+);
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
 const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
@@ -149,19 +159,20 @@ const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
 const addProfile = profile => dispatch =>
   _addProfileRequest(profile).then(
     newProfile => dispatch(_addProfile(newProfile)),
-    error => dispatch(handleError(PROFILE_ACTIONS.ADD, error)),
+    error => dispatch(handleError(PROFILE_ACTIONS.ADD, error))
   );
 
 const removeProfile = id => dispatch =>
   _removeProfileRequest(id).then(
     removedId => dispatch(_removeProfile(removedId)),
-    error => dispatch(handleError(PROFILE_ACTIONS.REMOVE, error)),
+    error => dispatch(handleError(PROFILE_ACTIONS.REMOVE, error))
   );
 
 const updateProfile = (id, profile) => dispatch =>
   _updateProfileRequest(id, profile).then(
-    updatedProfile => dispatch(_updateProfile(updatedProfile.id, updatedProfile)),
-    error => dispatch(handleError(PROFILE_ACTIONS.UPDATE, error)),
+    updatedProfile =>
+      dispatch(_updateProfile(updatedProfile.id, updatedProfile)),
+    error => dispatch(handleError(PROFILE_ACTIONS.UPDATE, error))
   );
 
 export const profileActions = {

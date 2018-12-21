@@ -272,7 +272,9 @@ describe('Top Level App', () => {
         ...defaultProps,
         ...customProps,
       };
-      return shallow(<App store={renderProps.store} onKeyPress={renderProps.onKeyPress} />);
+      return shallow(
+        <App store={renderProps.store} onKeyPress={renderProps.onKeyPress} />
+      );
     };
 
     testApp(appProvider);

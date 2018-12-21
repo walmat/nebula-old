@@ -8,7 +8,9 @@ const tasksAttributeValidationMiddleware = store => next => action => {
 
   // Check for valid payload structure and dispatch an error if invalid
   if (!action.field || (!action.value && action.value !== '')) {
-    return store.dispatch(taskActions.error(action.type, 'invalid action structure!'));
+    return store.dispatch(
+      taskActions.error(action.type, 'invalid action structure!')
+    );
   }
 
   const newAction = JSON.parse(JSON.stringify(action));
@@ -16,9 +18,9 @@ const tasksAttributeValidationMiddleware = store => next => action => {
   newAction.errors = {};
   const { errors } = newAction;
 
-  errors[mapTaskFieldsToKey[newAction.field]] = !taskAttributeValidatorMap[newAction.field](
-    newAction.value,
-  );
+  errors[mapTaskFieldsToKey[newAction.field]] = !taskAttributeValidatorMap[
+    newAction.field
+  ](newAction.value);
   return next(newAction);
 };
 

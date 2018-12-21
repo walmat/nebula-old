@@ -1,7 +1,11 @@
 /* global describe expect it test jest */
 import { taskReducer } from '../../../../state/reducers/tasks/taskReducer';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../../../state/actions';
+import {
+  TASK_ACTIONS,
+  TASK_FIELDS,
+  mapTaskFieldsToKey,
+} from '../../../../state/actions';
 
 describe('task reducer', () => {
   it('should return initial state', () => {
@@ -42,7 +46,7 @@ describe('task reducer', () => {
           id,
           field,
           value,
-        },
+        }
       );
       expect(actual).toEqual(expected);
     };

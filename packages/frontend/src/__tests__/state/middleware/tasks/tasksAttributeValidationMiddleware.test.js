@@ -1,6 +1,10 @@
 /* global describe expect it test jest beforeEach */
 import taskAttributeValidationMiddleware from '../../../../state/middleware/tasks/tasksAttributeValidationMiddleware';
-import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../../../state/actions';
+import {
+  TASK_ACTIONS,
+  TASK_FIELDS,
+  mapTaskFieldsToKey,
+} from '../../../../state/actions';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 
 describe('task attribute validation middleware', () => {
@@ -12,7 +16,8 @@ describe('task attribute validation middleware', () => {
 
     const next = jest.fn();
 
-    const invoke = action => taskAttributeValidationMiddleware(store)(next)(action);
+    const invoke = action =>
+      taskAttributeValidationMiddleware(store)(next)(action);
 
     return {
       store,
@@ -134,8 +139,10 @@ describe('task attribute validation middleware', () => {
   });
 
   const testAllFields = id => {
-    const testInjection = actionObject => performErrorInjectionTest(actionObject);
-    const getActions = (field, value, valid) => generateActions(id, field, value, valid);
+    const testInjection = actionObject =>
+      performErrorInjectionTest(actionObject);
+    const getActions = (field, value, valid) =>
+      generateActions(id, field, value, valid);
 
     describe('should inject errors map on', () => {
       describe('edit product field', () => {
@@ -145,12 +152,18 @@ describe('task attribute validation middleware', () => {
 
         test('when valid url', () => {
           testInjection(
-            getActions(TASK_FIELDS.EDIT_PRODUCT, 'https://yeezysupply.com/products/1238', true),
+            getActions(
+              TASK_FIELDS.EDIT_PRODUCT,
+              'https://yeezysupply.com/products/1238',
+              true
+            )
           );
         });
 
         test('when valid variant', () => {
-          testInjection(getActions(TASK_FIELDS.EDIT_PRODUCT, '1231515617751', true));
+          testInjection(
+            getActions(TASK_FIELDS.EDIT_PRODUCT, '1231515617751', true)
+          );
         });
 
         test('when invalid', () => {
@@ -169,8 +182,8 @@ describe('task attribute validation middleware', () => {
                 supported: true,
                 auth: false,
               },
-              true,
-            ),
+              true
+            )
           );
         });
 
@@ -217,8 +230,8 @@ describe('task attribute validation middleware', () => {
                   phone: '1234567890',
                 },
               },
-              true,
-            ),
+              true
+            )
           );
         });
 

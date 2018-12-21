@@ -4,7 +4,8 @@ const AtomParser = require('./atomParser');
 const JsonParser = require('./jsonParser');
 const XmlParser = require('./xmlParser');
 
-const MOCK_SPECIAL_PARSER = process.env.NEBULA_RUNNER_MOCK_SPECIAL_PARSER || 'DSM US'; // Use the mock special parser from environment or default to DSM
+const MOCK_SPECIAL_PARSER =
+  process.env.NEBULA_RUNNER_MOCK_SPECIAL_PARSER || 'DSM US'; // Use the mock special parser from environment or default to DSM
 
 // Special Parsers
 const DsmParser = require('./dsmParser');

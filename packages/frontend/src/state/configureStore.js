@@ -21,9 +21,9 @@ export default function configureStore() {
         tasksAttributeValidationMiddleware,
         tasksFormValidationMiddleware,
         settingsAttributeValidationMiddleware,
-        thunk,
+        thunk
       ),
-      persistState(),
-    ),
+      persistState()
+    )
   );
 }

@@ -34,7 +34,11 @@ class SpecialParser extends Parser {
     // Make initial request to site
     let response;
     try {
-      this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
+      this._logger.silly(
+        '%s: Making request for %s ...',
+        this._name,
+        initialUrl
+      );
       response = await rp({
         method: 'GET',
         uri: initialUrl,
@@ -75,7 +79,7 @@ class SpecialParser extends Parser {
     if (this._type !== ParseType.Url) {
       this._logger.silly(
         '%s: Received Response, Generating Product Info Pages to visit...',
-        this._name,
+        this._name
       );
 
       let products;
@@ -84,7 +88,11 @@ class SpecialParser extends Parser {
         try {
           products = this.parseInitialPageForProducts(response);
         } catch (error) {
-          this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
+          this._logger.debug(
+            '%s: ERROR parsing response as initial page',
+            this._name,
+            error
+          );
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.statusCode || error.status || 404;
@@ -96,7 +104,11 @@ class SpecialParser extends Parser {
         try {
           productsToVisit = this.parseInitialPageForUrls(response);
         } catch (error) {
-          this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
+          this._logger.debug(
+            '%s: ERROR parsing response as initial page',
+            this._name,
+            error
+          );
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.statusCode || error.status || 404;
@@ -105,7 +117,7 @@ class SpecialParser extends Parser {
         this._logger.silly(
           '%s: Generated Product Pages, capturing product page info...',
           this._name,
-          productsToVisit,
+          productsToVisit
         );
 
         // Visit Product Pages and Parse them for product info
@@ -119,11 +131,11 @@ class SpecialParser extends Parser {
                 '%s: ERROR parsing product info page',
                 this._name,
                 err.statusCode || err.status,
-                err.message,
+                err.message
               );
               return null;
             }
-          }),
+          })
         )).filter(p => p);
       }
 
@@ -131,7 +143,7 @@ class SpecialParser extends Parser {
       this._logger.silly(
         '%s: Received Product info from %d products, matching now...',
         this._name,
-        products.length,
+        products.length
       );
       try {
         matchedProduct = super.match(products);
@@ -143,7 +155,10 @@ class SpecialParser extends Parser {
         throw rethrow;
       }
     } else {
-      this._logger.silly('%s: Received Response, attempt to parse as product page...', this._name);
+      this._logger.silly(
+        '%s: Received Response, attempt to parse as product page...',
+        this._name
+      );
 
       // Attempt to parse the response as a product page and get the product info
       try {
@@ -176,7 +191,9 @@ class SpecialParser extends Parser {
    * If this is set to false, then `parseInitialPageForUrls()` will get called
    */
   get initialPageContainsProducts() {
-    throw new Error('Not Implemented! This should be implemented by subclasses!');
+    throw new Error(
+      'Not Implemented! This should be implemented by subclasses!'
+    );
   }
 
   /**
@@ -192,7 +209,9 @@ class SpecialParser extends Parser {
    */
   // eslint-disable-next-line no-unused-vars
   parseInitialPageForProducts($) {
-    throw new Error('Not Implemented! This should be implemented by subclasses!');
+    throw new Error(
+      'Not Implemented! This should be implemented by subclasses!'
+    );
   }
 
   /**
@@ -208,7 +227,9 @@ class SpecialParser extends Parser {
    */
   // eslint-disable-next-line no-unused-vars
   parseInitialPageForUrls($) {
-    throw new Error('Not Implemented! This should be implemented by subclasses!');
+    throw new Error(
+      'Not Implemented! This should be implemented by subclasses!'
+    );
   }
 
   /**
@@ -222,11 +243,18 @@ class SpecialParser extends Parser {
    */
   // eslint-disable-next-line no-unused-vars
   parseProductInfoPageForProduct($) {
-    throw new Error('Not Implemented! This should be implemented by subclasses!');
+    throw new Error(
+      'Not Implemented! This should be implemented by subclasses!'
+    );
   }
 
   getProductInfoPage(productUrl) {
-    this._logger.log('silly', '%s: Getting Full Product Info... %s', this._name, productUrl);
+    this._logger.log(
+      'silly',
+      '%s: Getting Full Product Info... %s',
+      this._name,
+      productUrl
+    );
     return rp({
       method: 'GET',
       uri: productUrl,

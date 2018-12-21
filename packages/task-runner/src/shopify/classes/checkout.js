@@ -136,9 +136,9 @@ class Checkout {
     /**
      * Current checkout token
      */
-    this._checkoutToken;
-    this._storeId;
-    this._paymentUrlKey;
+    this._checkoutToken = null;
+    this._storeId = null;
+    this._paymentUrlKey = null;
     this._basicAuth = Buffer.from(`${this._task.site.apiKey}::`).toString(
       'base64'
     );
@@ -147,12 +147,12 @@ class Checkout {
       shipping: 0,
       total: 0,
     };
-    this._gateway;
+    this._gateway = null;
 
     /**
      * Current captcha token
      */
-    this._captchaToken;
+    this._captchaToken = null;
   }
 
   /**
@@ -269,7 +269,9 @@ class Checkout {
             'Created checkout token: %s',
             body.checkout.clone_url.split('/')[5]
           );
+          // eslint-disable-next-line prefer-destructuring
           this._storeId = body.checkout.clone_url.split('/')[3];
+          // eslint-disable-next-line prefer-destructuring
           this._paymentUrlKey = body.checkout.web_url.split('=')[1];
           this._checkoutTokens.push(body.checkout.clone_url.split('/')[5]);
           return { code: 200, res: body.checkout.clone_url.split('/')[5] };
@@ -341,42 +343,40 @@ class Checkout {
                 message: 'Running for restocks',
                 nextState: Checkout.States.Restock,
               };
-            } if (error.variant_id) {
+            }
+            if (error.variant_id) {
               this._logger.verbose('Wrong size type specified, stopping..');
               return {
                 message: 'Failed: Invalid size',
                 nextState: Checkout.States.Error,
               };
-            } else {
-              this._logger.verbose('Error in ATC: %s', error);
-              return {
-                message: `Failed: ${error}`,
-                nextState: Checkout.States.PatchCart,
-              };
             }
+            this._logger.verbose('Error in ATC: %s', error);
+            return {
+              message: `Failed: ${error}`,
+              nextState: Checkout.States.PatchCart,
+            };
+
             // otherwise, check to see if line_items was updated
-          } if (
-            res.body.checkout &&
-            res.body.checkout.line_items.length > 0
-          ) {
+          }
+          if (res.body.checkout && res.body.checkout.line_items.length > 0) {
             this._logger.info('Added to cart.');
 
             // update item prices
-            this._prices.item = new Number(
-              parseFloat(res.body.checkout.total_price)
+            this._prices.item = parseFloat(
+              res.body.checkout.total_price
             ).toFixed(2);
 
             return {
               message: 'Added to cart',
               nextState: Checkout.States.GetShippingRates,
             };
-          } else {
-            this._logger.debug('Failed: Adding to cart, retrying...');
-            return {
-              message: 'Failed: Add to cart, retrying...',
-              nextState: Checkout.States.PatchCart,
-            };
           }
+          this._logger.debug('Failed: Adding to cart, retrying...');
+          return {
+            message: 'Failed: Add to cart, retrying...',
+            nextState: Checkout.States.PatchCart,
+          };
         })
         .catch(err => {
           this._logger.debug('CHECKOUT: Error adding to cart %s', err);
@@ -442,9 +442,7 @@ class Checkout {
           );
 
           // set total price for cart
-          this._prices.shipping = new Number(
-            parseFloat(cheapest.price)
-          ).toFixed(2);
+          this._prices.shipping = parseFloat(cheapest.price).toFixed(2);
 
           return {
             message: `Submitting payment`,
@@ -632,10 +630,10 @@ class Checkout {
             rejectUnauthorized: false,
             resolveWithFullResponse: true,
             headers,
-          }).then(res => {
+          }).then(response => {
             fs.writeFileSync(
               path.join(__dirname, 'payment-3.html'),
-              JSON.stringify(res.body, null, 2)
+              JSON.stringify(response.body, null, 2)
             );
             return {
               message: `Payment failed in ${this._context.timer.getRunTime()}ms`,
@@ -644,6 +642,10 @@ class Checkout {
           });
         });
       }
+      return {
+        message: 'Unknown error, stopping..',
+        nextState: Checkout.States.Stopped,
+      };
     });
   }
 
@@ -663,6 +665,7 @@ class Checkout {
     };
 
     const handler = stateMap[currentState] || defaultHandler;
+    // eslint-disable-next-line no-return-await
     return await handler.call(this);
   }
 

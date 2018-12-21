@@ -2,7 +2,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { ServerRowPrimitive, mapStateToProps, mapDispatchToProps } from '../../server/serverRow';
+import {
+  ServerRowPrimitive,
+  mapStateToProps,
+  mapDispatchToProps,
+} from '../../server/serverRow';
 import { initialServerStates } from '../../utils/definitions/serverDefinitions';
 import getByTestId from '../../__testUtils__/getByTestId';
 
@@ -23,7 +27,7 @@ describe('<ServerRow />', () => {
         onStopServer={renderProps.onStopServer}
         onDestroyServer={renderProps.onDestroyServer}
         onKeyPress={renderProps.onKeyPress}
-      />,
+      />
     );
   };
 
@@ -48,11 +52,21 @@ describe('<ServerRow />', () => {
     expect(wrapper.find('.server-row__charges')).toHaveLength(1);
     expect(wrapper.find('.server-row__status')).toHaveLength(1);
     expect(wrapper.find('.server-row__actions')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'ServerRow.tableRowButton.action.connect')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'ServerRow.tableRowButton.action.start')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'ServerRow.tableRowButton.action.stop')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'ServerRow.tableRowButton.action.destroy')).toHaveLength(1);
-    getByTestId(wrapper, 'ServerRow.tableRowButton.action.start').simulate('keyPress');
+    expect(
+      getByTestId(wrapper, 'ServerRow.tableRowButton.action.connect')
+    ).toHaveLength(1);
+    expect(
+      getByTestId(wrapper, 'ServerRow.tableRowButton.action.start')
+    ).toHaveLength(1);
+    expect(
+      getByTestId(wrapper, 'ServerRow.tableRowButton.action.stop')
+    ).toHaveLength(1);
+    expect(
+      getByTestId(wrapper, 'ServerRow.tableRowButton.action.destroy')
+    ).toHaveLength(1);
+    getByTestId(wrapper, 'ServerRow.tableRowButton.action.start').simulate(
+      'keyPress'
+    );
   });
 
   describe('when using non-default props', () => {
@@ -94,7 +108,13 @@ describe('<ServerRow />', () => {
     });
   });
 
-  const testActionButton = (tag, title, stoppedClass, runningClass, eventHandler) => {
+  const testActionButton = (
+    tag,
+    title,
+    stoppedClass,
+    runningClass,
+    eventHandler
+  ) => {
     test('renders correctly when server is stopped', () => {
       const customProps = {
         server: {
@@ -103,7 +123,10 @@ describe('<ServerRow />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const button = getByTestId(wrapper, `ServerRow.tableRowButton.action.${tag}`);
+      const button = getByTestId(
+        wrapper,
+        `ServerRow.tableRowButton.action.${tag}`
+      );
       expect(button.prop('role')).toBe('button');
       expect(button.prop('title')).toBe(title);
       expect(button.childAt(0).prop('className')).toBe(stoppedClass);
@@ -119,7 +142,10 @@ describe('<ServerRow />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const button = getByTestId(wrapper, `ServerRow.tableRowButton.action.${tag}`);
+      const button = getByTestId(
+        wrapper,
+        `ServerRow.tableRowButton.action.${tag}`
+      );
       expect(button.prop('role')).toBe('button');
       expect(button.prop('title')).toBe(title);
       expect(button.childAt(0).prop('className')).toBe(runningClass);
@@ -144,13 +170,16 @@ describe('<ServerRow />', () => {
         [eventHandler]: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const button = getByTestId(wrapper, `ServerRow.tableRowButton.action.${tag}`);
+      const button = getByTestId(
+        wrapper,
+        `ServerRow.tableRowButton.action.${tag}`
+      );
       button.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       button.simulate('click');
       expect(customProps[eventHandler]).toHaveBeenCalledWith(
         customProps.server,
-        customProps.serverInfo.credentials,
+        customProps.serverInfo.credentials
       );
     });
   };

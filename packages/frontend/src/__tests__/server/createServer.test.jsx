@@ -32,7 +32,7 @@ describe('<CreateServer />', () => {
         onCreateServer={renderProps.onCreateServer}
         onDestroyServers={renderProps.onDestroyServers}
         onKeyPress={renderProps.onKeyPress}
-      />,
+      />
     );
   };
 
@@ -49,18 +49,33 @@ describe('<CreateServer />', () => {
 
   it('should render with required props', () => {
     const wrapper = renderShallowWithProps();
-    expect(getByTestId(wrapper, 'CreateServer.serverOption.type')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'CreateServer.serverOption.size')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'CreateServer.serverOption.location')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'CreateServer.serversButton.destroy')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'CreateServer.serversButton.create')).toHaveLength(1);
-    getByTestId(wrapper, 'CreateServer.serversButton.create').simulate('keyPress');
+    expect(getByTestId(wrapper, 'CreateServer.serverOption.type')).toHaveLength(
+      1
+    );
+    expect(getByTestId(wrapper, 'CreateServer.serverOption.size')).toHaveLength(
+      1
+    );
+    expect(
+      getByTestId(wrapper, 'CreateServer.serverOption.location')
+    ).toHaveLength(1);
+    expect(
+      getByTestId(wrapper, 'CreateServer.serversButton.destroy')
+    ).toHaveLength(1);
+    expect(
+      getByTestId(wrapper, 'CreateServer.serversButton.create')
+    ).toHaveLength(1);
+    getByTestId(wrapper, 'CreateServer.serversButton.create').simulate(
+      'keyPress'
+    );
   });
 
   describe('server type component', () => {
     test('renders with default value', () => {
       const wrapper = renderShallowWithProps();
-      const serverOptionType = getByTestId(wrapper, 'CreateServer.serverOption.type');
+      const serverOptionType = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.type'
+      );
       const expectedOptions = serverListOptions.types.map(({ id, label }) => ({
         value: id,
         label,
@@ -69,7 +84,9 @@ describe('<CreateServer />', () => {
       expect(serverOptionType.prop('value')).toBeNull();
       expect(serverOptionType.prop('onChange')).toBeDefined();
       expect(serverOptionType.prop('isDisabled')).toBeFalsy();
-      expect(serverOptionType.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionType.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test('renders with selected value', () => {
@@ -77,7 +94,10 @@ describe('<CreateServer />', () => {
         serverType: { value: 'test', label: 'testLabel' },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionType = getByTestId(wrapper, 'CreateServer.serverOption.type');
+      const serverOptionType = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.type'
+      );
       const expectedOptions = serverListOptions.types.map(({ id, label }) => ({
         value: id,
         label,
@@ -86,7 +106,9 @@ describe('<CreateServer />', () => {
       expect(serverOptionType.prop('value')).toEqual(customProps.serverType);
       expect(serverOptionType.prop('onChange')).toBeDefined();
       expect(serverOptionType.prop('isDisabled')).toBeFalsy();
-      expect(serverOptionType.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionType.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test('renders when no options are given', () => {
@@ -94,12 +116,17 @@ describe('<CreateServer />', () => {
         serverListOptions: {},
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionType = getByTestId(wrapper, 'CreateServer.serverOption.type');
+      const serverOptionType = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.type'
+      );
       expect(serverOptionType.prop('options')).not.toBeDefined();
       expect(serverOptionType.prop('value')).toBeNull();
       expect(serverOptionType.prop('onChange')).toBeDefined();
       expect(serverOptionType.prop('isDisabled')).toBeFalsy();
-      expect(serverOptionType.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionType.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test("doesn't call on change handler when selected type isn't a valid option", () => {
@@ -107,8 +134,14 @@ describe('<CreateServer />', () => {
         onEditServerInfo: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionType = getByTestId(wrapper, 'CreateServer.serverOption.type');
-      serverOptionType.simulate('change', { value: 'invalid', label: 'testLabel' });
+      const serverOptionType = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.type'
+      );
+      serverOptionType.simulate('change', {
+        value: 'invalid',
+        label: 'testLabel',
+      });
       expect(customProps.onEditServerInfo).not.toHaveBeenCalled();
     });
 
@@ -121,20 +154,29 @@ describe('<CreateServer />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionType = getByTestId(wrapper, 'CreateServer.serverOption.type');
+      const serverOptionType = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.type'
+      );
       serverOptionType.simulate('change', { value: 1, label: 'testLabel' });
-      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(SERVER_FIELDS.EDIT_SERVER_TYPE, {
-        id: 1,
-        value: 'test',
-        label: 'testLabel',
-      });
+      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
+        SERVER_FIELDS.EDIT_SERVER_TYPE,
+        {
+          id: 1,
+          value: 'test',
+          label: 'testLabel',
+        }
+      );
     });
   });
 
   describe('server size component', () => {
     test('renders with default value', () => {
       const wrapper = renderShallowWithProps();
-      const serverOptionSize = getByTestId(wrapper, 'CreateServer.serverOption.size');
+      const serverOptionSize = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.size'
+      );
       const expectedOptions = serverListOptions.sizes.map(({ id, label }) => ({
         value: id,
         label,
@@ -143,7 +185,9 @@ describe('<CreateServer />', () => {
       expect(serverOptionSize.prop('value')).toBeNull();
       expect(serverOptionSize.prop('onChange')).toBeDefined();
       expect(serverOptionSize.prop('isDisabled')).toBeTruthy();
-      expect(serverOptionSize.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionSize.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test('renders enabled when server type is selected', () => {
@@ -168,13 +212,18 @@ describe('<CreateServer />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionSize = getByTestId(wrapper, 'CreateServer.serverOption.size');
+      const serverOptionSize = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.size'
+      );
       const expectedOptions = [{ value: 1, label: 'testLabel' }];
       expect(serverOptionSize.prop('options')).toEqual(expectedOptions);
       expect(serverOptionSize.prop('value')).toBeNull();
       expect(serverOptionSize.prop('onChange')).toBeDefined();
       expect(serverOptionSize.prop('isDisabled')).toBeFalsy();
-      expect(serverOptionSize.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionSize.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test('renders with selected value', () => {
@@ -182,7 +231,10 @@ describe('<CreateServer />', () => {
         serverSize: { value: 'test', label: 'testLabel' },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionSize = getByTestId(wrapper, 'CreateServer.serverOption.size');
+      const serverOptionSize = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.size'
+      );
       const expectedOptions = serverListOptions.sizes.map(({ id, label }) => ({
         value: id,
         label,
@@ -191,7 +243,9 @@ describe('<CreateServer />', () => {
       expect(serverOptionSize.prop('value')).toEqual(customProps.serverSize);
       expect(serverOptionSize.prop('onChange')).toBeDefined();
       expect(serverOptionSize.prop('isDisabled')).toBeTruthy();
-      expect(serverOptionSize.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionSize.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test('renders with selected value and enabled by server type', () => {
@@ -217,13 +271,18 @@ describe('<CreateServer />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionSize = getByTestId(wrapper, 'CreateServer.serverOption.size');
+      const serverOptionSize = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.size'
+      );
       const expectedOptions = [{ value: 1, label: 'testLabel' }];
       expect(serverOptionSize.prop('options')).toEqual(expectedOptions);
       expect(serverOptionSize.prop('value')).toEqual(customProps.serverSize);
       expect(serverOptionSize.prop('onChange')).toBeDefined();
       expect(serverOptionSize.prop('isDisabled')).toBeFalsy();
-      expect(serverOptionSize.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionSize.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test('renders when no options are given', () => {
@@ -231,12 +290,17 @@ describe('<CreateServer />', () => {
         serverListOptions: {},
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionSize = getByTestId(wrapper, 'CreateServer.serverOption.size');
+      const serverOptionSize = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.size'
+      );
       expect(serverOptionSize.prop('options')).not.toBeDefined();
       expect(serverOptionSize.prop('value')).toBeNull();
       expect(serverOptionSize.prop('onChange')).toBeDefined();
       expect(serverOptionSize.prop('isDisabled')).toBeTruthy();
-      expect(serverOptionSize.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionSize.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test("doesn't call on change handler when selected size isn't a valid option", () => {
@@ -244,8 +308,14 @@ describe('<CreateServer />', () => {
         onEditServerInfo: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionSize = getByTestId(wrapper, 'CreateServer.serverOption.size');
-      serverOptionSize.simulate('change', { value: 'invalid', label: 'testLabel' });
+      const serverOptionSize = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.size'
+      );
+      serverOptionSize.simulate('change', {
+        value: 'invalid',
+        label: 'testLabel',
+      });
       expect(customProps.onEditServerInfo).not.toHaveBeenCalled();
     });
 
@@ -258,29 +328,42 @@ describe('<CreateServer />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionSize = getByTestId(wrapper, 'CreateServer.serverOption.size');
+      const serverOptionSize = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.size'
+      );
       serverOptionSize.simulate('change', { value: 1, label: 'testLabel' });
-      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(SERVER_FIELDS.EDIT_SERVER_SIZE, {
-        id: 1,
-        value: 'test',
-        label: 'testLabel',
-      });
+      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
+        SERVER_FIELDS.EDIT_SERVER_SIZE,
+        {
+          id: 1,
+          value: 'test',
+          label: 'testLabel',
+        }
+      );
     });
   });
 
   describe('server location component', () => {
     test('renders with default value', () => {
       const wrapper = renderShallowWithProps();
-      const serverOptionLocation = getByTestId(wrapper, 'CreateServer.serverOption.location');
-      const expectedOptions = serverListOptions.locations.map(({ id, label }) => ({
-        value: id,
-        label,
-      }));
+      const serverOptionLocation = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.location'
+      );
+      const expectedOptions = serverListOptions.locations.map(
+        ({ id, label }) => ({
+          value: id,
+          label,
+        })
+      );
       expect(serverOptionLocation.prop('options')).toEqual(expectedOptions);
       expect(serverOptionLocation.prop('value')).toBeNull();
       expect(serverOptionLocation.prop('onChange')).toBeDefined();
       expect(serverOptionLocation.prop('isDisabled')).toBeFalsy();
-      expect(serverOptionLocation.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionLocation.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test('renders with selected value', () => {
@@ -288,16 +371,25 @@ describe('<CreateServer />', () => {
         serverLocation: { value: 'test', label: 'testLabel' },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionLocation = getByTestId(wrapper, 'CreateServer.serverOption.location');
-      const expectedOptions = serverListOptions.locations.map(({ id, label }) => ({
-        value: id,
-        label,
-      }));
+      const serverOptionLocation = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.location'
+      );
+      const expectedOptions = serverListOptions.locations.map(
+        ({ id, label }) => ({
+          value: id,
+          label,
+        })
+      );
       expect(serverOptionLocation.prop('options')).toEqual(expectedOptions);
-      expect(serverOptionLocation.prop('value')).toEqual(customProps.serverLocation);
+      expect(serverOptionLocation.prop('value')).toEqual(
+        customProps.serverLocation
+      );
       expect(serverOptionLocation.prop('onChange')).toBeDefined();
       expect(serverOptionLocation.prop('isDisabled')).toBeFalsy();
-      expect(serverOptionLocation.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionLocation.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test('renders when no options are given', () => {
@@ -305,12 +397,17 @@ describe('<CreateServer />', () => {
         serverListOptions: {},
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionLocation = getByTestId(wrapper, 'CreateServer.serverOption.location');
+      const serverOptionLocation = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.location'
+      );
       expect(serverOptionLocation.prop('options')).not.toBeDefined();
       expect(serverOptionLocation.prop('value')).toBeNull();
       expect(serverOptionLocation.prop('onChange')).toBeDefined();
       expect(serverOptionLocation.prop('isDisabled')).toBeFalsy();
-      expect(serverOptionLocation.prop('className')).toBe('server-options__input--select');
+      expect(serverOptionLocation.prop('className')).toBe(
+        'server-options__input--select'
+      );
     });
 
     test("doesn't call on change handler when selected location isn't a valid option", () => {
@@ -318,8 +415,14 @@ describe('<CreateServer />', () => {
         onEditServerInfo: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionLocation = getByTestId(wrapper, 'CreateServer.serverOption.location');
-      serverOptionLocation.simulate('change', { value: 'invalid', label: 'testLabel' });
+      const serverOptionLocation = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.location'
+      );
+      serverOptionLocation.simulate('change', {
+        value: 'invalid',
+        label: 'testLabel',
+      });
       expect(customProps.onEditServerInfo).not.toHaveBeenCalled();
     });
 
@@ -332,11 +435,14 @@ describe('<CreateServer />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const serverOptionLocation = getByTestId(wrapper, 'CreateServer.serverOption.location');
+      const serverOptionLocation = getByTestId(
+        wrapper,
+        'CreateServer.serverOption.location'
+      );
       serverOptionLocation.simulate('change', { value: 1, label: 'testLabel' });
       expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
         SERVER_FIELDS.EDIT_SERVER_LOCATION,
-        { id: 1, value: 'test', label: 'testLabel' },
+        { id: 1, value: 'test', label: 'testLabel' }
       );
     });
   });
@@ -344,11 +450,16 @@ describe('<CreateServer />', () => {
   describe('create server button', () => {
     test('should render with default values (logged out of aws)', () => {
       const wrapper = renderShallowWithProps();
-      const createServersButton = getByTestId(wrapper, 'CreateServer.serversButton.create');
+      const createServersButton = getByTestId(
+        wrapper,
+        'CreateServer.serversButton.create'
+      );
       expect(createServersButton.prop('disabled')).toBeTruthy();
       expect(createServersButton.prop('onClick')).toBeDefined();
       expect(createServersButton.prop('title')).toBe('Login Required');
-      expect(createServersButton.prop('style')).toEqual({ cursor: 'not-allowed' });
+      expect(createServersButton.prop('style')).toEqual({
+        cursor: 'not-allowed',
+      });
       expect(createServersButton.text()).toBe('Create');
     });
 
@@ -363,7 +474,10 @@ describe('<CreateServer />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const createServersButton = getByTestId(wrapper, 'CreateServer.serversButton.create');
+      const createServersButton = getByTestId(
+        wrapper,
+        'CreateServer.serversButton.create'
+      );
       expect(createServersButton.prop('disabled')).toBeFalsy();
       expect(createServersButton.prop('onClick')).toBeDefined();
       expect(createServersButton.prop('title')).toBe('');
@@ -384,13 +498,16 @@ describe('<CreateServer />', () => {
         onKeyPress: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const createServersButton = getByTestId(wrapper, 'CreateServer.serversButton.create');
+      const createServersButton = getByTestId(
+        wrapper,
+        'CreateServer.serversButton.create'
+      );
       createServersButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       createServersButton.simulate('click');
       expect(customProps.onCreateServer).toHaveBeenCalledWith(
         { ...initialServerStates.serverOptions },
-        { accessToken: 'test' },
+        { accessToken: 'test' }
       );
     });
   });
@@ -398,11 +515,16 @@ describe('<CreateServer />', () => {
   describe('destroy server button', () => {
     test('should render with default values (logged out of aws)', () => {
       const wrapper = renderShallowWithProps();
-      const destroyServersButton = getByTestId(wrapper, 'CreateServer.serversButton.destroy');
+      const destroyServersButton = getByTestId(
+        wrapper,
+        'CreateServer.serversButton.destroy'
+      );
       expect(destroyServersButton.prop('disabled')).toBeTruthy();
       expect(destroyServersButton.prop('onClick')).toBeDefined();
       expect(destroyServersButton.prop('title')).toBe('Login Required');
-      expect(destroyServersButton.prop('style')).toEqual({ cursor: 'not-allowed' });
+      expect(destroyServersButton.prop('style')).toEqual({
+        cursor: 'not-allowed',
+      });
       expect(destroyServersButton.text()).toBe('Destroy All');
     });
 
@@ -417,7 +539,10 @@ describe('<CreateServer />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const destroyServersButton = getByTestId(wrapper, 'CreateServer.serversButton.destroy');
+      const destroyServersButton = getByTestId(
+        wrapper,
+        'CreateServer.serversButton.destroy'
+      );
       expect(destroyServersButton.prop('disabled')).toBeFalsy();
       expect(destroyServersButton.prop('onClick')).toBeDefined();
       expect(destroyServersButton.prop('title')).toBe('');
@@ -438,11 +563,16 @@ describe('<CreateServer />', () => {
         onKeyPress: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const destroyServersButton = getByTestId(wrapper, 'CreateServer.serversButton.destroy');
+      const destroyServersButton = getByTestId(
+        wrapper,
+        'CreateServer.serversButton.destroy'
+      );
       destroyServersButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       destroyServersButton.simulate('click');
-      expect(customProps.onDestroyServers).toHaveBeenCalledWith([], { accessToken: 'test' });
+      expect(customProps.onDestroyServers).toHaveBeenCalledWith([], {
+        accessToken: 'test',
+      });
     });
   });
 
@@ -501,7 +631,7 @@ describe('<CreateServer />', () => {
     expect(dispatch).toHaveBeenCalledTimes(3);
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      serverActions.edit(null, 'test_field', 'test_value'),
+      serverActions.edit(null, 'test_field', 'test_value')
     );
     expect(dispatch).toHaveBeenNthCalledWith(2, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(3, expect.any(Function));

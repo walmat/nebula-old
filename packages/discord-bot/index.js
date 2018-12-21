@@ -18,7 +18,9 @@ function capitalizeFirstLetter(string) {
 client.on('ready', () => {
   // setting the activity to show the discord bot is actively serving nebula
   client.user.setActivity(
-    capitalizeFirstLetter(`${client.guilds.get('426860107054317575')}`.toLowerCase()),
+    capitalizeFirstLetter(
+      `${client.guilds.get('426860107054317575')}`.toLowerCase()
+    )
   );
 });
 
@@ -59,7 +61,9 @@ client.on('message', async message => {
               message.channel.send(msg);
             })
             .catch(() => {
-              message.channel.send('Unable to give permissions, please contact @sean#0002');
+              message.channel.send(
+                'Unable to give permissions, please contact @sean#0002'
+              );
             });
         });
         break;
@@ -90,13 +94,13 @@ client.on('message', async message => {
       }
       case '?help': {
         message.channel.send(
-          "List of commands:\n\n`!bind <key>` – binds the key to the discord user\n`!deactivate <key>` – deactivates electron app from user's machine\n`!purge <key>` – not supported (yet)",
+          "List of commands:\n\n`!bind <key>` – binds the key to the discord user\n`!deactivate <key>` – deactivates electron app from user's machine\n`!purge <key>` – not supported (yet)"
         );
         break;
       }
       default: {
         message.channel.send(
-          "Unknown Command:\nList of commands:\n\n`!bind <key>` – binds the key to the discord user\n`!deactivate <key>` – deactivates electron app from user's machine\n`!purge <key>` – not supported (yet)",
+          "Unknown Command:\nList of commands:\n\n`!bind <key>` – binds the key to the discord user\n`!deactivate <key>` – deactivates electron app from user's machine\n`!purge <key>` – not supported (yet)"
         );
       }
     }

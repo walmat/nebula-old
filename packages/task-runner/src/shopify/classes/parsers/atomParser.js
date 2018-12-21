@@ -30,7 +30,7 @@ class AtomParser extends Parser {
       this._logger.silly(
         '%s: Making request for %s/collections/all.atom ...',
         this._name,
-        this._task.site.url,
+        this._task.site.url
       );
       const response = await rp({
         method: 'GET',
@@ -52,7 +52,10 @@ class AtomParser extends Parser {
       throw rethrow;
     }
 
-    this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
+    this._logger.silly(
+      '%s: Received Response, attempting to translate structure...',
+      this._name
+    );
     const responseItems = responseJson.feed.entry;
     const products = responseItems.map(item => ({
       id_raw: item.id[0],
@@ -62,7 +65,10 @@ class AtomParser extends Parser {
       title: item.title[0],
       handle: '-', // put an empty placeholder since we only have the title provided
     }));
-    this._logger.silly('%s: Translated Structure, attempting to match', this._name);
+    this._logger.silly(
+      '%s: Translated Structure, attempting to match',
+      this._name
+    );
     const matchedProduct = super.match(products);
 
     if (!matchedProduct) {
@@ -71,11 +77,20 @@ class AtomParser extends Parser {
       rethrow.status = 500; // Use a bad status code
       throw rethrow;
     }
-    this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
+    this._logger.silly(
+      '%s: Product Found! Looking for Variant Info...',
+      this._name
+    );
     let fullProductInfo = null;
     try {
-      fullProductInfo = await Parser.getFullProductInfo(matchedProduct.url, this._logger);
-      this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
+      fullProductInfo = await Parser.getFullProductInfo(
+        matchedProduct.url,
+        this._logger
+      );
+      this._logger.silly(
+        '%s: Full Product Info Found! Merging data and Returning.',
+        this._name
+      );
       return {
         ...matchedProduct,
         ...fullProductInfo,

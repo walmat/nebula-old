@@ -40,7 +40,7 @@ function checkValidKey(key) {
       err => {
         console.log('[ERROR]: CHECK KEY RESPONSE: ', err, err.stack);
         return null;
-      },
+      }
     );
 }
 module.exports.checkValidKey = checkValidKey;
@@ -73,7 +73,7 @@ function checkIsInUse(key) {
       err => {
         console.log('[ERROR]: CHECK IN USE RESPONSE: ', err, err.stack);
         return false;
-      },
+      }
     );
 }
 module.exports.checkIsInUse = checkIsInUse;
@@ -124,7 +124,7 @@ async function verifyKey(key) {
       subject: 'feauth',
       audience: 'fe',
       expiresIn: '2d',
-    },
+    }
   );
   const { exp } = jwt.decode(accessToken);
 
@@ -139,7 +139,7 @@ async function verifyKey(key) {
       subject: 'feref',
       audience: 'api',
       expiresIn: '90d',
-    },
+    }
   );
 
   const response = {

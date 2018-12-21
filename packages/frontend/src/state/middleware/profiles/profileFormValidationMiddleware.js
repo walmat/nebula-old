@@ -13,7 +13,9 @@ const profileFormValidationMiddleware = store => next => action => {
     case PROFILE_ACTIONS.UPDATE:
       // Check for valid payload structure and dispatch an error if not
       if (!action.profile) {
-        return store.dispatch(profileActions.error(action.type, 'invalid action structure!'));
+        return store.dispatch(
+          profileActions.error(action.type, 'invalid action structure!')
+        );
       }
 
       // We are updating or adding a new profile, we need to validate all fields
@@ -38,7 +40,10 @@ const profileFormValidationMiddleware = store => next => action => {
           case PROFILE_FIELDS.EDIT_PAYMENT:
             // If we are looking at billing, but billing matches shipping, use shipping instead.
             let sourceField = field;
-            if (field === PROFILE_FIELDS.EDIT_BILLING && profile.billingMatchesShipping) {
+            if (
+              field === PROFILE_FIELDS.EDIT_BILLING &&
+              profile.billingMatchesShipping
+            ) {
               sourceField = PROFILE_FIELDS.EDIT_SHIPPING;
             }
             const validatorMap = pair[1];
@@ -50,9 +55,10 @@ const profileFormValidationMiddleware = store => next => action => {
               // subPair[1] is the validator
               const [subField, validator] = subPair;
               profileField.errors[subField] = !validator(
-                profile[mapProfileFieldToKey[sourceField]][subField],
+                profile[mapProfileFieldToKey[sourceField]][subField]
               );
-              errors[mapProfileFieldToKey[field]][subField] = profileField.errors[subField];
+              errors[mapProfileFieldToKey[field]][subField] =
+                profileField.errors[subField];
               combinedErrors = combinedErrors || profileField.errors[subField];
             });
             break;
@@ -61,10 +67,12 @@ const profileFormValidationMiddleware = store => next => action => {
             // We have a validator
             const validator = pair[1];
             profile.errors[mapProfileFieldToKey[field]] = !validator(
-              profile[mapProfileFieldToKey[field]],
+              profile[mapProfileFieldToKey[field]]
             );
-            errors[mapProfileFieldToKey[field]] = profile.errors[mapProfileFieldToKey[field]];
-            combinedErrors = combinedErrors || profile.errors[mapProfileFieldToKey[field]];
+            errors[mapProfileFieldToKey[field]] =
+              profile.errors[mapProfileFieldToKey[field]];
+            combinedErrors =
+              combinedErrors || profile.errors[mapProfileFieldToKey[field]];
             break;
           default:
             break;

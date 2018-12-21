@@ -15,7 +15,13 @@ export class ServerRowPrimitive extends Component {
   renderTableRowActionButton(tag, desc, src, className, onClick) {
     return (
       <div className="server-row__actions__button">
-        {this.renderTableRowButton(`action.${tag}`, desc, src, className, onClick)}
+        {this.renderTableRowButton(
+          `action.${tag}`,
+          desc,
+          src,
+          className,
+          onClick
+        )}
       </div>
     );
   }
@@ -45,7 +51,7 @@ export class ServerRowPrimitive extends Component {
       server.status === 'connected' ? 'active' : '',
       () => {
         onConnectServer(server, serverInfo.credentials);
-      },
+      }
     );
   }
 
@@ -58,7 +64,7 @@ export class ServerRowPrimitive extends Component {
       server.status === 'running' ? 'active' : '',
       () => {
         onStartServer(server, serverInfo.credentials);
-      },
+      }
     );
   }
 
@@ -71,26 +77,42 @@ export class ServerRowPrimitive extends Component {
       server.status === 'stopped' ? 'active' : '',
       () => {
         onStopServer(server, serverInfo.credentials);
-      },
+      }
     );
   }
 
   renderTableRowDestroyActionButton() {
     const { server, serverInfo, onDestroyServer } = this.props;
-    return this.renderTableRowActionButton('destroy', 'Destroy Server', destroy, '', () => {
-      onDestroyServer(server, serverInfo.credentials);
-    });
+    return this.renderTableRowActionButton(
+      'destroy',
+      'Destroy Server',
+      destroy,
+      '',
+      () => {
+        onDestroyServer(server, serverInfo.credentials);
+      }
+    );
   }
 
   renderTableRow() {
     const { server } = this.props;
     return (
       <div key={server.id} className="server-row row">
-        <div className="col col--no-gutter server-row__type">{server.type.label}</div>
-        <div className="col col--no-gutter server-row__size">{server.size.label}</div>
-        <div className="col col--no-gutter server-row__location">{server.location.label}</div>
-        <div className="col col--no-gutter server-row__charges">{server.charges}</div>
-        <div className="col col--no-gutter server-row__status">{server.status}</div>
+        <div className="col col--no-gutter server-row__type">
+          {server.type.label}
+        </div>
+        <div className="col col--no-gutter server-row__size">
+          {server.size.label}
+        </div>
+        <div className="col col--no-gutter server-row__location">
+          {server.location.label}
+        </div>
+        <div className="col col--no-gutter server-row__charges">
+          {server.charges}
+        </div>
+        <div className="col col--no-gutter server-row__status">
+          {server.status}
+        </div>
         <div className="col col--no-gutter server-row__actions">
           <div className="row row--gutter">
             {this.renderTableRowConnectActionButton()}
@@ -104,7 +126,9 @@ export class ServerRowPrimitive extends Component {
   }
 
   render() {
-    return <div className="server-row-container col">{this.renderTableRow()}</div>;
+    return (
+      <div className="server-row-container col">{this.renderTableRow()}</div>
+    );
   }
 }
 
@@ -132,8 +156,8 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(
       serverActions.connect(
         serverOptions,
-        awsCredentials,
-      ),
+        awsCredentials
+      )
     );
   },
   onStartServer: (serverOptions, awsCredentials) => {
@@ -149,5 +173,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  mapDispatchToProps
 )(ServerRowPrimitive);

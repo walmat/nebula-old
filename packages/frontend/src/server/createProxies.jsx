@@ -44,7 +44,9 @@ export class CreateProxiesPrimitive extends Component {
                   placeholder="00"
                   style={buildStyle(false, null)}
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
+                  onChange={this.createServerInfoChangeHandler(
+                    SERVER_FIELDS.EDIT_PROXY_NUMBER
+                  )}
                   required
                   data-testid={addTestId('CreateProxies.numProxiesInput')}
                 />
@@ -61,7 +63,9 @@ export class CreateProxiesPrimitive extends Component {
                   value={serverInfo.proxyOptions.location}
                   options={serverListOptions.locations}
                   data-testid={addTestId('CreateProxies.location')}
-                  onChange={this.createProxyLocationChangeHandle(SERVER_FIELDS.EDIT_PROXY_LOCATION)}
+                  onChange={this.createProxyLocationChangeHandle(
+                    SERVER_FIELDS.EDIT_PROXY_LOCATION
+                  )}
                 />
               </div>
             </div>
@@ -77,7 +81,9 @@ export class CreateProxiesPrimitive extends Component {
                   type="text"
                   placeholder="Desired Username"
                   style={buildStyle(false, null)}
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
+                  onChange={this.createServerInfoChangeHandler(
+                    SERVER_FIELDS.EDIT_PROXY_USERNAME
+                  )}
                   value={serverInfo.proxyOptions.username}
                   required
                   data-testid={addTestId('CreateProxies.usernameInput')}
@@ -96,7 +102,9 @@ export class CreateProxiesPrimitive extends Component {
                   type="text"
                   placeholder="Desired Password"
                   style={buildStyle(false, null)}
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
+                  onChange={this.createServerInfoChangeHandler(
+                    SERVER_FIELDS.EDIT_PROXY_PASSWORD
+                  )}
                   value={serverInfo.proxyOptions.password}
                   required
                   data-testid={addTestId('CreateProxies.passwordInput')}
@@ -112,7 +120,9 @@ export class CreateProxiesPrimitive extends Component {
               className="proxy-options__destroy"
               tabIndex={0}
               disabled={!loggedInAws}
-              style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
+              style={
+                !loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }
+              }
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={onKeyPress}
               onClick={() => {
@@ -131,7 +141,9 @@ export class CreateProxiesPrimitive extends Component {
               className="proxy-options__generate"
               tabIndex={0}
               disabled={!loggedInAws}
-              style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
+              style={
+                !loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }
+              }
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={onKeyPress}
               onClick={() => {
@@ -184,5 +196,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  mapDispatchToProps
 )(CreateProxiesPrimitive);

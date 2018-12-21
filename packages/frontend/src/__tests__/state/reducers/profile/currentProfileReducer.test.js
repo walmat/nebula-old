@@ -1,7 +1,11 @@
 /* global describe it expect test */
 import { currentProfileReducer } from '../../../../state/reducers/profiles/profileReducer';
 import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
-import { PROFILE_ACTIONS, PAYMENT_FIELDS, PROFILE_FIELDS } from '../../../../state/actions';
+import {
+  PROFILE_ACTIONS,
+  PAYMENT_FIELDS,
+  PROFILE_FIELDS,
+} from '../../../../state/actions';
 
 describe('current profile reducer', () => {
   it('should return initial state', () => {
@@ -44,7 +48,10 @@ describe('current profile reducer', () => {
       describe('when action is invalid object', () => {
         const _testHandleInvalid = (message, action) => {
           test(message, () => {
-            const actual = currentProfileReducer(initialProfileStates.profile, action);
+            const actual = currentProfileReducer(
+              initialProfileStates.profile,
+              action
+            );
             expect(actual).toEqual(initialProfileStates.profile);
           });
         };

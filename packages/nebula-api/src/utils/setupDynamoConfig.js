@@ -10,8 +10,10 @@ function getConfig() {
   const config = {
     ...baseConfig,
     endpoint: process.env.NEBULA_API_DYNAMODB_ENDPOINT,
-    accessKeyId: process.env.NEBULA_API_DYNAMODB_ACCESS_KEY || baseConfig.accessKeyId,
-    secretAccessKey: process.env.NEBULA_API_DYNAMODB_SECRET_KEY || baseConfig.secretAccessKey,
+    accessKeyId:
+      process.env.NEBULA_API_DYNAMODB_ACCESS_KEY || baseConfig.accessKeyId,
+    secretAccessKey:
+      process.env.NEBULA_API_DYNAMODB_SECRET_KEY || baseConfig.secretAccessKey,
   };
 
   return config;

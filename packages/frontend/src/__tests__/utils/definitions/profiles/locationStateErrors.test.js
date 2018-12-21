@@ -1,6 +1,11 @@
 /* global describe */
-import pDefns, { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import pDefns, {
+  initialProfileStates,
+} from '../../../../utils/definitions/profileDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('locationStateErrors definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -12,7 +17,7 @@ describe('locationStateErrors definitions', () => {
       invalid,
       pDefns.locationStateErrors,
       initialProfileStates.locationErrors,
-      spy,
+      spy
     );
 
   testErrorKey('firstName', true, 'false');

@@ -29,7 +29,7 @@ export class App extends PureComponent {
       e.preventDefault();
       if (window.Bridge) {
         const confirm = await window.Bridge.confirmDialog(
-          'Are you sure you want to deactivate Orion? Doing so will erase all data!',
+          'Are you sure you want to deactivate Orion? Doing so will erase all data!'
         );
         if (confirm) {
           store.dispatch(globalActions.reset());

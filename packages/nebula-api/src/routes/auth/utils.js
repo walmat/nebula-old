@@ -20,7 +20,7 @@ function generateTokens(key, refreshPayload) {
       subject: 'feauth',
       audience: 'fe',
       expiresIn: '2d',
-    },
+    }
   );
   const { exp } = jwt.decode(accessToken);
 
@@ -36,7 +36,7 @@ function generateTokens(key, refreshPayload) {
       subject: 'feref',
       audience: 'api',
       expiresIn: '90d',
-    },
+    }
   );
 
   // Craft response
@@ -82,7 +82,7 @@ function checkValidKey(key) {
       err => {
         console.log('[ERROR]: CHECK KEY RESPONSE: ', err, err.stack);
         return null;
-      },
+      }
     );
 }
 module.exports.checkValidKey = checkValidKey;
@@ -115,7 +115,9 @@ async function getDiscordUser(keyHash) {
         console.log('[DEBUG]: CHECK DISCORD USER RESPONSE: ', data);
         if (data.Items.length) {
           if (data.Items.length > 1) {
-            console.log('[WARN]: Data Items is longer than one! Using first response');
+            console.log(
+              '[WARN]: Data Items is longer than one! Using first response'
+            );
           }
           return data.Items[0];
         }
@@ -124,7 +126,7 @@ async function getDiscordUser(keyHash) {
       err => {
         console.log('[ERROR]: CHECK DISCORD USER RESPONSE: ', err, err.stack);
         return null;
-      },
+      }
     );
 }
 module.exports.getDiscordUser = getDiscordUser;
@@ -154,7 +156,9 @@ async function isDiscordAccountPresent(discordIdHash) {
         console.log(data);
         if (data.Items.length) {
           if (data.Items.length > 1) {
-            console.log('[WARN]: Data Items is longer than one! Using first response');
+            console.log(
+              '[WARN]: Data Items is longer than one! Using first response'
+            );
           }
           return data.Items[0];
         }
@@ -163,7 +167,7 @@ async function isDiscordAccountPresent(discordIdHash) {
       err => {
         console.log('[ERROR]: CHECK DISCORD IN USE RESPONSE: ', err, err.stack);
         return null;
-      },
+      }
     );
 }
 module.exports.isDiscordAccountPresent = isDiscordAccountPresent;
@@ -209,7 +213,7 @@ async function removeUser(keyHash) {
       err => {
         console.log('[ERROR]: ', err, err.stack);
         return false;
-      },
+      }
     );
 }
 module.exports.removeUser = removeUser;
@@ -241,7 +245,9 @@ async function checkIsInUse(key) {
         console.log('[DEBUG]: CHECK IN USE RESPONSE: ', data);
         if (data.Items.length) {
           if (data.Items.length > 1) {
-            console.log('[WARN]: Data Items is longer than one! Using first response');
+            console.log(
+              '[WARN]: Data Items is longer than one! Using first response'
+            );
           }
           return data.Items[0];
         }
@@ -250,7 +256,7 @@ async function checkIsInUse(key) {
       err => {
         console.log('[ERROR]: CHECK IN USE RESPONSE: ', err, err.stack);
         return null;
-      },
+      }
     );
 }
 module.exports.checkIsInUse = checkIsInUse;

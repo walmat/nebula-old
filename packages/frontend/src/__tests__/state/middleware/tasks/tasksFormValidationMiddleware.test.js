@@ -1,7 +1,11 @@
 /* eslint-disable no-nested-ternary */
 /* global describe expect it test jest beforeEach */
 import tasksFormValidationMiddleware from '../../../../state/middleware/tasks/tasksFormValidationMiddleware';
-import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../../../state/actions';
+import {
+  TASK_ACTIONS,
+  TASK_FIELDS,
+  mapTaskFieldsToKey,
+} from '../../../../state/actions';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
 
@@ -246,9 +250,12 @@ describe('task form validation middleware', () => {
                     },
                   }
               : null,
-          sizes: type === TASK_ACTIONS.UPDATE ? (testValid ? [] : ['XXS']) : null,
-          username: type === TASK_ACTIONS.UPDATE ? (testValid ? '' : 'test') : null,
-          password: type === TASK_ACTIONS.UPDATE ? (testValid ? '' : 'test') : null,
+          sizes:
+            type === TASK_ACTIONS.UPDATE ? (testValid ? [] : ['XXS']) : null,
+          username:
+            type === TASK_ACTIONS.UPDATE ? (testValid ? '' : 'test') : null,
+          password:
+            type === TASK_ACTIONS.UPDATE ? (testValid ? '' : 'test') : null,
         },
         errorDelay: 1500,
         monitorDelay: 1500,
@@ -351,20 +358,25 @@ describe('task form validation middleware', () => {
           ...actionBase.task,
           ...expectedActionBase.task,
           [mapTaskFieldsToKey[field]]:
-            type === TASK_ACTIONS.ADD ? value : action.response.task[mapTaskFieldsToKey[field]],
+            type === TASK_ACTIONS.ADD
+              ? value
+              : action.response.task[mapTaskFieldsToKey[field]],
           errors: {
             ...actionBase.task.errors,
             ...expectedActionBase.task.errors,
-            [mapTaskFieldsToKey[field]]: type === TASK_ACTIONS.ADD ? !testValid : null,
+            [mapTaskFieldsToKey[field]]:
+              type === TASK_ACTIONS.ADD ? !testValid : null,
           },
           edits: {
             ...actionBase.task.edits,
             ...expectedActionBase.task.edits,
-            [mapTaskFieldsToKey[field]]: type === TASK_ACTIONS.ADD ? null : value,
+            [mapTaskFieldsToKey[field]]:
+              type === TASK_ACTIONS.ADD ? null : value,
             errors: {
               ...actionBase.task.edits.errors,
               ...expectedActionBase.task.edits.errors,
-              [mapTaskFieldsToKey[field]]: type === TASK_ACTIONS.ADD ? null : !testValid,
+              [mapTaskFieldsToKey[field]]:
+                type === TASK_ACTIONS.ADD ? null : !testValid,
             },
           },
         },
@@ -399,7 +411,12 @@ describe('task form validation middleware', () => {
         };
 
     const { store, next, invoke } = create();
-    const { action, expectedAction } = generateActions(type, field, value, valid);
+    const { action, expectedAction } = generateActions(
+      type,
+      field,
+      value,
+      valid
+    );
     if (genNoErrors) {
       // delete expected errors field if we aren't generating errors
       delete expectedAction.errors;

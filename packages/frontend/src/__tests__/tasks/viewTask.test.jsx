@@ -27,7 +27,7 @@ describe('<ViewTask />', () => {
       wrapper
         .find(TaskRow)
         .at(0)
-        .prop('task'),
+        .prop('task')
     ).toEqual(tasks[0]);
   });
 
@@ -53,19 +53,19 @@ describe('<ViewTask />', () => {
       wrapper
         .find(TaskRow)
         .at(0)
-        .prop('task'),
+        .prop('task')
     ).toEqual(tasks[0]);
     expect(
       wrapper
         .find(TaskRow)
         .at(1)
-        .prop('task'),
+        .prop('task')
     ).toEqual(tasks[1]);
     expect(
       wrapper
         .find(TaskRow)
         .at(2)
-        .prop('task'),
+        .prop('task')
     ).toEqual(tasks[2]);
   });
 

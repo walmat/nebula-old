@@ -27,7 +27,8 @@ const info = {
 const url_base = 'http://www.blendsus.com';
 
 // THESE VARIABLES ARE SPECIFIC EACH TIME
-const checkout_url = 'https://www.blendsus.com/1529745/checkouts/cdd7a5b395e0eaf9a5d204ba730ff670';
+const checkout_url =
+  'https://www.blendsus.com/1529745/checkouts/cdd7a5b395e0eaf9a5d204ba730ff670';
 const authenticity_token =
   'uJsNxvtbEOFT8aDTXo74UBiXYzEihFaL9kxe+R7T6UzrRKgqUOkireubdngEG3B/qwkBm68CnfmLjQ4Z+XXyWw==';
 const cookies = [

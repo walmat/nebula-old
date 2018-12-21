@@ -144,7 +144,9 @@ describe('getAllSizes', () => {
   });
 
   it('should return correct category', () => {
-    expectedSizes.forEach(category => expect(getCategory(category.label)).toEqual(category));
+    expectedSizes.forEach(category =>
+      expect(getCategory(category.label)).toEqual(category)
+    );
   });
 
   it('should lookup the correct sizes', () => {

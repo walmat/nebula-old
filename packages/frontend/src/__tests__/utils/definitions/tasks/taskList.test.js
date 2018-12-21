@@ -1,6 +1,11 @@
 /* global describe it expect */
-import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import { setupConsoleErrorSpy, testArray } from '../../../../__testUtils__/definitionTestUtils';
+import tDefns, {
+  initialTaskStates,
+} from '../../../../utils/definitions/taskDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testArray,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskList definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -10,6 +15,6 @@ describe('taskList definitions', () => {
     [{ id: true }, { id: 3, product: [] }, { id: 5, site: [] }],
     tDefns.taskList,
     initialTaskStates.list,
-    spy,
+    spy
   );
 });

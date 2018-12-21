@@ -59,7 +59,7 @@ const _createServerRequest = async (serverOptions, awsCredentials) =>
             }
             return ec2.createKeyPair(createParams).promise();
           },
-          () => ec2.createKeyPair(createParams).promise(),
+          () => ec2.createKeyPair(createParams).promise()
         )
         .then(() => ec2.runInstances(instanceParams).promise())
         .then(data => {
@@ -242,7 +242,10 @@ const _validateAwsRequest = async awsCredentials =>
     const sKey = awsCredentials.AWSSecretKey;
 
     // test the string inputs
-    if (regexes.aws_access_key.test(aKey) && regexes.aws_secret_key.test(sKey)) {
+    if (
+      regexes.aws_access_key.test(aKey) &&
+      regexes.aws_secret_key.test(sKey)
+    ) {
       resolve('access_token');
     } else {
       reject(new Error('Keys should be valid!'));
@@ -254,70 +257,85 @@ const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
 const _startServer = makeActionCreator(SERVER_ACTIONS.START, 'serverPath');
 const _stopServer = makeActionCreator(SERVER_ACTIONS.STOP, 'serverPath');
 const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
-const _destroyAllServers = makeActionCreator(SERVER_ACTIONS.DESTROY_ALL, 'credentials');
-const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxies');
-const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'serverInfo', 'credentials');
+const _destroyAllServers = makeActionCreator(
+  SERVER_ACTIONS.DESTROY_ALL,
+  'credentials'
+);
+const _generateProxies = makeActionCreator(
+  SERVER_ACTIONS.GEN_PROXIES,
+  'proxies'
+);
+const _connectServer = makeActionCreator(
+  SERVER_ACTIONS.CONNECT,
+  'serverInfo',
+  'credentials'
+);
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES);
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS);
 
 // Public Actions
 const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error');
-const editServer = makeActionCreator(SERVER_ACTIONS.EDIT, 'id', 'field', 'value');
+const editServer = makeActionCreator(
+  SERVER_ACTIONS.EDIT,
+  'id',
+  'field',
+  'value'
+);
 
 // Public Thunks
 const createServer = (serverOptions, awsCredentials) => dispatch =>
   _createServerRequest(serverOptions, awsCredentials).then(
     info => dispatch(_createServer(info)),
-    error => dispatch(handleError(SERVER_ACTIONS.CREATE, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.CREATE, error))
   );
 
 const startServer = (serverOptions, awsCredentials) => dispatch =>
   _startServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_startServer(path)),
-    error => dispatch(handleError(SERVER_ACTIONS.START, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.START, error))
   );
 
 const stopServer = (serverOptions, awsCredentials) => dispatch =>
   _stopServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_stopServer(path)),
-    error => dispatch(handleError(SERVER_ACTIONS.START, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.START, error))
   );
 
 const destroyServer = (serverOptions, awsCredentials) => dispatch =>
   _destroyServerRequest(serverOptions, awsCredentials).then(
     path => dispatch(_destroyServer(path)),
-    error => dispatch(handleError(SERVER_ACTIONS.DESTROY, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.DESTROY, error))
   );
 
 const destroyAllServers = (serverOptions, awsCredentials) => dispatch =>
   _destroyAllServerRequest(serverOptions, awsCredentials).then(
     res => dispatch(_destroyAllServers(res)),
-    error => dispatch(handleError(SERVER_ACTIONS.DESTROY_ALL, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.DESTROY_ALL, error))
   );
 
 const generateProxies = proxyOptions => dispatch =>
   _generateProxiesRequest(proxyOptions).then(
     proxies => dispatch(_generateProxies(proxies)),
-    error => dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error))
   );
 
 const connectServer = (serverOptions, awsCredentials) => dispatch =>
   _connectServerRequest(serverOptions, awsCredentials).then(
     res => dispatch(_connectServer(res.server, res.credentials)),
-    error => dispatch(handleError(SERVER_ACTIONS.CONNECT, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.CONNECT, error))
   );
 
 const destroyProxies = () => dispatch =>
   _destroyProxiesRequest().then(
     () => dispatch(_destroyProxies()),
-    error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error))
   );
 
 const validateAws = awsCredentials => dispatch =>
   _validateAwsRequest(awsCredentials).then(
     token => dispatch(_validateAws(token)),
-    error => dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error))
   );
 
 const logoutAws = (serverOptions, awsCredentials) => dispatch =>

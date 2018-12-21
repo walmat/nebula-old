@@ -30,7 +30,12 @@ export const {
   LOCATION_FIELDS,
 } = profiles;
 
-export const { taskActions, mapTaskFieldsToKey, TASK_ACTIONS, TASK_FIELDS } = task;
+export const {
+  taskActions,
+  mapTaskFieldsToKey,
+  TASK_ACTIONS,
+  TASK_FIELDS,
+} = task;
 
 export const {
   serverActions,
@@ -47,4 +52,9 @@ export const {
   SETTINGS_FIELDS,
 } = settings;
 
-export const { navbarActions, mapActionsToRoutes, NAVBAR_ACTIONS, ROUTES } = navbar;
+export const {
+  navbarActions,
+  mapActionsToRoutes,
+  NAVBAR_ACTIONS,
+  ROUTES,
+} = navbar;

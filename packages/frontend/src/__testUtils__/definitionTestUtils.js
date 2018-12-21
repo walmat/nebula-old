@@ -13,7 +13,9 @@ export const setupConsoleErrorSpy = () => {
   const spy = {};
 
   beforeEach(() => {
-    spy.consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    spy.consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -23,7 +25,14 @@ export const setupConsoleErrorSpy = () => {
   return spy;
 };
 
-export const testKey = (keyName, validKey, invalidKey, spec, initialState, spy) => {
+export const testKey = (
+  keyName,
+  validKey,
+  invalidKey,
+  spec,
+  initialState,
+  spy
+) => {
   const _testKey = (value, isValid) => {
     it(`should ${isValid ? 'succeed' : 'fail'} when ${
       isValid ? '' : 'in'
@@ -39,7 +48,7 @@ export const testKey = (keyName, validKey, invalidKey, spec, initialState, spy) 
         { test: spec },
         testState,
         'test',
-        `${isValid ? 'success' : 'failure'} check ${idx} for ${keyName}`,
+        `${isValid ? 'success' : 'failure'} check ${idx} for ${keyName}`
       );
       if (isValid) {
         expect(spy.consoleError).not.toHaveBeenCalled();
@@ -72,7 +81,7 @@ export const testValue = (valid, invalid, spec, spy) => {
         { value: spec },
         { value },
         'test',
-        `${isValid ? 'success' : 'failure'} check ${idx}`,
+        `${isValid ? 'success' : 'failure'} check ${idx}`
       );
       if (isValid) {
         expect(spy.consoleError).not.toHaveBeenCalled();
@@ -95,11 +104,19 @@ export const testValue = (valid, invalid, spec, spy) => {
   }
 };
 
-export const testArray = (validEntries, invalidEntries, spec, initialEntries, spy) => {
+export const testArray = (
+  validEntries,
+  invalidEntries,
+  spec,
+  initialEntries,
+  spy
+) => {
   const specWrapper = { test: spec };
 
   const _testArray = (value, isValid) => {
-    it(`it should ${isValid ? 'succeed' : 'fail'} when a non-empty array containing ${
+    it(`it should ${
+      isValid ? 'succeed' : 'fail'
+    } when a non-empty array containing ${
       isValid ? '' : 'in'
     }valid values is passed`, () => {
       const testArr = initialEntries.splice(0);
@@ -116,7 +133,7 @@ export const testArray = (validEntries, invalidEntries, spec, initialEntries, sp
         specWrapper,
         testState,
         'test',
-        `${isValid ? 'success' : 'failure'} check ${idx}`,
+        `${isValid ? 'success' : 'failure'} check ${idx}`
       );
       if (isValid) {
         expect(spy.consoleError).not.toHaveBeenCalled();

@@ -10,7 +10,11 @@ import defns from '../utils/definitions/profileDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import './profiles.css';
 
-import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
+import {
+  profileActions,
+  mapProfileFieldToKey,
+  PROFILE_FIELDS,
+} from '../state/actions';
 import { buildStyle } from '../utils/styles';
 // images
 import checkboxChecked from '../_assets/Check_icons-01.svg';
@@ -49,7 +53,12 @@ export class ProfilesPrimitive extends Component {
    * @param e
    */
   async saveProfile(e) {
-    const { profiles, currentProfile, onAddNewProfile, onUpdateProfile } = this.props;
+    const {
+      profiles,
+      currentProfile,
+      onAddNewProfile,
+      onUpdateProfile,
+    } = this.props;
 
     // saves input data to user's profiles
     e.preventDefault();
@@ -58,7 +67,9 @@ export class ProfilesPrimitive extends Component {
       // make sure the profile id exists in profiles before call in the load
       if (profiles.some(p => p.id === currentProfile.editId)) {
         // first off, check to see if the profileName is taken..
-        const profileExists = profiles.find(p => p.profileName === currentProfile.profileName);
+        const profileExists = profiles.find(
+          p => p.profileName === currentProfile.profileName
+        );
 
         if (profileExists) {
           const { id } = profileExists;
@@ -163,7 +174,11 @@ export class ProfilesPrimitive extends Component {
             onClick={onClickBillingMatchesShipping}
           >
             <img
-              src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
+              src={
+                currentProfile.billingMatchesShipping
+                  ? checkboxChecked
+                  : checkboxUnchecked
+              }
               alt={
                 currentProfile.billingMatchesShipping
                   ? 'Billing Matches Shipping'
@@ -201,7 +216,9 @@ export class ProfilesPrimitive extends Component {
             onChange={onProfileNameChange}
             value={currentProfile.profileName}
             style={validationStatus(
-              currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
+              currentProfile.errors[
+                mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]
+              ]
             )}
             placeholder="Profile Name"
           />
@@ -210,7 +227,11 @@ export class ProfilesPrimitive extends Component {
           </button>
 
           {/* DELETE PROFILE */}
-          <button type="button" id="delete-profile" onClick={this.deleteProfile}>
+          <button
+            type="button"
+            id="delete-profile"
+            onClick={this.deleteProfile}
+          >
             Delete
           </button>
         </div>
@@ -245,10 +266,18 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onClickBillingMatchesShipping: () => {
-    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''));
+    dispatch(
+      profileActions.edit(
+        null,
+        PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING,
+        ''
+      )
+    );
   },
   onProfileNameChange: event => {
-    dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));
+    dispatch(
+      profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value)
+    );
   },
   onAddNewProfile: newProfile => {
     dispatch(profileActions.add(newProfile));
@@ -269,5 +298,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  mapDispatchToProps
 )(ProfilesPrimitive);

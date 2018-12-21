@@ -1,8 +1,15 @@
-import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../actions';
+import {
+  SETTINGS_ACTIONS,
+  mapSettingsFieldToKey,
+  SETTINGS_FIELDS,
+} from '../../actions';
 
 import { initialSettingsStates } from '../../../utils/definitions/settingsDefinitions';
 
-export default function settingsReducer(state = initialSettingsStates.settings, action) {
+export default function settingsReducer(
+  state = initialSettingsStates.settings,
+  action
+) {
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
@@ -29,14 +36,18 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       case SETTINGS_FIELDS.EDIT_PROXIES: {
         // Get a list of valid current proxies
         const validCurrentProxies = state.proxies.filter(
-          (_, idx) => !state.errors.proxies || !state.errors.proxies.includes(idx),
+          (_, idx) =>
+            !state.errors.proxies || !state.errors.proxies.includes(idx)
         );
         // Get a list of valid proxies that are incoming
         const validIncomingProxies = action.value.filter(
-          (_, idx) => !action.errors.proxies || !action.errors.proxies.includes(idx),
+          (_, idx) =>
+            !action.errors.proxies || !action.errors.proxies.includes(idx)
         );
         // Get a list of valid removed proxies (proxies that aren't in the incoming valid proxies)
-        const removedProxies = validCurrentProxies.filter(p => !validIncomingProxies.includes(p));
+        const removedProxies = validCurrentProxies.filter(
+          p => !validIncomingProxies.includes(p)
+        );
 
         // Remove these proxies (if we can)
         if (window.Bridge && removedProxies.length) {

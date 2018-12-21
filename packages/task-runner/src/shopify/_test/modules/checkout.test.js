@@ -1,9 +1,9 @@
 /* eslint-disable no-console, no-unused-vars */
 const task = require('./task.test');
 const Account = require('../../classes/account');
-const Cart = require('../../classes/cart');
-const Shipping = require('../../classes/shipping');
-const Payment = require('../../classes/payment');
+const Cart = require('../../classes/old/cart');
+const Shipping = require('../../classes/old/shipping');
+const Payment = require('../../classes/old/payment');
 const Checkout = require('../../classes/checkout');
 const Timer = require('../../classes/timer');
 
@@ -69,7 +69,7 @@ const testShipping = async () => {
     checkout.checkoutId,
     checkout.storeId,
     checkout.authToken,
-    checkout.price,
+    checkout.price
   );
 
   const authToken = await shipping.submit();
@@ -99,7 +99,7 @@ const testPayment = async () => {
     checkout.checkoutId,
     checkout.storeId,
     checkout.authToken,
-    checkout.price,
+    checkout.price
   );
 
   const authToken = await shipping.submit();
@@ -112,7 +112,7 @@ const testPayment = async () => {
     checkout.checkoutId,
     checkout.storeId,
     authToken,
-    checkout.price,
+    checkout.price
   );
 
   const state = await payment.submit();

@@ -1,6 +1,11 @@
 /* global describe */
-import sDefns, { initialServerStates } from '../../../../utils/definitions/serverDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, {
+  initialServerStates,
+} from '../../../../utils/definitions/serverDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('serverProperty definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -12,7 +17,7 @@ describe('serverProperty definitions', () => {
       invalid,
       sDefns.serverProperty,
       initialServerStates.serverProperty,
-      spy,
+      spy
     );
 
   testPropertyKey('id', [null, 3], [{}, 'test', false]);

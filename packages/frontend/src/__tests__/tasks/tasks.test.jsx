@@ -2,7 +2,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { TasksPrimitive, mapStateToProps, mapDispatchToProps } from '../../tasks/tasks';
+import {
+  TasksPrimitive,
+  mapStateToProps,
+  mapDispatchToProps,
+} from '../../tasks/tasks';
 import CreateTask from '../../tasks/createTask';
 import ViewTask from '../../tasks/viewTask';
 import LogTask from '../../tasks/logTask';
@@ -27,7 +31,7 @@ describe('<Tasks />', () => {
         onStartTask={renderProps.onStartTask}
         onStopTask={renderProps.onStopTask}
         onKeyPress={renderProps.onKeyPress}
-      />,
+      />
     );
   };
 
@@ -53,7 +57,9 @@ describe('<Tasks />', () => {
     expect(wrapper.find('.tasks-create__section-header')).toHaveLength(1);
     expect(wrapper.find('.tasks-create__section-header').text()).toBe('Create');
     expect(wrapper.find(CreateTask)).toHaveLength(1);
-    expect(wrapper.find(CreateTask).prop('taskToEdit')).toEqual(defaultProps.newTask);
+    expect(wrapper.find(CreateTask).prop('taskToEdit')).toEqual(
+      defaultProps.newTask
+    );
     // Log Task
     expect(wrapper.find('.tasks-log__section-header')).toHaveLength(1);
     expect(wrapper.find('.tasks-log__section-header').text()).toBe('Log');
@@ -63,9 +69,13 @@ describe('<Tasks />', () => {
     expect(wrapper.find('.tasks-table__section-header').text()).toBe('View');
     expect(wrapper.find(ViewTask)).toHaveLength(1);
     // Bulk Action Buttons
-    expect(getByTestId(wrapper, 'Tasks.bulkActionButton.start')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'Tasks.bulkActionButton.start')).toHaveLength(
+      1
+    );
     expect(getByTestId(wrapper, 'Tasks.bulkActionButton.stop')).toHaveLength(1);
-    expect(getByTestId(wrapper, 'Tasks.bulkActionButton.destroy')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'Tasks.bulkActionButton.destroy')).toHaveLength(
+      1
+    );
     getByTestId(wrapper, 'Tasks.bulkActionButton.start').simulate('keyPress');
   });
 
@@ -100,17 +110,17 @@ describe('<Tasks />', () => {
         expect(customProps.onStartTask).toHaveBeenNthCalledWith(
           1,
           customProps.tasks[0],
-          customProps.proxies,
+          customProps.proxies
         );
         expect(customProps.onStartTask).toHaveBeenNthCalledWith(
           2,
           customProps.tasks[1],
-          customProps.proxies,
+          customProps.proxies
         );
         expect(customProps.onStartTask).toHaveBeenNthCalledWith(
           3,
           customProps.tasks[2],
-          customProps.proxies,
+          customProps.proxies
         );
       });
 
@@ -153,9 +163,18 @@ describe('<Tasks />', () => {
         expect(customProps.onKeyPress).toHaveBeenCalled();
         button.simulate('click');
         expect(customProps.onStopTask).toHaveBeenCalledTimes(3);
-        expect(customProps.onStopTask).toHaveBeenNthCalledWith(1, customProps.tasks[0]);
-        expect(customProps.onStopTask).toHaveBeenNthCalledWith(2, customProps.tasks[1]);
-        expect(customProps.onStopTask).toHaveBeenNthCalledWith(3, customProps.tasks[2]);
+        expect(customProps.onStopTask).toHaveBeenNthCalledWith(
+          1,
+          customProps.tasks[0]
+        );
+        expect(customProps.onStopTask).toHaveBeenNthCalledWith(
+          2,
+          customProps.tasks[1]
+        );
+        expect(customProps.onStopTask).toHaveBeenNthCalledWith(
+          3,
+          customProps.tasks[2]
+        );
       });
 
       it('should not call start task if tasks is empty', () => {
@@ -196,9 +215,18 @@ describe('<Tasks />', () => {
         expect(customProps.onKeyPress).toHaveBeenCalled();
         button.simulate('click');
         expect(customProps.onDestroyTask).toHaveBeenCalledTimes(3);
-        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(1, customProps.tasks[0]);
-        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(2, customProps.tasks[1]);
-        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(3, customProps.tasks[2]);
+        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(
+          1,
+          customProps.tasks[0]
+        );
+        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(
+          2,
+          customProps.tasks[1]
+        );
+        expect(customProps.onDestroyTask).toHaveBeenNthCalledWith(
+          3,
+          customProps.tasks[2]
+        );
       });
 
       it('should not call start task if tasks is empty', () => {
@@ -227,7 +255,11 @@ describe('<Tasks />', () => {
       ],
       proxies: ['invalid'],
       settings: {
-        proxies: ['proxyPlaceholder1', 'proxyPlaceholder2', 'proxyPlaceholder3'],
+        proxies: [
+          'proxyPlaceholder1',
+          'proxyPlaceholder2',
+          'proxyPlaceholder3',
+        ],
       },
       extra: 'field',
     };

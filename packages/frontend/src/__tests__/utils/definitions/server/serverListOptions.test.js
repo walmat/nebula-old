@@ -1,6 +1,11 @@
 /* global describe */
-import sDefns, { initialServerStates } from '../../../../utils/definitions/serverDefinitions';
-import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, {
+  initialServerStates,
+} from '../../../../utils/definitions/serverDefinitions';
+import {
+  setupConsoleErrorSpy,
+  testKey,
+} from '../../../../__testUtils__/definitionTestUtils';
 
 describe('serverListOptions definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -12,7 +17,7 @@ describe('serverListOptions definitions', () => {
       invalid,
       sDefns.serverListOptions,
       initialServerStates.serverListOptions,
-      spy,
+      spy
     );
 
   testServerListKey(
@@ -27,7 +32,7 @@ describe('serverListOptions definitions', () => {
         },
       ],
     ],
-    [{}, 3, false, [3], [false]],
+    [{}, 3, false, [3], [false]]
   );
   testServerListKey(
     'sizes',
@@ -41,7 +46,7 @@ describe('serverListOptions definitions', () => {
         },
       ],
     ],
-    [{}, 3, false, [3], [false]],
+    [{}, 3, false, [3], [false]]
   );
   testServerListKey(
     'locations',
@@ -55,6 +60,6 @@ describe('serverListOptions definitions', () => {
         },
       ],
     ],
-    [{}, 3, false, [3], [false]],
+    [{}, 3, false, [3], [false]]
   );
 });

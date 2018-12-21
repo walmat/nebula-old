@@ -14,7 +14,7 @@ const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager
   .Events;
 const { createLogger } = require('../common/logger');
-const { waitForDelay, now, reflect } = require('./classes/utils');
+const { waitForDelay, reflect } = require('./classes/utils');
 
 class TaskRunner {
   constructor(id, task, proxy, loggerPath) {
@@ -270,13 +270,13 @@ class TaskRunner {
   }
 
   // TODO - Task Setup Promise 2 - find random product
-  findRandomInStockVariant() {
-    return new Promise(async (resolve, reject) => {
-      // TODO - find random product to choose the prefilled shipping/payment info
-      resolve();
-      // reject(new Error('Not implemented yet'));
-    });
-  }
+  // findRandomInStockVariant() {
+  //   return new Promise(async (resolve, reject) => {
+  //     // TODO - find random product to choose the prefilled shipping/payment info
+  //     resolve();
+  //     // reject(new Error('Not implemented yet'));
+  //   });
+  // }
 
   // Task Setup Promise 3 - create checkout session
   createCheckout() {
@@ -423,8 +423,9 @@ class TaskRunner {
       this._emitTaskEvent({
         message: this._context.status || `Task has ${status}`,
       });
+      // eslint-disable-next-line no-unused-expressions
       States.Stopped;
-    }
+    };
   }
 
   async _handleStepLogic(currentState) {

@@ -58,7 +58,8 @@ describe('location reducer', () => {
 
     describe('zip code', () => _testEditField(LOCATION_FIELDS.ZIP_CODE));
 
-    describe('phone number', () => _testEditField(LOCATION_FIELDS.PHONE_NUMBER));
+    describe('phone number', () =>
+      _testEditField(LOCATION_FIELDS.PHONE_NUMBER));
 
     describe('state', () => _testEditField(LOCATION_FIELDS.STATE));
 

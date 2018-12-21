@@ -60,8 +60,14 @@ function _createLogger({ dir, name, filename }) {
 
   // Define the transports to use for this logger
   const transports = [
-    new winston.transports.File({ name: 'specific', filename: path.join(dirname, filename) }),
-    new winston.transports.File({ name: 'combined', filename: path.join(dirname, 'combined.log') }),
+    new winston.transports.File({
+      name: 'specific',
+      filename: path.join(dirname, filename),
+    }),
+    new winston.transports.File({
+      name: 'combined',
+      filename: path.join(dirname, 'combined.log'),
+    }),
   ];
   if (_isDevelopment || process.env.NEBULA_ENABLE_CONSOLE) {
     // Add console transport only when in dev mode or if we define the enable flag
@@ -73,10 +79,13 @@ function _createLogger({ dir, name, filename }) {
           winston.format.label({ label: name }),
           winston.format.timestamp(),
           winston.format.printf(
-            info => `${info.timestamp}: [${info.level}] [${info.label}] - ${info.message}`,
-          ),
+            info =>
+              `${info.timestamp}: [${info.level}] [${info.label}] - ${
+                info.message
+              }`
+          )
         ),
-      }),
+      })
     );
   }
 
@@ -90,7 +99,7 @@ function _createLogger({ dir, name, filename }) {
       winston.format.timestamp(),
       winston.format.splat(),
       winston.format.json(),
-      winston.format.prettyPrint(),
+      winston.format.prettyPrint()
     ),
   });
   // Update levels to the global state

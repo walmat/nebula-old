@@ -1,6 +1,12 @@
 const phoneFormatter = require('phone-formatter');
 
-function buildShippingForm(task, authenticity_token, captchaResponse, step, previousStep) {
+function buildShippingForm(
+  task,
+  authenticity_token,
+  captchaResponse,
+  step,
+  previousStep
+) {
   return {
     utf8: '✓',
     _method: 'patch',
@@ -18,7 +24,7 @@ function buildShippingForm(task, authenticity_token, captchaResponse, step, prev
     'checkout[shipping_address][zip]': task.profile.shipping.zipCode,
     'checkout[shipping_address][phone]': phoneFormatter.format(
       task.profile.shipping.phone,
-      '(NNN) NNN-NNNN',
+      '(NNN) NNN-NNNN'
     ),
     step,
     'g-captcha-response': captchaResponse,
@@ -36,7 +42,9 @@ function buildPaymentTokenForm(task) {
     credit_card: {
       number: task.profile.payment.cardNumber,
       verification_value: task.profile.payment.cvv,
-      name: `${task.profile.billing.firstName} ${task.profile.billing.lastName}`,
+      name: `${task.profile.billing.firstName} ${
+        task.profile.billing.lastName
+      }`,
       month: parseInt(task.profile.payment.exp.slice(0, 2), 10),
       year: parseInt(task.profile.payment.exp.slice(3, 5), 10),
     },
@@ -68,7 +76,7 @@ function buildBillingForm(
   price,
   paymentGateway,
   shippingValue,
-  captchaResponse,
+  captchaResponse
 ) {
   if (task.profile.billingMatchesShipping) {
     return {
@@ -92,7 +100,7 @@ function buildBillingForm(
       'checkout[billing_address][zip]': task.profile.shipping.zipCode,
       'checkout[billing_address][phone]': phoneFormatter.format(
         task.profile.shipping.phone,
-        '(NNN) NNN-NNNN',
+        '(NNN) NNN-NNNN'
       ),
       'checkout[total_price]': price,
       complete: '1',
@@ -125,7 +133,7 @@ function buildBillingForm(
     'checkout[billing_address][zip]': task.profile.billing.zipCode,
     'checkout[billing_address][phone]': phoneFormatter.format(
       task.profile.billing.phone,
-      '(NNN) NNN-NNNN',
+      '(NNN) NNN-NNNN'
     ),
     'checkout[total_price]': price,
     complete: '1',

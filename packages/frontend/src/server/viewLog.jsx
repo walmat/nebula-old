@@ -12,7 +12,9 @@ export class ViewLogPrimitive extends Component {
 
   createTable() {
     const { servers } = this.props;
-    const table = servers.map(server => <ServerRow key={server.id} server={server} />);
+    const table = servers.map(server => (
+      <ServerRow key={server.id} server={server} />
+    ));
     return table;
   }
 
