@@ -1,4 +1,5 @@
 const $ = require('cheerio');
+const now = require('performance-now');
 const rfrl = require('./rfrl');
 
 module.exports = {};
@@ -7,12 +8,7 @@ const userAgent =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 module.exports.userAgent = userAgent;
 
-const formatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-});
-module.exports.formatter = formatter;
+module.exports.now = now;
 
 function waitForDelay(delay) {
   return new Promise(resolve => setTimeout(resolve, delay));
@@ -82,6 +78,13 @@ function capitalizeFirstLetter(word) {
 }
 module.exports.capitalizeFirstLetter = capitalizeFirstLetter;
 
+function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+module.exports.getRandomIntInclusive = getRandomIntInclusive;
+
 function generateRandom(objList) {
   const options = objList.options.filter(
     ({ label }) => label !== 'Random' && label !== 'Full Size Run',
@@ -90,6 +93,11 @@ function generateRandom(objList) {
   return value;
 }
 module.exports.generateRandom = generateRandom;
+
+const reflect = p =>
+  p.then(v =>({v, status: "fulfilled" }),
+    e => ({e, status: "rejected" }));
+module.exports.reflect = reflect;
 
 // Add in utils from other files
 module.exports.rfrl = rfrl;

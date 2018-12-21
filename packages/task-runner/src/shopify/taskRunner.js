@@ -1,18 +1,32 @@
 const EventEmitter = require('events');
-const { jar } = require('request');
+const {
+  jar
+} = require('request');
 const request = require('request-promise').defaults({
   timeout: 10000,
   jar: jar(),
 });
 
+const {
+  Stack
+} = require('./classes/stack');
+const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
-const QueueBypass = require('./classes/bypass');
 const AsyncQueue = require('./classes/asyncQueue');
-const { States, Events } = require('./classes/utils/constants').TaskRunner;
+const {
+  States,
+  Events
+} = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
-const { createLogger } = require('../common/logger');
-const { waitForDelay } = require('./classes/utils');
+const {
+  createLogger
+} = require('../common/logger');
+const {
+  waitForDelay,
+  now,
+  reflect
+} = require('./classes/utils');
 
 class TaskRunner {
   constructor(id, task, proxy, loggerPath) {
@@ -38,6 +52,24 @@ class TaskRunner {
     this._jar = jar();
 
     this._captchaQueue = null;
+    this._isSetup = false;
+
+    /**
+     * Stack of successfully created payment tokens for the runner
+     */
+    this._paymentTokens = new Stack();
+
+    /**
+     * Stack of shipping methods
+     */
+    this._shippingMethods = new Stack();
+
+    /**
+     * Stack of successfully created checkout sessions for the runner
+     */
+    this._checkoutTokens = new Stack();
+
+    this._timer = new Timer();
 
     /**
      * The context of this task runner
@@ -51,11 +83,11 @@ class TaskRunner {
       proxy: proxy ? proxy.proxy : null,
       request,
       jar: this._jar,
+      isSetup: this._isSetup,
+      timer: this._timer,
       logger: this._logger,
       aborted: false,
     };
-
-    this._queueBypass = new QueueBypass(this._context);
 
     /**
      * Create a new monitor object to be used for the task
@@ -67,6 +99,9 @@ class TaskRunner {
      */
     this._checkout = new Checkout({
       ...this._context,
+      paymentTokens: this._paymentTokens,
+      shippingMethods: this._shippingMethods,
+      checkoutTokens: this._checkoutTokens,
       getCaptcha: this.getCaptcha.bind(this),
       stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
     });
@@ -137,29 +172,34 @@ class TaskRunner {
   // MARK: Event Registration
   registerForEvent(event, callback) {
     switch (event) {
-      case Events.TaskStatus: {
-        this._events.on(Events.TaskStatus, callback);
-        break;
-      }
-      case Events.QueueBypassStatus: {
-        this._events.on(Events.QueueBypassStatus, callback);
-        break;
-      }
-      case Events.MonitorStatus: {
-        this._events.on(Events.MonitorStatus, callback);
-        break;
-      }
-      case Events.CheckoutStatus: {
-        this._events.on(Events.CheckoutStatus, callback);
-        break;
-      }
-      case Events.All: {
-        this._events.on(Events.TaskStatus, callback);
-        this._events.on(Events.QueueBypassStatus, callback);
-        this._events.on(Events.MonitorStatus, callback);
-        this._events.on(Events.CheckoutStatus, callback);
-        break;
-      }
+      case Events.TaskStatus:
+        {
+          this._events.on(Events.TaskStatus, callback);
+          break;
+        }
+      case Events.QueueBypassStatus:
+        {
+          this._events.on(Events.QueueBypassStatus, callback);
+          break;
+        }
+      case Events.MonitorStatus:
+        {
+          this._events.on(Events.MonitorStatus, callback);
+          break;
+        }
+      case Events.CheckoutStatus:
+        {
+          this._events.on(Events.CheckoutStatus, callback);
+          break;
+        }
+      case Events.All:
+        {
+          this._events.on(Events.TaskStatus, callback);
+          this._events.on(Events.QueueBypassStatus, callback);
+          this._events.on(Events.MonitorStatus, callback);
+          this._events.on(Events.CheckoutStatus, callback);
+          break;
+        }
       default:
         break;
     }
@@ -167,32 +207,38 @@ class TaskRunner {
 
   deregisterForEvent(event, callback) {
     switch (event) {
-      case Events.TaskStatus: {
-        this._events.removeListener(Events.TaskStatus, callback);
-        break;
-      }
-      case Events.QueueBypassStatus: {
-        this._events.removeListener(Events.QueueBypassStatus, callback);
-        break;
-      }
-      case Events.MonitorStatus: {
-        this._events.removeListener(Events.MonitorStatus, callback);
-        break;
-      }
-      case Events.CheckoutStatus: {
-        this._events.removeListener(Events.CheckoutStatus, callback);
-        break;
-      }
-      case Events.All: {
-        this._events.removeListener(Events.TaskStatus, callback);
-        this._events.removeListener(Events.QueueBypassStatus, callback);
-        this._events.removeListener(Events.MonitorStatus, callback);
-        this._events.removeListener(Events.CheckoutStatus, callback);
-        break;
-      }
-      default: {
-        break;
-      }
+      case Events.TaskStatus:
+        {
+          this._events.removeListener(Events.TaskStatus, callback);
+          break;
+        }
+      case Events.QueueBypassStatus:
+        {
+          this._events.removeListener(Events.QueueBypassStatus, callback);
+          break;
+        }
+      case Events.MonitorStatus:
+        {
+          this._events.removeListener(Events.MonitorStatus, callback);
+          break;
+        }
+      case Events.CheckoutStatus:
+        {
+          this._events.removeListener(Events.CheckoutStatus, callback);
+          break;
+        }
+      case Events.All:
+        {
+          this._events.removeListener(Events.TaskStatus, callback);
+          this._events.removeListener(Events.QueueBypassStatus, callback);
+          this._events.removeListener(Events.MonitorStatus, callback);
+          this._events.removeListener(Events.CheckoutStatus, callback);
+          break;
+        }
+      default:
+        {
+          break;
+        }
     }
   }
 
@@ -203,13 +249,15 @@ class TaskRunner {
       case Events.TaskStatus:
       case Events.QueueBypassStatus:
       case Events.MonitorStatus:
-      case Events.CheckoutStatus: {
-        this._events.emit(event, this._context.id, payload, event);
-        break;
-      }
-      default: {
-        break;
-      }
+      case Events.CheckoutStatus:
+        {
+          this._events.emit(event, this._context.id, payload, event);
+          break;
+        }
+      default:
+        {
+          break;
+        }
     }
     // Emit all events on the All channel
     this._events.emit(Events.All, this._context.id, payload, event);
@@ -232,6 +280,37 @@ class TaskRunner {
     this._emitEvent(Events.CheckoutStatus, payload);
   }
 
+  // Task Setup Promise 1 - generate payment token
+  generatePaymentToken() {
+    return new Promise(async (resolve, reject) => {
+      const token = await this._checkout._handleGeneratePaymentToken();
+      if (!token) {
+        reject();
+      }
+      resolve(token);
+    });
+  }
+
+  // Task Setup Promise 2 - find random product
+  findRandomInStockVariant() {
+    return new Promise(async (resolve, reject) => {
+      // TODO - find random product to choose the prefilled shipping/payment info
+      resolve();
+      // reject(new Error('Not implemented yet'));
+    });
+  }
+
+  // Task Setup Promise 3 - create checkout session
+  createCheckout() {
+    return new Promise(async (resolve, reject) => {
+      const checkout = await this._checkout._handleCreateCheckout();
+      if (!checkout.res || checkout.error) {
+        reject(checkout.code);
+      }
+      resolve(checkout.res);
+    });
+  }
+
   // MARK: State Machine Step Logic
 
   async _handleStarted() {
@@ -239,6 +318,46 @@ class TaskRunner {
       message: 'Starting Task Setup',
     });
     return States.TaskSetup;
+  }
+
+  /**
+   * RESULTS (INDICES):
+   * 0. Promise 1 – generating payment tokens
+   * 1. Promise 2 – finding random product variant (in stock)
+   * 2. Promise 3 – creating checkout token
+   */
+  async _handleTaskSetup() {
+    this._timer.start(now());
+    // TODO - change this back once we have this.findRandomInStockVariant() implemented
+    // const promises = (!this._isSetup && !this._doSetupLater)
+    // ? [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()]
+    // : [this.generatePaymentToken(), this.createCheckout()];
+    const promises = [this.generatePaymentToken(), this.createCheckout()];
+    const results = await Promise.all(promises.map(reflect));
+    this._logger.verbose('%s', results);
+    if (results.filter(res => res.status === 'rejected').length > 0) {
+      // let's do task setup later
+      this._context.isSetup = false;
+      this._logger.verbose(
+        'Task setup failed: %j',
+        results.filter(res => res.status === 'rejected')
+      );
+      this._emitTaskEvent({
+        message: 'Doing task setup later',
+      });
+    } else {
+      // TODO - not necessary, but will speed things up even more
+      // const randomProductVariant = results[1];
+      // skip to checkout -> return to monitor
+      this._logger.verbose('Task setup success');
+      this._context.isSetup = true;
+    }
+    this._timer.stop(now());
+    this._emitTaskEvent({
+      message: 'Monitoring for product...',
+    });
+    // console.log((!this._doSetupLater && this._isSetup) ? States.Checkout : States.Monitor);
+    return !this._isSetup ? States.Monitor : States.Monitor;
   }
 
   async _handleMonitor() {
@@ -301,26 +420,30 @@ class TaskRunner {
   _generateEndStateHandler(state) {
     let status = 'stopped';
     switch (state) {
-      case States.Aborted: {
-        status = 'aborted';
-        break;
-      }
-      case States.Errored: {
-        status = 'errored out';
-        break;
-      }
-      case States.Finished: {
-        status = 'finished';
-        break;
-      }
-      default: {
-        break;
-      }
+      case States.Aborted:
+        {
+          status = 'aborted';
+          break;
+        }
+      case States.Errored:
+        {
+          status = 'errored out';
+          break;
+        }
+      case States.Finished:
+        {
+          status = 'finished';
+          break;
+        }
+      default:
+        {
+          break;
+        }
     }
     return () => {
-      this._emitTaskEvent({
-        message: this._context.status || `Task has ${status}!`,
-      });
+      // this._emitTaskEvent({
+      //   message: this._context.status || `Task has ${status}!`,
+      // });
       return States.Stopped;
     };
   }
@@ -334,7 +457,7 @@ class TaskRunner {
 
     const stepMap = {
       [States.Started]: this._handleStarted,
-      [States.GenAltCheckout]: this._handleGenAltCheckout,
+      [States.TaskSetup]: this._handleTaskSetup,
       [States.Monitor]: this._handleMonitor,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Checkout]: this._handleCheckout,

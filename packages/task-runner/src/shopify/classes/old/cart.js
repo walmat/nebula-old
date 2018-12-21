@@ -256,9 +256,6 @@ class Cart {
         });
     }
 
-
-    }
-
     removeTrailingZeros(value) {
         let price = [];
         value = value.toString().split('');

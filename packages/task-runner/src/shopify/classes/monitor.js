@@ -154,7 +154,7 @@ class Monitor {
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
-      nextState: States.Checkout,
+      nextState: this._context.isSetup ? States.Checkout : States.TaskSetup,
     };
   }
 
@@ -195,7 +195,7 @@ class Monitor {
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
         message: `Found product: ${this._context.task.product.name}`,
-        nextState: States.Checkout,
+        nextState: this._context.isSetup ? States.Checkout : States.TaskSetup,
       };
     } catch (error) {
       // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
