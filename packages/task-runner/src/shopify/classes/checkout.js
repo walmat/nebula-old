@@ -26,7 +26,7 @@ class Checkout {
       PollQueue: 'POLL_QUEUE',
       RequestCaptcha: 'REQUEST_CAPTCHA',
       PostPayment: 'POST_PAYMENT',
-      Restock: 'RESTOCK',
+      Restocks: 'RESTOCKS',
       Stopped: 'STOPPED',
       Error: 'ERROR',
     };
@@ -39,6 +39,7 @@ class Checkout {
     return {
       PollShippingRates: 750,
       PollCheckoutQueue: 500,
+      Restocks: 750,
     };
   }
 
@@ -125,7 +126,10 @@ class Checkout {
     /**
      * Shipping method that is being used
      */
-    this._chosenShippingMethod = null;
+    this._chosenShippingMethod = {
+      name: null,
+      id: null,
+    };
 
     /**
      * Current state of the checkout state machine
@@ -136,9 +140,9 @@ class Checkout {
     /**
      * Current checkout token
      */
-    this._checkoutToken = null;
-    this._storeId = null;
-    this._paymentUrlKey = null;
+    this._checkoutToken = '';
+    this._storeId = '';
+    this._paymentUrlKey = '';
     this._basicAuth = Buffer.from(`${this._task.site.apiKey}::`).toString(
       'base64'
     );
@@ -147,12 +151,12 @@ class Checkout {
       shipping: 0,
       total: 0,
     };
-    this._gateway = null;
+    this._gateway = '';
 
     /**
      * Current captcha token
      */
-    this._captchaToken = null;
+    this._captchaToken = '';
   }
 
   /**
@@ -287,14 +291,14 @@ class Checkout {
       });
   }
 
+  async _handleRestocks() {}
+
   /**
    * @example
    * PATCH https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6.json
    * payload: {"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}
    */
   async _handlePatchCart() {
-    // start the checkout timer
-    this._context.timer.start(now());
     const dataString = {
       checkout: {
         line_items: [
@@ -338,26 +342,23 @@ class Checkout {
             const error = res.body.errors.line_items[0];
             if (error.quantity) {
               this._logger.verbose('Out of stock, running for restocks');
+              waitForDelay(Checkout.Delays.Restocks);
               return {
-                // TODO - implement this bitch again
                 message: 'Running for restocks',
-                nextState: Checkout.States.Restock,
+                nextState: Checkout.States.PatchCart,
               };
             }
-            if (error.variant_id) {
-              this._logger.verbose('Wrong size type specified, stopping..');
+            if (error.variant_id && error.variant_id[0]) {
               return {
                 message: 'Failed: Invalid size',
-                nextState: Checkout.States.Error,
+                nextState: States.Stopped,
               };
             }
             this._logger.verbose('Error in ATC: %s', error);
             return {
-              message: `Failed: ${error}`,
+              message: `Failed: unknown error, retrying...`,
               nextState: Checkout.States.PatchCart,
             };
-
-            // otherwise, check to see if line_items was updated
           }
           if (res.body.checkout && res.body.checkout.line_items.length > 0) {
             this._logger.info('Added to cart.');
@@ -366,7 +367,6 @@ class Checkout {
             this._prices.item = parseFloat(
               res.body.checkout.total_price
             ).toFixed(2);
-
             return {
               message: 'Added to cart',
               nextState: Checkout.States.GetShippingRates,
@@ -437,7 +437,7 @@ class Checkout {
             name: cheapest.title,
           };
           this._logger.info(
-            'Got shipping method %s',
+            'Got shipping method: %s',
             this._chosenShippingMethod.name
           );
 
@@ -445,7 +445,7 @@ class Checkout {
           this._prices.shipping = parseFloat(cheapest.price).toFixed(2);
 
           return {
-            message: `Submitting payment`,
+            message: `Waiting for captcha`,
             nextState: Checkout.States.PostPayment, // TODO - RequestCaptcha
           };
         }
@@ -499,8 +499,7 @@ class Checkout {
    */
   async _handlePostPayment() {
     this._logger.verbose('Posting payment.');
-    this._context.timer.stop(now());
-    let headers = {
+    const headers = {
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
@@ -510,6 +509,7 @@ class Checkout {
       'X-Shopify-Checkout-Version': '2016-09-06',
       'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
       'User-Agent': userAgent,
+      Authorization: `${this._basicAuth}`,
       host: `${this._task.site.url.split('/')[2]}`,
     };
 
@@ -517,12 +517,12 @@ class Checkout {
       utf8: '✓',
       _method: 'patch',
       authenticity_token: '',
-      previous_step: 'shipping_method',
+      previous_step: 'payment_method',
       step: '',
       s: this._paymentTokens.pop(),
-      'checkout[payment_gateway]': '', // this will be null for API mode
+      'checkout[payment_gateway]': this._gateway,
       'checkout[remember_me]': '0',
-      'checkout[total_price]': '',
+      'checkout[total_price]': this._prices.total,
       complete: '1',
       'checkout[client_details][browser_width]': getRandomIntInclusive(
         900,
@@ -546,107 +546,120 @@ class Checkout {
     return this._request({
       uri: `${this._task.site.url}/${this._storeId}/checkouts/${
         this._checkoutToken
-      }`,
+      }?key=${this._paymentUrlKey}`,
       method: 'post',
       followAllRedirects: true,
       resolveWithFullResponse: true,
       rejectUnauthorized: false,
       proxy: formatProxy(this._proxy),
-      headers: {
-        'User-Agent': userAgent,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Origin: `${this._task.site.url}`,
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        Referer: `${this._task.site.url}/${this._storeId}/checkouts/${
-          this._checkoutToken
-        }`,
-      },
+      headers,
       formData: data,
       transform: body => cheerio.load(body),
-    }).then($ => {
-      let step = $('.step').attr('data-step');
-      if (!step) {
-        step = $('#step').attr('data-step');
-      }
+    })
+      .then($ => {
+        let step = $('.step').attr('data-step');
+        if (!step) {
+          step = $('#step').attr('data-step');
+        }
+        console.log(step);
 
-      if (step === 'contact_information') {
-        // captcha failed, retry..
-        // TODO - make this loop back when we get POST payment finalized.
-        return {
-          // message: 'Waiting for captcha',
-          // nextState: Checkout.States.RequestCaptcha,
-          message: `Payment failed in ${this._context.timer.getRunTime()}ms`,
-          nextState: Checkout.States.Stopped,
-        };
-      }
-      if (step === 'review') {
-        // we're at payment page
-        return this._request({
-          uri: `${this._task.site.url}/${this._storeId}/checkouts/${
-            this._checkoutToken
-          }`,
-          method: 'POST',
-          proxy: formatProxy(this._proxy),
-          followAllRedirects: true,
-          simple: false,
-          json: false,
-          rejectUnauthorized: false,
-          resolveWithFullResponse: true,
-          headers,
-          formData: {
-            utf8: '✓',
-            _method: 'patch',
-            authenticity_token: '',
-            'checkout[total_price]': `${this._prices.total}`,
-            complete: '1',
-            button: '',
-            'checkout[client_details][browser_width]': '979',
-            'checkout[client_details][browser_height]': '631',
-            'checkout[client_details][javascript_enabled]': '1',
-            'g-captcha-response': `${this._captchaToken}`,
-          },
-        }).then(res => {
-          fs.writeFileSync(path.join(__dirname, 'payment-2.html'), res.body);
-
-          headers = {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-Shopify-Checkout-Version': '2016-09-06',
-            'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
-            'User-Agent': userAgent,
-            Host: `${this._task.site.url.split('/')[2]}`,
-            Authorization: `Basic ${this._basicAuth}`,
+        if (step === 'contact_information') {
+          // captcha failed, retry..
+          // TODO - make this loop back when we get POST payment finalized.
+          return {
+            // message: 'Waiting for captcha',
+            // nextState: Checkout.States.RequestCaptcha,
+            message: `Payment failed`,
+            nextState: Checkout.States.Stopped,
           };
-
+        }
+        if (step === 'payment_method') {
+          // we're at payment page
           return this._request({
-            uri: `${this._task.site.url}/wallets/checkouts/${
+            uri: `${this._task.site.url}/${this._storeId}/checkouts/${
               this._checkoutToken
-            }/payments`,
-            method: 'GET',
+            }`,
+            method: 'POST',
             proxy: formatProxy(this._proxy),
+            followAllRedirects: false,
             simple: false,
-            json: true,
+            json: false,
             rejectUnauthorized: false,
             resolveWithFullResponse: true,
-            headers,
-          }).then(response => {
-            fs.writeFileSync(
-              path.join(__dirname, 'payment-3.html'),
-              JSON.stringify(response.body, null, 2)
-            );
-            return {
-              message: `Payment failed in ${this._context.timer.getRunTime()}ms`,
-              nextState: Checkout.States.Stopped,
-            };
-          });
-        });
-      }
-      return {
-        message: 'Unknown error, stopping..',
-        nextState: Checkout.States.Stopped,
-      };
-    });
+            headers: {
+              Origin: `${this._task.site.url}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+              Accept:
+                'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.8',
+              Referer: `${this._task.site.url}/${this._storeId}/checkouts/${
+                this._checkoutToken
+              }`,
+              'User-Agent': userAgent,
+            },
+            formData: data,
+          })
+            .then(res => {
+
+              console.log(res.body);
+              $ = cheerio.load(res.body);
+              step = $('.step').attr('data-step');
+              if (!step) {
+                step = $('#step').attr('data-step');
+              }
+              console.log(step);
+
+              return this._request({
+                uri: `${this._task.site.url}/wallets/checkouts/${
+                  this._checkoutToken
+                }/payments`,
+                method: 'GET',
+                proxy: formatProxy(this._proxy),
+                simple: false,
+                json: true,
+                rejectUnauthorized: false,
+                resolveWithFullResponse: true,
+                headers,
+              })
+                .then(response => {
+                  console.log(JSON.stringify(response.body, null, 2));
+                  fs.writeFileSync(
+                    path.join(__dirname, 'payment-3.html'),
+                    JSON.stringify(response.body, null, 2)
+                  );
+                  return {
+                    message: `Payment failed`,
+                    nextState: Checkout.States.Stopped,
+                  };
+                })
+                .catch(err => {
+                  this._logger.verbose('Failed posting payment: %s', err);
+                  return {
+                    message: 'Failed: posting payment',
+                    nextState: States.Stopped,
+                  };
+                });
+            })
+            .catch(err => {
+              this._logger.verbose('Failed posting payment: %s', err);
+              return {
+                message: 'Failed: posting payment',
+                nextState: States.Stopped,
+              };
+            });
+        }
+        return {
+          message: 'Unknown error, stopping..',
+          nextState: States.Stopped,
+        };
+      })
+      .catch(err => {
+        this._logger.verbose('Failed posting payment: %s', err);
+        return {
+          message: 'Failed: posting payment',
+          nextState: States.Stopped,
+        };
+      });
   }
 
   async _handleStepLogic(currentState) {
@@ -658,6 +671,7 @@ class Checkout {
       [Checkout.States.CreateCheckout]: this._handleCreateCheckout,
       [Checkout.States.GeneratePaymentToken]: this._handleGeneratePaymentToken,
       [Checkout.States.GetPaymentToken]: this._handleGetPaymentToken,
+      [Checkout.States.Restocks]: this._handleRestocks,
       [Checkout.States.PatchCart]: this._handlePatchCart,
       [Checkout.States.GetShippingRates]: this._handleGetShippingRates,
       [Checkout.States.RequestCaptcha]: this._handleRequestCaptcha,
