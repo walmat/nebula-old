@@ -31,7 +31,7 @@ class TaskManager {
     this._tokenReserveQueue = [];
 
     // Proxy Map
-    this._proxies = [];
+    this._proxies = {};
 
     // Logger
     this._logger = createLogger({
@@ -127,7 +127,7 @@ class TaskManager {
   deregisterProxy(proxy) {
     this._logger.verbose('Deregistering proxy...');
     const proxyHash = hash(proxy);
-    const storedProxy = this._proxies.find(p => p.hash === proxyHash);
+    const storedProxy = Object.values(this._proxies).find(p => p.hash === proxyHash);
 
     if (!storedProxy) {
       this._logger.verbose('Proxy with hash %s not found! Skipping removal', proxyHash);
