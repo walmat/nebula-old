@@ -81,10 +81,7 @@ export class TaskRowPrimitive extends Component {
 
   buildProfileOptions() {
     const { profiles } = this.props;
-    return profiles.map(profile => ({
-      value: profile.id,
-      label: profile.profileName,
-    }));
+    return profiles.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
   renderTableRowButton(tag, desc, src, className, onClick) {

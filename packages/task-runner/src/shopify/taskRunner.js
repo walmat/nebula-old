@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
 const request = require('request-promise');
 
-const { Stack } = require('./classes/stack');
 const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
@@ -38,21 +37,6 @@ class TaskRunner {
     this._captchaQueue = null;
     this._isSetup = false;
 
-    /**
-     * Stack of successfully created payment tokens for the runner
-     */
-    this._paymentTokens = new Stack();
-
-    /**
-     * Stack of shipping methods
-     */
-    this._shippingMethods = new Stack();
-
-    /**
-     * Stack of successfully created checkout sessions for the runner
-     */
-    this._checkoutTokens = new Stack();
-
     this._timer = new Timer();
 
     /**
@@ -66,8 +50,7 @@ class TaskRunner {
       task,
       proxy: proxy ? proxy.proxy : null,
       request: this._request,
-      jar: this._jar,
-      isSetup: this._isSetup,
+      setup: this._isSetup,
       timer: this._timer,
       logger: this._logger,
       aborted: false,
@@ -83,9 +66,6 @@ class TaskRunner {
      */
     this._checkout = new Checkout({
       ...this._context,
-      paymentTokens: this._paymentTokens,
-      shippingMethods: this._shippingMethods,
-      checkoutTokens: this._checkoutTokens,
       getCaptcha: this.getCaptcha.bind(this),
       stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
     });
@@ -254,7 +234,7 @@ class TaskRunner {
   // Task Setup Promise 1 - generate payment token
   generatePaymentToken() {
     return new Promise(async (resolve, reject) => {
-      const token = await this._checkout._handleGeneratePaymentToken();
+      const token = await this._checkout.handleGeneratePaymentToken();
       if (!token) {
         reject();
       }
@@ -265,7 +245,7 @@ class TaskRunner {
   // Task Setup Promise 2 - create checkout session
   createCheckout() {
     return new Promise(async (resolve, reject) => {
-      const checkout = await this._checkout._handleCreateCheckout();
+      const checkout = await this._checkout.handleCreateCheckout();
       if (!checkout.res || checkout.error) {
         reject(checkout.code);
       }
@@ -290,12 +270,8 @@ class TaskRunner {
    * 2. Promise 3 – creating checkout token
    */
   async _handleTaskSetup() {
-    // TODO - change this back once we have precarting implemented
-    // const promises = (!this._isSetup && !this._doSetupLater)
-    // ? [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()]
-    // : [this.generatePaymentToken(), this.createCheckout()];
     const promises = [this.generatePaymentToken(), this.createCheckout()];
-    this._logger.silly('Running promises: %j', promises);
+    this._logger.silly('Running Task Setup Promises');
     const results = await Promise.all(promises.map(reflect));
     this._logger.silly('Async promises results: %j', results);
     const failed = results.filter(res => res.status === 'rejected');
@@ -321,7 +297,7 @@ class TaskRunner {
     this._emitTaskEvent({
       message: 'Monitoring for product...',
     });
-    return !this._isSetup ? States.Monitor : States.Monitor;
+    return States.Monitor;
   }
 
   async _handleCheckoutQueue() {
@@ -412,8 +388,7 @@ class TaskRunner {
     return res.nextState;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  async _generateEndStateHandler(state) {
+  _generateEndStateHandler(state) {
     let status = 'stopped';
     switch (state) {
       case States.Aborted: {
@@ -436,8 +411,7 @@ class TaskRunner {
       this._emitTaskEvent({
         message: this._context.status || `Task has ${status}`,
       });
-      // eslint-disable-next-line no-unused-expressions
-      States.Stopped;
+      return States.Stopped;
     };
   }
 

@@ -48,8 +48,8 @@ class Timer {
    * Gets the runtime of the Timer class
    * @return
    */
-  getRunTime() {
-    return (this._end - this._start).toFixed(3);
+  getRunTime(time) {
+    return (time - this._start).toFixed(3);
   }
 
   getTotalTime() {

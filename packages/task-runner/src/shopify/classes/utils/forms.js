@@ -31,7 +31,7 @@ function buildShippingForm(task, authenticity_token, captchaResponse, step, prev
 }
 module.exports.buildShippingForm = buildShippingForm;
 
-function buildPaymentTokenForm(task) {
+function buildPaymentForm(task) {
   return {
     credit_card: {
       number: task.profile.payment.cardNumber,
@@ -42,7 +42,7 @@ function buildPaymentTokenForm(task) {
     },
   };
 }
-module.exports.buildPaymentTokenForm = buildPaymentTokenForm;
+module.exports.buildPaymentForm = buildPaymentForm;
 
 function buildShippingMethodForm(authenticity_token, shippingMethod) {
   return {

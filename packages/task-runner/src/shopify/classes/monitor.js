@@ -154,7 +154,7 @@ class Monitor {
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
-      nextState: this._context.isSetup ? States.Checkout : States.TaskSetup,
+      nextState: this._context.setup ? States.Checkout : States.TaskSetup,
     };
   }
 
@@ -195,7 +195,7 @@ class Monitor {
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
         message: `Found product: ${this._context.task.product.name}`,
-        nextState: this._context.isSetup ? States.Checkout : States.TaskSetup,
+        nextState: this._context.setup ? States.Checkout : States.TaskSetup,
       };
     } catch (error) {
       // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
@@ -220,10 +220,7 @@ class Monitor {
       this._logger.debug('MONITOR: Error with special parsing!', error);
       // Check for a product not found error
       if (error.status === ErrorCodes.Parser.ProductNotFound) {
-        return {
-          message: 'Error: Product Not Found!',
-          nextState: States.Errored,
-        };
+        return { message: 'Error: Product Not Found!', nextState: States.Errored };
       }
       return this._delay(error.status);
     }
@@ -281,10 +278,7 @@ class Monitor {
           'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...',
           parseType,
         );
-        return {
-          message: 'Invalid Product Input given!',
-          nextState: States.Errored,
-        };
+        return { message: 'Invalid Product Input given!', nextState: States.Errored };
       }
     }
     // If the next state is an error, use the message as the ending status
