@@ -64,16 +64,87 @@ describe('new task reducer', () => {
   });
 
   describe('should handle add', () => {
-    test('when action is valid', () => {
-      const start = {
-        ...initialTaskStates.task,
-        username: 'test',
-      };
-      const actual = newTaskReducer(start, {
-        type: TASK_ACTIONS.ADD,
-        response: { task: {} },
+    describe('when action is valid', () => {
+      test('when defaults are not given', () => {
+        const start = {
+          ...initialTaskStates.task,
+          username: 'test',
+        };
+        const actual = newTaskReducer(start, {
+          type: TASK_ACTIONS.ADD,
+          response: { task: {} },
+        });
+        expect(actual).toEqual(initialTaskStates.task);
       });
-      expect(actual).toEqual(initialTaskStates.task);
+
+      describe('when defaults are given', () => {
+        test("when defaults shouldn't be used", () => {
+          const start = {
+            ...initialTaskStates.task,
+            username: 'test',
+          };
+          const actual = newTaskReducer(
+            start,
+            {
+              type: TASK_ACTIONS.ADD,
+              response: { task: {} },
+            },
+            {
+              profile: { id: 1 },
+              sizes: ['4'],
+              useProfile: false,
+              useSizes: false,
+            },
+          );
+          expect(actual).toEqual(initialTaskStates.task);
+        });
+
+        test('when default sizes should be used', () => {
+          const start = {
+            ...initialTaskStates.task,
+            username: 'test',
+          };
+          const expected = {
+            ...initialTaskStates.task,
+            sizes: ['5.5'],
+          };
+          const actual = newTaskReducer(
+            start,
+            {
+              type: TASK_ACTIONS.ADD,
+              response: { task: {} },
+            },
+            {
+              sizes: ['5.5'],
+              useSizes: true,
+            },
+          );
+          expect(actual).toEqual(expected);
+        });
+
+        test('when default profile should be used', () => {
+          const start = {
+            ...initialTaskStates.task,
+            username: 'test',
+          };
+          const expected = {
+            ...initialTaskStates.task,
+            profile: { id: 42 },
+          };
+          const actual = newTaskReducer(
+            start,
+            {
+              type: TASK_ACTIONS.ADD,
+              response: { task: {} },
+            },
+            {
+              profile: { id: 42 },
+              useProfile: true,
+            },
+          );
+          expect(actual).toEqual(expected);
+        });
+      });
     });
 
     test('when task is not given', () => {

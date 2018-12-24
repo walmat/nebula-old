@@ -68,11 +68,7 @@ describe('<Settings />', () => {
         ...initialSettingsStates.settings,
         defaults: {
           profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
-          sizes: [
-            { value: '4', label: '4.0' },
-            { value: '4.5', label: '4.5' },
-            { value: '5', label: '5.0' },
-          ],
+          sizes: ['4', '4.5', '5'],
         },
         discord: 'discordTest',
         slack: 'slackTest',
@@ -97,9 +93,9 @@ describe('<Settings />', () => {
       label: 'profile1',
     });
     expect(wrapper.find('#default-sizes').prop('value')).toEqual([
-      { value: '4', label: '4.0' },
+      { value: '4', label: '4' },
       { value: '4.5', label: '4.5' },
-      { value: '5', label: '5.0' },
+      { value: '5', label: '5' },
     ]);
     wrapper.find('#save-defaults').simulate('keyPress');
   });
@@ -146,7 +142,7 @@ describe('<Settings />', () => {
       sizeSelector.simulate('change', [{ value: '4', label: '4.0' }]);
       expect(customProps.onSettingsChange).toHaveBeenCalledWith({
         field: SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
-        value: [{ value: '4', label: '4.0' }],
+        value: ['4'],
       });
 
       customProps.onSettingsChange.mockClear();
@@ -157,11 +153,7 @@ describe('<Settings />', () => {
       ]);
       expect(customProps.onSettingsChange).toHaveBeenCalledWith({
         field: SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
-        value: [
-          { value: '4', label: '4.0' },
-          { value: '4.5', label: '4.5' },
-          { value: '5', label: '5.0' },
-        ],
+        value: ['4', '4.5', '5'],
       });
     });
 

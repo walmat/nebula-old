@@ -45,7 +45,7 @@ const topLevelReducer = (state = initialState, action) => {
   // If not a reset, handle the action with sub reducers
   const changes = {
     tasks: taskListReducer(state.tasks, action),
-    newTask: newTaskReducer(state.newTask, action),
+    newTask: newTaskReducer(state.newTask, action, state.settings.defaults),
     navbar: navbarReducer(state.navbar, action),
     selectedTask: selectedTaskReducer(state.selectedTask, action),
     profiles: profileListReducer(state.profiles, action),

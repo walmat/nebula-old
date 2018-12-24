@@ -15,7 +15,9 @@ describe('defaults definitions', () => {
   );
   testDefaultsKey(
     'sizes',
-    [null, [], [{ value: 'test_value', label: 'test_label' }]],
+    [null, [], ['9', '9.5']],
     ['test', false, {}, [false, true], [{ value: true }, { label: true }]],
   );
+  testDefaultsKey('useProfile', [null, false, true], ['test', 1, [], {}]);
+  testDefaultsKey('useSizes', [null, false, true], ['test', 1, [], {}]);
 });

@@ -11,20 +11,6 @@ describe('settings reducer', () => {
   });
 
   describe('should handle edit', () => {
-    test('proxies settings action', () => {
-      const expected = {
-        ...initialSettingsStates.settings,
-        proxies: [initialSettingsStates.proxy],
-      };
-      const actual = settingsReducer(undefined, {
-        type: SETTINGS_ACTIONS.EDIT,
-        field: SETTINGS_FIELDS.EDIT_PROXIES,
-        value: [initialSettingsStates.proxy],
-        errors: {},
-      });
-      expect(actual).toEqual(expected);
-    });
-
     describe('proxies setting action', () => {
       test('when no existing proxies exist', () => {
         const expected = {
@@ -244,6 +230,7 @@ describe('settings reducer', () => {
         defaults: {
           ...initialSettingsStates.defaults,
           profile: { profileName: 'test' },
+          useProfile: true,
         },
       };
       const actual = settingsReducer(undefined, {
@@ -259,13 +246,14 @@ describe('settings reducer', () => {
         ...initialSettingsStates.settings,
         defaults: {
           ...initialSettingsStates.defaults,
-          sizes: [{ value: 'test', label: 'test_label' }],
+          sizes: ['4'],
+          useSizes: true,
         },
       };
       const actual = settingsReducer(undefined, {
         type: SETTINGS_ACTIONS.EDIT,
         field: SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
-        value: [{ value: 'test', label: 'test_label' }],
+        value: ['4'],
       });
       expect(actual).toEqual(expected);
     });
