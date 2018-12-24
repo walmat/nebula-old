@@ -1,11 +1,7 @@
 import locationState, { initialLocationState } from './profiles/locationState';
-import locationStateErrors, {
-  initialLocationErrorState,
-} from './profiles/locationStateErrors';
+import locationStateErrors, { initialLocationErrorState } from './profiles/locationStateErrors';
 import paymentState, { initialPaymentState } from './profiles/paymentState';
-import paymentStateErrors, {
-  initialPaymentErrorState,
-} from './profiles/paymentStateErrors';
+import paymentStateErrors, { initialPaymentErrorState } from './profiles/paymentStateErrors';
 import profile, { initialProfileState } from './profiles/profile';
 import profileList, { initialProfileListState } from './profiles/profileList';
 

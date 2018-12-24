@@ -1,11 +1,6 @@
 /* global describe */
-import sDefns, {
-  initialServerStates,
-} from '../../../../utils/definitions/serverDefinitions';
-import {
-  setupConsoleErrorSpy,
-  testKey,
-} from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, { initialServerStates } from '../../../../utils/definitions/serverDefinitions';
+import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('awsCredentials definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -17,7 +12,7 @@ describe('awsCredentials definitions', () => {
       invalid,
       sDefns.awsCredentials,
       initialServerStates.awsCredentials,
-      spy
+      spy,
     );
 
   testCredentialsKey('AWSAccessKey', [null, 'test'], [{}, 3, false]);

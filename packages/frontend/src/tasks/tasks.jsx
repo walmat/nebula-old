@@ -49,9 +49,7 @@ export class TasksPrimitive extends Component {
               <div className="col">
                 <div className="row row--start">
                   <div className="col col--no-gutter-left">
-                    <p className="body-text section-header tasks-create__section-header">
-                      Create
-                    </p>
+                    <p className="body-text section-header tasks-create__section-header">Create</p>
                   </div>
                 </div>
                 <div className="row">
@@ -102,9 +100,7 @@ export class TasksPrimitive extends Component {
         <div className="row row--start">
           <div className="col col--start">
             <div className="row row--start">
-              <p className="body-text section-header tasks-table__section-header">
-                View
-              </p>
+              <p className="body-text section-header tasks-table__section-header">View</p>
             </div>
             <div className="row row--expand">
               <div className="col col--start tasks-table-container">
@@ -155,11 +151,7 @@ export class TasksPrimitive extends Component {
                     }}
                     data-testid={addTestId('Tasks.bulkActionButton.start')}
                   >
-                    <img
-                      src={startAll}
-                      alt="start all tasks"
-                      draggable="false"
-                    />
+                    <img src={startAll} alt="start all tasks" draggable="false" />
                   </div>
                 </div>
                 <div className="row">
@@ -187,11 +179,7 @@ export class TasksPrimitive extends Component {
                     }}
                     data-testid={addTestId('Tasks.bulkActionButton.destroy')}
                   >
-                    <img
-                      src={destroyAll}
-                      alt="destroy all tasks"
-                      draggable="false"
-                    />
+                    <img src={destroyAll} alt="destroy all tasks" draggable="false" />
                   </div>
                 </div>
               </div>
@@ -237,5 +225,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(TasksPrimitive);

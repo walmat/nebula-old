@@ -24,7 +24,7 @@ class JsonParser extends Parser {
       this._logger.silly(
         '%s: Making request for %s/products.json ...',
         this._name,
-        this._task.site.url
+        this._task.site.url,
       );
       const response = await rp({
         method: 'GET',
@@ -44,10 +44,7 @@ class JsonParser extends Parser {
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
-    this._logger.silly(
-      '%s: Received Response, Attempting to match...',
-      this._name
-    );
+    this._logger.silly('%s: Received Response, Attempting to match...', this._name);
     const matchedProduct = super.match(products);
 
     if (!matchedProduct) {

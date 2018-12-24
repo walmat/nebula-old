@@ -79,13 +79,10 @@ function _createLogger({ dir, name, filename }) {
           winston.format.label({ label: name }),
           winston.format.timestamp(),
           winston.format.printf(
-            info =>
-              `${info.timestamp}: [${info.level}] [${info.label}] - ${
-                info.message
-              }`
-          )
+            info => `${info.timestamp}: [${info.level}] [${info.label}] - ${info.message}`,
+          ),
         ),
-      })
+      }),
     );
   }
 
@@ -99,7 +96,7 @@ function _createLogger({ dir, name, filename }) {
       winston.format.timestamp(),
       winston.format.splat(),
       winston.format.json(),
-      winston.format.prettyPrint()
+      winston.format.prettyPrint(),
     ),
   });
   // Update levels to the global state

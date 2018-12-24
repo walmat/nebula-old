@@ -4,11 +4,7 @@ import { shallow } from 'enzyme';
 import createMemoryHistory from 'history/createMemoryHistory';
 import configureStore from 'redux-mock-store';
 
-import {
-  NavbarPrimitive,
-  mapStateToProps,
-  mapDispatchToProps,
-} from '../../navbar/navbar';
+import { NavbarPrimitive, mapStateToProps, mapDispatchToProps } from '../../navbar/navbar';
 import Bodymovin from '../../navbar/bodymovin';
 import { initialNavbarState } from '../../state/reducers/navbar/navbarReducer';
 import { ROUTES } from '../../state/actions';
@@ -33,12 +29,11 @@ describe('<Navbar />', () => {
         onRouteServer={renderProps.onRouteServer}
         onRouteSettings={renderProps.onRouteSettings}
         onKeyPress={renderProps.onKeyPress}
-      />
+      />,
     );
   };
 
-  const renderWrapperWithLocation = loc =>
-    renderShallowWithProps({ navbar: { location: loc } });
+  const renderWrapperWithLocation = loc => renderShallowWithProps({ navbar: { location: loc } });
 
   beforeEach(() => {
     history = createMemoryHistory();
@@ -92,7 +87,7 @@ describe('<Navbar />', () => {
         onRouteProfiles={onRouteProfiles}
         onRouteServer={onRouteServer}
         onRouteSettings={onRouteSettings}
-      />
+      />,
     );
     expect(wrapper.find(NavbarPrimitive)).toBeDefined();
     expect(wrapper.find(Bodymovin)).toBeDefined();

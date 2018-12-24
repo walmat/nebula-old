@@ -116,17 +116,15 @@ export class ProxyListPrimitive extends Component {
 
     // If we are in editing mode, don't apply any styling
     if (editing) {
-      return proxies
-        .map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`)
-        .join('');
+      return proxies.map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`).join('');
     }
     // Return proxies, styled in red if that proxy is invalid
     return proxies
       .map(
         (proxy, idx) =>
-          `<div${
-            errors.includes(idx) ? ' class="invalidProxy"' : ''
-          }>${ProxyListPrimitive.sanitize(proxy)}</div>`
+          `<div${errors.includes(idx) ? ' class="invalidProxy"' : ''}>${ProxyListPrimitive.sanitize(
+            proxy,
+          )}</div>`,
       )
       .join('');
   }
@@ -172,5 +170,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(ProxyListPrimitive);

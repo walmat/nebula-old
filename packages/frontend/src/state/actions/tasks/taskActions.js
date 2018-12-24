@@ -17,9 +17,7 @@ export const TASK_ACTIONS = {
 
 // Utility
 const _parseTaskProduct = product => {
-  const kws = product.raw
-    .split(',')
-    .reduce((a, x) => a.concat(x.trim().split(' ')), []);
+  const kws = product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
 
   const validKeywords = kws.every(kw => regexes.keywordRegex.test(kw));
 
@@ -201,13 +199,13 @@ const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 const addTask = task => dispatch =>
   _addTaskRequest(task).then(
     response => dispatch(_addTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.ADD, error))
+    error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
 
 const destroyTask = (task, type) => dispatch =>
   _destroyTaskRequest(task, type).then(
     response => dispatch(_destroyTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.REMOVE, error))
+    error => dispatch(handleError(TASK_ACTIONS.REMOVE, error)),
   );
 
 const updateTask = (id, task) => (dispatch, getState) =>
@@ -219,13 +217,13 @@ const updateTask = (id, task) => (dispatch, getState) =>
         dispatch(selectTask(null));
       }
     },
-    error => dispatch(handleError(TASK_ACTIONS.UPDATE, error))
+    error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 
 const statusTask = (id, message) => dispatch =>
   _statusTaskRequest(id, message).then(
     response => dispatch(_statusTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.STATUS, error))
+    error => dispatch(handleError(TASK_ACTIONS.STATUS, error)),
   );
 
 const clearEdits = (id, task) => {
@@ -241,20 +239,20 @@ const clearEdits = (id, task) => {
           dispatch(selectTask(null));
         }
       },
-      error => dispatch(handleError(TASK_ACTIONS.UPDATE, error))
+      error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
     );
 };
 
 const startTask = (task, proxies) => dispatch =>
   _startTaskRequest(task, proxies).then(
     response => dispatch(_startTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.START, error))
+    error => dispatch(handleError(TASK_ACTIONS.START, error)),
   );
 
 const stopTask = task => dispatch =>
   _stopTaskRequest(task).then(
     response => dispatch(_stopTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.STOP, error))
+    error => dispatch(handleError(TASK_ACTIONS.STOP, error)),
   );
 
 // Field Edits

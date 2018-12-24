@@ -2,11 +2,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import {
-  SettingsPrimitive,
-  mapStateToProps,
-  mapDispatchToProps,
-} from '../../settings/settings';
+import { SettingsPrimitive, mapStateToProps, mapDispatchToProps } from '../../settings/settings';
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
 import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
@@ -29,7 +25,7 @@ describe('<Settings />', () => {
         onClearDefaults={renderProps.onClearDefaults}
         onKeyPress={renderProps.onKeyPress}
         errors={renderProps.settings.errors}
-      />
+      />,
     );
   };
 
@@ -228,9 +224,7 @@ describe('<Settings />', () => {
       saveButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       saveButton.simulate('click');
-      expect(customProps.onSaveDefaults).toHaveBeenCalledWith(
-        customProps.settings.defaults
-      );
+      expect(customProps.onSaveDefaults).toHaveBeenCalledWith(customProps.settings.defaults);
     });
 
     test('clearing defaults', () => {
@@ -243,9 +237,7 @@ describe('<Settings />', () => {
       clearButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       clearButton.simulate('click');
-      expect(customProps.onClearDefaults).toHaveBeenCalledWith(
-        SETTINGS_FIELDS.CLEAR_DEFAULTS
-      );
+      expect(customProps.onClearDefaults).toHaveBeenCalledWith(SETTINGS_FIELDS.CLEAR_DEFAULTS);
     });
   });
 
@@ -354,18 +346,15 @@ describe('<Settings />', () => {
     actual.onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      settingsActions.edit(SETTINGS_FIELDS.EDIT_DISCORD, 'test')
+      settingsActions.edit(SETTINGS_FIELDS.EDIT_DISCORD, 'test'),
     );
     expect(dispatch).toHaveBeenNthCalledWith(
       2,
       settingsActions.save({
         profile: {},
         sizes: [],
-      })
+      }),
     );
-    expect(dispatch).toHaveBeenNthCalledWith(
-      3,
-      settingsActions.clear(SETTINGS_FIELDS.CLEAR)
-    );
+    expect(dispatch).toHaveBeenNthCalledWith(3, settingsActions.clear(SETTINGS_FIELDS.CLEAR));
   });
 });

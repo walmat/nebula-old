@@ -3,17 +3,12 @@ import taskAttributeValidatorMap from '../../../utils/validation/taskAttributeVa
 import { TASK_FIELDS } from '../../actions/tasks/taskActions';
 
 const tasksFormValidationMiddleware = store => next => action => {
-  if (
-    !action.type ||
-    (action.type !== TASK_ACTIONS.ADD && action.type !== TASK_ACTIONS.UPDATE)
-  ) {
+  if (!action.type || (action.type !== TASK_ACTIONS.ADD && action.type !== TASK_ACTIONS.UPDATE)) {
     return next(action);
   }
 
   if (!action.response || (action.response && !action.response.task)) {
-    return store.dispatch(
-      taskActions.error(action.type, 'invalid action structure!')
-    );
+    return store.dispatch(taskActions.error(action.type, 'invalid action structure!'));
   }
 
   // action is gonna be update or add...
@@ -23,8 +18,7 @@ const tasksFormValidationMiddleware = store => next => action => {
 
   const response = newAction.response.task;
   newAction.errors = {};
-  const { errors } =
-    action.type === TASK_ACTIONS.ADD ? response : response.edits;
+  const { errors } = action.type === TASK_ACTIONS.ADD ? response : response.edits;
 
   Object.entries(taskAttributeValidatorMap).forEach(pair => {
     const field = pair[0];
@@ -33,18 +27,13 @@ const tasksFormValidationMiddleware = store => next => action => {
     if (
       response.site &&
       !response.site.auth &&
-      (field === TASK_FIELDS.EDIT_USERNAME ||
-        field === TASK_FIELDS.EDIT_PASSWORD)
+      (field === TASK_FIELDS.EDIT_USERNAME || field === TASK_FIELDS.EDIT_PASSWORD)
     ) {
       errors[mapTaskFieldsToKey[field]] = false;
     } else if (action.type === TASK_ACTIONS.ADD) {
-      errors[mapTaskFieldsToKey[field]] = !validator(
-        response[mapTaskFieldsToKey[field]]
-      );
+      errors[mapTaskFieldsToKey[field]] = !validator(response[mapTaskFieldsToKey[field]]);
     } else {
-      errors[mapTaskFieldsToKey[field]] = !validator(
-        response.edits[mapTaskFieldsToKey[field]]
-      );
+      errors[mapTaskFieldsToKey[field]] = !validator(response.edits[mapTaskFieldsToKey[field]]);
     }
 
     combinedErrors = combinedErrors || errors[mapTaskFieldsToKey[field]];

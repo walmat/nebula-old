@@ -4,11 +4,7 @@ import NumberFormat from 'react-number-format';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
-import {
-  PROFILE_FIELDS,
-  PAYMENT_FIELDS,
-  profileActions,
-} from '../state/actions';
+import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
 
 import info from '../_assets/info.svg';
 
@@ -91,13 +87,13 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
         ownProps.profileToEdit.id,
         PROFILE_FIELDS.EDIT_PAYMENT,
         changes.value,
-        changes.field
-      )
+        changes.field,
+      ),
     );
   },
 });
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(PaymentFieldsPrimitive);

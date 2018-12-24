@@ -1,24 +1,12 @@
 /* global describe */
-import tDefns, {
-  initialTaskStates,
-} from '../../../../utils/definitions/taskDefinitions';
-import {
-  setupConsoleErrorSpy,
-  testKey,
-} from '../../../../__testUtils__/definitionTestUtils';
+import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
+import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskError definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   const testErrorKey = (keyName, valid, invalid) =>
-    testKey(
-      keyName,
-      valid,
-      invalid,
-      tDefns.taskErrors,
-      initialTaskStates.errors,
-      spy
-    );
+    testKey(keyName, valid, invalid, tDefns.taskErrors, initialTaskStates.errors, spy);
 
   testErrorKey('site', [null, true, false], [{}, 'test', 3]);
   testErrorKey('profile', [null, true, false], [{}, 'test', 3]);

@@ -9,10 +9,7 @@ const TaskRunnerEvents = constants.TaskRunner.Events;
 
 class TaskProcessManager extends TaskManager {
   _setup(child) {
-    this._logger.verbose(
-      'Setting up Child Process Handlers for runner: %s',
-      child.id
-    );
+    this._logger.verbose('Setting up Child Process Handlers for runner: %s', child.id);
     const handlers = {
       abort: id => {
         if (id === child.id) {
@@ -99,9 +96,7 @@ class TaskProcessManager extends TaskManager {
 
   async _start([runnerId, task, openProxy]) {
     this._logger.verbose('Spawning Child Process for runner: %s', runnerId);
-    const child = childProcess.fork(
-      path.resolve(__dirname, 'runnerProcess.js')
-    );
+    const child = childProcess.fork(path.resolve(__dirname, 'runnerProcess.js'));
     // Setup ids
     child.id = runnerId;
     child.taskId = task.id;
@@ -150,7 +145,7 @@ class TaskProcessManager extends TaskManager {
         'Runner %s was stopped due to an errors: %s',
         runnerId,
         error.message,
-        error
+        error,
       );
     }
 

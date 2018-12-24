@@ -69,7 +69,7 @@ const testShipping = async () => {
     checkout.checkoutId,
     checkout.storeId,
     checkout.authToken,
-    checkout.price
+    checkout.price,
   );
 
   const authToken = await shipping.submit();
@@ -99,7 +99,7 @@ const testPayment = async () => {
     checkout.checkoutId,
     checkout.storeId,
     checkout.authToken,
-    checkout.price
+    checkout.price,
   );
 
   const authToken = await shipping.submit();
@@ -112,7 +112,7 @@ const testPayment = async () => {
     checkout.checkoutId,
     checkout.storeId,
     authToken,
-    checkout.price
+    checkout.price,
   );
 
   const state = await payment.submit();

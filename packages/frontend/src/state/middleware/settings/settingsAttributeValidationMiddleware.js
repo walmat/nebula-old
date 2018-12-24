@@ -19,9 +19,7 @@ const settingsAttributeValidationMiddleware = store => next => action => {
     newAction.errors = Object.assign({}, state.settings.errors);
 
     // TODO - remove this later when validation is finalized
-    const proxyErrors = settingsAttributeValidatorMap[newAction.field](
-      newAction.value
-    );
+    const proxyErrors = settingsAttributeValidatorMap[newAction.field](newAction.value);
     newAction.errors[mapSettingsFieldToKey[newAction.field]] = proxyErrors;
 
     if (!proxyErrors.length) {

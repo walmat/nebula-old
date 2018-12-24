@@ -2,11 +2,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import {
-  ProfilesPrimitive,
-  mapStateToProps,
-  mapDispatchToProps,
-} from '../../profiles/profiles';
+import { ProfilesPrimitive, mapStateToProps, mapDispatchToProps } from '../../profiles/profiles';
 import { PROFILE_FIELDS, profileActions } from '../../state/actions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
 import LocationFields from '../../profiles/locationFields';
@@ -25,9 +21,7 @@ describe('<Profiles />', () => {
         profiles={renderProps.profiles}
         currentProfile={renderProps.currentProfile}
         selectedProfile={renderProps.selectedProfile}
-        onClickBillingMatchesShipping={
-          renderProps.onClickBillingMatchesShipping
-        }
+        onClickBillingMatchesShipping={renderProps.onClickBillingMatchesShipping}
         onProfileNameChange={renderProps.onProfileNameChange}
         onAddNewProfile={renderProps.onAddNewProfile}
         onLoadProfile={renderProps.onLoadProfile}
@@ -35,7 +29,7 @@ describe('<Profiles />', () => {
         onSelectProfile={renderProps.onSelectProfile}
         onUpdateProfile={renderProps.onUpdateProfile}
         onKeyPress={renderProps.onKeyPress}
-      />
+      />,
     );
   };
 
@@ -107,12 +101,8 @@ describe('<Profiles />', () => {
       const wrapper = renderShallowWithProps(customProps);
       const shippingFields = wrapper.find('#shipping');
       expect(shippingFields.is(LocationFields)).toBeTruthy();
-      expect(shippingFields.prop('profileToEdit')).toBe(
-        customProps.currentProfile
-      );
-      expect(shippingFields.prop('fieldToEdit')).toBe(
-        PROFILE_FIELDS.EDIT_SHIPPING
-      );
+      expect(shippingFields.prop('profileToEdit')).toBe(customProps.currentProfile);
+      expect(shippingFields.prop('fieldToEdit')).toBe(PROFILE_FIELDS.EDIT_SHIPPING);
       expect(shippingFields.prop('disabled')).toBeFalsy();
     });
 
@@ -154,12 +144,8 @@ describe('<Profiles />', () => {
         const wrapper = renderShallowWithProps(customProps);
         const billingFields = wrapper.find('#billing');
         expect(billingFields.is(LocationFields)).toBeTruthy();
-        expect(billingFields.prop('profileToEdit')).toBe(
-          customProps.currentProfile
-        );
-        expect(billingFields.prop('fieldToEdit')).toBe(
-          PROFILE_FIELDS.EDIT_SHIPPING
-        );
+        expect(billingFields.prop('profileToEdit')).toBe(customProps.currentProfile);
+        expect(billingFields.prop('fieldToEdit')).toBe(PROFILE_FIELDS.EDIT_SHIPPING);
         expect(billingFields.prop('disabled')).toBeTruthy();
       });
 
@@ -174,12 +160,8 @@ describe('<Profiles />', () => {
         const wrapper = renderShallowWithProps(customProps);
         const billingFields = wrapper.find('#billing');
         expect(billingFields.is(LocationFields)).toBeTruthy();
-        expect(billingFields.prop('profileToEdit')).toBe(
-          customProps.currentProfile
-        );
-        expect(billingFields.prop('fieldToEdit')).toBe(
-          PROFILE_FIELDS.EDIT_BILLING
-        );
+        expect(billingFields.prop('profileToEdit')).toBe(customProps.currentProfile);
+        expect(billingFields.prop('fieldToEdit')).toBe(PROFILE_FIELDS.EDIT_BILLING);
         expect(billingFields.prop('disabled')).toBeFalsy();
       });
     });
@@ -191,9 +173,7 @@ describe('<Profiles />', () => {
       const wrapper = renderShallowWithProps(customProps);
       const paymentFields = wrapper.find('#payment');
       expect(paymentFields.is(PaymentFields)).toBeTruthy();
-      expect(paymentFields.prop('profileToEdit')).toBe(
-        customProps.currentProfile
-      );
+      expect(paymentFields.prop('profileToEdit')).toBe(customProps.currentProfile);
     });
 
     test('profile name field', () => {
@@ -227,9 +207,7 @@ describe('<Profiles />', () => {
       const wrapper = renderShallowWithProps(customProps);
       const profileSelector = wrapper.find('#profile-load');
       profileSelector.simulate('change', { value: 2 });
-      expect(customProps.onSelectProfile).toHaveBeenCalledWith(
-        customProps.profiles[1]
-      );
+      expect(customProps.onSelectProfile).toHaveBeenCalledWith(customProps.profiles[1]);
     });
 
     test('loading the selected profile', () => {
@@ -249,9 +227,7 @@ describe('<Profiles />', () => {
       const wrapper = renderShallowWithProps(customProps);
       const profileLoader = wrapper.find('#load-profile');
       profileLoader.simulate('click');
-      expect(customProps.onLoadProfile).toHaveBeenCalledWith(
-        customProps.selectedProfile
-      );
+      expect(customProps.onLoadProfile).toHaveBeenCalledWith(customProps.selectedProfile);
     });
 
     test('clicking the billing matches shipping box', () => {
@@ -281,9 +257,7 @@ describe('<Profiles />', () => {
       const profileField = wrapper.find('#profile-save');
       const expectedEvent = { target: { value: 'test' } };
       profileField.simulate('change', expectedEvent);
-      expect(customProps.onProfileNameChange).toHaveBeenCalledWith(
-        expectedEvent
-      );
+      expect(customProps.onProfileNameChange).toHaveBeenCalledWith(expectedEvent);
     });
 
     describe('saving a profile', () => {
@@ -293,9 +267,7 @@ describe('<Profiles />', () => {
         const event = { preventDefault: jest.fn() };
         submitProfile.simulate('click', event);
         expect(event.preventDefault).toHaveBeenCalled();
-        expect(customProps.onAddNewProfile).toHaveBeenCalledWith(
-          customProps.currentProfile
-        );
+        expect(customProps.onAddNewProfile).toHaveBeenCalledWith(customProps.currentProfile);
       };
 
       test("when it hasn't been loaded before", () => {
@@ -364,9 +336,7 @@ describe('<Profiles />', () => {
       const event = { preventDefault: jest.fn() };
       submitProfile.simulate('click', event);
       expect(event.preventDefault).toHaveBeenCalled();
-      expect(customProps.onUpdateProfile).toHaveBeenCalledWith(
-        customProps.currentProfile
-      );
+      expect(customProps.onUpdateProfile).toHaveBeenCalledWith(customProps.currentProfile);
     });
 
     test('deleting a profile', () => {
@@ -383,9 +353,7 @@ describe('<Profiles />', () => {
       const event = { preventDefault: jest.fn() };
       profileDeleter.simulate('click', event);
       expect(event.preventDefault).toHaveBeenCalled();
-      expect(customProps.onDestroyProfile).toHaveBeenCalledWith(
-        customProps.selectedProfile
-      );
+      expect(customProps.onDestroyProfile).toHaveBeenCalledWith(customProps.selectedProfile);
     });
   });
 
@@ -435,11 +403,7 @@ describe('<Profiles />', () => {
       editId: 1,
     };
     const expectedActions = [
-      profileActions.edit(
-        null,
-        PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING,
-        ''
-      ),
+      profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''),
       profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, 'test'),
       profileActions.add(tempProfile),
       profileActions.load(tempProfile),
@@ -460,7 +424,7 @@ describe('<Profiles />', () => {
     expectedActions.forEach((action, n) => {
       expect(dispatch).toHaveBeenNthCalledWith(
         n + 1,
-        typeof action !== 'function' ? action : expect.any(Function)
+        typeof action !== 'function' ? action : expect.any(Function),
       );
     });
   });

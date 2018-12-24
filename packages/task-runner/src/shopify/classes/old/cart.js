@@ -60,29 +60,20 @@ class Cart {
         Origin: this._task.site.url,
         'User-Agent': userAgent,
         'Content-Type': 'application/x-www-form-urlencoded',
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.8',
       },
       formData: buildCartForm(this._task, variant),
     })
       .then(res => {
         if (res.body.status === 404) {
-          this._logger.debug(
-            'CART: Error in add to cart response: %s',
-            res.body.description
-          );
+          this._logger.debug('CART: Error in add to cart response: %s', res.body.description);
           return {
             errors: res.body.description,
           };
         }
-        this._price = Number.parseInt(
-          this.removeTrailingZeros(res.body.line_price),
-          10
-        );
-        this._task.product.url = `${this._task.site.url}/${
-          res.body.url.split('?')[0]
-        }`;
+        this._price = Number.parseInt(this.removeTrailingZeros(res.body.line_price), 10);
+        this._task.product.url = `${this._task.site.url}/${res.body.url.split('?')[0]}`;
         this._timer.stop(now());
         this._logger.info('Added to cart in %d ms', this._timer.getRunTime());
         return true;
@@ -192,18 +183,14 @@ class Cart {
         Origin: this._task.site.url,
         'User-Agent': userAgent,
         'Content-Type': 'application/x-www-form-urlencoded',
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         Referer: this._task.product.url,
         'Accept-Language': 'en-US,en;q=0.8',
       },
     })
       .then(res => {
         this._timer.stop(now());
-        this._logger.debug(
-          'CART: Cleared cart in %d ms',
-          this._timer.getRunTime()
-        );
+        this._logger.debug('CART: Cleared cart in %d ms', this._timer.getRunTime());
         return {
           cleared: res.item_count === 0,
           errors: null,
@@ -244,14 +231,9 @@ class Cart {
         const shippingMethod = _.min(rates.shipping_rates, rate => rate.price);
 
         this._timer.stop(now());
-        this._logger.info(
-          'Got shipping method in %d ms',
-          this._timer.getRunTime()
-        );
+        this._logger.info('Got shipping method in %d ms', this._timer.getRunTime());
         return {
-          rate: `shopify-${shippingMethod.name.replace('%20', ' ')}-${
-            shippingMethod.price
-          }`,
+          rate: `shopify-${shippingMethod.name.replace('%20', ' ')}-${shippingMethod.price}`,
           name: `${shippingMethod.name}`,
           price: `${shippingMethod.price.split('.')[0]}`,
         };

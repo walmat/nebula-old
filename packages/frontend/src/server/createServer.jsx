@@ -30,9 +30,7 @@ export class CreateServerPrimitive extends Component {
 
   constructor(props) {
     super(props);
-    this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(
-      this
-    );
+    this.createServerInfoChangeHandler = this.createServerInfoChangeHandler.bind(this);
   }
 
   createServerInfoChangeHandler(field) {
@@ -47,7 +45,7 @@ export class CreateServerPrimitive extends Component {
     value,
     disabled,
     onChange,
-    optionGenerator
+    optionGenerator,
   ) {
     return (
       <div className="row row--start row--gutter">
@@ -85,9 +83,9 @@ export class CreateServerPrimitive extends Component {
       false,
       CreateServerPrimitive.changeServerChoice(
         serverListOptions.types,
-        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_TYPE)
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_TYPE),
       ),
-      CreateServerPrimitive.buildServerOptionChoices(serverListOptions.types)
+      CreateServerPrimitive.buildServerOptionChoices(serverListOptions.types),
     );
   }
 
@@ -102,12 +100,11 @@ export class CreateServerPrimitive extends Component {
       !serverType,
       CreateServerPrimitive.changeServerChoice(
         serverListOptions.sizes,
-        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE)
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_SIZE),
       ),
-      CreateServerPrimitive.buildServerOptionChoices(
-        serverListOptions.sizes,
-        s => (serverType ? s.types.some(t => t === serverType.id) : true)
-      )
+      CreateServerPrimitive.buildServerOptionChoices(serverListOptions.sizes, s =>
+        serverType ? s.types.some(t => t === serverType.id) : true,
+      ),
     );
   }
 
@@ -122,22 +119,14 @@ export class CreateServerPrimitive extends Component {
       false,
       CreateServerPrimitive.changeServerChoice(
         serverListOptions.locations,
-        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_LOCATION)
+        this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_SERVER_LOCATION),
       ),
-      CreateServerPrimitive.buildServerOptionChoices(
-        serverListOptions.locations
-      )
+      CreateServerPrimitive.buildServerOptionChoices(serverListOptions.locations),
     );
   }
 
   render() {
-    const {
-      onKeyPress,
-      serverInfo,
-      onDestroyServers,
-      onCreateServer,
-      servers,
-    } = this.props;
+    const { onKeyPress, serverInfo, onDestroyServers, onCreateServer, servers } = this.props;
 
     const loggedInAws = serverInfo.credentials.accessToken != null;
     return (
@@ -152,9 +141,7 @@ export class CreateServerPrimitive extends Component {
               className="server-options__destroy"
               tabIndex={0}
               disabled={!loggedInAws}
-              style={
-                !loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }
-              }
+              style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={onKeyPress}
               onClick={() => {
@@ -171,16 +158,11 @@ export class CreateServerPrimitive extends Component {
               className="server-options__create"
               tabIndex={0}
               disabled={!loggedInAws}
-              style={
-                !loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }
-              }
+              style={!loggedInAws ? { cursor: 'not-allowed' } : { cursor: 'pointer' }}
               title={!loggedInAws ? 'Login Required' : ''}
               onKeyPress={onKeyPress}
               onClick={() => {
-                onCreateServer(
-                  serverInfo.serverOptions,
-                  serverInfo.credentials
-                );
+                onCreateServer(serverInfo.serverOptions, serverInfo.credentials);
               }}
               data-testid={addTestId('CreateServer.serversButton.create')}
             >
@@ -238,5 +220,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(CreateServerPrimitive);

@@ -178,9 +178,7 @@ describe('settings reducer', () => {
                 },
               });
               expect(actual).toEqual(expected);
-              expect(Bridge.removeProxies).toHaveBeenCalledWith([
-                '255.255.255.255:80',
-              ]);
+              expect(Bridge.removeProxies).toHaveBeenCalledWith(['255.255.255.255:80']);
               delete global.window.Bridge;
             });
           });

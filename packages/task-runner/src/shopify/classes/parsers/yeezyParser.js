@@ -38,7 +38,7 @@ class YeezyParser extends SpecialParser {
       } catch (err) {
         this._logger.silly(
           '%s: found script tag but was unable to parse json! skipping...',
-          this._name
+          this._name,
         );
       }
     };
@@ -58,19 +58,15 @@ class YeezyParser extends SpecialParser {
     this._logger.silly(
       '%s: Found %d potential products, validating...',
       this._name,
-      products.length
+      products.length,
     );
 
     const validatedProducts = products.filter(
-      ({ id, title, handle, variants }) => id && variants && (title || handle)
+      ({ id, title, handle, variants }) => id && variants && (title || handle),
     );
 
     validateArray(validatedProducts);
-    this._logger.silly(
-      '%s: Found %d products!',
-      this._name,
-      validatedProducts.length
-    );
+    this._logger.silly('%s: Found %d products!', this._name, validatedProducts.length);
 
     return validatedProducts;
   }

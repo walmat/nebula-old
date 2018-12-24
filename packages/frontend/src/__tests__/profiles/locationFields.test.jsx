@@ -7,11 +7,7 @@ import {
   mapStateToProps,
   mapDispatchToProps,
 } from '../../profiles/locationFields';
-import {
-  PROFILE_FIELDS,
-  LOCATION_FIELDS,
-  profileActions,
-} from '../../state/actions';
+import { PROFILE_FIELDS, LOCATION_FIELDS, profileActions } from '../../state/actions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
 
 describe('<LocationFields />', () => {
@@ -23,7 +19,7 @@ describe('<LocationFields />', () => {
         disabled={false}
         id="test"
         value={{ ...initialProfileStates.location }}
-      />
+      />,
     );
     expect(wrapper.find('#test-first-name')).toHaveLength(1);
     expect(wrapper.find('#test-last-name')).toHaveLength(1);
@@ -53,7 +49,7 @@ describe('<LocationFields />', () => {
         disabled
         id="test"
         value={{ ...initialProfileStates.location }}
-      />
+      />,
     );
     expect(wrapper.find('#test-first-name').prop('disabled')).toBeTruthy();
     expect(wrapper.find('#test-last-name').prop('disabled')).toBeTruthy();
@@ -79,7 +75,7 @@ describe('<LocationFields />', () => {
           onChange={() => {}}
           errors={input.errors}
           disabled={disabled}
-        />
+        />,
       );
       let inputField = wrapper.find(`#test-${id}`);
       expect(inputField.prop('value')).toEqual(value1);
@@ -127,7 +123,7 @@ describe('<LocationFields />', () => {
         'state',
         'state',
         { value: 'testState1', label: 'testStateLabel1' },
-        { value: 'testState2', label: 'testStateLabel2' }
+        { value: 'testState2', label: 'testStateLabel2' },
       );
     });
 
@@ -140,7 +136,7 @@ describe('<LocationFields />', () => {
         'country',
         'country',
         { value: 'testCountry1', label: 'testCountryLabel1' },
-        { value: 'testCountry2', label: 'testCountryLabel2' }
+        { value: 'testCountry2', label: 'testCountryLabel2' },
       );
     });
 
@@ -160,7 +156,7 @@ describe('<LocationFields />', () => {
           onChange={onChangeHandler}
           errors={input.errors}
           disabled={false}
-        />
+        />,
       );
       const inputField = wrapper.find(`#test-${id}`);
       inputField.simulate('change', event);
@@ -171,7 +167,7 @@ describe('<LocationFields />', () => {
       testOnChange(
         'first-name',
         { target: { value: 'testFirstName' } },
-        { field: LOCATION_FIELDS.FIRST_NAME, value: 'testFirstName' }
+        { field: LOCATION_FIELDS.FIRST_NAME, value: 'testFirstName' },
       );
     });
 
@@ -179,7 +175,7 @@ describe('<LocationFields />', () => {
       testOnChange(
         'last-name',
         { target: { value: 'testLastName' } },
-        { field: LOCATION_FIELDS.LAST_NAME, value: 'testLastName' }
+        { field: LOCATION_FIELDS.LAST_NAME, value: 'testLastName' },
       );
     });
 
@@ -187,7 +183,7 @@ describe('<LocationFields />', () => {
       testOnChange(
         'address-one',
         { target: { value: 'testAddress' } },
-        { field: LOCATION_FIELDS.ADDRESS, value: 'testAddress' }
+        { field: LOCATION_FIELDS.ADDRESS, value: 'testAddress' },
       );
     });
 
@@ -195,7 +191,7 @@ describe('<LocationFields />', () => {
       testOnChange(
         'address-two',
         { target: { value: 'testApt' } },
-        { field: LOCATION_FIELDS.APT, value: 'testApt' }
+        { field: LOCATION_FIELDS.APT, value: 'testApt' },
       );
     });
 
@@ -203,7 +199,7 @@ describe('<LocationFields />', () => {
       testOnChange(
         'city',
         { target: { value: 'testCity' } },
-        { field: LOCATION_FIELDS.CITY, value: 'testCity' }
+        { field: LOCATION_FIELDS.CITY, value: 'testCity' },
       );
     });
 
@@ -219,7 +215,7 @@ describe('<LocationFields />', () => {
       testOnChange(
         'zip-code',
         { target: { value: 'testZipCode' } },
-        { field: LOCATION_FIELDS.ZIP_CODE, value: 'testZipCode' }
+        { field: LOCATION_FIELDS.ZIP_CODE, value: 'testZipCode' },
       );
     });
 
@@ -235,7 +231,7 @@ describe('<LocationFields />', () => {
       testOnChange(
         'phone',
         { target: { value: 'testPhoneNumber' } },
-        { field: LOCATION_FIELDS.PHONE_NUMBER, value: 'testPhoneNumber' }
+        { field: LOCATION_FIELDS.PHONE_NUMBER, value: 'testPhoneNumber' },
       );
     });
   });
@@ -291,7 +287,7 @@ describe('<LocationFields />', () => {
       profile.id,
       PROFILE_FIELDS.EDIT_BILLING,
       changes.value,
-      changes.field
+      changes.field,
     );
     const dispatch = jest.fn();
     const actual = mapDispatchToProps(dispatch, ownProps);

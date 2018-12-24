@@ -27,7 +27,7 @@ class Payment {
     paymentGateway,
     paymentToken,
     shippingValue,
-    captchaResponse
+    captchaResponse,
   ) {
     /**
      * All data needed for monitor to run
@@ -84,12 +84,10 @@ class Payment {
       },
     })
       .then($ => {
-        const gateway = $('input[name="checkout[payment_gateway]"]').attr(
-          'value'
+        const gateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+        const authToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr(
+          'value',
         );
-        const authToken = $(
-          'form[data-payment-form=""] input[name="authenticity_token"]'
-        ).attr('value');
 
         return this._request({
           uri: `${this._checkoutUrl}`,
@@ -111,7 +109,7 @@ class Payment {
             gateway,
             this._paymentToken,
             this._shippingValue,
-            this._captchaResponse
+            this._captchaResponse,
           ),
         });
       })
@@ -122,15 +120,10 @@ class Payment {
         this._logger.debug('Writing out debug html to: %s', debugHtmlPath);
         fs.writeFileSync(debugHtmlPath, res.body);
         this._timer.stop(now());
-        this._logger.info(
-          'Submitted Payment in %d ms',
-          this._timer.getRunTime()
-        );
+        this._logger.info('Submitted Payment in %d ms', this._timer.getRunTime());
 
         if ($('input[name="step"]').val() === 'processing') {
-          this._logger.info(
-            'Payment is processing, go check your email for a confirmation.'
-          );
+          this._logger.info('Payment is processing, go check your email for a confirmation.');
           return this.PAYMENT_STATES.Processing;
         }
         if (
@@ -138,9 +131,7 @@ class Payment {
             .text()
             .indexOf('Processing') > -1
         ) {
-          this._logger.info(
-            'Payment is processing, go check your email for a confirmation.'
-          );
+          this._logger.info('Payment is processing, go check your email for a confirmation.');
           return this.PAYMENT_STATES.Processing;
         }
         if (res.request.href.indexOf('paypal.com') > -1) {
@@ -149,16 +140,14 @@ class Payment {
         }
         if ($('div.notice--warning p.notice__text')) {
           if ($('div.notice--warning p.notice__text') === '') {
-            this._logger.info(
-              'An unknown error has occured, please try again.'
-            );
+            this._logger.info('An unknown error has occured, please try again.');
             return this.PAYMENT_STATES.Error;
           }
           this._logger.info(
             'Notice Received: %s',
             $('div.notice--warning p.notice__text')
               .eq(0)
-              .text()
+              .text(),
           );
           return this.PAYMENT_STATES.Error;
         }

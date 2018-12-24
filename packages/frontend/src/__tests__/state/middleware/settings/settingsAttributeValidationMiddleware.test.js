@@ -11,8 +11,7 @@ describe('settings attribute validatation middleware', () => {
     };
     const next = jest.fn();
 
-    const invoke = action =>
-      settingsAttributeValidationMiddleware(store)(next)(action);
+    const invoke = action => settingsAttributeValidationMiddleware(store)(next)(action);
 
     return { store, next, invoke };
   };

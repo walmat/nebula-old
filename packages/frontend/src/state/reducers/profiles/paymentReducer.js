@@ -11,8 +11,7 @@ const paymentReducer = (state = initialProfileStates.payment, action) => {
     default: {
       change = {
         [mapPaymentFieldToKey[action.type]]:
-          action.value ||
-          initialProfileStates.payment[mapPaymentFieldToKey[action.type]],
+          action.value || initialProfileStates.payment[mapPaymentFieldToKey[action.type]],
         errors: action.errors || state.errors,
       };
       break;

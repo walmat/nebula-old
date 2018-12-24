@@ -148,9 +148,7 @@ class Checkout {
    */
   async _handleAddToCart() {
     this._logger.verbose('CHECKOUT: Adding to Cart...');
-    const res = await this._cart.addToCart(
-      this._task.product.variants[this._variantIndex]
-    );
+    const res = await this._cart.addToCart(this._task.product.variants[this._variantIndex]);
 
     if (res.errors) {
       this._logger.verbose('CHECKOUT: Errors in Add to Cart: %s', res.errors);
@@ -238,7 +236,7 @@ class Checkout {
         this._request,
         this._checkoutUrl,
         this._authToken,
-        this._shippingValue
+        this._shippingValue,
       );
       return {
         message: 'Submitting shipping',
@@ -392,7 +390,7 @@ class Checkout {
         this._paymentGateway,
         this._paymentToken,
         this._shippingValue,
-        this._captchaResponse
+        this._captchaResponse,
       );
       return { message: 'Posting payment', nextState: Checkout.States.Payment };
     }

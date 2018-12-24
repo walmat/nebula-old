@@ -55,21 +55,13 @@ export class NavbarPrimitive extends PureComponent {
             title="TASKS"
             onKeyPress={onKeyPress}
             className={
-              navbar.location === '/' || navbar.location === ROUTES.TASKS
-                ? 'active'
-                : null
+              navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null
             }
             onClick={() => {
               onRouteTasks(history);
             }}
           >
-            <img
-              src={tasks}
-              className="main-icons"
-              id="icon-tasks"
-              alt="tasks"
-              draggable="false"
-            />
+            <img src={tasks} className="main-icons" id="icon-tasks" alt="tasks" draggable="false" />
           </div>
           <div
             role="button"
@@ -164,5 +156,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(withRouter(NavbarPrimitive));

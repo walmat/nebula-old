@@ -24,10 +24,7 @@ class Account {
    * login to the account given to us by the user
    */
   login() {
-    this._logger.verbose(
-      'Starting login request to %s ...',
-      this._task.site.url
-    );
+    this._logger.verbose('Starting login request to %s ...', this._task.site.url);
     return this._request({
       uri: `${this._task.site.url}/account/login`,
       method: 'post',
@@ -63,10 +60,7 @@ class Account {
   }
 
   logout() {
-    this._logger.verbose(
-      'Starting logout request to %s ...',
-      this._task.site.url
-    );
+    this._logger.verbose('Starting logout request to %s ...', this._task.site.url);
     return this._request({
       uri: `${this._task.site.url}/account/logout`,
       method: 'get',
@@ -75,8 +69,7 @@ class Account {
       resolveWithFullResponse: true,
       headers: {
         'User-Agent': userAgent,
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         Referer: `${this._task.site.url}/account/`,
       },
     })

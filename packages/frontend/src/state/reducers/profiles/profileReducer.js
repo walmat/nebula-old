@@ -1,8 +1,4 @@
-import {
-  PROFILE_FIELDS,
-  PROFILE_ACTIONS,
-  mapProfileFieldToKey,
-} from '../../actions';
+import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../actions';
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
 import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
@@ -51,8 +47,7 @@ export function profileReducer(state = initialProfileStates.profile, action) {
       default:
         change = {
           [mapProfileFieldToKey[action.field]]:
-            action.value ||
-            initialProfileStates.profile[mapProfileFieldToKey[action.field]],
+            action.value || initialProfileStates.profile[mapProfileFieldToKey[action.field]],
           errors: Object.assign({}, state.errors, action.errors),
         };
         break;
@@ -61,10 +56,7 @@ export function profileReducer(state = initialProfileStates.profile, action) {
   return Object.assign({}, state, change);
 }
 
-export function currentProfileReducer(
-  state = initialProfileStates.profile,
-  action
-) {
+export function currentProfileReducer(state = initialProfileStates.profile, action) {
   switch (action.type) {
     case PROFILE_ACTIONS.EDIT: {
       // only modify the current profile if the action id is null
@@ -120,10 +112,7 @@ export function currentProfileReducer(
   return Object.assign({}, state);
 }
 
-export function selectedProfileReducer(
-  state = initialProfileStates.profile,
-  action
-) {
+export function selectedProfileReducer(state = initialProfileStates.profile, action) {
   switch (action.type) {
     case PROFILE_ACTIONS.SELECT: {
       // If profile wasn't passed, don't do anything

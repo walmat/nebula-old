@@ -22,9 +22,7 @@ const Server = () => (
           <div className="col">
             <div className="row row--start">
               <div className="col col--no-gutter-left">
-                <p className="body-text section-header server-credentials__section-header">
-                  Login
-                </p>
+                <p className="body-text section-header server-credentials__section-header">Login</p>
               </div>
             </div>
             <div className="row">
@@ -40,9 +38,7 @@ const Server = () => (
           <div className="col">
             <div className="row row--start">
               <div className="col col--no-gutter-left">
-                <p className="body-text section-header proxy-options__section-header">
-                  Proxies
-                </p>
+                <p className="body-text section-header proxy-options__section-header">Proxies</p>
               </div>
             </div>
             <div className="row">
@@ -58,9 +54,7 @@ const Server = () => (
           <div className="col">
             <div className="row row--start">
               <div className="col col--no-gutter-left">
-                <p className="body-text section-header proxy-options__section-header">
-                  Connect
-                </p>
+                <p className="body-text section-header proxy-options__section-header">Connect</p>
               </div>
             </div>
             <div className="row">
@@ -75,9 +69,7 @@ const Server = () => (
     <div className="row row--start">
       <div className="col col--start">
         <div className="row row--start">
-          <p className="body-text section-header server-table__section-header">
-            Log
-          </p>
+          <p className="body-text section-header server-table__section-header">Log</p>
         </div>
         <div className="row row--expand">
           <div className="col col--start server-table-container">

@@ -276,11 +276,7 @@ describe('task actions', () => {
 
   describe('update task', () => {
     describe('should dispatch a successful action', () => {
-      const testUpdateAction = async (
-        update,
-        expectedUpdate,
-        additionalActions
-      ) => {
+      const testUpdateAction = async (update, expectedUpdate, additionalActions) => {
         // Start with a valid product so we don't get errors
         const validProduct = {
           ...initialTaskState.product,

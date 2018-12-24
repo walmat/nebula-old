@@ -1,11 +1,6 @@
 /* global describe */
-import sDefns, {
-  initialSettingsStates,
-} from '../../../../utils/definitions/settingsDefinitions';
-import {
-  setupConsoleErrorSpy,
-  testKey,
-} from '../../../../__testUtils__/definitionTestUtils';
+import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
+import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('settingsErrors definitions', () => {
   const spy = setupConsoleErrorSpy();
@@ -17,7 +12,7 @@ describe('settingsErrors definitions', () => {
       invalid,
       sDefns.settingsErrors,
       initialSettingsStates.settingsErrors,
-      spy
+      spy,
     );
 
   testSettingsErrorKey('discord', [null, true, false], [{}, 'testing', 3]);

@@ -141,7 +141,7 @@ export function getCategory(category) {
 
 export function buildSizesForCategory(category) {
   return getCategory(category).options.filter(
-    size => size.label !== 'Random' && size.label !== 'Full Size Run'
+    size => size.label !== 'Random' && size.label !== 'Full Size Run',
   );
 }
 

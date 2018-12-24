@@ -7,8 +7,7 @@ const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const AsyncQueue = require('./classes/asyncQueue');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
-const TaskManagerEvents = require('./classes/utils/constants').TaskManager
-  .Events;
+const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay, reflect } = require('./classes/utils');
 
@@ -139,10 +138,7 @@ class TaskRunner {
       this._captchaQueue.destroy();
       this._captchaQueue = null;
       this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
-      this._events.removeListener(
-        TaskManagerEvents.Harvest,
-        this._handleHarvest
-      );
+      this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest);
     }
   }
 
@@ -277,6 +273,20 @@ class TaskRunner {
   //   });
   // }
 
+  visitSite() {
+    return new Promise(async (resolve, reject) => {
+      const visit = await this._checkout._handleVisitSite();
+      if (!visit) {
+        reject();
+      }
+      // we don't really care what visit is,
+      // just need to know that the site is
+      // accessible to us.
+      resolve();
+    });
+  }
+
+
   // Task Setup Promise 3 - create checkout session
   createCheckout() {
     return new Promise(async (resolve, reject) => {
@@ -308,14 +318,14 @@ class TaskRunner {
     // const promises = (!this._isSetup && !this._doSetupLater)
     // ? [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()]
     // : [this.generatePaymentToken(), this.createCheckout()];
-    const promises = [this.generatePaymentToken(), this.createCheckout()];
+    const promises = [this.generatePaymentToken(), this.visitSite(), this.createCheckout()];
     const results = await Promise.all(promises.map(reflect));
     if (results.filter(res => res.status === 'rejected').length > 0) {
       // let's do task setup later
       this._context.isSetup = false;
       this._logger.verbose(
         'Task setup failed: %j',
-        results.filter(res => res.status === 'rejected')
+        results.filter(res => res.status === 'rejected'),
       );
       this._emitTaskEvent({
         message: 'Doing task setup later',
@@ -337,10 +347,7 @@ class TaskRunner {
   async _handleMonitor() {
     const res = await this._monitor.run();
     if (res.errors) {
-      this._logger.verbose(
-        'Monitor Handler completed with errors: %j',
-        res.errors
-      );
+      this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
       this._emitTaskEvent({
         message: 'Error monitoring product...',
         errors: res.errors,
@@ -381,10 +388,7 @@ class TaskRunner {
     // start recording our time taken to checkout
     const res = await this._checkout.run();
     if (res.errors) {
-      this._logger.verbose(
-        'Checkout Handler completed with errors: %j',
-        res.errors
-      );
+      this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
       this._emitTaskEvent({
         message: 'Errors during Checkout!',
         errors: res.errors,

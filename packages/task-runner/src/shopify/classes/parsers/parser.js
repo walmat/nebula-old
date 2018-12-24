@@ -4,12 +4,7 @@ const rp = require('request-promise').defaults({
   timeout: 10000,
   jar,
 });
-const {
-  ParseType,
-  getParseType,
-  matchVariant,
-  matchKeywords,
-} = require('../utils/parse');
+const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
 const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
 
@@ -29,11 +24,7 @@ class Parser {
   static getFullProductInfo(productUrl, logger) {
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Parser: Getting Full Product Info...');
-    _logger.log(
-      'silly',
-      'Parser: Requesting %s.(json|oembed) in a race',
-      productUrl
-    );
+    _logger.log('silly', 'Parser: Requesting %s.(json|oembed) in a race', productUrl);
     const genRequestPromise = uri =>
       rp({
         method: 'GET',
@@ -58,7 +49,7 @@ class Parser {
             const err = new Error(error.message);
             err.status = error.statusCode || 404;
             throw err;
-          }
+          },
         ),
         genRequestPromise(`${productUrl}.oembed`).then(
           res => {
@@ -81,10 +72,10 @@ class Parser {
             const err = new Error(error.message);
             err.status = error.statusCode || 404;
             throw err;
-          }
+          },
         ),
       ],
-      `productInfo - ${productUrl}`
+      `productInfo - ${productUrl}`,
     );
   }
 
@@ -109,9 +100,7 @@ class Parser {
   }
 
   async run() {
-    throw new Error(
-      'Not Implemented! This should be implemented by subclasses!'
-    );
+    throw new Error('Not Implemented! This should be implemented by subclasses!');
   }
 
   /**
@@ -121,21 +110,10 @@ class Parser {
     this._logger.silly('%s: starting parse...', this._name);
     switch (this._type) {
       case ParseType.Variant: {
-        this._logger.silly(
-          '%s: parsing type %s detected',
-          this._name,
-          this._type
-        );
-        const product = matchVariant(
-          products,
-          this._task.product.variant,
-          this._logger
-        );
+        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
+        const product = matchVariant(products, this._task.product.variant, this._logger);
         if (!product) {
-          this._logger.silly(
-            '%s: Unable to find matching product! throwing error',
-            this._name
-          );
+          this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?
           const error = new Error('ProductNotFound');
           error.status = ErrorCodes.ProductNotFound;
@@ -145,21 +123,14 @@ class Parser {
         return product;
       }
       case ParseType.Keywords: {
-        this._logger.silly(
-          '%s: parsing type %s detected',
-          this._name,
-          this._type
-        );
+        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
         const keywords = {
           pos: this._task.product.pos_keywords,
           neg: this._task.product.neg_keywords,
         };
         const product = matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
         if (!product) {
-          this._logger.silly(
-            '%s: Unable to find matching product! throwing error',
-            this._name
-          );
+          this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?
           const error = new Error('ProductNotFound');
           error.status = ErrorCodes.ProductNotFound;
@@ -169,11 +140,7 @@ class Parser {
         return product;
       }
       default: {
-        this._logger.silly(
-          '%s: Invalid parsing type %s! throwing error',
-          this._name,
-          this._type
-        );
+        this._logger.silly('%s: Invalid parsing type %s! throwing error', this._name, this._type);
         // TODO: Create an ErrorCode for this
         throw new Error('InvalidParseType');
       }

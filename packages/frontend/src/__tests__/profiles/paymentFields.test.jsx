@@ -7,11 +7,7 @@ import {
   mapStateToProps,
   mapDispatchToProps,
 } from '../../profiles/paymentFields';
-import {
-  PROFILE_FIELDS,
-  PAYMENT_FIELDS,
-  profileActions,
-} from '../../state/actions';
+import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../../state/actions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
 
 describe('<PaymentFields />', () => {
@@ -20,11 +16,7 @@ describe('<PaymentFields />', () => {
       ...initialProfileStates.payment,
     };
     const wrapper = shallow(
-      <PaymentFieldsPrimitive
-        onChange={() => {}}
-        value={payment}
-        errors={payment.errors}
-      />
+      <PaymentFieldsPrimitive onChange={() => {}} value={payment} errors={payment.errors} />,
     );
     expect(wrapper.find('#email')).toHaveLength(1);
     expect(wrapper.find('#expiration')).toHaveLength(1);
@@ -39,11 +31,7 @@ describe('<PaymentFields />', () => {
         [field]: value1,
       };
       const wrapper = shallow(
-        <PaymentFieldsPrimitive
-          onChange={() => {}}
-          value={payment}
-          errors={payment.errors}
-        />
+        <PaymentFieldsPrimitive onChange={() => {}} value={payment} errors={payment.errors} />,
       );
       let inputField = wrapper.find(`#${id}`);
       expect(inputField).toHaveLength(1);
@@ -60,12 +48,7 @@ describe('<PaymentFields />', () => {
     };
 
     test('email', () => {
-      testFieldValue(
-        'email',
-        PAYMENT_FIELDS.EMAIL,
-        'test@me.com',
-        'test.2@me.com'
-      );
+      testFieldValue('email', PAYMENT_FIELDS.EMAIL, 'test@me.com', 'test.2@me.com');
     });
 
     test('card number', () => {
@@ -73,7 +56,7 @@ describe('<PaymentFields />', () => {
         'card-number',
         PAYMENT_FIELDS.CARD_NUMBER,
         '1234 5678 9012 3456',
-        '4111 1111 1111 1111'
+        '4111 1111 1111 1111',
       );
     });
 
@@ -91,11 +74,7 @@ describe('<PaymentFields />', () => {
       const input = { ...initialProfileStates.payment };
       const onChangeHandler = jest.fn();
       const wrapper = shallow(
-        <PaymentFieldsPrimitive
-          onChange={onChangeHandler}
-          value={input}
-          errors={input.errors}
-        />
+        <PaymentFieldsPrimitive onChange={onChangeHandler} value={input} errors={input.errors} />,
       );
       const inputField = wrapper.find(`#${id}`);
       expect(inputField).toHaveLength(1);
@@ -107,7 +86,7 @@ describe('<PaymentFields />', () => {
       testOnChange(
         'email',
         { target: { value: 'newemail' } },
-        { field: PAYMENT_FIELDS.EMAIL, value: 'newemail' }
+        { field: PAYMENT_FIELDS.EMAIL, value: 'newemail' },
       );
     });
 
@@ -115,7 +94,7 @@ describe('<PaymentFields />', () => {
       testOnChange(
         'card-number',
         { target: { value: '1234567890123456' } },
-        { field: PAYMENT_FIELDS.CARD_NUMBER, value: '1234567890123456' }
+        { field: PAYMENT_FIELDS.CARD_NUMBER, value: '1234567890123456' },
       );
     });
 
@@ -123,7 +102,7 @@ describe('<PaymentFields />', () => {
       testOnChange(
         'expiration',
         { target: { value: '12/34' } },
-        { field: PAYMENT_FIELDS.EXP, value: '12/34' }
+        { field: PAYMENT_FIELDS.EXP, value: '12/34' },
       );
     });
 
@@ -131,7 +110,7 @@ describe('<PaymentFields />', () => {
       testOnChange(
         'cvv',
         { target: { value: '1234' } },
-        { field: PAYMENT_FIELDS.CVV, value: '1234' }
+        { field: PAYMENT_FIELDS.CVV, value: '1234' },
       );
     });
   });
@@ -163,12 +142,7 @@ describe('<PaymentFields />', () => {
     expect(actual.onChange).toBeDefined();
     actual.onChange(changes);
     expect(dispatch).toHaveBeenCalledWith(
-      profileActions.edit(
-        'test',
-        PROFILE_FIELDS.EDIT_PAYMENT,
-        changes.value,
-        changes.field
-      )
+      profileActions.edit('test', PROFILE_FIELDS.EDIT_PAYMENT, changes.value, changes.field),
     );
   });
 });

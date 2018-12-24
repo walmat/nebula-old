@@ -26,7 +26,7 @@ describe('<AWSCredentials />', () => {
         onValidateAws={renderProps.onValidateAws}
         onLogoutAws={renderProps.onLogoutAws}
         onKeyPress={renderProps.onKeyPress}
-      />
+      />,
     );
   };
 
@@ -42,14 +42,8 @@ describe('<AWSCredentials />', () => {
   it('should render with required props', () => {
     const wrapper = renderShallowWithProps();
     expect(wrapper.find('.server-credentials')).toHaveLength(1);
-    const accessKeyInput = getByTestId(
-      wrapper,
-      'AWSCredentials.accessKeyInput'
-    );
-    const secretKeyInput = getByTestId(
-      wrapper,
-      'AWSCredentials.secretKeyInput'
-    );
+    const accessKeyInput = getByTestId(wrapper, 'AWSCredentials.accessKeyInput');
+    const secretKeyInput = getByTestId(wrapper, 'AWSCredentials.secretKeyInput');
     const submitButton = getByTestId(wrapper, 'AWSCredentials.submitButton');
     expect(accessKeyInput).toHaveLength(1);
     expect(accessKeyInput.prop('value')).toBe('');
@@ -75,14 +69,8 @@ describe('<AWSCredentials />', () => {
       onKeyPress: jest.fn(),
     };
     const wrapper = renderShallowWithProps(customProps);
-    const accessKeyInput = getByTestId(
-      wrapper,
-      'AWSCredentials.accessKeyInput'
-    );
-    const secretKeyInput = getByTestId(
-      wrapper,
-      'AWSCredentials.secretKeyInput'
-    );
+    const accessKeyInput = getByTestId(wrapper, 'AWSCredentials.accessKeyInput');
+    const secretKeyInput = getByTestId(wrapper, 'AWSCredentials.secretKeyInput');
     const submitButton = getByTestId(wrapper, 'AWSCredentials.submitButton');
     expect(accessKeyInput).toHaveLength(1);
     expect(accessKeyInput.prop('value')).toBe('testAccessKey');
@@ -219,9 +207,7 @@ describe('<AWSCredentials />', () => {
       };
       submitButton.simulate('click', ev);
       expect(ev.preventDefault).toHaveBeenCalled();
-      expect(customProps.onValidateAws).toHaveBeenCalledWith(
-        customProps.serverInfo.credentials
-      );
+      expect(customProps.onValidateAws).toHaveBeenCalledWith(customProps.serverInfo.credentials);
     });
   });
 
@@ -239,14 +225,11 @@ describe('<AWSCredentials />', () => {
         onEditServerInfo: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const accessKeyInput = getByTestId(
-        wrapper,
-        'AWSCredentials.accessKeyInput'
-      );
+      const accessKeyInput = getByTestId(wrapper, 'AWSCredentials.accessKeyInput');
       accessKeyInput.simulate('change', { target: { value: 'newAccess' } });
       expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
         SERVER_FIELDS.EDIT_AWS_ACCESS_KEY,
-        'newAccess'
+        'newAccess',
       );
     });
 
@@ -263,14 +246,11 @@ describe('<AWSCredentials />', () => {
         onEditServerInfo: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const secretKeyInput = getByTestId(
-        wrapper,
-        'AWSCredentials.secretKeyInput'
-      );
+      const secretKeyInput = getByTestId(wrapper, 'AWSCredentials.secretKeyInput');
       secretKeyInput.simulate('change', { target: { value: 'newSecret' } });
       expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
         SERVER_FIELDS.EDIT_AWS_SECRET_KEY,
-        'newSecret'
+        'newSecret',
       );
     });
   });
@@ -295,7 +275,7 @@ describe('<AWSCredentials />', () => {
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      serverActions.edit(null, 'test_field', 'test_value')
+      serverActions.edit(null, 'test_field', 'test_value'),
     );
     expect(dispatch).toHaveBeenNthCalledWith(2, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(3, expect.any(Function));

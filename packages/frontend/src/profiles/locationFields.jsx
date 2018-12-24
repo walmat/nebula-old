@@ -5,11 +5,7 @@ import PropTypes from 'prop-types';
 import defns from '../utils/definitions/profileDefinitions';
 import getAllCountries from '../constants/getAllCountries';
 import getAllStates from '../constants/getAllStates';
-import {
-  LOCATION_FIELDS,
-  profileActions,
-  mapProfileFieldToKey,
-} from '../state/actions';
+import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/actions';
 import './profiles.css';
 import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
@@ -48,9 +44,7 @@ export class LocationFieldsPrimitive extends Component {
 
   isStatesDisabled() {
     const { value, disabled } = this.props;
-    return (
-      (value.country && value.country.label !== 'United States') || disabled
-    );
+    return (value.country && value.country.label !== 'United States') || disabled;
   }
 
   render() {
@@ -110,9 +104,7 @@ export class LocationFieldsPrimitive extends Component {
           options={LocationFieldsPrimitive.buildStateOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
           value={value.state}
-          styles={colourStyles(
-            buildStyle(disabled, errors[LOCATION_FIELDS.STATE])
-          )}
+          styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.STATE]))}
           isDisabled={this.isStatesDisabled()}
         />
         <input
@@ -133,9 +125,7 @@ export class LocationFieldsPrimitive extends Component {
           options={LocationFieldsPrimitive.buildCountryOptions()}
           onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
           value={value.country}
-          styles={colourStyles(
-            buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY])
-          )}
+          styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]))}
           isDisabled={disabled}
         />
         <input
@@ -163,8 +153,7 @@ LocationFieldsPrimitive.propTypes = {
 export const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
   disabled: ownProps.disabled,
-  errors:
-    ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]].errors,
+  errors: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]].errors,
   value: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]],
 });
 
@@ -175,13 +164,13 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
         ownProps.profileToEdit.id,
         ownProps.fieldToEdit,
         changes.value,
-        changes.field
-      )
+        changes.field,
+      ),
     );
   },
 });
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(LocationFieldsPrimitive);

@@ -2,11 +2,7 @@
 import React from 'react';
 import { shallow, mount } from 'enzyme';
 
-import {
-  ProxyListPrimitive,
-  mapStateToProps,
-  mapDispatchToProps,
-} from '../../settings/proxyList';
+import { ProxyListPrimitive, mapStateToProps, mapDispatchToProps } from '../../settings/proxyList';
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
 import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
 
@@ -24,12 +20,11 @@ describe('<ProxyList />', () => {
         proxies={renderProps.proxies}
         errors={renderProps.errors}
         onUpdateProxies={renderProps.onUpdateProxies}
-      />
+      />,
     );
   };
 
-  const renderShallowWithProps = customProps =>
-    getWrapper(shallow, customProps);
+  const renderShallowWithProps = customProps => getWrapper(shallow, customProps);
 
   const renderMountWithProps = customProps => getWrapper(mount, customProps);
 
@@ -172,10 +167,7 @@ describe('<ProxyList />', () => {
       expect(wrapper.state('editing')).toBeFalsy();
       expect(wrapper.state('reduxUpdate')).toBeFalsy();
       expect(customProps.onUpdateProxies).toHaveBeenCalledTimes(1);
-      expect(customProps.onUpdateProxies.mock.calls[0][0]).toEqual([
-        'test',
-        'test2',
-      ]);
+      expect(customProps.onUpdateProxies.mock.calls[0][0]).toEqual(['test', 'test2']);
     });
   });
 
@@ -195,11 +187,7 @@ describe('<ProxyList />', () => {
       return { wrapper, domNodeRef };
     };
 
-    const performWindowDocumentSetup = (
-      supportedCommand,
-      execCommandHandler,
-      clipboardData
-    ) => {
+    const performWindowDocumentSetup = (supportedCommand, execCommandHandler, clipboardData) => {
       global.__registerSupportedCommand(supportedCommand);
       global.__registerNextExecCommandHandler(execCommandHandler);
       global.window.clipboardData = clipboardData;
@@ -241,7 +229,7 @@ describe('<ProxyList />', () => {
       expect(execCommandHandler).toHaveBeenCalledWith(
         'insertText',
         false,
-        'testing \n and this \n\n \n \n'
+        'testing \n and this \n\n \n \n',
       );
       expect(wrapper.state('reduxUpdate')).toBeTruthy();
       expect(wrapper.state('editing')).toBeTruthy();
@@ -278,7 +266,7 @@ describe('<ProxyList />', () => {
       expect(execCommandHandler).toHaveBeenCalledWith(
         'insertText',
         false,
-        'testing \n and this \n\n \n \n'
+        'testing \n and this \n\n \n \n',
       );
       expect(wrapper.state('reduxUpdate')).toBeTruthy();
       expect(wrapper.state('editing')).toBeTruthy();
@@ -316,7 +304,7 @@ describe('<ProxyList />', () => {
       expect(execCommandHandler).toHaveBeenCalledWith(
         'paste',
         false,
-        'testing \n and this \n\n \n \n'
+        'testing \n and this \n\n \n \n',
       );
       expect(wrapper.state('reduxUpdate')).toBeTruthy();
       expect(wrapper.state('editing')).toBeTruthy();
@@ -393,10 +381,7 @@ describe('<ProxyList />', () => {
 
   test('map dispatch to props should return correct structure', () => {
     const dispatch = jest.fn();
-    const expectedAction = settingsActions.edit(
-      SETTINGS_FIELDS.EDIT_PROXIES,
-      'data'
-    );
+    const expectedAction = settingsActions.edit(SETTINGS_FIELDS.EDIT_PROXIES, 'data');
     const actual = mapDispatchToProps(dispatch);
     actual.onUpdateProxies('data');
     expect(dispatch).toHaveBeenCalledWith(expectedAction);

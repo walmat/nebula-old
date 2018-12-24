@@ -10,11 +10,7 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
-import {
-  settingsActions,
-  mapSettingsFieldToKey,
-  SETTINGS_FIELDS,
-} from '../state/actions';
+import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 
 export class SettingsPrimitive extends Component {
@@ -79,13 +75,7 @@ export class SettingsPrimitive extends Component {
   }
 
   render() {
-    const {
-      errors,
-      settings,
-      onKeyPress,
-      onSaveDefaults,
-      onClearDefaults,
-    } = this.props;
+    const { errors, settings, onKeyPress, onSaveDefaults, onClearDefaults } = this.props;
     let defaultProfileValue = null;
     if (settings.defaults.profile.id !== null) {
       defaultProfileValue = {
@@ -108,11 +98,7 @@ export class SettingsPrimitive extends Component {
 
         {/* CAPTCHA Window */}
         {/* <button type="button" id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
-        <button
-          type="button"
-          id="proxy-button-captcha"
-          onClick={SettingsPrimitive.harvester}
-        >
+        <button type="button" id="proxy-button-captcha" onClick={SettingsPrimitive.harvester}>
           Captcha Window
         </button>
         <button
@@ -129,10 +115,7 @@ export class SettingsPrimitive extends Component {
           id="discord-input"
           placeholder="https://discordapp.com/api/webhooks/..."
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
-          style={buildStyle(
-            false,
-            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]]
-          )}
+          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]])}
           value={settings.discord}
         />
         <p id="slack-label">Slack URL</p>
@@ -140,10 +123,7 @@ export class SettingsPrimitive extends Component {
           id="slack-input"
           placeholder="https://hooks.slack.com/services/..."
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
-          style={buildStyle(
-            false,
-            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]]
-          )}
+          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]])}
           value={settings.slack}
         />
 
@@ -160,16 +140,9 @@ export class SettingsPrimitive extends Component {
           id="default-profile"
           classNamePrefix="select"
           styles={colourStyles(
-            buildStyle(
-              false,
-              errors[
-                mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]
-              ]
-            )
+            buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]]),
           )}
-          onChange={this.createOnChangeHandler(
-            SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE
-          )}
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE)}
           value={defaultProfileValue}
           options={this.buildProfileOptions()}
         />
@@ -184,14 +157,9 @@ export class SettingsPrimitive extends Component {
           id="default-sizes"
           classNamePrefix="select"
           styles={colourStyles(
-            buildStyle(
-              false,
-              errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]]
-            )
+            buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]]),
           )}
-          onChange={this.createOnChangeHandler(
-            SETTINGS_FIELDS.EDIT_DEFAULT_SIZES
-          )}
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
           value={settings.defaults.sizes.map(size => ({
             value: size.value,
             label: size.label,
@@ -230,11 +198,9 @@ export class SettingsPrimitive extends Component {
           id="monitor-input"
           style={buildStyle(
             false,
-            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_MONITOR_DELAY]]
+            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_MONITOR_DELAY]],
           )}
-          onChange={this.createOnChangeHandler(
-            SETTINGS_FIELDS.EDIT_MONITOR_DELAY
-          )}
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_MONITOR_DELAY)}
           required
         />
 
@@ -243,13 +209,8 @@ export class SettingsPrimitive extends Component {
           value={settings.errorDelay}
           placeholder="1500"
           id="error-input"
-          style={buildStyle(
-            false,
-            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ERROR_DELAY]]
-          )}
-          onChange={this.createOnChangeHandler(
-            SETTINGS_FIELDS.EDIT_ERROR_DELAY
-          )}
+          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ERROR_DELAY]])}
+          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_ERROR_DELAY)}
           required
         />
       </div>
@@ -291,5 +252,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(SettingsPrimitive);

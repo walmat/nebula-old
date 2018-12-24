@@ -4,12 +4,7 @@ const _ = require('underscore');
 const fs = require('fs');
 const path = require('path');
 const { States } = require('./utils/constants').TaskRunner;
-const {
-  waitForDelay,
-  formatProxy,
-  userAgent,
-  getRandomIntInclusive,
-} = require('./utils');
+const { waitForDelay, formatProxy, userAgent, getRandomIntInclusive } = require('./utils');
 const { buildPaymentTokenForm } = require('./utils/forms');
 
 class Checkout {
@@ -150,9 +145,7 @@ class Checkout {
     this._checkoutToken = '';
     this._storeId = '';
     this._paymentUrlKey = '';
-    this._basicAuth = Buffer.from(`${this._task.site.apiKey}::`).toString(
-      'base64'
-    );
+    this._basicAuth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
     this._prices = {
       item: 0,
       shipping: 0,
@@ -203,6 +196,29 @@ class Checkout {
       });
   }
 
+  async _handleVisitSite() {
+    this._request({
+      uri: this._task.site.url,
+      followAllRedirects: true,
+      proxy: formatProxy(this._proxy),
+      rejectUnauthorized: false,
+      method: 'get',
+      jar: this._jar,
+      resolveWithFullResponse: true,
+      headers: {
+        'User-Agent': userAgent,
+        'Content-Type': 'application/json',
+        Connection: 'Keep-Alive',
+      },
+    }).then(res => {
+      console.log(res.headers['set-cookie']);
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        return true;
+      }
+      return false;
+    });
+  }
+
   /**
    * Create a valid checkout token with user data
    */
@@ -211,34 +227,28 @@ class Checkout {
 
     const dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
       this._task.profile.payment.email
-    }","shipping_address":{"first_name":"${
-      this._task.profile.shipping.firstName
-    }","last_name":"${this._task.profile.shipping.lastName}","address1":"${
-      this._task.profile.shipping.address
-    }","address2":"${this._task.profile.shipping.apt}","company":null,"city":"${
-      this._task.profile.shipping.city
-    }","country_code":"${
+    }","shipping_address":{"first_name":"${this._task.profile.shipping.firstName}","last_name":"${
+      this._task.profile.shipping.lastName
+    }","address1":"${this._task.profile.shipping.address}","address2":"${
+      this._task.profile.shipping.apt
+    }","company":null,"city":"${this._task.profile.shipping.city}","country_code":"${
       this._task.profile.shipping.country.value
     }","province_code":"${
       this._task.profile.shipping.state.value
     }","phone":"${phoneFormatter.format(
       this._task.profile.shipping.phone,
-      '(NNN) NNN-NNNN'
-    )}","zip":"${
-      this._task.profile.shipping.zipCode
-    }"},"billing_address":{"first_name":"${
+      '(NNN) NNN-NNNN',
+    )}","zip":"${this._task.profile.shipping.zipCode}"},"billing_address":{"first_name":"${
       this._task.profile.billing.firstName
     }","last_name":"${this._task.profile.billing.lastName}","address1":"${
       this._task.profile.billing.address
     }","address2":"${this._task.profile.billing.apt}","company":null,"city":"${
       this._task.profile.billing.city
-    }","country_code":"${
-      this._task.profile.billing.country.value
-    }","province_code":"${
+    }","country_code":"${this._task.profile.billing.country.value}","province_code":"${
       this._task.profile.billing.state.value
     }","phone":"${phoneFormatter.format(
       this._task.profile.billing.phone,
-      '(NNN) NNN-NNNN'
+      '(NNN) NNN-NNNN',
     )}","zip":"${this._task.profile.billing.zipCode}"}}}`;
     const headers = {
       Accept: 'application/json',
@@ -267,20 +277,14 @@ class Checkout {
         console.log(body);
 
         if (res.statusCode === 303) {
-          this._logger.info(
-            'Checkout queue, polling %d ms',
-            Checkout.Delays.CheckoutQueue
-          );
+          this._logger.info('Checkout queue, polling %d ms', Checkout.Delays.CheckoutQueue);
           await waitForDelay(Checkout.Delays.PollCheckoutQueue);
           // TODO
           return { code: 303, res: null };
         }
         if (body.checkout) {
           // push the checkout token to the stack
-          this._logger.info(
-            'Created checkout token: %s',
-            body.checkout.clone_url.split('/')[5]
-          );
+          this._logger.info('Created checkout token: %s', body.checkout.clone_url.split('/')[5]);
           // eslint-disable-next-line prefer-destructuring
           this._storeId = body.checkout.clone_url.split('/')[3];
           // eslint-disable-next-line prefer-destructuring
@@ -332,9 +336,7 @@ class Checkout {
       this._logger.verbose('Adding to cart.');
       this._checkoutToken = this._checkoutTokens.pop();
       return this._request({
-        uri: `${this._task.site.url}/wallets/checkouts/${
-          this._checkoutToken
-        }.json`,
+        uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}.json`,
         method: 'PATCH',
         proxy: formatProxy(this._proxy),
         simple: false,
@@ -373,9 +375,7 @@ class Checkout {
             this._logger.info('Added to cart.');
 
             // update item prices
-            this._prices.item = parseFloat(
-              res.body.checkout.total_price
-            ).toFixed(2);
+            this._prices.item = parseFloat(res.body.checkout.total_price).toFixed(2);
             return {
               message: 'Added to cart',
               nextState: Checkout.States.GetShippingRates,
@@ -420,9 +420,7 @@ class Checkout {
     };
 
     return this._request({
-      uri: `${this._task.site.url}/wallets/checkouts/${
-        this._checkoutToken
-      }/shipping_rates.json`,
+      uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
       proxy: formatProxy(this._proxy),
       followAllRedirects: true,
       rejectUnauthorized: false,
@@ -437,19 +435,13 @@ class Checkout {
             this._shippingMethods.push(rate);
           });
 
-          const cheapest = _.min(
-            this._shippingMethods.toArray(),
-            rate => rate.price
-          );
+          const cheapest = _.min(this._shippingMethods.toArray(), rate => rate.price);
 
           this._chosenShippingMethod = {
             id: cheapest.id,
             name: cheapest.title,
           };
-          this._logger.info(
-            'Got shipping method: %s',
-            this._chosenShippingMethod.name
-          );
+          this._logger.info('Got shipping method: %s', this._chosenShippingMethod.name);
 
           // set total price for cart
           this._prices.shipping = parseFloat(cheapest.price).toFixed(2);
@@ -462,13 +454,13 @@ class Checkout {
         // TODO -- limit this more maybe?
         this._logger.info(
           'No shipping rates available, polling %d ms',
-          Checkout.Delays.PollShippingRates
+          Checkout.Delays.PollShippingRates,
         );
         // poll queue
         return Checkout._handlePoll(
           Checkout.Delays.PollShippingRates,
           'Polling for shipping rates..',
-          Checkout.States.GetShippingRates
+          Checkout.States.GetShippingRates,
         );
       })
       .catch(err => {
@@ -487,10 +479,7 @@ class Checkout {
     this._logger.verbose('CHECKOUT: Getting Solved Captcha...');
     const token = await this._context.getCaptcha();
     if (token) {
-      this._logger.debug(
-        'CHECKOUT: Received token from captcha harvesting: %s',
-        token
-      );
+      this._logger.debug('CHECKOUT: Received token from captcha harvesting: %s', token);
       this._captchaToken = token;
     }
     return {
@@ -527,9 +516,9 @@ class Checkout {
     ).toFixed(2);
 
     return this._request({
-      uri: `${this._task.site.url}/${this._storeId}/checkouts/${
-        this._checkoutToken
-      }?key=${this._paymentUrlKey}`,
+      uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
+        this._paymentUrlKey
+      }`,
       method: 'post',
       followAllRedirects: true,
       resolveWithFullResponse: true,
@@ -538,28 +527,22 @@ class Checkout {
       proxy: formatProxy(this._proxy),
       headers,
       formData: {
-        'utf8': '✓',
-        '_method': 'patch',
-        'authenticity_token': '',
-        'previous_step': 'payment_method',
-        'step': '',
-        's': this._paymentTokens.pop(),
+        utf8: '✓',
+        _method: 'patch',
+        authenticity_token: '',
+        previous_step: 'payment_method',
+        step: '',
+        s: this._paymentTokens.pop(),
         'checkout[payment_gateway]': this._gateway,
         'checkout[remember_me]': '0',
         'checkout[total_price]': this._prices.total,
-        'complete': '1',
-        'checkout[client_details][browser_width]': getRandomIntInclusive(
-          900,
-          970
-        ),
-        'checkout[client_details][browser_height]': getRandomIntInclusive(
-          600,
-          670
-        ),
+        complete: '1',
+        'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+        'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
         'checkout[client_details][javascript_enabled]': '1',
         'checkout[buyer_accepts_marketing]': '0',
         'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
-        'button': '',
+        button: '',
         'g-recaptcha-response': this._captchaToken,
       },
       // transform: body => cheerio.load(body),
@@ -583,9 +566,7 @@ class Checkout {
         if (step === Checkout.ShopifySteps.Review) {
           // we're at payment page, send request to review step
           return this._request({
-            uri: `${this._task.site.url}/${this._storeId}/checkouts/${
-              this._checkoutToken
-            }`,
+            uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
             method: 'post',
             proxy: formatProxy(this._proxy),
             followAllRedirects: true,
@@ -597,38 +578,26 @@ class Checkout {
             headers: {
               Origin: `${this._task.site.url}`,
               'Content-Type': 'application/x-www-form-urlencoded',
-              Accept:
-                'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+              Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
               'Accept-Language': 'en-US,en;q=0.8',
-              Referer: `${this._task.site.url}/${this._storeId}/checkouts/${
-                this._checkoutToken
-              }`,
+              Referer: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
               'User-Agent': userAgent,
             },
             formData: {
-              'utf8': '✓',
-              '_method': 'patch',
-              'authenticity_token': '',
+              utf8: '✓',
+              _method: 'patch',
+              authenticity_token: '',
               'checkout[total_price]': this._prices.total,
-              'complete': '1',
-              'button': '',
-              'checkout[client_details][browser_width]': getRandomIntInclusive(
-                900,
-                970
-              ),
-              'checkout[client_details][browser_height]': getRandomIntInclusive(
-                600,
-                670
-              ),
+              complete: '1',
+              button: '',
+              'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+              'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
               'checkout[client_details][javascript_enabled]': '1',
             },
           })
-            .then(res => {
-
-              return this._request({
-                uri: `${this._task.site.url}/wallets/checkouts/${
-                  this._checkoutToken
-                }/payments`,
+            .then(res =>
+              this._request({
+                uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/payments`,
                 method: 'GET',
                 proxy: formatProxy(this._proxy),
                 simple: false,
@@ -642,7 +611,7 @@ class Checkout {
                   console.log(JSON.stringify(response.body, null, 2));
                   fs.writeFileSync(
                     path.join(__dirname, 'payment-3.html'),
-                    JSON.stringify(response.body, null, 2)
+                    JSON.stringify(response.body, null, 2),
                   );
                   return {
                     message: `Payment failed`,
@@ -655,8 +624,8 @@ class Checkout {
                     message: 'Failed: posting payment',
                     nextState: States.Stopped,
                   };
-                });
-            })
+                }),
+            )
             .catch(err => {
               this._logger.verbose('Failed posting payment: %s', err);
               return {

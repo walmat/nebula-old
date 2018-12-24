@@ -27,7 +27,7 @@ describe('<CreateProxies />', () => {
         onGenerateProxies={renderProps.onGenerateProxies}
         onDestroyProxies={renderProps.onDestroyProxies}
         onKeyPress={renderProps.onKeyPress}
-      />
+      />,
     );
   };
 
@@ -44,21 +44,12 @@ describe('<CreateProxies />', () => {
 
   it('should render with required props', () => {
     const wrapper = renderShallowWithProps();
-    const numProxiesInput = getByTestId(
-      wrapper,
-      'CreateProxies.numProxiesInput'
-    );
+    const numProxiesInput = getByTestId(wrapper, 'CreateProxies.numProxiesInput');
     const locationSelect = getByTestId(wrapper, 'CreateProxies.location');
     const usernameInput = getByTestId(wrapper, 'CreateProxies.usernameInput');
     const passwordInput = getByTestId(wrapper, 'CreateProxies.passwordInput');
-    const destroyButton = getByTestId(
-      wrapper,
-      'CreateProxies.destroyProxiesButton'
-    );
-    const generateButton = getByTestId(
-      wrapper,
-      'CreateProxies.generateProxiesButton'
-    );
+    const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
+    const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
     expect(numProxiesInput).toHaveLength(1);
     expect(numProxiesInput.prop('value')).toBe(0);
     expect(locationSelect).toHaveLength(1);
@@ -102,21 +93,12 @@ describe('<CreateProxies />', () => {
       onKeyPress: jest.fn(),
     };
     const wrapper = renderShallowWithProps(customProps);
-    const numProxiesInput = getByTestId(
-      wrapper,
-      'CreateProxies.numProxiesInput'
-    );
+    const numProxiesInput = getByTestId(wrapper, 'CreateProxies.numProxiesInput');
     const locationSelect = getByTestId(wrapper, 'CreateProxies.location');
     const usernameInput = getByTestId(wrapper, 'CreateProxies.usernameInput');
     const passwordInput = getByTestId(wrapper, 'CreateProxies.passwordInput');
-    const destroyButton = getByTestId(
-      wrapper,
-      'CreateProxies.destroyProxiesButton'
-    );
-    const generateButton = getByTestId(
-      wrapper,
-      'CreateProxies.generateProxiesButton'
-    );
+    const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
+    const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
     expect(numProxiesInput).toHaveLength(1);
     expect(numProxiesInput.prop('value')).toBe(10);
     expect(locationSelect).toHaveLength(1);
@@ -148,15 +130,12 @@ describe('<CreateProxies />', () => {
         onEditServerInfo: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const numProxiesInput = getByTestId(
-        wrapper,
-        'CreateProxies.numProxiesInput'
-      );
+      const numProxiesInput = getByTestId(wrapper, 'CreateProxies.numProxiesInput');
       numProxiesInput.simulate('change', { target: { value: 14 } });
       expect(customProps.onEditServerInfo).toHaveBeenCalledTimes(1);
       expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
         SERVER_FIELDS.EDIT_PROXY_NUMBER,
-        14
+        14,
       );
     });
 
@@ -172,14 +151,11 @@ describe('<CreateProxies />', () => {
         value: 'us-east-2',
       });
       expect(customProps.onEditServerInfo).toHaveBeenCalledTimes(1);
-      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
-        SERVER_FIELDS.EDIT_PROXY_LOCATION,
-        {
-          id: 1,
-          label: 'US East (Ohio)',
-          value: 'us-east-2',
-        }
-      );
+      expect(customProps.onEditServerInfo).toHaveBeenCalledWith(SERVER_FIELDS.EDIT_PROXY_LOCATION, {
+        id: 1,
+        label: 'US East (Ohio)',
+        value: 'us-east-2',
+      });
     });
 
     test('proxy username', () => {
@@ -192,7 +168,7 @@ describe('<CreateProxies />', () => {
       expect(customProps.onEditServerInfo).toHaveBeenCalledTimes(1);
       expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
         SERVER_FIELDS.EDIT_PROXY_USERNAME,
-        'newusername'
+        'newusername',
       );
     });
 
@@ -206,7 +182,7 @@ describe('<CreateProxies />', () => {
       expect(customProps.onEditServerInfo).toHaveBeenCalledTimes(1);
       expect(customProps.onEditServerInfo).toHaveBeenCalledWith(
         SERVER_FIELDS.EDIT_PROXY_PASSWORD,
-        'newpassword'
+        'newpassword',
       );
     });
   });
@@ -214,10 +190,7 @@ describe('<CreateProxies />', () => {
   describe('destroy button', () => {
     test('should render correctly when not logged into aws', () => {
       const wrapper = renderShallowWithProps();
-      const destroyButton = getByTestId(
-        wrapper,
-        'CreateProxies.destroyProxiesButton'
-      );
+      const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
       expect(destroyButton.prop('title')).toBe('Login Required');
       expect(destroyButton.prop('disabled')).toBeTruthy();
       expect(destroyButton.prop('style')).toEqual({ cursor: 'not-allowed' });
@@ -235,10 +208,7 @@ describe('<CreateProxies />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const destroyButton = getByTestId(
-        wrapper,
-        'CreateProxies.destroyProxiesButton'
-      );
+      const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
       expect(destroyButton.prop('title')).toBe('');
       expect(destroyButton.prop('disabled')).toBeFalsy();
       expect(destroyButton.prop('style')).toEqual({ cursor: 'pointer' });
@@ -257,10 +227,7 @@ describe('<CreateProxies />', () => {
         onDestroyProxies: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const destroyButton = getByTestId(
-        wrapper,
-        'CreateProxies.destroyProxiesButton'
-      );
+      const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
       destroyButton.simulate('click');
       expect(customProps.onDestroyProxies).toHaveBeenCalled();
     });
@@ -270,10 +237,7 @@ describe('<CreateProxies />', () => {
         onDestroyProxies: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const destroyButton = getByTestId(
-        wrapper,
-        'CreateProxies.destroyProxiesButton'
-      );
+      const destroyButton = getByTestId(wrapper, 'CreateProxies.destroyProxiesButton');
       destroyButton.simulate('click');
       expect(customProps.onDestroyProxies).not.toHaveBeenCalled();
     });
@@ -282,10 +246,7 @@ describe('<CreateProxies />', () => {
   describe('generate button', () => {
     test('should render correctly when not logged into aws', () => {
       const wrapper = renderShallowWithProps();
-      const generateButton = getByTestId(
-        wrapper,
-        'CreateProxies.generateProxiesButton'
-      );
+      const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
       expect(generateButton.prop('title')).toBe('Login Required');
       expect(generateButton.prop('disabled')).toBeTruthy();
       expect(generateButton.prop('style')).toEqual({ cursor: 'not-allowed' });
@@ -303,10 +264,7 @@ describe('<CreateProxies />', () => {
         },
       };
       const wrapper = renderShallowWithProps(customProps);
-      const generateButton = getByTestId(
-        wrapper,
-        'CreateProxies.generateProxiesButton'
-      );
+      const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
       expect(generateButton.prop('title')).toBe('');
       expect(generateButton.prop('disabled')).toBeFalsy();
       expect(generateButton.prop('style')).toEqual({ cursor: 'pointer' });
@@ -325,10 +283,7 @@ describe('<CreateProxies />', () => {
         onGenerateProxies: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const generateButton = getByTestId(
-        wrapper,
-        'CreateProxies.generateProxiesButton'
-      );
+      const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
       generateButton.simulate('click');
       expect(customProps.onGenerateProxies).toHaveBeenCalled();
     });
@@ -338,10 +293,7 @@ describe('<CreateProxies />', () => {
         onGenerateProxies: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const generateButton = getByTestId(
-        wrapper,
-        'CreateProxies.generateProxiesButton'
-      );
+      const generateButton = getByTestId(wrapper, 'CreateProxies.generateProxiesButton');
       generateButton.simulate('click');
       expect(customProps.onGenerateProxies).not.toHaveBeenCalled();
     });
@@ -368,7 +320,7 @@ describe('<CreateProxies />', () => {
     expect(dispatch).toHaveBeenCalledTimes(3);
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
-      serverActions.edit(null, 'test_field', 'test_value')
+      serverActions.edit(null, 'test_field', 'test_value'),
     );
     expect(dispatch).toHaveBeenNthCalledWith(2, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(3, expect.any(Function));

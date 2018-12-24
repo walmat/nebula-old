@@ -18,7 +18,7 @@ const _defaultsShape = {
     PropTypes.shape({
       value: PropTypes.string,
       label: PropTypes.string,
-    })
+    }),
   ),
 };
 

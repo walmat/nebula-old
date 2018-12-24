@@ -29,7 +29,7 @@ class XmlParser extends Parser {
       this._logger.silly(
         '%s: Making request for %s/sitemap_products_1.xml ...',
         this._name,
-        this._task.site.url
+        this._task.site.url,
       );
       const response = await rp({
         method: 'GET',
@@ -50,10 +50,7 @@ class XmlParser extends Parser {
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
-    this._logger.silly(
-      '%s: Received Response, attempting to translate structure...',
-      this._name
-    );
+    this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
     const responseItems = responseJson.urlset.url.filter(i => i['image:image']);
     const products = responseItems.map(item => ({
       url: item.loc[0],
@@ -61,30 +58,18 @@ class XmlParser extends Parser {
       title: item['image:image'][0]['image:title'][0],
       handle: '-', // put an empty placeholder since we only have the title provided
     }));
-    this._logger.silly(
-      '%s: Translated Structure, attempting to match',
-      this._name
-    );
+    this._logger.silly('%s: Translated Structure, attempting to match', this._name);
     const matchedProduct = super.match(products);
 
     if (!matchedProduct) {
       this._logger.silly("%s: Couldn't find a match!", this._name);
       throw new Error('unable to match the product');
     }
-    this._logger.silly(
-      '%s: Product Found! Looking for Variant Info...',
-      this._name
-    );
+    this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
     let fullProductInfo = null;
     try {
-      fullProductInfo = await Parser.getFullProductInfo(
-        matchedProduct.url,
-        this._logger
-      );
-      this._logger.silly(
-        '%s: Full Product Info Found! Merging data and Returning.',
-        this._name
-      );
+      fullProductInfo = await Parser.getFullProductInfo(matchedProduct.url, this._logger);
+      this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
       return {
         ...matchedProduct,
         ...fullProductInfo,

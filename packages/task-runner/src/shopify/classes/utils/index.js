@@ -63,7 +63,7 @@ function trimKeywords(input) {
     word
       .trim()
       .substring(1, word.length)
-      .toUpperCase()
+      .toUpperCase(),
   );
   return ret;
 }
@@ -87,15 +87,14 @@ module.exports.getRandomIntInclusive = getRandomIntInclusive;
 
 function generateRandom(objList) {
   const options = objList.options.filter(
-    ({ label }) => label !== 'Random' && label !== 'Full Size Run'
+    ({ label }) => label !== 'Random' && label !== 'Full Size Run',
   );
   const { value } = options[Math.floor(Math.random() * options.length)];
   return value;
 }
 module.exports.generateRandom = generateRandom;
 
-const reflect = p =>
-  p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
+const reflect = p => p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
 module.exports.reflect = reflect;
 
 // Add in utils from other files

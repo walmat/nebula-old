@@ -2,11 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import defns from '../utils/definitions/serverDefinitions';
-import {
-  SERVER_FIELDS,
-  mapServerFieldToKey,
-  serverActions,
-} from '../state/actions';
+import { SERVER_FIELDS, mapServerFieldToKey, serverActions } from '../state/actions';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
@@ -56,13 +52,9 @@ export class AWSCredentialsPrimitive extends Component {
                   placeholder="IAM User Access"
                   style={buildStyle(
                     false,
-                    errors[
-                      mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]
-                    ]
+                    errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]],
                   )}
-                  onChange={this.createServerInfoChangeHandler(
-                    SERVER_FIELDS.EDIT_AWS_ACCESS_KEY
-                  )}
+                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={serverInfo.credentials.AWSAccessKey}
                   required
                   data-testid={addTestId('AWSCredentials.accessKeyInput')}
@@ -81,11 +73,9 @@ export class AWSCredentialsPrimitive extends Component {
                 placeholder="IAM User Secret"
                 style={buildStyle(
                   false,
-                  errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]]
+                  errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]],
                 )}
-                onChange={this.createServerInfoChangeHandler(
-                  SERVER_FIELDS.EDIT_AWS_SECRET_KEY
-                )}
+                onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                 value={serverInfo.credentials.AWSSecretKey}
                 required
                 data-testid={addTestId('AWSCredentials.secretKeyInput')}
@@ -145,5 +135,5 @@ export const mapDispatchToProps = dispatch => ({
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(AWSCredentialsPrimitive);

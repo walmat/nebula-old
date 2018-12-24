@@ -37,11 +37,7 @@ class DsmParser extends SpecialParser {
       };
       items = matchKeywords(parsedItems, keywords, null, null, true) || [];
     }
-    this._logger.silly(
-      '%s: parsing inital page, found %d items',
-      this._name,
-      items.length
-    );
+    this._logger.silly('%s: parsing inital page, found %d items', this._name, items.length);
 
     if (!items.length) {
       // If no products are found, throw an error, but specify a special status to stop the task
@@ -52,9 +48,7 @@ class DsmParser extends SpecialParser {
     }
 
     // Convert items to full urls
-    const productUrls = items.map(
-      ({ link }) => new URL(link, this._task.site.url).href
-    );
+    const productUrls = items.map(({ link }) => new URL(link, this._task.site.url).href);
 
     return productUrls;
   }

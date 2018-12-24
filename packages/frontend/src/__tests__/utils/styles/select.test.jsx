@@ -20,7 +20,7 @@ describe('Custom Select', () => {
             { value: 'test3', label: 'testLabel3' },
           ]}
           menuIsOpen={false}
-        />
+        />,
       );
       expect(wrapper.find(components.DropdownIndicator)).toHaveLength(1);
       let indicator = wrapper.find(components.DropdownIndicator);

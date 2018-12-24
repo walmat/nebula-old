@@ -1,9 +1,4 @@
-import {
-  SERVER_FIELDS,
-  SERVER_ACTIONS,
-  mapServerFieldToKey,
-  subMapToKey,
-} from '../../actions';
+import { SERVER_FIELDS, SERVER_ACTIONS, mapServerFieldToKey, subMapToKey } from '../../actions';
 import { initialServerStates } from '../../../utils/definitions/serverDefinitions';
 
 export function serverReducer(state = initialServerStates.serverInfo, action) {
@@ -45,19 +40,17 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
     change.errors = Object.assign(
       {},
       state[mapServerFieldToKey[action.field]].errors,
-      action.errors
+      action.errors,
     );
 
     // Edit the correct part of the next state based on the given field
     nextState[mapServerFieldToKey[action.field]] = Object.assign(
       {},
       nextState[mapServerFieldToKey[action.field]],
-      change
+      change,
     );
   } else if (action.type === SERVER_ACTIONS.ERROR) {
-    console.error(
-      `Error trying to perform: ${action.action}! Reason: ${action.error}`
-    );
+    console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
     nextState.proxies = action.proxies;
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
@@ -87,10 +80,7 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
   return nextState;
 }
 
-export function serverListReducer(
-  state = initialServerStates.serverList,
-  action
-) {
+export function serverListReducer(state = initialServerStates.serverList, action) {
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
@@ -103,9 +93,7 @@ export function serverListReducer(
     }
     case SERVER_ACTIONS.CREATE: {
       // perform a deep copy of given profile
-      const serverOptions = JSON.parse(
-        JSON.stringify(action.serverInfo.serverOptions)
-      );
+      const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
       const newServer = {
         id: action.serverInfo.path,
         type: serverOptions.type,
@@ -119,7 +107,7 @@ export function serverListReducer(
     }
     case SERVER_ACTIONS.DESTROY: {
       nextState = nextState.filter(
-        s => s.id !== action.serverPath.TerminatingInstances[0].InstanceId
+        s => s.id !== action.serverPath.TerminatingInstances[0].InstanceId,
       );
       break;
     }

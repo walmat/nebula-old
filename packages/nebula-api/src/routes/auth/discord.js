@@ -38,9 +38,7 @@ async function createDiscordUser(res, userData) {
     });
   }
 
-  const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(
-    discordIdHash
-  );
+  const isDiscordAccountPresent = await authUtils.isDiscordAccountPresent(discordIdHash);
 
   if (!isDiscordAccountPresent) {
     await authUtils.addDiscordUser(keyHash, discordIdHash);
