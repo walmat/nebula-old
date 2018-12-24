@@ -60,14 +60,8 @@ function _createLogger({ dir, name, filename }) {
 
   // Define the transports to use for this logger
   const transports = [
-    new winston.transports.File({
-      name: 'specific',
-      filename: path.join(dirname, filename),
-    }),
-    new winston.transports.File({
-      name: 'combined',
-      filename: path.join(dirname, 'combined.log'),
-    }),
+    new winston.transports.File({ name: 'specific', filename: path.join(dirname, filename) }),
+    new winston.transports.File({ name: 'combined', filename: path.join(dirname, 'combined.log') }),
   ];
   if (_isDevelopment || process.env.NEBULA_ENABLE_CONSOLE) {
     // Add console transport only when in dev mode or if we define the enable flag

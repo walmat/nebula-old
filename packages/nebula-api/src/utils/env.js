@@ -43,9 +43,4 @@ function setUpEnvironment() {
   }
 }
 
-module.exports = {
-  setUpDevEnvironment,
-  setUpProdEnvironment,
-  setUpEnvironment,
-  isDevelopment,
-};
+module.exports = { setUpDevEnvironment, setUpProdEnvironment, setUpEnvironment, isDevelopment };

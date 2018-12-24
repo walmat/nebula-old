@@ -559,9 +559,7 @@ describe('<TaskRow />', () => {
         const wrapper = renderShallowWithProps(customProps);
         initialTests(wrapper);
         testTableRowValues(wrapper, {});
-        testEditMenuValues(wrapper, {
-          profile: { value: 1, label: 'test name' },
-        });
+        testEditMenuValues(wrapper, { profile: { value: 1, label: 'test name' } });
       });
 
       test('one size is given', () => {
@@ -575,9 +573,7 @@ describe('<TaskRow />', () => {
         const wrapper = renderShallowWithProps(customProps);
         initialTests(wrapper);
         testTableRowValues(wrapper, {});
-        testEditMenuValues(wrapper, {
-          sizes: [{ value: '4.5', label: '4.5' }],
-        });
+        testEditMenuValues(wrapper, { sizes: [{ value: '4.5', label: '4.5' }] });
       });
 
       test('multiple sizes are given', () => {
@@ -616,9 +612,7 @@ describe('<TaskRow />', () => {
         const wrapper = renderShallowWithProps(customProps);
         initialTests(wrapper);
         testTableRowValues(wrapper, {});
-        testEditMenuValues(wrapper, {
-          site: { value: 'test url', label: 'test name' },
-        });
+        testEditMenuValues(wrapper, { site: { value: 'test url', label: 'test name' } });
       });
 
       test('username is given', () => {

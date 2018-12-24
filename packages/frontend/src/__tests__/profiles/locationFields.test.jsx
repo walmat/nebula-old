@@ -205,10 +205,7 @@ describe('<LocationFields />', () => {
 
     test('state', () => {
       const event = { value: 'testState', label: 'testStateLabel' };
-      testOnChange('state', event, {
-        field: LOCATION_FIELDS.STATE,
-        value: event,
-      });
+      testOnChange('state', event, { field: LOCATION_FIELDS.STATE, value: event });
     });
 
     test('zip code', () => {
@@ -221,10 +218,7 @@ describe('<LocationFields />', () => {
 
     test('country', () => {
       const event = { value: 'testCountry', label: 'testCountryLabel' };
-      testOnChange('country', event, {
-        field: LOCATION_FIELDS.COUNTRY,
-        value: event,
-      });
+      testOnChange('country', event, { field: LOCATION_FIELDS.COUNTRY, value: event });
     });
 
     test('phone number', () => {

@@ -108,10 +108,7 @@ describe('<CreateServer />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const serverOptionType = getByTestId(wrapper, 'CreateServer.serverOption.type');
-      serverOptionType.simulate('change', {
-        value: 'invalid',
-        label: 'testLabel',
-      });
+      serverOptionType.simulate('change', { value: 'invalid', label: 'testLabel' });
       expect(customProps.onEditServerInfo).not.toHaveBeenCalled();
     });
 
@@ -248,10 +245,7 @@ describe('<CreateServer />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const serverOptionSize = getByTestId(wrapper, 'CreateServer.serverOption.size');
-      serverOptionSize.simulate('change', {
-        value: 'invalid',
-        label: 'testLabel',
-      });
+      serverOptionSize.simulate('change', { value: 'invalid', label: 'testLabel' });
       expect(customProps.onEditServerInfo).not.toHaveBeenCalled();
     });
 
@@ -325,10 +319,7 @@ describe('<CreateServer />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const serverOptionLocation = getByTestId(wrapper, 'CreateServer.serverOption.location');
-      serverOptionLocation.simulate('change', {
-        value: 'invalid',
-        label: 'testLabel',
-      });
+      serverOptionLocation.simulate('change', { value: 'invalid', label: 'testLabel' });
       expect(customProps.onEditServerInfo).not.toHaveBeenCalled();
     });
 
@@ -357,9 +348,7 @@ describe('<CreateServer />', () => {
       expect(createServersButton.prop('disabled')).toBeTruthy();
       expect(createServersButton.prop('onClick')).toBeDefined();
       expect(createServersButton.prop('title')).toBe('Login Required');
-      expect(createServersButton.prop('style')).toEqual({
-        cursor: 'not-allowed',
-      });
+      expect(createServersButton.prop('style')).toEqual({ cursor: 'not-allowed' });
       expect(createServersButton.text()).toBe('Create');
     });
 
@@ -413,9 +402,7 @@ describe('<CreateServer />', () => {
       expect(destroyServersButton.prop('disabled')).toBeTruthy();
       expect(destroyServersButton.prop('onClick')).toBeDefined();
       expect(destroyServersButton.prop('title')).toBe('Login Required');
-      expect(destroyServersButton.prop('style')).toEqual({
-        cursor: 'not-allowed',
-      });
+      expect(destroyServersButton.prop('style')).toEqual({ cursor: 'not-allowed' });
       expect(destroyServersButton.text()).toBe('Destroy All');
     });
 
@@ -455,9 +442,7 @@ describe('<CreateServer />', () => {
       destroyServersButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       destroyServersButton.simulate('click');
-      expect(customProps.onDestroyServers).toHaveBeenCalledWith([], {
-        accessToken: 'test',
-      });
+      expect(customProps.onDestroyServers).toHaveBeenCalledWith([], { accessToken: 'test' });
     });
   });
 

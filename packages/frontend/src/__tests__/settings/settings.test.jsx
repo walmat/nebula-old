@@ -67,11 +67,7 @@ describe('<Settings />', () => {
       settings: {
         ...initialSettingsStates.settings,
         defaults: {
-          profile: {
-            ...initialProfileStates.profile,
-            id: 1,
-            profileName: 'profile1',
-          },
+          profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
           sizes: [
             { value: '4', label: '4.0' },
             { value: '4.5', label: '4.5' },
@@ -208,11 +204,7 @@ describe('<Settings />', () => {
         settings: {
           ...initialSettingsStates.settings,
           defaults: {
-            profile: {
-              ...initialProfileStates.profile,
-              id: 1,
-              profileName: 'profile1',
-            },
+            profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
             sizes: [{ value: '4', label: '4.0' }],
           },
         },
@@ -307,11 +299,7 @@ describe('<Settings />', () => {
       settings: {
         ...initialSettingsStates.settings,
         defaults: {
-          profile: {
-            ...initialProfileStates.profile,
-            id: 1,
-            profileName: 'profile1',
-          },
+          profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
           sizes: [
             { value: '4', label: '4.0' },
             { value: '4.5', label: '4.5' },

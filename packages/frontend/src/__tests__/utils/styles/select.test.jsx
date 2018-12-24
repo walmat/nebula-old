@@ -39,9 +39,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           height: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles().control(initialStyle, {
-          isDisabled: false,
-        });
+        const actualStyle = colourStyles().control(initialStyle, { isDisabled: false });
         expect(actualStyle).toEqual({
           border: '1px solid',
           'border-color': '#46ADB4',
@@ -63,9 +61,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           height: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles().control(initialStyle, {
-          isDisabled: true,
-        });
+        const actualStyle = colourStyles().control(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           border: '1px solid',
           'border-color': '#46ADB4',
@@ -104,9 +100,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles().option(initialStyle, {
-          isDisabled: true,
-        });
+        const actualStyle = colourStyles().option(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#ccc',
           color: '#161318',
@@ -121,9 +115,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles().option(initialStyle, {
-          isFocused: true,
-        });
+        const actualStyle = colourStyles().option(initialStyle, { isFocused: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#EDBCC6',
           color: '#161318',
@@ -138,9 +130,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles().option(initialStyle, {
-          isSelected: true,
-        });
+        const actualStyle = colourStyles().option(initialStyle, { isSelected: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#fff',
           color: '#161318',
@@ -156,9 +146,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         height: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles().valueContainer(initialStyle, {
-        isMulti: true,
-      });
+      const actualStyle = colourStyles().valueContainer(initialStyle, { isMulti: true });
       expect(actualStyle).toEqual({
         maxHeight: '29px',
         height: '29px',
@@ -178,9 +166,7 @@ describe('Custom Select', () => {
       const initialStyle = {
         height: 'invalid', // invalid key to make sure it gets overwritten
       };
-      const actualStyle = colourStyles().valueContainer(initialStyle, {
-        isMulti: false,
-      });
+      const actualStyle = colourStyles().valueContainer(initialStyle, { isMulti: false });
       expect(actualStyle).toEqual({
         maxHeight: '29px',
         height: '29px',
@@ -212,9 +198,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           color: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles().placeholder(initialStyle, {
-          isDisabled: false,
-        });
+        const actualStyle = colourStyles().placeholder(initialStyle, { isDisabled: false });
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',
@@ -229,9 +213,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           color: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles().placeholder(initialStyle, {
-          isDisabled: true,
-        });
+        const actualStyle = colourStyles().placeholder(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',

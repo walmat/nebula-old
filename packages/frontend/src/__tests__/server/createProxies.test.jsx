@@ -145,11 +145,7 @@ describe('<CreateProxies />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const locationSelect = getByTestId(wrapper, 'CreateProxies.location');
-      locationSelect.simulate('change', {
-        id: 1,
-        label: 'US East (Ohio)',
-        value: 'us-east-2',
-      });
+      locationSelect.simulate('change', { id: 1, label: 'US East (Ohio)', value: 'us-east-2' });
       expect(customProps.onEditServerInfo).toHaveBeenCalledTimes(1);
       expect(customProps.onEditServerInfo).toHaveBeenCalledWith(SERVER_FIELDS.EDIT_PROXY_LOCATION, {
         id: 1,
