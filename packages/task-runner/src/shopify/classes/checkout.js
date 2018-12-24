@@ -576,6 +576,7 @@ class Checkout {
           'g-recaptcha-response': this._captchaToken,
         },
         transform: body => cheerio.load(body),
+        // eslint-disable-next-line no-shadow
       }).then(async $ => {
         step = $('.step').attr('data-step');
         if (!step) {

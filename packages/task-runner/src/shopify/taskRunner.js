@@ -414,33 +414,31 @@ class TaskRunner {
 
   // eslint-disable-next-line class-methods-use-this
   async _generateEndStateHandler(state) {
-    return () => States.Stopped;
-    // stop our time taken to checkout
-    // let status = 'stopped';
-    // switch (state) {
-    //   case States.Aborted: {
-    //     status = 'aborted';
-    //     break;
-    //   }
-    //   case States.Errored: {
-    //     status = 'errored out';
-    //     break;
-    //   }
-    //   case States.Finished: {
-    //     status = 'finished';
-    //     break;
-    //   }
-    //   default: {
-    //     break;
-    //   }
-    // }
-    // return () => {
-    //   // this._emitTaskEvent({
-    //   //   message: this._context.status || `Task has ${status}`,
-    //   // });
-    //   // eslint-disable-next-line no-unused-expressions
-    //   States.Stopped;
-    // };
+    let status = 'stopped';
+    switch (state) {
+      case States.Aborted: {
+        status = 'aborted';
+        break;
+      }
+      case States.Errored: {
+        status = 'errored out';
+        break;
+      }
+      case States.Finished: {
+        status = 'finished';
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    return () => {
+      this._emitTaskEvent({
+        message: this._context.status || `Task has ${status}`,
+      });
+      // eslint-disable-next-line no-unused-expressions
+      States.Stopped;
+    };
   }
 
   async _handleStepLogic(currentState) {
