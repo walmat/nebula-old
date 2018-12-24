@@ -16,10 +16,11 @@ const TaskRunnerEvents = constants.TaskRunner.Events;
  * @param {Error} error
  */
 function forwardError(error) {
+  const { stack, message } = error;
   process.send({
     target: 'main',
     event: '__error',
-    error,
+    error: { stack, message },
   });
 }
 
@@ -54,6 +55,11 @@ function wireEventHandlers(runner) {
         runner._handleHarvest(...args);
         break;
       }
+      case TaskRunnerEvents.ReceiveProxy: {
+        // TODO: Respect the scope of Runner (issue #137)
+        runner._events.emit(TaskRunnerEvents.ReceiveProxy, ...args);
+        break;
+      }
       default: {
         break;
       }
@@ -65,6 +71,7 @@ function wireEventHandlers(runner) {
     TaskRunnerEvents.TaskStatus,
     TaskManagerEvents.StartHarvest,
     TaskManagerEvents.StopHarvest,
+    TaskRunnerEvents.SwapProxy,
   ].forEach(event => {
     // TODO: Respect the scope of Runner (issue #137)
     runner._events.on(event, (...args) => {

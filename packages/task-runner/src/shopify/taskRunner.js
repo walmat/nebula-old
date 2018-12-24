@@ -15,6 +15,7 @@ class TaskRunner {
     // Add Ids to object
     this.taskId = task.id;
     this.id = id;
+    this.proxy = proxy;
 
     /**
      * Logger Instance
@@ -43,7 +44,7 @@ class TaskRunner {
     this._context = {
       id,
       task,
-      proxy,
+      proxy: proxy ? proxy.proxy : null,
       jar: this._jar,
       logger: this._logger,
       aborted: false,
@@ -97,8 +98,6 @@ class TaskRunner {
     this.stopHarvestCaptcha();
   }
 
-  // MARK: Event Registration
-
   async getCaptcha() {
     if (!this._captchaQueue) {
       this._captchaQueue = new AsyncQueue();
@@ -117,6 +116,20 @@ class TaskRunner {
     }
   }
 
+  async swapProxies() {
+    this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Timeout'));
+      }, 10000); // TODO: Make this a variable delay?
+      this._events.once(Events.ReceiveProxy, (id, proxy) => {
+        clearTimeout(timeout);
+        resolve(proxy);
+      });
+    });
+  }
+
+  // MARK: Event Registration
   registerForEvent(event, callback) {
     switch (event) {
       case Events.TaskStatus: {
@@ -252,22 +265,31 @@ class TaskRunner {
     this._emitTaskEvent({
       message: res.message,
     });
+    if (res.nextState === States.SwapProxies) {
+      this.shouldBanProxy = res.shouldBan; // Set a flag to ban the proxy if necessary
+    }
     // Monitor will be in charge of choosing the next state
     return res.nextState;
   }
 
   async _handleSwapProxies() {
-    const res = await this.swapProxies(this._context.id, this._context.proxy);
-    if (res.errors) {
-      this._logger.verbose('Swap Proxies Handler completed with errors: %j', res.errors);
+    try {
+      this._logger.verbose('Waiting for new proxy...');
+      const proxy = await this.swapProxies();
+      // Update the references
+      this.proxy = proxy;
+      this._context.proxy = proxy.proxy;
+      this.shouldBanProxy = false; // reset ban flag
+    } catch (err) {
+      this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitTaskEvent({
-        message: 'Error Swapping Proxies! Retrying Monitor...',
-        errors: res.errors,
+        message: 'Error Swapping Proxies! Retrying...',
+        errors: err,
       });
       await this._waitForErrorDelay();
     }
-    // Swap Proxies will be in charge of choosing the next state
-    return res.nextState;
+    // Go back to previous state
+    return this._prevState;
   }
 
   async _handleCheckout() {
@@ -338,19 +360,23 @@ class TaskRunner {
   // MARK: State Machine Run Loop
 
   async start() {
+    this._prevState = States.Started;
     this._state = States.Started;
     while (this._state !== States.Stopped) {
+      let nextState = this._state;
       if (this._context.aborted) {
-        this._state = States.Aborted;
+        nextState = States.Aborted;
       }
       try {
         // eslint-disable-next-line no-await-in-loop
-        this._state = await this._handleStepLogic(this._state);
+        nextState = await this._handleStepLogic(this._state);
       } catch (e) {
         this._logger.debug('Run loop errored out! %s', e);
-        this._state = States.Errored;
+        nextState = States.Errored;
       }
-      this._logger.verbose('Run Loop finished, state transitioned to: %s', this._state);
+      this._logger.verbose('Run Loop finished, state transitioned to: %s', nextState);
+      this._prevState = this._state;
+      this._state = nextState;
     }
 
     this._cleanup();

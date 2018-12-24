@@ -31,7 +31,7 @@ class TaskManager {
     this._tokenReserveQueue = [];
 
     // Proxy Map
-    this._proxies = [];
+    this._proxies = {};
 
     // Logger
     this._logger = createLogger({
@@ -43,6 +43,7 @@ class TaskManager {
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
     this.handleStartHarvest = this.handleStartHarvest.bind(this);
     this.handleStopHarvest = this.handleStopHarvest.bind(this);
+    this.handleSwapProxy = this.handleSwapProxy.bind(this);
   }
 
   // MARK: Event Related Methods
@@ -126,7 +127,7 @@ class TaskManager {
   deregisterProxy(proxy) {
     this._logger.verbose('Deregistering proxy...');
     const proxyHash = hash(proxy);
-    const storedProxy = this._proxies.find(p => p.hash === proxyHash);
+    const storedProxy = Object.values(this._proxies).find(p => p.hash === proxyHash);
 
     if (!storedProxy) {
       this._logger.verbose('Proxy with hash %s not found! Skipping removal', proxyHash);
@@ -158,7 +159,7 @@ class TaskManager {
    */
   async reserveProxy(runnerId, waitForOpenProxy) {
     this._logger.verbose('Reserving proxy for runner %s ...', runnerId);
-    const proxy = this._proxies.find(p => !p.assignedRunner && !p.banned);
+    const proxy = Object.values(this._proxies).find(p => !p.assignedRunner && !p.banned);
     if (proxy) {
       proxy.assignedRunner = runnerId;
       this._logger.verbose('Returning proxy: %s', proxy.id);
@@ -273,6 +274,18 @@ class TaskManager {
   }
 
   /**
+   * Handle Proxy Swapping Events from runner
+   *
+   * @param {String} runnerId
+   * @param {Object} proxy
+   * @param {Bool} shouldBan
+   */
+  async handleSwapProxy(runnerId, proxy, shouldBan) {
+    const newProxy = await this.swapProxy(runnerId, proxy.id, shouldBan);
+    this._events.emit(Events.SendProxy, runnerId, newProxy);
+  }
+
+  /**
    * Start Harvesting Captcha
    *
    * Register and retrieve a captcha token for the given runner id. If
@@ -281,7 +294,7 @@ class TaskManager {
    *
    * @param {String} runnerId the runner for which to register captcha events
    */
-  handleStartHarvest(ev, runnerId) {
+  handleStartHarvest(runnerId) {
     let container = this._captchaQueues.get(runnerId);
     if (!container) {
       // We haven't started harvesting for this runner yet, create a queue and start harvesting
@@ -306,7 +319,7 @@ class TaskManager {
    * If the runner was not previously harvesting captchas, this method does
    * nothing.
    */
-  handleStopHarvest(ev, runnerId) {
+  handleStopHarvest(runnerId) {
     const container = this._captchaQueues.get(runnerId);
 
     // If this container was never started, there's no need to do anything further
@@ -355,7 +368,8 @@ class TaskManager {
     };
   }
 
-  cleanup(runnerId, proxy) {
+  cleanup(runnerId) {
+    const { proxy } = this._runners[runnerId];
     delete this._runners[runnerId];
     if (proxy) {
       this.releaseProxy(runnerId, proxy.id);
@@ -386,7 +400,7 @@ class TaskManager {
     this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
     this._start([runnerId, task, openProxy]).then(() => {
-      this.cleanup(runnerId, openProxy);
+      this.cleanup(runnerId);
     });
   }
 
@@ -467,12 +481,19 @@ class TaskManager {
           runner._events.emit(Events.Harvest, id, token);
         }
       },
+      proxy: (id, proxy) => {
+        if (id === runner.id) {
+          // TODO: Respect the scope of the _events variable (issue #137)
+          runner._events.emit(TaskRunner.Events.ReceiveProxy, id, proxy);
+        }
+      },
     };
     this._handlers[runner.id] = handlers;
 
     // Attach Runner Handlers to Manager Events
     this._events.on('abort', handlers.abort);
     this._events.on(Events.Harvest, handlers.harvest);
+    this._events.on(Events.SendProxy, handlers.proxy);
 
     // Attach Manager Handlers to Runner Events
     // TODO: Respect the scope of the _events variable (issue #137)
@@ -480,10 +501,11 @@ class TaskManager {
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest);
+    runner._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy);
   }
 
   _cleanup(runner) {
-    const { abort, harvest } = this._handlers[runner.id];
+    const { abort, harvest, proxy } = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
     runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
@@ -494,6 +516,7 @@ class TaskManager {
     // Cleanup runner handlers
     this._events.removeListener('abort', abort);
     this._events.removeListener(Events.Harvest, harvest);
+    this._events.removeListener(Events.SendProxy, proxy);
   }
 
   async _start([runnerId, task, openProxy]) {
