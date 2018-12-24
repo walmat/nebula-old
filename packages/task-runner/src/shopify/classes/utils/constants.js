@@ -24,7 +24,7 @@ const TaskRunnerStates = {
   Initialized: 'INIT',
   Started: 'STARTED',
   TaskSetup: 'TASK_SETUP',
-  GenAltCheckout: 'GEN_ALT_CHECKOUT',
+  Queue: 'QUEUE',
   Monitor: 'MONITOR',
   Restock: 'RESTOCK',
   SwapProxies: 'SWAP_PROXIES',

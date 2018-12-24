@@ -18,8 +18,6 @@ class TaskRunner {
     this.id = id;
     this.proxy = proxy;
 
-    proxy = '127.0.0.1:8888';
-
     this._jar = request.jar();
     this._request = request.defaults({ jar: this._jar });
 
@@ -264,26 +262,7 @@ class TaskRunner {
     });
   }
 
-  // TODO - Task Setup Promise 2 - find random product
-  // findRandomInStockVariant() {
-  //   return new Promise(async (resolve, reject) => {
-  //     // TODO - find random product to choose the prefilled shipping/payment info
-  //     resolve();
-  //     // reject(new Error('Not implemented yet'));
-  //   });
-  // }
-
-  visitSite() {
-    return new Promise(async (resolve, reject) => {
-      const visit = await this._checkout._handleVisitSite();
-      if (!visit) {
-        reject();
-      }
-      resolve(visit);
-    });
-  }
-
-  // Task Setup Promise 3 - create checkout session
+  // Task Setup Promise 2 - create checkout session
   createCheckout() {
     return new Promise(async (resolve, reject) => {
       const checkout = await this._checkout._handleCreateCheckout();
@@ -297,6 +276,7 @@ class TaskRunner {
   // MARK: State Machine Step Logic
 
   async _handleStarted() {
+    this._logger.silly('Starting task setup');
     this._emitTaskEvent({
       message: 'Starting Task Setup',
     });
@@ -306,38 +286,72 @@ class TaskRunner {
   /**
    * RESULTS (INDICES):
    * 0. Promise 1 – generating payment tokens
-   * 1. Promise 2 – finding random product variant (in stock)
+   * 1. TODO (future feature) – Promise 2 – finding random product variant (in stock)
    * 2. Promise 3 – creating checkout token
    */
   async _handleTaskSetup() {
-    // TODO - change this back once we have this.findRandomInStockVariant() implemented
+    // TODO - change this back once we have precarting implemented
     // const promises = (!this._isSetup && !this._doSetupLater)
     // ? [this.generatePaymentToken(), this.findRandomInStockVariant(), this.createCheckout()]
     // : [this.generatePaymentToken(), this.createCheckout()];
-    const promises = [this.generatePaymentToken(), this.visitSite(), this.createCheckout()];
+    const promises = [this.generatePaymentToken(), this.createCheckout()];
+    this._logger.silly('Running promises: %j', promises);
     const results = await Promise.all(promises.map(reflect));
-    if (results.filter(res => res.status === 'rejected').length > 0) {
+    this._logger.silly('Async promises results: %j', results);
+    const failed = results.filter(res => res.status === 'rejected');
+    if (failed.length > 0) {
+      this._logger.silly('Task setup failed: %j', failed);
+      // check queue
+      const queue = failed.some(f => f.e === 303);
+      if (queue) {
+        // poll queue
+        this._context.isSetup = true;
+        return States.Queue;
+      }
       // let's do task setup later
       this._context.isSetup = false;
-      this._logger.verbose(
-        'Task setup failed: %j',
-        results.filter(res => res.status === 'rejected'),
-      );
+      this._logger.verbose('Completing task setup later');
       this._emitTaskEvent({
         message: 'Doing task setup later',
       });
     } else {
-      // TODO - not necessary, but will speed things up even more
-      // const randomProductVariant = results[1];
-      // skip to checkout -> return to monitor
-      this._logger.verbose('Task setup success');
+      this._logger.verbose('Task setup successfully completed');
       this._context.isSetup = true;
     }
     this._emitTaskEvent({
       message: 'Monitoring for product...',
     });
-    // console.log((!this._doSetupLater && this._isSetup) ? States.Checkout : States.Monitor);
     return !this._isSetup ? States.Monitor : States.Monitor;
+  }
+
+  async _handleCheckoutQueue() {
+    const checkout = await this._checkout._handleCreateCheckout();
+
+    // we're still in queue
+    if (!checkout.res && !checkout.error) {
+      this._emitTaskEvent({
+        message: 'Waiting in queue',
+      });
+      this._logger.silly('Waiting in checkout queue %d', checkout.code);
+      // wait for checkout queue delay
+      return States.Queue;
+    }
+    // error handling
+    if (checkout.error) {
+      this._logger.verbose('Error in creating checkout %d', checkout.error);
+      switch (checkout.error) {
+        case 403:
+        case 429:
+          // soft ban
+          return States.SwapProxies;
+        default:
+          // stop if not a soft ban
+          return States.Stopped;
+      }
+    }
+    this._logger.verbose('Created checkout session %j', checkout.res);
+    // otherwise, we're out of queue and can proceed to find the product now.
+    return States.Monitor;
   }
 
   async _handleMonitor() {
@@ -439,6 +453,7 @@ class TaskRunner {
     const stepMap = {
       [States.Started]: this._handleStarted,
       [States.TaskSetup]: this._handleTaskSetup,
+      [States.Queue]: this._handleCheckoutQueue,
       [States.Monitor]: this._handleMonitor,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Checkout]: this._handleCheckout,

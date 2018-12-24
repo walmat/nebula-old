@@ -233,6 +233,7 @@ const s = [
     value: 'https://nebulabots.com',
     label: 'Test Site',
     supported: true,
+    apiKey: '6526a5b5393b6316a64853cfe091841c',
     auth: false,
   },
   // TEMPORARY -- For Testing purposes only!
