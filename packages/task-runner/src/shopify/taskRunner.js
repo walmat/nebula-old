@@ -1,9 +1,5 @@
 const EventEmitter = require('events');
-const { jar } = require('request');
-const request = require('request-promise').defaults({
-  timeout: 10000,
-  jar: jar(),
-});
+const request = require('request-promise');
 
 const { Stack } = require('./classes/stack');
 const Timer = require('./classes/timer');
@@ -23,6 +19,11 @@ class TaskRunner {
     this.id = id;
     this.proxy = proxy;
 
+    proxy = '127.0.0.1:8888';
+
+    this._jar = request.jar();
+    this._request = request.defaults({ jar: this._jar });
+
     /**
      * Logger Instance
      */
@@ -36,8 +37,6 @@ class TaskRunner {
      * Internal Task Runner State
      */
     this._state = States.Initialized;
-
-    this._jar = jar();
 
     this._captchaQueue = null;
     this._isSetup = false;
@@ -69,7 +68,7 @@ class TaskRunner {
       id,
       task,
       proxy: proxy ? proxy.proxy : null,
-      request,
+      request: this._request,
       jar: this._jar,
       isSetup: this._isSetup,
       timer: this._timer,

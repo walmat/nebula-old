@@ -9,7 +9,6 @@ const {
   formatProxy,
   userAgent,
   getRandomIntInclusive,
-  now,
 } = require('./utils');
 const { buildPaymentTokenForm } = require('./utils/forms');
 
@@ -40,6 +39,15 @@ class Checkout {
       PollShippingRates: 750,
       PollCheckoutQueue: 500,
       Restocks: 750,
+    };
+  }
+
+  static get ShopifySteps() {
+    return {
+      ContactInformation: 'contact_information',
+      ShippingMethod: 'shipping_method',
+      PaymentMethod: 'payment_method',
+      Review: 'review',
     };
   }
 
@@ -85,7 +93,6 @@ class Checkout {
      * @type {HTTPRequest}
      */
     this._request = this._context.request;
-
     this._jar = this._context.jar;
 
     /**
@@ -172,13 +179,13 @@ class Checkout {
       proxy: formatProxy(this._proxy),
       rejectUnauthorized: false,
       method: 'post',
+      jar: this._jar,
       resolveWithFullResponse: true,
       headers: {
         'User-Agent': userAgent,
         'Content-Type': 'application/json',
         Connection: 'Keep-Alive',
       },
-      jar: this._jar,
       body: JSON.stringify(buildPaymentTokenForm(this._task)),
     })
       .then(res => {
@@ -249,6 +256,7 @@ class Checkout {
       simple: false,
       json: false,
       encoding: null,
+      jar: this._jar,
       rejectUnauthorized: false,
       resolveWithFullResponse: true,
       headers,
@@ -291,7 +299,7 @@ class Checkout {
       });
   }
 
-  async _handleRestocks() {}
+  // async _handleRestocks() {}
 
   /**
    * @example
@@ -331,6 +339,7 @@ class Checkout {
         proxy: formatProxy(this._proxy),
         simple: false,
         json: true,
+        jar: this._jar,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers,
@@ -417,6 +426,7 @@ class Checkout {
       proxy: formatProxy(this._proxy),
       followAllRedirects: true,
       rejectUnauthorized: false,
+      jar: this._jar,
       json: true,
       method: 'get',
       headers,
@@ -509,34 +519,7 @@ class Checkout {
       'X-Shopify-Checkout-Version': '2016-09-06',
       'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
       'User-Agent': userAgent,
-      Authorization: `${this._basicAuth}`,
       host: `${this._task.site.url.split('/')[2]}`,
-    };
-
-    const data = {
-      utf8: '✓',
-      _method: 'patch',
-      authenticity_token: '',
-      previous_step: 'payment_method',
-      step: '',
-      s: this._paymentTokens.pop(),
-      'checkout[payment_gateway]': this._gateway,
-      'checkout[remember_me]': '0',
-      'checkout[total_price]': this._prices.total,
-      complete: '1',
-      'checkout[client_details][browser_width]': getRandomIntInclusive(
-        900,
-        970
-      ),
-      'checkout[client_details][browser_height]': getRandomIntInclusive(
-        600,
-        670
-      ),
-      'checkout[client_details][javascript_enabled]': '1',
-      'checkout[buyer_accepts_marketing]': '0',
-      'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
-      button: '',
-      'g-recaptcha-response': this._captchaToken,
     };
 
     this._prices.total = (
@@ -551,39 +534,64 @@ class Checkout {
       followAllRedirects: true,
       resolveWithFullResponse: true,
       rejectUnauthorized: false,
+      jar: this._jar,
       proxy: formatProxy(this._proxy),
       headers,
-      formData: data,
-      transform: body => cheerio.load(body),
+      formData: {
+        'utf8': '✓',
+        '_method': 'patch',
+        'authenticity_token': '',
+        'previous_step': 'payment_method',
+        'step': '',
+        's': this._paymentTokens.pop(),
+        'checkout[payment_gateway]': this._gateway,
+        'checkout[remember_me]': '0',
+        'checkout[total_price]': this._prices.total,
+        'complete': '1',
+        'checkout[client_details][browser_width]': getRandomIntInclusive(
+          900,
+          970
+        ),
+        'checkout[client_details][browser_height]': getRandomIntInclusive(
+          600,
+          670
+        ),
+        'checkout[client_details][javascript_enabled]': '1',
+        'checkout[buyer_accepts_marketing]': '0',
+        'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
+        'button': '',
+        'g-recaptcha-response': this._captchaToken,
+      },
+      // transform: body => cheerio.load(body),
     })
-      .then($ => {
+      .then(res => {
+        const $ = cheerio.load(res.body);
         let step = $('.step').attr('data-step');
         if (!step) {
           step = $('#step').attr('data-step');
         }
+        console.log(res.body);
         console.log(step);
 
-        if (step === 'contact_information') {
+        if (step === Checkout.ShopifySteps.ContactInformation) {
           // captcha failed, retry..
-          // TODO - make this loop back when we get POST payment finalized.
           return {
-            // message: 'Waiting for captcha',
-            // nextState: Checkout.States.RequestCaptcha,
-            message: `Payment failed`,
-            nextState: Checkout.States.Stopped,
+            message: 'Waiting for captcha',
+            nextState: Checkout.States.RequestCaptcha,
           };
         }
-        if (step === 'payment_method') {
-          // we're at payment page
+        if (step === Checkout.ShopifySteps.Review) {
+          // we're at payment page, send request to review step
           return this._request({
             uri: `${this._task.site.url}/${this._storeId}/checkouts/${
               this._checkoutToken
             }`,
-            method: 'POST',
+            method: 'post',
             proxy: formatProxy(this._proxy),
-            followAllRedirects: false,
+            followAllRedirects: true,
             simple: false,
             json: false,
+            jar: this._jar,
             rejectUnauthorized: false,
             resolveWithFullResponse: true,
             headers: {
@@ -597,17 +605,25 @@ class Checkout {
               }`,
               'User-Agent': userAgent,
             },
-            formData: data,
+            formData: {
+              'utf8': '✓',
+              '_method': 'patch',
+              'authenticity_token': '',
+              'checkout[total_price]': this._prices.total,
+              'complete': '1',
+              'button': '',
+              'checkout[client_details][browser_width]': getRandomIntInclusive(
+                900,
+                970
+              ),
+              'checkout[client_details][browser_height]': getRandomIntInclusive(
+                600,
+                670
+              ),
+              'checkout[client_details][javascript_enabled]': '1',
+            },
           })
             .then(res => {
-
-              console.log(res.body);
-              $ = cheerio.load(res.body);
-              step = $('.step').attr('data-step');
-              if (!step) {
-                step = $('#step').attr('data-step');
-              }
-              console.log(step);
 
               return this._request({
                 uri: `${this._task.site.url}/wallets/checkouts/${
@@ -617,6 +633,7 @@ class Checkout {
                 proxy: formatProxy(this._proxy),
                 simple: false,
                 json: true,
+                jar: this._jar,
                 rejectUnauthorized: false,
                 resolveWithFullResponse: true,
                 headers,
@@ -649,7 +666,7 @@ class Checkout {
             });
         }
         return {
-          message: 'Unknown error, stopping..',
+          message: 'Payment Failed.',
           nextState: States.Stopped,
         };
       })
