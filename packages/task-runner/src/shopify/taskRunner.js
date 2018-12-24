@@ -279,13 +279,9 @@ class TaskRunner {
       if (!visit) {
         reject();
       }
-      // we don't really care what visit is,
-      // just need to know that the site is
-      // accessible to us.
-      resolve();
+      resolve(visit);
     });
   }
-
 
   // Task Setup Promise 3 - create checkout session
   createCheckout() {

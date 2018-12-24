@@ -197,7 +197,7 @@ class Checkout {
   }
 
   async _handleVisitSite() {
-    this._request({
+    return this._request({
       uri: this._task.site.url,
       followAllRedirects: true,
       proxy: formatProxy(this._proxy),
