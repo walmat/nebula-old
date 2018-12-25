@@ -576,6 +576,33 @@ class Checkout {
         };
       }
 
+      if (this._task.site.url === 'https://kith.com') {
+        $ = await this._request({
+          uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
+            this._paymentUrlKey
+          }&step=review`,
+          method: 'post',
+          followAllRedirects: true,
+          resolveWithFullResponse: true,
+          rejectUnauthorized: false,
+          proxy: formatProxy(this._proxy),
+          headers,
+          formData: {
+            utf8: '✓',
+            _method: 'patch',
+            authenticity_token: '',
+            'checkout[total_price]': '',
+            complete: '1',
+            button: '',
+            'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+            'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
+            'checkout[client_details][javascript_enabled]': '1',
+            'g-recaptcha-response': this._captchaToken,
+          },
+          transform: body => cheerio.load(body),
+        });
+      }
+
       this._logger.verbose('CHECKOUT: Proceeding to process payment');
       this._context.timer.start(now());
       return {
