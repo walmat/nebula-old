@@ -7,6 +7,13 @@ describe('getAllSites', () => {
   beforeEach(() => {
     expectedSites = [
       {
+        value: 'https://12amrun.com',
+        label: '12AM:Run',
+        supported: true,
+        apiKey: 'e5b0d0dc103ac126c494f8cc1fd70fe9',
+        auth: false,
+      },
+      {
         value: 'https://amongstfew.com',
         label: 'Amongst Few',
         supported: true,
@@ -16,6 +23,7 @@ describe('getAllSites', () => {
         value: 'https://blendsus.com',
         label: 'Blends',
         supported: true,
+        apiKey: 'a695a9ac76b89f50663628617f8498f6',
         auth: false,
       },
       {
@@ -76,6 +84,7 @@ describe('getAllSites', () => {
         value: 'https://kith.com',
         label: 'Kith',
         supported: true,
+        apiKey: '08430b96c47dd2ac8e17e305db3b71e8',
         auth: false,
       },
       {
@@ -119,6 +128,7 @@ describe('getAllSites', () => {
         value: 'https://nebulabots.com',
         label: 'Test Site',
         supported: true,
+        apiKey: '6526a5b5393b6316a64853cfe091841c',
         auth: false,
       },
       {
@@ -131,6 +141,7 @@ describe('getAllSites', () => {
         value: 'https://shop.undefeated.com',
         label: 'Undefeated',
         supported: true,
+        apiKey: 'a0faf54ad7ec6fbbab86cd3f949c3cb9',
         auth: true,
       },
       {

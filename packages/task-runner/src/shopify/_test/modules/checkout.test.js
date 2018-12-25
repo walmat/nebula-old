@@ -1,9 +1,9 @@
 /* eslint-disable no-console, no-unused-vars */
 const task = require('./task.test');
 const Account = require('../../classes/account');
-const Cart = require('../../classes/cart');
-const Shipping = require('../../classes/shipping');
-const Payment = require('../../classes/payment');
+const Cart = require('../../classes/old/cart');
+const Shipping = require('../../classes/old/shipping');
+const Payment = require('../../classes/old/payment');
 const Checkout = require('../../classes/checkout');
 const Timer = require('../../classes/timer');
 

@@ -59,6 +59,7 @@ export class CreateTaskPrimitive extends Component {
           const site = {
             name: event.label,
             url: event.value,
+            apiKey: event.apiKey,
             auth: event.auth,
           };
           onFieldChange({ field, value: site });

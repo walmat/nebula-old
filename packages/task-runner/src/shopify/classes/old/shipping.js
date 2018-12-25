@@ -9,12 +9,12 @@ const now = require('performance-now');
 /**
  * Form includes
  */
-const { buildShippingForm, buildShippingMethodForm } = require('./utils/forms');
+const { buildShippingForm, buildShippingMethodForm } = require('../utils/forms');
 
 /**
  * Utils includes
  */
-const { formatProxy, userAgent } = require('./utils');
+const { formatProxy, userAgent } = require('../utils');
 
 class Shipping {
   constructor(context, timer, request, checkoutUrl, authToken, shippingMethod) {
@@ -170,106 +170,120 @@ class Shipping {
     this._timer.start(now());
     this._logger.verbose('Submitting Shipping Details...');
     if (type === 'poll') {
-      try {
-        await new Promise(resolve => setTimeout(resolve, parseInt(this._task.shippingPoll, 10)));
-        let $ = await this._request({
-          uri: this._checkoutUrl + value,
-          followAllRedirects: true,
-          resolveWithFullResponse: true,
-          proxy: formatProxy(this._proxy),
-          simple: false,
-          method: 'get',
-          headers: {
-            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'User-Agent': userAgent,
-          },
-          transform: body => cheerio.load(body),
-        });
+      await new Promise(resolve => setTimeout(resolve, parseInt(this._task.shippingPoll, 10)));
+      return this._request({
+        uri: this._checkoutUrl + value,
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
+        proxy: formatProxy(this._proxy),
+        simple: false,
+        method: 'get',
+        headers: {
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'User-Agent': userAgent,
+        },
+        transform(body) {
+          return cheerio.load(body);
+        },
+      })
+        .then($ => {
+          const shippingMethod = $('.radio-wrapper').attr('data-shipping-method');
+          const newAuthToken = $(
+            'form[data-shipping-method-form="true"] input[name="authenticity_token"]',
+          ).attr('value');
+          return this._request({
+            uri: this._checkoutUrl,
+            followAllRedirects: true,
+            resolveWithFullResponse: true,
+            proxy: formatProxy(this._proxy),
+            method: 'post',
+            headers: {
+              'User-Agent': userAgent,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            formData: buildShippingMethodForm(newAuthToken, shippingMethod),
+            transform(body) {
+              return cheerio.load(body);
+            },
+          });
+        })
+        .then($ => {
+          const price = $('input[name="checkout[total_price]"]').attr('value');
+          const paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+          const newAuthToken = $(
+            'form[data-payment-form=""] input[name="authenticity_token"]',
+          ).attr('value');
 
-        const shippingMethod = $('.radio-wrapper').attr('data-shipping-method');
-        let newAuthToken = $(
-          'form[data-shipping-method-form="true"] input[name="authenticity_token"]',
-        ).attr('value');
-        $ = await this._request({
-          uri: this._checkoutUrl,
-          followAllRedirects: true,
-          resolveWithFullResponse: true,
-          proxy: formatProxy(this._proxy),
-          method: 'post',
-          headers: {
-            'User-Agent': userAgent,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          formData: buildShippingMethodForm(newAuthToken, shippingMethod),
-          transform: body => cheerio.load(body),
+          this._timer.stop(now());
+          this._logger.info('Submitted Shipping in %d ms', this._timer.getRunTime());
+          return {
+            price,
+            paymentGateway,
+            newAuthToken,
+          };
+        })
+        .catch(err => {
+          this._logger.debug('Error Submitting Shipping: %s', err);
+          return {
+            errors: err,
+          };
         });
-
-        const price = $('input[name="checkout[total_price]"]').attr('value');
-        const paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-        newAuthToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr(
-          'value',
-        );
-        this._timer.stop(now());
-        this._logger.info('Submitted Shipping in %d ms', this._timer.getRunTime());
-        return {
-          price,
-          paymentGateway,
-          newAuthToken,
-        };
-      } catch (err) {
-        this._logger.debug('Error Submitting Shipping: %s', err);
-        return {
-          errors: err,
-        };
-      }
     }
     if (type === 'direct') {
-      try {
-        await this._request({
-          uri: this._checkoutUrl,
-          followAllRedirects: true,
-          resolveWithFullResponse: true,
-          proxy: formatProxy(this._proxy),
-          method: 'post',
-          headers: {
-            'User-Agent': userAgent,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          formData: buildShippingMethodForm(authToken, value),
-        });
-        const $ = this._request({
-          uri: `${this._checkoutUrl}?previous_step=shipping_method&step=payment_method`,
-          method: 'get',
-          followAllRedirects: true,
-          proxy: formatProxy(this._proxy),
-          headers: {
-            'User-Agent': userAgent,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          transform: body => cheerio.load(body),
-        });
-        const price = $('input[name="checkout[total_price]"]').attr('value');
-        const paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-        const newAuthToken = $('form[data-payment-form=""] input[name="authenticity_token"]').attr(
-          'value',
-        );
+      return this._request({
+        uri: this._checkoutUrl,
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
+        proxy: formatProxy(this._proxy),
+        method: 'post',
+        headers: {
+          'User-Agent': userAgent,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        formData: buildShippingMethodForm(authToken, value),
+        transform(body) {
+          return cheerio.load(body);
+        },
+      })
+        .then(() =>
+          this._request({
+            uri: `${this._checkoutUrl}?previous_step=shipping_method&step=payment_method`,
+            method: 'get',
+            followAllRedirects: true,
+            proxy: formatProxy(this._proxy),
+            headers: {
+              'User-Agent': userAgent,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            transform(body) {
+              return cheerio.load(body);
+            },
+          }),
+        )
+        .then($ => {
+          const price = $('input[name="checkout[total_price]"]').attr('value');
+          const paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+          const newAuthToken = $(
+            'form[data-payment-form=""] input[name="authenticity_token"]',
+          ).attr('value');
 
-        this._timer.stop(now());
-        this._logger.info('Submitted Shipping in %d ms', this._timer.getRunTime());
-        return {
-          price,
-          paymentGateway,
-          newAuthToken,
-        };
-      } catch (err) {
-        this._logger.debug('Error Submitting Shipping: %s', err);
-        return {
-          errors: err,
-        };
-      }
+          this._timer.stop(now());
+          this._logger.info('Submitted Shipping in %d ms', this._timer.getRunTime());
+          return {
+            price,
+            paymentGateway,
+            newAuthToken,
+          };
+        })
+        .catch(err => {
+          this._logger.debug('Error Submitting Shipping: %s', err);
+          return {
+            errors: err,
+          };
+        });
     }
-
-    throw new Error(`Invalid Shipping Type: ${type} given!`);
+    // this should never happen...
+    return null;
   }
 }
 module.exports = Shipping;

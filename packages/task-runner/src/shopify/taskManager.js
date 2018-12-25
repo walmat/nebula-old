@@ -533,7 +533,7 @@ class TaskManager {
       this._logger.info('Runner %s finished without errors', runnerId);
     } catch (error) {
       this._logger.error(
-        'Runner %s was stopped due to an errors: %s',
+        'Runner %s was stopped due to an error: %s',
         runnerId,
         error.toString(),
         error,

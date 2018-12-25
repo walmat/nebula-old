@@ -8,12 +8,12 @@ const _ = require('underscore');
 /**
  * Form includes
  */
-const { buildCartForm, buildPaymentForm } = require('./utils/forms');
+const { buildCartForm } = require('../utils/forms');
 
 /**
  * Utils includes
  */
-const { formatProxy, userAgent } = require('./utils');
+const { formatProxy, userAgent } = require('../utils');
 
 class Cart {
   constructor(context, timer, request) {
@@ -45,18 +45,6 @@ class Cart {
     };
   }
 
-  static removeTrailingZeros(value) {
-    const price = [];
-    const values = value.toString().split('');
-    values.forEach((v, idx) => {
-      // remove last two zeroes
-      if (idx < value.length - 2) {
-        price.push(v);
-      }
-    });
-    return price.join('');
-  }
-
   addToCart(variant) {
     this._timer.start(now());
     this._logger.verbose('Starting add to cart...');
@@ -78,13 +66,13 @@ class Cart {
       formData: buildCartForm(this._task, variant),
     })
       .then(res => {
-        if (res.statusCode === 404) {
+        if (res.body.status === 404) {
           this._logger.debug('CART: Error in add to cart response: %s', res.body.description);
           return {
             errors: res.body.description,
           };
         }
-        this._price = Number.parseInt(Cart.removeTrailingZeros(res.body.line_price), 10);
+        this._price = Number.parseInt(this.removeTrailingZeros(res.body.line_price), 10);
         this._task.product.url = `${this._task.site.url}/${res.body.url.split('?')[0]}`;
         this._timer.stop(now());
         this._logger.info('Added to cart in %d ms', this._timer.getRunTime());
@@ -96,6 +84,45 @@ class Cart {
           errors: err,
         };
       });
+  }
+
+  createCheckout() {
+    return this._request({
+      uri: `${this._task.site.url}/wallets/checkouts.json`,
+      method: 'post',
+      proxy: formatProxy(this._proxy),
+      followAllRedirects: true,
+      simple: false,
+      json: true,
+      rejectUnauthorized: false,
+      resolveWithFullResponse: true,
+      headers: {
+        'User-Agent': userAgent,
+        Host: `${this._task.site.url}`,
+        'Content-Type': 'application/json',
+      },
+      formData: JSON.stringify({
+        checkout: {
+          email: this._task.profile.payment.email,
+          line_items: [
+            {
+              variant_id: 16907588960325,
+              quantity: 1,
+            },
+          ],
+          shipping_address: {
+            first_name: this._task.profile.shipping.firstName,
+            last_name: this._task.profile.shipping.lastName,
+            address1: this._task.profile.shipping.address,
+            city: this._task.profile.shipping.city,
+            province_code: this._task.profile.shipping.state,
+            country_code: this._task.profile.shipping.country,
+            phone: this._task.profile.shipping.phone,
+            zip: this._task.profile.shipping.zipCode,
+          },
+        },
+      }),
+    }).then(res => res.body);
   }
 
   proceedToCheckout() {
@@ -219,37 +246,16 @@ class Cart {
       });
   }
 
-  /**
-   * TODO..
-   * Can be made asynchronous at any point in the checkout process
-   */
-  async getPaymentToken() {
-    this._timer.start(now());
-    this._logger.verbose('Getting Payment Token...');
-    return this._request({
-      uri: `https://elb.deposit.shopifycs.com/sessions`,
-      followAllRedirects: true,
-      proxy: formatProxy(this._proxy),
-      method: 'post',
-      headers: {
-        'User-Agent': userAgent,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(buildPaymentForm(this._task)),
-    })
-      .then(res => {
-        this._timer.stop(now());
-        this._logger.info('Got payment token in %d ms', this._timer.getRunTime());
-        return {
-          paymentToken: JSON.parse(res).id,
-        };
-      })
-      .catch(err => {
-        this._logger.debug('CART: Error getting payment token: %s', err);
-        return {
-          errors: err,
-        };
-      });
+  static removeTrailingZeros(value) {
+    const price = [];
+    const newVal = value.toString().split('');
+    for (let i = 0; i < newVal.length; i += 1) {
+      // remove last two zeroes
+      if (i < newVal.length - 2) {
+        price.push(newVal[i]);
+      }
+    }
+    return price.join('');
   }
 }
 module.exports = Cart;

@@ -9,12 +9,12 @@ const now = require('performance-now');
 /**
  * Form includes
  */
-const { buildBillingForm } = require('./utils/forms');
+const { buildBillingForm } = require('../utils/forms');
 
 /**
  * Utils includes
  */
-const { formatProxy, userAgent } = require('./utils');
+const { formatProxy, userAgent } = require('../utils');
 
 class Payment {
   constructor(

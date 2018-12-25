@@ -1,14 +1,14 @@
 const EventEmitter = require('events');
-const { jar } = require('request');
+const request = require('request-promise');
 
+const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
-const QueueBypass = require('./classes/bypass');
 const AsyncQueue = require('./classes/asyncQueue');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
-const { waitForDelay } = require('./classes/utils');
+const { waitForDelay, reflect } = require('./classes/utils');
 
 class TaskRunner {
   constructor(id, task, proxy, loggerPath) {
@@ -16,6 +16,9 @@ class TaskRunner {
     this.taskId = task.id;
     this.id = id;
     this.proxy = proxy;
+
+    this._jar = request.jar();
+    this._request = request.defaults({ jar: this._jar });
 
     /**
      * Logger Instance
@@ -31,9 +34,10 @@ class TaskRunner {
      */
     this._state = States.Initialized;
 
-    this._jar = jar();
-
     this._captchaQueue = null;
+    this._isSetup = false;
+
+    this._timer = new Timer();
 
     /**
      * The context of this task runner
@@ -45,12 +49,12 @@ class TaskRunner {
       id,
       task,
       proxy: proxy ? proxy.proxy : null,
-      jar: this._jar,
+      request: this._request,
+      setup: this._isSetup,
+      timer: this._timer,
       logger: this._logger,
       aborted: false,
     };
-
-    this._queueBypass = new QueueBypass(this._context);
 
     /**
      * Create a new monitor object to be used for the task
@@ -227,28 +231,101 @@ class TaskRunner {
     this._emitEvent(Events.CheckoutStatus, payload);
   }
 
+  // Task Setup Promise 1 - generate payment token
+  generatePaymentToken() {
+    return new Promise(async (resolve, reject) => {
+      const token = await this._checkout.handleGeneratePaymentToken();
+      if (!token) {
+        reject();
+      }
+      resolve(token);
+    });
+  }
+
+  // Task Setup Promise 2 - create checkout session
+  createCheckout() {
+    return new Promise(async (resolve, reject) => {
+      const checkout = await this._checkout.handleCreateCheckout();
+      if (!checkout.res || checkout.error) {
+        reject(checkout.code);
+      }
+      resolve(checkout.res);
+    });
+  }
+
   // MARK: State Machine Step Logic
 
   async _handleStarted() {
+    this._logger.silly('Starting task setup');
     this._emitTaskEvent({
-      message: 'Starting!',
+      message: 'Starting Task Setup',
     });
-    return States.GenAltCheckout;
+    return States.TaskSetup;
   }
 
-  async _handleGenAltCheckout() {
-    // TODO: Add this back in!
-    // const res = await this._checkout.geenerateAlternativeCheckout();
-    this._logger.silly('TODO: Implement the alt checkout process!');
-    const res = {};
-    if (res.errors) {
-      this._logger.verbose('Alt Checkout Handler completed with errors: %j', res.errors);
+  /**
+   * RESULTS (INDICES):
+   * 0. Promise 1 – generating payment tokens
+   * 1. TODO (future feature) – Promise 2 – finding random product variant (in stock)
+   * 2. Promise 3 – creating checkout token
+   */
+  async _handleTaskSetup() {
+    const promises = [this.generatePaymentToken(), this.createCheckout()];
+    this._logger.silly('Running Task Setup Promises');
+    const results = await Promise.all(promises.map(reflect));
+    this._logger.silly('Async promises results: %j', results);
+    const failed = results.filter(res => res.status === 'rejected');
+    if (failed.length > 0) {
+      this._logger.silly('Task setup failed: %j', failed);
+      // check queue
+      const queue = failed.some(f => f.e === 303);
+      if (queue) {
+        this._context.setup = false;
+        return States.Queue;
+      }
+      // let's do task setup later
+      this._context.setup = false;
+      this._logger.verbose('Completing task setup later');
       this._emitTaskEvent({
-        message: 'Unable to Generate alternative checkout! Continuing on...',
-        errors: res.errors,
+        message: 'Doing task setup later',
       });
-      await this._waitForErrorDelay();
+    } else {
+      this._logger.verbose('Task setup successfully completed');
+      this._context.setup = true;
     }
+    this._emitTaskEvent({
+      message: 'Monitoring for product...',
+    });
+    return States.Monitor;
+  }
+
+  async _handleCheckoutQueue() {
+    const checkout = await this._checkout.handleCreateCheckout();
+
+    // we're still in queue
+    if (!checkout.res && !checkout.error) {
+      this._emitTaskEvent({
+        message: 'Waiting in queue',
+      });
+      this._logger.silly('Waiting in checkout queue %d', checkout.code);
+      return States.Queue;
+    }
+    // error handling
+    if (checkout.error) {
+      this._logger.verbose('Error in creating checkout %d', checkout.error);
+      switch (checkout.error) {
+        case 403:
+        case 429:
+          // soft ban
+          return States.SwapProxies;
+        default:
+          // stop if not a soft ban
+          return States.Stopped;
+      }
+    }
+    this._logger.verbose('Created checkout session %j', checkout.res);
+    this._isSetup = true;
+    // otherwise, we're out of queue and can proceed to find the product now.
     return States.Monitor;
   }
 
@@ -293,6 +370,7 @@ class TaskRunner {
   }
 
   async _handleCheckout() {
+    // start recording our time taken to checkout
     const res = await this._checkout.run();
     if (res.errors) {
       this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
@@ -330,7 +408,7 @@ class TaskRunner {
     }
     return () => {
       this._emitTaskEvent({
-        message: this._context.status || `Task has ${status}!`,
+        message: this._context.status || `Task has ${status}`,
       });
       return States.Stopped;
     };
@@ -345,7 +423,8 @@ class TaskRunner {
 
     const stepMap = {
       [States.Started]: this._handleStarted,
-      [States.GenAltCheckout]: this._handleGenAltCheckout,
+      [States.TaskSetup]: this._handleTaskSetup,
+      [States.Queue]: this._handleCheckoutQueue,
       [States.Monitor]: this._handleMonitor,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Checkout]: this._handleCheckout,

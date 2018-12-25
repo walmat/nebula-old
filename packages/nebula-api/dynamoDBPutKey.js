@@ -9,7 +9,6 @@ const { salt, algo, output } = require('./hashConfig.json');
 const keys = []; // add these here when we need to add keys
 AWS.config.update(config);
 var dynamodb = new AWS.DynamoDB();
-console.log(config);
 
 function storeKey(key) {
   keyHash = hash(algo, key, salt, output);
@@ -19,8 +18,8 @@ function storeKey(key) {
       "licenseKey": {
         S: keyHash
       }
-    }, 
-    ReturnConsumedCapacity: "TOTAL", 
+    },
+    ReturnConsumedCapacity: "TOTAL",
     TableName: "Keys"
     };
     dynamodb.putItem(params, function(err, data) {
