@@ -37,6 +37,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
             site: {
               url: site[0].value,
               name: site[0].label,
+              apiKey: site[0].apiKey,
+              auth: site[0].auth,
             },
             username: null,
             password: null,
@@ -123,6 +125,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 site: {
                   url: site[0].value,
                   name: site[0].label,
+                  apiKey: site[0].apiKey,
+                  auth: site[0].auth,
                 },
                 username: null,
                 password: null,

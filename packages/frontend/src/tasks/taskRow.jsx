@@ -30,6 +30,7 @@ export class TaskRowPrimitive extends Component {
               value: {
                 url: site.value,
                 name: site.label,
+                apiKey: site.apiKey,
                 auth: site.auth,
               },
             });

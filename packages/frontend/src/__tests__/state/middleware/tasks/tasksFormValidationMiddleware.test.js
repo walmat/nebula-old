@@ -126,6 +126,8 @@ describe('task form validation middleware', () => {
           : {
               ...initialTaskStates.task.site,
               name: 'Undefeated',
+              url: 'https://undefeated.myshopify.com',
+              apiKey: 'a0faf54ad7ec6fbbab86cd3f949c3cb9',
               auth: true,
             },
         profile: testValid
@@ -174,7 +176,6 @@ describe('task form validation middleware', () => {
         password: testValid ? '' : 'test',
         edits: {
           ...initialTaskStates.task.edits,
-
           product:
             type === TASK_ACTIONS.UPDATE
               ? testValid
@@ -187,7 +188,6 @@ describe('task form validation middleware', () => {
                     raw: '+test',
                   }
               : null,
-
           site:
             type === TASK_ACTIONS.UPDATE
               ? testValid
@@ -201,7 +201,6 @@ describe('task form validation middleware', () => {
                     auth: true,
                   }
               : null,
-
           profile:
             type === TASK_ACTIONS.UPDATE
               ? testValid
@@ -444,9 +443,9 @@ describe('task form validation middleware', () => {
           testErrorFlag({
             field: TASK_FIELDS.EDIT_SITE,
             value: {
-              url: 'https://amongstfew.com',
-              name: 'Amongst Few',
-              supported: true,
+              name: '12AM Run',
+              url: 'https://12amrun.com',
+              apiKey: 'e5b0d0dc103ac126c494f8cc1fd70fe9',
               auth: false,
             },
             valid: true,
