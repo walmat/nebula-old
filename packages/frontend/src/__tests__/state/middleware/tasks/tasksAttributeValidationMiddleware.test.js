@@ -164,10 +164,9 @@ describe('task attribute validation middleware', () => {
             getActions(
               TASK_FIELDS.EDIT_SITE,
               {
-                url: 'https://amongstfew.com',
-                name: 'Amongst Few',
-                supported: true,
-                auth: false,
+                name: '12AM Run',
+                url: 'https://12amrun.com',
+                auth: 'false',
               },
               true,
             ),

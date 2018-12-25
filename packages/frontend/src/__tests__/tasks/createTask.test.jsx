@@ -319,7 +319,7 @@ describe('<CreateTask />', () => {
         const customProps = {
           task: {
             ...initialTaskStates.task,
-            site: { url: 'testUrl', name: 'test', auth: true },
+            site: { url: 'testUrl', name: 'test', auth: 'true' },
           },
         };
         const usernameInput = setupInput('CreateTask.usernameInput', customProps);
@@ -360,7 +360,7 @@ describe('<CreateTask />', () => {
         const customProps = {
           task: {
             ...initialTaskStates.task,
-            site: { url: 'testUrl', name: 'test', auth: true },
+            site: { url: 'testUrl', name: 'test', auth: 'true' },
             username: 'testUsername',
           },
         };
@@ -417,7 +417,7 @@ describe('<CreateTask />', () => {
         const customProps = {
           task: {
             ...initialTaskStates.task,
-            site: { url: 'testUrl', name: 'test', auth: true },
+            site: { url: 'testUrl', name: 'test', auth: 'true' },
           },
         };
         const passwordInput = setupInput('CreateTask.passwordInput', customProps);
@@ -430,7 +430,7 @@ describe('<CreateTask />', () => {
         const customProps = {
           task: {
             ...initialTaskStates.task,
-            site: { url: 'testUrl', name: 'test', auth: false },
+            site: { url: 'testUrl', name: 'test', auth: 'false' },
             password: 'testPassword',
           },
         };
@@ -458,7 +458,7 @@ describe('<CreateTask />', () => {
         const customProps = {
           task: {
             ...initialTaskStates.task,
-            site: { url: 'testUrl', name: 'test', auth: true },
+            site: { url: 'testUrl', name: 'test', auth: 'true' },
             password: 'testPassword',
           },
         };

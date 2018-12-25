@@ -125,8 +125,8 @@ describe('task form validation middleware', () => {
             }
           : {
               ...initialTaskStates.task.site,
-              name: 'Undefeated',
-              auth: true,
+              name: 'Kith',
+              auth: 'false',
             },
         profile: testValid
           ? {
@@ -174,7 +174,6 @@ describe('task form validation middleware', () => {
         password: testValid ? '' : 'test',
         edits: {
           ...initialTaskStates.task.edits,
-
           product:
             type === TASK_ACTIONS.UPDATE
               ? testValid
@@ -187,7 +186,6 @@ describe('task form validation middleware', () => {
                     raw: '+test',
                   }
               : null,
-
           site:
             type === TASK_ACTIONS.UPDATE
               ? testValid
@@ -197,11 +195,10 @@ describe('task form validation middleware', () => {
                   }
                 : {
                     ...initialTaskStates.task.site,
-                    name: 'Undefeated',
-                    auth: true,
+                    name: 'Kith',
+                    auth: 'false',
                   }
               : null,
-
           profile:
             type === TASK_ACTIONS.UPDATE
               ? testValid
@@ -444,10 +441,10 @@ describe('task form validation middleware', () => {
           testErrorFlag({
             field: TASK_FIELDS.EDIT_SITE,
             value: {
-              url: 'https://amongstfew.com',
-              name: 'Amongst Few',
-              supported: true,
-              auth: false,
+              label: '12AM Run',
+              value: 'https://12amrun.com',
+              apiKey: 'e5b0d0dc103ac126c494f8cc1fd70fe9',
+              auth: 'false',
             },
             valid: true,
           }));
