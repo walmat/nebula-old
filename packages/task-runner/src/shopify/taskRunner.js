@@ -280,19 +280,18 @@ class TaskRunner {
       // check queue
       const queue = failed.some(f => f.e === 303);
       if (queue) {
-        // poll queue
-        this._context.isSetup = true;
+        this._context.setup = false;
         return States.Queue;
       }
       // let's do task setup later
-      this._context.isSetup = false;
+      this._context.setup = false;
       this._logger.verbose('Completing task setup later');
       this._emitTaskEvent({
         message: 'Doing task setup later',
       });
     } else {
       this._logger.verbose('Task setup successfully completed');
-      this._context.isSetup = true;
+      this._context.setup = true;
     }
     this._emitTaskEvent({
       message: 'Monitoring for product...',
@@ -301,7 +300,7 @@ class TaskRunner {
   }
 
   async _handleCheckoutQueue() {
-    const checkout = await this._checkout._handleCreateCheckout();
+    const checkout = await this._checkout.handleCreateCheckout();
 
     // we're still in queue
     if (!checkout.res && !checkout.error) {
@@ -309,7 +308,6 @@ class TaskRunner {
         message: 'Waiting in queue',
       });
       this._logger.silly('Waiting in checkout queue %d', checkout.code);
-      // wait for checkout queue delay
       return States.Queue;
     }
     // error handling
@@ -326,6 +324,7 @@ class TaskRunner {
       }
     }
     this._logger.verbose('Created checkout session %j', checkout.res);
+    this._isSetup = true;
     // otherwise, we're out of queue and can proceed to find the product now.
     return States.Monitor;
   }

@@ -1,7 +1,6 @@
 const phoneFormatter = require('phone-formatter');
 const cheerio = require('cheerio');
 const _ = require('underscore');
-const { Stack } = require('../classes/stack');
 const { States } = require('./utils/constants').TaskRunner;
 const { waitForDelay, formatProxy, userAgent, getRandomIntInclusive, now } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
@@ -99,17 +98,17 @@ class Checkout {
     /**
      * Stack of successfully created payment tokens for the runner
      */
-    this._paymentTokens = new Stack();
+    this._paymentTokens = [];
 
     /**
      * Stack of shipping methods
      */
-    this._shippingMethods = new Stack();
+    this._shippingMethods = [];
 
     /**
      * Stack of successfully created checkout sessions for the runner
      */
-    this._checkoutTokens = new Stack();
+    this._checkoutTokens = [];
 
     /**
      * Shipping method that is being used
@@ -291,7 +290,7 @@ class Checkout {
 
     this._logger.silly('CHECKOUT: Adding to cart using: %j', dataString);
 
-    if (!this._checkoutTokens.isEmpty() || this._checkoutToken) {
+    if (this._checkoutTokens.length > 0 || this._checkoutToken) {
       this._logger.verbose('CHECKOUT: Adding to cart');
       this._checkoutToken = this._checkoutToken || this._checkoutTokens.pop();
       try {
@@ -355,7 +354,7 @@ class Checkout {
     }
     this._logger.verbose('CHECKOUT: Invalid checkout session, stopping...');
     return {
-      message: 'Failed: Invalid checkout session',
+      message: 'Failed: Error creating checkout session',
       nextState: States.Stopped,
     };
   }
@@ -390,7 +389,7 @@ class Checkout {
           this._shippingMethods.push(rate);
         });
 
-        const cheapest = _.min(this._shippingMethods.toArray(), rate => rate.price);
+        const cheapest = _.min(this._shippingMethods, rate => rate.price);
 
         this._chosenShippingMethod = {
           id: cheapest.id,
