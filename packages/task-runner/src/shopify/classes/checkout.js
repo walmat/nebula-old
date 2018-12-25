@@ -576,7 +576,7 @@ class Checkout {
         };
       }
 
-      if (this._task.site.url === 'https://kith.com') {
+      if (step === Checkout.ShopifySteps.Review) {
         $ = await this._request({
           uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
             this._paymentUrlKey
