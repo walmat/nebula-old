@@ -126,7 +126,9 @@ describe('task form validation middleware', () => {
           : {
               ...initialTaskStates.task.site,
               name: 'Undefeated',
-              auth: 'true',
+              url: 'https://undefeated.myshopify.com',
+              apiKey: 'a0faf54ad7ec6fbbab86cd3f949c3cb9',
+              auth: true,
             },
         profile: testValid
           ? {
@@ -196,7 +198,7 @@ describe('task form validation middleware', () => {
                 : {
                     ...initialTaskStates.task.site,
                     name: 'Undefeated',
-                    auth: 'true',
+                    auth: true,
                   }
               : null,
           profile:
@@ -444,7 +446,7 @@ describe('task form validation middleware', () => {
               label: '12AM Run',
               value: 'https://12amrun.com',
               apiKey: 'e5b0d0dc103ac126c494f8cc1fd70fe9',
-              auth: 'false',
+              auth: false,
             },
             valid: true,
           }));

@@ -166,7 +166,8 @@ describe('task attribute validation middleware', () => {
               {
                 name: '12AM Run',
                 url: 'https://12amrun.com',
-                auth: 'false',
+                apiKey: '08430b96c47dd2ac8e17e305db3b71e8',
+                auth: false,
               },
               true,
             ),

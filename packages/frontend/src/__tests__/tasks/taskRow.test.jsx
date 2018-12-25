@@ -923,7 +923,7 @@ describe('<TaskRow />', () => {
           url: 'https://kith.com',
           name: 'Kith',
           apiKey: '08430b96c47dd2ac8e17e305db3b71e8',
-          auth: 'false',
+          auth: false,
         },
       });
     });
