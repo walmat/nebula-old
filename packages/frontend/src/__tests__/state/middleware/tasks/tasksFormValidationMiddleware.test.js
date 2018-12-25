@@ -125,8 +125,8 @@ describe('task form validation middleware', () => {
             }
           : {
               ...initialTaskStates.task.site,
-              name: 'Kith',
-              auth: 'false',
+              name: 'Undefeated',
+              auth: 'true',
             },
         profile: testValid
           ? {
@@ -195,8 +195,8 @@ describe('task form validation middleware', () => {
                   }
                 : {
                     ...initialTaskStates.task.site,
-                    name: 'Kith',
-                    auth: 'false',
+                    name: 'Undefeated',
+                    auth: 'true',
                   }
               : null,
           profile:
