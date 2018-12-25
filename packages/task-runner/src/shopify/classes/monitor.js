@@ -111,11 +111,13 @@ class Monitor {
         let s;
         do {
           s = generateRandom(getAllSizes[idx]);
-        } while (!variantsBySize[s]); // TODO - infinite loop if variants array is improper size
-        return variantsBySize[s];
+        } while (!variantsBySize[s.toLowerCase()]); // TODO - infinite loop if variants array is improper size
+
+        return variantsBySize[s.toLowerCase()];
       }
-      return variantsBySize[size];
+      return variantsBySize[size.toLowerCase()];
     });
+
     // Flatten the groups to a one-level array and remove null elements
     const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
     return validVariants.map(v => `${v.id}`);
