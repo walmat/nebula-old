@@ -26,7 +26,7 @@ const tasksFormValidationMiddleware = store => next => action => {
 
     if (
       response.site &&
-      !response.site.auth &&
+      response.site.auth !== 'true' &&
       (field === TASK_FIELDS.EDIT_USERNAME || field === TASK_FIELDS.EDIT_PASSWORD)
     ) {
       errors[mapTaskFieldsToKey[field]] = false;
