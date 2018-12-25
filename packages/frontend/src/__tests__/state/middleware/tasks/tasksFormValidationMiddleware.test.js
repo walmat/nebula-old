@@ -443,8 +443,8 @@ describe('task form validation middleware', () => {
           testErrorFlag({
             field: TASK_FIELDS.EDIT_SITE,
             value: {
-              label: '12AM Run',
-              value: 'https://12amrun.com',
+              name: '12AM Run',
+              url: 'https://12amrun.com',
               apiKey: 'e5b0d0dc103ac126c494f8cc1fd70fe9',
               auth: false,
             },
