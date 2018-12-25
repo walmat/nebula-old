@@ -30,6 +30,7 @@ class JsonParser extends Parser {
         method: 'GET',
         uri: `${this._task.site.url}/products.json`,
         proxy: formatProxy(this._proxy) || undefined,
+        rejectUnauthorized: false,
         json: false,
         simple: true,
         gzip: true,

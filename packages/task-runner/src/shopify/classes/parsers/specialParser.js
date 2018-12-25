@@ -42,6 +42,7 @@ class SpecialParser extends Parser {
         json: false,
         simple: true,
         followRedirect: false,
+        rejectUnauthorized: false,
         gzip: true,
         headers: {
           'User-Agent': userAgent,
@@ -231,6 +232,7 @@ class SpecialParser extends Parser {
       method: 'GET',
       uri: productUrl,
       proxy: formatProxy(this._proxy) || undefined,
+      rejectUnauthorized: false,
       json: false,
       simple: true,
       transform2xxOnly: true,
