@@ -200,25 +200,48 @@ class Checkout {
     const { site, profile } = this._task;
     const { shipping, billing, payment } = profile;
 
-    const dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
-      payment.email
-    }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
-      shipping.lastName
-    }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
-      shipping.city
-    }","country_code":"${shipping.country.value}","province_code":"${
-      shipping.state.value
-    }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
-      shipping.zipCode
-    }"},"billing_address":{"first_name":"${billing.firstName}","last_name":"${
-      billing.lastName
-    }","address1":"${billing.address}","address2":"${billing.apt}","company":null,"city":"${
-      billing.city
-    }","country_code":"${billing.country.value}","province_code":"${
-      billing.state.value
-    }","phone":"${phoneFormatter.format(billing.phone, '(NNN) NNN-NNNN')}","zip":"${
-      billing.zipCode
-    }"}}}`;
+    let dataString;
+    if (profile.billingMatchesShipping) {
+      dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
+        payment.email
+      }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
+        shipping.lastName
+      }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
+        shipping.city
+      }","country_code":"${shipping.country.value}","province_code":"${
+        shipping.state.value
+      }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
+        shipping.zipCode
+      }"},"billing_address":{"first_name":"${shipping.firstName}","last_name":"${
+        shipping.lastName
+      }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
+        shipping.city
+      }","country_code":"${shipping.country.value}","province_code":"${
+        shipping.state.value
+      }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
+        shipping.zipCode
+      }"}}}`;
+    } else {
+      dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
+        payment.email
+      }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
+        shipping.lastName
+      }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
+        shipping.city
+      }","country_code":"${shipping.country.value}","province_code":"${
+        shipping.state.value
+      }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
+        shipping.zipCode
+      }"},"billing_address":{"first_name":"${billing.firstName}","last_name":"${
+        billing.lastName
+      }","address1":"${billing.address}","address2":"${billing.apt}","company":null,"city":"${
+        billing.city
+      }","country_code":"${billing.country.value}","province_code":"${
+        billing.state.value
+      }","phone":"${phoneFormatter.format(billing.phone, '(NNN) NNN-NNNN')}","zip":"${
+        billing.zipCode
+      }"}}}`;
+    }
 
     const headers = {
       ...this._getHeaders(),
@@ -263,7 +286,7 @@ class Checkout {
       }
       // might not ever get called, but just a failsafe
       this._logger.debug('Failed: Creating checkout session %s', res);
-      return null;
+      return { code: 400, res: null };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
       return { code: err.statusCode, error: err };
@@ -310,6 +333,7 @@ class Checkout {
           const error = res.body.errors.line_items[0];
           if (error.quantity) {
             this._logger.verbose('Out of stock, running for restocks');
+            // infinite loop here somehow...
             await waitForDelay(Checkout.Delays.Restocks);
             return {
               message: 'Running for restocks',
@@ -535,6 +559,8 @@ class Checkout {
         transform: body => cheerio.load(body),
       });
 
+      // TODO - second completion POST here for KITH
+
       step = $('.step').attr('data-step');
       if (!step) {
         step = $('#step').attr('data-step');
@@ -567,7 +593,6 @@ class Checkout {
 
   async _handleProcessingPayment() {
     // timeout
-    console.log(this._context.timer.getRunTime(now()));
     if (this._context.timer.getRunTime(now()) > 10000) {
       return {
         message: 'Payment processing timed out, check email',
@@ -691,7 +716,7 @@ class Checkout {
     if (res) {
       this._state = res.nextState;
 
-      if (this._state !== Checkout.States.Stopped) {
+      if (this._state !== States.Stopped) {
         return {
           message: res.message,
           nextState: States.Checkout,
