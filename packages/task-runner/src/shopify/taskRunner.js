@@ -124,15 +124,21 @@ class TaskRunner {
   }
 
   async swapProxies() {
-    this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Timeout'));
-      }, 10000); // TODO: Make this a variable delay?
-      this._events.once(Events.ReceiveProxy, (id, proxy) => {
-        clearTimeout(timeout);
-        resolve(proxy);
+    if (this.proxy) {
+      this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Timeout'));
+        }, 10000); // TODO: Make this a variable delay?
+        this._events.once(Events.ReceiveProxy, (id, proxy) => {
+          clearTimeout(timeout);
+          resolve(proxy);
+        });
       });
+    }
+    // if no proxies, we kinda have to wait awhile here :/
+    return new Promise(reject => {
+      setTimeout(() => reject(), 60000); // TODO - hardcoded a minute wait
     });
   }
 
@@ -281,6 +287,12 @@ class TaskRunner {
     if (failed.length > 0) {
       this._logger.silly('Task setup failed: %j', failed);
       // check queue
+
+      const banned = failed.some(f => f.e === 403 || f.e === 429 || f.e === 430);
+      if (banned) {
+        return States.SwapProxies;
+      }
+
       const queue = failed.some(f => f.e === 303);
       if (queue) {
         this._context.setup = false;
@@ -303,22 +315,15 @@ class TaskRunner {
   }
 
   async _handleCheckoutQueue() {
-    const checkout = await this._checkout.handleCreateCheckout();
+    const res = await this._checkout.pollCheckoutQueue();
+    console.log(res);
 
-    // we're still in queue
-    if (!checkout.res && !checkout.error) {
-      this._emitTaskEvent({
-        message: 'Waiting in queue',
-      });
-      this._logger.silly('Waiting in checkout queue %d', checkout.code);
-      return States.Queue;
-    }
-    // error handling
-    if (checkout.error) {
-      this._logger.verbose('Error in creating checkout %d', checkout.error);
-      switch (checkout.error) {
+    if (res.error) {
+      this._logger.verbose('Error in polling queue %d', res.error);
+      switch (res.status) {
         case 403:
         case 429:
+        case 430:
           // soft ban
           return States.SwapProxies;
         default:
@@ -326,10 +331,16 @@ class TaskRunner {
           return States.Stopped;
       }
     }
-    this._logger.verbose('Created checkout session %j', checkout.res);
-    this._isSetup = true;
-    // otherwise, we're out of queue and can proceed to find the product now.
-    return States.Monitor;
+    // we're still in queue
+    if (!res) {
+      this._emitTaskEvent({
+        message: 'Waiting in queue',
+      });
+      this._logger.silly('Waiting in checkout queue');
+      return States.Queue;
+    }
+    // otherwise, we're out of queue and can proceed to create checkout session now.
+    return States.TaskSetup;
   }
 
   async _handleMonitor() {

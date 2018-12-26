@@ -609,6 +609,13 @@
     "supported": true
   },
   {
+    "label": "Yeezy Supply 3",
+    "value": "https://700.yeezysupply.com",
+    "apiKey": "afa13d942580749aa2985b086cc0bdcb",
+    "auth": false,
+    "supported": true
+  },
+  {
     "label": "Justin Timberlake",
     "value": "https://shop.justintimberlake.com",
     "apiKey": "912ee12555b1728feefb55f85c6d7ba8",

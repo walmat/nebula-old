@@ -3,6 +3,8 @@ const urlToOptionIndex = {
   'https://us.bape.com': 3,
   'https://commonwealth-ftgg.com': 1,
   'https://yeezysupply.com': 1,
+  'https://350.yeezysupply.com': 1,
+  'https://700.yeezysupply.com': 1,
   'https://funko-shop.com': 1, // TODO -- no products loaded
   'https://shop-usa.palaceskateboards.com': 1,
   'https://12amrun.com': 1,

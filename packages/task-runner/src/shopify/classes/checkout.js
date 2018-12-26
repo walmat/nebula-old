@@ -32,7 +32,7 @@ class Checkout {
     return {
       ProcessingPayment: 1500,
       PollShippingRates: 750,
-      PollCheckoutQueue: 1000,
+      PollCheckoutQueue: 5000,
       Restocks: 750,
     };
   }
@@ -191,6 +191,44 @@ class Checkout {
     }
   }
 
+  async pollCheckoutQueue() {
+    this._logger.verbose('CHECKOUT: Waiting in queue');
+
+    const { site } = this._task;
+
+    try {
+      const res = await this._request({
+        uri: `${site.url}/checkout/poll?js_poll=1`,
+        method: 'GET',
+        proxy: formatProxy(this._proxy),
+        simple: false,
+        json: true,
+        followAllRedirects: true,
+        rejectUnauthorized: false,
+        resolveWithFullResponse: true,
+        headers: this._getHeaders(),
+      });
+      if (res.statusCode > 400) {
+        return {
+          error: true,
+          status: res.statusCode,
+        };
+      }
+      if (res.statusCode > 200) {
+        await waitForDelay(Checkout.Delays.PollCheckoutQueue);
+        return false;
+      }
+      // console.log(res);
+      return true;
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Error polling queue: %s', err.error);
+      return {
+        error: err.error,
+        status: err.error.statusCode,
+      };
+    }
+  }
+
   /**
    * Create a valid checkout token with user data
    */
@@ -256,22 +294,37 @@ class Checkout {
         method: 'POST',
         proxy: formatProxy(this._proxy),
         simple: false,
-        json: false,
+        json: true,
         encoding: null,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers,
         body: dataString,
       });
-      const body = JSON.parse(res.body.toString());
-      if (res.statusCode === 303) {
-        this._logger.info(
+      // check for soft ban
+      if (res.statusCode > 400) {
+        return {
+          code: res.statusCode,
+          error: true,
+        };
+      }
+      console.log(res.body.toString());
+      console.log(res.body.toString().indexOf('/poll') > -1);
+      if (res.body.toString().indexOf('/poll') > -1) {
+        /**
+         * <html><body>You are being <a href="https://yeezysupply.com/checkout/poll">redirected</a>.</body></html>
+         */
+        this._logger.verbose(
           'CHECKOUT: Checkout queue, polling %d ms',
           Checkout.Delays.PollCheckoutQueue,
         );
-        await waitForDelay(Checkout.Delays.PollCheckoutQueue);
-        return { code: 303, error: null };
+        return {
+          code: 303,
+          error: null,
+        };
       }
+      const body = JSON.parse(res.body.toString());
+      console.log(body);
       if (body.checkout) {
         const { checkout } = body;
         const { clone_url } = checkout;
@@ -329,6 +382,7 @@ class Checkout {
           body: dataString,
         });
         // "error" handling
+        console.log(JSON.stringify(res.body, null, 2));
         if (res.body.errors && res.body.errors.line_items) {
           const error = res.body.errors.line_items[0];
           if (error.quantity) {

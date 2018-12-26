@@ -214,10 +214,8 @@ class Monitor {
   }
 
   async _monitorSpecial() {
-    // Get the correct special parser
-    const ParserCreator = await getSpecialParser(this._context.task.site, this._context.logger);
-    this._logger.verbose('inside of monitorSpecial');
-    this._logger.verbose('Parser Creator %j', ParserCreator);
+    // // Get the correct special parser
+    const ParserCreator = getSpecialParser(this._context.task.site);
     const parser = ParserCreator(this._context.task, this._context.proxy, this._context.logger);
 
     this._logger.verbose('MONITOR: parser: %j', parser);
@@ -259,7 +257,6 @@ class Monitor {
     );
     let result;
 
-    console.log(parseType);
     switch (parseType) {
       case ParseType.Variant: {
         // TODO: Add a way to determine if variant is correct

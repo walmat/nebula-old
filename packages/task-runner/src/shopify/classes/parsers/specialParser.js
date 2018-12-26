@@ -38,20 +38,14 @@ class SpecialParser extends Parser {
       response = await rp({
         method: 'GET',
         uri: initialUrl,
-        rejectUnauthorized: false,
-        proxy: formatProxy(this._proxy),
+        proxy: formatProxy(this._proxy) || undefined,
         json: false,
         simple: true,
         followRedirect: false,
+        rejectUnauthorized: false,
         gzip: true,
         headers: {
           'User-Agent': userAgent,
-          Connection: 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Accept-Language': 'en-US,en;q=0.9',
         },
         transform2xxOnly: true,
         transform: body =>
@@ -75,6 +69,8 @@ class SpecialParser extends Parser {
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;
     }
+
+    this._logger.verbose('THIS IS THE GODDAMN REQUEST: %j', response);
 
     // Check if we need to parse the response as an initial page, or if we should treat is as
     // a direct link (when the parse type is url)
