@@ -1,6 +1,8 @@
 const phoneFormatter = require('phone-formatter');
 const cheerio = require('cheerio');
 const _ = require('underscore');
+const fs = require('fs');
+const path = require('path');
 const { States } = require('./utils/constants').TaskRunner;
 const { waitForDelay, formatProxy, userAgent, getRandomIntInclusive, now } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
@@ -294,7 +296,7 @@ class Checkout {
         method: 'POST',
         proxy: formatProxy(this._proxy),
         simple: false,
-        json: true,
+        json: false,
         encoding: null,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
@@ -308,8 +310,8 @@ class Checkout {
           error: true,
         };
       }
-      console.log(res.body.toString());
-      console.log(res.body.toString().indexOf('/poll') > -1);
+
+      // did we receive a queue response?
       if (res.body.toString().indexOf('/poll') > -1) {
         /**
          * <html><body>You are being <a href="https://yeezysupply.com/checkout/poll">redirected</a>.</body></html>
@@ -323,23 +325,30 @@ class Checkout {
           error: null,
         };
       }
-      const body = JSON.parse(res.body.toString());
-      console.log(body);
-      if (body.checkout) {
-        const { checkout } = body;
-        const { clone_url } = checkout;
-        this._logger.verbose('CHECKOUT: Created checkout token: %s', clone_url.split('/')[5]);
-        // eslint-disable-next-line prefer-destructuring
-        this._storeId = clone_url.split('/')[3];
-        // eslint-disable-next-line prefer-destructuring
-        this._paymentUrlKey = checkout.web_url.split('=')[1];
-        // push the checkout token to the stack
-        this._checkoutTokens.push(clone_url.split('/')[5]);
-        return { code: 200, res: clone_url.split('/')[5] };
+
+      // let's try to parse the response if not
+      let body;
+      try {
+        body = JSON.parse(res.body.toString());
+        if (body.checkout) {
+          const { checkout } = body;
+          const { clone_url } = checkout;
+          this._logger.verbose('CHECKOUT: Created checkout token: %s', clone_url.split('/')[5]);
+          // eslint-disable-next-line prefer-destructuring
+          this._storeId = clone_url.split('/')[3];
+          // eslint-disable-next-line prefer-destructuring
+          this._paymentUrlKey = checkout.web_url.split('=')[1];
+          // push the checkout token to the stack
+          this._checkoutTokens.push(clone_url.split('/')[5]);
+          return { code: 200, res: clone_url.split('/')[5] };
+        }
+        // might not ever get called, but just a failsafe
+        this._logger.debug('Failed: Creating checkout session %s', res);
+        return { code: 400, res: null };
+      } catch (err) {
+        this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
+        return { code: err.statusCode, error: err };
       }
-      // might not ever get called, but just a failsafe
-      this._logger.debug('Failed: Creating checkout session %s', res);
-      return { code: 400, res: null };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
       return { code: err.statusCode, error: err };
@@ -556,7 +565,7 @@ class Checkout {
       let $ = await this._request({
         uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
           this._paymentUrlKey
-        }&step=payment_method`,
+        }&previous_step=shipping_method&step=payment_method`,
         method: 'get',
         followAllRedirects: true,
         resolveWithFullResponse: true,
@@ -581,7 +590,7 @@ class Checkout {
 
       this._logger.silly('CHECKOUT: Found payment gateway: %s', this._gateway);
 
-      $ = await this._request({
+      const r = await this._request({
         uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
           this._paymentUrlKey
         }`,
@@ -610,10 +619,12 @@ class Checkout {
           button: '',
           'g-recaptcha-response': this._captchaToken,
         },
-        transform: body => cheerio.load(body),
+        // transform: body => cheerio.load(body),
       });
 
-      // TODO - second completion POST here for KITH
+      $ = cheerio.load(r.body);
+
+      fs.writeFileSync(path.join(__dirname, 'debug.html'), r.body);
 
       step = $('.step').attr('data-step');
       if (!step) {

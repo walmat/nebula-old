@@ -163,7 +163,8 @@ class Monitor {
   }
 
   async _monitorUrl() {
-    const { url } = this._context.task.product;
+    let { url } = this._context.task.product;
+    url = url.split('?')[0];
     try {
       const response = await rp({
         method: 'GET',
