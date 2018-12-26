@@ -167,6 +167,7 @@ class Monitor {
         method: 'GET',
         uri: url,
         proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
         resolveWithFullResponse: true,
         simple: true,
         followRedirect: false,

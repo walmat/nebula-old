@@ -30,6 +30,7 @@ class Parser {
         method: 'GET',
         uri,
         proxy: formatProxy(this._proxy) || undefined,
+        rejectUnauthorized: false,
         json: false,
         simple: true,
         gzip: true,

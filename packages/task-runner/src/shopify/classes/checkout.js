@@ -599,7 +599,11 @@ class Checkout {
             'checkout[client_details][javascript_enabled]': '1',
             'g-recaptcha-response': this._captchaToken,
           },
-          transform: body => cheerio.load(body),
+          transform: body =>
+            cheerio.load(body, {
+              normalizeWhitespace: true,
+              xmlMode: false,
+            }),
         });
       }
 
