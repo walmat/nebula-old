@@ -577,7 +577,7 @@ class Checkout {
       }
 
       if (step === Checkout.ShopifySteps.Review) {
-        $ = await this._request({
+        const res = await this._request({
           uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
             this._paymentUrlKey
           }&step=review`,
@@ -599,12 +599,9 @@ class Checkout {
             'checkout[client_details][javascript_enabled]': '1',
             'g-recaptcha-response': this._captchaToken,
           },
-          transform: body =>
-            cheerio.load(body, {
-              normalizeWhitespace: true,
-              xmlMode: false,
-            }),
         });
+
+        $ = cheerio.load(res.body);
       }
 
       this._logger.verbose('CHECKOUT: Proceeding to process payment');

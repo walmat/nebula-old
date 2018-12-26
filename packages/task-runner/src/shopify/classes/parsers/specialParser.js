@@ -38,14 +38,20 @@ class SpecialParser extends Parser {
       response = await rp({
         method: 'GET',
         uri: initialUrl,
-        proxy: formatProxy(this._proxy) || undefined,
+        rejectUnauthorized: false,
+        proxy: formatProxy(this._proxy),
         json: false,
         simple: true,
         followRedirect: false,
-        rejectUnauthorized: false,
         gzip: true,
         headers: {
           'User-Agent': userAgent,
+          Connection: 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept-Language': 'en-US,en;q=0.9',
         },
         transform2xxOnly: true,
         transform: body =>

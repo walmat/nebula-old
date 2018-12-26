@@ -60,7 +60,7 @@ class Monitor {
     }
     await delay.call(this);
     this._logger.info('Monitoring not complete, remonitoring...');
-    return { message: `Monitoring for Product...`, nextState: States.Monitor };
+    return { message: `Monitoring for product...`, nextState: States.Monitor };
   }
 
   _parseAll() {
@@ -84,7 +84,6 @@ class Monitor {
         variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title),
     );
     // Get the groups in the same order as the sizes
-
     const mappedVariants = sizes.map(size => {
       // if we're choosing a random size ..generate a random size for now for each respective category
       // TODO - implement a "stock checker" to choose the one with the most stock
@@ -115,8 +114,11 @@ class Monitor {
 
         return variantsBySize[s.toLowerCase()];
       }
-      return variantsBySize[size.toLowerCase()];
+      this._context.logger.verbose('MONITOR: variants for size: %j', variantsBySize);
+      return variantsBySize[size.toLowerCase() || size.toUpperCase()];
     });
+
+    this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
 
     // Flatten the groups to a one-level array and remove null elements
     const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
@@ -213,14 +215,18 @@ class Monitor {
 
   async _monitorSpecial() {
     // Get the correct special parser
-    const ParserCreator = getSpecialParser(this._context.task.site);
+    const ParserCreator = await getSpecialParser(this._context.task.site, this._context.logger);
+    this._logger.verbose('inside of monitorSpecial');
+    this._logger.verbose('Parser Creator %j', ParserCreator);
     const parser = ParserCreator(this._context.task, this._context.proxy, this._context.logger);
 
+    this._logger.verbose('MONITOR: parser: %j', parser);
     let parsed;
     try {
       parsed = await parser.run();
+      this._logger.verbose('MONITOR: Parsed object: %j', parsed);
     } catch (error) {
-      this._logger.debug('MONITOR: Error with special parsing!', error);
+      this._logger.verbose('MONITOR: Error with special parsing!', error);
       // Check for a product not found error
       if (error.status === ErrorCodes.Parser.ProductNotFound) {
         return { message: 'Error: Product Not Found!', nextState: States.Errored };
@@ -252,6 +258,8 @@ class Monitor {
       this._context.task.site,
     );
     let result;
+
+    console.log(parseType);
     switch (parseType) {
       case ParseType.Variant: {
         // TODO: Add a way to determine if variant is correct
