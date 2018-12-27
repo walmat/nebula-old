@@ -13,7 +13,7 @@ const _defaultWebPreferences = {
   blinkFeatures: '',
 };
 
-const _createWindow = (options) => {
+const _createWindow = options => {
   // Create options
   const browserWindowOptions = {
     center: true,
@@ -36,12 +36,12 @@ const _createWindow = (options) => {
     // The majority of styling is currently inlne, so we have to allow this!
     // TODO: move away from inline styles!
     let cspHeaders = [
-      'default-src \'none\'; connect-src \'self\' https: wss:; font-src \'self\' https:; script-src \'self\' https:; frame-src \'self\' https:; img-src \'self\' https:; style-src \'self\' \'unsafe-inline\';',
+      "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https:; style-src 'self' 'unsafe-inline' 'https'; media-src 'self' blob:; manifest-src 'self' data:;",
     ];
     if (nebulaEnv.isDevelopment()) {
       // If in dev mode, allow inline scripts to run (for developer tool extensions)
       cspHeaders = [
-        'default-src \'none\'; connect-src \'self\' https: wss:; font-src \'self\' https:; script-src \'self\' https: \'unsafe-inline\'; frame-src \'self\' https:; img-src \'self\' https:; style-src \'self\' \'unsafe-inline\';',
+        "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https:; style-src 'self' 'unsafe-inline' 'https'; media-src 'self' blob:; manifest-src 'self' data:;",
       ];
     }
     callback({
@@ -100,14 +100,15 @@ const urls = new Map();
  *
  * @return {BrowserWindow} Auth Window
  */
-const createAuthWindow = () => _createWindow({
-  width: 300,
-  height: 215,
-  webPreferences: {
-    ..._defaultWebPreferences,
-    preload: Path.join(__dirname, '../_electron/preload.js'),
-  },
-});
+const createAuthWindow = () =>
+  _createWindow({
+    width: 300,
+    height: 215,
+    webPreferences: {
+      ..._defaultWebPreferences,
+      preload: Path.join(__dirname, '../_electron/preload.js'),
+    },
+  });
 
 const authUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
 urls.set('auth', authUrl);
@@ -117,10 +118,11 @@ urls.set('auth', authUrl);
  *
  * @return {BrowserWindow} About Window
  */
-const createAboutWindow = () => _createWindow({
-  width: 300,
-  height: 215,
-});
+const createAboutWindow = () =>
+  _createWindow({
+    width: 300,
+    height: 215,
+  });
 
 const aboutUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
 urls.set('about', aboutUrl);
@@ -130,14 +132,15 @@ urls.set('about', aboutUrl);
  *
  * @return {BrowserWindow} Captcha Window
  */
-const createCaptchaWindow = () => _createWindow({
-  width: 400,
-  height: 650,
-  webPreferences: {
-    ..._defaultWebPreferences,
-    preload: Path.join(__dirname, '../_electron/preload.js'),
-  },
-});
+const createCaptchaWindow = () =>
+  _createWindow({
+    width: 400,
+    height: 650,
+    webPreferences: {
+      ..._defaultWebPreferences,
+      preload: Path.join(__dirname, '../_electron/preload.js'),
+    },
+  });
 
 let captchaUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
 if (nebulaEnv.isDevelopment()) {
@@ -150,15 +153,16 @@ urls.set('captcha', captchaUrl);
  *
  * @return {BrowserWindow} YouTube Window
  */
-const createYouTubeWindow = () => _createWindow({
-  width: 450,
-  height: 475,
-  frame: true,
-  webPreferences: {
-    ..._defaultWebPreferences,
-    preload: Path.join(__dirname, '../_electron/preload.js'),
-  },
-});
+const createYouTubeWindow = () =>
+  _createWindow({
+    width: 450,
+    height: 475,
+    frame: true,
+    webPreferences: {
+      ..._defaultWebPreferences,
+      preload: Path.join(__dirname, '../_electron/preload.js'),
+    },
+  });
 
 const youtubeUrl =
   'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
@@ -169,18 +173,18 @@ urls.set('youtube', youtubeUrl);
  *
  * @return {BrowserWindow} Main Window
  */
-const createMainWindow = () => _createWindow({
-  width: 1000,
-  height: 715,
-  webPreferences: {
-    ..._defaultWebPreferences,
-    preload: Path.join(__dirname, '../_electron/preload.js'),
-  },
-});
+const createMainWindow = () =>
+  _createWindow({
+    width: 1000,
+    height: 715,
+    webPreferences: {
+      ..._defaultWebPreferences,
+      preload: Path.join(__dirname, '../_electron/preload.js'),
+    },
+  });
 
 const mainUrl =
-  process.env.NEBULA_START_URL ||
-  `file:///${Path.join(__dirname, '../../build/index.html')}`;
+  process.env.NEBULA_START_URL || `file:///${Path.join(__dirname, '../../build/index.html')}`;
 urls.set('main', mainUrl);
 
 module.exports = {

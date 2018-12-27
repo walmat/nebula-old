@@ -231,10 +231,10 @@ const _removeProxies = proxies => {
 };
 
 // Disable eval in the preload context
-// eslint-disable-next-line
-window.eval = global.eval = function() {
-  throw new Error('Sorry, this app does not support window.eval().');
-};
+// TEMPORARY DISABLE TILL WE SPLIT UP PRELOAD (NEEDED IN YOUTUBE WINDOWS)
+// window.eval = global.eval = function() {
+//   throw new Error('Sorry, this app does not support window.eval().');
+// };
 
 /**
  * On process load, create the Bridge
