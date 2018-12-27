@@ -62,7 +62,7 @@ export class SettingsPrimitive extends Component {
         };
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES:
         return event => {
-          onSettingsChange({ field, value: event });
+          onSettingsChange({ field, value: event.map(s => s.value) });
         };
       default:
         return event => {
@@ -76,6 +76,7 @@ export class SettingsPrimitive extends Component {
 
   render() {
     const { errors, settings, onKeyPress, onSaveDefaults, onClearDefaults } = this.props;
+    const defaultSizes = settings.defaults.sizes.map(s => ({ value: s, label: `${s}` }));
     let defaultProfileValue = null;
     if (settings.defaults.profile.id !== null) {
       defaultProfileValue = {
@@ -160,10 +161,7 @@ export class SettingsPrimitive extends Component {
             buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]]),
           )}
           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
-          value={settings.defaults.sizes.map(size => ({
-            value: size.value,
-            label: size.label,
-          }))}
+          value={defaultSizes}
           options={SettingsPrimitive.buildSizeOptions()}
         />
         <button

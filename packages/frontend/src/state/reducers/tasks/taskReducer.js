@@ -210,7 +210,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
   return Object.assign({}, state, change);
 }
 
-export function newTaskReducer(state = initialTaskStates.task, action) {
+export function newTaskReducer(state = initialTaskStates.task, action, defaults = {}) {
   switch (action.type) {
     case TASK_ACTIONS.EDIT: {
       // only modify the current task if the action id is null
@@ -230,7 +230,11 @@ export function newTaskReducer(state = initialTaskStates.task, action) {
         return Object.assign({}, state);
       }
       // If adding a new task, we should reset the current task to default values
-      return Object.assign({}, initialTaskStates.task);
+      return {
+        ...initialTaskStates.task,
+        profile: defaults.useProfile ? defaults.profile : initialTaskStates.task.profile,
+        sizes: defaults.useSizes ? defaults.sizes : initialTaskStates.task.sizes,
+      };
     }
     default:
       break;

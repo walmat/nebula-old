@@ -8,10 +8,15 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     switch (action.field) {
       case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES: {
+        let useKey = 'useProfile';
+        if (action.field === SETTINGS_FIELDS.EDIT_DEFAULT_SIZES) {
+          useKey = 'useSizes';
+        }
         change = {
           defaults: {
             ...state.defaults,
             [mapSettingsFieldToKey[action.field]]: action.value,
+            [useKey]: true,
           },
           errors: Object.assign({}, state.errors, action.errors),
         };
