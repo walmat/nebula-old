@@ -110,12 +110,12 @@ class Monitor {
         let s;
         do {
           s = generateRandom(getAllSizes[idx]);
-        } while (!variantsBySize[s.toLowerCase()]); // TODO - infinite loop if variants array is improper size
+        } while (!variantsBySize[s.toLowerCase()] || !variantsBySize[s.toUpperCase()]); // TODO - infinite loop if variants array is improper size
 
-        return variantsBySize[s.toLowerCase()];
+        return variantsBySize[s.toLowerCase()] || variantsBySize[s.toUpperCase()];
       }
       this._context.logger.verbose('MONITOR: variants for size: %j', variantsBySize);
-      return variantsBySize[size.toLowerCase() || size.toUpperCase()];
+      return variantsBySize[size.toLowerCase()] || variantsBySize[size.toUpperCase()];
     });
 
     this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
@@ -164,6 +164,7 @@ class Monitor {
 
   async _monitorUrl() {
     let { url } = this._context.task.product;
+    // TODO - figure out a cleaner way to do this
     url = url.split('?')[0];
     try {
       const response = await rp({
@@ -215,17 +216,15 @@ class Monitor {
   }
 
   async _monitorSpecial() {
-    // // Get the correct special parser
+    // Get the correct special parser
     const ParserCreator = getSpecialParser(this._context.task.site);
     const parser = ParserCreator(this._context.task, this._context.proxy, this._context.logger);
 
-    this._logger.verbose('MONITOR: parser: %j', parser);
     let parsed;
     try {
       parsed = await parser.run();
-      this._logger.verbose('MONITOR: Parsed object: %j', parsed);
     } catch (error) {
-      this._logger.verbose('MONITOR: Error with special parsing!', error);
+      this._logger.debug('MONITOR: Error with special parsing!', error);
       // Check for a product not found error
       if (error.status === ErrorCodes.Parser.ProductNotFound) {
         return { message: 'Error: Product Not Found!', nextState: States.Errored };
@@ -256,8 +255,8 @@ class Monitor {
       this._logger,
       this._context.task.site,
     );
-    let result;
 
+    let result;
     switch (parseType) {
       case ParseType.Variant: {
         // TODO: Add a way to determine if variant is correct

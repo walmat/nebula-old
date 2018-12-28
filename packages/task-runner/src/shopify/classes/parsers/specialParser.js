@@ -40,10 +40,9 @@ class SpecialParser extends Parser {
         uri: initialUrl,
         proxy: formatProxy(this._proxy) || undefined,
         json: false,
-        simple: false,
+        simple: true,
         followRedirect: false,
         rejectUnauthorized: false,
-        resolveWithFullResponse: true,
         gzip: true,
         headers: {
           'User-Agent': userAgent,
