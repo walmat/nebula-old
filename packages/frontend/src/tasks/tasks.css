@@ -405,8 +405,15 @@
 .tasks .tasks-table .tasks-row-container .tasks-row__actions {
   width: 50px;
 }
+.tasks .tasks-table .tasks-row-container .tasks-row__actions__button:first-child {
+  margin-left: -5px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(3) {
+  margin-top: 1px;
+}
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button {
   padding-bottom: 3px;
+  margin-right: 1.5px;
   width: 16px;
 }
 

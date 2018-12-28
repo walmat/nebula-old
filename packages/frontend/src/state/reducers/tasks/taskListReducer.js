@@ -157,6 +157,19 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       nextState[idx] = taskReducer(found, action);
       break;
     }
+    case TASK_ACTIONS.COPY: {
+      if (!action.response || (action.response && !action.response.task)) {
+        break;
+      }
+      const newTask = JSON.parse(JSON.stringify(action.response.task));
+
+      // get new task id
+      newTask.id = _getId(nextState);
+      // reset new task status
+      newTask.status = 'idle';
+      nextState.push(newTask);
+      break;
+    }
     case TASK_ACTIONS.START: {
       if (!action.response || (action.response && !action.response.task)) {
         break;

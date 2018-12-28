@@ -27,6 +27,7 @@ describe('<TaskRow />', () => {
         proxies={renderProps.proxies}
         profiles={renderProps.profiles}
         onSelectTask={renderProps.onSelectTask}
+        onCopyTask={renderProps.onCopyTask}
         onStartTask={renderProps.onStartTask}
         onStopTask={renderProps.onStopTask}
         onDestroyTask={renderProps.onDestroyTask}
@@ -48,6 +49,7 @@ describe('<TaskRow />', () => {
       profiles: [],
       errors: { ...initialTaskStates.edit.errors },
       onSelectTask: () => {},
+      onCopyTask: () => {},
       onStartTask: () => {},
       onStopTask: () => {},
       onDestroyTask: () => {},
@@ -67,7 +69,7 @@ describe('<TaskRow />', () => {
     expect(wrapper.find('.tasks-row__sizes')).toHaveLength(1);
     expect(wrapper.find('.tasks-row__account')).toHaveLength(1);
     expect(wrapper.find('.tasks-row__actions')).toHaveLength(1);
-    expect(wrapper.find('.tasks-row__actions__button')).toHaveLength(3);
+    expect(wrapper.find('.tasks-row__actions__button')).toHaveLength(4);
     expect(wrapper.find('.tasks-edit')).toHaveLength(1);
     expect(getByTestId(wrapper, 'TaskRow.button.edit')).toHaveLength(1);
     expect(getByTestId(wrapper, 'TaskRow.button.action.start')).toHaveLength(1);
@@ -132,6 +134,7 @@ describe('<TaskRow />', () => {
     testActionButtonValues(wrapper, 'destroy', 'Destroy Task', '');
     testActionButtonValues(wrapper, 'stop', 'Stop Task', '');
     testActionButtonValues(wrapper, 'start', 'Start Task', '');
+    testActionButtonValues(wrapper, 'copy', 'Copy Task', '');
     testTableRowValues(wrapper, {});
   });
 
@@ -148,6 +151,7 @@ describe('<TaskRow />', () => {
     testActionButtonValues(wrapper, 'destroy', 'Destroy Task', '');
     testActionButtonValues(wrapper, 'stop', 'Stop Task', '');
     testActionButtonValues(wrapper, 'start', 'Start Task', '');
+    testActionButtonValues(wrapper, 'copy', 'Copy Task', '');
     testTableRowValues(wrapper, {});
     testEditMenuValues(wrapper, {});
   });
@@ -162,6 +166,7 @@ describe('<TaskRow />', () => {
       testActionButtonValues(wrapper, 'destroy', 'Destroy Task', '');
       testActionButtonValues(wrapper, 'stop', 'Stop Task', '');
       testActionButtonValues(wrapper, 'start', 'Start Task', '');
+      testActionButtonValues(wrapper, 'copy', 'Copy Task', '');
     };
 
     test('id < 10', () => {

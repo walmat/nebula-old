@@ -224,8 +224,17 @@
         &__actions {
           width: 50px;
 
+          &__button:first-child {
+            margin-left: -5px;
+          }
+
+          &__button:nth-child(3) {
+            margin-top: 1px;
+          }
+
           &__button {
             padding-bottom: 3px;
+            margin-right: 5px;
             width: 16px;
           }
         }

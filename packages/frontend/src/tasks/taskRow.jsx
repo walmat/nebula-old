@@ -10,6 +10,7 @@ import tDefns from '../utils/definitions/taskDefinitions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import addTestId from '../utils/addTestId';
 
+import copy from '../_assets/copy.svg';
 import start from '../_assets/run.svg';
 import stop from '../_assets/stop.svg';
 import destroy from '../_assets/destroy.svg';
@@ -280,6 +281,13 @@ export class TaskRowPrimitive extends Component {
     );
   }
 
+  renderTableRowCopyActionButton() {
+    const { task, onCopyTask } = this.props;
+    return this.renderTableRowActionButton('copy', 'Copy Task', copy, '', () => {
+      onCopyTask(task);
+    });
+  }
+
   renderTableRowStartActionButton() {
     const { task, onStartTask, proxies } = this.props;
     return this.renderTableRowActionButton(
@@ -347,6 +355,7 @@ export class TaskRowPrimitive extends Component {
         <div className="col col--no-gutter tasks-row__account">{taskAccountValue}</div>
         <div className="col col--no-gutter tasks-row__actions">
           <div className="row row--gutter">
+            {this.renderTableRowCopyActionButton()}
             {this.renderTableRowStartActionButton()}
             {this.renderTableRowStopActionButton()}
             {this.renderTableRowDestroyActionButton()}
@@ -373,6 +382,7 @@ TaskRowPrimitive.propTypes = {
   task: tDefns.task.isRequired,
   edits: tDefns.taskEdit.isRequired,
   onSelectTask: PropTypes.func.isRequired,
+  onCopyTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,
@@ -411,6 +421,9 @@ export const mapDispatchToProps = dispatch => ({
   },
   onUpdateTask: task => {
     dispatch(taskActions.update(task.id, task));
+  },
+  onCopyTask: task => {
+    dispatch(taskActions.copy(task));
   },
   onStartTask: (task, proxies) => {
     dispatch(taskActions.start(task, proxies));
