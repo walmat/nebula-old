@@ -1,6 +1,8 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
+const { appUpdater, checkOS } = require('./updater');
 const {
   createAboutWindow,
   createAuthWindow,
@@ -187,6 +189,14 @@ class WindowManager {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`Window was opened, id = ${win.id}`);
         win.webContents.openDevTools();
+      }
+
+      if (win.id === this._main.id) {
+        win.webContents.once('did-frame-finish-load', () => {
+          if (checkOS() && !nebulaEnv.isDevelopment()) {
+            appUpdater();
+          }
+        });
       }
 
       // add window & id to windows map, notify other windows, and finally, show the window

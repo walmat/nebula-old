@@ -164,14 +164,7 @@ class App {
     Electron.app.quit();
   }
 
-  onCertificateErrorHandler(
-    event,
-    webContents,
-    url,
-    error,
-    certificate,
-    callback,
-  ) {
+  onCertificateErrorHandler(event, webContents, url, error, certificate, callback) {
     const serverPort = this._captchaServerManager.port;
     if (serverPort && url.startsWith(`https://127.0.0.1:${serverPort}`)) {
       event.preventDefault();
