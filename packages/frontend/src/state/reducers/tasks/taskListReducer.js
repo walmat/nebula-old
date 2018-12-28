@@ -163,8 +163,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       }
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
-      // add new task
+      // get new task id
       newTask.id = _getId(nextState);
+      // reset new task status
+      newTask.status = 'idle';
       nextState.push(newTask);
       break;
     }
