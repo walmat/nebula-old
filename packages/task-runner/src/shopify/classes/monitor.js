@@ -165,6 +165,7 @@ class Monitor {
   async _monitorUrl() {
     let { url } = this._context.task.product;
     // TODO - figure out a cleaner way to do this
+    // eslint-disable-next-line prefer-destructuring
     url = url.split('?')[0];
     try {
       const response = await rp({
