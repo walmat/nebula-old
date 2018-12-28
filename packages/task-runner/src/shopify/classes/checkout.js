@@ -220,7 +220,6 @@ class Checkout {
         await waitForDelay(Checkout.Delays.PollCheckoutQueue);
         return false;
       }
-      // console.log(res);
       return true;
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %s', err.error);

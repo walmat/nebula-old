@@ -71,8 +71,6 @@ class SpecialParser extends Parser {
       throw rethrow;
     }
 
-    this._logger.verbose('THIS IS THE GODDAMN REQUEST: %j', response);
-
     // Check if we need to parse the response as an initial page, or if we should treat is as
     // a direct link (when the parse type is url)
     let matchedProduct;

@@ -286,13 +286,13 @@ class TaskRunner {
     const failed = results.filter(res => res.status === 'rejected');
     if (failed.length > 0) {
       this._logger.silly('Task setup failed: %j', failed);
-      // check queue
-
+      // check banned status
       const banned = failed.some(f => f.e === 403 || f.e === 429 || f.e === 430);
       if (banned) {
         return States.SwapProxies;
       }
 
+      // check queue
       const queue = failed.some(f => f.e === 303);
       if (queue) {
         this._context.setup = false;
@@ -316,7 +316,6 @@ class TaskRunner {
 
   async _handleCheckoutQueue() {
     const res = await this._checkout.pollCheckoutQueue();
-    console.log(res);
 
     if (res.error) {
       this._logger.verbose('Error in polling queue %d', res.error);
