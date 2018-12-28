@@ -1,4 +1,4 @@
-import { TASK_ACTIONS } from '../../actions';
+import { TASK_ACTIONS, PROFILE_ACTIONS } from '../../actions';
 import { taskReducer } from './taskReducer';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 
@@ -27,6 +27,33 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
+    // patch to check for profile updates
+    case PROFILE_ACTIONS.ADD:
+    case PROFILE_ACTIONS.UPDATE: {
+      // If there's no profile, we should do nothing
+      if (!action.profile) {
+        break;
+      }
+      if (action.errors) {
+        return Object.assign({}, state, {
+          errors: Object.assign({}, state.errors, action.errors),
+        });
+      }
+      // find all tasks where the profile is used
+      const tasks = nextState.filter(task => task.profile.id === action.profile.id);
+      tasks.forEach(task => Object.assign({}, task.profile, action.profile));
+      break;
+    }
+    // patch to remove tasks containing removed profile
+    case PROFILE_ACTIONS.REMOVE: {
+      const tasks = nextState.filter(t => t.profile.id === action.id);
+      if (tasks.length) {
+        tasks.forEach(task => {
+          nextState = nextState.filter(t => t.id !== task.id);
+        });
+      }
+      break;
+    }
     case TASK_ACTIONS.ADD: {
       // Check for valid payload structure
       if (action.errors || !action.response || (action.response && !action.response.task)) {
