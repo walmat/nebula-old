@@ -1,8 +1,6 @@
 const phoneFormatter = require('phone-formatter');
 const cheerio = require('cheerio');
 const _ = require('underscore');
-const fs = require('fs');
-const path = require('path');
 const { States } = require('./utils/constants').TaskRunner;
 const { waitForDelay, formatProxy, userAgent, getRandomIntInclusive, now } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
@@ -390,7 +388,6 @@ class Checkout {
           body: dataString,
         });
         // "error" handling
-        console.log(JSON.stringify(res.body, null, 2));
         if (res.body.errors && res.body.errors.line_items) {
           const error = res.body.errors.line_items[0];
           if (error.quantity) {
@@ -589,7 +586,7 @@ class Checkout {
 
       this._logger.silly('CHECKOUT: Found payment gateway: %s', this._gateway);
 
-      const r = await this._request({
+      $ = await this._request({
         uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
           this._paymentUrlKey
         }`,
@@ -618,12 +615,8 @@ class Checkout {
           button: '',
           'g-recaptcha-response': this._captchaToken,
         },
-        // transform: body => cheerio.load(body),
+        transform: body => cheerio.load(body),
       });
-
-      $ = cheerio.load(r.body);
-
-      fs.writeFileSync(path.join(__dirname, 'debug.html'), r.body);
 
       step = $('.step').attr('data-step');
       if (!step) {
