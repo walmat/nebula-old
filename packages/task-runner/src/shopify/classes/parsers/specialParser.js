@@ -64,7 +64,7 @@ class SpecialParser extends Parser {
         throw rethrow;
       }
       // Handle other error responses
-      this._logger.debug('%s: ERROR making request!', this._name, error);
+      this._logger.debug('%s: ERROR making request! %s', this._name, error.messsage, error.stack);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;

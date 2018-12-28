@@ -14,7 +14,6 @@ class YeezyParser extends SpecialParser {
   parseInitialPageForProducts($) {
     // Look for all `.js-product-json`'s
     const products = [];
-    const scriptTags = $('script.js-product-json');
 
     const validateArray = arr => {
       if (arr.length === 0) {
@@ -43,6 +42,9 @@ class YeezyParser extends SpecialParser {
       }
     };
 
+    this._logger.silly('%s: Capturing products...', this._name);
+
+    const scriptTags = $('script.js-product-json');
     validateArray(scriptTags);
     if (scriptTags.length === 1) {
       // scriptTags is the only element, parse it

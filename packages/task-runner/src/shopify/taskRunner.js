@@ -18,7 +18,10 @@ class TaskRunner {
     this.proxy = proxy;
 
     this._jar = request.jar();
-    this._request = request.defaults({ jar: this._jar });
+    this._request = request.defaults({
+      timeout: 10000,
+      jar: this._jar,
+    });
 
     /**
      * Logger Instance
