@@ -9,6 +9,7 @@ export const TASK_ACTIONS = {
   EDIT: 'EDIT_TASK',
   SELECT: 'SELECT_TASK',
   UPDATE: 'UPDATE_TASK',
+  COPY: 'COPY_TASK',
   STATUS: 'UPDATE_STATUS',
   START: 'START_TASK',
   STOP: 'STOP_TASK',
@@ -171,6 +172,8 @@ const _startTaskRequest = async (task, proxies = []) => {
   }
 };
 
+const _copyTaskRequest = async task => ({ task });
+
 const _stopTaskRequest = async task => {
   if (task.status === 'stopped') {
     throw new Error('Already stopped');
@@ -187,6 +190,7 @@ const _addTask = makeActionCreator(TASK_ACTIONS.ADD, 'response');
 const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
 const _statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'response');
+const _copyTask = makeActionCreator(TASK_ACTIONS.COPY, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 
@@ -243,6 +247,12 @@ const clearEdits = (id, task) => {
     );
 };
 
+const copyTask = task => dispatch =>
+  _copyTaskRequest(task).then(
+    response => dispatch(_copyTask(response)),
+    error => dispatch(handleError(TASK_ACTIONS.COPY, error)),
+  );
+
 const startTask = (task, proxies) => dispatch =>
   _startTaskRequest(task, proxies).then(
     response => dispatch(_startTask(response)),
@@ -273,6 +283,7 @@ export const taskActions = {
   select: selectTask,
   update: updateTask,
   status: statusTask,
+  copy: copyTask,
   start: startTask,
   stop: stopTask,
   error: handleError,
