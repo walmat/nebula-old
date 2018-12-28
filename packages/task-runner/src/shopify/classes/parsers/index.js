@@ -23,6 +23,10 @@ function getSpecialParser(site) {
       return (...params) => new DsmParser(...params);
     }
     case 'Yeezy Supply':
+    case 'Yeezy Supply 350':
+    case 'Yeezy Supply 700': {
+      return (...params) => new YeezyParser(...params);
+    }
     default: {
       return (...params) => new YeezyParser(...params);
     }

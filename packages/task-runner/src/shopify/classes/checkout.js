@@ -32,7 +32,7 @@ class Checkout {
     return {
       ProcessingPayment: 1500,
       PollShippingRates: 750,
-      PollCheckoutQueue: 1000,
+      PollCheckoutQueue: 5000,
       Restocks: 750,
     };
   }
@@ -191,6 +191,43 @@ class Checkout {
     }
   }
 
+  async pollCheckoutQueue() {
+    this._logger.verbose('CHECKOUT: Waiting in queue');
+
+    const { site } = this._task;
+
+    try {
+      const res = await this._request({
+        uri: `${site.url}/checkout/poll?js_poll=1`,
+        method: 'GET',
+        proxy: formatProxy(this._proxy),
+        simple: false,
+        json: true,
+        followAllRedirects: true,
+        rejectUnauthorized: false,
+        resolveWithFullResponse: true,
+        headers: this._getHeaders(),
+      });
+      if (res.statusCode > 400) {
+        return {
+          error: true,
+          status: res.statusCode,
+        };
+      }
+      if (res.statusCode > 200) {
+        await waitForDelay(Checkout.Delays.PollCheckoutQueue);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Error polling queue: %s', err.error);
+      return {
+        error: err.error,
+        status: err.error.statusCode,
+      };
+    }
+  }
+
   /**
    * Create a valid checkout token with user data
    */
@@ -263,30 +300,52 @@ class Checkout {
         headers,
         body: dataString,
       });
-      const body = JSON.parse(res.body.toString());
-      if (res.statusCode === 303) {
-        this._logger.info(
+      // check for soft ban
+      if (res.statusCode > 400) {
+        return {
+          code: res.statusCode,
+          error: true,
+        };
+      }
+
+      // did we receive a queue response?
+      if (res.body.toString().indexOf('/poll') > -1) {
+        /**
+         * <html><body>You are being <a href="https://yeezysupply.com/checkout/poll">redirected</a>.</body></html>
+         */
+        this._logger.verbose(
           'CHECKOUT: Checkout queue, polling %d ms',
           Checkout.Delays.PollCheckoutQueue,
         );
-        await waitForDelay(Checkout.Delays.PollCheckoutQueue);
-        return { code: 303, error: null };
+        return {
+          code: 303,
+          error: null,
+        };
       }
-      if (body.checkout) {
-        const { checkout } = body;
-        const { clone_url } = checkout;
-        this._logger.verbose('CHECKOUT: Created checkout token: %s', clone_url.split('/')[5]);
-        // eslint-disable-next-line prefer-destructuring
-        this._storeId = clone_url.split('/')[3];
-        // eslint-disable-next-line prefer-destructuring
-        this._paymentUrlKey = checkout.web_url.split('=')[1];
-        // push the checkout token to the stack
-        this._checkoutTokens.push(clone_url.split('/')[5]);
-        return { code: 200, res: clone_url.split('/')[5] };
+
+      // let's try to parse the response if not
+      let body;
+      try {
+        body = JSON.parse(res.body.toString());
+        if (body.checkout) {
+          const { checkout } = body;
+          const { clone_url } = checkout;
+          this._logger.verbose('CHECKOUT: Created checkout token: %s', clone_url.split('/')[5]);
+          // eslint-disable-next-line prefer-destructuring
+          this._storeId = clone_url.split('/')[3];
+          // eslint-disable-next-line prefer-destructuring
+          this._paymentUrlKey = checkout.web_url.split('=')[1];
+          // push the checkout token to the stack
+          this._checkoutTokens.push(clone_url.split('/')[5]);
+          return { code: 200, res: clone_url.split('/')[5] };
+        }
+        // might not ever get called, but just a failsafe
+        this._logger.debug('Failed: Creating checkout session %s', res);
+        return { code: 400, res: null };
+      } catch (err) {
+        this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
+        return { code: err.statusCode, error: err };
       }
-      // might not ever get called, but just a failsafe
-      this._logger.debug('Failed: Creating checkout session %s', res);
-      return { code: 400, res: null };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
       return { code: err.statusCode, error: err };
@@ -502,7 +561,7 @@ class Checkout {
       let $ = await this._request({
         uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
           this._paymentUrlKey
-        }&step=payment_method`,
+        }&previous_step=shipping_method&step=payment_method`,
         method: 'get',
         followAllRedirects: true,
         resolveWithFullResponse: true,
@@ -559,8 +618,6 @@ class Checkout {
         transform: body => cheerio.load(body),
       });
 
-      // TODO - second completion POST here for KITH
-
       step = $('.step').attr('data-step');
       if (!step) {
         step = $('#step').attr('data-step');
@@ -577,7 +634,7 @@ class Checkout {
       }
 
       if (step === Checkout.ShopifySteps.Review) {
-        $ = await this._request({
+        const res = await this._request({
           uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
             this._paymentUrlKey
           }&step=review`,
@@ -599,12 +656,9 @@ class Checkout {
             'checkout[client_details][javascript_enabled]': '1',
             'g-recaptcha-response': this._captchaToken,
           },
-          transform: body =>
-            cheerio.load(body, {
-              normalizeWhitespace: true,
-              xmlMode: false,
-            }),
         });
+
+        $ = cheerio.load(res.body);
       }
 
       this._logger.verbose('CHECKOUT: Proceeding to process payment');

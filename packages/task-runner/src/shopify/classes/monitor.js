@@ -60,7 +60,7 @@ class Monitor {
     }
     await delay.call(this);
     this._logger.info('Monitoring not complete, remonitoring...');
-    return { message: `Monitoring for Product...`, nextState: States.Monitor };
+    return { message: `Monitoring for product...`, nextState: States.Monitor };
   }
 
   _parseAll() {
@@ -84,7 +84,6 @@ class Monitor {
         variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title),
     );
     // Get the groups in the same order as the sizes
-
     const mappedVariants = sizes.map(size => {
       // if we're choosing a random size ..generate a random size for now for each respective category
       // TODO - implement a "stock checker" to choose the one with the most stock
@@ -111,12 +110,15 @@ class Monitor {
         let s;
         do {
           s = generateRandom(getAllSizes[idx]);
-        } while (!variantsBySize[s.toLowerCase()]); // TODO - infinite loop if variants array is improper size
+        } while (!variantsBySize[s.toLowerCase()] || !variantsBySize[s.toUpperCase()]); // TODO - infinite loop if variants array is improper size
 
-        return variantsBySize[s.toLowerCase()];
+        return variantsBySize[s.toLowerCase()] || variantsBySize[s.toUpperCase()];
       }
-      return variantsBySize[size.toLowerCase()];
+      this._context.logger.verbose('MONITOR: variants for size: %j', variantsBySize);
+      return variantsBySize[size.toLowerCase()] || variantsBySize[size.toUpperCase()];
     });
+
+    this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
 
     // Flatten the groups to a one-level array and remove null elements
     const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
@@ -161,7 +163,10 @@ class Monitor {
   }
 
   async _monitorUrl() {
-    const { url } = this._context.task.product;
+    let { url } = this._context.task.product;
+    // TODO - figure out a cleaner way to do this
+    // eslint-disable-next-line prefer-destructuring
+    url = url.split('?')[0];
     try {
       const response = await rp({
         method: 'GET',
@@ -251,6 +256,7 @@ class Monitor {
       this._logger,
       this._context.task.site,
     );
+
     let result;
     switch (parseType) {
       case ParseType.Variant: {
