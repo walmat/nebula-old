@@ -1,6 +1,6 @@
 appId: com.nebula.orion
 copyright: 2018 © Nebula Automation, LLC
-productName: nebula orion
+productName: Nebula Orion
 asar: true
 compression: maximum
 extends: null
