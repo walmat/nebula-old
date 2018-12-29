@@ -2,7 +2,14 @@ const phoneFormatter = require('phone-formatter');
 const cheerio = require('cheerio');
 const _ = require('underscore');
 const { States } = require('./utils/constants').TaskRunner;
-const { waitForDelay, formatProxy, userAgent, getRandomIntInclusive, now } = require('./utils');
+const {
+  waitForDelay,
+  formatProxy,
+  userAgent,
+  getRandomIntInclusive,
+  now,
+  isEmpty,
+} = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
 
 class Checkout {
@@ -198,15 +205,16 @@ class Checkout {
 
     try {
       const res = await this._request({
-        uri: `${site.url}/checkout/poll?js_poll=1`,
+        uri: `${site.url}/checkout/poll`,
         method: 'GET',
         proxy: formatProxy(this._proxy),
         simple: false,
-        json: true,
-        followAllRedirects: true,
+        json: false,
+        followAllRedirects: false,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers: this._getHeaders(),
+        // transform: body => cheerio.load(body),
       });
       if (res.statusCode > 400) {
         return {
@@ -214,11 +222,34 @@ class Checkout {
           status: res.statusCode,
         };
       }
-      if (res.statusCode > 200) {
-        await waitForDelay(Checkout.Delays.PollCheckoutQueue);
-        return false;
+      const { body } = res;
+      if (!isEmpty(body) && !body.indexOf('throttle') > -1) {
+        // passed queue
+        const $ = cheerio.load(body);
+        let data = null;
+        if (res.statusCode === 202) {
+          data = $('input[name="checkout_url"]').val();
+          if (data) {
+            // parse out what we need
+            // eslint-disable-next-line prefer-destructuring
+            this._storeId = data.split('/')[3];
+            // eslint-disable-next-line prefer-destructuring
+            this._checkoutTokens.push(data.split('/')[5]);
+          }
+        } else if (res.statusCode === 303) {
+          data = $('input').attr('href');
+          if (data) {
+            // eslint-disable-next-line prefer-destructuring
+            this._storeId = data.split('/')[3];
+            // eslint-disable-next-line prefer-destructuring
+            this._checkoutTokens.push(data.split('/')[5]);
+          }
+        }
+        return true;
       }
-      return true;
+      // not passed queue
+      await waitForDelay(Checkout.Delays.PollCheckoutQueue);
+      return false;
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %s', err.error);
       return {
@@ -227,6 +258,127 @@ class Checkout {
       };
     }
   }
+
+  /**
+   * TODO - Unused for right now. Don't know if it's needed.
+   */
+  // async handlePatchCheckout() {
+  //   const { site, profile } = this._task;
+  //   const { shipping, billing, payment } = profile;
+
+  //   if (this._checkoutTokens.length > 0) {
+  //     this._checkoutToken = this._checkoutTokens.pop();
+
+  //     let dataString;
+  //     if (profile.billingMatchesShipping) {
+  //       dataString = `{"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"token":"${
+  //         this._checkoutToken
+  //       }","email":"${payment.email}","shipping_address":{"first_name":"${
+  //         shipping.firstName
+  //       }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
+  //         shipping.apt
+  //       }","company":null,"city":"${shipping.city}","country_code":"${
+  //         shipping.country.value
+  //       }","province_code":"${shipping.state.value}","phone":"${phoneFormatter.format(
+  //         shipping.phone,
+  //         '(NNN) NNN-NNNN',
+  //       )}","zip":"${shipping.zipCode}"},"billing_address":{"first_name":"${
+  //         shipping.firstName
+  //       }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
+  //         shipping.apt
+  //       }","company":null,"city":"${shipping.city}","country_code":"${
+  //         shipping.country.value
+  //       }","province_code":"${shipping.state.value}","phone":"${phoneFormatter.format(
+  //         shipping.phone,
+  //         '(NNN) NNN-NNNN',
+  //       )}","zip":"${shipping.zipCode}"}}}`;
+  //     } else {
+  //       dataString = `{"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"token":"${
+  //         this._checkoutToken
+  //       }",
+  //       "email":"${payment.email}","shipping_address":{"first_name":"${
+  //         shipping.firstName
+  //       }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
+  //         shipping.apt
+  //       }","company":null,"city":"${shipping.city}","country_code":"${
+  //         shipping.country.value
+  //       }","province_code":"${shipping.state.value}","phone":"${phoneFormatter.format(
+  //         shipping.phone,
+  //         '(NNN) NNN-NNNN',
+  //       )}","zip":"${shipping.zipCode}"},"billing_address":{"first_name":"${
+  //         billing.firstName
+  //       }","last_name":"${billing.lastName}","address1":"${billing.address}","address2":"${
+  //         billing.apt
+  //       }","company":null,"city":"${billing.city}","country_code":"${
+  //         billing.country.value
+  //       }","province_code":"${billing.state.value}","phone":"${phoneFormatter.format(
+  //         billing.phone,
+  //         '(NNN) NNN-NNNN',
+  //       )}","zip":"${billing.zipCode}"}}}`;
+  //     }
+
+  //     const headers = {
+  //       ...this._getHeaders(),
+  //       'cache-control': 'no-store',
+  //     };
+  //     try {
+  //       const res = await this._request({
+  //         uri: `${site.url}/wallets/checkouts`,
+  //         method: 'PUT',
+  //         proxy: formatProxy(this._proxy),
+  //         simple: false,
+  //         json: false,
+  //         encoding: null,
+  //         rejectUnauthorized: false,
+  //         resolveWithFullResponse: true,
+  //         headers,
+  //         body: dataString,
+  //       });
+  //       if (res.statusCode >= 200 && res.statusCode < 300) {
+  //         let body;
+  //         try {
+  //           body = JSON.parse(res.body.toString());
+  //           const { checkout } = body;
+  //           if (checkout) {
+  //             const { clone_url } = checkout;
+  //             this._logger.verbose('CHECKOUT: Updated checkout token: %s', clone_url.split('/')[5]);
+  //             // eslint-disable-next-line prefer-destructuring
+  //             this._storeId = clone_url.split('/')[3];
+  //             // eslint-disable-next-line prefer-destructuring
+  //             this._paymentUrlKey = checkout.web_url.split('=')[1];
+  //             // push the checkout token to the stack
+  //             this._checkoutTokens.push(clone_url.split('/')[5]);
+  //             return {
+  //               message: 'Monitoring for product...',
+  //               nextState: States.Monitor,
+  //             };
+  //           }
+  //         } catch (err) {
+  //           this._logger.debug('CHECKOUT: Error updating checkout: %s', err);
+  //           return {
+  //             message: 'Failed: updating checkout',
+  //             nextState: States.Stopped,
+  //           };
+  //         }
+  //       }
+  //     } catch (err) {
+  //       this._logger.debug('CHECKOUT: Error updating checkout: %s', err);
+  //       return {
+  //         errors: 'Failed: updating checkout session',
+  //         nextState: States.Errored,
+  //       };
+  //     }
+  //     // no checkout token, return to create checkout session step
+  //     return {
+  //       errors: 'Failed: updating checkout session',
+  //       nextState: States.Errored,
+  //     };
+  //   }
+  //   return {
+  //     message: 'Invalid checkout session',
+  //     nextState: Checkout.States.PatchCart,
+  //   };
+  // }
 
   /**
    * Create a valid checkout token with user data
@@ -559,9 +711,9 @@ class Checkout {
 
     try {
       let $ = await this._request({
-        uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
-          this._paymentUrlKey
-        }&previous_step=shipping_method&step=payment_method`,
+        uri: `${this._task.site.url}/${this._storeId}/checkouts/${
+          this._checkoutToken
+        }?previous_step=shipping_method&step=payment_method`,
         method: 'get',
         followAllRedirects: true,
         resolveWithFullResponse: true,
@@ -587,9 +739,7 @@ class Checkout {
       this._logger.silly('CHECKOUT: Found payment gateway: %s', this._gateway);
 
       $ = await this._request({
-        uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
-          this._paymentUrlKey
-        }`,
+        uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'post',
         followAllRedirects: true,
         resolveWithFullResponse: true,
@@ -635,9 +785,9 @@ class Checkout {
 
       if (step === Checkout.ShopifySteps.Review) {
         const res = await this._request({
-          uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
-            this._paymentUrlKey
-          }&step=review`,
+          uri: `${this._task.site.url}/${this._storeId}/checkouts/${
+            this._checkoutToken
+          }?step=review`,
           method: 'post',
           followAllRedirects: true,
           resolveWithFullResponse: true,
