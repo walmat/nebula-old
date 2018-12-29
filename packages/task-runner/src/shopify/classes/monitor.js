@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const jar = require('request-promise').jar();
 const rp = require('request-promise').defaults({
-  timeout: 10000,
+  timeout: 50000,
   jar,
 });
 
