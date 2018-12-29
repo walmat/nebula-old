@@ -15,6 +15,16 @@ function waitForDelay(delay) {
 }
 module.exports.waitForDelay = waitForDelay;
 
+function isEmpty(obj) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const prop in obj) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (obj.hasOwnProperty(prop)) return false;
+  }
+  return true;
+}
+module.exports.isEmpty = isEmpty;
+
 /**
  * Formats the proxy correctly to be used in a request
  * @param {*} input - IP:PORT:USER:PASS || IP:PORT

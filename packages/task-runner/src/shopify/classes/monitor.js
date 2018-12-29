@@ -33,6 +33,7 @@ class Monitor {
      */
     this._context = context;
     this._logger = this._context.logger;
+    this._parseType = null;
   }
 
   _waitForRefreshDelay() {
@@ -111,13 +112,11 @@ class Monitor {
         do {
           s = generateRandom(getAllSizes[idx]);
         } while (!variantsBySize[s.toLowerCase()] || !variantsBySize[s.toUpperCase()]); // TODO - infinite loop if variants array is improper size
-
         return variantsBySize[s.toLowerCase()] || variantsBySize[s.toUpperCase()];
       }
       this._context.logger.verbose('MONITOR: variants for size: %j', variantsBySize);
       return variantsBySize[size.toLowerCase()] || variantsBySize[size.toUpperCase()];
     });
-
     this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
 
     // Flatten the groups to a one-level array and remove null elements
@@ -251,14 +250,14 @@ class Monitor {
       return { nextState: States.Aborted };
     }
 
-    const parseType = getParseType(
+    this._parseType = getParseType(
       this._context.task.product,
       this._logger,
       this._context.task.site,
     );
 
     let result;
-    switch (parseType) {
+    switch (this._parseType) {
       case ParseType.Variant: {
         // TODO: Add a way to determine if variant is correct
         this._logger.verbose('MONITOR: Variant Parsing Detected');
@@ -285,7 +284,7 @@ class Monitor {
       default: {
         this._logger.verbose(
           'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...',
-          parseType,
+          this._parseType,
         );
         return { message: 'Invalid Product Input given!', nextState: States.Errored };
       }

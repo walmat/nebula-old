@@ -296,9 +296,12 @@ class TaskRunner {
       const queue = failed.some(f => f.e === 303);
       if (queue) {
         this._context.setup = false;
+        this._emitTaskEvent({
+          message: 'Waiting in queue',
+        });
         return States.Queue;
       }
-      // let's do task setup later
+      // if not queue, but something failed, let's do task setup later
       this._context.setup = false;
       this._logger.verbose('Completing task setup later');
       this._emitTaskEvent({
@@ -324,6 +327,7 @@ class TaskRunner {
         case 429:
         case 430:
           // soft ban
+          this.shouldBanProxy = true;
           return States.SwapProxies;
         default:
           // stop if not a soft ban
@@ -339,8 +343,27 @@ class TaskRunner {
       return States.Queue;
     }
     // otherwise, we're out of queue and can proceed to create checkout session now.
-    return States.TaskSetup;
+    return States.Monitor;
   }
+
+  // /**
+  //  * TODO - Unused for right now. Don't know if it's needed.
+  //  */
+  // async _handleUpdateCheckout() {
+  //   const res = await this._checkout._handlePutCheckout();
+  //   if (res.errors) {
+  //     this._logger.verbose('Checkout updating completed with errors: %j', res.errors);
+  //     this._emitTaskEvent({
+  //       message: 'Error updating checkout session!',
+  //       errors: res.errors,
+  //     });
+  //     await this._waitForErrorDelay();
+  //   }
+  //   this._emitTaskEvent({
+  //     message: res.message,
+  //   });
+  //   return res.nextState;
+  // }
 
   async _handleMonitor() {
     const res = await this._monitor.run();
@@ -438,6 +461,7 @@ class TaskRunner {
       [States.Started]: this._handleStarted,
       [States.TaskSetup]: this._handleTaskSetup,
       [States.Queue]: this._handleCheckoutQueue,
+      [States.PatchCheckout]: this._handleUpdateCheckout,
       [States.Monitor]: this._handleMonitor,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Checkout]: this._handleCheckout,
