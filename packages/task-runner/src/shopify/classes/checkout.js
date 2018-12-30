@@ -1,9 +1,16 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable camelcase */
 const cheerio = require('cheerio');
 const _ = require('underscore');
 const { States } = require('./utils/constants').TaskRunner;
-const { waitForDelay, formatProxy, userAgent, getRandomIntInclusive, now } = require('./utils');
-const { buildPaymentForm, createCheckoutForm, patchToCart } = require('./utils/forms');
+const { waitForDelay, formatProxy, userAgent, now } = require('./utils');
+const {
+  buildPaymentForm,
+  createCheckoutForm,
+  patchToCart,
+  paymentMethodForm,
+  paymentReviewForm,
+} = require('./utils/forms');
 const {
   CheckoutStates,
   CheckoutTimeouts,
@@ -63,6 +70,10 @@ class Checkout {
     };
   }
 
+  isBanned(statusCode) {
+    return statusCode === 403 || statusCode === 429 || statusCode === 430 ? true : false;
+  }
+
   /**
    * Called 5 times at the start of the task
    * Generates a payment token using the task data provided from the task runner
@@ -118,14 +129,14 @@ class Checkout {
         resolveWithFullResponse: true,
         headers: this._headers(),
       });
-      if (res.statusCode > 400) {
+      const { statusCode } = res;
+      if (this.isBanned(statusCode)) {
         return {
           error: true,
-          status: res.statusCode,
+          status: statusCode,
         };
       }
       let { body } = res;
-      const { statusCode } = res;
 
       this._logger.silly('CHECKOUT: Queue response body: %j', body);
 
@@ -494,7 +505,6 @@ class Checkout {
       this._logger.silly('CHECKOUT: 1st request step: %s', step);
 
       if (step === ShopifyPaymentSteps.PaymentMethod) {
-        // proceed with parsing the payment gateway if in API mode
         this._gateway = $(".radio-wrapper.content-box__row[data-gateway-group='direct']").attr(
           'data-select-gateway',
         );
@@ -512,25 +522,12 @@ class Checkout {
         rejectUnauthorized: false,
         proxy: formatProxy(this._proxy),
         headers,
-        formData: {
-          utf8: '✓',
-          _method: 'patch',
-          authenticity_token: '',
-          previous_step: 'payment_method',
-          step: '',
-          s: this._paymentTokens.pop(),
-          'checkout[payment_gateway]': this._gateway,
-          'checkout[remember_me]': '0',
-          'checkout[total_price]': '',
-          complete: '1',
-          'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
-          'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
-          'checkout[client_details][javascript_enabled]': '1',
-          'checkout[buyer_accepts_marketing]': '0',
-          'checkout[shipping_rate][id]': id,
-          button: '',
-          'g-recaptcha-response': this._captchaToken,
-        },
+        formData: paymentMethodForm(
+          this._paymentTokens.pop(),
+          this._gateway,
+          id,
+          this._captchaToken,
+        ),
         transform: body => cheerio.load(body),
       });
 
@@ -560,18 +557,7 @@ class Checkout {
           rejectUnauthorized: false,
           proxy: formatProxy(this._proxy),
           headers,
-          formData: {
-            utf8: '✓',
-            _method: 'patch',
-            authenticity_token: '',
-            'checkout[total_price]': '',
-            complete: '1',
-            button: '',
-            'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
-            'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
-            'checkout[client_details][javascript_enabled]': '1',
-            'g-recaptcha-response': this._captchaToken,
-          },
+          formData: paymentReviewForm(total, this._captchaToken),
         });
       }
 

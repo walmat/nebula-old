@@ -1,5 +1,6 @@
 /* eslint-disable no-nested-ternary */
 const phoneFormatter = require('phone-formatter');
+const { getRandomIntInclusive } = require('../utils/');
 
 const buildPaymentForm = (payment, billing) => ({
   credit_card: {
@@ -78,8 +79,47 @@ const patchToCart = (variant, site) => ({
   },
 });
 
+const paymentMethodForm = (paymentToken, gateway, shippingMethod, captchaToken) => ({
+  utf8: '✓',
+  _method: 'patch',
+  authenticity_token: '',
+  previous_step: 'payment_method',
+  step: '',
+  s: paymentToken,
+  'checkout[payment_gateway]': gateway,
+  'checkout[remember_me]': '0',
+  'checkout[total_price]': '',
+  complete: '1',
+  'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+  'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
+  'checkout[client_details][javascript_enabled]': '1',
+  'checkout[buyer_accepts_marketing]': '0',
+  'checkout[shipping_rate][id]': shippingMethod,
+  button: '',
+  'g-recaptcha-response': captchaToken,
+});
+
+/**
+ * NOTE – Price is not needed as of now,
+ * but it's tracked in case it's ever needed in the future
+ */
+const paymentReviewForm = (price, captchaToken) => ({
+  utf8: '✓',
+  _method: 'patch',
+  authenticity_token: '',
+  'checkout[total_price]': '',
+  complete: '1',
+  button: '',
+  'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+  'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
+  'checkout[client_details][javascript_enabled]': '1',
+  'g-recaptcha-response': captchaToken,
+});
+
 module.exports = {
   buildPaymentForm,
   createCheckoutForm,
   patchToCart,
+  paymentMethodForm,
+  paymentReviewForm,
 };
