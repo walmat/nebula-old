@@ -12,7 +12,6 @@ const {
 } = require('../classes/utils/constants').Checkout;
 
 class Checkout {
-
   get headers() {
     return this._headers;
   }
