@@ -1,10 +1,4 @@
 const _ = require('underscore');
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-  timeout: 50000,
-  jar,
-});
-
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
 const {
   formatProxy,
@@ -33,6 +27,7 @@ class Monitor {
      */
     this._context = context;
     this._logger = this._context.logger;
+    this._request = this._context.request;
     this._parseType = null;
   }
 
@@ -67,9 +62,24 @@ class Monitor {
   _parseAll() {
     // Create the parsers and start the async run methods
     const parsers = [
-      new AtomParser(this._context.task, this._context.proxy, this._context.logger),
-      new JsonParser(this._context.task, this._context.proxy, this._context.logger),
-      new XmlParser(this._context.task, this._context.proxy, this._context.logger),
+      new AtomParser(
+        this._context.request,
+        this._context.task,
+        this._context.proxy,
+        this._context.logger,
+      ),
+      new JsonParser(
+        this._context.request,
+        this._context.task,
+        this._context.proxy,
+        this._context.logger,
+      ),
+      new XmlParser(
+        this._context.request,
+        this._context.task,
+        this._context.proxy,
+        this._context.logger,
+      ),
     ].map(p => p.run());
     // Return the winner of the race
     return rfrl(parsers, 'parseAll', this._context.logger);
@@ -84,6 +94,7 @@ class Monitor {
         // Use the variant option or the title segment
         variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title),
     );
+
     // Get the groups in the same order as the sizes
     const mappedVariants = sizes.map(size => {
       // if we're choosing a random size ..generate a random size for now for each respective category
@@ -121,6 +132,7 @@ class Monitor {
 
     // Flatten the groups to a one-level array and remove null elements
     const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
+    this._context.logger.verbose('MONITOR: valid variants: %j', validVariants);
     return validVariants.map(v => `${v.id}`);
   }
 
@@ -167,7 +179,7 @@ class Monitor {
     // eslint-disable-next-line prefer-destructuring
     url = url.split('?')[0];
     try {
-      const response = await rp({
+      const response = await this._request({
         method: 'GET',
         uri: url,
         proxy: formatProxy(this._context.proxy),
@@ -180,13 +192,14 @@ class Monitor {
           'User-Agent': userAgent,
         },
       });
+
       // Response Succeeded -- Get Product Info
       this._logger.verbose(
         'MONITOR: Url %s responded with status code %s. Getting full info',
         url,
         response.statusCode,
       );
-      const fullProductInfo = await Parser.getFullProductInfo(url, this._logger);
+      const fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
 
       // Generate Variants
       this._logger.verbose(
@@ -218,7 +231,12 @@ class Monitor {
   async _monitorSpecial() {
     // Get the correct special parser
     const ParserCreator = getSpecialParser(this._context.task.site);
-    const parser = ParserCreator(this._context.task, this._context.proxy, this._context.logger);
+    const parser = ParserCreator(
+      this._context.request,
+      this._context.task,
+      this._context.proxy,
+      this._context.logger,
+    );
 
     let parsed;
     try {

@@ -1,9 +1,3 @@
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-  timeout: 10000,
-  jar,
-});
-
 const Parser = require('./parser');
 const { ParseType, convertToJson } = require('../utils/parse');
 const { formatProxy, userAgent } = require('../utils');
@@ -16,8 +10,8 @@ class AtomParser extends Parser {
    * @param {Proxy} the proxy to use when making requests
    * @param {Logger} (optional) A logger to log messages to
    */
-  constructor(task, proxy, logger) {
-    super(task, proxy, logger, 'AtomParser');
+  constructor(request, task, proxy, logger) {
+    super(request, task, proxy, logger, 'AtomParser');
   }
 
   async run() {
@@ -32,7 +26,7 @@ class AtomParser extends Parser {
         this._name,
         this._task.site.url,
       );
-      const response = await rp({
+      const response = await this._request({
         method: 'GET',
         uri: `${this._task.site.url}/collections/all.atom`,
         proxy: formatProxy(this._proxy) || undefined,
@@ -74,7 +68,11 @@ class AtomParser extends Parser {
     this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
     let fullProductInfo = null;
     try {
-      fullProductInfo = await Parser.getFullProductInfo(matchedProduct.url, this._logger);
+      fullProductInfo = await Parser.getFullProductInfo(
+        matchedProduct.url,
+        this._request,
+        this._logger,
+      );
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
       return {
         ...matchedProduct,

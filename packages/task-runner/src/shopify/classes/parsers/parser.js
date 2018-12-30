@@ -1,9 +1,4 @@
 /* eslint-disable class-methods-use-this */
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-  timeout: 10000,
-  jar,
-});
 const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
 const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
@@ -21,12 +16,12 @@ class Parser {
    *
    * @param {String} productUrl
    */
-  static getFullProductInfo(productUrl, logger) {
+  static getFullProductInfo(productUrl, request, logger) {
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Parser: Getting Full Product Info...');
     _logger.log('silly', 'Parser: Requesting %s.(json|oembed) in a race', productUrl);
     const genRequestPromise = uri =>
-      rp({
+      request({
         method: 'GET',
         uri,
         proxy: formatProxy(this._proxy) || undefined,
@@ -83,11 +78,12 @@ class Parser {
   /**
    * Construct a new parser
    */
-  constructor(task, proxy, logger, name) {
+  constructor(request, task, proxy, logger, name) {
     this._logger = logger || { log: () => {} };
     this._name = name || 'Parser';
     this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
+    this._request = request;
     this._task = task;
     this._type = getParseType(task.product);
     this._logger.log('silly', '%s: constructed', this._name);

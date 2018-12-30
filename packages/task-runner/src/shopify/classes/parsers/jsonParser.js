@@ -1,8 +1,3 @@
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-  timeout: 10000,
-  jar,
-});
 const { formatProxy, userAgent } = require('../utils');
 const Parser = require('./parser');
 
@@ -13,8 +8,8 @@ class JsonParser extends Parser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(task, proxy, logger) {
-    super(task, proxy, logger, 'JsonParser');
+  constructor(request, task, proxy, logger) {
+    super(request, task, proxy, logger, 'JsonParser');
   }
 
   async run() {
@@ -26,7 +21,7 @@ class JsonParser extends Parser {
         this._name,
         this._task.site.url,
       );
-      const response = await rp({
+      const response = await this._request({
         method: 'GET',
         uri: `${this._task.site.url}/products.json`,
         proxy: formatProxy(this._proxy) || undefined,

@@ -2,8 +2,8 @@ const SpecialParser = require('./specialParser');
 const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
 
 class YeezyParser extends SpecialParser {
-  constructor(task, proxy, logger) {
-    super(task, proxy, logger, 'YeezyParser');
+  constructor(request, task, proxy, logger) {
+    super(request, task, proxy, logger, 'YeezyParser');
   }
 
   // eslint-disable-next-line class-methods-use-this

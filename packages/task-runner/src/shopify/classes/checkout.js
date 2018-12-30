@@ -1,140 +1,49 @@
-const phoneFormatter = require('phone-formatter');
+/* eslint-disable class-methods-use-this */
+/* eslint-disable camelcase */
 const cheerio = require('cheerio');
 const _ = require('underscore');
 const { States } = require('./utils/constants').TaskRunner;
+const { waitForDelay, formatProxy, userAgent, now } = require('./utils');
 const {
-  waitForDelay,
-  formatProxy,
-  userAgent,
-  getRandomIntInclusive,
-  now,
-  isEmpty,
-} = require('./utils');
-const { buildPaymentForm } = require('./utils/forms');
+  buildPaymentForm,
+  createCheckoutForm,
+  patchToCart,
+  paymentMethodForm,
+  paymentReviewForm,
+} = require('./utils/forms');
+const {
+  CheckoutStates,
+  CheckoutTimeouts,
+  Delays,
+  ShopifyPaymentSteps,
+} = require('../classes/utils/constants').Checkout;
 
 class Checkout {
-  /**
-   * Get Checkout States for checkout module
-   */
-  static get States() {
-    return {
-      CreateCheckout: 'CREATE_CHECKOUT',
-      GeneratePaymentToken: 'GENERATE_PAYMENT_TOKEN',
-      PatchCart: 'PATCH_CART',
-      GetShippingRates: 'GET_SHIPPING_RATES',
-      PollQueue: 'POLL_QUEUE',
-      RequestCaptcha: 'REQUEST_CAPTCHA',
-      PostPayment: 'POST_PAYMENT',
-      ProcessPayment: 'PROCESS_PAYMENT',
-      Restocks: 'RESTOCKS',
-      Stopped: 'STOPPED',
-      Error: 'ERROR',
-    };
-  }
-
-  /**
-   * Get delays for checkout module
-   */
-  static get Delays() {
-    return {
-      ProcessingPayment: 1500,
-      PollShippingRates: 750,
-      PollCheckoutQueue: 5000,
-      Restocks: 750,
-    };
-  }
-
-  static get ShopifySteps() {
-    return {
-      ContactInformation: 'contact_information',
-      ShippingMethod: 'shipping_method',
-      PaymentMethod: 'payment_method',
-      Review: 'review',
-    };
+  get headers() {
+    return this._headers;
   }
 
   constructor(context) {
-    /**
-     * All data needed for monitor to run
-     * This includes:
-     * - current runner id
-     * - current task
-     * - current proxy
-     * - request include
-     * - logger for task
-     * - whether or not we should abort
-     * - has it been setup?
-     * - payment tokens
-     * - shipping methods
-     * - checkout tokens
-     * - both getCaptcha() & stopHarvestCaptcha() FNs
-     * @type {TaskRunnerContext}
-     */
     this._context = context;
-
-    /**
-     * Task ID for this task runner instance
-     * @type {String}
-     */
     this._id = this._context.id;
-
-    /**
-     * Task data for this task
-     * @type {Task}
-     */
     this._task = this._context.task;
-
-    /**
-     * Proxy to run the task with
-     * @type {String}
-     */
     this._proxy = this._context.proxy;
-
-    /**
-     * Request with Cookie Jar
-     * @type {HTTPRequest}
-     */
     this._request = this._context.request;
-
-    /**
-     * Logger Instance
-     * @type {Logger}
-     */
     this._logger = this._context.logger;
 
-    /**
-     * Stack of successfully created payment tokens for the runner
-     */
+    this._state = CheckoutStates.PatchCart;
+    this._previousState = null;
+
     this._paymentTokens = [];
 
-    /**
-     * Stack of shipping methods
-     */
     this._shippingMethods = [];
-
-    /**
-     * Stack of successfully created checkout sessions for the runner
-     */
-    this._checkoutTokens = [];
-
-    /**
-     * Shipping method that is being used
-     */
     this._chosenShippingMethod = {
       name: null,
       id: null,
     };
-
-    /**
-     * Current state of the checkout state machine
-     * @type {String}
-     */
-    this._state = Checkout.States.PatchCart;
-
-    /**
-     * Current checkout token
-     */
+    this._checkoutTokens = [];
     this._checkoutToken = null;
+
     this._storeId = null;
     this._paymentUrlKey = null;
     this._basicAuth = Buffer.from(`${this._task.site.apiKey}::`).toString('base64');
@@ -144,23 +53,25 @@ class Checkout {
       total: 0,
     };
     this._gateway = '';
-
-    /**
-     * Current captcha token
-     */
     this._captchaToken = '';
   }
 
-  _getHeaders() {
+  _headers() {
+    const { site } = this._task;
+    const { url } = site;
     return {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'X-Shopify-Checkout-Version': '2016-09-06',
-      'X-Shopify-Access-Token': `${this._task.site.apiKey}`,
+      'X-Shopify-Access-Token': `${site.apiKey}`,
       'User-Agent': userAgent,
-      host: `${this._task.site.url.split('/')[2]}`,
+      host: `${url.split('/')[2]}`,
       authorization: `Basic ${this._basicAuth}`,
     };
+  }
+
+  isBanned(statusCode) {
+    return !!(statusCode === 403 || statusCode === 429 || statusCode === 430);
   }
 
   /**
@@ -169,6 +80,7 @@ class Checkout {
    * @returns {String} payment token
    */
   async handleGeneratePaymentToken() {
+    const { payment, billing } = this._task.profile;
     this._logger.verbose('CHECKOUT: Generating Payment Token');
     try {
       const res = await this._request({
@@ -183,7 +95,7 @@ class Checkout {
           'Content-Type': 'application/json',
           Connection: 'Keep-Alive',
         },
-        body: JSON.stringify(buildPaymentForm(this._task)),
+        body: JSON.stringify(buildPaymentForm(payment, billing)),
       });
       const body = JSON.parse(res.body);
       if (body && body.id) {
@@ -198,11 +110,13 @@ class Checkout {
     }
   }
 
+  /**
+   * Handles waiting in a checkout queue for Shopify
+   * @returns {}
+   */
   async pollCheckoutQueue() {
     this._logger.verbose('CHECKOUT: Waiting in queue');
-
     const { site } = this._task;
-
     try {
       const res = await this._request({
         uri: `${site.url}/checkout/poll`,
@@ -213,172 +127,93 @@ class Checkout {
         followAllRedirects: false,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
-        headers: this._getHeaders(),
-        // transform: body => cheerio.load(body),
+        headers: this._headers(),
       });
-      if (res.statusCode > 400) {
+      const { statusCode } = res;
+      if (this.isBanned(statusCode)) {
         return {
           error: true,
-          status: res.statusCode,
+          status: statusCode,
         };
       }
-      const { body } = res;
-      if (!isEmpty(body) && !body.indexOf('throttle') > -1) {
-        // passed queue
-        const $ = cheerio.load(body);
-        let data = null;
-        if (res.statusCode === 202) {
-          data = $('input[name="checkout_url"]').val();
-          if (data) {
-            // parse out what we need
+      let { body } = res;
+
+      this._logger.silly('CHECKOUT: Queue response body: %j', body);
+
+      // out of queue
+      // TODO – find a better way to check against empty object body
+      if (JSON.parse(JSON.stringify(body)) !== '{}' && !body.indexOf('throttle') > -1) {
+        this._logger.verbose('CHECKOUT: Queue bypassed');
+        try {
+          body = JSON.parse(body);
+          this._logger.verbose('CHECKOUT: Queue JSON body: %j', body);
+          if (body.checkout) {
+            const { checkout } = body;
+            const { clone_url } = checkout;
+            this._logger.verbose(
+              'CHECKOUT: Created checkout token after queue: %s',
+              clone_url.split('/')[5],
+            );
             // eslint-disable-next-line prefer-destructuring
-            this._storeId = data.split('/')[3];
+            this._storeId = clone_url.split('/')[3];
             // eslint-disable-next-line prefer-destructuring
-            this._checkoutTokens.push(data.split('/')[5]);
+            this._paymentUrlKey = checkout.web_url.split('=')[1];
+            // push the checkout token to the stack
+            this._checkoutTokens.push(clone_url.split('/')[5]);
+            return true;
           }
-        } else if (res.statusCode === 303) {
-          data = $('input').attr('href');
-          if (data) {
-            // eslint-disable-next-line prefer-destructuring
-            this._storeId = data.split('/')[3];
-            // eslint-disable-next-line prefer-destructuring
-            this._checkoutTokens.push(data.split('/')[5]);
+          // might not ever get called, but just a failsafe
+          this._logger.debug('Failed: Creating checkout session after queue %s', res);
+          return false;
+        } catch (err) {
+          if (err instanceof SyntaxError) {
+            this._logger.debug('CHECKOUT: Failed to parse body, not typeof JSON');
+            const $ = cheerio.load(body);
+            let data = null;
+            if (statusCode === 202) {
+              data = $('input[name="checkout_url"]').val();
+              this._logger.silly('CHECKOUT: 202 response data: %j', data);
+              if (data) {
+                // parse out what we need
+                // eslint-disable-next-line prefer-destructuring
+                this._storeId = data.split('/')[3];
+                // eslint-disable-next-line prefer-destructuring
+                this._checkoutTokens.push(data.split('/')[5]);
+                return true;
+              }
+            }
+            if (statusCode === 303) {
+              data = $('input').attr('href');
+              this._logger.silly('CHECKOUT: 303 response data: %j', data);
+              if (data) {
+                // eslint-disable-next-line prefer-destructuring
+                this._storeId = data.split('/')[3];
+                // eslint-disable-next-line prefer-destructuring
+                this._checkoutTokens.push(data.split('/')[5]);
+                return true;
+              }
+            }
+            this._logger.debug(
+              'CHECKOUT: Failed: Queue responded with status code: %s',
+              statusCode,
+            );
+            return false;
           }
+          this._logger.debug('CHECKOUT: Failed to parse body: %j', err);
+          return false;
         }
-        return true;
       }
-      // not passed queue
-      await waitForDelay(Checkout.Delays.PollCheckoutQueue);
+      this._logger.verbose('CHECKOUT: Not passed queue, delaying %d ms', Delays.PollCheckoutQueue);
+      await waitForDelay(Delays.PollCheckoutQueue);
       return false;
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %s', err.error);
       return {
         error: err.error,
-        status: err.error.statusCode,
+        status: null,
       };
     }
   }
-
-  /**
-   * TODO - Unused for right now. Don't know if it's needed.
-   */
-  // async handlePatchCheckout() {
-  //   const { site, profile } = this._task;
-  //   const { shipping, billing, payment } = profile;
-
-  //   if (this._checkoutTokens.length > 0) {
-  //     this._checkoutToken = this._checkoutTokens.pop();
-
-  //     let dataString;
-  //     if (profile.billingMatchesShipping) {
-  //       dataString = `{"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"token":"${
-  //         this._checkoutToken
-  //       }","email":"${payment.email}","shipping_address":{"first_name":"${
-  //         shipping.firstName
-  //       }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
-  //         shipping.apt
-  //       }","company":null,"city":"${shipping.city}","country_code":"${
-  //         shipping.country.value
-  //       }","province_code":"${shipping.state.value}","phone":"${phoneFormatter.format(
-  //         shipping.phone,
-  //         '(NNN) NNN-NNNN',
-  //       )}","zip":"${shipping.zipCode}"},"billing_address":{"first_name":"${
-  //         shipping.firstName
-  //       }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
-  //         shipping.apt
-  //       }","company":null,"city":"${shipping.city}","country_code":"${
-  //         shipping.country.value
-  //       }","province_code":"${shipping.state.value}","phone":"${phoneFormatter.format(
-  //         shipping.phone,
-  //         '(NNN) NNN-NNNN',
-  //       )}","zip":"${shipping.zipCode}"}}}`;
-  //     } else {
-  //       dataString = `{"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"token":"${
-  //         this._checkoutToken
-  //       }",
-  //       "email":"${payment.email}","shipping_address":{"first_name":"${
-  //         shipping.firstName
-  //       }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
-  //         shipping.apt
-  //       }","company":null,"city":"${shipping.city}","country_code":"${
-  //         shipping.country.value
-  //       }","province_code":"${shipping.state.value}","phone":"${phoneFormatter.format(
-  //         shipping.phone,
-  //         '(NNN) NNN-NNNN',
-  //       )}","zip":"${shipping.zipCode}"},"billing_address":{"first_name":"${
-  //         billing.firstName
-  //       }","last_name":"${billing.lastName}","address1":"${billing.address}","address2":"${
-  //         billing.apt
-  //       }","company":null,"city":"${billing.city}","country_code":"${
-  //         billing.country.value
-  //       }","province_code":"${billing.state.value}","phone":"${phoneFormatter.format(
-  //         billing.phone,
-  //         '(NNN) NNN-NNNN',
-  //       )}","zip":"${billing.zipCode}"}}}`;
-  //     }
-
-  //     const headers = {
-  //       ...this._getHeaders(),
-  //       'cache-control': 'no-store',
-  //     };
-  //     try {
-  //       const res = await this._request({
-  //         uri: `${site.url}/wallets/checkouts`,
-  //         method: 'PUT',
-  //         proxy: formatProxy(this._proxy),
-  //         simple: false,
-  //         json: false,
-  //         encoding: null,
-  //         rejectUnauthorized: false,
-  //         resolveWithFullResponse: true,
-  //         headers,
-  //         body: dataString,
-  //       });
-  //       if (res.statusCode >= 200 && res.statusCode < 300) {
-  //         let body;
-  //         try {
-  //           body = JSON.parse(res.body.toString());
-  //           const { checkout } = body;
-  //           if (checkout) {
-  //             const { clone_url } = checkout;
-  //             this._logger.verbose('CHECKOUT: Updated checkout token: %s', clone_url.split('/')[5]);
-  //             // eslint-disable-next-line prefer-destructuring
-  //             this._storeId = clone_url.split('/')[3];
-  //             // eslint-disable-next-line prefer-destructuring
-  //             this._paymentUrlKey = checkout.web_url.split('=')[1];
-  //             // push the checkout token to the stack
-  //             this._checkoutTokens.push(clone_url.split('/')[5]);
-  //             return {
-  //               message: 'Monitoring for product...',
-  //               nextState: States.Monitor,
-  //             };
-  //           }
-  //         } catch (err) {
-  //           this._logger.debug('CHECKOUT: Error updating checkout: %s', err);
-  //           return {
-  //             message: 'Failed: updating checkout',
-  //             nextState: States.Stopped,
-  //           };
-  //         }
-  //       }
-  //     } catch (err) {
-  //       this._logger.debug('CHECKOUT: Error updating checkout: %s', err);
-  //       return {
-  //         errors: 'Failed: updating checkout session',
-  //         nextState: States.Errored,
-  //       };
-  //     }
-  //     // no checkout token, return to create checkout session step
-  //     return {
-  //       errors: 'Failed: updating checkout session',
-  //       nextState: States.Errored,
-  //     };
-  //   }
-  //   return {
-  //     message: 'Invalid checkout session',
-  //     nextState: Checkout.States.PatchCart,
-  //   };
-  // }
 
   /**
    * Create a valid checkout token with user data
@@ -389,55 +224,10 @@ class Checkout {
     const { site, profile } = this._task;
     const { shipping, billing, payment } = profile;
 
-    let dataString;
-    if (profile.billingMatchesShipping) {
-      dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
-        payment.email
-      }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
-        shipping.lastName
-      }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
-        shipping.city
-      }","country_code":"${shipping.country.value}","province_code":"${
-        shipping.state.value
-      }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
-        shipping.zipCode
-      }"},"billing_address":{"first_name":"${shipping.firstName}","last_name":"${
-        shipping.lastName
-      }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
-        shipping.city
-      }","country_code":"${shipping.country.value}","province_code":"${
-        shipping.state.value
-      }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
-        shipping.zipCode
-      }"}}}`;
-    } else {
-      dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
-        payment.email
-      }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
-        shipping.lastName
-      }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
-        shipping.city
-      }","country_code":"${shipping.country.value}","province_code":"${
-        shipping.state.value
-      }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
-        shipping.zipCode
-      }"},"billing_address":{"first_name":"${billing.firstName}","last_name":"${
-        billing.lastName
-      }","address1":"${billing.address}","address2":"${billing.apt}","company":null,"city":"${
-        billing.city
-      }","country_code":"${billing.country.value}","province_code":"${
-        billing.state.value
-      }","phone":"${phoneFormatter.format(billing.phone, '(NNN) NNN-NNNN')}","zip":"${
-        billing.zipCode
-      }"}}}`;
-    }
-
     const headers = {
-      ...this._getHeaders(),
+      ...this._headers(),
       'cache-control': 'no-store',
     };
-
-    this._logger.silly('CHECKOUT: Creating checkout with %j: ', dataString);
 
     try {
       const res = await this._request({
@@ -450,7 +240,7 @@ class Checkout {
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         headers,
-        body: dataString,
+        body: createCheckoutForm(profile, shipping, billing, payment),
       });
       // check for soft ban
       if (res.statusCode > 400) {
@@ -465,10 +255,7 @@ class Checkout {
         /**
          * <html><body>You are being <a href="https://yeezysupply.com/checkout/poll">redirected</a>.</body></html>
          */
-        this._logger.verbose(
-          'CHECKOUT: Checkout queue, polling %d ms',
-          Checkout.Delays.PollCheckoutQueue,
-        );
+        this._logger.verbose('CHECKOUT: Checkout queue, polling %d ms', Delays.PollCheckoutQueue);
         return {
           code: 303,
           error: null,
@@ -510,21 +297,9 @@ class Checkout {
    * payload: {"checkout":{"line_items":[{"variant_id":17402579058757,"quantity":"1","properties":{"MVZtkB3gY9f5SnYz":"nky2UHRAKKeTk8W8"}}]}}
    */
   async _handlePatchCart() {
-    const dataString = {
-      checkout: {
-        line_items: [
-          {
-            variant_id: this._task.product.variants[0],
-            quantity: '1',
-            properties: {}, // TODO - dsm ny/london needs hash
-          },
-        ],
-      },
-    };
+    const { site, product, monitorDelay } = this._task;
 
-    this._logger.silly('CHECKOUT: Adding to cart using: %j', dataString);
-
-    if (this._checkoutTokens.length > 0 || this._checkoutToken) {
+    if (this._checkoutToken || this._checkoutTokens.length > 0) {
       this._logger.verbose('CHECKOUT: Adding to cart');
       this._checkoutToken = this._checkoutToken || this._checkoutTokens.pop();
       try {
@@ -536,19 +311,20 @@ class Checkout {
           json: true,
           rejectUnauthorized: false,
           resolveWithFullResponse: true,
-          headers: this._getHeaders(),
-          body: dataString,
+          headers: this._headers(),
+          body: patchToCart(product.variants[0], site),
         });
         // "error" handling
-        if (res.body.errors && res.body.errors.line_items) {
+        if (res.body.errors && res.body.errors.line_items[0].variant_id) {
           const error = res.body.errors.line_items[0];
+          this._logger.verbose('Error with adding to cart: %j', error);
           if (error.quantity) {
             this._logger.verbose('Out of stock, running for restocks');
-            // infinite loop here somehow...
-            await waitForDelay(Checkout.Delays.Restocks);
+            // TODO – infinite loop here somehow...
+            await waitForDelay(monitorDelay);
             return {
               message: 'Running for restocks',
-              nextState: Checkout.States.PatchCart,
+              nextState: CheckoutStates.PatchCart,
             };
           }
           if (error.variant_id && error.variant_id[0]) {
@@ -561,29 +337,29 @@ class Checkout {
           this._logger.verbose('CHECKOUT: Generic error in ATC: %j', error);
           return {
             message: `Failed: ATC Error, retrying...`,
-            nextState: Checkout.States.PatchCart,
+            nextState: CheckoutStates.PatchCart,
           };
         }
         if (res.body.checkout && res.body.checkout.line_items.length > 0) {
           this._logger.info('Successfully added to cart');
+          const { total_price } = res.body.checkout;
+          this._prices.item = parseFloat(total_price).toFixed(2);
 
-          // update item prices
-          this._prices.item = parseFloat(res.body.checkout.total_price).toFixed(2);
           return {
             message: 'Added to cart',
-            nextState: Checkout.States.GetShippingRates,
+            nextState: CheckoutStates.GetShippingRates,
           };
         }
         this._logger.verbose('CHECKOUT: ATC Error, retrying...');
         return {
           message: 'Failed: Add to cart, retrying...',
-          nextState: Checkout.States.PatchCart,
+          nextState: CheckoutStates.PatchCart,
         };
       } catch (err) {
         this._logger.debug('CHECKOUT: Error adding to cart %s', err);
         return {
-          errors: 'Failed: Adding to cart',
-          nextState: Checkout.States.Error,
+          message: 'Failed: Adding to cart',
+          nextState: States.Errored,
         };
       }
     }
@@ -600,35 +376,38 @@ class Checkout {
    */
   async _handleGetShippingRates() {
     this._logger.verbose('CHECKOUT: Fetching shipping rates');
+    const { site } = this._task;
 
     try {
       const res = await this._request({
-        uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
+        uri: `${site.url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
         proxy: formatProxy(this._proxy),
         followAllRedirects: true,
         rejectUnauthorized: false,
         json: true,
         simple: false,
         method: 'get',
-        headers: this._getHeaders(),
+        headers: this._headers(),
       });
       if (res && res.errors) {
-        this._logger.verbose('CHECKOUT: Error getting shipping rates: %j', res.errors);
+        const { errors } = res;
+        this._logger.verbose('CHECKOUT: Error getting shipping rates: %j', errors);
         return {
           message: 'No shipping rates available',
-          nextState: Checkout.States.Stopped,
+          nextState: States.Stopped,
         };
       }
       if (res && res.shipping_rates) {
-        res.shipping_rates.forEach(rate => {
+        const { shipping_rates } = res;
+        shipping_rates.forEach(rate => {
           this._shippingMethods.push(rate);
         });
 
         const cheapest = _.min(this._shippingMethods, rate => rate.price);
-
+        const { id, title } = cheapest;
         this._chosenShippingMethod = {
-          id: cheapest.id,
-          name: cheapest.title,
+          id,
+          name: title,
         };
         this._logger.verbose(
           'CHECKOUT: Using shipping method: %s',
@@ -636,32 +415,27 @@ class Checkout {
         );
 
         // set shipping price for cart
-        this._prices.shipping = parseFloat(cheapest.price).toFixed(2);
+        let { shipping } = this._prices;
+        shipping = parseFloat(cheapest.price).toFixed(2);
+        this._logger.silly('CHECKOUT: Shipping total: %s', shipping);
 
-        this._logger.silly('CHECKOUT: Shipping total: %s', this._prices.shipping);
-
-        // TODO - RequestCaptcha if needed here maybe?
         return {
           message: `Payment Processing`,
-          nextState: Checkout.States.PostPayment,
+          nextState: CheckoutStates.PostPayment,
         };
       }
-      // TODO -- limit this more maybe?
-      this._logger.verbose(
-        'No shipping rates available, polling %d ms',
-        Checkout.Delays.PollShippingRates,
-      );
-      // poll queue
-      return Checkout._handlePoll(
-        Checkout.Delays.PollShippingRates,
-        'Polling for shipping rates..',
-        Checkout.States.GetShippingRates,
-      );
+      this._logger.verbose('No shipping rates available, polling %d ms', Delays.PollShippingRates);
+      // TODO - FIX INFINITE LOOP HERE
+      await waitForDelay(Delays.PollShippingRates);
+      return {
+        message: 'Polling for shipping rates..',
+        nextState: CheckoutStates.GetShippingRates,
+      };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error fetching shipping method: %s', err);
       return {
-        errors: 'Failed: no shipping rates available.',
-        nextState: Checkout.States.Error,
+        errors: 'Failed: unable to fetch shipping rates',
+        nextState: States.Errored,
       };
     }
   }
@@ -678,7 +452,7 @@ class Checkout {
     }
     return {
       message: 'Submitting payment',
-      nextState: Checkout.States.PostPayment,
+      nextState: CheckoutStates.PostPayment,
     };
   }
 
@@ -692,28 +466,29 @@ class Checkout {
    */
   async _handlePostPayment() {
     this._logger.verbose('CHECKOUT: Posting payment');
+    const { site } = this._task;
+    const { item, shipping } = this._prices;
+    let { total } = this._prices;
     const headers = {
-      ...this._getHeaders(),
+      ...this._headers(),
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
       Connection: 'Keep-Alive',
       'Content-Type': 'multipart/form-data;',
       'Upgrade-Insecure-Requests': '1',
-      'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
+      'X-Shopify-Storefront-Access-Token': `${site.apiKey}`,
     };
 
-    this._prices.total = (
-      parseFloat(this._prices.item) + parseFloat(this._prices.shipping)
-    ).toFixed(2);
-
-    this._logger.silly('CHECKOUT: Cart total: %s', this._prices.total);
+    // log total price of cart, maybe show this in analytics when we get that setup in the future
+    total = (parseFloat(item) + parseFloat(shipping)).toFixed(2);
+    this._logger.silly('CHECKOUT: Cart total: %s', total);
 
     try {
       let $ = await this._request({
-        uri: `${this._task.site.url}/${this._storeId}/checkouts/${
-          this._checkoutToken
-        }?previous_step=shipping_method&step=payment_method`,
+        uri: `${site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
+          this._paymentUrlKey
+        }&previous_step=shipping_method&step=payment_method`,
         method: 'get',
         followAllRedirects: true,
         resolveWithFullResponse: true,
@@ -729,42 +504,30 @@ class Checkout {
 
       this._logger.silly('CHECKOUT: 1st request step: %s', step);
 
-      if (step === Checkout.ShopifySteps.PaymentMethod) {
-        // proceed with parsing the payment gateway if in API mode
+      if (step === ShopifyPaymentSteps.PaymentMethod) {
         this._gateway = $(".radio-wrapper.content-box__row[data-gateway-group='direct']").attr(
           'data-select-gateway',
         );
       }
 
       this._logger.silly('CHECKOUT: Found payment gateway: %s', this._gateway);
-
+      const { id } = this._chosenShippingMethod;
       $ = await this._request({
-        uri: `${this._task.site.url}/${this._storeId}/checkouts/${this._checkoutToken}`,
+        uri: `${site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
+          this._paymentUrlKey
+        }`,
         method: 'post',
         followAllRedirects: true,
         resolveWithFullResponse: true,
         rejectUnauthorized: false,
         proxy: formatProxy(this._proxy),
         headers,
-        formData: {
-          utf8: '✓',
-          _method: 'patch',
-          authenticity_token: '',
-          previous_step: 'payment_method',
-          step: '',
-          s: this._paymentTokens.pop(),
-          'checkout[payment_gateway]': this._gateway,
-          'checkout[remember_me]': '0',
-          'checkout[total_price]': '',
-          complete: '1',
-          'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
-          'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
-          'checkout[client_details][javascript_enabled]': '1',
-          'checkout[buyer_accepts_marketing]': '0',
-          'checkout[shipping_rate][id]': this._chosenShippingMethod.id,
-          button: '',
-          'g-recaptcha-response': this._captchaToken,
-        },
+        formData: paymentMethodForm(
+          this._paymentTokens.pop(),
+          this._gateway,
+          id,
+          this._captchaToken,
+        ),
         transform: body => cheerio.load(body),
       });
 
@@ -775,85 +538,70 @@ class Checkout {
 
       this._logger.silly('CHECKOUT: 2nd request step: %s', step);
 
-      if (step === Checkout.ShopifySteps.ContactInformation) {
+      if (step === ShopifyPaymentSteps.ContactInformation) {
         this._logger.verbose('CHECKOUT: Captcha failed, retrying');
         return {
           message: 'Waiting for captcha',
-          nextState: Checkout.States.RequestCaptcha,
+          nextState: CheckoutStates.RequestCaptcha,
         };
       }
 
-      if (step === Checkout.ShopifySteps.Review) {
-        const res = await this._request({
-          uri: `${this._task.site.url}/${this._storeId}/checkouts/${
-            this._checkoutToken
-          }?step=review`,
+      if (step === ShopifyPaymentSteps.Review) {
+        await this._request({
+          uri: `${site.url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
+            this._paymentUrlKey
+          }&step=review`,
           method: 'post',
           followAllRedirects: true,
           resolveWithFullResponse: true,
           rejectUnauthorized: false,
           proxy: formatProxy(this._proxy),
           headers,
-          formData: {
-            utf8: '✓',
-            _method: 'patch',
-            authenticity_token: '',
-            'checkout[total_price]': '',
-            complete: '1',
-            button: '',
-            'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
-            'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
-            'checkout[client_details][javascript_enabled]': '1',
-            'g-recaptcha-response': this._captchaToken,
-          },
+          formData: paymentReviewForm(total, this._captchaToken),
         });
-
-        $ = cheerio.load(res.body);
       }
 
       this._logger.verbose('CHECKOUT: Proceeding to process payment');
       this._context.timer.start(now());
       return {
         message: `Payment Processing`,
-        nextState: Checkout.States.ProcessPayment,
+        nextState: CheckoutStates.ProcessPayment,
       };
     } catch (err) {
       this._logger.verbose('CHECKOUT: Failed posting payment: %s', err);
       return {
         message: 'Failed: posting payment',
-        nextState: Checkout.States.Stopped,
+        nextState: States.Stopped,
       };
     }
   }
 
   async _handleProcessingPayment() {
-    // timeout
-    if (this._context.timer.getRunTime(now()) > 10000) {
+    const { timer } = this._context;
+    const { site } = this._task;
+    if (timer.getRunTime(now()) > CheckoutTimeouts.ProcessingPayment) {
       return {
         message: 'Payment processing timed out, check email',
-        nextState: Checkout.States.Stopped,
+        nextState: States.Stopped,
       };
     }
-    this._logger.silly(
-      'CHECKOUT: Polling processing payment %d ms',
-      Checkout.Delays.ProcessingPayment,
-    );
+    this._logger.silly('CHECKOUT: Polling processing payment %d ms', Delays.ProcessingPayment);
 
     const headers = {
-      ...this._getHeaders(),
+      ...this._headers(),
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
       Connection: 'Keep-Alive',
       'Content-Type': 'multipart/form-data;',
       'Upgrade-Insecure-Requests': '1',
-      'X-Shopify-Storefront-Access-Token': `${this._task.site.apiKey}`,
+      'X-Shopify-Storefront-Access-Token': `${site.apiKey}`,
     };
 
     try {
-      await waitForDelay(Checkout.Delays.ProcessingPayment);
+      await waitForDelay(Delays.ProcessingPayment);
       const res = await this._request({
-        uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}/payments`,
+        uri: `${site.url}/wallets/checkouts/${this._checkoutToken}/payments`,
         method: 'GET',
         proxy: formatProxy(this._proxy),
         simple: false,
@@ -870,7 +618,7 @@ class Checkout {
           if (payments.payment_processing_error_message.toUpperCase().indexOf('NO MATCH') > -1) {
             return {
               message: `Payment Failed: Payment error`,
-              nextState: Checkout.States.Stopped,
+              nextState: States.Stopped,
             };
           }
           this._logger.verbose(
@@ -879,32 +627,33 @@ class Checkout {
           );
           return {
             message: `Payment Failed: ${payments.payment_processing_error_message}`,
-            nextState: Checkout.States.Stopped,
+            nextState: States.Stopped,
           };
         }
-        if (payments.transaaction && payments.transaaction.status === 'failure') {
-          this._logger.verbose('CHECKOUT: Payment error: %s', payments.transaction);
+        if (payments.transaction && payments.transaction.status === 'failure') {
+          const { transaction } = payments;
+          this._logger.verbose('CHECKOUT: Payment error: %s', transaction);
           return {
             message: `Payment Failed: Unknown error`,
-            nextState: Checkout.States.Stopped,
+            nextState: States.Stopped,
           };
         }
         this._logger.verbose('CHECKOUT: Payment successful: %j', payments);
         return {
           message: `Successfully checked out`,
-          nextState: Checkout.States.Stopped,
+          nextState: States.Stopped,
         };
       }
       this._logger.verbose('CHECKOUT: Processing payment');
       return {
         message: `Payment Processing`,
-        nextState: Checkout.States.ProcessPayment,
+        nextState: States.ProcessPayment,
       };
     } catch (err) {
       this._logger.debug('CHECKOUT: Failed processing payment: %s', err);
       return {
         message: 'Failed: processing payment',
-        nextState: Checkout.States.Stopped,
+        nextState: States.Stopped,
       };
     }
   }
@@ -915,15 +664,15 @@ class Checkout {
     }
     this._logger.verbose('CHECKOUT: Handling State: %s ...', currentState);
     const stateMap = {
-      [Checkout.States.CreateCheckout]: this._handleCreateCheckout,
-      [Checkout.States.GeneratePaymentToken]: this._handleGeneratePaymentToken,
-      [Checkout.States.GetPaymentToken]: this._handleGetPaymentToken,
-      [Checkout.States.Restocks]: this._handleRestocks,
-      [Checkout.States.PatchCart]: this._handlePatchCart,
-      [Checkout.States.GetShippingRates]: this._handleGetShippingRates,
-      [Checkout.States.RequestCaptcha]: this._handleRequestCaptcha,
-      [Checkout.States.PostPayment]: this._handlePostPayment,
-      [Checkout.States.ProcessPayment]: this._handleProcessingPayment,
+      [CheckoutStates.CreateCheckout]: this._handleCreateCheckout,
+      [CheckoutStates.GeneratePaymentToken]: this._handleGeneratePaymentToken,
+      [CheckoutStates.GetPaymentToken]: this._handleGetPaymentToken,
+      [CheckoutStates.Restocks]: this._handleRestocks,
+      [CheckoutStates.PatchCart]: this._handlePatchCart,
+      [CheckoutStates.GetShippingRates]: this._handleGetShippingRates,
+      [CheckoutStates.RequestCaptcha]: this._handleRequestCaptcha,
+      [CheckoutStates.PostPayment]: this._handlePostPayment,
+      [CheckoutStates.ProcessPayment]: this._handleProcessingPayment,
     };
 
     const handler = stateMap[currentState] || defaultHandler;
@@ -931,25 +680,42 @@ class Checkout {
     return await handler.call(this);
   }
 
+  /**
+   * Used to run the checkout process
+   * Starts from: `Checkout.States.PatchCart`
+   */
   async run() {
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
-      return {
-        nextState: States.Aborted,
-      };
+      return { nextState: States.Aborted };
     }
 
+    /**
+     * MARK : State machine for checkout process
+     * 1. `PATCH CART`
+     * 2. `GET SHIPPING RATES`
+     * 3. `POST PAYMENT`
+     * 4. `REQUEST CAPTCHA` (not always needed)
+     * 5. `PROCESS PAYMENT`
+     */
+    this._logger.verbose(
+      'CHECKOUT: Finished state: %s ...',
+      this._previousState ? this._previousState : CheckoutStates.PatchCart,
+    );
     const res = await this._handleStepLogic(this._state);
 
-    if (res.nextState === Checkout.States.Error) {
-      this._logger.verbose('CHECKOUT: Completed with errors: %j', res.errors);
-      return {
-        message: 'Failed: State error in checkout',
-        nextState: States.Errored,
-      };
-    }
     if (res) {
+      this._previousState = this._state;
       this._state = res.nextState;
+
+      if (this._state === States.Errored) {
+        // TODO - go back to previous step if possible
+        // or handle this in some way
+        return {
+          message: res.message,
+          nextState: States.Stopped,
+        };
+      }
 
       if (this._state !== States.Stopped) {
         return {
@@ -963,7 +729,7 @@ class Checkout {
       };
     }
     return {
-      message: res.message,
+      message: 'Invalid state in checkout, stopping',
       nextState: States.Stopped,
     };
   }

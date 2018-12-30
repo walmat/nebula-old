@@ -7,8 +7,8 @@ const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
  * Special Parser for all DSM sites
  */
 class DsmParser extends SpecialParser {
-  constructor(task, proxy, logger) {
-    super(task, proxy, logger, 'DsmParser');
+  constructor(request, task, proxy, logger) {
+    super(request, task, proxy, logger, 'DsmParser');
   }
 
   get initialPageContainsProducts() {
