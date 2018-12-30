@@ -71,7 +71,7 @@ class Checkout {
   }
 
   isBanned(statusCode) {
-    return statusCode === 403 || statusCode === 429 || statusCode === 430 ? true : false;
+    return !!(statusCode === 403 || statusCode === 429 || statusCode === 430);
   }
 
   /**
