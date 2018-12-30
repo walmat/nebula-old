@@ -301,6 +301,7 @@ class TaskRunner {
         });
         return States.Queue;
       }
+
       // if not queue, but something failed, let's do task setup later
       this._context.setup = false;
       this._logger.verbose('Completing task setup later');
@@ -328,9 +329,15 @@ class TaskRunner {
         case 430:
           // soft ban
           this.shouldBanProxy = true;
+          this._emitTaskEvent({
+            message: 'Swapping proxy',
+          });
           return States.SwapProxies;
         default:
           // stop if not a soft ban
+          this._emitTaskEvent({
+            message: 'Error while handling queue, stopping..',
+          });
           return States.Stopped;
       }
     }
@@ -342,28 +349,9 @@ class TaskRunner {
       this._logger.silly('Waiting in checkout queue');
       return States.Queue;
     }
-    // otherwise, we're out of queue and can proceed to create checkout session now.
+    // otherwise, we're out of queue and can proceed to monitor.
     return States.Monitor;
   }
-
-  // /**
-  //  * TODO - Unused for right now. Don't know if it's needed.
-  //  */
-  // async _handleUpdateCheckout() {
-  //   const res = await this._checkout._handlePutCheckout();
-  //   if (res.errors) {
-  //     this._logger.verbose('Checkout updating completed with errors: %j', res.errors);
-  //     this._emitTaskEvent({
-  //       message: 'Error updating checkout session!',
-  //       errors: res.errors,
-  //     });
-  //     await this._waitForErrorDelay();
-  //   }
-  //   this._emitTaskEvent({
-  //     message: res.message,
-  //   });
-  //   return res.nextState;
-  // }
 
   async _handleMonitor() {
     const res = await this._monitor.run();

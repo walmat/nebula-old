@@ -42,6 +42,36 @@ const ParserErrorCodes = {
   ProductNotFound: 'PRODUCT_MISSING',
 };
 
+const CheckoutDelays = {
+  ProcessingPayment: 1500,
+  PollShippingRates: 1500,
+  PollCheckoutQueue: 5000,
+};
+
+const CheckoutTimeouts = {
+  ProcessingPayment: 10000,
+};
+
+const CheckoutStates = {
+  CreateCheckout: 'CREATE_CHECKOUT',
+  GeneratePaymentToken: 'GENERATE_PAYMENT_TOKEN',
+  PatchCart: 'PATCH_CART',
+  GetShippingRates: 'GET_SHIPPING_RATES',
+  PollQueue: 'POLL_QUEUE',
+  RequestCaptcha: 'REQUEST_CAPTCHA',
+  PostPayment: 'POST_PAYMENT',
+  ProcessPayment: 'PROCESS_PAYMENT',
+  Restocks: 'RESTOCKS',
+  Stopped: 'STOPPED',
+};
+
+const ShopifyPaymentSteps = {
+  ContactInformation: 'contact_information',
+  ShippingMethod: 'shipping_method',
+  PaymentMethod: 'payment_method',
+  Review: 'review',
+};
+
 const getAllSizes = [
   {
     label: 'Clothing',
@@ -186,5 +216,11 @@ module.exports = {
   },
   ErrorCodes: {
     Parser: ParserErrorCodes,
+  },
+  Checkout: {
+    Delays: CheckoutDelays,
+    CheckoutTimeouts,
+    CheckoutStates,
+    ShopifyPaymentSteps,
   },
 };

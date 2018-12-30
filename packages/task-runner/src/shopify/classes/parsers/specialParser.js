@@ -1,18 +1,14 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-  timeout: 10000,
-  jar,
-});
 const Parser = require('./parser');
 const { ParseType } = require('../utils/parse');
 const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
 const { formatProxy, userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
-  constructor(task, proxy, logger, name) {
-    super(task, proxy, logger, name || 'SpecialParser');
+  constructor(request, task, proxy, logger, name) {
+    super(request, task, proxy, logger, name || 'SpecialParser');
+    this._request = request;
   }
 
   /**
@@ -35,7 +31,7 @@ class SpecialParser extends Parser {
     let response;
     try {
       this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
-      response = await rp({
+      response = await this._request({
         method: 'GET',
         uri: initialUrl,
         proxy: formatProxy(this._proxy) || undefined,
@@ -228,7 +224,7 @@ class SpecialParser extends Parser {
 
   getProductInfoPage(productUrl) {
     this._logger.log('silly', '%s: Getting Full Product Info... %s', this._name, productUrl);
-    return rp({
+    return this._request({
       method: 'GET',
       uri: productUrl,
       proxy: formatProxy(this._proxy) || undefined,

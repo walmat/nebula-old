@@ -1,9 +1,3 @@
-const jar = require('request-promise').jar();
-const rp = require('request-promise').defaults({
-  timeout: 10000,
-  jar,
-});
-
 const Parser = require('./parser');
 const { ParseType, convertToJson } = require('../utils/parse');
 const { formatProxy, userAgent } = require('../utils');
@@ -15,8 +9,9 @@ class XmlParser extends Parser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(task, proxy, logger) {
-    super(task, proxy, logger, 'XmlParser');
+  constructor(request, task, proxy, logger) {
+    super(request, task, proxy, logger, 'XmlParser');
+    this._request = request;
   }
 
   async run() {
@@ -31,7 +26,7 @@ class XmlParser extends Parser {
         this._name,
         this._task.site.url,
       );
-      const response = await rp({
+      const response = await this._request({
         method: 'GET',
         uri: `${this._task.site.url}/sitemap_products_1.xml`,
         proxy: formatProxy(this._proxy) || undefined,
@@ -45,7 +40,7 @@ class XmlParser extends Parser {
       });
       responseJson = await convertToJson(response);
     } catch (error) {
-      this._logger.silly('%s: ERROR making request!', this._name, error);
+      this._logger.silly('%s: ERROR making request! %s', this._name, error);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
@@ -68,7 +63,11 @@ class XmlParser extends Parser {
     this._logger.silly('%s: Product Found! Looking for Variant Info...', this._name);
     let fullProductInfo = null;
     try {
-      fullProductInfo = await Parser.getFullProductInfo(matchedProduct.url, this._logger);
+      fullProductInfo = await Parser.getFullProductInfo(
+        matchedProduct.url,
+        this._request,
+        this._logger,
+      );
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
       return {
         ...matchedProduct,
