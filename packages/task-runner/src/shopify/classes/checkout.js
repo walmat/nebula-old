@@ -315,7 +315,7 @@ class Checkout {
           body: patchToCart(product.variants[0], site),
         });
         // "error" handling
-        if (res.body.errors && res.body.errors.line_items[0].variant_id) {
+        if (res.body.errors && res.body.errors.line_items[0]) {
           const error = res.body.errors.line_items[0];
           this._logger.verbose('Error with adding to cart: %j', error);
           if (error.quantity) {
@@ -328,15 +328,16 @@ class Checkout {
             };
           }
           if (error.variant_id && error.variant_id[0]) {
-            this._logger.verbose('Invalid size option passed to task');
+            this._logger.verbose('Invalid size option passed to task or not available yet');
+            await waitForDelay(monitorDelay);
             return {
-              message: 'Failed: Invalid size',
-              nextState: States.Stopped,
+              message: 'Waiting for product...',
+              nextState: CheckoutStates.PatchCart,
             };
           }
           this._logger.verbose('CHECKOUT: Generic error in ATC: %j', error);
           return {
-            message: `Failed: ATC Error, retrying...`,
+            message: `Failed: Unable to ATC, retrying...`,
             nextState: CheckoutStates.PatchCart,
           };
         }
@@ -685,11 +686,6 @@ class Checkout {
    * Starts from: `Checkout.States.PatchCart`
    */
   async run() {
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return { nextState: States.Aborted };
-    }
-
     /**
      * MARK : State machine for checkout process
      * 1. `PATCH CART`
