@@ -31,6 +31,7 @@
     "private:compile": "npm run build",
     "private:serve": "babel-node scripts/serve.js",
     "private:watch": "npm run private:compile -- --source-maps true --watch --skip-initial-build",
+    "publish": "GH_TOKEN=4c9117008cfd125c7ce6f8ed7ffebffaca061753 build --mac --win -p always",
     "prod": "cross-env NODE_ENV=production electron .",
     "sass": "./tool/compile_css.sh",
     "start": "npm run prod",

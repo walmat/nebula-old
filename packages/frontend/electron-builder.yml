@@ -5,6 +5,11 @@ asar: true
 compression: maximum
 extends: null
 
+publish:
+  provider: "github"
+  owner: "walmat"
+  repo: "nebula"
+
 directories:
   buildResources: _assets/
   output: orion/

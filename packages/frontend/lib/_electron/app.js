@@ -1,4 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable global-require */
+/* eslint-disable class-methods-use-this */
 const Electron = require('electron');
+const { autoUpdater } = require('electron-updater');
 const CaptchaServerManager = require('./captchaServerManager');
 const MainMenu = require('./mainMenu');
 const DialogManager = require('./dialogManager');
@@ -135,10 +139,10 @@ class App {
     if (nebulaEnv.isDevelopment()) {
       await App.installExtensions();
     }
-
     await this._windowManager.createNewWindow('main');
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
+    autoUpdater.checkForUpdatesAndNotify();
   }
 
   /**
