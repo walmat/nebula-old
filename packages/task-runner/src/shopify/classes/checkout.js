@@ -315,7 +315,7 @@ class Checkout {
           body: patchToCart(product.variants[0], site),
         });
         // "error" handling
-        if (res.body.errors && res.body.errors.line_items[0].variant_id) {
+        if (res.body.errors && res.body.errors.line_items[0]) {
           const error = res.body.errors.line_items[0];
           this._logger.verbose('Error with adding to cart: %j', error);
           if (error.quantity) {
@@ -328,11 +328,10 @@ class Checkout {
             };
           }
           if (error.variant_id && error.variant_id[0]) {
-            console.log(error.variant_id[0]);
             this._logger.verbose('Invalid size option passed to task or not available yet');
             await waitForDelay(monitorDelay);
             return {
-              message: 'Running for restocks',
+              message: 'Waiting for product...',
               nextState: CheckoutStates.PatchCart,
             };
           }
