@@ -11,6 +11,10 @@ const { createLogger } = require('../common/logger');
 const { waitForDelay, reflect } = require('./classes/utils');
 
 class TaskRunner {
+  get state() {
+    return this._state;
+  }
+
   constructor(id, task, proxy, loggerPath) {
     // Add Ids to object
     this.taskId = task.id;
@@ -354,6 +358,12 @@ class TaskRunner {
   }
 
   async _handleMonitor() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
     const res = await this._monitor.run();
     if (res.errors) {
       this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
@@ -394,7 +404,12 @@ class TaskRunner {
   }
 
   async _handleCheckout() {
-    // start recording our time taken to checkout
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
     const res = await this._checkout.run();
     if (res.errors) {
       this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
