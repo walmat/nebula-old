@@ -281,6 +281,12 @@ class TaskRunner {
   // MARK: State Machine Step Logic
 
   async _handleStarted() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
     this._logger.silly('Starting task setup');
     this._emitTaskEvent({
       message: 'Starting Task Setup',
@@ -295,6 +301,12 @@ class TaskRunner {
    * 3. Promise 3 – logging in (if required)
    */
   async _handleTaskSetup() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
     const { username, password } = this._context.task;
     const promises =
       username && password
@@ -339,6 +351,12 @@ class TaskRunner {
   }
 
   async _handleCheckoutQueue() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
     const res = await this._checkout.pollCheckoutQueue();
 
     if (res.error) {
