@@ -4,7 +4,6 @@
 const Cart = require('./cart');
 const Shipping = require('./shipping');
 const Payment = require('./payment');
-const Account = require('../account');
 const Timer = require('../timer');
 const { States } = require('../utils/constants').TaskRunner;
 const { waitForDelay } = require('../utils');
@@ -111,7 +110,6 @@ class Checkout {
     this._cart = new Cart(context, this._timer, this._request);
     this._shipping = null;
     this._payment = null;
-    this._account = new Account(context, this._timer, this._request);
   }
 
   /**

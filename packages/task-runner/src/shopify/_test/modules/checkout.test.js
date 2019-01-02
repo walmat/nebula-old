@@ -1,6 +1,5 @@
 /* eslint-disable no-console, no-unused-vars */
 const task = require('./task.test');
-const Account = require('../../classes/account');
 const Cart = require('../../classes/old/cart');
 const Shipping = require('../../classes/old/shipping');
 const Payment = require('../../classes/old/payment');
@@ -14,22 +13,6 @@ const context = {
   // proxy: `127.0.0.1:8888`,
   aborted: false,
 };
-
-/**
- * Account test
- */
-const account = new Account(context);
-
-const testAccount = async () => {
-  const loggedIn = await account.login();
-  console.log(`Logged in: ${loggedIn}`);
-  const loggedOut = await account.logout();
-  console.log(`Logged out: ${loggedOut}`);
-};
-// testAccount();
-/**
- * End Account test
- */
 
 /**
  * Cart test

@@ -2,9 +2,6 @@
 /* eslint-disable camelcase */
 const cheerio = require('cheerio');
 const _ = require('underscore');
-const fs = require('fs');
-const path = require('path');
-const { States } = require('./utils/constants').TaskRunner;
 const { waitForDelay, formatProxy, userAgent, now } = require('./utils');
 const {
   buildPaymentForm,
