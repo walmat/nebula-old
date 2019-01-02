@@ -7,8 +7,9 @@ const Checkout = require('./classes/checkout');
 const AsyncQueue = require('./classes/asyncQueue');
 const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
+const { CheckoutErrorCodes } = require('./classes/utils/constants').ErrorCodes;
 const { createLogger } = require('../common/logger');
-const { waitForDelay, reflect } = require('./classes/utils');
+const { waitForDelay, reflect, now } = require('./classes/utils');
 
 class TaskRunner {
   get state() {
@@ -39,7 +40,7 @@ class TaskRunner {
     /**
      * Internal Task Runner State
      */
-    this._state = States.Initialized;
+    this._state = States.Started;
 
     this._captchaQueue = null;
     this._isSetup = false;
@@ -266,6 +267,16 @@ class TaskRunner {
     });
   }
 
+  login() {
+    return new Promise(async (resolve, reject) => {
+      const loggedIn = await this._checkout.handleLogin();
+      if (!loggedIn) {
+        reject(loggedIn);
+      }
+      resolve(loggedIn);
+    });
+  }
+
   // MARK: State Machine Step Logic
 
   async _handleStarted() {
@@ -279,11 +290,15 @@ class TaskRunner {
   /**
    * RESULTS (INDICES):
    * 0. Promise 1 – generating payment tokens
-   * 1. TODO (future feature) – Promise 2 – finding random product variant (in stock)
-   * 2. Promise 3 – creating checkout token
+   * 2. Promise 2 – creating checkout session
+   * 3. Promise 3 – logging in (if required)
    */
   async _handleTaskSetup() {
-    const promises = [this.generatePaymentToken(), this.createCheckout()];
+    const { username, password } = this._context.task;
+    const promises =
+      username && password
+        ? [this.generatePaymentToken(), this.createCheckout(), this.login()]
+        : [this.generatePaymentToken(), this.createCheckout()];
     this._logger.silly('Running Task Setup Promises');
     const results = await Promise.all(promises.map(reflect));
     this._logger.silly('Async promises results: %j', results);
@@ -403,54 +418,306 @@ class TaskRunner {
     return this._prevState;
   }
 
-  async _handleCheckout() {
-    // exit if abort is detected
+  async _handlePatchCart() {
+    if (this._context.aborted) {
+      this._logger.info('Abort detected, stopping...');
+      return States.Aborted;
+    }
+    const { monitorDelay, errorDelay } = this._context.task;
+
+    const res = await this._checkout.handlePatchCart();
+
+    if (res.status) {
+      switch (res.status) {
+        case 403:
+        case 429:
+        case 430:
+          this.shouldBanProxy = true;
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: `Error ${res.status} during ATC, retrying...`,
+          });
+          await waitForDelay(errorDelay);
+          return States.PatchCart;
+      }
+    }
+
+    if (res.errors) {
+      this._logger.verbose('Patch cart error: %j', res.errors);
+      if (res.errors === CheckoutErrorCodes.OOS || res.errors === CheckoutErrorCodes.ATC) {
+        this._emitTaskEvent({
+          message: 'Running for restocks',
+        });
+        await waitForDelay(monitorDelay);
+        return States.PatchCart;
+      }
+      if (res.errors === CheckoutErrorCodes.MonitorForVariant) {
+        this._emitTaskEvent({
+          message: 'Waiting for product',
+        });
+        await waitForDelay(monitorDelay);
+        return States.PatchCart;
+      }
+      if (res.errors === CheckoutErrorCodes.InvalidCheckoutSession) {
+        this._emitTaskEvent({
+          message: 'Invalid checkout session, rewinding...',
+        });
+        return States.CreateCheckout;
+      }
+      await waitForDelay(errorDelay);
+      this._emitTaskEvent({
+        message: 'Failed: Add to cart, stopping...',
+      });
+      return States.Stopped;
+    }
+    this._emitTaskEvent({
+      message: 'Added to cart',
+    });
+    return States.ShippingRates;
+  }
+
+  async _handleShippingRates() {
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
-    const res = await this._checkout.run();
+    const { monitorDelay, errorDelay } = this._context.task;
+    const res = await this._checkout.handleGetShippingRates();
+
+    if (res.status) {
+      switch (res.status) {
+        case 403:
+        case 429:
+        case 430:
+          this.shouldBanProxy = true;
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: `Error ${res.status} during shipping rates, retrying...`,
+          });
+          await waitForDelay(errorDelay);
+          return States.ShippingRates;
+      }
+    }
+
     if (res.errors) {
-      this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
+      if (res.errors === CheckoutErrorCodes.ShippingRates) {
+        this._emitTaskEvent({
+          message: 'Polling for shipping rates',
+        });
+        await waitForDelay(monitorDelay);
+        return States.ShippingRates;
+      }
       this._emitTaskEvent({
-        message: 'Errors during Checkout!',
-        errors: res.errors,
+        message: 'Failed: Fetching shipping rates, stopping...',
       });
-      await this._waitForErrorDelay();
+      await waitForDelay(errorDelay);
+      return States.Stopped;
     }
     this._emitTaskEvent({
-      message: res.message,
+      message: `Using shipping rate: ${res.rate}`,
     });
-    // Checkout will be in charge of choosing the next state
-    return res.nextState;
+    return States.PaymentGateway;
   }
 
-  _generateEndStateHandler(state) {
-    let status = 'stopped';
-    switch (state) {
-      case States.Aborted: {
-        status = 'aborted';
-        break;
-      }
-      case States.Errored: {
-        status = 'errored out';
-        break;
-      }
-      case States.Finished: {
-        status = 'finished';
-        break;
-      }
-      default: {
-        break;
+  async _handlePaymentGateway() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { monitorDelay, errorDelay } = this._context.task;
+    const res = await this._checkout.handleGetPaymentGateway();
+
+    if (res.status) {
+      switch (res.status) {
+        case 403:
+        case 429:
+        case 430:
+          this.shouldBanProxy = true;
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: `Error ${res.status} during payment gateway, retrying...`,
+          });
+          await waitForDelay(errorDelay);
+          return States.PaymentGateway;
       }
     }
-    return () => {
+
+    if (res.errors) {
+      if (res.errors === CheckoutErrorCodes.InvalidGateway) {
+        this._emitTaskEvent({
+          message: 'Polling for payment gateway',
+        });
+        await waitForDelay(monitorDelay);
+        return States.PaymentGateway;
+      }
       this._emitTaskEvent({
-        message: this._context.status || `Task has ${status}`,
+        message: 'Failed: Fetching payment gateway, stopping...',
+      });
+      await waitForDelay(errorDelay);
+      return States.Stopped;
+    }
+    this._emitTaskEvent({
+      message: `Payment processing`,
+    });
+    return States.PostPayment;
+  }
+
+  async _handlePostPayment() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { errorDelay } = this._context.task;
+    const res = await this._checkout.handlePostPayment();
+
+    if (res.status) {
+      switch (res.status) {
+        case 403:
+        case 429:
+        case 430:
+          this.shouldBanProxy = true;
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: `Error ${res.status} during post payment, retrying...`,
+          });
+          await waitForDelay(errorDelay);
+          return States.PostPayment;
+      }
+    }
+
+    if (res.errors) {
+      if (res.errors === CheckoutErrorCodes.InvalidCaptchaToken) {
+        this._emitTaskEvent({
+          message: 'Waiting for captcha',
+        });
+        return States.Captcha;
+      }
+      if (res.errors === CheckoutErrorCodes.Review) {
+        this._emitTaskEvent({
+          message: 'Payment processing',
+        });
+        return States.Review;
+      }
+    }
+    this._emitTaskEvent({
+      message: 'Payment Processing',
+    });
+    return States.Processing;
+  }
+
+  async _handleReview() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { errorDelay } = this._context.task;
+    const res = await this._checkout.handlePaymentReview();
+
+    if (res.status) {
+      switch (res.status) {
+        case 403:
+        case 429:
+        case 430:
+          this.shouldBanProxy = true;
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: `Error ${res.status} during post payment, retrying...`,
+          });
+          await waitForDelay(errorDelay);
+          return States.PostPayment;
+      }
+    }
+
+    if (res.errors) {
+      if (res.errors === CheckoutErrorCodes.InvalidCaptchaToken) {
+        this._emitTaskEvent({
+          message: 'Waiting for captcha',
+        });
+        return States.Captcha;
+      }
+      if (res.errors === CheckoutErrorCodes.Review) {
+        this._emitTaskEvent({
+          message: 'Payment processing',
+        });
+        return States.Review;
+      }
+    }
+    this._emitTaskEvent({
+      message: 'Payment processing',
+    });
+    return States.Processing;
+  }
+
+  async _handlePaymentProcessing() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+    this._context.timer.start(now());
+
+    const { monitorDelay, errorDelay } = this._context.task;
+    const res = await this._checkout.handleProcessing();
+
+    if (res.status) {
+      switch (res.status) {
+        case 403:
+        case 429:
+        case 430:
+          this.shouldBanProxy = true;
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: `Error ${res.status} during post payment, retrying...`,
+          });
+          await waitForDelay(errorDelay);
+          return States.PostPayment;
+      }
+    }
+
+    if (res.errors) {
+      if (res.errors === CheckoutErrorCodes.Processing) {
+        this._emitTaskEvent({
+          message: 'Payment processing',
+        });
+        await waitForDelay(monitorDelay);
+        return States.Processing;
+      }
+      this._emitTaskEvent({
+        message: 'Payment failed',
       });
       return States.Stopped;
-    };
+    }
+    this._emitTaskEvent({
+      message: 'Payment successful! Stopping task...',
+    });
+    return States.Stopped;
   }
 
   async _handleStepLogic(currentState) {
@@ -464,13 +731,15 @@ class TaskRunner {
       [States.Started]: this._handleStarted,
       [States.TaskSetup]: this._handleTaskSetup,
       [States.Queue]: this._handleCheckoutQueue,
-      [States.PatchCheckout]: this._handleUpdateCheckout,
       [States.Monitor]: this._handleMonitor,
+      [States.PatchCart]: this._handlePatchCart,
+      [States.ShippingRates]: this._handleShippingRates,
+      [States.PaymentGateway]: this._handlePaymentGateway,
+      [States.Review]: this._handleReview,
+      [States.PostPayment]: this._handlePostPayment,
+      [States.Processing]: this._handlePaymentProcessing,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Checkout]: this._handleCheckout,
-      [States.Finished]: this._generateEndStateHandler(States.Finished),
-      [States.Errored]: this._generateEndStateHandler(States.Errored),
-      [States.Aborted]: this._generateEndStateHandler(States.Aborted),
     };
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);

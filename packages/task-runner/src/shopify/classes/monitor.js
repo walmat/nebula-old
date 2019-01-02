@@ -169,7 +169,7 @@ class Monitor {
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
-      nextState: this._context.setup ? States.Checkout : States.TaskSetup,
+      nextState: this._context.setup ? States.PatchCart : States.TaskSetup,
     };
   }
 
@@ -215,7 +215,7 @@ class Monitor {
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
         message: `Found product: ${this._context.task.product.name}`,
-        nextState: this._context.setup ? States.Checkout : States.TaskSetup,
+        nextState: this._context.setup ? States.PatchCart : States.TaskSetup,
       };
     } catch (error) {
       // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
@@ -258,7 +258,7 @@ class Monitor {
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
-      nextState: States.Checkout,
+      nextState: States.PatchCart,
     };
   }
 
