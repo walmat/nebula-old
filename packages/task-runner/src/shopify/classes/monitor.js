@@ -281,7 +281,7 @@ class Monitor {
         this._logger.verbose('MONITOR: Variant Parsing Detected');
         this._context.task.product.variants = [this._context.task.product.variant];
         this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
-        result = { message: 'Adding to cart', nextState: States.Checkout };
+        result = { message: 'Adding to cart', nextState: States.PatchCart };
         break;
       }
       case ParseType.Url: {

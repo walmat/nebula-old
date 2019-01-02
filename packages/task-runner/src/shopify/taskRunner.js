@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 const EventEmitter = require('events');
 const request = require('request-promise');
 
@@ -475,7 +476,7 @@ class TaskRunner {
       return States.Stopped;
     }
     this._emitTaskEvent({
-      message: 'Added to cart',
+      message: 'Fetching shipping rates',
     });
     return States.ShippingRates;
   }
@@ -720,6 +721,10 @@ class TaskRunner {
     return States.Stopped;
   }
 
+  async _handleShutdown() {
+    return States.Stopped;
+  }
+
   async _handleStepLogic(currentState) {
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
@@ -740,6 +745,7 @@ class TaskRunner {
       [States.Processing]: this._handlePaymentProcessing,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Checkout]: this._handleCheckout,
+      [States.Aborted]: this._handleShutdown,
     };
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
