@@ -26,9 +26,15 @@ const TaskRunnerStates = {
   TaskSetup: 'TASK_SETUP',
   Queue: 'QUEUE',
   Monitor: 'MONITOR',
+  PatchCart: 'PATCH_CART',
+  ShippingRates: 'SHIPPING_RATES',
+  PostPayment: 'POST_PAYMENT',
+  PaymentGateway: 'PAYMENT_GATEWAY',
+  Review: 'REVIEW',
+  Processing: 'PROCESSING',
   Restock: 'RESTOCK',
   SwapProxies: 'SWAP_PROXIES',
-  Checkout: 'CHECKOUT',
+  Captcha: 'CAPTCHA',
   Finished: 'FINISHED',
   Errored: 'ERRORED',
   Aborted: 'ABORTED',
@@ -42,27 +48,20 @@ const ParserErrorCodes = {
   ProductNotFound: 'PRODUCT_MISSING',
 };
 
-const CheckoutDelays = {
-  ProcessingPayment: 1500,
-  PollShippingRates: 1500,
-  PollCheckoutQueue: 5000,
+const CheckoutErrorCodes = {
+  OOS: 'OUT_OF_STOCK',
+  ATC: 'ADD_TO_CART',
+  MonitorForVariant: 'MONITOR_FOR_VARIANT',
+  InvalidCheckoutSession: 'INVALID_CHECKOUT_SESSION',
+  ShippingRates: 'SHIPPING_RATES',
+  InvalidGateway: 'INVALID_GATEWAY',
+  InvalidCaptchaToken: 'INVALID_CAPTCHA_TOKEN',
+  Review: 'REVIEW',
+  CardDeclined: 'CARD_DECLINED',
 };
 
 const CheckoutTimeouts = {
   ProcessingPayment: 10000,
-};
-
-const CheckoutStates = {
-  CreateCheckout: 'CREATE_CHECKOUT',
-  GeneratePaymentToken: 'GENERATE_PAYMENT_TOKEN',
-  PatchCart: 'PATCH_CART',
-  GetShippingRates: 'GET_SHIPPING_RATES',
-  PollQueue: 'POLL_QUEUE',
-  RequestCaptcha: 'REQUEST_CAPTCHA',
-  PostPayment: 'POST_PAYMENT',
-  ProcessPayment: 'PROCESS_PAYMENT',
-  Restocks: 'RESTOCKS',
-  Stopped: 'STOPPED',
 };
 
 const ShopifyPaymentSteps = {
@@ -216,11 +215,10 @@ module.exports = {
   },
   ErrorCodes: {
     Parser: ParserErrorCodes,
+    CheckoutErrorCodes,
   },
   Checkout: {
-    Delays: CheckoutDelays,
     CheckoutTimeouts,
-    CheckoutStates,
     ShopifyPaymentSteps,
   },
 };
