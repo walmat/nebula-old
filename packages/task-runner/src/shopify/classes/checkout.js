@@ -2,16 +2,26 @@
 /* eslint-disable camelcase */
 const cheerio = require('cheerio');
 const _ = require('underscore');
-const { waitForDelay, formatProxy, userAgent, now } = require('./utils');
+const path = require('path');
+const fs = require('fs');
+const {
+  waitForDelay,
+  formatProxy,
+  userAgent,
+  now,
+  checkStatusCode,
+  isFrontendMode,
+} = require('./utils');
 const {
   buildPaymentForm,
   createCheckoutForm,
+  addToCart,
   patchToCart,
+  submitCustomerInformation,
   paymentMethodForm,
   paymentReviewForm,
 } = require('./utils/forms');
 const {
-  CheckoutStates,
   CheckoutTimeouts,
   Delays,
   ShopifyPaymentSteps,
@@ -54,20 +64,16 @@ class Checkout {
 
   _headers() {
     const { site } = this._task;
-    const { url } = site;
+    const { url, apiKey } = site;
     return {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'X-Shopify-Checkout-Version': '2016-09-06',
-      'X-Shopify-Access-Token': `${site.apiKey}`,
+      'X-Shopify-Access-Token': `${apiKey}`,
       'User-Agent': userAgent,
       host: `${url.split('/')[2]}`,
       authorization: `Basic ${this._basicAuth}`,
     };
-  }
-
-  isBanned(statusCode) {
-    return !!(statusCode === 403 || statusCode === 429 || statusCode === 430);
   }
 
   /**
@@ -107,6 +113,7 @@ class Checkout {
   }
 
   /**
+   * API MODE
    * Create a valid checkout token with user data
    */
   async handleCreateCheckout() {
@@ -134,27 +141,22 @@ class Checkout {
         body: createCheckoutForm(profile, shipping, billing, payment),
       });
       // check for soft ban
-      if (res.statusCode > 400) {
-        return {
-          code: res.statusCode,
-          error: true,
-        };
+      const { statusCode } = res;
+      let { body } = res;
+      if (checkStatusCode(statusCode)) {
+        return { status: statusCode, error: true };
       }
 
       // did we receive a queue response?
-      if (res.body.toString().indexOf('/poll') > -1) {
+      if (body.toString().indexOf('/poll') > -1) {
         /**
          * <html><body>You are being <a href="https://yeezysupply.com/checkout/poll">redirected</a>.</body></html>
          */
         this._logger.verbose('CHECKOUT: Checkout queue, polling %d ms', Delays.PollCheckoutQueue);
-        return {
-          code: 303,
-          error: null,
-        };
+        return { status: 303, error: null };
       }
 
       // let's try to parse the response if not
-      let body;
       try {
         body = JSON.parse(res.body.toString());
         if (body.checkout) {
@@ -167,18 +169,18 @@ class Checkout {
           this._paymentUrlKey = checkout.web_url.split('=')[1];
           // push the checkout token to the stack
           this._checkoutTokens.push(clone_url.split('/')[5]);
-          return { code: 200, res: clone_url.split('/')[5] };
+          return { res: clone_url.split('/')[5] };
         }
         // might not ever get called, but just a failsafe
         this._logger.debug('Failed: Creating checkout session %s', res);
-        return { code: 400, res: null };
+        return { status: 400, error: true };
       } catch (err) {
         this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
-        return { code: err.statusCode, error: err };
+        return { error: true, status: 400 };
       }
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
-      return { code: err.statusCode, error: err };
+      return { error: 400 };
     }
   }
 
@@ -190,44 +192,47 @@ class Checkout {
     const { url } = site;
     this._logger.verbose('CHECKOUT: Starting login request to %s', url);
 
-    this._request({
-      uri: `${url}/account/login`,
-      method: 'post',
-      simple: true,
-      followAllRedirects: true,
-      proxy: formatProxy(this._proxy),
-      resolveWithFullResponse: true,
-      headers: {
-        'User-Agent': userAgent,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Referer: `${url}`,
-      },
-      formData: {
-        form_data: 'customer_login',
-        utf8: '✓',
-        'customer[email]': username,
-        'customer[password]': password,
-      },
-    })
-      .then(res => {
-        this._logger.verbose('ACCOUNT: Login response cookies: %j', res.headers['set-cookie']);
-        if (res.request.href.indexOf('login') > -1) {
-          return false;
-        }
-        this._logger.info('Logged in! Proceeding to add to cart');
-        return true;
-      })
-      .catch(err => {
-        this._logger.debug('ACCOUNT: Error logging in: %s', err);
-        return {
-          errors: err,
-        };
+    try {
+      const res = await this._request({
+        uri: `${url}/account/login`,
+        method: 'post',
+        simple: true,
+        followAllRedirects: true,
+        proxy: formatProxy(this._proxy),
+        resolveWithFullResponse: true,
+        headers: {
+          'User-Agent': userAgent,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Referer: `${url}`,
+        },
+        formData: {
+          form_data: 'customer_login',
+          utf8: '✓',
+          'customer[email]': username,
+          'customer[password]': password,
+        },
       });
+
+      const { statusCode, request, headers } = res;
+      if (checkStatusCode(statusCode)) {
+        return false;
+      }
+      this._logger.verbose('ACCOUNT: Login response cookies: %j', headers['set-cookie']);
+      const { href } = request;
+      if (href.indexOf('login') > -1) {
+        return false;
+      }
+      this._logger.info('Logged in! Proceeding to add to cart');
+      return true;
+    } catch (err) {
+      this._logger.verbose('CHECKOUT: Request error with login: %j', err);
+      return false;
+    }
   }
 
   /**
    * Handles waiting in a checkout queue for Shopify
-   * @returns {}
+   * @returns {} || `Checkout Session`
    */
   async pollCheckoutQueue() {
     this._logger.verbose('CHECKOUT: Waiting in queue');
@@ -245,11 +250,8 @@ class Checkout {
         headers: this._headers(),
       });
       const { statusCode } = res;
-      if (this.isBanned(statusCode)) {
-        return {
-          error: true,
-          status: statusCode,
-        };
+      if (checkStatusCode(statusCode)) {
+        return { error: true, status: statusCode };
       }
       let { body } = res;
 
@@ -330,6 +332,51 @@ class Checkout {
     }
   }
 
+  async handleAddToCart() {
+    const { site, product } = this._task;
+    const { variants } = product;
+    const { url } = site;
+
+    try {
+      const res = await this._request({
+        uri: `${url}/cart/add.js`,
+        resolveWithFullResponse: true,
+        followAllRedirects: true,
+        simple: false,
+        json: true,
+        proxy: formatProxy(this._proxy),
+        method: 'post',
+        headers: {
+          Origin: url,
+          'User-Agent': userAgent,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.8',
+        },
+        formData: addToCart(variants[0], site),
+      });
+
+      const { statusCode, body } = res;
+      if (checkStatusCode(statusCode)) {
+        return { error: true, status: statusCode };
+      }
+      const { status, description, line_price } = body;
+
+      if (status === 404) {
+        this._logger.debug('CHECKOUT: Error in add to cart: %s', description);
+        return { error: true, status: 404 };
+      }
+
+      this._prices.item = line_price;
+      console.log(this._prices.item);
+      this._task.product.url = `${url}/${res.body.url.split('?')[0]}`;
+      return { error: false };
+    } catch (err) {
+      this._logger.debug('CART: Request error in add to cart: %s', err);
+      return { error: true };
+    }
+  }
+
   /**
    * @example
    * PATCH https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6.json
@@ -355,7 +402,7 @@ class Checkout {
         });
 
         const { statusCode } = res;
-        if (this.isBanned(statusCode)) {
+        if (checkStatusCode(statusCode)) {
           return { status: statusCode };
         }
 
@@ -374,7 +421,8 @@ class Checkout {
         if (res.body.checkout && res.body.checkout.line_items.length > 0) {
           this._logger.verbose('Successfully added to cart');
           const { total_price } = res.body.checkout;
-          this._prices.item = parseFloat(total_price).toFixed(2);
+          this._prices.item = total_price;
+          console.log(this._prices.item);
           return { errors: null };
         }
 
@@ -388,57 +436,132 @@ class Checkout {
     return { errors: CheckoutErrorCodes.InvalidCheckoutSession };
   }
 
+  async handleProceedToCheckout() {
+    this._logger.verbose('CHECKOUT: Proceeding to checkout');
+    const { site } = this._task;
+    const { url } = site;
+
+    try {
+      const res = await this._request({
+        uri: `${url}/cart`,
+        proxy: formatProxy(this._proxy),
+        followAllRedirects: false,
+        resolveWithFullResponse: true,
+        rejectUnauthorized: false,
+        json: false,
+        simple: false,
+        method: 'post',
+        headers: this._headers(),
+        formData: {
+          'updates[]': 1,
+          checkout: 'Proceed to checkout',
+        },
+      });
+
+      const { statusCode } = res;
+      if (checkStatusCode(statusCode)) {
+        return { status: statusCode };
+      }
+
+      const { href } = res.request;
+      if (href.indexOf('checkouts') > -1) {
+        // eslint-disable-next-line prefer-destructuring
+        this._storeId = href.split('/')[3];
+        // eslint-disable-next-line prefer-destructuring
+        this._checkoutTokens.push(href.split('/')[5]);
+        return { error: null };
+      }
+      return { error: true };
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Request error proceeding to checkout');
+      return { error: true };
+    }
+  }
+
   /**
    * @example
    * GET https://kith.com/wallets/checkouts/43b62a79f39872f9a0010fc9cb8967c6/shipping_rates.json
    */
   async handleGetShippingRates() {
     this._logger.verbose('CHECKOUT: Fetching shipping rates');
-    const { site } = this._task;
+    const { site, profile } = this._task;
     const { url } = site;
+    const { shipping } = profile;
+    const { country, state, zipCode } = shipping;
 
+    let res;
     try {
-      const res = await this._request({
-        uri: `${url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
-        proxy: formatProxy(this._proxy),
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        rejectUnauthorized: false,
-        json: true,
-        simple: false,
-        method: 'get',
-        headers: this._headers(),
-      });
+      if (isFrontendMode(site)) {
+        res = await this._request({
+          uri: `${this._task.site.url}/cart/shipping_rates.json`,
+          proxy: formatProxy(this._proxy),
+          followAllRedirects: true,
+          simple: false,
+          json: true,
+          resolveWithFullResponse: true,
+          method: 'get',
+          headers: {
+            Origin: url,
+            'User-Agent': userAgent,
+          },
+          qs: {
+            'shipping_address[zip]': zipCode,
+            'shipping_address[country]': country.value,
+            'shipping_address[province]': state.value,
+          },
+        });
+      } else {
+        res = await this._request({
+          uri: `${url}/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
+          proxy: formatProxy(this._proxy),
+          followAllRedirects: true,
+          resolveWithFullResponse: true,
+          rejectUnauthorized: false,
+          json: true,
+          simple: false,
+          method: 'get',
+          headers: this._headers(),
+        });
+      }
 
       const { statusCode, body } = res;
+      const { shipping_rates } = body;
 
-      if (this.isBanned(statusCode)) {
+      // extra check for carting
+      if (statusCode === 422) {
+        return { status: statusCode };
+      }
+
+      if (checkStatusCode(statusCode)) {
         return { status: statusCode };
       }
 
       if (body && body.errors) {
-        const { errors } = res;
-        this._logger.verbose('CHECKOUT: Error getting shipping rates: %j', errors);
+        this._logger.verbose('CHECKOUT: Error getting shipping rates: %j', body.errors);
         return { errors: CheckoutErrorCodes.ShippingRates };
       }
 
-      if (body && body.shipping_rates) {
-        const { shipping_rates } = body;
+      if (body && shipping_rates) {
         shipping_rates.forEach(rate => {
           this._shippingMethods.push(rate);
         });
 
         const cheapest = _.min(this._shippingMethods, rate => rate.price);
-        const { id, title } = cheapest;
-        this._chosenShippingMethod = { id, name: title };
+        if (isFrontendMode(site)) {
+          const { name } = cheapest;
+          const id = `${cheapest.source}-${cheapest.name.replace('%20', ' ')}-${cheapest.price}`;
+          this._chosenShippingMethod = { id, name };
+        } else {
+          const { id, title } = cheapest;
+          this._chosenShippingMethod = { id, name: title };
+        }
         this._logger.verbose(
           'CHECKOUT: Using shipping method: %s',
           this._chosenShippingMethod.name,
         );
 
         // set shipping price for cart
-        let { shipping } = this._prices;
-        shipping = parseFloat(cheapest.price).toFixed(2);
+        this._prices.shipping = cheapest.price;
         this._logger.silly('CHECKOUT: Shipping total: %s', shipping);
         return { errors: null, rate: this._chosenShippingMethod.name };
       }
@@ -459,11 +582,54 @@ class Checkout {
     if (token) {
       this._logger.verbose('CHECKOUT: Received token from captcha harvesting: %s', token);
       this._captchaToken = token;
+      return { errors: null };
     }
-    return {
-      message: 'Submitting payment',
-      nextState: CheckoutStates.PostPayment,
-    };
+    return { errors: true };
+  }
+
+  async handleSubmitCustomerInformation() {
+    this._logger.verbose('CHECKOUT: Submitting customer information');
+    const { site, profile } = this._task;
+    const { payment, shipping } = profile;
+    const { url } = site;
+
+    try {
+      if (this._checkoutTokens.length && !this._checkoutToken) {
+        this._checkoutToken = this._checkoutTokens.pop();
+      }
+      const res = await this._request({
+        uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}`,
+        method: 'post',
+        proxy: formatProxy(this._proxy),
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
+        simple: false,
+        headers: {
+          Origin: `${url}`,
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'User-Agent': userAgent,
+        },
+        formData: submitCustomerInformation(payment, shipping, this._captchaToken),
+      });
+
+      const { statusCode, body } = res;
+      if (checkStatusCode(statusCode)) {
+        return { status: statusCode };
+      }
+
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      let step = $('.step').attr('data-step');
+      if (!step) {
+        step = $('#step').attr('data-step');
+      }
+      if (step === ShopifyPaymentSteps.ContactInformation) {
+        return { error: CheckoutErrorCodes.InvalidCaptchaToken };
+      }
+      return { error: null };
+    } catch (err) {
+      this._logger.verbose('CHECKOUT: Request error submitting customer information %j', err);
+      return { error: true };
+    }
   }
 
   /**
@@ -492,24 +658,40 @@ class Checkout {
     };
 
     // log total price of cart, maybe show this in analytics when we get that setup in the future
-    total = (parseFloat(item) + parseFloat(shipping)).toFixed(2);
+    total = parseFloat(item) + parseFloat(shipping);
     this._logger.silly('CHECKOUT: Cart total: %s', total);
 
+    let res;
     try {
-      const res = await this._request({
-        uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
-          this._paymentUrlKey
-        }&previous_step=shipping_method&step=payment_method`,
-        method: 'get',
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        rejectUnauthorized: false,
-        proxy: formatProxy(this._proxy),
-        headers,
-      });
+      if (isFrontendMode(site)) {
+        res = await this._request({
+          uri: `${url}/${this._storeId}/checkouts/${
+            this._checkoutToken
+          }?previous_step=shipping_method&step=payment_method`,
+          method: 'get',
+          followAllRedirects: true,
+          resolveWithFullResponse: true,
+          rejectUnauthorized: false,
+          proxy: formatProxy(this._proxy),
+          headers,
+        });
+      } else {
+        res = await this._request({
+          uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
+            this._paymentUrlKey
+          }&previous_step=shipping_method&step=payment_method`,
+          method: 'get',
+          followAllRedirects: true,
+          resolveWithFullResponse: true,
+          rejectUnauthorized: false,
+          proxy: formatProxy(this._proxy),
+          headers,
+        });
+      }
+      fs.writeFileSync(path.join(__dirname, 'test.html'), res.body);
 
       const { statusCode, body } = res;
-      if (this.isBanned(statusCode)) {
+      if (checkStatusCode(statusCode)) {
         return { status: statusCode };
       }
 
@@ -520,10 +702,14 @@ class Checkout {
       }
 
       this._logger.silly('CHECKOUT: 1st request step: %s', step);
+      if (step === ShopifyPaymentSteps.ContactInformation) {
+        return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
+      }
       if (step === ShopifyPaymentSteps.PaymentMethod) {
         this._gateway = $(".radio-wrapper.content-box__row[data-gateway-group='direct']").attr(
           'data-select-gateway',
         );
+        this._logger.silly('CHECKOUT: Found payment gateway: %s', this._gateway);
         return { errors: null };
       }
       return { errors: CheckoutErrorCodes.InvalidGateway };
@@ -549,8 +735,29 @@ class Checkout {
     };
 
     const { id } = this._chosenShippingMethod;
+    let res;
     try {
-      const res = await this._request({
+      if (isFrontendMode(site)) {
+        res = await this._request({
+          uri: `${url}/${this._storeId}/checkouts/${
+            this._checkoutToken
+          }?previous_step=payment_method`,
+          method: 'post',
+          followAllRedirects: true,
+          resolveWithFullResponse: true,
+          rejectUnauthorized: false,
+          proxy: formatProxy(this._proxy),
+          headers,
+          formData: paymentMethodForm(
+            this._paymentTokens.pop(),
+            this._gateway,
+            id,
+            this._captchaToken,
+            this._prices.total,
+          ),
+        });
+      }
+      res = await this._request({
         uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._paymentUrlKey}`,
         method: 'post',
         followAllRedirects: true,
@@ -566,8 +773,10 @@ class Checkout {
         ),
       });
 
+      fs.writeFileSync(path.join(__dirname, 'yep.html'), res.body);
+
       const { statusCode, body } = res;
-      if (this.isBanned(statusCode)) {
+      if (checkStatusCode(statusCode)) {
         return { status: statusCode };
       }
 
@@ -613,7 +822,7 @@ class Checkout {
     };
 
     // log total price of cart, maybe show this in analytics when we get that setup in the future
-    total = (parseFloat(item) + parseFloat(shipping)).toFixed(2);
+    total = parseFloat(item) + parseFloat(shipping);
     this._logger.silly('CHECKOUT: Cart total: %s', total);
 
     try {
@@ -631,7 +840,7 @@ class Checkout {
       });
 
       const { statusCode } = res;
-      if (this.isBanned(statusCode)) {
+      if (checkStatusCode(statusCode)) {
         return { status: statusCode };
       }
       return { errors: null };
@@ -672,7 +881,7 @@ class Checkout {
         headers,
       });
       const { statusCode, body } = res;
-      if (this.isBanned(statusCode)) {
+      if (checkStatusCode(statusCode)) {
         return { status: statusCode };
       }
       this._logger.verbose('CHECKOUT: Payments object: %j', body);

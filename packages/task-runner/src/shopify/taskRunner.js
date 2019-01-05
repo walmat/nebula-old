@@ -10,7 +10,7 @@ const { States, Events } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { CheckoutErrorCodes } = require('./classes/utils/constants').ErrorCodes;
 const { createLogger } = require('../common/logger');
-const { waitForDelay, reflect, now } = require('./classes/utils');
+const { waitForDelay, reflect, now, isFrontendMode } = require('./classes/utils');
 
 class TaskRunner {
   get state() {
@@ -262,7 +262,7 @@ class TaskRunner {
     return new Promise(async (resolve, reject) => {
       const checkout = await this._checkout.handleCreateCheckout();
       if (!checkout.res || checkout.error) {
-        reject(checkout.code);
+        reject(checkout.status);
       }
       resolve(checkout.res);
     });
@@ -308,10 +308,18 @@ class TaskRunner {
     }
 
     const { username, password } = this._context.task;
-    const promises =
-      username && password
-        ? [this.generatePaymentToken(), this.createCheckout(), this.login()]
-        : [this.generatePaymentToken(), this.createCheckout()];
+    let promises;
+    if (isFrontendMode(this._context.task.site)) {
+      promises =
+        username && password
+          ? [this.generatePaymentToken(), this.login()]
+          : [this.generatePaymentToken()];
+    } else {
+      promises =
+        username && password
+          ? [this.generatePaymentToken(), this.createCheckout(), this.login()]
+          : [this.generatePaymentToken(), this.createCheckout()];
+    }
     this._logger.silly('Running Task Setup Promises');
     const results = await Promise.all(promises.map(reflect));
     this._logger.silly('Async promises results: %j', results);
@@ -360,8 +368,14 @@ class TaskRunner {
     const res = await this._checkout.pollCheckoutQueue();
 
     if (res.error) {
-      this._logger.verbose('Error in polling queue %d', res.error);
+      this._logger.verbose('Error while polling queue %d', res.error);
       switch (res.status) {
+        // we're still in queue
+        case 303:
+          this._emitTaskEvent({
+            message: 'Waiting in queue',
+          });
+          return States.Queue;
         case 403:
         case 429:
         case 430:
@@ -437,6 +451,86 @@ class TaskRunner {
     return this._prevState;
   }
 
+  async _handleAddToCart() {
+    if (this._context.aborted) {
+      this._logger.info('Abort detected, stopping...');
+      return States.Aborted;
+    }
+    const { monitorDelay } = this._context.task;
+
+    const res = await this._checkout.handleAddToCart();
+
+    if (res.status) {
+      switch (res.status) {
+        case 303:
+          this._emitTaskEvent({
+            message: 'Waiting in queue',
+          });
+          await waitForDelay(monitorDelay);
+          return States.Queue;
+        case 404:
+          this._emitTaskEvent({
+            message: 'Waiting for product',
+          });
+          await waitForDelay(monitorDelay);
+          return States.AddToCart;
+        case 403:
+        case 429:
+        case 430:
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: 'Unknown error, stopping...',
+          });
+          return States.Stopped;
+      }
+    }
+    this._emitTaskEvent({
+      message: 'Proceeding to checkout',
+    });
+    return States.ProceedToCheckout;
+  }
+
+  async _handleProceedToCheckout() {
+    if (this._context.aborted) {
+      this._logger.info('Abort detected, stopping...');
+      return States.Aborted;
+    }
+    const { monitorDelay } = this._context.task;
+
+    const res = await this._checkout.handleProceedToCheckout();
+
+    if (res.status) {
+      switch (res.status) {
+        case 303:
+          this._emitTaskEvent({
+            message: 'Waiting in queue',
+          });
+          await waitForDelay(monitorDelay);
+          return States.Queue;
+        case 403:
+        case 429:
+        case 430:
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: 'Unknown error, stopping...',
+          });
+          return States.Stopped;
+      }
+    }
+    this._emitTaskEvent({
+      message: 'Fetching shipping rates',
+    });
+    return States.ShippingRates;
+  }
+
   async _handlePatchCart() {
     if (this._context.aborted) {
       this._logger.info('Abort detected, stopping...');
@@ -510,6 +604,11 @@ class TaskRunner {
 
     if (res.status) {
       switch (res.status) {
+        case 422:
+          this._emitTaskEvent({
+            message: 'Country not supported',
+          });
+          return States.Stopped;
         case 403:
         case 429:
         case 430:
@@ -544,6 +643,66 @@ class TaskRunner {
     this._emitTaskEvent({
       message: `Using shipping rate: ${res.rate}`,
     });
+    return isFrontendMode(this._context.task.site)
+      ? States.SubmitCustomerInformation
+      : States.PaymentGateway;
+  }
+
+  async _handleCaptchRequest() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+    const res = await this._checkout._handleRequestCaptcha();
+    if (res.errors) {
+      this._emitTaskEvent({
+        message: 'Waiting for captcha',
+      });
+      return States.Captcha;
+    }
+    this._emitTaskEvent({
+      message: 'Posting payment',
+    });
+    return isFrontendMode(this._context.task.site)
+      ? States.SubmitCustomerInformation
+      : this._prevState;
+  }
+
+  async _handleSubmitCustomerInformation() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { monitorDelay } = this._context.task;
+    const res = await this._checkout.handleSubmitCustomerInformation();
+
+    if (res.status) {
+      switch (res.status) {
+        case 303:
+          this._emitTaskEvent({
+            message: 'Waiting in queue',
+          });
+          await waitForDelay(monitorDelay);
+          return States.Queue;
+        case 403:
+        case 429:
+        case 430:
+          this.shouldBanProxy = true;
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: `Error ${res.status} submitting customer information, stopping...`,
+          });
+          return States.Stopped;
+      }
+    }
+    this._emitTaskEvent({
+      message: 'Posting payment',
+    });
     return States.PaymentGateway;
   }
 
@@ -576,6 +735,12 @@ class TaskRunner {
     }
 
     if (res.errors) {
+      if (res.errors === CheckoutErrorCodes.InvalidCaptchaToken) {
+        this._emitTaskEvent({
+          message: 'Waiting for captcha',
+        });
+        return States.Captcha;
+      }
       if (res.errors === CheckoutErrorCodes.InvalidGateway) {
         this._emitTaskEvent({
           message: 'Polling for payment gateway',
@@ -755,13 +920,17 @@ class TaskRunner {
       [States.TaskSetup]: this._handleTaskSetup,
       [States.Queue]: this._handleCheckoutQueue,
       [States.Monitor]: this._handleMonitor,
+      [States.AddToCart]: this._handleAddToCart,
+      [States.ProceedToCheckout]: this._handleProceedToCheckout,
       [States.PatchCart]: this._handlePatchCart,
       [States.ShippingRates]: this._handleShippingRates,
+      [States.SubmitCustomerInformation]: this._handleSubmitCustomerInformation,
       [States.PaymentGateway]: this._handlePaymentGateway,
       [States.Review]: this._handleReview,
       [States.PostPayment]: this._handlePostPayment,
       [States.Processing]: this._handlePaymentProcessing,
       [States.SwapProxies]: this._handleSwapProxies,
+      [States.Captcha]: this._handleCaptchRequest,
       [States.Checkout]: this._handleCheckout,
       [States.Aborted]: this._handleShutdown,
     };

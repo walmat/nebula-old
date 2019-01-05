@@ -58,28 +58,75 @@ const createCheckoutForm = (profile, shipping, billing, payment) => {
   return dataString;
 };
 
-const patchToCart = (variant, site) => ({
+const addToCart = (variant, site) => {
+  switch (site.name) {
+    case 'DSM US': {
+      return {
+        id: variant,
+        add: '',
+        _HASH: '256779527127',
+      };
+    }
+    case 'DSM EU': {
+      return {
+        id: variant,
+        add: '',
+        _hash: '',
+      };
+    }
+    case 'DSM SG': {
+      return {
+        id: variant,
+        add: '',
+      };
+    }
+    default: {
+      return {
+        id: variant,
+        add: '',
+      };
+    }
+  }
+};
+
+const submitCustomerInformation = (payment, shipping, captchaToken) => ({
+  utf8: '✓',
+  _method: 'patch',
+  authenticity_token: '',
+  previous_step: '',
+  'checkout[email]': payment.email,
+  'checkout[buyer_accepts_marketing]': 0,
+  'checkout[shipping_address][first_name]': shipping.firstName,
+  'checkout[shipping_address][last_name]': shipping.lastName,
+  'checkout[shipping_address][address1]': shipping.address,
+  'checkout[shipping_address][address2]': shipping.apt,
+  'checkout[shipping_address][city]': shipping.city,
+  'checkout[shipping_address][country]': shipping.country.label,
+  'checkout[shipping_address][province]': shipping.state.label,
+  'checkout[shipping_address][zip]': shipping.zipCode,
+  'checkout[shipping_address][phone]': phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN'),
+  step: 'shipping_method',
+  'g-captcha-response': captchaToken,
+  'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+  'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
+  'checkout[client_details][javascript_enabled]': '1',
+  'checkout[remember_me]': '0',
+  button: '',
+});
+
+const patchToCart = variant => ({
   checkout: {
     line_items: [
       {
         variant_id: variant,
         quantity: '1',
-        properties:
-          site.name === 'DSM US'
-            ? {
-                _HASH: '256779527127',
-              }
-            : site.name === 'DSM EU'
-            ? {
-                _hash: '', // TODO – find this
-              }
-            : {},
+        properties: {},
       },
     ],
   },
 });
 
-const paymentMethodForm = (paymentToken, gateway, shippingMethod, captchaToken) => ({
+const paymentMethodForm = (paymentToken, gateway, shippingMethod, captchaToken, price) => ({
   utf8: '✓',
   _method: 'patch',
   authenticity_token: '',
@@ -87,6 +134,8 @@ const paymentMethodForm = (paymentToken, gateway, shippingMethod, captchaToken) 
   step: '',
   s: paymentToken,
   'checkout[payment_gateway]': gateway,
+  'checkout[credit_card][vault]': 'false',
+  'checkout[different_billing_address]': 'false',
   'checkout[remember_me]': '0',
   'checkout[total_price]': '',
   complete: '1',
@@ -100,7 +149,7 @@ const paymentMethodForm = (paymentToken, gateway, shippingMethod, captchaToken) 
 });
 
 /**
- * NOTE – Price is not needed as of now,
+ * NOTE – Price is not needed as of now for API mode,
  * but it's tracked in case it's ever needed in the future
  */
 const paymentReviewForm = (price, captchaToken) => ({
@@ -119,7 +168,9 @@ const paymentReviewForm = (price, captchaToken) => ({
 module.exports = {
   buildPaymentForm,
   createCheckoutForm,
+  addToCart,
   patchToCart,
+  submitCustomerInformation,
   paymentMethodForm,
   paymentReviewForm,
 };

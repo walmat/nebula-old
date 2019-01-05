@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 const _ = require('underscore');
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
 const {
@@ -7,6 +8,7 @@ const {
   capitalizeFirstLetter,
   waitForDelay,
   getRandomIntInclusive,
+  isFrontendMode,
 } = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
@@ -162,7 +164,11 @@ class Monitor {
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
-      nextState: this._context.setup ? States.PatchCart : States.TaskSetup,
+      nextState: !this._context.setup
+        ? States.TaskSetup
+        : isFrontendMode(this._context.task.site)
+        ? States.AddToCart
+        : States.PatchCart,
     };
   }
 
@@ -215,7 +221,11 @@ class Monitor {
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
         message: `Found product: ${this._context.task.product.name}`,
-        nextState: this._context.setup ? States.PatchCart : States.TaskSetup,
+        nextState: !this._context.setup
+          ? States.TaskSetup
+          : isFrontendMode(this._context.task.site)
+          ? States.AddToCart
+          : States.PatchCart,
       };
     } catch (error) {
       // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
@@ -264,7 +274,11 @@ class Monitor {
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
-      nextState: States.PatchCart,
+      nextState: !this._context.setup
+        ? States.TaskSetup
+        : isFrontendMode(this._context.task.site)
+        ? States.AddToCart
+        : States.PatchCart,
     };
   }
 
@@ -287,7 +301,14 @@ class Monitor {
         this._logger.verbose('MONITOR: Variant Parsing Detected');
         this._context.task.product.variants = [this._context.task.product.variant];
         this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
-        result = { message: 'Adding to cart', nextState: States.PatchCart };
+        result = {
+          message: 'Adding to cart',
+          nextState: !this._context.setup
+            ? States.TaskSetup
+            : isFrontendMode(this._context.task.site)
+            ? States.AddToCart
+            : States.PatchCart,
+        };
         break;
       }
       case ParseType.Url: {
