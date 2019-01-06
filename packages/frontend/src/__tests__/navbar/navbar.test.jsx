@@ -26,7 +26,7 @@ describe('<Navbar />', () => {
         navbar={renderProps.navbar}
         onRouteTasks={renderProps.onRouteTasks}
         onRouteProfiles={renderProps.onRouteProfiles}
-        onRouteServer={renderProps.onRouteServer}
+        // onRouteServer={renderProps.onRouteServer}
         onRouteSettings={renderProps.onRouteSettings}
         onKeyPress={renderProps.onKeyPress}
       />,
@@ -42,7 +42,7 @@ describe('<Navbar />', () => {
       navbar: { ...initialNavbarState },
       onRouteTasks: jest.fn(),
       onRouteProfiles: jest.fn(),
-      onRouteServer: jest.fn(),
+      // onRouteServer: jest.fn(),
       onRouteSettings: jest.fn(),
       onKeyPress: jest.fn(),
     };
@@ -77,7 +77,7 @@ describe('<Navbar />', () => {
   it('should render with required props', () => {
     const onRouteTasks = jest.fn();
     const onRouteProfiles = jest.fn();
-    const onRouteServer = jest.fn();
+    // const onRouteServer = jest.fn();
     const onRouteSettings = jest.fn();
     const wrapper = shallow(
       <NavbarPrimitive
@@ -85,7 +85,7 @@ describe('<Navbar />', () => {
         navbar={{ ...initialNavbarState }}
         onRouteTasks={onRouteTasks}
         onRouteProfiles={onRouteProfiles}
-        onRouteServer={onRouteServer}
+        // onRouteServer={onRouteServer}
         onRouteSettings={onRouteSettings}
       />,
     );
@@ -118,12 +118,12 @@ describe('<Navbar />', () => {
       expect(div.prop('title')).toBe('PROFILES');
     });
 
-    test('when server route is used', () => {
-      const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
-      const div = wrapper.find('.active');
-      expect(div).toHaveLength(1);
-      expect(div.prop('title')).toBe('SERVERS');
-    });
+    // test('when server route is used', () => {
+    //   const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
+    //   const div = wrapper.find('.active');
+    //   expect(div).toHaveLength(1);
+    //   expect(div.prop('title')).toBe('SERVERS');
+    // });
 
     test('when settings route is used', () => {
       const wrapper = renderWrapperWithLocation(ROUTES.SETTINGS);
@@ -154,15 +154,15 @@ describe('<Navbar />', () => {
       expect(props.onRouteProfiles).toHaveBeenCalledWith(props.history);
     });
 
-    test('server', () => {
-      const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
-      const div = wrapper.find('.active');
-      expect(div).toHaveLength(1);
-      const onClickHandler = div.prop('onClick');
-      expect(onClickHandler).toBeDefined();
-      div.simulate('click');
-      expect(props.onRouteServer).toHaveBeenCalledWith(props.history);
-    });
+    // test('server', () => {
+    //   const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
+    //   const div = wrapper.find('.active');
+    //   expect(div).toHaveLength(1);
+    //   const onClickHandler = div.prop('onClick');
+    //   expect(onClickHandler).toBeDefined();
+    //   div.simulate('click');
+    //   expect(props.onRouteServer).toHaveBeenCalledWith(props.history);
+    // });
 
     test('settings', () => {
       const wrapper = renderWrapperWithLocation(ROUTES.SETTINGS);
@@ -196,15 +196,15 @@ describe('<Navbar />', () => {
       expect(props.onKeyPress).toHaveBeenCalled();
     });
 
-    test('for server', () => {
-      const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
-      const div = wrapper.find('.active');
-      expect(div).toHaveLength(1);
-      const onKeyPressHandler = div.prop('onKeyPress');
-      expect(onKeyPressHandler).toBeDefined();
-      div.simulate('keyPress');
-      expect(props.onKeyPress).toHaveBeenCalled();
-    });
+    // test('for server', () => {
+    //   const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
+    //   const div = wrapper.find('.active');
+    //   expect(div).toHaveLength(1);
+    //   const onKeyPressHandler = div.prop('onKeyPress');
+    //   expect(onKeyPressHandler).toBeDefined();
+    //   div.simulate('keyPress');
+    //   expect(props.onKeyPress).toHaveBeenCalled();
+    // });
 
     test('for settings', () => {
       const wrapper = renderWrapperWithLocation(ROUTES.SETTINGS);

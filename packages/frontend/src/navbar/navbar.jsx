@@ -4,7 +4,8 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import tasks from '../_assets/tasks.svg';
 import profiles from '../_assets/profiles.svg';
-import server from '../_assets/server.svg';
+// import server from '../_assets/server.svg';
+import serverDisabled from '../_assets/server-disabled.svg';
 import settings from '../_assets/settings.svg';
 import logoAnimation from './nebula.json';
 import Bodymovin from './bodymovin';
@@ -39,7 +40,7 @@ export class NavbarPrimitive extends PureComponent {
       onKeyPress,
       onRouteTasks,
       onRouteProfiles,
-      onRouteServer,
+      // onRouteServer,
       onRouteSettings,
     } = this.props;
     const { name, version } = NavbarPrimitive._getAppData();
@@ -85,14 +86,16 @@ export class NavbarPrimitive extends PureComponent {
             role="button"
             tabIndex={0}
             title="SERVERS"
+            // title="DISABLED"
             onKeyPress={onKeyPress}
-            className={navbar.location === ROUTES.SERVER ? 'active' : null}
-            onClick={() => {
-              onRouteServer(history);
-            }}
+            className="disabled"
+            // className={navbar.location === ROUTES.SERVER ? 'active' : null}
+            // onClick={() => {
+            //   onRouteServer(history);
+            // }}
           >
             <img
-              src={server}
+              src={serverDisabled}
               className="main-icons"
               id="icon-server"
               alt="server"
@@ -134,7 +137,7 @@ NavbarPrimitive.propTypes = {
   navbar: PropTypes.objectOf(PropTypes.any).isRequired,
   onRouteTasks: PropTypes.func.isRequired,
   onRouteProfiles: PropTypes.func.isRequired,
-  onRouteServer: PropTypes.func.isRequired,
+  // onRouteServer: PropTypes.func.isRequired,
   onRouteSettings: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
