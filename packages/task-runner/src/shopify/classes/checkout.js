@@ -368,7 +368,6 @@ class Checkout {
       }
 
       this._prices.item = line_price;
-      console.log(this._prices.item);
       this._task.product.url = `${url}/${res.body.url.split('?')[0]}`;
       return { error: false };
     } catch (err) {
@@ -422,7 +421,6 @@ class Checkout {
           this._logger.verbose('Successfully added to cart');
           const { total_price } = res.body.checkout;
           this._prices.item = total_price;
-          console.log(this._prices.item);
           return { errors: null };
         }
 
@@ -506,7 +504,7 @@ class Checkout {
           },
           qs: {
             'shipping_address[zip]': zipCode,
-            'shipping_address[country]': country.value,
+            'shipping_address[country]': 'Singapore', // country.value,
             'shipping_address[province]': state.value,
           },
         });
@@ -618,6 +616,7 @@ class Checkout {
       }
 
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      fs.writeFileSync(path.join(__dirname, 'yep-1.html'), $.html());
       let step = $('.step').attr('data-step');
       if (!step) {
         step = $('#step').attr('data-step');
@@ -688,7 +687,7 @@ class Checkout {
           headers,
         });
       }
-      fs.writeFileSync(path.join(__dirname, 'test.html'), res.body);
+      fs.writeFileSync(path.join(__dirname, 'yep-2.html'), res.body);
 
       const { statusCode, body } = res;
       if (checkStatusCode(statusCode)) {
@@ -754,26 +753,34 @@ class Checkout {
             id,
             this._captchaToken,
             this._prices.total,
+            this._context.task.profile,
+            true,
+          ),
+        });
+      } else {
+        res = await this._request({
+          uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
+            this._paymentUrlKey
+          }`,
+          method: 'post',
+          followAllRedirects: true,
+          resolveWithFullResponse: true,
+          rejectUnauthorized: false,
+          proxy: formatProxy(this._proxy),
+          headers,
+          formData: paymentMethodForm(
+            this._paymentTokens.pop(),
+            this._gateway,
+            id,
+            this._captchaToken,
+            this._prices.total,
+            null,
+            false,
           ),
         });
       }
-      res = await this._request({
-        uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._paymentUrlKey}`,
-        method: 'post',
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        rejectUnauthorized: false,
-        proxy: formatProxy(this._proxy),
-        headers,
-        formData: paymentMethodForm(
-          this._paymentTokens.pop(),
-          this._gateway,
-          id,
-          this._captchaToken,
-        ),
-      });
 
-      fs.writeFileSync(path.join(__dirname, 'yep.html'), res.body);
+      fs.writeFileSync(path.join(__dirname, 'yep-3.html'), res.body);
 
       const { statusCode, body } = res;
       if (checkStatusCode(statusCode)) {
@@ -886,7 +893,7 @@ class Checkout {
       }
       this._logger.verbose('CHECKOUT: Payments object: %j', body);
       const { payments } = body;
-      if (body && payments[0]) {
+      if (body && payments) {
         const { payment_processing_error_message } = payments[0];
         this._logger.verbose('CHECKOUT: Payment error: %j', payment_processing_error_message);
         if (payment_processing_error_message) {

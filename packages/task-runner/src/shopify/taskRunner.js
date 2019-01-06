@@ -784,6 +784,9 @@ class TaskRunner {
             message: `Error ${res.status} during post payment, retrying...`,
           });
           await waitForDelay(errorDelay);
+          this._emitTaskEvent({
+            message: 'Posting payment',
+          });
           return States.PostPayment;
       }
     }
@@ -803,7 +806,7 @@ class TaskRunner {
       }
     }
     this._emitTaskEvent({
-      message: 'Payment Processing',
+      message: 'Payment processing',
     });
     return States.Processing;
   }
