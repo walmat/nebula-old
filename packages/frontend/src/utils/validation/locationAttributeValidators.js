@@ -1,7 +1,6 @@
 import regexes from '../validation';
 import { LOCATION_FIELDS } from '../../state/actions';
-import getAllCountries from '../../constants/getAllCountries';
-import getAllStates from '../../constants/getAllStates';
+import getAllCountries, { getProvinces, getCountry } from '../../constants/getAllCountries';
 
 function validateAddress(address) {
   // TODO: Create regex for addresses (or use google location api)
@@ -20,7 +19,7 @@ function validateCity(city) {
 
 function validateCountry(country) {
   const countries = getAllCountries();
-  return country && countries.some(c => c.value === country.value);
+  return country && countries.some(c => c.code === country.value);
 }
 
 function validateFirstName(firstName) {
@@ -37,9 +36,9 @@ function validatePhoneNumber(phoneNumber) {
   return phoneNumber && regexes.phoneNumber.test(phoneNumber);
 }
 
-function validateState(state) {
-  const states = getAllStates();
-  return state && states.some(s => s.value === state.value);
+function validateState(state, country) {
+  const states = getProvinces(country.value);
+  return state && states.some(s => s.code === state.value);
 }
 
 function validateZipCode(zipCode) {

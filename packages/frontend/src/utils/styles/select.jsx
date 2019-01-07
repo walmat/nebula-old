@@ -136,6 +136,6 @@ export const colourStyles = provided => ({
   }),
   menuList: styles => ({
     ...styles,
-    maxHeight: '175px',
+    maxHeight: '150px',
   }),
 });

@@ -4,6 +4,7 @@ import {
   PROFILE_FIELDS,
   profileActions,
   mapProfileFieldToKey,
+  LOCATION_FIELDS,
 } from '../../actions';
 import profileAttributeValidatorMap from '../../../utils/validation/profileAttributeValidators';
 
@@ -49,9 +50,16 @@ const profileFormValidationMiddleware = store => next => action => {
               // look at sub pairs where subPair[0] is the subField and
               // subPair[1] is the validator
               const [subField, validator] = subPair;
-              profileField.errors[subField] = !validator(
-                profile[mapProfileFieldToKey[sourceField]][subField],
-              );
+              if (subField === LOCATION_FIELDS.STATE) {
+                profileField.errors[subField] = !validator(
+                  profile[mapProfileFieldToKey[sourceField]][subField],
+                  profile[mapProfileFieldToKey[sourceField]][LOCATION_FIELDS.COUNTRY],
+                );
+              } else {
+                profileField.errors[subField] = !validator(
+                  profile[mapProfileFieldToKey[sourceField]][subField],
+                );
+              }
               errors[mapProfileFieldToKey[field]][subField] = profileField.errors[subField];
               combinedErrors = combinedErrors || profileField.errors[subField];
             });

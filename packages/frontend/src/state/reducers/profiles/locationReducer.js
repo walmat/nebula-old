@@ -1,4 +1,4 @@
-import { mapLocationFieldToKey } from '../../actions';
+import { mapLocationFieldToKey, LOCATION_FIELDS } from '../../actions';
 import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
 const locationReducer = (state = initialProfileStates.location, action) => {
@@ -8,6 +8,20 @@ const locationReducer = (state = initialProfileStates.location, action) => {
     return Object.assign({}, state);
   }
   switch (action.type) {
+    // when they switch countries, reset state as well
+    case LOCATION_FIELDS.COUNTRY:
+      change = {
+        [LOCATION_FIELDS.COUNTRY]: action.value,
+        [LOCATION_FIELDS.STATE]: null,
+        errors: action.errors || state.errors,
+      };
+      break;
+    case LOCATION_FIELDS.STATE:
+      change = {
+        [mapLocationFieldToKey[action.type]]: action.value.state,
+        errors: action.errors || state.errors,
+      };
+      break;
     default: {
       change = {
         [mapLocationFieldToKey[action.type]]:
