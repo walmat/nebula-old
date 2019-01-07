@@ -122,11 +122,15 @@ class Monitor {
         let s;
         do {
           s = generateRandom(getAllSizes[idx]);
-        } while (!variantsBySize[s.toLowerCase()] || !variantsBySize[s.toUpperCase()]); // TODO - infinite loop if variants array is improper size
-        return variantsBySize[s.toLowerCase()] || variantsBySize[s.toUpperCase()];
+        } while (!variantsBySize[s]); // TODO - infinite loop if variants array is improper size
+        return variantsBySize[s];
       }
       this._context.logger.verbose('MONITOR: variants for size: %j', variantsBySize);
-      return variantsBySize[size.toLowerCase()] || variantsBySize[size.toUpperCase()];
+      return (
+        variantsBySize[size] ||
+        variantsBySize[size.toLowerCase()] ||
+        variantsBySize[size.toUpperCase()]
+      );
     });
     this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
 
@@ -184,6 +188,7 @@ class Monitor {
         uri: url,
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
+        followAllRedirects: true,
         resolveWithFullResponse: true,
         simple: true,
         followRedirect: false,
