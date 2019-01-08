@@ -91,7 +91,7 @@ class TaskRunner {
   }
 
   _waitForErrorDelay() {
-    this._logger.debug('Waiting for error delay...');
+    this._logger.debug('Waiting for error delay... %d', this._context.task.errorDelay);
     return waitForDelay(this._context.task.errorDelay);
   }
 

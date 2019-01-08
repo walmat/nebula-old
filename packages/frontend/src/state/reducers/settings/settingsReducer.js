@@ -22,9 +22,26 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         };
         break;
       }
-      case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
+      case SETTINGS_FIELDS.EDIT_ERROR_DELAY: {
+        const intValue = parseInt(action.value, 10);
+        if (Number.isNaN(intValue)) {
+          break;
+        }
+
+        window.Bridge.changeErrorDelay(intValue);
+        change = {
+          [mapSettingsFieldToKey[action.field]]: intValue,
+          errors: Object.assign({}, state.errors, action.errors),
+        };
+        break;
+      }
       case SETTINGS_FIELDS.EDIT_MONITOR_DELAY: {
         const intValue = parseInt(action.value, 10);
+        if (Number.isNaN(intValue)) {
+          break;
+        }
+
+        window.Bridge.changeMonitorDelay(intValue);
         change = {
           [mapSettingsFieldToKey[action.field]]: intValue,
           errors: Object.assign({}, state.errors, action.errors),
