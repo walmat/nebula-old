@@ -57,6 +57,10 @@ class TaskManagerWrapper {
 
     context.ipc.on(IPCKeys.RequestRemoveProxies, this._onRemoveProxiesRequest.bind(this));
 
+    context.ipc.on(IPCKeys.RequestChangeMonitorDelay, this._onChangeMonitorDelayRequest.bind(this));
+
+    context.ipc.on(IPCKeys.RequestChangeErrorDelay, this._onChangeErrorDelayRequest.bind(this));
+
     context.ipc.on(IPCKeys.HarvestCaptcha, this._onHarvestToken.bind(this));
 
     // TEMPORARY
@@ -192,6 +196,14 @@ class TaskManagerWrapper {
 
   _onRemoveProxiesRequest(_, proxies) {
     this._taskManager.deregisterProxies(proxies);
+  }
+
+  _onChangeMonitorDelayRequest(_, delay) {
+    this._taskManager.changeMonitorDelay(delay);
+  }
+
+  _onChangeErrorDelayRequest(_, delay) {
+    this._taskManager.changeErrorDelay(delay);
   }
 }
 

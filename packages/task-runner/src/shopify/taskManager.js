@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-return-assign */
 const EventEmitter = require('events');
 const hash = require('object-hash');
 const shortid = require('shortid');
@@ -149,6 +151,16 @@ class TaskManager {
    */
   deregisterProxies(proxies) {
     proxies.forEach(p => this.deregisterProxy(p));
+  }
+
+  changeMonitorDelay(delay) {
+    console.log('changing monitor delay to: ', delay);
+    Object.keys(this._runners).find(k => (this._runners[k].monitorDelay = delay));
+  }
+
+  changeErrorDelay(delay) {
+    console.log('changing error delay to: ', delay);
+    Object.keys(this._runners).find(k => (this._runners[k].errorDelay = delay));
   }
 
   /**
