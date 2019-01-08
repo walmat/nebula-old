@@ -153,14 +153,20 @@ class TaskManager {
     proxies.forEach(p => this.deregisterProxy(p));
   }
 
+  /**
+   * TODO - doesn't send to child process correctly
+   */
   changeMonitorDelay(delay) {
     console.log('changing monitor delay to: ', delay);
-    Object.keys(this._runners).find(k => (this._runners[k].monitorDelay = delay));
+    this._events.emit(Events.SendMonitorDelay, delay);
   }
 
+  /**
+   * TODO - doesn't send to child process correctly
+   */
   changeErrorDelay(delay) {
     console.log('changing error delay to: ', delay);
-    Object.keys(this._runners).find(k => (this._runners[k].errorDelay = delay));
+    this._events.emit(Events.SendErrorDelay, delay);
   }
 
   /**

@@ -28,7 +28,9 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
           break;
         }
 
-        window.Bridge.changeErrorDelay(intValue);
+        if (window.Bridge) {
+          window.Bridge.changeErrorDelay(intValue);
+        }
         change = {
           [mapSettingsFieldToKey[action.field]]: intValue,
           errors: Object.assign({}, state.errors, action.errors),
@@ -41,7 +43,9 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
           break;
         }
 
-        window.Bridge.changeMonitorDelay(intValue);
+        if (window.Bridge) {
+          window.Bridge.changeMonitorDelay(intValue);
+        }
         change = {
           [mapSettingsFieldToKey[action.field]]: intValue,
           errors: Object.assign({}, state.errors, action.errors),
