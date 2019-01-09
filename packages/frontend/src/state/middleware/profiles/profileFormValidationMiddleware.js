@@ -51,10 +51,10 @@ const profileFormValidationMiddleware = store => next => action => {
               // subPair[1] is the validator
               const [subField, validator] = subPair;
               if (subField === LOCATION_FIELDS.STATE) {
-                profileField.errors[subField] = !validator(
-                  profile[mapProfileFieldToKey[sourceField]][subField],
-                  profile[mapProfileFieldToKey[sourceField]][LOCATION_FIELDS.COUNTRY],
-                );
+                profileField.errors[subField] = !validator({
+                  state: profile[mapProfileFieldToKey[sourceField]][subField],
+                  country: profile[mapProfileFieldToKey[sourceField]][LOCATION_FIELDS.COUNTRY],
+                });
               } else {
                 profileField.errors[subField] = !validator(
                   profile[mapProfileFieldToKey[sourceField]][subField],

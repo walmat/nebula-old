@@ -1,6 +1,6 @@
 import regexes from '../validation';
 import { LOCATION_FIELDS } from '../../state/actions';
-import getAllCountries, { getProvinces, getCountry } from '../../constants/getAllCountries';
+import getAllCountries, { getProvinces } from '../../constants/getAllCountries';
 
 function validateAddress(address) {
   // TODO: Create regex for addresses (or use google location api)
@@ -36,8 +36,12 @@ function validatePhoneNumber(phoneNumber) {
   return phoneNumber && regexes.phoneNumber.test(phoneNumber);
 }
 
-function validateState(state, country) {
+function validateState(obj) {
+  const { country, state } = obj;
   const states = getProvinces(country.value);
+  if (states.length === 0) {
+    return true; // there are no states for this country, so it is "valid"
+  }
   return state && states.some(s => s.code === state.value);
 }
 
