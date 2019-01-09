@@ -3,7 +3,6 @@ import {
   PROFILE_FIELDS,
   profileActions,
   mapProfileFieldToKey,
-  LOCATION_FIELDS,
 } from '../../actions';
 import profileAttributeValidatorMap from '../../../utils/validation/profileAttributeValidators';
 
@@ -52,15 +51,9 @@ const profileAttributeValidationMiddleware = store => next => action => {
   } else {
     newAction.errors = Object.assign({}, profile[mapProfileFieldToKey[newAction.field]].errors);
     // Call the correct validator to fill in the new error state
-    if (newAction.subField === LOCATION_FIELDS.STATE) {
-      newAction.errors[newAction.subField] = !profileAttributeValidatorMap[newAction.field][
-        newAction.subField
-      ](newAction.value.state, newAction.value.country);
-    } else {
-      newAction.errors[newAction.subField] = !profileAttributeValidatorMap[newAction.field][
-        newAction.subField
-      ](newAction.value);
-    }
+    newAction.errors[newAction.subField] = !profileAttributeValidatorMap[newAction.field][
+      newAction.subField
+    ](newAction.value);
   }
 
   // Continue on to next middleware/reducer with errors map filled in.
