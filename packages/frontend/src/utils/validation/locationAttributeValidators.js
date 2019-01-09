@@ -38,6 +38,9 @@ function validatePhoneNumber(phoneNumber) {
 
 function validateState(obj) {
   const { country, state } = obj;
+  if (!country) {
+    return false; // if no country selected, we shouldn't have state options yet– let's exit early
+  }
   const states = getProvinces(country.value);
   if (states.length === 0) {
     return true; // there are no states for this country, so it is "valid"
