@@ -31,13 +31,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
     case PROFILE_ACTIONS.ADD:
     case PROFILE_ACTIONS.UPDATE: {
       // If there's no profile, we should do nothing
-      if (!action.profile) {
+      if (!action.profile || action.errors) {
         break;
-      }
-      if (action.errors) {
-        return Object.assign({}, state, {
-          errors: Object.assign({}, state.errors, action.errors),
-        });
       }
       // find all tasks where the profile is used
       const tasks = nextState.filter(task => task.profile.id === action.profile.id);

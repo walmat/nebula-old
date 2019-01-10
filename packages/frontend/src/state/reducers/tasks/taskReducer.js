@@ -229,12 +229,14 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
       if (!action.response || !action.response.task) {
         return Object.assign({}, state);
       }
-      // If adding a new task, we should reset the current task to default values
-      return {
-        ...initialTaskStates.task,
-        profile: defaults.useProfile ? defaults.profile : initialTaskStates.task.profile,
-        sizes: defaults.useSizes ? defaults.sizes : initialTaskStates.task.sizes,
-      };
+      // If adding a valid new task, we shouldn't reset the current task to default values
+      return Object.assign({}, state);
+      // TEMPORARY FIX
+      // return {
+      //   ...initialTaskStates.task,
+      //   profile: defaults.useProfile ? defaults.profile : initialTaskStates.task.profile,
+      //   sizes: defaults.useSizes ? defaults.sizes : initialTaskStates.task.sizes,
+      // };
     }
     default:
       break;

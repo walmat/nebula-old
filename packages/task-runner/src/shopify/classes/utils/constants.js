@@ -45,7 +45,7 @@ const TaskRunnerStates = {
  * Parser Error Codes
  */
 const ParserErrorCodes = {
-  ProductNotFound: 'PRODUCT_MISSING',
+  ProductNotFound: 400,
 };
 
 const CheckoutErrorCodes = {
