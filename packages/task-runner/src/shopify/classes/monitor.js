@@ -6,9 +6,8 @@ const {
   rfrl,
   capitalizeFirstLetter,
   waitForDelay,
-  generateRandom,
+  getRandomIntInclusive,
 } = require('./utils');
-const { getAllSizes } = require('./utils/constants');
 const { States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
@@ -92,7 +91,8 @@ class Monitor {
       product.variants,
       variant =>
         // Use the variant option or the title segment
-        variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title),
+        variant[urlToVariantOption[site.url]].toUpperCase() ||
+        urlToTitleSegment[site.url](variant.title).toUpperCase(),
     );
 
     // Get the groups in the same order as the sizes
@@ -100,44 +100,27 @@ class Monitor {
       // if we're choosing a random size ..generate a random size for now for each respective category
       // TODO - implement a "stock checker" to choose the one with the most stock
       // (this will give our users a better chance of at least getting one)
-      let idx = -1;
-      switch (size) {
-        case 'Random':
-          idx = 0;
-          break;
-        case 'US Random':
-          idx = 1;
-          break;
-        case 'UK Random':
-          idx = 2;
-          break;
-        case 'EU Random':
-          idx = 3;
-          break;
-        default:
-          idx = -1;
-          break;
-      }
-      if (idx !== -1) {
-        let s;
-        do {
-          s = generateRandom(getAllSizes[idx]);
-        } while (!variantsBySize[s]); // TODO - infinite loop if variants array is improper size
-        return variantsBySize[s];
-      }
       this._context.logger.verbose('MONITOR: variants for size: %j', variantsBySize);
-      return (
-        variantsBySize[size] ||
-        variantsBySize[size.toLowerCase()] ||
-        variantsBySize[size.toUpperCase()]
+      if (size === 'Random') {
+        const val = getRandomIntInclusive(0, Object.keys(variantsBySize).length);
+        const variant = variantsBySize[Object.keys(variantsBySize)[val]];
+        return variant;
+      }
+      const variant = Object.keys(variantsBySize).find(
+        s => s.toUpperCase().indexOf(size.toUpperCase()) > -1,
       );
-    });
-    this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
 
+      return variantsBySize[variant];
+    });
+
+    this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
     // Flatten the groups to a one-level array and remove null elements
     const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
     this._context.logger.verbose('MONITOR: valid variants: %j', validVariants);
-    return validVariants.map(v => `${v.id}`);
+    if (validVariants.length > 0) {
+      return validVariants.map(v => `${v.id}`);
+    }
+    return null;
   }
 
   async _monitorKeywords() {
@@ -167,6 +150,12 @@ class Monitor {
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
     const variants = this._generateValidVariants(parsed);
+    if (!variants) {
+      return {
+        message: `Unable to match variants`,
+        nextState: States.Stopped,
+      };
+    }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
@@ -212,6 +201,12 @@ class Monitor {
         fullProductInfo.title,
       );
       const variants = this._generateValidVariants(fullProductInfo);
+      if (!variants) {
+        return {
+          message: `Unable to match variants`,
+          nextState: States.Stopped,
+        };
+      }
       this._logger.verbose('MONITOR: Variants Generated, updating context...');
       this._context.task.product.variants = variants;
 
@@ -257,6 +252,12 @@ class Monitor {
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
     const variants = this._generateValidVariants(parsed);
+    if (!variants) {
+      return {
+        message: `Unable to generate variants`,
+        nextState: States.Stopped,
+      };
+    }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);

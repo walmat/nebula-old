@@ -384,7 +384,7 @@ class Checkout {
         return { errors: true };
       }
     }
-    this._logger.verbose('CHECKOUT: Invalid checkout session, rewinding...');
+    this._logger.verbose('CHECKOUT: Invalid checkout session');
     return { errors: CheckoutErrorCodes.InvalidCheckoutSession };
   }
 

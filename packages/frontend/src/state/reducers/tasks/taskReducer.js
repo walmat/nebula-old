@@ -231,7 +231,8 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
       }
       // If adding a valid new task, we shouldn't reset the current task to default values
       return Object.assign({}, state);
-      // TEMPORARY FIX
+
+      // TEMPORARY PATCH
       // return {
       //   ...initialTaskStates.task,
       //   profile: defaults.useProfile ? defaults.profile : initialTaskStates.task.profile,

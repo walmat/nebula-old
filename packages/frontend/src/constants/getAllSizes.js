@@ -1,8 +1,12 @@
 const sizes = [
   {
+    label: 'Generic',
+    options: [{ value: 'OS', label: 'One Size' }, { value: 'Random', label: 'Random' }],
+  },
+  {
     label: 'Clothing',
     options: [
-      { value: 'Random', label: 'Random' },
+      { value: 'CL FSR', label: 'Full Size Run' },
       { value: 'XXS', label: 'Extra Extra Small' },
       { value: 'XS', label: 'Extra Small' },
       { value: 'S', label: 'Small' },
@@ -15,7 +19,6 @@ const sizes = [
   {
     label: "US Men's",
     options: [
-      { value: 'US Random', label: 'Random' },
       { value: 'US FSR', label: 'Full Size Run' },
       { value: '4', label: '4.0' },
       { value: '4.5', label: '4.5' },
@@ -36,13 +39,18 @@ const sizes = [
       { value: '12', label: '12.0' },
       { value: '12.5', label: '12.5' },
       { value: '13', label: '13.0' },
+      { value: '13.5', label: '13.5' },
       { value: '14', label: '14.0' },
+      { value: '14.5', label: '14.5' },
+      { value: '15', label: '15.0' },
+      { value: '16', label: '16.0' },
+      { value: '17', label: '17.0' },
+      { value: '18', label: '18.0' },
     ],
   },
   {
     label: "UK Men's",
     options: [
-      { value: 'UK Random', label: 'Random' },
       { value: 'UK FSR', label: 'Full Size Run' },
       { value: '3.5', label: '3.5' },
       { value: '4', label: '4' },
@@ -63,13 +71,18 @@ const sizes = [
       { value: '11.5', label: '11.5' },
       { value: '12', label: '12.0' },
       { value: '12.5', label: '12.5' },
+      { value: '13', label: '13.0' },
       { value: '13.5', label: '13.5' },
+      { value: '14', label: '14.0' },
+      { value: '14.5', label: '14.5' },
+      { value: '15', label: '15.0' },
+      { value: '16', label: '16.0' },
+      { value: '17', label: '17.0' },
     ],
   },
   {
     label: "EU Men's",
     options: [
-      { value: 'EU Random', label: 'Random' },
       { value: 'EU FSR', label: 'Full Size Run' },
       { value: '36', label: '36' },
       { value: '36 1/3', label: '36 1/3' },
