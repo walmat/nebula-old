@@ -2,7 +2,6 @@
 import { newTaskReducer } from '../../../../state/reducers/tasks/taskReducer';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 import { TASK_ACTIONS, TASK_FIELDS } from '../../../../state/actions';
-import { initialProfileState } from '../../../../utils/definitions/profiles/profile';
 
 describe('new task reducer', () => {
   it('should return initial state', () => {
