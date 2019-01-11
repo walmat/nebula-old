@@ -2,6 +2,7 @@
 import { newTaskReducer } from '../../../../state/reducers/tasks/taskReducer';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 import { TASK_ACTIONS, TASK_FIELDS } from '../../../../state/actions';
+import { initialProfileState } from '../../../../utils/definitions/profiles/profile';
 
 describe('new task reducer', () => {
   it('should return initial state', () => {
@@ -70,16 +71,24 @@ describe('new task reducer', () => {
           ...initialTaskStates.task,
           username: 'test',
         };
+        const expected = {
+          ...initialTaskStates.task,
+          username: 'test',
+        };
         const actual = newTaskReducer(start, {
           type: TASK_ACTIONS.ADD,
           response: { task: {} },
         });
-        expect(actual).toEqual(initialTaskStates.task);
+        expect(actual).toEqual(expected);
       });
 
       describe('when defaults are given', () => {
         test("when defaults shouldn't be used", () => {
           const start = {
+            ...initialTaskStates.task,
+            username: 'test',
+          };
+          const expected = {
             ...initialTaskStates.task,
             username: 'test',
           };
@@ -96,7 +105,7 @@ describe('new task reducer', () => {
               useSizes: false,
             },
           );
-          expect(actual).toEqual(initialTaskStates.task);
+          expect(actual).toEqual(expected);
         });
 
         test('when default sizes should be used', () => {
@@ -106,6 +115,7 @@ describe('new task reducer', () => {
           };
           const expected = {
             ...initialTaskStates.task,
+            username: 'test',
             sizes: ['5.5'],
           };
           const actual = newTaskReducer(
@@ -129,6 +139,7 @@ describe('new task reducer', () => {
           };
           const expected = {
             ...initialTaskStates.task,
+            username: 'test',
             profile: { id: 42 },
           };
           const actual = newTaskReducer(
