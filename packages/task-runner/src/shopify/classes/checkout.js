@@ -193,8 +193,6 @@ class Checkout {
     const { url } = site;
     this._logger.verbose('CHECKOUT: Starting login request to %s', url);
 
-    console.log(this._captchaToken);
-
     try {
       const res = await this._request({
         uri: `${url}/account/login`,
@@ -234,7 +232,7 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Login needs captcha');
         const $ = cheerio.load(res.body);
         const authToken = $('form input[name="authenticity_token"]').attr('value');
-        console.log(authToken);
+        this._authTokens.push(authToken);
         return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
       }
 
@@ -575,8 +573,6 @@ class Checkout {
         });
       }
 
-      console.log(res.body);
-
       const { statusCode, body } = res;
       const { shipping_rates } = body;
 
@@ -678,7 +674,6 @@ class Checkout {
       }
 
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      // fs.writeFileSync(path.join(__dirname, 'yep-1.html'), $.html());
       let step = $('.step').attr('data-step');
       if (!step) {
         step = $('#step').attr('data-step');
