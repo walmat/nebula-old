@@ -151,6 +151,7 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
+    console.log(this._context.task.site.url);
     const variants = this._generateValidVariants(parsed);
     if (!variants) {
       return {

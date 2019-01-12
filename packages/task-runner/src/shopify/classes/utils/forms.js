@@ -64,14 +64,14 @@ const addToCart = (variant, site) => {
       return {
         id: variant,
         add: '',
-        _HASH: '256779527127',
+        'properties[_HASH]': '256782482029',
       };
     }
     case 'DSM EU': {
       return {
         id: variant,
         add: '',
-        _hash: '',
+        'properties[_hash]': 'ee3e8f7a9322eaa382e04f8539a7474c11555',
       };
     }
     case 'DSM SG': {
@@ -89,7 +89,7 @@ const addToCart = (variant, site) => {
   }
 };
 
-const submitCustomerInformation = (payment, shipping, captchaToken) => ({
+const submitCustomerInformation = (payment, shipping, authToken, captchaToken) => ({
   utf8: '✓',
   _method: 'patch',
   authenticity_token: '',

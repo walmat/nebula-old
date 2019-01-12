@@ -43,6 +43,7 @@ class Checkout {
 
     this._paymentTokens = [];
     this._shippingMethods = [];
+    this._authTokens = [];
     this._chosenShippingMethod = {
       name: null,
       id: null,
@@ -187,46 +188,68 @@ class Checkout {
   /**
    * Request to login to an account on Shopify sites
    */
-  async handleLogin() {
+  async login() {
     const { site, username, password } = this._task;
     const { url } = site;
     this._logger.verbose('CHECKOUT: Starting login request to %s', url);
+
+    console.log(this._captchaToken);
 
     try {
       const res = await this._request({
         uri: `${url}/account/login`,
         method: 'post',
-        simple: true,
+        simple: false,
+        rejectUnauthorized: false,
         followAllRedirects: true,
         proxy: formatProxy(this._proxy),
         resolveWithFullResponse: true,
         headers: {
           'User-Agent': userAgent,
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Content-Type': 'application/x-www-form-urlencoded',
-          Referer: `${url}`,
+          Referer: `${url}/account/login`,
         },
         formData: {
           form_data: 'customer_login',
           utf8: '✓',
           'customer[email]': username,
           'customer[password]': password,
+          authenticity_token: this._authTokens.length > 0 ? this._authTokens.shift() : '',
+          'g-recaptcha-response': this._captchaToken,
         },
       });
-
       const { statusCode, request, headers } = res;
-      if (checkStatusCode(statusCode)) {
-        return false;
-      }
-      this._logger.verbose('ACCOUNT: Login response cookies: %j', headers['set-cookie']);
       const { href } = request;
-      if (href.indexOf('login') > -1) {
-        return false;
+
+      if (href.indexOf('password') > -1) {
+        return { status: CheckoutErrorCodes.Password };
       }
+
+      if (checkStatusCode(statusCode)) {
+        return { status: statusCode };
+      }
+      if (href.indexOf('challenge') > -1) {
+        this._logger.verbose('CHECKOUT: Login needs captcha');
+        const $ = cheerio.load(res.body);
+        const authToken = $('form input[name="authenticity_token"]').attr('value');
+        console.log(authToken);
+        return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
+      }
+
+      if (href.indexOf('login') > -1) {
+        this._logger.verbose('CHECKOUT: Invalid login credentials');
+        return { errors: CheckoutErrorCodes.InvalidLogin };
+      }
+
+      this._logger.verbose('CHECKOUT: Login response cookies: %j', headers['set-cookie']);
       this._logger.info('Logged in! Proceeding to add to cart');
-      return true;
+      return { errors: null };
     } catch (err) {
+      fs.writeFileSync(path.join(__dirname, 'login.html'), err);
       this._logger.verbose('CHECKOUT: Request error with login: %j', err);
-      return false;
+      return { errors: true };
     }
   }
 
@@ -249,6 +272,7 @@ class Checkout {
         resolveWithFullResponse: true,
         headers: this._headers(),
       });
+
       const { statusCode } = res;
       if (checkStatusCode(statusCode)) {
         return { error: true, status: statusCode };
@@ -339,36 +363,40 @@ class Checkout {
 
     try {
       const res = await this._request({
-        uri: `${url}/cart/add.js`,
+        uri: `${url}/cart/add`,
         resolveWithFullResponse: true,
+        rejectUnauthorized: false,
         followAllRedirects: true,
         simple: false,
-        json: true,
+        json: false,
         proxy: formatProxy(this._proxy),
         method: 'post',
         headers: {
-          Origin: url,
           'User-Agent': userAgent,
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.8',
+          'Upgrade-Insecure-Requests': '1',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
         },
         formData: addToCart(variants[0], site),
       });
 
-      const { statusCode, body } = res;
+      // check for password page
+      if (res && res.request && res.request.uri) {
+        if (res.request.uri.href.indexOf('password') > -1) {
+          return { status: 'password' };
+        }
+      }
+
+      const { statusCode } = res;
       if (checkStatusCode(statusCode)) {
         return { error: true, status: statusCode };
       }
-      const { status, description, line_price } = body;
 
-      if (status === 404) {
-        this._logger.debug('CHECKOUT: Error in add to cart: %s', description);
+      if (statusCode === 404) {
         return { error: true, status: 404 };
       }
 
-      this._prices.item = line_price;
-      this._task.product.url = `${url}/${res.body.url.split('?')[0]}`;
       return { error: false };
     } catch (err) {
       this._logger.debug('CART: Request error in add to cart: %s', err);
@@ -449,10 +477,20 @@ class Checkout {
         json: false,
         simple: false,
         method: 'post',
-        headers: this._headers(),
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+          'Upgrade-Insecure-Requests': '1',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Connection: 'keep-alive',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+          Referer: `${url}/cart`,
+        },
         formData: {
           'updates[]': 1,
-          checkout: 'Proceed to checkout',
+          checkout: 'Proceed to Checkout',
         },
       });
 
@@ -463,16 +501,30 @@ class Checkout {
 
       const { href } = res.request;
       if (href.indexOf('checkouts') > -1) {
+        const $ = cheerio.load(res.body);
+        const recaptchaFrame = $('#g-recaptcha');
+        const token = $('form.edit_checkout input[name=authenticity_token]').attr('value');
+        if (token) {
+          this._authTokens.push(token);
+        }
         // eslint-disable-next-line prefer-destructuring
         this._storeId = href.split('/')[3];
         // eslint-disable-next-line prefer-destructuring
         this._checkoutTokens.push(href.split('/')[5]);
-        return { error: null };
+
+        if (recaptchaFrame.length) {
+          this._logger.debug('CHECKOUT: Captcha found in checkout page');
+          return {
+            errors: true,
+            status: CheckoutErrorCodes.InvalidCaptchaToken,
+          };
+        }
+        return { errors: null };
       }
-      return { error: true };
+      return { errors: true };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error proceeding to checkout');
-      return { error: true };
+      return { errors: true };
     }
   }
 
@@ -494,6 +546,7 @@ class Checkout {
           uri: `${this._task.site.url}/cart/shipping_rates.json`,
           proxy: formatProxy(this._proxy),
           followAllRedirects: true,
+          rejectUnauthorized: false,
           simple: false,
           json: true,
           resolveWithFullResponse: true,
@@ -504,7 +557,7 @@ class Checkout {
           },
           qs: {
             'shipping_address[zip]': zipCode,
-            'shipping_address[country]': 'Singapore', // country.value,
+            'shipping_address[country]': country.value,
             'shipping_address[province]': state.value,
           },
         });
@@ -560,7 +613,7 @@ class Checkout {
 
         // set shipping price for cart
         this._prices.shipping = cheapest.price;
-        this._logger.silly('CHECKOUT: Shipping total: %s', shipping);
+        this._logger.silly('CHECKOUT: Shipping total: %s', this._prices.shipping);
         return { errors: null, rate: this._chosenShippingMethod.name };
       }
       this._logger.verbose('No shipping rates available, polling %d ms', Delays.PollShippingRates);
@@ -580,6 +633,7 @@ class Checkout {
     if (token) {
       this._logger.verbose('CHECKOUT: Received token from captcha harvesting: %s', token);
       this._captchaToken = token;
+      this._logger.verbose('CHECKOUT: Set this._captchaToken to: %s', this._captchaToken);
       return { errors: null };
     }
     return { errors: true };
@@ -599,6 +653,7 @@ class Checkout {
         uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'post',
         proxy: formatProxy(this._proxy),
+        rejectUnauthorized: false,
         followAllRedirects: true,
         resolveWithFullResponse: true,
         simple: false,
@@ -607,7 +662,12 @@ class Checkout {
           Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           'User-Agent': userAgent,
         },
-        formData: submitCustomerInformation(payment, shipping, this._captchaToken),
+        formData: submitCustomerInformation(
+          payment,
+          shipping,
+          this._authTokens.shift(),
+          this._captchaToken,
+        ),
       });
 
       const { statusCode, body } = res;
@@ -616,13 +676,17 @@ class Checkout {
       }
 
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      fs.writeFileSync(path.join(__dirname, 'yep-1.html'), $.html());
+      // fs.writeFileSync(path.join(__dirname, 'yep-1.html'), $.html());
       let step = $('.step').attr('data-step');
       if (!step) {
         step = $('#step').attr('data-step');
       }
       if (step === ShopifyPaymentSteps.ContactInformation) {
         return { error: CheckoutErrorCodes.InvalidCaptchaToken };
+      }
+      const token = $('form.edit_checkout input[name=authenticity_token]').attr('value');
+      if (token) {
+        this._authTokens.push(token);
       }
       return { error: null };
     } catch (err) {
@@ -686,6 +750,13 @@ class Checkout {
           proxy: formatProxy(this._proxy),
           headers,
         });
+      }
+
+      // check if redirected to `/account/login` page
+      if (res && res.request && res.request.uri) {
+        if (res.request.uri.href.indexOf('account') > -1) {
+          return { errors: CheckoutErrorCodes.Account };
+        }
       }
       fs.writeFileSync(path.join(__dirname, 'yep-2.html'), res.body);
 
@@ -780,7 +851,7 @@ class Checkout {
         });
       }
 
-      fs.writeFileSync(path.join(__dirname, 'yep-3.html'), res.body);
+      // fs.writeFileSync(path.join(__dirname, 'yep-3.html'), res.body);
 
       const { statusCode, body } = res;
       if (checkStatusCode(statusCode)) {
@@ -893,6 +964,10 @@ class Checkout {
       }
       this._logger.verbose('CHECKOUT: Payments object: %j', body);
       const { payments } = body;
+      if (payments.length === 0) {
+        this._logger.verbose('CHECKOUT: Processing payment');
+        return { errors: CheckoutErrorCodes.Processing };
+      }
       if (body && payments) {
         const { payment_processing_error_message } = payments[0];
         this._logger.verbose('CHECKOUT: Payment error: %j', payment_processing_error_message);

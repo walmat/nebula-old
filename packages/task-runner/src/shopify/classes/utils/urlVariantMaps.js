@@ -53,7 +53,7 @@ const urlToOptionIndex = {
   'https://shop.havenshop.ca': 1,
   'https://shop.justintimberlake.com': 1,
   'https://shop.travisscott.com': 1,
-  'https://shop.undefeated.com': 2,
+  'https://undefeated.com': 2,
   'https://shopnicekicks.com': 1,
   'https://sneakerjunkiesusa.com': 1,
   'https://sneakerpolitics.com': 1,
