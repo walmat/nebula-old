@@ -575,6 +575,8 @@ class Checkout {
         });
       }
 
+      console.log(res.body);
+
       const { statusCode, body } = res;
       const { shipping_rates } = body;
 

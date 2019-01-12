@@ -64,10 +64,10 @@ const addToCart = (variant, site) => {
       return {
         id: variant,
         add: '',
-        'properties[_HASH]': '256782482029',
+        'properties[_HASH]': 256782537687,
       };
     }
-    case 'DSM EU': {
+    case 'DSM UK': {
       return {
         id: variant,
         add: '',
