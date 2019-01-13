@@ -236,6 +236,10 @@ const _removeProxies = proxies => {
 //   throw new Error('Sorry, this app does not support window.eval().');
 // };
 
+const _testWebhook = (hook, opt) => {
+  _sendEvent(IPCKeys.RequestWebhookTest, { hook, opt });
+};
+
 /**
  * On process load, create the Bridge
  */
@@ -269,6 +273,8 @@ process.once('loaded', () => {
   window.Bridge.stopTasks = _stopTasks;
   window.Bridge.addProxies = _addProxies;
   window.Bridge.removeProxies = _removeProxies;
+
+  window.Bridge.testWebhook = _testWebhook;
 
   if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (...params) => {

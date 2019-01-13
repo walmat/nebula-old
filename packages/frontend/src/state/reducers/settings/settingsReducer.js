@@ -84,6 +84,10 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       defaults: initialSettingsStates.defaults,
       errors: Object.assign({}, state.errors, action.errors),
     };
+  } else if (action.type === SETTINGS_ACTIONS.TEST) {
+    if (window.Bridge) {
+      window.Bridge.testWebhook(action.hook, action.opt);
+    }
   }
   return Object.assign({}, state, change);
 }

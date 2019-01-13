@@ -75,7 +75,15 @@ export class SettingsPrimitive extends Component {
   }
 
   render() {
-    const { errors, settings, onKeyPress, onSaveDefaults, onClearDefaults } = this.props;
+    const {
+      errors,
+      settings,
+      onKeyPress,
+      onSaveDefaults,
+      onClearDefaults,
+      onTestDiscord,
+      onTestSlack,
+    } = this.props;
     const defaultSizes = settings.defaults.sizes.map(s => ({ value: s, label: `${s}` }));
     let defaultProfileValue = null;
     if (settings.defaults.profile.id !== null) {
@@ -119,6 +127,17 @@ export class SettingsPrimitive extends Component {
           style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]])}
           value={settings.discord}
         />
+        <button
+          type="button"
+          id="test-discord"
+          tabIndex={0}
+          onKeyPress={onKeyPress}
+          onClick={() => {
+            onTestDiscord(settings.discord);
+          }}
+        >
+          Test
+        </button>
         <p id="slack-label">Slack URL</p>
         <input
           id="slack-input"
@@ -127,7 +146,17 @@ export class SettingsPrimitive extends Component {
           style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]])}
           value={settings.slack}
         />
-
+        <button
+          type="button"
+          id="test-slack"
+          tabIndex={0}
+          onKeyPress={onKeyPress}
+          onClick={() => {
+            onTestSlack(settings.slack);
+          }}
+        >
+          Test
+        </button>
         {/* DEFAULTS */}
         <p className="body-text" id="defaults-label">
           Defaults
@@ -220,6 +249,8 @@ SettingsPrimitive.propTypes = {
   onSettingsChange: PropTypes.func.isRequired,
   onSaveDefaults: PropTypes.func.isRequired,
   onClearDefaults: PropTypes.func.isRequired,
+  onTestDiscord: PropTypes.func.isRequired,
+  onTestSlack: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
   profiles: pDefns.profileList.isRequired,
   settings: sDefns.settings.isRequired,
@@ -245,6 +276,12 @@ export const mapDispatchToProps = dispatch => ({
   },
   onClearDefaults: changes => {
     dispatch(settingsActions.clear(changes));
+  },
+  onTestDiscord: hook => {
+    dispatch(settingsActions.test(hook, 'discord'));
+  },
+  onTestSlack: hook => {
+    dispatch(settingsActions.test(hook, 'slack'));
   },
 });
 

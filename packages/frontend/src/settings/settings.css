@@ -123,20 +123,56 @@ input::placeholder, input {
     position: absolute;
     top: 143px;
     left: 522px;
-    width: 422px;
+    width: 344px;
     height: 29px;
     border: 1px solid #F0405E;
     border-radius: 3px;
+}
+
+#test-discord {
+  position: absolute;
+  top: 143px;
+  left: 880px;
+  width: 64px;
+  height: 29px;
+  border: 1px solid #F0405E;
+  border-radius: 3px;
+  cursor: pointer;
+  background: #F0405E;
+  border: none;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #EFEFEF;
+  letter-spacing: 0;
 }
 
 #slack-input {
     position: absolute;
     top: 213px;
     left: 522px;
-    width: 422px;
+    width: 344px;
     height: 29px;
     border: 1px solid #F0405E;
     border-radius: 3px;
+}
+
+#test-slack {
+  position: absolute;
+  top: 213px;
+  left: 880px;
+  width: 64px;
+  height: 29px;
+  border: 1px solid #F0405E;
+  border-radius: 3px;
+  cursor: pointer;
+  background: #F0405E;
+  border: none;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #EFEFEF;
+  letter-spacing: 0;
 }
 
 #defaults-label {
