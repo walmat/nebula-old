@@ -62,6 +62,10 @@ class TaskManagerWrapper {
 
     context.ipc.on(IPCKeys.HarvestCaptcha, this._onHarvestToken.bind(this));
 
+    context.ipc.on(IPCKeys.RequestWebhookUpdate, this._onRequestWebhookUpdate.bind(this));
+
+    context.ipc.on(IPCKeys.RequestWebhookTest, this._onRequestWebhookTest.bind(this));
+
     // TEMPORARY
     if (nebulaEnv.isDevelopment()) {
       this._debugHarvestedTokens = [];
@@ -214,6 +218,15 @@ class TaskManagerWrapper {
 
   _onChangeDelayRequest(_, delay, type) {
     this._taskManager.changeDelay(delay, type);
+  }
+
+  _onRequestWebhookUpdate(_, hook, type) {
+    this._taskManager.updateWebhook({ hook, type });
+  }
+
+  _onRequestWebhookTest() {
+    console.log('in task manager wrapper');
+    this._taskManager.testWebhook();
   }
 }
 
