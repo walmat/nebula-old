@@ -60,16 +60,6 @@ function wireEventHandlers(runner) {
         runner._events.emit(TaskRunnerEvents.ReceiveProxy, ...args);
         break;
       }
-      case TaskRunnerEvents.ReceiveMonitorDelay: {
-        // TODO: Respect the scope of Runner (issue #137)
-        runner._events.emit(TaskRunnerEvents.ReceiveMonitorDelay, ...args);
-        break;
-      }
-      case TaskRunnerEvents.ReceiveErrorDelay: {
-        // TODO: Respect the scope of Runner (issue #137)
-        runner._events.emit(TaskRunnerEvents.ReceiveErrorDelay, ...args);
-        break;
-      }
       default: {
         break;
       }
@@ -82,8 +72,6 @@ function wireEventHandlers(runner) {
     TaskManagerEvents.StartHarvest,
     TaskManagerEvents.StopHarvest,
     TaskRunnerEvents.SwapProxy,
-    TaskRunnerEvents.ReceiveMonitorDelay,
-    TaskRunnerEvents.ReceiveErrorDelay,
   ].forEach(event => {
     // TODO: Respect the scope of Runner (issue #137)
     runner._events.on(event, (...args) => {

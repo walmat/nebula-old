@@ -88,8 +88,6 @@ class TaskRunner {
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleHarvest = this._handleHarvest.bind(this);
-
-    this._events.on(Events.ReceiveMonitorDelay, this._handleMonitorDelay);
   }
 
   _waitForErrorDelay() {
