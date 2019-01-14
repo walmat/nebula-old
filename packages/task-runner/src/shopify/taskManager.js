@@ -3,6 +3,7 @@ const hash = require('object-hash');
 const shortid = require('shortid');
 
 const TaskRunner = require('./taskRunner');
+const Hooks = require('./classes/webhooks');
 const { Events } = require('./classes/utils/constants').TaskManager;
 const { createLogger } = require('../common/logger');
 
@@ -356,6 +357,26 @@ class TaskManager {
     }
   }
 
+  updateWebhook(opts) {
+    const { hook, type } = opts;
+    this._logger.info('Updating %s webhook to: %s', type, hook);
+    /**
+     * TODO - decide where the hooks definition should be..
+     * `option 1`:
+     *  in taskManager.js – contemplate pros and cons
+     *
+     * `option 2`:
+     *  in taskRunner.js – contemplate pros and cons
+     */
+  }
+
+  testWebhook() {
+    this._logger.info('Testing webhooks (if non-null)');
+    new Hooks.Discord(
+      'https://discordapp.com/api/webhooks/492205269942796298/H0giZl0oansmwORuW4ifx-fwKWbcVPXR23FMoWkgrBfIqQErIKBiNQznQIHQuj-EPXic',
+    ).send();
+  }
+
   async setup() {
     let runnerId;
     do {
@@ -520,7 +541,14 @@ class TaskManager {
   }
 
   async _start([runnerId, task, openProxy]) {
-    const runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
+    const runner = new TaskRunner(
+      runnerId,
+      task,
+      openProxy,
+      this._loggerPath,
+      this._discord,
+      this._slack,
+    );
     this._runners[runnerId] = runner;
 
     this._logger.verbose('Wiring up TaskRunner Events ...');

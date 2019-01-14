@@ -171,17 +171,14 @@ const _confirmDialog = async message =>
  */
 const _registerForTaskEvents = handler => {
   _sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
-  ipcRenderer.once(
-    IPCKeys.RequestRegisterTaskEventHandler,
-    (event, eventKey) => {
-      // Check and make sure we have a key to listen on
-      if (eventKey) {
-        _handleEvent(eventKey, handler);
-      } else {
-        console.error('Unable to Register for Task Events!');
-      }
-    },
-  );
+  ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to listen on
+    if (eventKey) {
+      _handleEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Register for Task Events!');
+    }
+  });
 };
 
 /**
@@ -189,17 +186,14 @@ const _registerForTaskEvents = handler => {
  */
 const _deregisterForTaskEvents = handler => {
   _sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
-  ipcRenderer.once(
-    IPCKeys.RequestDeregisterTaskEventHandler,
-    (event, eventKey) => {
-      // Check and make sure we have a key to deregister from
-      if (eventKey) {
-        _removeEvent(eventKey, handler);
-      } else {
-        console.error('Unable to Deregister from Task Events!');
-      }
-    },
-  );
+  ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to deregister from
+    if (eventKey) {
+      _removeEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Deregister from Task Events!');
+    }
+  });
 };
 
 /**
@@ -224,7 +218,7 @@ const _addProxies = proxies => {
 };
 
 /**
- * Sends task(s) that should be removed to taskManagerWrapper.js
+ * Sends proxies(s) that should be removed to taskManagerWrapper.js
  */
 const _removeProxies = proxies => {
   _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
@@ -236,8 +230,21 @@ const _removeProxies = proxies => {
 //   throw new Error('Sorry, this app does not support window.eval().');
 // };
 
-const _testWebhook = (hook, opt) => {
-  _sendEvent(IPCKeys.RequestWebhookTest, { hook, opt });
+/**
+ * Updates the task manager's reference of the webhook
+ * @param {string} hook string to update the hook on the task manager side
+ * @param {string} type `discord` || `slack`
+ */
+const _updateWebhook = (hook, type) => {
+  _sendEvent(IPCKeys.RequestWebhookUpdate, hook, type);
+};
+
+/**
+ * Sends a test webhook event to the task manager
+ * @param {string} type `discord` || `slack`
+ */
+const _testWebhook = type => {
+  _sendEvent(IPCKeys.RequestWebhookTest, type);
 };
 
 /**
@@ -274,6 +281,7 @@ process.once('loaded', () => {
   window.Bridge.addProxies = _addProxies;
   window.Bridge.removeProxies = _removeProxies;
 
+  window.Bridge.updateWebhook = _updateWebhook;
   window.Bridge.testWebhook = _testWebhook;
 
   if (nebulaEnv.isDevelopment()) {

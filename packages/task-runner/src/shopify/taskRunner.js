@@ -728,6 +728,7 @@ class TaskRunner {
         await waitForDelay(monitorDelay);
         return States.Processing;
       }
+      this._notification.send()
       this._emitTaskEvent({
         message: 'Payment failed',
       });

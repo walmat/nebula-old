@@ -63,6 +63,28 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         };
         break;
       }
+      case SETTINGS_FIELDS.EDIT_DISCORD: {
+        // TODO - check for errors object once middleware is setup
+        if (window.Bridge) {
+          window.Bridge.updateWebhook(action.value, 'discord');
+        }
+        change = {
+          discord: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
+        };
+        break;
+      }
+      case SETTINGS_FIELDS.EDIT_SLACK: {
+        // TODO - check for errors object once middleware is setup
+        if (window.Bridge) {
+          window.Bridge.updateWebhook(action.value, 'slack');
+        }
+        change = {
+          slack: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
+        };
+        break;
+      }
       default: {
         change = {
           [mapSettingsFieldToKey[action.field]]: action.value,
@@ -84,9 +106,13 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       defaults: initialSettingsStates.defaults,
       errors: Object.assign({}, state.errors, action.errors),
     };
+  } else if (action.type === SETTINGS_ACTIONS.UPDATE) {
+    if (window.Bridge) {
+      window.Bridge.updateWebhook(action.hook, action.opt);
+    }
   } else if (action.type === SETTINGS_ACTIONS.TEST) {
     if (window.Bridge) {
-      window.Bridge.testWebhook(action.hook, action.opt);
+      window.Bridge.testWebhook(action.opt);
     }
   }
   return Object.assign({}, state, change);

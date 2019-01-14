@@ -44,6 +44,9 @@ const IPCKeys = {
   RequestStopTasks: 'RequestStopTasks',
   RequestAddProxies: 'RequestAddProxies',
   RequestRemoveProxies: 'RequestRemoveProxies',
+
+  RequestWebhookUpdate: 'RequestWebhookUpdate',
+  RequestWebhookTest: 'RequestWebhookTest',
 };
 
 module.exports = IPCKeys;
