@@ -62,10 +62,6 @@ class TaskProcessManager extends TaskManager {
             this.handleSwapProxy(...args);
             break;
           }
-          case TaskRunnerEvents.ChangeDelay: {
-            this.changeDelay(...args);
-            break;
-          }
           default: {
             break;
           }
