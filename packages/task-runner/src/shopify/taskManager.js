@@ -370,11 +370,22 @@ class TaskManager {
      */
   }
 
-  testWebhook() {
+  /**
+   *
+   * @param {string} type `discord` || `slack`
+   */
+  testWebhook(type) {
     this._logger.info('Testing webhooks (if non-null)');
-    new Hooks.Discord(
-      'https://discordapp.com/api/webhooks/492205269942796298/H0giZl0oansmwORuW4ifx-fwKWbcVPXR23FMoWkgrBfIqQErIKBiNQznQIHQuj-EPXic',
-    ).send();
+    /**
+     * TODO
+     *  decide if the type that is being tested has a valid webhook
+     *
+     *  IF IT IS...
+     *  1. Test the hook that corresponds to type
+     *
+     *  IF IT IS NOT...
+     *  1. Don't do anything
+     */
   }
 
   async setup() {

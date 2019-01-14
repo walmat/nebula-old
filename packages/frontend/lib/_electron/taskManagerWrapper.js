@@ -202,9 +202,8 @@ class TaskManagerWrapper {
     this._taskManager.updateWebhook({ hook, type });
   }
 
-  _onRequestWebhookTest() {
-    console.log('in task manager wrapper');
-    this._taskManager.testWebhook();
+  _onRequestWebhookTest(_, type) {
+    this._taskManager.testWebhook(type);
   }
 }
 
