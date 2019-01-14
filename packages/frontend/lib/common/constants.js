@@ -45,8 +45,7 @@ const IPCKeys = {
   RequestAddProxies: 'RequestAddProxies',
   RequestRemoveProxies: 'RequestRemoveProxies',
 
-  RequestChangeMonitorDelay: 'RequestChangeMonitorDelay',
-  RequestChangeErrorDelay: 'RequestChangeErrorDelay',
+  RequestChangeDelay: 'RequestChangeDelay',
 };
 
 module.exports = IPCKeys;

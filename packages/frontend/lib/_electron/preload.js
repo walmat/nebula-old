@@ -224,12 +224,8 @@ const _removeProxies = proxies => {
   _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
 };
 
-const _changeMonitorDelay = delay => {
-  _sendEvent(IPCKeys.RequestChangeMonitorDelay, delay);
-};
-
-const _changeErrorDelay = delay => {
-  _sendEvent(IPCKeys.RequestChangeErrorDelay, delay);
+const _changeDelay = (delay, type) => {
+  _sendEvent(IPCKeys.RequestChangeDelay, delay, type);
 };
 
 // Disable eval in the preload context
@@ -275,8 +271,7 @@ process.once('loaded', () => {
   window.Bridge.stopTasks = _stopTasks;
   window.Bridge.addProxies = _addProxies;
   window.Bridge.removeProxies = _removeProxies;
-  window.Bridge.changeMonitorDelay = _changeMonitorDelay;
-  window.Bridge.changeErrorDelay = _changeErrorDelay;
+  window.Bridge.changeDelay = _changeDelay;
 
   window.Bridge.testWebhook = _testWebhook;
 

@@ -154,22 +154,6 @@ class TaskManager {
   }
 
   /**
-   * TODO - doesn't send to child process correctly
-   */
-  changeMonitorDelay(delay) {
-    console.log('changing monitor delay to: ', delay);
-    this._events.emit(Events.SendMonitorDelay, delay);
-  }
-
-  /**
-   * TODO - doesn't send to child process correctly
-   */
-  changeErrorDelay(delay) {
-    console.log('changing error delay to: ', delay);
-    this._events.emit(Events.SendErrorDelay, delay);
-  }
-
-  /**
    * Reserve a proxy
    *
    * @param {String} runnerId the id of the runner for whom the proxy will be reserved
@@ -372,6 +356,15 @@ class TaskManager {
       const { taskId } = this._runners[runnerId];
       this._events.emit('status', taskId, message, event);
     }
+  }
+
+  changeDelay(delay, type) {
+    this._logger.info('Change %s to: %s ms', type, delay);
+    Object.keys(this._runners).find(k =>
+      type === 'monitorDelay'
+        ? (this._runners[k].monitorDelay = delay)
+        : (this._runners[k].errorDelay = delay),
+    );
   }
 
   async setup() {
