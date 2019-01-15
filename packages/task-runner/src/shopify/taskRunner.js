@@ -6,7 +6,7 @@ const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const AsyncQueue = require('./classes/asyncQueue');
-const { States, Events } = require('./classes/utils/constants').TaskRunner;
+const { States, Events, DelayTypes } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { CheckoutErrorCodes } = require('./classes/utils/constants').ErrorCodes;
 const { createLogger } = require('../common/logger');
@@ -88,7 +88,9 @@ class TaskRunner {
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleHarvest = this._handleHarvest.bind(this);
-    this._handleChangeDelay = this._handleChangeDelay.bind(this);
+    this._handleDelay = this._handleDelay.bind(this);
+
+    this._events.on(Events.ReceiveDelay, this._handleDelay);
   }
 
   _waitForErrorDelay() {
@@ -108,17 +110,15 @@ class TaskRunner {
     }
   }
 
-  _handleChangeDelay(id, delay, type) {
+  _handleDelay(id, delay, type) {
+    console.log('in handle delay');
     if (id === this._context.id) {
       // eslint-disable-next-line no-unused-expressions
-      type === 'errorDelay'
+      type === DelayTypes.error
         ? (this._context.errorDelay = delay)
         : (this._context.monitorDelay = delay);
+      console.log(this._context.errorDelay, this._context.monitorDelay);
     }
-  }
-
-  getDelay() {
-    this._events.on(TaskManagerEvents.ChangeDelay, this._handleChangeDelay);
   }
 
   _cleanup() {

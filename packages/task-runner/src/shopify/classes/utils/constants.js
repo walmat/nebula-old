@@ -18,6 +18,7 @@ const TaskRunnerEvents = {
   CheckoutStatus: 'CHECKOUT_STATUS',
   SwapProxy: 'SWAP_PROXY',
   ReceiveProxy: 'RECEIVE_PROXY',
+  ReceiveDelay: 'RECEIVE_DELAY',
 };
 
 /**
@@ -42,6 +43,11 @@ const TaskRunnerStates = {
   Errored: 'ERRORED',
   Aborted: 'ABORTED',
   Stopped: 'STOPPED',
+};
+
+const TaskRunnerDelayTypes = {
+  error: 'errorDelay',
+  monitor: 'monitorDelay',
 };
 
 /**
@@ -215,6 +221,7 @@ module.exports = {
   TaskRunner: {
     Events: TaskRunnerEvents,
     States: TaskRunnerStates,
+    DelayTypes: TaskRunnerDelayTypes,
   },
   ErrorCodes: {
     Parser: ParserErrorCodes,
