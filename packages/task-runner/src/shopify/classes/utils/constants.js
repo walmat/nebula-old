@@ -3,6 +3,7 @@ const TaskManagerEvents = {
   StopHarvest: 'STOP_CAPTCHA_HARVEST',
   Harvest: 'CAPTCHA_HARVEST',
   SendProxy: 'SEND_PROXY',
+  ChangeDelay: 'CHANGE_DELAY',
   SendMonitorDelay: 'SEND_MONITOR_DELAY',
   SendErrorDelay: 'SEND_ERROR_DELAY',
 };
