@@ -360,7 +360,9 @@ class TaskManager {
 
   changeDelay(delay, type) {
     this._logger.info('Changing %s to: %s ms', type, delay);
-    Object.keys(this._runners).forEach(k => this._handlers[k].delay(k.id, delay, type));
+    Object.keys(this._runners).forEach(k => {
+      this._handlers[k].delay(k, delay, type);
+    });
   }
 
   async setup() {
