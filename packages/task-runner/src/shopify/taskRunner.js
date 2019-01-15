@@ -88,6 +88,7 @@ class TaskRunner {
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleHarvest = this._handleHarvest.bind(this);
+    this._handleChangeDelay = this._handleChangeDelay.bind(this);
   }
 
   _waitForErrorDelay() {
@@ -105,6 +106,19 @@ class TaskRunner {
     if (id === this._context.id) {
       this._captchaQueue.insert(token);
     }
+  }
+
+  _handleChangeDelay(id, delay, type) {
+    if (id === this._context.id) {
+      // eslint-disable-next-line no-unused-expressions
+      type === 'errorDelay'
+        ? (this._context.errorDelay = delay)
+        : (this._context.monitorDelay = delay);
+    }
+  }
+
+  getDelay() {
+    this._events.on(TaskManagerEvents.ChangeDelay, this._handleChangeDelay);
   }
 
   _cleanup() {
