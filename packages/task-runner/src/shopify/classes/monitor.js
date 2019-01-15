@@ -44,10 +44,10 @@ class Monitor {
   // ASSUMPTION: this method is only called when we know we have to
   // delay and start the monitor again...
   async _delay(status) {
+    this._logger.silly('Received status: %s', status || 404);
     let delay = this._waitForRefreshDelay;
     switch (status || 404) {
-      case 401:
-      case 404: {
+      case 401: {
         delay = this._waitForErrorDelay;
         break;
       }
