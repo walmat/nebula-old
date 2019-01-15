@@ -62,22 +62,10 @@ class WindowManager {
     /**
      * IPC Function Definitions
      */
-    context.ipc.on(
-      IPCKeys.RequestCreateNewWindow,
-      this._onRequestCreateNewWindow.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.RequestSendMessage,
-      this._onRequestSendMessage.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.RequestGetWindowIDs,
-      this._onRequestGetWindowIDs.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.RequestCloseWindow,
-      this._onRequestWindowClose.bind(this),
-    );
+    context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
+    context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
+    context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
+    context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
     context.ipc.on(
       IPCKeys.RequestCloseAllCaptchaWindows,
       this._onRequestCloseAllCaptchaWindows.bind(this),
@@ -157,7 +145,7 @@ class WindowManager {
                 this._context._session.fromPartition(`${w.id}`),
               ),
             );
-            w.loadURL(`https://127.0.0.1:${serverPort}/captcha.html`);
+            w.loadURL('http://checkout.shopify.com');
           }
           break;
         }
