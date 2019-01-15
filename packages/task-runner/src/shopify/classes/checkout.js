@@ -453,16 +453,19 @@ class Checkout {
   /**
    * Handle CAPTCHA requests
    */
-  async _handleRequestCaptcha() {
+  async handleRequestCaptcha() {
     this._logger.verbose('CHECKOUT: Getting Solved Captcha...');
     const token = await this._context.getCaptcha();
-    if (token) {
-      this._logger.verbose('CHECKOUT: Received token from captcha harvesting: %s', token);
-      this._captchaToken = token;
+    if (!token) {
+      this._logger.verbose('CHECKOUT: Unable to get token!');
+      return {
+        errors: CheckoutErrorCodes.InvalidCaptchaToken,
+      };
     }
+    this._logger.verbose('CHECKOUT: Received token from captcha harvesting: %s', token);
+    this._captchaToken = token;
     return {
-      message: 'Submitting payment',
-      nextState: CheckoutStates.PostPayment,
+      errors: null,
     };
   }
 

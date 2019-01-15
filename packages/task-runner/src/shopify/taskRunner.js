@@ -595,6 +595,25 @@ class TaskRunner {
     return States.PostPayment;
   }
 
+  async _handleCaptcha() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { errorDelay } = this._context.task;
+    const { errors } = await this._checkout.handleRequestCaptcha();
+    if (errors) {
+      this._emitTaskEvent({
+        message: 'Failed: Unable to get captcha token, stopping...',
+      });
+      await waitForDelay(errorDelay);
+      return States.Stopped;
+    }
+    this._emitTaskEvent({ message: 'Submitting payment...' });
+    return States.PostPayment;
+  }
+
   async _handlePostPayment() {
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
@@ -759,6 +778,7 @@ class TaskRunner {
       [States.ShippingRates]: this._handleShippingRates,
       [States.PaymentGateway]: this._handlePaymentGateway,
       [States.Review]: this._handleReview,
+      [States.Captcha]: this._handleCaptcha,
       [States.PostPayment]: this._handlePostPayment,
       [States.Processing]: this._handlePaymentProcessing,
       [States.SwapProxies]: this._handleSwapProxies,
