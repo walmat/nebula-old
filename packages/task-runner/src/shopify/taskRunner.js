@@ -115,9 +115,9 @@ class TaskRunner {
     if (id === this._context.id) {
       // eslint-disable-next-line no-unused-expressions
       type === DelayTypes.error
-        ? (this._context.errorDelay = delay)
-        : (this._context.monitorDelay = delay);
-      console.log(this._context.errorDelay, this._context.monitorDelay);
+        ? (this._context.task.errorDelay = delay)
+        : (this._context.task.monitorDelay = delay);
+      console.log(this._context.task.errorDelay, this._context.task.monitorDelay);
     }
   }
 
