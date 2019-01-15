@@ -118,6 +118,7 @@ class TaskRunner {
         ? (this._context.task.errorDelay = delay)
         : (this._context.task.monitorDelay = delay);
       console.log(this._context.task.errorDelay, this._context.task.monitorDelay);
+      console.log(this._monitor._context.task.errorDelay, this._monitor._context.task.monitorDelay);
     }
   }
 
