@@ -8,17 +8,26 @@ const locationReducer = (state = initialProfileStates.location, action) => {
     return Object.assign({}, state);
   }
   switch (action.type) {
-    // when they switch countries, reset state as well
     case LOCATION_FIELDS.COUNTRY:
+      if (!action.value || action.value.value === state.country.value) {
+        break;
+      }
       change = {
-        [LOCATION_FIELDS.COUNTRY]: action.value,
-        [LOCATION_FIELDS.STATE]: null,
+        [mapLocationFieldToKey[LOCATION_FIELDS.COUNTRY]]: action.value,
+        [mapLocationFieldToKey[LOCATION_FIELDS.PROVINCE]]: null,
         errors: action.errors || state.errors,
       };
       break;
-    case LOCATION_FIELDS.STATE:
+    case LOCATION_FIELDS.PROVINCE:
+      if (
+        !action.value ||
+        !action.value.province ||
+        action.value.province.value === state.province.value
+      ) {
+        break;
+      }
       change = {
-        [mapLocationFieldToKey[action.type]]: action.value.state,
+        [mapLocationFieldToKey[LOCATION_FIELDS.PROVINCE]]: action.value.province,
         errors: action.errors || state.errors,
       };
       break;

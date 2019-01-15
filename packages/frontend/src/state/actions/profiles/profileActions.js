@@ -193,7 +193,7 @@ export const LOCATION_FIELDS = {
   ZIP_CODE: 'zipCode',
   PHONE_NUMBER: 'phone',
   COUNTRY: 'country',
-  STATE: 'state',
+  PROVINCE: 'province',
 };
 
 export const PAYMENT_FIELDS = {
@@ -221,7 +221,7 @@ export const mapLocationFieldToKey = {
   [LOCATION_FIELDS.ZIP_CODE]: 'zipCode',
   [LOCATION_FIELDS.PHONE_NUMBER]: 'phone',
   [LOCATION_FIELDS.COUNTRY]: 'country',
-  [LOCATION_FIELDS.STATE]: 'state',
+  [LOCATION_FIELDS.PROVINCE]: 'province',
 };
 
 export const mapPaymentFieldToKey = {

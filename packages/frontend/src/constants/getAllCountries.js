@@ -6,7 +6,8 @@ export default function getAllCountries() {
 }
 
 export function getProvinces(countryCode) {
-  return _.filter(countries, c => c.code === countryCode)[0].provinces;
+  const country = _.find(countries, c => c.code === countryCode);
+  return country && country.provinces;
 }
 
 export function getCountry(countryCode) {

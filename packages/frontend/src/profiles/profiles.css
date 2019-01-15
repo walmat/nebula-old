@@ -197,7 +197,7 @@ input, select {
     border-radius: 3px;
 }
 
-#shipping-state {
+#shipping-province {
     position: absolute;
     top: 471px;
     left: 295px;
@@ -315,7 +315,7 @@ input, select {
     border-radius: 3px;
 }
 
-#billing-state {
+#billing-province {
     position: absolute;
     top: 471px;
     left: 571px;

@@ -17,7 +17,7 @@ export class LocationFieldsPrimitive extends Component {
     }));
   }
 
-  static buildStateOptions(country) {
+  static buildProvinceOptions(country) {
     if (country && country.value) {
       return getProvinces(country.value).map(province => ({
         value: province.code,
@@ -30,11 +30,11 @@ export class LocationFieldsPrimitive extends Component {
   createOnChangeHandler(field) {
     const { onChange, value } = this.props;
     switch (field) {
-      case LOCATION_FIELDS.STATE: {
+      case LOCATION_FIELDS.PROVINCE: {
         return event => {
           onChange({
             field,
-            value: { state: event, country: value.country },
+            value: { province: event, country: value.country },
           });
         };
       }
@@ -57,11 +57,14 @@ export class LocationFieldsPrimitive extends Component {
     }
   }
 
-  isStatesDisabled(country) {
-    const { disabled } = this.props;
+  isProvinceFieldDisabled() {
+    const {
+      disabled,
+      value: { country },
+    } = this.props;
     if (country && country.value) {
       const { provinces } = getCountry(country.value);
-      if (provinces && provinces[0]) {
+      if (provinces && provinces.length > 0) {
         return false || disabled;
       }
       return true;
@@ -119,15 +122,15 @@ export class LocationFieldsPrimitive extends Component {
         />
         <Select
           required
-          placeholder="State"
+          placeholder="Province"
           components={{ DropdownIndicator }}
-          id={`${id}-state`}
+          id={`${id}-province`}
           classNamePrefix="select"
-          options={LocationFieldsPrimitive.buildStateOptions(value.country) || undefined}
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
-          value={value.state}
-          styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.STATE]))}
-          isDisabled={this.isStatesDisabled(value.country)}
+          options={LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined}
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
+          value={value.province}
+          styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]))}
+          isDisabled={this.isProvinceFieldDisabled()}
         />
         <input
           id={`${id}-zip-code`}

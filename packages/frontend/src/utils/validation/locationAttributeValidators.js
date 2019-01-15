@@ -36,16 +36,15 @@ function validatePhoneNumber(phoneNumber) {
   return phoneNumber && regexes.phoneNumber.test(phoneNumber);
 }
 
-function validateState(obj) {
-  const { country, state } = obj;
+function validateProvince({ country, province }) {
   if (!country) {
     return false; // if no country selected, we shouldn't have state options yet– let's exit early
   }
-  const states = getProvinces(country.value);
-  if (states.length === 0) {
+  const provinces = getProvinces(country.value);
+  if (provinces.length === 0) {
     return true; // there are no states for this country, so it is "valid"
   }
-  return state && states.some(s => s.code === state.value);
+  return province && provinces.some(s => s.code === province.value);
 }
 
 function validateZipCode(zipCode) {
@@ -61,7 +60,7 @@ const locationAttributeValidators = {
   [LOCATION_FIELDS.FIRST_NAME]: validateFirstName,
   [LOCATION_FIELDS.LAST_NAME]: validateLastName,
   [LOCATION_FIELDS.PHONE_NUMBER]: validatePhoneNumber,
-  [LOCATION_FIELDS.STATE]: validateState,
+  [LOCATION_FIELDS.PROVINCE]: validateProvince,
   [LOCATION_FIELDS.ZIP_CODE]: validateZipCode,
 };
 
