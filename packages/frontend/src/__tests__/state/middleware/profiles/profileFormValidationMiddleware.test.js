@@ -119,7 +119,12 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
+          province: testValid
+            ? 'invalid'
+            : {
+                province: { label: 'Puerto Rico', value: 'PR' },
+                country: { label: 'United States', value: 'US' },
+              },
           country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
@@ -131,7 +136,12 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
+          province: testValid
+            ? 'invalid'
+            : {
+                province: { label: 'Puerto Rico', value: 'PR' },
+                country: { label: 'United States', value: 'US' },
+              },
           country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
@@ -164,7 +174,7 @@ describe('profile form validation middleware', () => {
             address: testValid,
             apt: false,
             city: testValid,
-            state: testValid,
+            province: testValid,
             country: testValid,
             zipCode: testValid,
             phone: testValid,
@@ -178,7 +188,7 @@ describe('profile form validation middleware', () => {
             address: testValid,
             apt: false,
             city: testValid,
-            state: testValid,
+            province: testValid,
             country: testValid,
             zipCode: testValid,
             phone: testValid,
@@ -192,7 +202,7 @@ describe('profile form validation middleware', () => {
           address: testValid,
           apt: false,
           city: testValid,
-          state: testValid,
+          province: testValid,
           country: testValid,
           zipCode: testValid,
           phone: testValid,
@@ -203,7 +213,7 @@ describe('profile form validation middleware', () => {
           address: testValid,
           apt: false,
           city: testValid,
-          state: testValid,
+          province: testValid,
           country: testValid,
           zipCode: testValid,
           phone: testValid,
@@ -230,6 +240,7 @@ describe('profile form validation middleware', () => {
             },
       },
     };
+
     const expectedAction = {
       ...expectedActionBase,
       ...action,
@@ -528,19 +539,22 @@ describe('profile form validation middleware', () => {
             }));
         });
 
-        describe('state', () => {
+        describe('province', () => {
           it('should not generate error flag when valid', () =>
             _testErrorFlag({
-              value: { label: 'Puerto Rico', value: 'PR' },
+              value: {
+                province: { label: 'Puerto Rico', value: 'PR' },
+                country: { label: 'United States', value: 'US' },
+              },
               valid: true,
-              subField: LOCATION_FIELDS.STATE,
+              subField: LOCATION_FIELDS.PROVINCE,
             }));
 
           it('should generate error flag when invalid', () =>
             _testErrorFlag({
               value: 'invalid',
               valid: false,
-              subField: LOCATION_FIELDS.STATE,
+              subField: LOCATION_FIELDS.PROVINCE,
             }));
         });
       };

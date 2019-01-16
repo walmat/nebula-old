@@ -21,7 +21,7 @@ describe('locationStateErrors definitions', () => {
   testErrorKey('apt', true, 'false');
   testErrorKey('city', true, 'false');
   testErrorKey('country', true, 'false');
-  testErrorKey('state', true, 'false');
+  testErrorKey('province', true, 'false');
   testErrorKey('zipCode', true, 'false');
   testErrorKey('phone', true, 'false');
 });

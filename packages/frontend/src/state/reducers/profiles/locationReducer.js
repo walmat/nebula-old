@@ -9,7 +9,7 @@ const locationReducer = (state = initialProfileStates.location, action) => {
   }
   switch (action.type) {
     case LOCATION_FIELDS.COUNTRY:
-      if (!action.value || action.value.value === state.country.value) {
+      if (!action.value || (state.country && action.value.value === state.country.value)) {
         break;
       }
       change = {
@@ -22,7 +22,7 @@ const locationReducer = (state = initialProfileStates.location, action) => {
       if (
         !action.value ||
         !action.value.province ||
-        action.value.province.value === state.province.value
+        (state.province && action.value.province.value === state.province.value)
       ) {
         break;
       }

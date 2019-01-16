@@ -60,7 +60,7 @@ describe('location reducer', () => {
 
     describe('phone number', () => _testEditField(LOCATION_FIELDS.PHONE_NUMBER));
 
-    describe('state', () => _testEditField(LOCATION_FIELDS.STATE));
+    describe('province', () => _testEditField(LOCATION_FIELDS.PROVINCE));
 
     describe('country', () => _testEditField(LOCATION_FIELDS.COUNTRY));
   });
@@ -120,8 +120,8 @@ describe('location reducer', () => {
       _handleErrorsTest(LOCATION_FIELDS.COUNTRY);
     });
 
-    test('for state action', () => {
-      _handleErrorsTest(LOCATION_FIELDS.STATE);
+    test('for province action', () => {
+      _handleErrorsTest(LOCATION_FIELDS.PROVINCE);
     });
   });
 });

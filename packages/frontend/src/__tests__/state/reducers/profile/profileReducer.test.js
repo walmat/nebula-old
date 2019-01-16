@@ -145,9 +145,9 @@ describe('profile reducer', () => {
       });
 
       checkFieldEdit({
-        message: 'state action',
+        message: 'province action',
         field: PROFILE_FIELDS.EDIT_SHIPPING,
-        subField: LOCATION_FIELDS.STATE,
+        subField: LOCATION_FIELDS.PROVINCE,
         value: 'testing',
         initialFieldState: initialProfileStates.location,
       });
@@ -250,7 +250,7 @@ describe('profile reducer', () => {
       checkFieldEdit({
         message: 'state action',
         field: PROFILE_FIELDS.EDIT_BILLING,
-        subField: LOCATION_FIELDS.STATE,
+        subField: LOCATION_FIELDS.PROVINCE,
         value: 'testing',
         initialFieldState: initialProfileStates.location,
       });

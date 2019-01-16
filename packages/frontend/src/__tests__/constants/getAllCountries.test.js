@@ -3,7 +3,7 @@ import getAllCountries, { getCountry, getProvinces } from '../../constants/getAl
 import countries from '../../constants/countries.json';
 
 describe('getAllCountries', () => {
-  it('should return all provinces correctly', () => {
+  it('should return all countries correctly', () => {
     expect(getAllCountries()).toEqual(countries);
   });
 
