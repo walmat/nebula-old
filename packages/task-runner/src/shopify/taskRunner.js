@@ -111,14 +111,12 @@ class TaskRunner {
   }
 
   _handleDelay(id, delay, type) {
-    console.log('in handle delay');
     if (id === this._context.id) {
-      // eslint-disable-next-line no-unused-expressions
-      type === DelayTypes.error
-        ? (this._context.task.errorDelay = delay)
-        : (this._context.task.monitorDelay = delay);
-      console.log(this._context.task.errorDelay, this._context.task.monitorDelay);
-      console.log(this._monitor._context.task.errorDelay, this._monitor._context.task.monitorDelay);
+      if (type === DelayTypes.error) {
+        this._context.task.errorDelay = delay;
+      } else if (type === DelayTypes.monitor) {
+        this._context.task.monitorDelay = delay;
+      }
     }
   }
 

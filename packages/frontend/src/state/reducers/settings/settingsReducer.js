@@ -22,34 +22,23 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         };
         break;
       }
-      case SETTINGS_FIELDS.EDIT_ERROR_DELAY: {
-        const intValue = parseInt(action.value, 10);
-        if (Number.isNaN(intValue)) {
-          break;
-        }
-
-        if (window.Bridge) {
-          window.Bridge.changeDelay(intValue, 'errorDelay');
-        }
-        change = {
-          [mapSettingsFieldToKey[action.field]]: intValue,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-        break;
-      }
+      case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
       case SETTINGS_FIELDS.EDIT_MONITOR_DELAY: {
         const intValue = parseInt(action.value, 10);
-        if (Number.isNaN(intValue)) {
-          break;
+        if (action.value === '' && Number.isNaN(intValue)) {
+          change = {
+            [mapSettingsFieldToKey[action.field]]: 0,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+        } else {
+          change = {
+            [mapSettingsFieldToKey[action.field]]: intValue,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
         }
-
         if (window.Bridge) {
-          window.Bridge.changeDelay(intValue, 'monitorDelay');
+          window.Bridge.changeDelay(intValue, mapSettingsFieldToKey[action.field]);
         }
-        change = {
-          [mapSettingsFieldToKey[action.field]]: intValue,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
         break;
       }
       case SETTINGS_FIELDS.EDIT_PROXIES: {
