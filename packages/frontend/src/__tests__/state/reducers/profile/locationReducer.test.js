@@ -14,11 +14,18 @@ describe('location reducer', () => {
       it('should update when using a non-null value', () => {
         const expected = {
           ...initialProfileStates.location,
-          [field]: 'testing',
+          [field]:
+            field === LOCATION_FIELDS.PROVINCE ? { value: 'AL', label: 'Alabama' } : 'testing',
         };
         const actual = locationReducer(initialProfileStates.location, {
           type: field,
-          value: 'testing',
+          value:
+            field === LOCATION_FIELDS.PROVINCE
+              ? {
+                  province: { value: 'AL', label: 'Alabama' },
+                  country: { value: 'US', label: 'United States' },
+                }
+              : 'testing',
         });
         expect(actual).toEqual(expected);
       });

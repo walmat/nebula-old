@@ -7,6 +7,11 @@ const locationReducer = (state = initialProfileStates.location, action) => {
     // If we can't map the field to a location key, don't change anything
     return Object.assign({}, state);
   }
+  if (action.errors) {
+    change = {
+      errors: action.errors || state.errors,
+    };
+  }
   switch (action.type) {
     case LOCATION_FIELDS.COUNTRY:
       if (!action.value || (state.country && action.value.value === state.country.value)) {

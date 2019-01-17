@@ -230,7 +230,6 @@ describe('profile form validation middleware', () => {
             },
       },
     };
-
     const expectedAction = {
       ...expectedActionBase,
       ...action,
@@ -532,10 +531,7 @@ describe('profile form validation middleware', () => {
         describe('province', () => {
           it('should not generate error flag when valid', () =>
             _testErrorFlag({
-              value: {
-                province: { label: 'Puerto Rico', value: 'PR' },
-                country: { label: 'United States', value: 'US' },
-              },
+              value: { label: 'Puerto Rico', value: 'PR' },
               valid: true,
               subField: LOCATION_FIELDS.PROVINCE,
             }));
