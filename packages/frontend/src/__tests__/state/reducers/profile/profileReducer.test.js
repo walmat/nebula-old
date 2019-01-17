@@ -148,7 +148,10 @@ describe('profile reducer', () => {
         message: 'province action',
         field: PROFILE_FIELDS.EDIT_SHIPPING,
         subField: LOCATION_FIELDS.PROVINCE,
-        value: 'testing',
+        value: {
+          province: { value: 'AL', label: 'Alabama' },
+          country: { value: 'US', label: 'United States' },
+        },
         initialFieldState: initialProfileStates.location,
       });
 
@@ -248,10 +251,13 @@ describe('profile reducer', () => {
       });
 
       checkFieldEdit({
-        message: 'state action',
+        message: 'province action',
         field: PROFILE_FIELDS.EDIT_BILLING,
         subField: LOCATION_FIELDS.PROVINCE,
-        value: 'testing',
+        value: {
+          province: { value: 'AL', label: 'Alabama' },
+          country: { value: 'US', label: 'United States' },
+        },
         initialFieldState: initialProfileStates.location,
       });
 
