@@ -234,13 +234,6 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
         profile: defaults.useProfile ? defaults.profile : state.profile,
         sizes: defaults.useSizes ? defaults.sizes : state.sizes,
       });
-
-      // TEMPORARY PATCH
-      // return {
-      //   ...initialTaskStates.task,
-      //   profile: defaults.useProfile ? defaults.profile : initialTaskStates.task.profile,
-      //   sizes: defaults.useSizes ? defaults.sizes : initialTaskStates.task.sizes,
-      // };
     }
     default:
       break;

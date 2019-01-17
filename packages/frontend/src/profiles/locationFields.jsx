@@ -64,10 +64,9 @@ export class LocationFieldsPrimitive extends Component {
     } = this.props;
     if (country && country.value) {
       const { provinces } = getCountry(country.value);
-      if (provinces && provinces.length > 0) {
-        return false || disabled;
+      if (!provinces || !provinces.length) {
+        return true;
       }
-      return true;
     }
     return disabled;
   }

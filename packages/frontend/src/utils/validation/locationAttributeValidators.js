@@ -41,10 +41,10 @@ function validateProvince({ country, province }) {
     return false; // if no country selected, we shouldn't have state options yet– let's exit early
   }
   const provinces = getProvinces(country.value);
-  if (provinces.length === 0) {
+  if (provinces && provinces.length === 0) {
     return true; // there are no states for this country, so it is "valid"
   }
-  return province && provinces.some(s => s.code === province.value);
+  return provinces && provinces.some(s => s.code === province.value);
 }
 
 function validateZipCode(zipCode) {

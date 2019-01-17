@@ -51,7 +51,7 @@ const TaskRunnerDelayTypes = {
  * Parser Error Codes
  */
 const ParserErrorCodes = {
-  ProductNotFound: 400,
+  ProductNotFound: 'PRODUCT_MISSING',
 };
 
 const CheckoutErrorCodes = {
