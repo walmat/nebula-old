@@ -15,7 +15,7 @@ function waitForDelay(delay) {
 }
 module.exports.waitForDelay = waitForDelay;
 
-function getHeaders(site, auth) {
+function getHeaders(site) {
   return {
     Accept: 'application/json',
     'Content-Type': 'application/json',
@@ -23,13 +23,13 @@ function getHeaders(site, auth) {
     'X-Shopify-Access-Token': `${site.apiKey}`,
     'User-Agent': userAgent,
     host: `${site.url.split('/')[2]}`,
-    authorization: `Basic ${auth}`,
+    authorization: `Basic ${Buffer.from(`${site.apiKey}::`).toString('base64')}`,
   };
 }
 module.exports.getHeaders = getHeaders;
 
 function checkStatusCode(statusCode) {
-  return !!(statusCode === 403 || statusCode === 429 || statusCode === 430);
+  return !!(statusCode === 303 || statusCode === 403 || statusCode === 429 || statusCode === 430);
 }
 module.exports.checkStatusCode = checkStatusCode;
 
