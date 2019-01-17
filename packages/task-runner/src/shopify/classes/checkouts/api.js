@@ -1,16 +1,10 @@
 /* eslint-disable camelcase */
 const _ = require('underscore');
-const cheerio = require('cheerio');
 
-const { formatProxy, getHeaders, now, checkStatusCode } = require('../utils');
-const {
-  createCheckoutForm,
-  patchToCart,
-  paymentReviewForm,
-  paymentMethodForm,
-} = require('../utils/forms');
+const { formatProxy, getHeaders, now } = require('../utils');
+const { createCheckoutForm, patchToCart, paymentReviewForm } = require('../utils/forms');
 const { CheckoutErrorCodes } = require('../utils/constants').ErrorCodes;
-const { Delays, CheckoutTimeouts, ShopifyPaymentSteps } = require('../utils/constants').Checkout;
+const { Delays, CheckoutTimeouts } = require('../utils/constants').Checkout;
 
 const Checkout = require('../checkout');
 
@@ -20,6 +14,14 @@ class APICheckout extends Checkout {
     this._context = context;
     this._logger = this._context.logger;
     this._request = this._context.request;
+  }
+
+  async login() {
+    super.login();
+  }
+
+  async paymentToken() {
+    super.paymentToken();
   }
 
   async createCheckout() {
@@ -36,27 +38,31 @@ class APICheckout extends Checkout {
         encoding: null,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
-        headers: getHeaders(site),
+        headers: getHeaders(),
         body: createCheckoutForm(profile, shipping, billing, payment),
       });
-
       // check for soft ban
-      const { statusCode } = res;
-      let { body } = res;
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
+      if (res.statusCode > 400) {
+        return {
+          code: res.statusCode,
+          error: true,
+        };
       }
 
       // did we receive a queue response?
-      if (body.toString().indexOf('/poll') > -1) {
+      if (res.body.toString().indexOf('/poll') > -1) {
         /**
          * <html><body>You are being <a href="https://yeezysupply.com/checkout/poll">redirected</a>.</body></html>
          */
         this._logger.verbose('CHECKOUT: Checkout queue, polling %d ms', Delays.PollCheckoutQueue);
-        return { status: 303 };
+        return {
+          code: 303,
+          error: null,
+        };
       }
 
       // let's try to parse the response if not
+      let body;
       try {
         body = JSON.parse(res.body.toString());
         if (body.checkout) {
@@ -64,19 +70,19 @@ class APICheckout extends Checkout {
           const { clone_url } = checkout;
           this._logger.verbose('CHECKOUT: Created checkout token: %s', clone_url.split('/')[5]);
           // eslint-disable-next-line prefer-destructuring
-          this.storeId = clone_url.split('/')[3];
+          this._storeId = clone_url.split('/')[3];
           // eslint-disable-next-line prefer-destructuring
-          this.paymentUrlKey = checkout.web_url.split('=')[1];
+          this._paymentUrlKey = checkout.web_url.split('=')[1];
           // push the checkout token to the stack
-          this.checkoutTokens.push(clone_url.split('/')[5]);
-          return { errors: null };
+          this._checkoutTokens.push(clone_url.split('/')[5]);
+          return { code: 200, res: clone_url.split('/')[5] };
         }
         // might not ever get called, but just a failsafe
         this._logger.debug('Failed: Creating checkout session %s', res);
-        return { errors: true };
+        return { code: 400, res: null };
       } catch (err) {
         this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
-        return { errors: true };
+        return { code: err.statusCode, error: err };
       }
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %s', err);
@@ -84,28 +90,31 @@ class APICheckout extends Checkout {
     }
   }
 
+  async pollQueue() {
+    super.pollQueue();
+  }
+
   async addToCart() {
     const { site, product } = this._context.task;
-    const { url } = site;
 
-    if (this.checkoutToken || this.checkoutTokens.length > 0) {
+    if (super._checkoutToken || super._checkoutTokens.length > 0) {
       this._logger.verbose('API CHECKOUT: Adding to cart');
-      this.checkoutToken = this.checkoutToken || this.checkoutTokens.pop();
+      super._checkoutToken = super._checkoutToken || super._checkoutTokens.pop();
       try {
         const res = await this._request({
-          uri: `${url}/wallets/checkouts/${this.checkoutToken}.json`,
+          uri: `${this._task.site.url}/wallets/checkouts/${this._checkoutToken}.json`,
           method: 'PATCH',
-          proxy: formatProxy(this._context.proxy),
+          proxy: formatProxy(this._proxy),
           simple: false,
           json: true,
           rejectUnauthorized: false,
           resolveWithFullResponse: true,
-          headers: getHeaders(site),
+          headers: getHeaders(),
           body: patchToCart(product.variants[0], site),
         });
 
         const { statusCode } = res;
-        if (checkStatusCode(statusCode)) {
+        if (this.isBanned(statusCode)) {
           return { status: statusCode };
         }
 
@@ -124,9 +133,10 @@ class APICheckout extends Checkout {
         if (res.body.checkout && res.body.checkout.line_items.length > 0) {
           this._logger.verbose('Successfully added to cart');
           const { total_price } = res.body.checkout;
-          this.prices.item = parseFloat(total_price).toFixed(2);
+          this._prices.item = parseFloat(total_price).toFixed(2);
           return { errors: null };
         }
+
         return { errors: CheckoutErrorCodes.ATC };
       } catch (err) {
         this._logger.debug('API CHECKOUT: Request error adding to cart %j', err);
@@ -144,7 +154,7 @@ class APICheckout extends Checkout {
 
     try {
       const res = await this._request({
-        uri: `${url}/wallets/checkouts/${this.checkoutToken}/shipping_rates.json`,
+        uri: `${url}/wallets/checkouts/${super._checkoutToken}/shipping_rates.json`,
         proxy: formatProxy(this._context.proxy),
         followAllRedirects: true,
         resolveWithFullResponse: true,
@@ -152,12 +162,12 @@ class APICheckout extends Checkout {
         json: true,
         simple: false,
         method: 'get',
-        headers: getHeaders(site),
+        headers: getHeaders(),
       });
 
       const { statusCode, body } = res;
 
-      if (checkStatusCode(statusCode)) {
+      if (this.isBanned(statusCode)) {
         return { status: statusCode };
       }
 
@@ -171,19 +181,22 @@ class APICheckout extends Checkout {
         // eslint-disable-next-line camelcase
         const { shipping_rates } = body;
         shipping_rates.forEach(rate => {
-          this.shippingMethods.push(rate);
+          super._shippingMethods.push(rate);
         });
 
-        const cheapest = _.min(this.shippingMethods, rate => rate.price);
+        const cheapest = _.min(super._shippingMethods, rate => rate.price);
         const { id, title } = cheapest;
-        this.chosenShippingMethod = { id, name: title };
-        this._logger.verbose('CHECKOUT: Using shipping method: %s', this.chosenShippingMethod.name);
+        super._chosenShippingMethod = { id, name: title };
+        this._logger.verbose(
+          'CHECKOUT: Using shipping method: %s',
+          super._chosenShippingMethod.name,
+        );
 
         // set shipping price for cart
-        let { shipping } = this.prices;
+        let { shipping } = this._prices;
         shipping = parseFloat(cheapest.price).toFixed(2);
         this._logger.silly('CHECKOUT: Shipping total: %s', shipping);
-        return { errors: null, rate: this.chosenShippingMethod.name };
+        return { errors: null, rate: super._chosenShippingMethod.name };
       }
       this._logger.verbose('No shipping rates available, polling %d ms', Delays.PollShippingRates);
       return { errors: CheckoutErrorCodes.ShippingRates };
@@ -193,87 +206,18 @@ class APICheckout extends Checkout {
     }
   }
 
-  async requestCaptcha() {
-    super.requestCaptcha();
+  async harvestCaptcha() {
+    super.harvestCaptcha();
   }
 
-  async paymentGateway() {
-    this._logger.verbose('CHECKOUT: Finding payment gateway');
-    const { site } = this._context.task;
-    const { url, apiKey } = site;
-    const { item, shipping } = this.prices;
-    let { total } = this.prices;
-
-    const headers = {
-      ...getHeaders(site),
-      Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.8',
-      Connection: 'Keep-Alive',
-      'Content-Type': 'multipart/form-data;',
-      'Upgrade-Insecure-Requests': '1',
-      'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-    };
-
-    // log total price of cart, maybe show this in analytics when we get that setup in the future
-    total = (parseFloat(item) + parseFloat(shipping)).toFixed(2);
-    this._logger.silly('CHECKOUT: Cart total: %s', total);
-
-    try {
-      const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}?key=${
-          this.paymentUrlKey
-        }&previous_step=shipping_method&step=payment_method`,
-        method: 'get',
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        rejectUnauthorized: false,
-        proxy: formatProxy(this._context.proxy),
-        headers,
-      });
-
-      // check if redirected to `/account/login` page
-      if (res && res.request && res.request.uri) {
-        if (res.request.uri.href.indexOf('account') > -1) {
-          return { errors: CheckoutErrorCodes.Account };
-        }
-      }
-
-      const { statusCode, body } = res;
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
-      }
-
-      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      let step = $('.step').attr('data-step');
-      if (!step) {
-        step = $('#step').attr('data-step');
-      }
-
-      this._logger.silly('CHECKOUT: 1st request step: %s', step);
-      if (step === ShopifyPaymentSteps.ContactInformation) {
-        return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
-      }
-      if (step === ShopifyPaymentSteps.PaymentMethod) {
-        this.gateway = $(".radio-wrapper.content-box__row[data-gateway-group='direct']").attr(
-          'data-select-gateway',
-        );
-        this._logger.silly('CHECKOUT: Found payment gateway: %s', this.gateway);
-        return { errors: null };
-      }
-      return { errors: CheckoutErrorCodes.InvalidGateway };
-    } catch (err) {
-      this._logger.debug('CHECKOUT: Request error fetching payment gateway: %j', err);
-      return { errors: true };
-    }
-  }
+  async paymentGateway() {}
 
   async postPayment() {
     this._logger.verbose('CHECKOUT: Handling post payment step');
     const { site } = this._context.task;
     const { url, apiKey } = site;
     const headers = {
-      ...getHeaders(site),
+      ...getHeaders(),
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
@@ -283,21 +227,26 @@ class APICheckout extends Checkout {
       'X-Shopify-Storefront-Access-Token': `${apiKey}`,
     };
 
-    const { id } = this.chosenShippingMethod;
+    const { id } = super._chosenShippingMethod;
     try {
       const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}?key=${this.paymentUrlKey}`,
+        uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._paymentUrlKey}`,
         method: 'post',
         followAllRedirects: true,
         resolveWithFullResponse: true,
         rejectUnauthorized: false,
-        proxy: formatProxy(this._context.proxy),
+        proxy: formatProxy(this._proxy),
         headers,
-        formData: paymentMethodForm(this.paymentTokens.pop(), this.gateway, id, this.captchaToken),
+        formData: paymentMethodForm(
+          this._paymentTokens.pop(),
+          this._gateway,
+          id,
+          this._captchaToken,
+        ),
       });
 
       const { statusCode, body } = res;
-      if (checkStatusCode(statusCode)) {
+      if (this.isBanned(statusCode)) {
         return { status: statusCode };
       }
 
@@ -308,8 +257,9 @@ class APICheckout extends Checkout {
       }
 
       this._logger.silly('CHECKOUT: 2nd request step: %s', step);
+
       if (step === ShopifyPaymentSteps.ContactInformation) {
-        this._logger.verbose('CHECKOUT: Captcha failed, harvesting...');
+        this._logger.verbose('CHECKOUT: Captcha failed, retrying');
         return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
       }
 
@@ -328,11 +278,11 @@ class APICheckout extends Checkout {
     this._logger.verbose('API CHECKOUT: Handling review payment step');
     const { site } = this._context.task;
     const { url, apiKey } = site;
-    const { item, shipping } = this.prices;
-    let { total } = this.prices;
+    const { item, shipping } = super._prices;
+    let { total } = this._prices;
 
     const headers = {
-      ...getHeaders(site),
+      ...getHeaders(),
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
@@ -347,20 +297,20 @@ class APICheckout extends Checkout {
 
     try {
       const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}?key=${
-          this.paymentUrlKey
+        uri: `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${
+          this._paymentUrlKey
         }&step=review`,
         method: 'post',
         followAllRedirects: true,
         resolveWithFullResponse: true,
         rejectUnauthorized: false,
-        proxy: formatProxy(this._context.proxy),
+        proxy: formatProxy(this._proxy),
         headers,
-        formData: paymentReviewForm(total, this.captchaToken),
+        formData: paymentReviewForm(total, this._captchaToken),
       });
 
       const { statusCode } = res;
-      if (checkStatusCode(statusCode)) {
+      if (this.isBanned(statusCode)) {
         return { status: statusCode };
       }
       return { errors: null };
@@ -379,7 +329,7 @@ class APICheckout extends Checkout {
     }
 
     const headers = {
-      ...getHeaders(site),
+      ...this._headers(),
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
@@ -391,9 +341,9 @@ class APICheckout extends Checkout {
 
     try {
       const res = await this._request({
-        uri: `${url}/wallets/checkouts/${this.checkoutToken}/payments`,
+        uri: `${url}/wallets/checkouts/${this._checkoutToken}/payments`,
         method: 'GET',
-        proxy: formatProxy(this._context.proxy),
+        proxy: formatProxy(this._proxy),
         simple: false,
         json: true,
         rejectUnauthorized: false,
@@ -401,16 +351,12 @@ class APICheckout extends Checkout {
         headers,
       });
       const { statusCode, body } = res;
-      if (checkStatusCode(statusCode)) {
+      if (this.isBanned(statusCode)) {
         return { status: statusCode };
       }
       this._logger.verbose('CHECKOUT: Payments object: %j', body);
       const { payments } = body;
-      if (payments.length === 0) {
-        this._logger.verbose('CHECKOUT: Processing payment');
-        return { errors: CheckoutErrorCodes.Processing };
-      }
-      if (body && payments) {
+      if (body && payments[0]) {
         const { payment_processing_error_message } = payments[0];
         this._logger.verbose('CHECKOUT: Payment error: %j', payment_processing_error_message);
         if (payment_processing_error_message) {

@@ -1,13 +1,32 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
-const { waitForDelay, formatProxy, userAgent, getHeaders, checkStatusCode } = require('./utils');
-const { buildPaymentForm } = require('./utils/forms');
-const { Delays } = require('../classes/utils/constants').Checkout;
+const _ = require('underscore');
+const { waitForDelay, formatProxy, userAgent, now } = require('./utils');
+const {
+  buildPaymentForm,
+  createCheckoutForm,
+  patchToCart,
+  paymentMethodForm,
+  paymentReviewForm,
+} = require('./utils/forms');
+const {
+  CheckoutTimeouts,
+  Delays,
+  ShopifyPaymentSteps,
+} = require('../classes/utils/constants').Checkout;
+const { States } = require('./utils/constants').TaskRunner;
 const { CheckoutErrorCodes } = require('./utils/constants').ErrorCodes;
+const {
+  getCheckoutMethod,
+  CheckoutMethods,
+  APICheckout,
+  FrontendCheckout,
+} = require('./checkouts');
 
 class Checkout {
   constructor(context) {
     this._context = context;
+    this._request = this._context.request;
     this._logger = this._context.logger;
     this._request = this._context.request;
 
@@ -22,6 +41,7 @@ class Checkout {
 
     this.storeId = null;
     this.paymentUrlKey = null;
+    this.basicAuth = Buffer.from(`${this._context.task.site.apiKey}::`).toString('base64');
     this.prices = {
       item: 0,
       shipping: 0,
@@ -31,103 +51,12 @@ class Checkout {
     this.captchaToken = '';
   }
 
-  // MARK : Methods defined in subclasses
-
-  async addToCart() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async createCheckout() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async shippingRates() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async paymentGateway() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async postPayment() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async paymentReview() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async paymentProcessing() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  // MARK : Shared super class methods
-
-  async login() {
-    const { site, username, password } = this._context.task;
-    const { url } = site;
-    this._logger.verbose('CHECKOUT: Starting login request to %s', url);
-
-    try {
-      const res = await this._request({
-        uri: `${url}/account/login`,
-        method: 'post',
-        simple: false,
-        rejectUnauthorized: false,
-        followAllRedirects: true,
-        proxy: formatProxy(this._context.proxy),
-        resolveWithFullResponse: true,
-        headers: {
-          'User-Agent': userAgent,
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Referer: `${url}/account/login`,
-        },
-        formData: {
-          form_data: 'customer_login',
-          utf8: '✓',
-          'customer[email]': username,
-          'customer[password]': password,
-          authenticity_token: this.authTokens.length > 0 ? this.authTokens.shift() : '',
-          'g-recaptcha-response': this.captchaToken,
-        },
-      });
-
-      const { statusCode, request, headers } = res;
-      const { href } = request;
-
-      if (href.indexOf('password') > -1) {
-        return { errors: CheckoutErrorCodes.Password };
-      }
-
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
-      }
-
-      if (href.indexOf('challenge') > -1) {
-        this._logger.verbose('CHECKOUT: Login needs captcha');
-        const $ = cheerio.load(res.body);
-        const authToken = $('form input[name="authenticity_token"]').attr('value');
-        this.authTokens.push(authToken);
-        return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
-      }
-
-      if (href.indexOf('login') > -1) {
-        this._logger.verbose('CHECKOUT: Invalid login credentials');
-        return { errors: CheckoutErrorCodes.InvalidLogin };
-      }
-
-      this._logger.verbose('CHECKOUT: Login response cookies: %j', headers['set-cookie']);
-      this._logger.info('Logged in! Proceeding to add to cart');
-      return { errors: null };
-    } catch (err) {
-      this._logger.debug('ACCOUNT: Error logging in: %s', err);
-      return { errors: err };
-    }
-  }
-
-  async paymentToken() {
+  /**
+   * Called 5 times at the start of the task
+   * Generates a payment token using the task data provided from the task runner
+   * @returns {String} payment token
+   */
+  async handleGeneratePaymentToken() {
     const { payment, billing } = this._context.task.profile;
     this._logger.verbose('CHECKOUT: Generating Payment Token');
     try {
@@ -156,6 +85,49 @@ class Checkout {
       this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
       return null;
     }
+  }
+
+  /**
+   * Request to login to an account on Shopify sites
+   */
+  async handleLogin() {
+    const { site, username, password } = this._context.task;
+    const { url } = site;
+    this._logger.verbose('CHECKOUT: Starting login request to %s', url);
+
+    this._request({
+      uri: `${url}/account/login`,
+      method: 'post',
+      simple: true,
+      followAllRedirects: true,
+      proxy: formatProxy(this._context.proxy),
+      resolveWithFullResponse: true,
+      headers: {
+        'User-Agent': userAgent,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Referer: `${url}`,
+      },
+      formData: {
+        form_data: 'customer_login',
+        utf8: '✓',
+        'customer[email]': username,
+        'customer[password]': password,
+      },
+    })
+      .then(res => {
+        this._logger.verbose('ACCOUNT: Login response cookies: %j', res.headers['set-cookie']);
+        if (res.request.href.indexOf('login') > -1) {
+          return false;
+        }
+        this._logger.info('Logged in! Proceeding to add to cart');
+        return true;
+      })
+      .catch(err => {
+        this._logger.debug('ACCOUNT: Error logging in: %s', err);
+        return {
+          errors: err,
+        };
+      });
   }
 
   /**
@@ -268,6 +240,37 @@ class Checkout {
     this._logger.verbose('CHECKOUT: Received token from captcha harvesting: %s', token);
     this.captchaToken = token;
     return { errors: null };
+  }
+
+  async run() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return { nextState: States.Aborted };
+    }
+
+    this._checkoutMethod = getCheckoutMethod(this._context.task.site, this._logger);
+
+    let checkout;
+    switch (this._checkoutMethod) {
+      case CheckoutMethods.Api: {
+        checkout = new APICheckout(this._context);
+        break;
+      }
+      case CheckoutMethods.Frontend: {
+        checkout = new FrontendCheckout(this._context);
+        break;
+      }
+      default: {
+        this._logger.verbose(
+          'CHECKOUT: Unable to determine checkout mode %s, retrying...',
+          this._checkoutMethod,
+        );
+        return { nextState: States.Errored };
+      }
+    }
+    if (checkout) {
+      checkout.run();
+    }
   }
 }
 
