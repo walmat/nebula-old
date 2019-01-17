@@ -44,6 +44,8 @@ const IPCKeys = {
   RequestStopTasks: 'RequestStopTasks',
   RequestAddProxies: 'RequestAddProxies',
   RequestRemoveProxies: 'RequestRemoveProxies',
+
+  RequestChangeDelay: 'RequestChangeDelay',
 };
 
 module.exports = IPCKeys;

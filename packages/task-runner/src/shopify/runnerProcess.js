@@ -60,6 +60,11 @@ function wireEventHandlers(runner) {
         runner._events.emit(TaskRunnerEvents.ReceiveProxy, ...args);
         break;
       }
+      case TaskManagerEvents.ChangeDelay: {
+        // TODO: Respect the scope of Runner (issue #137)
+        runner._events.emit(TaskManagerEvents.ChangeDelay, ...args);
+        break;
+      }
       default: {
         break;
       }

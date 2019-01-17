@@ -6,7 +6,7 @@ const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const Checkout = require('./classes/checkout');
 const AsyncQueue = require('./classes/asyncQueue');
-const { States, Events } = require('./classes/utils/constants').TaskRunner;
+const { States, Events, DelayTypes } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { CheckoutErrorCodes } = require('./classes/utils/constants').ErrorCodes;
 const { createLogger } = require('../common/logger');
@@ -88,10 +88,13 @@ class TaskRunner {
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleHarvest = this._handleHarvest.bind(this);
+    this._handleDelay = this._handleDelay.bind(this);
+
+    this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay);
   }
 
   _waitForErrorDelay() {
-    this._logger.debug('Waiting for error delay...');
+    this._logger.debug('Waiting for error delay... %d', this._context.task.errorDelay);
     return waitForDelay(this._context.task.errorDelay);
   }
 
@@ -104,6 +107,16 @@ class TaskRunner {
   _handleHarvest(id, token) {
     if (id === this._context.id) {
       this._captchaQueue.insert(token);
+    }
+  }
+
+  _handleDelay(id, delay, type) {
+    if (id === this._context.id) {
+      if (type === DelayTypes.error) {
+        this._context.task.errorDelay = delay;
+      } else if (type === DelayTypes.monitor) {
+        this._context.task.monitorDelay = delay;
+      }
     }
   }
 

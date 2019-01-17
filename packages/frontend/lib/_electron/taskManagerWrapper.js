@@ -57,6 +57,8 @@ class TaskManagerWrapper {
 
     context.ipc.on(IPCKeys.RequestRemoveProxies, this._onRemoveProxiesRequest.bind(this));
 
+    context.ipc.on(IPCKeys.RequestChangeDelay, this._onChangeDelayRequest.bind(this));
+
     context.ipc.on(IPCKeys.HarvestCaptcha, this._onHarvestToken.bind(this));
 
     // TEMPORARY
@@ -192,6 +194,10 @@ class TaskManagerWrapper {
 
   _onRemoveProxiesRequest(_, proxies) {
     this._taskManager.deregisterProxies(proxies);
+  }
+
+  _onChangeDelayRequest(_, delay, type) {
+    this._taskManager.changeDelay(delay, type);
   }
 }
 

@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-return-assign */
 const EventEmitter = require('events');
 const hash = require('object-hash');
 const shortid = require('shortid');
@@ -356,6 +358,13 @@ class TaskManager {
     }
   }
 
+  changeDelay(delay, type) {
+    this._logger.info('Changing %s to: %s ms', type, delay);
+    Object.keys(this._runners).forEach(k => {
+      this._handlers[k].delay(k, delay, type);
+    });
+  }
+
   async setup() {
     let runnerId;
     do {
@@ -487,6 +496,12 @@ class TaskManager {
           runner._events.emit(TaskRunner.Events.ReceiveProxy, id, proxy);
         }
       },
+      delay: (id, delay, type) => {
+        if (id === runner.id) {
+          // TODO: Respect the scope of the _events variable (issue #137)
+          runner._events.emit(TaskRunner.Events.ReceiveDelay, id, delay, type);
+        }
+      },
     };
     this._handlers[runner.id] = handlers;
 
@@ -494,6 +509,7 @@ class TaskManager {
     this._events.on('abort', handlers.abort);
     this._events.on(Events.Harvest, handlers.harvest);
     this._events.on(Events.SendProxy, handlers.proxy);
+    this._events.on(Events.ChangeDelay, handlers.delay);
 
     // Attach Manager Handlers to Runner Events
     // TODO: Respect the scope of the _events variable (issue #137)
@@ -505,7 +521,7 @@ class TaskManager {
   }
 
   _cleanup(runner) {
-    const { abort, harvest, proxy } = this._handlers[runner.id];
+    const { abort, harvest, proxy, delay } = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
     runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
@@ -517,6 +533,7 @@ class TaskManager {
     this._events.removeListener('abort', abort);
     this._events.removeListener(Events.Harvest, harvest);
     this._events.removeListener(Events.SendProxy, proxy);
+    this._events.removeListener(Events.ChangeDelay, delay);
   }
 
   async _start([runnerId, task, openProxy]) {

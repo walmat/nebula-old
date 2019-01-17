@@ -171,17 +171,14 @@ const _confirmDialog = async message =>
  */
 const _registerForTaskEvents = handler => {
   _sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
-  ipcRenderer.once(
-    IPCKeys.RequestRegisterTaskEventHandler,
-    (event, eventKey) => {
-      // Check and make sure we have a key to listen on
-      if (eventKey) {
-        _handleEvent(eventKey, handler);
-      } else {
-        console.error('Unable to Register for Task Events!');
-      }
-    },
-  );
+  ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to listen on
+    if (eventKey) {
+      _handleEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Register for Task Events!');
+    }
+  });
 };
 
 /**
@@ -189,17 +186,14 @@ const _registerForTaskEvents = handler => {
  */
 const _deregisterForTaskEvents = handler => {
   _sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
-  ipcRenderer.once(
-    IPCKeys.RequestDeregisterTaskEventHandler,
-    (event, eventKey) => {
-      // Check and make sure we have a key to deregister from
-      if (eventKey) {
-        _removeEvent(eventKey, handler);
-      } else {
-        console.error('Unable to Deregister from Task Events!');
-      }
-    },
-  );
+  ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+    // Check and make sure we have a key to deregister from
+    if (eventKey) {
+      _removeEvent(eventKey, handler);
+    } else {
+      console.error('Unable to Deregister from Task Events!');
+    }
+  });
 };
 
 /**
@@ -228,6 +222,10 @@ const _addProxies = proxies => {
  */
 const _removeProxies = proxies => {
   _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
+};
+
+const _changeDelay = (delay, type) => {
+  _sendEvent(IPCKeys.RequestChangeDelay, delay, type);
 };
 
 // Disable eval in the preload context
@@ -273,6 +271,7 @@ process.once('loaded', () => {
   window.Bridge.stopTasks = _stopTasks;
   window.Bridge.addProxies = _addProxies;
   window.Bridge.removeProxies = _removeProxies;
+  window.Bridge.changeDelay = _changeDelay;
 
   window.Bridge.testWebhook = _testWebhook;
 

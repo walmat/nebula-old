@@ -1,6 +1,12 @@
-import { TASK_ACTIONS, PROFILE_ACTIONS } from '../../actions';
+import {
+  TASK_ACTIONS,
+  PROFILE_ACTIONS,
+  SETTINGS_FIELDS,
+  mapSettingsFieldToKey,
+} from '../../actions';
 import { taskReducer } from './taskReducer';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
+import { SETTINGS_ACTIONS } from '../../actions/settings/settingsActions';
 
 let _num = 1;
 
@@ -27,6 +33,26 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
+    // patch to check for settings updates
+    case SETTINGS_ACTIONS.EDIT: {
+      if (
+        action.field !== SETTINGS_FIELDS.EDIT_ERROR_DELAY &&
+        action.field !== SETTINGS_FIELDS.EDIT_MONITOR_DELAY
+      ) {
+        break;
+      }
+      const strValue = action.value || '0'; // If action.value is empty, we'll use 0
+      const intValue = parseInt(strValue, 10);
+      if (Number.isNaN(intValue)) {
+        // action.value isn't a valid integer, so we do nothing
+        break;
+      }
+      // eslint-disable-next-line no-restricted-syntax
+      for (const task of nextState) {
+        task[mapSettingsFieldToKey[action.field]] = intValue;
+      }
+      break;
+    }
     // patch to check for profile updates
     case PROFILE_ACTIONS.ADD:
     case PROFILE_ACTIONS.UPDATE: {
@@ -34,9 +60,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (!action.profile || action.errors) {
         break;
       }
-      // find all tasks where the profile is used
-      const tasks = nextState.filter(task => task.profile.id === action.profile.id);
-      tasks.forEach(task => Object.assign({}, task.profile, action.profile));
+      // eslint-disable-next-line no-restricted-syntax
+      for (const task of nextState) {
+        if (task.profile.id === action.profile.id) {
+          task.profile = action.profile;
+        }
+      }
       break;
     }
     // patch to remove tasks containing removed profile
