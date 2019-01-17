@@ -1,7 +1,7 @@
-const IPCKeys = require('../common/constants');
 const moment = require('moment');
 const _ = require('underscore');
 
+const IPCKeys = require('../common/constants');
 const TokenContainer = require('../common/classes/tokenContainer');
 
 class CaptchaWindowManager {
@@ -47,14 +47,11 @@ class CaptchaWindowManager {
     context.ipc.on(IPCKeys.RequestLaunchYoutube, this._onRequestLaunchYoutube.bind(this));
     context.ipc.on(IPCKeys.RequestEndSession, this._onRequestEndSession.bind(this));
     context.ipc.on(IPCKeys.HarvestCaptcha, this._onRequestHarvestToken.bind(this));
-    context.ipc.on(
-      IPCKeys.RequestRefreshCaptchaWindow,
-      this._onRequestRefreshCaptchaWindow.bind(this),
-    );
+    context.ipc.on(IPCKeys.RequestRefresh, this._onRequestRefreshCaptchaWindow.bind(this));
 
     /**
-    * Constantly check for expired tokens every second
-    */
+     * Constantly check for expired tokens every second
+     */
     this._checkTokens = setInterval(this.checkTokens, 1000);
   }
 
@@ -63,7 +60,7 @@ class CaptchaWindowManager {
    */
   checkTokens() {
     if (this._tokens && this._tokens.length > 0) {
-      this._tokens.forEach((token) => {
+      this._tokens.forEach(token => {
         token.setTimestamp(110 - moment().diff(moment(token.timestamp, 'seconds')));
         if (this.isTokenExpired(token)) {
           this.removeExpiredToken(token);
@@ -80,7 +77,8 @@ class CaptchaWindowManager {
     // if token has existed for > 110 seconds
     if (moment().diff(moment(token.timestamp), 'seconds') > 110) {
       return true;
-    } return false;
+    }
+    return false;
   }
 
   /**
@@ -118,14 +116,17 @@ class CaptchaWindowManager {
    *
    */
   setProxy(proxy) {
-    this._session.setProxy({
-      pacScript: null,
-      proxyRules: proxy,
-      proxyBypassRules: null,
-    }, () => {
-      const p = this.resolveProxy('https://www.google.com/');
-      console.log(`Using proxy: ${p}`);
-    });
+    this._session.setProxy(
+      {
+        pacScript: null,
+        proxyRules: proxy,
+        proxyBypassRules: null,
+      },
+      () => {
+        const p = this.resolveProxy('https://www.google.com/');
+        console.log(`Using proxy: ${p}`);
+      },
+    );
   }
 
   /**
@@ -156,7 +157,7 @@ class CaptchaWindowManager {
       });
     } else {
       this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
-    } 
+    }
   }
 
   stopHarvestingCaptcha(runnerId, siteKey) {
@@ -181,9 +182,11 @@ class CaptchaWindowManager {
 
   /**
    * Refresh window object
-  */
+   */
   _onRequestRefreshCaptchaWindow() {
-    this._captchaWindow.reload();
+    if (this._captchaWindow) {
+      this._captchaWindow.reload();
+    }
   }
 
   async _onRequestLaunchYoutube() {

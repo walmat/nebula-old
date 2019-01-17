@@ -62,22 +62,10 @@ class WindowManager {
     /**
      * IPC Function Definitions
      */
-    context.ipc.on(
-      IPCKeys.RequestCreateNewWindow,
-      this._onRequestCreateNewWindow.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.RequestSendMessage,
-      this._onRequestSendMessage.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.RequestGetWindowIDs,
-      this._onRequestGetWindowIDs.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.RequestCloseWindow,
-      this._onRequestWindowClose.bind(this),
-    );
+    context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
+    context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
+    context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
+    context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
     context.ipc.on(
       IPCKeys.RequestCloseAllCaptchaWindows,
       this._onRequestCloseAllCaptchaWindows.bind(this),
@@ -157,7 +145,7 @@ class WindowManager {
                 this._context._session.fromPartition(`${w.id}`),
               ),
             );
-            w.loadURL(`https://127.0.0.1:${serverPort}/captcha.html`);
+            w.loadURL('http://checkout.shopify.com');
           }
           break;
         }
@@ -173,7 +161,10 @@ class WindowManager {
         w.loadURL(urls.get(tag));
       }
 
-      this.addWindowEventListeners(w);
+      // Make sure window was created before adding event listeners
+      if (w) {
+        this.addWindowEventListeners(w);
+      }
 
       return w;
     }
@@ -237,7 +228,6 @@ class WindowManager {
             captchaWindowManager._youtubeWindow = null;
           }
         });
-
         if (this._captchas.size === 0) {
           // Close the server
           console.log('[DEBUG]: Stopping captcha server...');
@@ -369,10 +359,10 @@ class WindowManager {
     } else if (this._captchas.size > 0) {
       this._captchas.forEach(w => {
         if (id === w._captchaWindow.id) {
-          w._captchaWindow.close();
           if (w._youtubeWindow) {
             w._youtubeWindow.close();
           }
+          w._captchaWindow.close();
         }
       });
     } else if (this._aboutDialog && this._aboutDialog.id === id) {
