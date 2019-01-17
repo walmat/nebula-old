@@ -24,7 +24,8 @@ describe('profile reducer', () => {
           ...initialProfileStates.profile,
           [mapProfileFieldToKey[field]]: {
             ...initialFieldState,
-            [mapLocationFieldToKey[subField] || mapPaymentFieldToKey[subField]]: value,
+            [mapLocationFieldToKey[subField] || mapPaymentFieldToKey[subField]]:
+              subField === LOCATION_FIELDS.PROVINCE ? value.province : value,
           },
         };
         const actual = profileReducer(initialProfileStates.profile, {
