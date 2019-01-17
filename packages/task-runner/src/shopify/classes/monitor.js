@@ -87,20 +87,25 @@ class Monitor {
   _generateValidVariants(product) {
     const { sizes, site } = this._context.task;
     // Group variants by their size
-    const variantsBySize = _.groupBy(
-      product.variants,
-      variant =>
-        // Use the variant option or the title segment
+    const variantsBySize = _.groupBy(product.variants, variant => {
+      // Use the variant option or the title segment
+      const option =
         variant[urlToVariantOption[site.url]].toUpperCase() ||
-        urlToTitleSegment[site.url](variant.title).toUpperCase(),
-    );
+        urlToTitleSegment[site.url](variant.title).toUpperCase();
+      // TEMPORARY: Sometimes the option1 value contains /'s to separate regional sizes.
+      //   Until this case gets fully solved in issue #239
+      if (option.indexOf('/') > 0) {
+        const newOption = urlToTitleSegment[site.url](variant.title).toUpperCase();
+        return newOption;
+      }
+      return option;
+    });
 
     // Get the groups in the same order as the sizes
     const mappedVariants = sizes.map(size => {
       // if we're choosing a random size ..generate a random size for now for each respective category
       // TODO - implement a "stock checker" to choose the one with the most stock
       // (this will give our users a better chance of at least getting one)
-      this._context.logger.verbose('MONITOR: variants for size: %j', variantsBySize);
       if (size === 'Random') {
         const val = getRandomIntInclusive(0, Object.keys(variantsBySize).length);
         const variant = variantsBySize[Object.keys(variantsBySize)[val]];
@@ -113,10 +118,16 @@ class Monitor {
       return variantsBySize[variant];
     });
 
-    this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
+    // this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
     // Flatten the groups to a one-level array and remove null elements
     const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
-    this._context.logger.verbose('MONITOR: valid variants: %j', validVariants);
+    // only pick certain properties of the variants to print
+    this._context.logger.verbose(
+      'MONITOR: valid variants: %j',
+      validVariants.map(v =>
+        _.pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
+      ),
+    );
     if (validVariants.length > 0) {
       return validVariants.map(v => `${v.id}`);
     }

@@ -11,7 +11,6 @@ const {
   paymentReviewForm,
 } = require('./utils/forms');
 const {
-  CheckoutStates,
   CheckoutTimeouts,
   Delays,
   ShopifyPaymentSteps,
