@@ -161,7 +161,10 @@ class WindowManager {
         w.loadURL(urls.get(tag));
       }
 
-      this.addWindowEventListeners(w);
+      // Make sure window was created before adding event listeners
+      if (w) {
+        this.addWindowEventListeners(w);
+      }
 
       return w;
     }
@@ -225,7 +228,6 @@ class WindowManager {
             captchaWindowManager._youtubeWindow = null;
           }
         });
-
         if (this._captchas.size === 0) {
           // Close the server
           console.log('[DEBUG]: Stopping captcha server...');
@@ -357,10 +359,10 @@ class WindowManager {
     } else if (this._captchas.size > 0) {
       this._captchas.forEach(w => {
         if (id === w._captchaWindow.id) {
-          w._captchaWindow.close();
           if (w._youtubeWindow) {
             w._youtubeWindow.close();
           }
+          w._captchaWindow.close();
         }
       });
     } else if (this._aboutDialog && this._aboutDialog.id === id) {

@@ -1,16 +1,20 @@
 let _siteKey = '';
 let _runnerId = '';
+let _started = false;
 
 function submitCaptcha() {
   const token = document.getElementById('g-recaptcha-response').value;
   window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
   window.grecaptcha.reset();
-  window.Bridge.refreshCaptchaWindow();
 }
 
 function _registerStartHandler(ev, runnerId, siteKey) {
+  if (_started) {
+    return;
+  }
   _runnerId = runnerId;
   _siteKey = siteKey;
+  _started = true;
   const script = document.createElement('script');
   script.setAttribute('type', 'text/javascript');
   script.setAttribute('src', 'https://www.google.com/recaptcha/api.js');
@@ -27,8 +31,8 @@ function _registerStartHandler(ev, runnerId, siteKey) {
   form.appendChild(script);
 }
 
-function _registerStopHandler(ev, runnerId, siteKey) {
-  window.grecaptcha.reset();
+function _registerStopHandler() {
+  _started = false;
   window.Bridge.refreshCaptchaWindow();
 }
 
@@ -43,7 +47,7 @@ function _onLoad() {
 
 function _onClose() {
   window.Bridge.Captcha.start.deregister(_registerStartHandler);
-  window.Bridge.Captcha.stop.deregister(_registerStartHandler);
+  window.Bridge.Captcha.stop.deregister(_registerStopHandler);
 }
 
 function setupWindowHandler(event, func) {
@@ -51,7 +55,7 @@ function setupWindowHandler(event, func) {
     window.attachEvent(event, func);
   } else if (window[event]) {
     const prevHandler = window[event];
-    const newHandler = (evt) => {
+    const newHandler = evt => {
       prevHandler(evt);
       func(evt);
     };
