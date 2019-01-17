@@ -191,7 +191,6 @@ class Monitor {
         followAllRedirects: true,
         resolveWithFullResponse: true,
         simple: true,
-        followRedirect: false,
         gzip: true,
         headers: {
           'User-Agent': userAgent,

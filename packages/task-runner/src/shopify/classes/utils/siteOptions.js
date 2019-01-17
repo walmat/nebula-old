@@ -105,7 +105,7 @@ const sites = [
   { url: 'https://shop.exclucitylife.com', name: 'Exclucity' },
   { url: 'https://shop.extrabutterny.com', name: 'Extra Butter' },
   {
-    url: 'https://shop.havenshop.ca',
+    url: 'https://shop.havenshop.com',
     name: 'Haven CA',
     supported: true,
     auth: false,

@@ -50,7 +50,7 @@ const urlToOptionIndex = {
   'https://shop.bdgastore.com': 2,
   'https://shop.exclucitylife.com': 1,
   'https://shop.extrabutterny.com': 1,
-  'https://shop.havenshop.ca': 1,
+  'https://shop.havenshop.com': 1,
   'https://shop.justintimberlake.com': 1,
   'https://shop.travisscott.com': 1,
   'https://shop.undefeated.com': 2,
