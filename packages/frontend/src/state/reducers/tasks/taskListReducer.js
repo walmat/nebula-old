@@ -47,13 +47,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         // action.value isn't a valid integer, so we do nothing
         break;
       }
-      // filter out tasks with the delay already set
-      const tasks = nextState.filter(
-        task => task[mapSettingsFieldToKey[action.field]] !== intValue,
-      );
-      // change delay for existing tasks that aren't the same delay
-      // TODO - this doesn't work properly..
-      tasks.forEach(task => Object.assign({}, task[mapSettingsFieldToKey[action.field]], intValue));
+      // eslint-disable-next-line no-restricted-syntax
+      for (const task of nextState) {
+        task[mapSettingsFieldToKey[action.field]] = intValue;
+      }
       break;
     }
     // patch to check for profile updates
@@ -63,10 +60,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (!action.profile || action.errors) {
         break;
       }
-      // find all tasks where the profile is used
-      const tasks = nextState.filter(task => task.profile.id === action.profile.id);
-      // TODO - this doesn't work properly..
-      tasks.forEach(task => Object.assign({}, task.profile, action.profile));
+      // eslint-disable-next-line no-restricted-syntax
+      for (const task of nextState) {
+        if (task.profile.id === action.profile.id) {
+          task.profile = action.profile;
+        }
+      }
       break;
     }
     // patch to remove tasks containing removed profile
