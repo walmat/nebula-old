@@ -119,12 +119,7 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          province: testValid
-            ? 'invalid'
-            : {
-                province: { label: 'Puerto Rico', value: 'PR' },
-                country: { label: 'United States', value: 'US' },
-              },
+          province: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
           country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
@@ -136,12 +131,7 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          province: testValid
-            ? 'invalid'
-            : {
-                province: { label: 'Puerto Rico', value: 'PR' },
-                country: { label: 'United States', value: 'US' },
-              },
+          province: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
           country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
