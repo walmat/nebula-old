@@ -15,15 +15,23 @@ function waitForDelay(delay) {
 }
 module.exports.waitForDelay = waitForDelay;
 
-function isEmpty(obj) {
-  // eslint-disable-next-line no-restricted-syntax
-  for (const prop in obj) {
-    // eslint-disable-next-line no-prototype-builtins
-    if (obj.hasOwnProperty(prop)) return false;
-  }
-  return true;
+function getHeaders(site, auth) {
+  return {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    'X-Shopify-Checkout-Version': '2016-09-06',
+    'X-Shopify-Access-Token': `${site.apiKey}`,
+    'User-Agent': userAgent,
+    host: `${site.url.split('/')[2]}`,
+    authorization: `Basic ${auth}`,
+  };
 }
-module.exports.isEmpty = isEmpty;
+module.exports.getHeaders = getHeaders;
+
+function checkStatusCode(statusCode) {
+  return !!(statusCode === 403 || statusCode === 429 || statusCode === 430);
+}
+module.exports.checkStatusCode = checkStatusCode;
 
 /**
  * Formats the proxy correctly to be used in a request
