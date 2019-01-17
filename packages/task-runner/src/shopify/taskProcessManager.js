@@ -44,7 +44,7 @@ class TaskProcessManager extends TaskManager {
         if (id === child.id) {
           child.send({
             target: 'child',
-            event: TaskRunnerEvents.ReceiveDelay,
+            event: TaskManagerEvents.ChangeDelay,
             args: [id, delay, type],
           });
         }

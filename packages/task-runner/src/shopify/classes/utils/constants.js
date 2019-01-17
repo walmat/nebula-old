@@ -16,7 +16,6 @@ const TaskRunnerEvents = {
   CheckoutStatus: 'CHECKOUT_STATUS',
   SwapProxy: 'SWAP_PROXY',
   ReceiveProxy: 'RECEIVE_PROXY',
-  ReceiveDelay: 'RECEIVE_DELAY',
 };
 
 /**

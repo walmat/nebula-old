@@ -90,7 +90,7 @@ class TaskRunner {
     this._handleHarvest = this._handleHarvest.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
 
-    this._events.on(Events.ReceiveDelay, this._handleDelay);
+    this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay);
   }
 
   _waitForErrorDelay() {
