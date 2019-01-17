@@ -90,15 +90,14 @@ class Monitor {
     const variantsBySize = _.groupBy(product.variants, variant => {
       // Use the variant option or the title segment
       const option =
-        variant[urlToVariantOption[site.url]].toUpperCase() ||
-        urlToTitleSegment[site.url](variant.title).toUpperCase();
+        variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
       // TEMPORARY: Sometimes the option1 value contains /'s to separate regional sizes.
       //   Until this case gets fully solved in issue #239
       if (option.indexOf('/') > 0) {
-        const newOption = urlToTitleSegment[site.url](variant.title).toUpperCase();
+        const newOption = urlToTitleSegment[site.url](variant.title);
         return newOption;
       }
-      return option;
+      return option.toUpperCase();
     });
 
     // Get the groups in the same order as the sizes
