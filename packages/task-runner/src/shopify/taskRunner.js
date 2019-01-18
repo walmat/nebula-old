@@ -354,10 +354,13 @@ class TaskRunner {
       this._logger.verbose('Failed: fetching payment token');
       return States.Stopped;
     }
-    this._emitTaskEvent({
-      message: 'Creating Checkout',
-    });
-    return States.CreateCheckout;
+    // TODO:
+    // API - Go To Create Checkout
+    // Frontend - Go To Monitor
+    // this._emitTaskEvent({
+    //   message: 'Creating Checkout',
+    // });
+    // return States.CreateCheckout;
   }
 
   async _handleCreateCheckout() {
@@ -402,10 +405,20 @@ class TaskRunner {
       });
       return States.Stopped;
     }
-    this._emitTaskEvent({
-      message: 'Monitoring for product...',
-    });
-    return States.Monitor;
+
+    // TODO:
+    //   If this._context.task.product.variants is set (MONITOR has completed)
+    //     API - Go To Add to Cart
+    //     Frontend - Go To Shipping Rates
+    //
+    //   Else
+    //     API - Go To Monitor
+    //     Frontend - Impossible Case (Monitor is required to have completed before getting here)
+    //              - Can Go Back to Monitor
+    // this._emitTaskEvent({
+    //   message: 'Monitoring for product...',
+    // });
+    // return States.Monitor;
   }
 
   async _handlePollQueue() {
@@ -451,6 +464,7 @@ class TaskRunner {
       });
       return States.Stopped;
     }
+    // TODO: Send Poll Queue to Previous State, not just monitor
     return States.Monitor;
   }
 
@@ -489,7 +503,20 @@ class TaskRunner {
 
     const { monitorDelay } = this._context.task;
 
+    // TODO:
+    //   API - Check for Valid Checkout before running Add To Cart Step
+    //       - Go To Create Checkout if it has not been created yet
     const res = await this._checkout.addToCart();
+
+    // TODO:
+    //   Frontend - If Add To Cart is successful, Go To Create Checkout
+    //            - If Add To Cart Fails (OOS) - Delay and Go to Add To Cart
+    //            - Handle other cart errors
+
+    // TODO:
+    //    API - Go To Shipping Rates if Add To Cart is successful
+    //        - If Add To Cart Files (OOS) - Delay and Go To Add To Cart
+    //        - Handle other cart errors
 
     if (res.status) {
       switch (res.status) {
@@ -549,6 +576,9 @@ class TaskRunner {
     return States.ShippingRates;
   }
 
+  // TODO: Change to just _handleShipping
+  // API - Only worry about shipping rates
+  // Frontend - handle shipping rates AND post customer info
   async _handleShippingRates() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -559,6 +589,11 @@ class TaskRunner {
     const { monitorDelay } = this._context.task;
 
     const res = await this._checkout.shippingRates();
+
+    // TODO:
+    //   API - Go to Payment Gateway
+    //   Frontend - Go to Payment Gateway
+    //   Handle errors
 
     if (res.status) {
       switch (res.status) {
@@ -613,13 +648,13 @@ class TaskRunner {
     }
   }
 
-  async _handleSubmitContact() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-  }
+  // async _handleSubmitContact() {
+  //   // exit if abort is detected
+  //   if (this._context.aborted) {
+  //     this._logger.info('Abort Detected, Stopping...');
+  //     return States.Aborted;
+  //   }
+  // }
 
   async _handlePaymentGateway() {
     // exit if abort is detected
@@ -630,6 +665,10 @@ class TaskRunner {
 
     const { monitorDelay, errorDelay } = this._context.task;
     const res = await this._checkout.paymentGateway();
+
+    // TODO:
+    //   Both - Go to Post Payment
+    //   handle errors
 
     if (res.status) {
       switch (res.status) {
@@ -692,6 +731,10 @@ class TaskRunner {
     const { errorDelay } = this._context.task;
     const res = await this._checkout.postPayment();
 
+    // TODO:
+    //   Both - Go to Payment Review
+    //   handle errors
+
     if (res.status) {
       switch (res.status) {
         case 403:
@@ -744,6 +787,10 @@ class TaskRunner {
     const { errorDelay } = this._context.task;
     const res = await this._checkout.paymentReview();
 
+    // TODO:
+    //   Both - Go to Process Payment
+    //   handle errors
+
     if (res.status) {
       switch (res.status) {
         case 403:
@@ -792,6 +839,10 @@ class TaskRunner {
 
     const { monitorDelay, errorDelay } = this._context.task;
     const res = await this._checkout.paymentProcessing();
+
+    // TODO:
+    //   Both - Finish - Go To Stopped
+    //   handle errors
 
     if (res.status) {
       switch (res.status) {
@@ -1037,6 +1088,7 @@ class TaskRunner {
         nextState = States.Errored;
       }
       this._logger.verbose('Run Loop finished, state transitioned to: %s', nextState);
+      // TODO: Prevent prevState from starting an infinite loop (prevState === state)
       this._prevState = this._state;
       this._state = nextState;
     }
