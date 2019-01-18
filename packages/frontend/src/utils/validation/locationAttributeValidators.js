@@ -37,6 +37,7 @@ function validatePhoneNumber(phoneNumber) {
 }
 
 function validateProvince({ country = {}, province = {} }) {
+  console.log(country, province);
   const provinces = getProvinces(country.value);
   if (provinces && provinces.length === 0) {
     return true; // there are no states for this country, so it is "valid"

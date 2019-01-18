@@ -119,8 +119,14 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          province: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
-          country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
+          province:
+            // eslint-disable-next-line no-nested-ternary
+            subField === LOCATION_FIELDS.PROVINCE
+              ? { label: 'Puerto Rico', value: 'PR' }
+              : testValid
+              ? {}
+              : { label: 'Puerto Rico', value: 'PR' },
+          country: testValid ? {} : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -131,8 +137,14 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          province: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
-          country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
+          province:
+            // eslint-disable-next-line no-nested-ternary
+            subField === LOCATION_FIELDS.PROVINCE
+              ? { label: 'Puerto Rico', value: 'PR' }
+              : testValid
+              ? {}
+              : { label: 'Puerto Rico', value: 'PR' },
+          country: testValid ? {} : { value: 'US', label: 'United States' },
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -178,7 +190,7 @@ describe('profile form validation middleware', () => {
             address: testValid,
             apt: false,
             city: testValid,
-            province: testValid,
+            province: subField === LOCATION_FIELDS.COUNTRY ? false : testValid,
             country: testValid,
             zipCode: testValid,
             phone: testValid,
@@ -520,28 +532,25 @@ describe('profile form validation middleware', () => {
               subField: LOCATION_FIELDS.COUNTRY,
             }));
 
-          it('should generate error flag when invalid', () =>
+          it.only('should generate error flag when invalid', () =>
             _testErrorFlag({
-              value: 'invalid',
+              value: {},
               valid: false,
               subField: LOCATION_FIELDS.COUNTRY,
             }));
         });
 
         describe('province', () => {
-          it.only('should not generate error flag when valid', () =>
+          it('should not generate error flag when valid', () =>
             _testErrorFlag({
-              value: {
-                country: { value: 'US', label: 'United States' },
-                province: { value: 'AL', label: 'Alabama' },
-              },
+              value: { value: 'AL', label: 'Alabama' },
               valid: true,
               subField: LOCATION_FIELDS.PROVINCE,
             }));
 
           it('should generate error flag when invalid', () =>
             _testErrorFlag({
-              value: 'invalid',
+              value: {},
               valid: false,
               subField: LOCATION_FIELDS.PROVINCE,
             }));
@@ -558,7 +567,7 @@ describe('profile form validation middleware', () => {
     });
   };
 
-  describe('for add action', () => {
+  describe.only('for add action', () => {
     performErrorFlagTestsForAction(PROFILE_ACTIONS.ADD);
   });
 
