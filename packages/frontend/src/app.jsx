@@ -44,21 +44,27 @@ export class App extends PureComponent {
     this.taskHandler = this.taskHandler.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     if (window.Bridge) {
       window.Bridge.registerForTaskEvents(this.taskHandler);
     }
+    window.addEventListener('beforeunload', this._cleanupTaskEvents);
   }
 
   componentWillUnmount() {
-    if (window.Bridge) {
-      window.Bridge.deregisterForTaskEvents(this.taskHandler);
-    }
+    this._cleanupTaskEvents();
+    window.removeEventListener('beforeunload', this._cleanupTaskEvents);
   }
 
   taskHandler(event, taskId, statusMessage) {
     const { store } = this.props;
     store.dispatch(taskActions.status(taskId, statusMessage));
+  }
+
+  _cleanupTaskEvents() {
+    if (window.Bridge) {
+      window.Bridge.deregisterForTaskEvents(this.taskHandler);
+    }
   }
 
   render() {

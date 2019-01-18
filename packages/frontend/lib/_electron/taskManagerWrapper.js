@@ -86,6 +86,11 @@ class TaskManagerWrapper {
     }
   }
 
+  async abortAllTasks() {
+    // Force stop all tasks
+    await this._taskManager.stopAll([], { force: true, wait: true });
+  }
+
   _taskEventHandler(taskId, statusMessage) {
     this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
   }
@@ -109,7 +114,7 @@ class TaskManagerWrapper {
   }
 
   _removeListener(listener) {
-    this._listeners.filter(l => l !== listener);
+    this._listeners = this._listeners.filter(l => l !== listener);
     if (this._listeners.length === 0) {
       // Stop listening for events since we don't have any listeners
       this._taskManager.deregisterForTaskEvents(this._taskEventHandler);

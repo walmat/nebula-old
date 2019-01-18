@@ -8,6 +8,58 @@ const TaskManagerEvents = constants.TaskManager.Events;
 const TaskRunnerEvents = constants.TaskRunner.Events;
 
 class TaskProcessManager extends TaskManager {
+  /**
+   * Stop a Task
+   *
+   * Performs the super classes stop task operation (sending the abort signal),
+   * but supports additional options specific to process management:
+   * - wait - if the wait option is passed, this method will wait for the
+   *   child process to exit before finishing
+   */
+  async stop(task, options = {}) {
+    const rId = super.stop(task, options);
+    if (!rId) {
+      return null;
+    }
+
+    if (options.wait) {
+      const child = this._runners[rId];
+      await new Promise(resolve => {
+        let forceKill;
+        forceKill = setTimeout(() => {
+          this._logger.debug(
+            'Child process abort timeout reached for task: %s, killing child process...',
+            rId,
+          );
+          // clear out the timeout handler so we don't trigger the clearTimeout call
+          forceKill = null;
+          // force kill the child process
+          child.kill();
+        }, 5000);
+        child.on('exit', () => {
+          this._logger.debug('Child process exited for task: %s', rId);
+          if (forceKill) {
+            clearTimeout(forceKill);
+          }
+          resolve();
+        });
+      });
+    }
+    return rId;
+  }
+
+  /**
+   * Stop multiple tasks
+   *
+   * Performs the super classes stop tasks operation,
+   * but supports additional options specific to process management:
+   * - force - if the force option is passed, this method will stop all child processes
+   * - wait - if the wait option is passed, this method will wait for child processes to close
+   */
+  async stopAll(tasks, options) {
+    return Promise.all(super.stopAll(tasks, options));
+  }
+
   _setup(child) {
     this._logger.verbose('Setting up Child Process Handlers for runner: %s', child.id);
     const handlers = {

@@ -445,12 +445,13 @@ class TaskManager {
       this._logger.warn(
         'This task was not previously running or has already been stopped! Skipping stop',
       );
-      return;
+      return null;
     }
 
     // Send abort signal
     this._events.emit('abort', rId);
     this._logger.verbose('Stop signal sent');
+    return rId;
   }
 
   /**
@@ -461,9 +462,18 @@ class TaskManager {
    * tasks in the given list.
    *
    * @param {List<Task>} tasks list of tasks to stop
+   * @param {Map} options options associated with stopping tasks
    */
-  stopAll(tasks) {
-    [...tasks].forEach(t => this.stop(t));
+  stopAll(tasks, { force = false, wait = false }) {
+    let tasksToStop = tasks;
+    // if force option is set, force stop all running tasks
+    if (force) {
+      tasksToStop = Object.values(this._runners).map(({ taskId: id }) => ({ id }));
+      if (tasksToStop.length > 0) {
+        this._logger.info('Force Stopping %d tasks', tasksToStop.length, tasksToStop);
+      }
+    }
+    return [...tasksToStop].map(t => this.stop(t, { wait }));
   }
 
   /**
