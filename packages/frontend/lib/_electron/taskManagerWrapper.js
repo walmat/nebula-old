@@ -86,6 +86,11 @@ class TaskManagerWrapper {
     }
   }
 
+  async abortAllTasks() {
+    // Force stop all tasks
+    await this._taskManager.stopAll([], { force: true, wait: true });
+  }
+
   _taskEventHandler(taskId, statusMessage) {
     this._listeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
   }

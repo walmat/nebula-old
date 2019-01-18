@@ -142,13 +142,25 @@ class App {
   }
 
   /**
+   * Occurs right before application quit
+   */
+  async onBeforeQuit() {
+    // Perform any cleanup that needs to get done
+    if (nebulaEnv.isDevelopment()) {
+      console.log('cleaning up tasks...');
+    }
+    await this._taskManagerWrapper.abortAllTasks();
+  }
+
+  /**
    * Event triggered when all BrowserWindow objects are closed.
    */
-  onWindowAllClosed() {
+  async onWindowAllClosed() {
     if (nebulaEnv.isDevelopment()) {
       console.log('Quit');
     }
 
+    await this.onBeforeQuit();
     Electron.app.quit();
   }
 
