@@ -345,58 +345,29 @@ class TaskRunner {
     return States.TaskSetup;
   }
 
-  /**
-   * RESULTS (INDICES):
-   * 0. Promise 1 – generating payment token
-   * 1. Promise 2 – creating checkout session
-   */
-  async _handleTaskSetup() {
+  async _handlePaymentToken() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handleCreateCheckout() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handlePollQueue() {
     // exit if abort is detected
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
-    const promises = [this.generatePaymentToken(), this.createCheckout()];
-    this._logger.silly('Running Task Setup Promises');
-    const results = await Promise.all(promises.map(reflect));
-    this._logger.silly('Async promises results: %j', results);
-    const failed = results.filter(res => res.status === 'rejected');
-    if (failed.length > 0) {
-      this._logger.silly('Task setup failed: %j', failed);
-      // check banned status
-      const banned = failed.some(f => f.e === 403 || f.e === 429 || f.e === 430);
-      if (banned) {
-        return States.SwapProxies;
-      }
-
-      // check queue
-      const queue = failed.some(f => f.e === 303);
-      if (queue) {
-        this._context.setup = false;
-        this._emitTaskEvent({
-          message: 'Waiting in queue',
-        });
-        return States.Queue;
-      }
-
-      // if not queue, but something failed, let's do task setup later
-      this._context.setup = false;
-      this._logger.verbose('Completing task setup later');
-      this._emitTaskEvent({
-        message: 'Doing task setup later',
-      });
-    } else {
-      this._logger.verbose('Task setup successfully completed');
-      this._context.setup = true;
-    }
-    this._emitTaskEvent({
-      message: 'Monitoring for product...',
-    });
-    return States.Monitor;
-  }
-
-  async _handleCheckoutQueue() {
     const res = await this._checkout.pollQueue();
 
     if (res.error) {
@@ -429,7 +400,7 @@ class TaskRunner {
     }
     // otherwise, we're out of queue and can proceed to monitor.
 
-    // in frontend mode, we will be heading to shippingMethods,
+    // TODO - go back to previous state instead?
     return States.Monitor;
   }
 
@@ -459,6 +430,70 @@ class TaskRunner {
     return res.nextState;
   }
 
+  async _handleAddToCart() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handleShippingRates() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handleRequestCaptcha() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handleSubmitContact() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handlePaymentGateway() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handlePostPayment() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handlePaymentReview() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
+  async _handlePaymentProcess() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+  }
+
   async _handleSwapProxies() {
     try {
       this._logger.verbose('Waiting for new proxy...');
@@ -479,29 +514,6 @@ class TaskRunner {
     return this._prevState;
   }
 
-  async _handleCheckout() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const res = await this._checkout.run();
-    if (res.errors) {
-      this._logger.verbose('Checkout Handler completed with errors: %j', res.errors);
-      this._emitTaskEvent({
-        message: 'Errors during Checkout!',
-        errors: res.errors,
-      });
-      await this._waitForErrorDelay();
-    }
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    // Checkout will be in charge of choosing the next state
-    return res.nextState;
-  }
-
   _generateEndStateHandler(state) {
     let status = 'stopped';
     switch (state) {
@@ -513,16 +525,20 @@ class TaskRunner {
         status = 'errored out';
         break;
       }
-      this._emitTaskEvent({
-        message: 'Failed: Fetching payment gateway, stopping...',
-      });
-      await waitForDelay(errorDelay);
-      return States.Stopped;
+      case States.Finished: {
+        status = 'finished';
+        break;
+      }
+      default: {
+        break;
+      }
     }
-    this._emitTaskEvent({
-      message: `Payment processing`,
-    });
-    return States.PostPayment;
+    return () => {
+      this._emitTaskEvent({
+        message: this._context.status || `Task has ${status}`,
+      });
+      return States.Stopped;
+    };
   }
 
   async _handleCaptcha() {
@@ -681,12 +697,19 @@ class TaskRunner {
     const stepMap = {
       [States.Started]: this._handleStarted,
       [States.Login]: this._handleLogin,
-      [States.TaskSetup]: this._handleTaskSetup,
-      [States.Queue]: this._handleCheckoutQueue,
-      [States.PatchCheckout]: this._handleUpdateCheckout,
+      [States.PaymentToken]: this._handlePaymentToken,
+      [States.CreateCheckout]: this._handleCreateCheckout,
+      [States.PollQueue]: this._handlePollQueue,
       [States.Monitor]: this._handleMonitor,
+      [States.AddToCart]: this._handleAddToCart,
+      [States.ShippingRates]: this._handleShippingRates,
+      [States.RequestCaptcha]: this._handleRequestCaptcha,
+      [States.SubmitContact]: this._handleSubmitContact,
+      [States.PaymentGateway]: this._handlePaymentGateway,
+      [States.PostPayment]: this._handlePostPayment,
+      [States.PaymentReview]: this._handlePaymentReview,
+      [States.PaymentProcess]: this._handlePaymentProcess,
       [States.SwapProxies]: this._handleSwapProxies,
-      [States.Checkout]: this._handleCheckout,
       [States.Finished]: this._generateEndStateHandler(States.Finished),
       [States.Errored]: this._generateEndStateHandler(States.Errored),
       [States.Aborted]: this._generateEndStateHandler(States.Aborted),
