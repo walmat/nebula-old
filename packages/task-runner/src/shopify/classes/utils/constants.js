@@ -24,6 +24,7 @@ const TaskRunnerEvents = {
 const TaskRunnerStates = {
   Initialized: 'INIT',
   Started: 'STARTED',
+  Login: 'LOGIN',
   TaskSetup: 'TASK_SETUP',
   Queue: 'QUEUE',
   Monitor: 'MONITOR',
@@ -57,6 +58,7 @@ const ParserErrorCodes = {
 const CheckoutErrorCodes = {
   OOS: 'OUT_OF_STOCK',
   ATC: 'ADD_TO_CART',
+  Password: 'PASSWORD',
   MonitorForVariant: 'MONITOR_FOR_VARIANT',
   InvalidCheckoutSession: 'INVALID_CHECKOUT_SESSION',
   ShippingRates: 'SHIPPING_RATES',
@@ -64,6 +66,7 @@ const CheckoutErrorCodes = {
   InvalidCaptchaToken: 'INVALID_CAPTCHA_TOKEN',
   Review: 'REVIEW',
   CardDeclined: 'CARD_DECLINED',
+  Processing: 'PROCESSING',
 };
 
 const CheckoutTimeouts = {
