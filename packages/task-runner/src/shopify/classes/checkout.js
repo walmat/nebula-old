@@ -89,8 +89,8 @@ class Checkout {
           utf8: '✓',
           'customer[email]': username,
           'customer[password]': password,
-          authenticity_token: super.authTokens.length > 0 ? super.authTokens.shift() : '',
-          'g-recaptcha-response': super.captchaToken,
+          authenticity_token: this.authTokens.length > 0 ? this.authTokens.shift() : '',
+          'g-recaptcha-response': this.captchaToken,
         },
       });
 
@@ -98,7 +98,7 @@ class Checkout {
       const { href } = request;
 
       if (href.indexOf('password') > -1) {
-        return { status: CheckoutErrorCodes.Password };
+        return { errors: CheckoutErrorCodes.Password };
       }
 
       if (checkStatusCode(statusCode)) {
@@ -179,7 +179,7 @@ class Checkout {
       });
       const { statusCode } = res;
       if (checkStatusCode(statusCode)) {
-        return { error: true, status: statusCode };
+        return { status: statusCode };
       }
       let { body } = res;
 
@@ -205,16 +205,16 @@ class Checkout {
             this.paymentUrlKey = checkout.web_url.split('=')[1];
             // push the checkout token to the stack
             this.checkoutTokens.push(clone_url.split('/')[5]);
-            return true;
+            return { errors: null };
           }
           // might not ever get called, but just a failsafe
-          this._logger.debug('Failed: Creating checkout session after queue %s', res);
-          return false;
+          this._logger.verbose('Failed: Creating checkout session after queue %s', res);
+          return { errors: true };
         } catch (err) {
           if (err instanceof SyntaxError) {
-            this._logger.debug('CHECKOUT: Failed to parse body, not typeof JSON');
+            this._logger.verbose('CHECKOUT: Failed to parse body, not typeof JSON');
             const $ = cheerio.load(body);
-            let data = null;
+            let data;
             if (statusCode === 202) {
               data = $('input[name="checkout_url"]').val();
               this._logger.silly('CHECKOUT: 202 response data: %j', data);
@@ -224,7 +224,7 @@ class Checkout {
                 this.storeId = data.split('/')[3];
                 // eslint-disable-next-line prefer-destructuring
                 this.checkoutTokens.push(data.split('/')[5]);
-                return true;
+                return { errors: null };
               }
             }
             if (statusCode === 303) {
@@ -235,28 +235,24 @@ class Checkout {
                 this.storeId = data.split('/')[3];
                 // eslint-disable-next-line prefer-destructuring
                 this.checkoutTokens.push(data.split('/')[5]);
-                return true;
+                return { errors: null };
               }
             }
-            this._logger.debug(
+            this._logger.verbose(
               'CHECKOUT: Failed: Queue responded with status code: %s',
               statusCode,
             );
-            return false;
+            return { errors: true };
           }
-          this._logger.debug('CHECKOUT: Failed to parse body: %j', err);
-          return false;
+          this._logger.verbose('CHECKOUT: Failed to parse body: %j', err);
+          return { errors: true };
         }
       }
       this._logger.verbose('CHECKOUT: Not passed queue, delaying %d ms', Delays.PollCheckoutQueue);
-      await waitForDelay(Delays.PollCheckoutQueue);
-      return false;
+      return { status: 303 };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %s', err.error);
-      return {
-        error: err.error,
-        status: null,
-      };
+      return { errors: true };
     }
   }
 

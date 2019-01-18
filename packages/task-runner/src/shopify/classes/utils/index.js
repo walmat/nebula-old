@@ -15,6 +15,11 @@ function waitForDelay(delay) {
 }
 module.exports.waitForDelay = waitForDelay;
 
+function checkStatusCode(statusCode) {
+  return !!(statusCode === 303 || statusCode === 403 || statusCode === 429 || statusCode === 430);
+}
+module.exports.checkStatusCode = checkStatusCode;
+
 function getHeaders(site) {
   return {
     Accept: 'application/json',
