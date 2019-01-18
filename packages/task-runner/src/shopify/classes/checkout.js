@@ -269,10 +269,6 @@ class Checkout {
     this.captchaToken = token;
     return { errors: null };
   }
-
-  async run() {
-    throw new Error('Should be defined in subclasses');
-  }
 }
 
 module.exports = Checkout;
