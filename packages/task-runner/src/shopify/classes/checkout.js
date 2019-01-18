@@ -226,8 +226,9 @@ class Checkout {
       }
       if (href.indexOf('challenge') > -1) {
         this._logger.verbose('CHECKOUT: Login needs captcha');
-        const $ = cheerio.load(res.body);
-        const loginAuthToken = $('form input[name="authenticity_token"]').attr('value');
+        // TODO - figure out if auth token is needed here later
+        // const $ = cheerio.load(res.body);
+        // const loginAuthToken = $('form input[name="authenticity_token"]').attr('value');
         return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
       }
 
