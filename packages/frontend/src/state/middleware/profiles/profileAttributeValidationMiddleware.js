@@ -31,7 +31,6 @@ const profileAttributeValidationMiddleware = store => next => action => {
   }
 
   const newAction = JSON.parse(JSON.stringify(action));
-
   // Get the correct errors object and call the correct validator
   if (
     [

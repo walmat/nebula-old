@@ -51,9 +51,12 @@ const profileFormValidationMiddleware = store => next => action => {
               // subPair[1] is the validator
               const [subField, validator] = subPair;
               if (subField === LOCATION_FIELDS.PROVINCE) {
+                // if falsey value, set the value to `undefined` so the default parameters will be used in the validator
                 profileField.errors[subField] = !validator({
-                  province: profile[mapProfileFieldToKey[sourceField]][subField],
-                  country: profile[mapProfileFieldToKey[sourceField]][LOCATION_FIELDS.COUNTRY],
+                  province: profile[mapProfileFieldToKey[sourceField]][subField] || undefined,
+                  country:
+                    profile[mapProfileFieldToKey[sourceField]][LOCATION_FIELDS.COUNTRY] ||
+                    undefined,
                 });
               } else {
                 profileField.errors[subField] = !validator(

@@ -529,9 +529,12 @@ describe('profile form validation middleware', () => {
         });
 
         describe('province', () => {
-          it('should not generate error flag when valid', () =>
+          it.only('should not generate error flag when valid', () =>
             _testErrorFlag({
-              value: { label: 'Puerto Rico', value: 'PR' },
+              value: {
+                country: { value: 'US', label: 'United States' },
+                province: { value: 'AL', label: 'Alabama' },
+              },
               valid: true,
               subField: LOCATION_FIELDS.PROVINCE,
             }));

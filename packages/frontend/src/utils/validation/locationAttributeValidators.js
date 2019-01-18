@@ -36,10 +36,7 @@ function validatePhoneNumber(phoneNumber) {
   return phoneNumber && regexes.phoneNumber.test(phoneNumber);
 }
 
-function validateProvince({ country, province }) {
-  if (!country) {
-    return false; // if no country selected, we shouldn't have state options yet– let's exit early
-  }
+function validateProvince({ country = {}, province = {} }) {
   const provinces = getProvinces(country.value);
   if (provinces && provinces.length === 0) {
     return true; // there are no states for this country, so it is "valid"
