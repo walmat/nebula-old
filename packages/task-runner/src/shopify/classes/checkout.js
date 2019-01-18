@@ -89,8 +89,8 @@ class Checkout {
           utf8: '✓',
           'customer[email]': username,
           'customer[password]': password,
-          authenticity_token: super.authTokens.length > 0 ? super.authTokens.shift() : '',
-          'g-recaptcha-response': super.captchaToken,
+          authenticity_token: this.authTokens.length > 0 ? this.authTokens.shift() : '',
+          'g-recaptcha-response': this.captchaToken,
         },
       });
 
@@ -98,7 +98,7 @@ class Checkout {
       const { href } = request;
 
       if (href.indexOf('password') > -1) {
-        return { status: CheckoutErrorCodes.Password };
+        return { errors: CheckoutErrorCodes.Password };
       }
 
       if (checkStatusCode(statusCode)) {
@@ -179,7 +179,7 @@ class Checkout {
       });
       const { statusCode } = res;
       if (checkStatusCode(statusCode)) {
-        return { error: true, status: statusCode };
+        return { status: statusCode };
       }
       let { body } = res;
 
@@ -205,7 +205,7 @@ class Checkout {
             this.paymentUrlKey = checkout.web_url.split('=')[1];
             // push the checkout token to the stack
             this.checkoutTokens.push(clone_url.split('/')[5]);
-            return true;
+            return { errors: null };
           }
           // might not ever get called, but just a failsafe
           this._logger.verbose('Failed: Creating checkout session after queue %s', res);
@@ -224,7 +224,7 @@ class Checkout {
                 this.storeId = data.split('/')[3];
                 // eslint-disable-next-line prefer-destructuring
                 this.checkoutTokens.push(data.split('/')[5]);
-                return true;
+                return { errors: null };
               }
             }
             if (statusCode === 303) {
@@ -235,7 +235,7 @@ class Checkout {
                 this.storeId = data.split('/')[3];
                 // eslint-disable-next-line prefer-destructuring
                 this.checkoutTokens.push(data.split('/')[5]);
-                return true;
+                return { errors: null };
               }
             }
             this._logger.verbose(
@@ -252,10 +252,7 @@ class Checkout {
       return { status: 303 };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %s', err.error);
-      return {
-        error: err.error,
-        status: null,
-      };
+      return { errors: true };
     }
   }
 
