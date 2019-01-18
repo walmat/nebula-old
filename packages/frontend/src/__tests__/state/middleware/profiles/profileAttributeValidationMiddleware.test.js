@@ -387,6 +387,14 @@ describe('profile attribute validation middleware', () => {
               },
               true,
             ));
+          test('when valid and country has no provinces', () =>
+            testWith(
+              {
+                province: {},
+                country: { label: 'Afghanistan', value: 'AF' },
+              },
+              true,
+            ));
           test('when invalid', () => testWith('invalid', false));
         });
       });

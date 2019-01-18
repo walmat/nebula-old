@@ -141,8 +141,8 @@ describe('<LocationFields />', () => {
       testField(
         'country',
         'country',
-        { value: 'US', label: 'United States' },
-        { value: 'US', label: 'United States' },
+        { value: 'AF', label: 'Afghanistan' },
+        { value: 'AF', label: 'Afghanistan' },
       );
     });
 
