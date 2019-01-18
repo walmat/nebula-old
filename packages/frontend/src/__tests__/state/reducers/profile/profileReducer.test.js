@@ -24,7 +24,8 @@ describe('profile reducer', () => {
           ...initialProfileStates.profile,
           [mapProfileFieldToKey[field]]: {
             ...initialFieldState,
-            [mapLocationFieldToKey[subField] || mapPaymentFieldToKey[subField]]: value,
+            [mapLocationFieldToKey[subField] || mapPaymentFieldToKey[subField]]:
+              subField === LOCATION_FIELDS.PROVINCE ? value.province : value,
           },
         };
         const actual = profileReducer(initialProfileStates.profile, {
@@ -145,10 +146,13 @@ describe('profile reducer', () => {
       });
 
       checkFieldEdit({
-        message: 'state action',
+        message: 'province action',
         field: PROFILE_FIELDS.EDIT_SHIPPING,
-        subField: LOCATION_FIELDS.STATE,
-        value: 'testing',
+        subField: LOCATION_FIELDS.PROVINCE,
+        value: {
+          province: { value: 'AL', label: 'Alabama' },
+          country: { value: 'US', label: 'United States' },
+        },
         initialFieldState: initialProfileStates.location,
       });
 
@@ -248,10 +252,13 @@ describe('profile reducer', () => {
       });
 
       checkFieldEdit({
-        message: 'state action',
+        message: 'province action',
         field: PROFILE_FIELDS.EDIT_BILLING,
-        subField: LOCATION_FIELDS.STATE,
-        value: 'testing',
+        subField: LOCATION_FIELDS.PROVINCE,
+        value: {
+          province: { value: 'AL', label: 'Alabama' },
+          country: { value: 'US', label: 'United States' },
+        },
         initialFieldState: initialProfileStates.location,
       });
 

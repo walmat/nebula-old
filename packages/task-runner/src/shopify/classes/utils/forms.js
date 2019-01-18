@@ -14,6 +14,7 @@ const buildPaymentForm = (payment, billing) => ({
 
 const createCheckoutForm = (profile, shipping, billing, payment) => {
   let dataString;
+  const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   if (profile.billingMatchesShipping) {
     dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
       payment.email
@@ -21,39 +22,44 @@ const createCheckoutForm = (profile, shipping, billing, payment) => {
       shipping.lastName
     }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
       shipping.city
-    }","country_code":"${shipping.country.value}","province_code":"${
-      shipping.state.value
-    }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
-      shipping.zipCode
-    }"},"billing_address":{"first_name":"${shipping.firstName}","last_name":"${
-      shipping.lastName
-    }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
-      shipping.city
-    }","country_code":"${shipping.country.value}","province_code":"${
-      shipping.state.value
-    }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
-      shipping.zipCode
-    }"}}}`;
+    }","country_code":"${
+      shipping.country.value
+    }","province_code":"${shippingProvinceValue}","phone":"${phoneFormatter.format(
+      shipping.phone,
+      '(NNN) NNN-NNNN',
+    )}","zip":"${shipping.zipCode}"},"billing_address":{"first_name":"${
+      shipping.firstName
+    }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
+      shipping.apt
+    }","company":null,"city":"${shipping.city}","country_code":"${
+      shipping.country.value
+    }","province_code":"${shippingProvinceValue}","phone":"${phoneFormatter.format(
+      shipping.phone,
+      '(NNN) NNN-NNNN',
+    )}","zip":"${shipping.zipCode}"}}}`;
   } else {
+    const billingProvinceValue = billing.province ? billing.province.value : '';
     dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
       payment.email
     }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
       shipping.lastName
     }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
       shipping.city
-    }","country_code":"${shipping.country.value}","province_code":"${
-      shipping.state.value
-    }","phone":"${phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN')}","zip":"${
-      shipping.zipCode
-    }"},"billing_address":{"first_name":"${billing.firstName}","last_name":"${
-      billing.lastName
-    }","address1":"${billing.address}","address2":"${billing.apt}","company":null,"city":"${
-      billing.city
-    }","country_code":"${billing.country.value}","province_code":"${
-      billing.state.value
-    }","phone":"${phoneFormatter.format(billing.phone, '(NNN) NNN-NNNN')}","zip":"${
-      billing.zipCode
-    }"}}}`;
+    }","country_code":"${
+      shipping.country.value
+    }","province_code":"${shippingProvinceValue}","phone":"${phoneFormatter.format(
+      shipping.phone,
+      '(NNN) NNN-NNNN',
+    )}","zip":"${shipping.zipCode}"},"billing_address":{"first_name":"${
+      billing.firstName
+    }","last_name":"${billing.lastName}","address1":"${billing.address}","address2":"${
+      billing.apt
+    }","company":null,"city":"${billing.city}","country_code":"${
+      billing.country.value
+    }","province_code":"${billingProvinceValue}","phone":"${phoneFormatter.format(
+      billing.phone,
+      '(NNN) NNN-NNNN',
+    )}","zip":"${billing.zipCode}"}}}`;
   }
   return dataString;
 };

@@ -26,7 +26,7 @@ describe('<LocationFields />', () => {
     expect(wrapper.find('#test-address-one')).toHaveLength(1);
     expect(wrapper.find('#test-address-two')).toHaveLength(1);
     expect(wrapper.find('#test-city')).toHaveLength(1);
-    expect(wrapper.find('#test-state')).toHaveLength(1);
+    expect(wrapper.find('#test-province')).toHaveLength(1);
     expect(wrapper.find('#test-zip-code')).toHaveLength(1);
     expect(wrapper.find('#test-country')).toHaveLength(1);
     expect(wrapper.find('#test-phone')).toHaveLength(1);
@@ -35,7 +35,7 @@ describe('<LocationFields />', () => {
     expect(wrapper.find('#test-address-one').prop('disabled')).toBeFalsy();
     expect(wrapper.find('#test-address-two').prop('disabled')).toBeFalsy();
     expect(wrapper.find('#test-city').prop('disabled')).toBeFalsy();
-    expect(wrapper.find('#test-state').prop('isDisabled')).toBeFalsy();
+    expect(wrapper.find('#test-province').prop('isDisabled')).toBeFalsy();
     expect(wrapper.find('#test-zip-code').prop('disabled')).toBeFalsy();
     expect(wrapper.find('#test-country').prop('isDisabled')).toBeFalsy();
     expect(wrapper.find('#test-phone').prop('disabled')).toBeFalsy();
@@ -56,7 +56,7 @@ describe('<LocationFields />', () => {
     expect(wrapper.find('#test-address-one').prop('disabled')).toBeTruthy();
     expect(wrapper.find('#test-address-two').prop('disabled')).toBeTruthy();
     expect(wrapper.find('#test-city').prop('disabled')).toBeTruthy();
-    expect(wrapper.find('#test-state').prop('isDisabled')).toBeTruthy();
+    expect(wrapper.find('#test-province').prop('isDisabled')).toBeTruthy();
     expect(wrapper.find('#test-zip-code').prop('disabled')).toBeTruthy();
     expect(wrapper.find('#test-country').prop('isDisabled')).toBeTruthy();
     expect(wrapper.find('#test-phone').prop('disabled')).toBeTruthy();
@@ -118,12 +118,18 @@ describe('<LocationFields />', () => {
       testField('city', 'city', 'testCity1', 'testCity2');
     });
 
-    describe('state', () => {
+    describe('province', () => {
       testField(
-        'state',
-        'state',
-        { value: 'testState1', label: 'testStateLabel1' },
-        { value: 'testState2', label: 'testStateLabel2' },
+        'province',
+        'province',
+        {
+          value: 'AL',
+          label: 'Alabama',
+        },
+        {
+          value: 'AL',
+          label: 'Alabama',
+        },
       );
     });
 
@@ -135,8 +141,8 @@ describe('<LocationFields />', () => {
       testField(
         'country',
         'country',
-        { value: 'testCountry1', label: 'testCountryLabel1' },
-        { value: 'testCountry2', label: 'testCountryLabel2' },
+        { value: 'AF', label: 'Afghanistan' },
+        { value: 'AF', label: 'Afghanistan' },
       );
     });
 
@@ -203,9 +209,18 @@ describe('<LocationFields />', () => {
       );
     });
 
-    test('state', () => {
-      const event = { value: 'testState', label: 'testStateLabel' };
-      testOnChange('state', event, { field: LOCATION_FIELDS.STATE, value: event });
+    test('province', () => {
+      const event = {
+        value: 'AL',
+        label: 'Alabama',
+      };
+      testOnChange('province', event, {
+        field: LOCATION_FIELDS.PROVINCE,
+        value: {
+          country: null,
+          province: event,
+        },
+      });
     });
 
     test('zip code', () => {
@@ -217,7 +232,7 @@ describe('<LocationFields />', () => {
     });
 
     test('country', () => {
-      const event = { value: 'testCountry', label: 'testCountryLabel' };
+      const event = { value: 'US', label: 'United States' };
       testOnChange('country', event, { field: LOCATION_FIELDS.COUNTRY, value: event });
     });
 

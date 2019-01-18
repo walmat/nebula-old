@@ -7,7 +7,7 @@ export const initialLocationErrorState = {
   apt: null,
   city: null,
   country: null,
-  state: null,
+  province: null,
   zipCode: null,
   phone: null,
 };
@@ -19,7 +19,7 @@ const locationStateErrors = PropTypes.shape({
   apt: PropTypes.bool,
   city: PropTypes.bool,
   country: PropTypes.bool,
-  state: PropTypes.bool,
+  province: PropTypes.bool,
   zipCode: PropTypes.bool,
   phone: PropTypes.bool,
 });

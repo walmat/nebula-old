@@ -3,8 +3,7 @@ import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import defns from '../utils/definitions/profileDefinitions';
-import getAllCountries from '../constants/getAllCountries';
-import getAllStates from '../constants/getAllStates';
+import getAllCountries, { getProvinces, getCountry } from '../constants/getAllCountries';
 import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/actions';
 import './profiles.css';
 import { buildStyle } from '../utils/styles';
@@ -12,17 +11,33 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 export class LocationFieldsPrimitive extends Component {
   static buildCountryOptions() {
-    return getAllCountries();
+    return getAllCountries().map(country => ({
+      value: country.code,
+      label: country.name,
+    }));
   }
 
-  static buildStateOptions() {
-    return getAllStates();
+  static buildProvinceOptions(country) {
+    if (country && country.value) {
+      return getProvinces(country.value).map(province => ({
+        value: province.code,
+        label: province.name,
+      }));
+    }
+    return null;
   }
 
   createOnChangeHandler(field) {
-    const { onChange } = this.props;
+    const { onChange, value } = this.props;
     switch (field) {
-      case LOCATION_FIELDS.STATE:
+      case LOCATION_FIELDS.PROVINCE: {
+        return event => {
+          onChange({
+            field,
+            value: { province: event, country: value.country },
+          });
+        };
+      }
       case LOCATION_FIELDS.COUNTRY: {
         return event => {
           onChange({
@@ -42,9 +57,18 @@ export class LocationFieldsPrimitive extends Component {
     }
   }
 
-  isStatesDisabled() {
-    const { value, disabled } = this.props;
-    return (value.country && value.country.label !== 'United States') || disabled;
+  isProvinceFieldDisabled() {
+    const {
+      disabled,
+      value: { country },
+    } = this.props;
+    if (country && country.value) {
+      const { provinces } = getCountry(country.value);
+      if (!provinces || !provinces.length) {
+        return true;
+      }
+    }
+    return disabled;
   }
 
   render() {
@@ -97,15 +121,15 @@ export class LocationFieldsPrimitive extends Component {
         />
         <Select
           required
-          placeholder="State"
+          placeholder="Province"
           components={{ DropdownIndicator }}
-          id={`${id}-state`}
+          id={`${id}-province`}
           classNamePrefix="select"
-          options={LocationFieldsPrimitive.buildStateOptions()}
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.STATE)}
-          value={value.state}
-          styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.STATE]))}
-          isDisabled={this.isStatesDisabled()}
+          options={LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined}
+          onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
+          value={value.province}
+          styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]))}
+          isDisabled={this.isProvinceFieldDisabled()}
         />
         <input
           id={`${id}-zip-code`}

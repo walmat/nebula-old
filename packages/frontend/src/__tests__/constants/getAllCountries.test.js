@@ -1,24 +1,23 @@
 /* global describe it expect beforeEach */
-import getAllCountries, { getCountry } from '../../constants/getAllCountries';
+import getAllCountries, { getCountry, getProvinces } from '../../constants/getAllCountries';
+import countries from '../../constants/countries.json';
 
 describe('getAllCountries', () => {
-  let expectedCountries;
-
-  beforeEach(() => {
-    expectedCountries = [
-      { value: 'US', label: 'United States' },
-      { value: 'UK', label: 'United Kingdom' },
-      { value: 'DE', label: 'Germany' },
-    ];
-  });
-
-  it('should return all states correctly', () => {
-    expect(getAllCountries()).toEqual(expectedCountries);
+  it('should return all countries correctly', () => {
+    expect(getAllCountries()).toEqual(countries);
   });
 
   it('should lookup the correct countries', () => {
-    expectedCountries.forEach(country => {
-      expect(getCountry(country.value)).toEqual(country);
+    countries.forEach(country => {
+      expect(getCountry(country.code)).toEqual(country);
+    });
+  });
+
+  it('should receive provinces for each country', () => {
+    countries.forEach(country => {
+      const expected = getCountry(country.code).provinces;
+      const provinces = getProvinces(country.code);
+      expect(provinces).toEqual(expected);
     });
   });
 });

@@ -13,8 +13,15 @@ describe('locationState definitions', () => {
   testLocationKey('address', 'test', true);
   testLocationKey('apt', 'test', true);
   testLocationKey('city', 'test', true);
-  testLocationKey('country', { value: 'test_value', label: 'test_label' }, true);
-  testLocationKey('state', { value: 'test_value', label: 'test_label' }, true);
+  testLocationKey('country', { value: 'US', label: 'United States' }, true);
+  testLocationKey(
+    'province',
+    {
+      province: { value: 'AL', label: 'Alabama' },
+      country: { value: 'US', label: 'United States' },
+    },
+    true,
+  );
   testLocationKey('zipCode', '12345', true);
   testLocationKey('phone', '1234567890', true);
 });

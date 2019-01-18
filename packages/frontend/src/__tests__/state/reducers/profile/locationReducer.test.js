@@ -14,11 +14,18 @@ describe('location reducer', () => {
       it('should update when using a non-null value', () => {
         const expected = {
           ...initialProfileStates.location,
-          [field]: 'testing',
+          [field]:
+            field === LOCATION_FIELDS.PROVINCE ? { value: 'AL', label: 'Alabama' } : 'testing',
         };
         const actual = locationReducer(initialProfileStates.location, {
           type: field,
-          value: 'testing',
+          value:
+            field === LOCATION_FIELDS.PROVINCE
+              ? {
+                  province: { value: 'AL', label: 'Alabama' },
+                  country: { value: 'US', label: 'United States' },
+                }
+              : 'testing',
         });
         expect(actual).toEqual(expected);
       });
@@ -60,7 +67,7 @@ describe('location reducer', () => {
 
     describe('phone number', () => _testEditField(LOCATION_FIELDS.PHONE_NUMBER));
 
-    describe('state', () => _testEditField(LOCATION_FIELDS.STATE));
+    describe('province', () => _testEditField(LOCATION_FIELDS.PROVINCE));
 
     describe('country', () => _testEditField(LOCATION_FIELDS.COUNTRY));
   });
@@ -120,8 +127,8 @@ describe('location reducer', () => {
       _handleErrorsTest(LOCATION_FIELDS.COUNTRY);
     });
 
-    test('for state action', () => {
-      _handleErrorsTest(LOCATION_FIELDS.STATE);
+    test('for province action', () => {
+      _handleErrorsTest(LOCATION_FIELDS.PROVINCE);
     });
   });
 });

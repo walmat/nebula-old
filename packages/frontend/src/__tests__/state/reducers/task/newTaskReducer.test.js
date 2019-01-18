@@ -70,24 +70,16 @@ describe('new task reducer', () => {
           ...initialTaskStates.task,
           username: 'test',
         };
-        const expected = {
-          ...initialTaskStates.task,
-          username: 'test',
-        };
         const actual = newTaskReducer(start, {
           type: TASK_ACTIONS.ADD,
           response: { task: {} },
         });
-        expect(actual).toEqual(expected);
+        expect(actual).toEqual(start);
       });
 
       describe('when defaults are given', () => {
         test("when defaults shouldn't be used", () => {
           const start = {
-            ...initialTaskStates.task,
-            username: 'test',
-          };
-          const expected = {
             ...initialTaskStates.task,
             username: 'test',
           };
@@ -104,7 +96,7 @@ describe('new task reducer', () => {
               useSizes: false,
             },
           );
-          expect(actual).toEqual(expected);
+          expect(actual).toEqual(start);
         });
 
         test('when default sizes should be used', () => {

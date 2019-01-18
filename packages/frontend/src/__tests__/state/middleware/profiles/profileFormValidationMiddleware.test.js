@@ -119,8 +119,11 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
-          country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
+          province: testValid ? {} : { label: 'Puerto Rico', value: 'PR' },
+          country:
+            testValid && subField !== LOCATION_FIELDS.PROVINCE
+              ? {}
+              : { value: 'US', label: 'United States' }, // if we are testing the province, the country will always be valid
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -131,8 +134,11 @@ describe('profile form validation middleware', () => {
           address: testValid ? '' : 'test',
           apt: 'test',
           city: testValid ? '' : 'test',
-          state: testValid ? 'invalid' : { label: 'Puerto Rico', value: 'PR' },
-          country: testValid ? 'invalid' : { value: 'US', label: 'United States' },
+          province: testValid ? {} : { label: 'Puerto Rico', value: 'PR' },
+          country:
+            testValid && subField !== LOCATION_FIELDS.PROVINCE
+              ? {}
+              : { value: 'US', label: 'United States' }, // if we are testing the province, the country will always be valid
           zipCode: testValid ? '' : '12345',
           phone: testValid ? 'invalid' : '1234567890',
         },
@@ -164,8 +170,11 @@ describe('profile form validation middleware', () => {
             address: testValid,
             apt: false,
             city: testValid,
-            state: testValid,
-            country: testValid,
+            province:
+              field === PROFILE_FIELDS.EDIT_BILLING && subField === LOCATION_FIELDS.COUNTRY
+                ? true
+                : testValid, // If we are testing the country, the province will always be invalid
+            country: subField === LOCATION_FIELDS.PROVINCE ? false : testValid, // if we are testing the province, the country will always be valid
             zipCode: testValid,
             phone: testValid,
           },
@@ -178,8 +187,11 @@ describe('profile form validation middleware', () => {
             address: testValid,
             apt: false,
             city: testValid,
-            state: testValid,
-            country: testValid,
+            province:
+              field === PROFILE_FIELDS.EDIT_SHIPPING && subField === LOCATION_FIELDS.COUNTRY
+                ? true
+                : testValid, // If we are testing the country, the province will always be invalid
+            country: subField === LOCATION_FIELDS.PROVINCE ? false : testValid, // if we are testing the province, the country will always be valid
             zipCode: testValid,
             phone: testValid,
           },
@@ -192,8 +204,11 @@ describe('profile form validation middleware', () => {
           address: testValid,
           apt: false,
           city: testValid,
-          state: testValid,
-          country: testValid,
+          province:
+            field === PROFILE_FIELDS.EDIT_BILLING && subField === LOCATION_FIELDS.COUNTRY
+              ? true
+              : testValid, // If we are testing the country, the province will always be invalid
+          country: subField === LOCATION_FIELDS.PROVINCE ? false : testValid, // if we are testing the province, the country will always be valid
           zipCode: testValid,
           phone: testValid,
         },
@@ -203,8 +218,11 @@ describe('profile form validation middleware', () => {
           address: testValid,
           apt: false,
           city: testValid,
-          state: testValid,
-          country: testValid,
+          province:
+            field === PROFILE_FIELDS.EDIT_SHIPPING && subField === LOCATION_FIELDS.COUNTRY
+              ? true
+              : testValid, // If we are testing the country, the province will always be invalid
+          country: subField === LOCATION_FIELDS.PROVINCE ? false : testValid, // if we are testing the province, the country will always be valid
           zipCode: testValid,
           phone: testValid,
         },
@@ -326,13 +344,6 @@ describe('profile form validation middleware', () => {
             valid: false,
           }));
       });
-
-      describe('billing matches shipping', () =>
-        testErrorFlag({
-          field: PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING,
-          value: false,
-          valid: true,
-        }));
 
       describe('payment', () => {
         const _testErrorFlag = args =>
@@ -513,34 +524,36 @@ describe('profile form validation middleware', () => {
         });
 
         describe('country', () => {
-          it('should not generate error flag when valid', () =>
+          it('should not generate error flag when valid', () => {
             _testErrorFlag({
               value: { value: 'US', label: 'United States' },
               valid: true,
               subField: LOCATION_FIELDS.COUNTRY,
-            }));
+            });
+          });
 
-          it('should generate error flag when invalid', () =>
+          it('should generate error flag when invalid', () => {
             _testErrorFlag({
-              value: 'invalid',
+              value: {},
               valid: false,
               subField: LOCATION_FIELDS.COUNTRY,
-            }));
+            });
+          });
         });
 
-        describe('state', () => {
+        describe('province', () => {
           it('should not generate error flag when valid', () =>
             _testErrorFlag({
-              value: { label: 'Puerto Rico', value: 'PR' },
+              value: { value: 'AL', label: 'Alabama' },
               valid: true,
-              subField: LOCATION_FIELDS.STATE,
+              subField: LOCATION_FIELDS.PROVINCE,
             }));
 
           it('should generate error flag when invalid', () =>
             _testErrorFlag({
-              value: 'invalid',
+              value: {},
               valid: false,
-              subField: LOCATION_FIELDS.STATE,
+              subField: LOCATION_FIELDS.PROVINCE,
             }));
         });
       };

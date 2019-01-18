@@ -281,7 +281,7 @@ describe('Custom Select', () => {
       };
       const actualStyle = colourStyles().menuList(initialStyle);
       expect(actualStyle).toEqual({
-        maxHeight: '175px',
+        maxHeight: '150px',
       });
     });
   });

@@ -1,7 +1,6 @@
 import regexes from '../validation';
 import { LOCATION_FIELDS } from '../../state/actions';
-import getAllCountries from '../../constants/getAllCountries';
-import getAllStates from '../../constants/getAllStates';
+import getAllCountries, { getProvinces } from '../../constants/getAllCountries';
 
 function validateAddress(address) {
   // TODO: Create regex for addresses (or use google location api)
@@ -20,7 +19,7 @@ function validateCity(city) {
 
 function validateCountry(country) {
   const countries = getAllCountries();
-  return country && countries.some(c => c.value === country.value);
+  return country && countries.some(c => c.code === country.value);
 }
 
 function validateFirstName(firstName) {
@@ -37,9 +36,12 @@ function validatePhoneNumber(phoneNumber) {
   return phoneNumber && regexes.phoneNumber.test(phoneNumber);
 }
 
-function validateState(state) {
-  const states = getAllStates();
-  return state && states.some(s => s.value === state.value);
+function validateProvince({ country = {}, province = {} }) {
+  const provinces = getProvinces(country.value);
+  if (provinces && provinces.length === 0) {
+    return true; // there are no states for this country, so it is "valid"
+  }
+  return provinces && provinces.some(s => s.code === province.value);
 }
 
 function validateZipCode(zipCode) {
@@ -55,7 +57,7 @@ const locationAttributeValidators = {
   [LOCATION_FIELDS.FIRST_NAME]: validateFirstName,
   [LOCATION_FIELDS.LAST_NAME]: validateLastName,
   [LOCATION_FIELDS.PHONE_NUMBER]: validatePhoneNumber,
-  [LOCATION_FIELDS.STATE]: validateState,
+  [LOCATION_FIELDS.PROVINCE]: validateProvince,
   [LOCATION_FIELDS.ZIP_CODE]: validateZipCode,
 };
 
