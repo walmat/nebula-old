@@ -258,7 +258,7 @@ class FrontendCheckout extends Checkout {
   }
 
   async submitContact() {
-    this._logger.verbose('CHECKOUT: Fetching shipping rates');
+    this._logger.verbose('CHECKOUT: Submitting contact information');
     const { site, profile, monitorDelay } = this._context.task;
     const { url } = site;
     const { shipping, payment } = profile;
