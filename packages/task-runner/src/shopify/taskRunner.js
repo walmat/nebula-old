@@ -66,17 +66,13 @@ const { getCheckoutMethod } = require('./classes/checkouts');
 
     const res = await this._checkout.paymentToken();
 
-    if (!res) {
-      this._logger.verbose('Failed: fetching payment token');
-      return States.Stopped;
-    }
-    // TODO:
     // API - Go To Create Checkout
     // Frontend - Go To Monitor
+
     this._emitTaskEvent({
-      message: 'Creating Checkout',
+      message: res.message,
     });
-    return States.CreateCheckout;
+    return res.nextState;
   }
 
   async _handleCreateCheckout() {

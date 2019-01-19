@@ -10,7 +10,12 @@ const {
   now,
   waitForDelay,
 } = require('../utils');
-const { addToCart, submitCustomerInformation, paymentMethodForm } = require('../utils/forms');
+const {
+  addToCart,
+  submitCustomerInformation,
+  postPaymentFrontend,
+  buildPaymentForm,
+} = require('../utils/forms');
 const { CheckoutErrorCodes } = require('../utils/constants').ErrorCodes;
 const { States } = require('../utils/constants').TaskRunner;
 const { CheckoutTimeouts, ShopifyPaymentSteps } = require('../utils/constants').Checkout;
@@ -19,6 +24,37 @@ class FrontendCheckout extends Checkout {
   constructor(context) {
     super(context);
     this._context = context;
+  }
+
+  async paymentToken() {
+    const { payment, billing } = this._context.task.profile;
+    this._logger.verbose('CHECKOUT: Generating Payment Token');
+    try {
+      const res = await this._request({
+        uri: `https://elb.deposit.shopifycs.com/sessions`,
+        followAllRedirects: true,
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        method: 'post',
+        resolveWithFullResponse: true,
+        headers: {
+          'User-Agent': userAgent,
+          'Content-Type': 'application/json',
+          Connection: 'Keep-Alive',
+        },
+        body: JSON.stringify(buildPaymentForm(payment, billing)),
+      });
+      const body = JSON.parse(res.body);
+      if (body && body.id) {
+        this._logger.verbose('Payment token: %s', body.id);
+        this.paymentTokens.push(body.id);
+        return { message: 'Monitoring for product', nextState: States.Monitor };
+      }
+      return { message: 'Failed: Generating payment token', nextState: States.Stopped };
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
+      return { message: 'Failed: Generating payment token', nextState: States.Stopped };
+    }
   }
 
   async addToCart() {
@@ -50,7 +86,7 @@ class FrontendCheckout extends Checkout {
       if (res && res.request && res.request.uri) {
         if (res.request.uri.href.indexOf('password') > -1) {
           // TODO - maybe think about looping back to monitor here? Idk...
-          return { nextState: States.AddToCart };
+          return { message: 'Password page', nextState: States.AddToCart };
         }
       }
 
@@ -364,14 +400,13 @@ class FrontendCheckout extends Checkout {
         rejectUnauthorized: false,
         proxy: formatProxy(this._context.proxy),
         headers,
-        formData: paymentMethodForm(
+        formData: postPaymentFrontend(
           this.paymentTokens.pop(),
           this.gateway,
           id,
           this.captchaToken,
           this.prices.total,
           this._context.task.profile,
-          true,
         ),
       });
 

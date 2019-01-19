@@ -21,7 +21,7 @@ function stateForStatusCode(statusCode) {
   if (statusCode === 303) {
     return {
       message: 'Waiting in queue',
-      nextState: States.Queue,
+      nextState: States.PollQueue,
     };
   }
   if (statusCode === 403 || statusCode === 429 || statusCode === 430) {

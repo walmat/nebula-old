@@ -133,37 +133,6 @@ class Checkout {
     }
   }
 
-  async paymentToken() {
-    const { payment, billing } = this._context.task.profile;
-    this._logger.verbose('CHECKOUT: Generating Payment Token');
-    try {
-      const res = await this._request({
-        uri: `https://elb.deposit.shopifycs.com/sessions`,
-        followAllRedirects: true,
-        proxy: formatProxy(this._context.proxy),
-        rejectUnauthorized: false,
-        method: 'post',
-        resolveWithFullResponse: true,
-        headers: {
-          'User-Agent': userAgent,
-          'Content-Type': 'application/json',
-          Connection: 'Keep-Alive',
-        },
-        body: JSON.stringify(buildPaymentForm(payment, billing)),
-      });
-      const body = JSON.parse(res.body);
-      if (body && body.id) {
-        this._logger.verbose('Payment token: %s', body.id);
-        this.paymentTokens.push(body.id);
-        return body.id;
-      }
-      return null;
-    } catch (err) {
-      this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
-      return null;
-    }
-  }
-
   /**
    * Handles waiting in a checkout queue for Shopify
    * @returns {} || `CheckoutObject`
@@ -175,7 +144,7 @@ class Checkout {
       const res = await this._request({
         uri: `${site.url}/checkout/poll`,
         method: 'GET',
-        proxy: formatProxy(this._proxy),
+        proxy: formatProxy(this._context.proxyy),
         simple: false,
         json: false,
         followAllRedirects: false,
@@ -192,7 +161,7 @@ class Checkout {
 
       this._logger.silly('CHECKOUT: Queue response body: %j', body);
 
-      // out of queue
+      // out of queue case
       // TODO – find a better way to check against empty object body
       if (JSON.parse(JSON.stringify(body)) !== '{}' && !body.indexOf('throttle') > -1) {
         this._logger.verbose('CHECKOUT: Queue bypassed');

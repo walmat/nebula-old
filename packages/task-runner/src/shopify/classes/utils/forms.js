@@ -64,6 +64,31 @@ const createCheckoutForm = (profile, shipping, billing, payment) => {
   return dataString;
 };
 
+const addToCart = (variant, site) => {
+  switch (site.name) {
+    case 'DSM US': {
+      return {
+        id: variant,
+        add: '',
+        'properties[_HASH]': 256782537687,
+      };
+    }
+    case 'DSM UK': {
+      return {
+        id: variant,
+        add: '',
+        'properties[_hash]': 'ee3e8f7a9322eaa382e04f8539a7474c11555',
+      };
+    }
+    default: {
+      return {
+        id: variant,
+        add: '',
+      };
+    }
+  }
+};
+
 const patchToCart = (variant, site) => ({
   checkout: {
     line_items: [
@@ -85,7 +110,32 @@ const patchToCart = (variant, site) => ({
   },
 });
 
-const paymentMethodForm = (paymentToken, gateway, shippingMethod, captchaToken) => ({
+const submitCustomerInformation = (payment, shipping, authToken, captchaToken) => ({
+  utf8: '✓',
+  _method: 'patch',
+  authenticity_token: '',
+  previous_step: '',
+  'checkout[email]': payment.email,
+  'checkout[buyer_accepts_marketing]': 0,
+  'checkout[shipping_address][first_name]': shipping.firstName,
+  'checkout[shipping_address][last_name]': shipping.lastName,
+  'checkout[shipping_address][address1]': shipping.address,
+  'checkout[shipping_address][address2]': shipping.apt,
+  'checkout[shipping_address][city]': shipping.city,
+  'checkout[shipping_address][country]': shipping.country.label,
+  'checkout[shipping_address][province]': shipping.state.label,
+  'checkout[shipping_address][zip]': shipping.zipCode,
+  'checkout[shipping_address][phone]': phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN'),
+  step: 'shipping_method',
+  'g-captcha-response': captchaToken,
+  'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+  'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
+  'checkout[client_details][javascript_enabled]': '1',
+  'checkout[remember_me]': '0',
+  button: '',
+});
+
+const postPaymentAPI = (paymentToken, gateway, shippingMethod, captchaToken) => ({
   utf8: '✓',
   _method: 'patch',
   authenticity_token: '',
@@ -104,6 +154,94 @@ const paymentMethodForm = (paymentToken, gateway, shippingMethod, captchaToken) 
   button: '',
   'g-recaptcha-response': captchaToken,
 });
+
+const postPaymentFrontend = (
+  paymentToken,
+  gateway,
+  shippingMethod,
+  captchaToken,
+  price,
+  profile,
+) => {
+  if (profile.billingMatchesShipping) {
+    const { shipping } = profile;
+
+    let shippingProvince = '';
+    if (shipping.province) {
+      shippingProvince = shipping.province.label;
+    }
+
+    return {
+      utf8: '✓',
+      _method: 'patch',
+      authenticity_token: '',
+      previous_step: 'payment_method',
+      step: '',
+      s: paymentToken,
+      'checkout[payment_gateway]': gateway,
+      'checkout[credit_card][vault]': 'false',
+      'checkout[different_billing_address]': 'false',
+      'checkout[billing_address][first_name]': shipping.firstName,
+      'checkout[billing_address][last_name]': shipping.lastName,
+      'checkout[billing_address][company]': '',
+      'checkout[billing_address][address1]': shipping.address,
+      'checkout[billing_address][address2]': shipping.apt,
+      'checkout[billing_address][city]': shipping.city,
+      'checkout[billing_address][country]': shipping.country.label,
+      'checkout[billing_address][province]': shippingProvince,
+      'checkout[billing_address][zip]': shipping.zipCode,
+      'checkout[billing_address][phone]': shipping.phone,
+      'checkout[remember_me]': '0',
+      'checkout[total_price]': price,
+      complete: '1',
+      'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+      'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
+      'checkout[client_details][javascript_enabled]': '1',
+      'checkout[buyer_accepts_marketing]': '0',
+      'checkout[shipping_rate][id]': shippingMethod,
+      button: '',
+      'g-recaptcha-response': captchaToken,
+    };
+  }
+  const { billing } = profile;
+
+  let billingProvince = '';
+  if (billing.province) {
+    billingProvince = billing.province.label;
+  }
+
+  return {
+    utf8: '✓',
+    _method: 'patch',
+    authenticity_token: '',
+    previous_step: 'payment_method',
+    step: '',
+    s: paymentToken,
+    'checkout[payment_gateway]': gateway,
+    'checkout[credit_card][vault]': 'false',
+    'checkout[different_billing_address]': 'false',
+    'checkout[billing_address][first_name]': billing.firstName,
+    'checkout[billing_address][last_name]': billing.lastName,
+    'checkout[billing_address][company]': '',
+    'checkout[billing_address][address1]': billing.address,
+    'checkout[billing_address][address2]': billing.apt,
+    'checkout[billing_address][city]': billing.city,
+    'checkout[billing_address][country]': billing.country.label,
+    'checkout[billing_address][province]': billingProvince,
+    'checkout[billing_address][zip]': billing.zip,
+    'checkout[billing_address][phone]': billing.phone,
+    'checkout[remember_me]': '0',
+    'checkout[total_price]': price,
+    complete: '1',
+    'checkout[client_details][browser_width]': getRandomIntInclusive(900, 970),
+    'checkout[client_details][browser_height]': getRandomIntInclusive(600, 670),
+    'checkout[client_details][javascript_enabled]': '1',
+    'checkout[buyer_accepts_marketing]': '0',
+    'checkout[shipping_rate][id]': shippingMethod,
+    button: '',
+    'g-recaptcha-response': captchaToken,
+  };
+};
 
 /**
  * NOTE – Price is not needed as of now,
@@ -125,7 +263,10 @@ const paymentReviewForm = (price, captchaToken) => ({
 module.exports = {
   buildPaymentForm,
   createCheckoutForm,
+  addToCart,
   patchToCart,
-  paymentMethodForm,
+  submitCustomerInformation,
+  postPaymentAPI,
+  postPaymentFrontend,
   paymentReviewForm,
 };

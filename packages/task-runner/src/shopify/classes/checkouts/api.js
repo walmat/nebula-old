@@ -4,15 +4,23 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 
-const { formatProxy, getHeaders, now, stateForStatusCode, waitForDelay } = require('../utils');
+const {
+  formatProxy,
+  getHeaders,
+  now,
+  stateForStatusCode,
+  waitForDelay,
+  userAgent,
+} = require('../utils');
 const {
   createCheckoutForm,
+  buildPaymentForm,
   patchToCart,
   paymentReviewForm,
-  paymentMethodForm,
+  postPaymentAPI,
 } = require('../utils/forms');
 const { States } = require('../utils/constants').TaskRunner;
-const { Delays, CheckoutTimeouts, ShopifyPaymentSteps } = require('../utils/constants').Checkout;
+const { CheckoutTimeouts, ShopifyPaymentSteps } = require('../utils/constants').Checkout;
 
 const Checkout = require('../checkout');
 
@@ -22,6 +30,37 @@ class APICheckout extends Checkout {
     this._context = context;
     this._logger = this._context.logger;
     this._request = this._context.request;
+  }
+
+  async paymentToken() {
+    const { payment, billing } = this._context.task.profile;
+    this._logger.verbose('CHECKOUT: Generating Payment Token');
+    try {
+      const res = await this._request({
+        uri: `https://elb.deposit.shopifycs.com/sessions`,
+        followAllRedirects: true,
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        method: 'post',
+        resolveWithFullResponse: true,
+        headers: {
+          'User-Agent': userAgent,
+          'Content-Type': 'application/json',
+          Connection: 'Keep-Alive',
+        },
+        body: JSON.stringify(buildPaymentForm(payment, billing)),
+      });
+      const body = JSON.parse(res.body);
+      if (body && body.id) {
+        this._logger.verbose('Payment token: %s', body.id);
+        this.paymentTokens.push(body.id);
+        return { message: 'Creating checkout', nextState: States.CreateCheckout };
+      }
+      return { message: 'Failed: Generating payment token', nextState: States.Stopped };
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
+      return { message: 'Failed: Generating payment token', nextState: States.Stopped };
+    }
   }
 
   async createCheckout() {
@@ -329,7 +368,7 @@ class APICheckout extends Checkout {
         rejectUnauthorized: false,
         proxy: formatProxy(this._context.proxy),
         headers,
-        formData: paymentMethodForm(this.paymentTokens.pop(), this.gateway, id, this.captchaToken),
+        formData: postPaymentAPI(this.paymentTokens.pop(), this.gateway, id, this.captchaToken),
       });
 
       fs.writeFileSync(path.join(__dirname, 'postPayment.html'), res.body);
