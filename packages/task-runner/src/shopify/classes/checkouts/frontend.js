@@ -90,6 +90,8 @@ class FrontendCheckout extends Checkout {
         }
       }
 
+      console.log(res.body);
+
       const { statusCode } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
@@ -157,6 +159,7 @@ class FrontendCheckout extends Checkout {
         this.storeId = href.split('/')[3];
         // eslint-disable-next-line prefer-destructuring
         this.checkoutTokens.push(href.split('/')[5]);
+        this.checkoutToken = this.checkoutTokens.pop();
 
         if (recaptchaFrame.length) {
           this._logger.debug('CHECKOUT: Captcha found in checkout page');
@@ -201,7 +204,7 @@ class FrontendCheckout extends Checkout {
         },
         qs: {
           'shipping_address[zip]': zipCode,
-          'shipping_address[country]': country.value,
+          'shipping_address[country]': 'Singapore',
           'shipping_address[province]': province.value,
         },
       });
@@ -215,8 +218,7 @@ class FrontendCheckout extends Checkout {
         return { message: 'Country not supported', nextState: States.Stopped };
       }
 
-      let checkStatus = stateForStatusCode(statusCode);
-
+      const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
@@ -242,60 +244,104 @@ class FrontendCheckout extends Checkout {
         this.prices.shipping = cheapest.price;
         this._logger.silly('CHECKOUT: Shipping total: %s', this.prices.shipping);
 
-        // BEGIN POST CUSTOMER INFO
-        try {
-          res = await this._request({
-            uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
-            method: 'post',
-            proxy: formatProxy(this._context.proxy),
-            rejectUnauthorized: false,
-            followAllRedirects: true,
-            resolveWithFullResponse: true,
-            simple: false,
-            headers: {
-              Origin: `${url}`,
-              Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-              'User-Agent': userAgent,
-            },
-            formData: submitCustomerInformation(
-              payment,
-              shipping,
-              this.authTokens.shift(),
-              this.captchaToken,
-            ),
-          });
-
-          checkStatus = stateForStatusCode(res.statusCode);
-          if (checkStatus) {
-            return { message: checkStatus.message, nextState: checkStatus.nextState };
-          }
-
-          const $ = cheerio.load(res.body, { xmlMode: true, normalizeWhitespace: true });
-          let step = $('.step').attr('data-step');
-          if (!step) {
-            step = $('#step').attr('data-step');
-          }
-          if (step === ShopifyPaymentSteps.ContactInformation) {
-            return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
-          }
-          const token = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-          if (token) {
-            this.authTokens.push(token);
-          }
-          return {
-            message: `Using rate ${this.chosenShippingMethod.name}`,
-            nextState: States.PaymentGateway,
-          };
-        } catch (err) {
-          this._logger.debug('CHECKOUT: Request error submitting customer information: %j', err);
-          return { message: 'Failed: Posting contact information', nextState: States.Stopped };
-        }
+        return {
+          message: `Using rate: ${this.chosenShippingMethod.name}`,
+          nextState: States.SubmitContact,
+        };
       }
       this._logger.verbose('No shipping rates available, polling %d ms', monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error fetching shipping method: %j', err);
       return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
+    }
+  }
+
+  async submitContact() {
+    this._logger.verbose('CHECKOUT: Fetching shipping rates');
+    const { site, profile, monitorDelay } = this._context.task;
+    const { url } = site;
+    const { shipping, payment } = profile;
+
+    try {
+      const res = await this._request({
+        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+        method: 'get',
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
+        simple: false,
+        headers: {
+          Origin: `${url}`,
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'User-Agent': userAgent,
+          Referer: `${url}/cart`,
+        },
+      });
+      const { statusCode, request } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
+      }
+      const { href } = request;
+      if (href.indexOf('stock_problems')) {
+        await waitForDelay(monitorDelay);
+        return { message: 'Running for restocks', nextState: States.SubmitContact };
+      }
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Request error getting customer information: %j', err);
+      return { message: 'Failed: Getting contact information', nextState: States.Stopped };
+    }
+
+    try {
+      const res = await this._request({
+        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+        method: 'post',
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
+        simple: false,
+        headers: {
+          Origin: `${url}`,
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'User-Agent': userAgent,
+          Referer: `${url}/cart`,
+        },
+        formData: submitCustomerInformation(payment, shipping, '', this.captchaToken),
+      });
+
+      const { href } = res.request;
+
+      const checkStatus = stateForStatusCode(res.statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
+      }
+
+      if (href.indexOf('stock_problems') > -1) {
+        return { message: 'Running for restocks', nextState: States.SubmitContact };
+      }
+
+      const $ = cheerio.load(res.body, { xmlMode: true, normalizeWhitespace: true });
+      let step = $('.step').attr('data-step');
+      if (!step) {
+        step = $('#step').attr('data-step');
+      }
+      if (step === ShopifyPaymentSteps.ContactInformation) {
+        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
+      }
+      const token = $('form.edit_checkout input[name=authenticity_token]').attr('value');
+      if (token) {
+        this.authTokens.push(token);
+      }
+      return {
+        message: `Fetching payment gateway`,
+        nextState: States.PaymentGateway,
+      };
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Request error submitting customer information: %j', err);
+      return { message: 'Failed: Posting contact information', nextState: States.Stopped };
     }
   }
 

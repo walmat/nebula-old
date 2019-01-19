@@ -113,7 +113,7 @@ const patchToCart = (variant, site) => ({
 const submitCustomerInformation = (payment, shipping, authToken, captchaToken) => ({
   utf8: '✓',
   _method: 'patch',
-  authenticity_token: '',
+  authenticity_token: authToken,
   previous_step: '',
   'checkout[email]': payment.email,
   'checkout[buyer_accepts_marketing]': 0,
@@ -123,7 +123,7 @@ const submitCustomerInformation = (payment, shipping, authToken, captchaToken) =
   'checkout[shipping_address][address2]': shipping.apt,
   'checkout[shipping_address][city]': shipping.city,
   'checkout[shipping_address][country]': shipping.country.label,
-  'checkout[shipping_address][province]': shipping.state.label,
+  'checkout[shipping_address][province]': shipping.province ? shipping.province.label : '',
   'checkout[shipping_address][zip]': shipping.zipCode,
   'checkout[shipping_address][phone]': phoneFormatter.format(shipping.phone, '(NNN) NNN-NNNN'),
   step: 'shipping_method',

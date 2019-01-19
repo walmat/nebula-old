@@ -1,10 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
 const { formatProxy, userAgent, getHeaders, stateForStatusCode, waitForDelay } = require('./utils');
-const { buildPaymentForm } = require('./utils/forms');
-const { Delays } = require('../classes/utils/constants').Checkout;
 const { States } = require('./utils/constants').TaskRunner;
-const { CheckoutErrorCodes } = require('./utils/constants').ErrorCodes;
 
 class Checkout {
   constructor(context) {
@@ -12,6 +9,7 @@ class Checkout {
     this._logger = this._context.logger;
     this._request = this._context.request;
 
+    this.authTokens = [];
     this.paymentTokens = [];
     this.shippingMethods = [];
     this.chosenShippingMethod = {

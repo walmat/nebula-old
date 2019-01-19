@@ -288,6 +288,21 @@ const { getCheckoutMethod } = require('./classes/checkouts');
     return res.nextState;
   }
 
+  async _handleRestocks() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const res = await this._checkout.restocks();
+
+    this._emitTaskEvent({
+      message: res.message,
+    });
+    return res.nextState;
+  }
+
   async _handleShipping() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -303,7 +318,21 @@ const { getCheckoutMethod } = require('./classes/checkouts');
     return res.nextState;
   }
 
-  async _handlePaymentGateway() {
+  async _handleSubmitContact() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const res = await this._checkout.submitContact();
+
+    this._emitTaskEvent({
+      message: res.message,
+    });
+    return res.nextState;
+  }
+
   async _handleRequestCaptcha() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -479,6 +508,7 @@ const { getCheckoutMethod } = require('./classes/checkouts');
       [States.PollQueue]: this._handlePollQueue,
       [States.Monitor]: this._handleMonitor,
       [States.AddToCart]: this._handleAddToCart,
+      [States.Restocks]: this._handleRestocks,
       [States.ShippingRates]: this._handleShipping,
       [States.RequestCaptcha]: this._handleRequestCaptcha,
       [States.SubmitContact]: this._handleSubmitContact,
