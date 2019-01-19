@@ -281,16 +281,6 @@ class TaskRunner {
     });
   }
 
-  login() {
-    return new Promise(async (resolve, reject) => {
-      const loggedIn = await this._checkout.handleLogin();
-      if (!loggedIn) {
-        reject(loggedIn);
-      }
-      resolve(loggedIn);
-    });
-  }
-
   // MARK: State Machine Step Logic
 
   async _handleStarted() {
@@ -299,8 +289,76 @@ class TaskRunner {
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
+    if (this._context.task.username && this._context.task.password) {
+      this._emitTaskEvent({
+        message: 'Logging in...',
+      });
+      return States.Login;
+    }
+    this._emitTaskEvent({
+      message: 'Starting Task Setup',
+    });
+    return States.TaskSetup;
+  }
 
-    this._logger.silly('Starting task setup');
+  async _handleLogin() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { monitorDelay } = this._context.task;
+
+    const res = await this._checkout.handleLogin();
+
+    if (res.status) {
+      switch (res.status) {
+        case CheckoutErrorCodes.Password:
+          this._emitTaskEvent({
+            message: 'Password page',
+          });
+          await waitForDelay(monitorDelay);
+          return States.Login;
+        case 303:
+          this._emitTaskEvent({
+            message: 'Waiting in queue',
+          });
+          await waitForDelay(monitorDelay);
+          return States.Queue;
+        case 403:
+        case 429:
+        case 430:
+          this._emitTaskEvent({
+            message: 'Proxy banned, swapping...',
+          });
+          return States.SwapProxies;
+        default:
+          this._emitTaskEvent({
+            message: 'Unknown error, stopping...',
+          });
+          return States.Stopped;
+      }
+    }
+    if (res.errors) {
+      if (res.errors === CheckoutErrorCodes.InvalidCaptchaToken) {
+        this._emitTaskEvent({
+          message: 'Captcha needed for login',
+        });
+        return States.Captcha;
+      }
+      if (res.errors === CheckoutErrorCodes.InvalidLogin) {
+        this._emitTaskEvent({
+          message: 'Invalid login credentials',
+        });
+        return States.Stopped;
+      }
+      this._logger.silly('Failed: unable to login');
+      this._emitTaskEvent({
+        message: 'Unable to login, stopping...',
+      });
+      return States.Stopped;
+    }
     this._emitTaskEvent({
       message: 'Starting Task Setup',
     });
@@ -320,11 +378,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { username, password } = this._context.task;
-    const promises =
-      username && password
-        ? [this.generatePaymentToken(), this.createCheckout(), this.login()]
-        : [this.generatePaymentToken(), this.createCheckout()];
+    const promises = [this.generatePaymentToken(), this.createCheckout()];
     this._logger.silly('Running Task Setup Promises');
     const results = await Promise.all(promises.map(reflect));
     this._logger.silly('Async promises results: %j', results);
@@ -623,8 +677,7 @@ class TaskRunner {
       await waitForDelay(errorDelay);
       return States.Stopped;
     }
-    this._emitTaskEvent({ message: 'Submitting payment...' });
-    return States.PostPayment;
+    return this._prevState;
   }
 
   async _handlePostPayment() {
@@ -670,7 +723,7 @@ class TaskRunner {
       }
     }
     this._emitTaskEvent({
-      message: 'Payment Processing',
+      message: 'Payment processing',
     });
     return States.Processing;
   }
@@ -784,6 +837,7 @@ class TaskRunner {
 
     const stepMap = {
       [States.Started]: this._handleStarted,
+      [States.Login]: this._handleLogin,
       [States.TaskSetup]: this._handleTaskSetup,
       [States.Queue]: this._handleCheckoutQueue,
       [States.Monitor]: this._handleMonitor,

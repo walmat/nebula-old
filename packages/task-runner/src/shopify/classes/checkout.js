@@ -189,39 +189,76 @@ class Checkout {
     const { url } = site;
     this._logger.verbose('CHECKOUT: Starting login request to %s', url);
 
-    this._request({
-      uri: `${url}/account/login`,
-      method: 'post',
-      simple: true,
-      followAllRedirects: true,
-      proxy: formatProxy(this._proxy),
-      resolveWithFullResponse: true,
-      headers: {
-        'User-Agent': userAgent,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Referer: `${url}`,
-      },
-      formData: {
+    let form;
+    let heads = {
+      'User-Agent': userAgent,
+      Connection: 'keep-alive',
+      Accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    if (this._captchaToken) {
+      form = {
+        utf8: '✓',
+        authenticity_token: '',
+        'g-recaptcha-response': this._captchaToken,
+      };
+      heads = {
+        ...heads,
+        Referer: `${url}/challenge`,
+      };
+    } else {
+      form = {
         form_data: 'customer_login',
         utf8: '✓',
         'customer[email]': username,
         'customer[password]': password,
-      },
-    })
-      .then(res => {
-        this._logger.verbose('ACCOUNT: Login response cookies: %j', res.headers['set-cookie']);
-        if (res.request.href.indexOf('login') > -1) {
-          return false;
-        }
-        this._logger.info('Logged in! Proceeding to add to cart');
-        return true;
-      })
-      .catch(err => {
-        this._logger.debug('ACCOUNT: Error logging in: %s', err);
-        return {
-          errors: err,
-        };
+        Referer: `${url}/account/login`,
+      };
+    }
+
+    try {
+      const res = await this._request({
+        uri: `${url}/account/login`,
+        method: 'post',
+        simple: false,
+        rejectUnauthorized: false,
+        followAllRedirects: true,
+        proxy: formatProxy(this._proxy),
+        resolveWithFullResponse: true,
+        headers: heads,
+        formData: form,
       });
+      const { statusCode, request, headers } = res;
+      const { href } = request;
+
+      if (href.indexOf('password') > -1) {
+        return { status: CheckoutErrorCodes.Password };
+      }
+
+      if (statusCode === 303 || statusCode === 403 || statusCode === 429 || statusCode === 430) {
+        return { status: statusCode };
+      }
+      if (href.indexOf('challenge') > -1) {
+        this._logger.verbose('CHECKOUT: Login needs captcha');
+        // TODO - figure out if auth token is needed here later
+        // const $ = cheerio.load(res.body);
+        // const loginAuthToken = $('form input[name="authenticity_token"]').attr('value');
+        return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
+      }
+
+      if (href.indexOf('login') > -1) {
+        this._logger.verbose('CHECKOUT: Invalid login credentials');
+        return { errors: CheckoutErrorCodes.InvalidLogin };
+      }
+
+      this._logger.verbose('CHECKOUT: Login response cookies: %j', headers['set-cookie']);
+      this._logger.info('Logged in! Proceeding to add to cart');
+      return { errors: null };
+    } catch (err) {
+      this._logger.verbose('CHECKOUT: Request error with login: %j', err);
+      return { errors: true };
+    }
   }
 
   /**
@@ -526,7 +563,11 @@ class Checkout {
         this._gateway = $(".radio-wrapper.content-box__row[data-gateway-group='direct']").attr(
           'data-select-gateway',
         );
-        return { errors: null };
+        if (this._gateway) {
+          this._logger.verbose('CHECKOUT: Using payment gateway: %s', this._gateway);
+          return { errors: null };
+        }
+        return { errors: CheckoutErrorCodes.InvalidGateway };
       }
       return { errors: CheckoutErrorCodes.InvalidGateway };
     } catch (err) {
@@ -677,9 +718,9 @@ class Checkout {
       if (this.isBanned(statusCode)) {
         return { status: statusCode };
       }
-      this._logger.verbose('CHECKOUT: Payments object: %j', body);
       const { payments } = body;
-      if (body && payments[0]) {
+      this._logger.verbose('CHECKOUT: Payments object: %j', payments);
+      if (body && payments.length > 0) {
         const { payment_processing_error_message } = payments[0];
         this._logger.verbose('CHECKOUT: Payment error: %j', payment_processing_error_message);
         if (payment_processing_error_message) {

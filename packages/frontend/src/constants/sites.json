@@ -78,7 +78,7 @@
   },
   {
     "label": "Black Market US",
-    "value": "https://blkmkt.us",
+    "value": "http://blkmkt.us",
     "apiKey": "8fe3dbccac6a59eefb67a5bbeb490b42",
     "auth": false,
     "supported": true
@@ -121,8 +121,8 @@
   {
     "label": "Concepts",
     "value": "https://cncpts.com",
-    "apiKey": "41d0a419f6f4c191d52037d17a58e6df",
-    "auth": false,
+    "apiKey": "5f6b24ca255661ff3414cee10472efd1",
+    "auth": true,
     "supported": true
   },
   {
@@ -554,7 +554,7 @@
   },
   {
     "label": "Undefeated",
-    "value": "https://undefeated.myshopify.com",
+    "value": "https://shop.undefeated.com",
     "apiKey": "a0faf54ad7ec6fbbab86cd3f949c3cb9",
     "auth": true,
     "supported": true
