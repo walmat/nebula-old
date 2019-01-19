@@ -138,18 +138,23 @@ class Checkout {
   async pollQueue() {
     this._logger.verbose('CHECKOUT: Waiting in queue');
     const { site, monitorDelay } = this._context.task;
+    const { url } = site;
     try {
       const res = await this._request({
-        uri: `${site.url}/checkout/poll`,
+        uri: `${url}/checkout/poll`,
         method: 'GET',
-        proxy: formatProxy(this._context.proxyy),
+        proxy: formatProxy(this._context.proxy),
         simple: false,
-        json: false,
         followAllRedirects: false,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
-        headers: getHeaders(site),
+        headers: {
+          ...getHeaders(site),
+          Connection: 'keep-alive',
+          'Upgrade-Insecure-Requests': 1,
+        },
       });
+
       const { statusCode } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
@@ -168,17 +173,15 @@ class Checkout {
           this._logger.verbose('CHECKOUT: Queue JSON body: %j', body);
           if (body.checkout) {
             const { checkout } = body;
-            const { clone_url } = checkout;
+            const { clone_url: cloneUrl } = checkout;
             this._logger.verbose(
               'CHECKOUT: Created checkout token after queue: %s',
-              clone_url.split('/')[5],
+              cloneUrl.split('/')[5],
             );
-            // eslint-disable-next-line prefer-destructuring
-            this.storeId = clone_url.split('/')[3];
-            // eslint-disable-next-line prefer-destructuring
-            this.paymentUrlKey = checkout.web_url.split('=')[1];
-            // push the checkout token to the stack
-            this.checkoutTokens.push(clone_url.split('/')[5]);
+            [, , , this.storeId] = cloneUrl.split('/');
+            [, this.paymentUrlKey] = checkout.web_url.split('=');
+            const [, , , , , newToken] = cloneUrl.split('/');
+            this.checkoutTokens.push(newToken);
             return { message: 'Monitoring for product', nextState: States.Monitor };
           }
           // might not ever get called, but just a failsafe
@@ -194,11 +197,9 @@ class Checkout {
               data = $('input[name="checkout_url"]').val();
               this._logger.silly('CHECKOUT: 202 response data: %j', data);
               if (data) {
-                // parse out what we need
-                // eslint-disable-next-line prefer-destructuring
-                this.storeId = data.split('/')[3];
-                // eslint-disable-next-line prefer-destructuring
-                this.checkoutTokens.push(data.split('/')[5]);
+                [, , , this.storeId] = data.split('/');
+                const [, , , , , newToken] = data.split('/');
+                this.checkoutTokens.push(newToken);
                 return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
               }
             }
@@ -206,10 +207,9 @@ class Checkout {
               data = $('input').attr('href');
               this._logger.silly('CHECKOUT: 303 response data: %j', data);
               if (data) {
-                // eslint-disable-next-line prefer-destructuring
-                this.storeId = data.split('/')[3];
-                // eslint-disable-next-line prefer-destructuring
-                this.checkoutTokens.push(data.split('/')[5]);
+                [, , , this.storeId] = data.split('/');
+                const [, , , , , newToken] = data.split('/');
+                this.checkoutTokens.push(newToken);
                 return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
               }
             }

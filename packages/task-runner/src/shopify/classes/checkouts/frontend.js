@@ -90,8 +90,6 @@ class FrontendCheckout extends Checkout {
         }
       }
 
-      console.log(res.body);
-
       const { statusCode } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
@@ -128,6 +126,9 @@ class FrontendCheckout extends Checkout {
         headers: {
           'User-Agent': userAgent,
           'Upgrade-Insecure-Requests': '1',
+          'x-barba': 'yes',
+          'X-Shopify-Storefront-Access-Token': site.apiKey,
+          'X-Shopify-Checkout-Version': '2019-10-06',
           'Content-Type': 'application/x-www-form-urlencoded',
           Connection: 'keep-alive',
           Accept:
@@ -155,10 +156,9 @@ class FrontendCheckout extends Checkout {
         if (token) {
           this.authTokens.push(token);
         }
-        // eslint-disable-next-line prefer-destructuring
-        this.storeId = href.split('/')[3];
-        // eslint-disable-next-line prefer-destructuring
-        this.checkoutTokens.push(href.split('/')[5]);
+        [, , , this.storeId] = href.split('/');
+        const [, , , , , newToken] = href.split('/');
+        this.checkoutTokens.push(newToken);
         this.checkoutToken = this.checkoutTokens.pop();
 
         if (recaptchaFrame.length) {
@@ -210,8 +210,7 @@ class FrontendCheckout extends Checkout {
       });
 
       const { statusCode, body } = res;
-      // eslint-disable-next-line camelcase
-      const { shipping_rates } = body;
+      const { shipping_rates: shippingRates } = body;
 
       // extra check for carting
       if (statusCode === 422) {
@@ -229,8 +228,8 @@ class FrontendCheckout extends Checkout {
       }
 
       // eslint-disable-next-line camelcase
-      if (body && shipping_rates) {
-        shipping_rates.forEach(rate => {
+      if (body && shippingRates) {
+        shippingRates.forEach(rate => {
           this.shippingMethods.push(rate);
         });
 

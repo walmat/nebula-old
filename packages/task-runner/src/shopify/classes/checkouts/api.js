@@ -111,12 +111,10 @@ class APICheckout extends Checkout {
           const { checkout } = body;
           const { clone_url } = checkout;
           this._logger.verbose('CHECKOUT: Created checkout token: %s', clone_url.split('/')[5]);
-          // eslint-disable-next-line prefer-destructuring
-          this.storeId = clone_url.split('/')[3];
-          // eslint-disable-next-line prefer-destructuring
-          this.paymentUrlKey = checkout.web_url.split('=')[1];
-          // push the checkout token to the stack
-          this.checkoutTokens.push(clone_url.split('/')[5]);
+          [, , , this.storeId] = clone_url.split('/');
+          [, this.paymentUrlKey] = checkout.web_url.split('=');
+          const [, , , , , newToken] = clone_url.split('/');
+          this.checkoutTokens.push(newToken);
 
           if (this._context.task.product.variants) {
             return { message: 'Fetching shipping rates', nextState: States.AddToCart };
@@ -236,9 +234,8 @@ class APICheckout extends Checkout {
       }
 
       if (body && body.shipping_rates && body.shipping_rates.length > 0) {
-        // eslint-disable-next-line camelcase
-        const { shipping_rates } = body;
-        shipping_rates.forEach(rate => {
+        const { shipping_rates: shippingRates } = body;
+        shippingRates.forEach(rate => {
           this.shippingMethods.push(rate);
         });
 
@@ -310,8 +307,6 @@ class APICheckout extends Checkout {
         }
       }
 
-      fs.writeFileSync(path.join(__dirname, 'paymentGateway.html'), res.body);
-
       const { statusCode, body } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
@@ -370,8 +365,6 @@ class APICheckout extends Checkout {
         headers,
         formData: postPaymentAPI(this.paymentTokens.pop(), this.gateway, id, this.captchaToken),
       });
-
-      fs.writeFileSync(path.join(__dirname, 'postPayment.html'), res.body);
 
       const { statusCode, body } = res;
       const checkStatus = stateForStatusCode(statusCode);
@@ -438,8 +431,6 @@ class APICheckout extends Checkout {
         headers,
         formData: paymentReviewForm(total, this.captchaToken),
       });
-
-      fs.writeFileSync(path.join(__dirname, 'paymentReview.html'), res.body);
 
       const { statusCode } = res;
       const checkStatus = stateForStatusCode(statusCode);

@@ -65,28 +65,27 @@ const createCheckoutForm = (profile, shipping, billing, payment) => {
 };
 
 const addToCart = (variant, site) => {
+  const base = {
+    id: variant,
+    add: '',
+  };
+  let opts = {};
   switch (site.name) {
     case 'DSM US': {
-      return {
-        id: variant,
-        add: '',
-        'properties[_HASH]': 256782537687,
-      };
+      opts = { 'properties[_HASH]': 256782537687 };
+      break;
     }
     case 'DSM UK': {
-      return {
-        id: variant,
-        add: '',
-        'properties[_hash]': 'ee3e8f7a9322eaa382e04f8539a7474c11555',
-      };
+      opts = { 'properties[_hash]': 'ee3e8f7a9322eaa382e04f8539a7474c11555' };
+      break;
     }
-    default: {
-      return {
-        id: variant,
-        add: '',
-      };
-    }
+    default:
+      break;
   }
+  return {
+    ...base,
+    ...opts,
+  };
 };
 
 const patchToCart = (variant, site) => ({

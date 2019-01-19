@@ -66,9 +66,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
 
     const res = await this._checkout.paymentToken();
 
-    // API - Go To Create Checkout
-    // Frontend - Go To Monitor
-
     this._emitTaskEvent({
       message: res.message,
     });
@@ -125,15 +122,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
     return States.Monitor;
 
     const res = await this._checkout.createCheckout();
-
-    //   If this._context.task.product.variants is set (MONITOR has completed)
-    //     API - Go To Add to Cart
-    //     Frontend - Go To Shipping Rates
-    //
-    //   Else
-    //     API - Go To Monitor
-    //     Frontend - Impossible Case (Monitor is required to have completed before getting here)
-    //              - Can Go Back to Monitor
 
     this._emitTaskEvent({
       message: res.message,
@@ -272,16 +260,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
 
     const res = await this._checkout.addToCart();
 
-    //   Frontend - If Add To Cart is successful, Go To Create Checkout
-    //            - If Add To Cart Fails (OOS) - Delay and Go to Add To Cart
-    //            - Handle other cart errors
-
-    //    API - Check for Valid Checkout before running Add To Cart Step
-    //          - Go To Create Checkout if it has not been created yet
-    //    API - Go To Shipping Rates if Add To Cart is successful
-    //          - If Add To Cart Files (OOS) - Delay and Go To Add To Cart
-    //          - Handle other cart errors
-
     this._emitTaskEvent({
       message: res.message,
     });
@@ -347,7 +325,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
       return States.Stopped;
     }
     this._checkout.captchaToken = token;
-    console.log(this._prevState);
     return this._prevState;
   }
 
@@ -394,9 +371,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
 
     const res = await this._checkout.postPayment();
 
-    //   Both - Go to Payment Review
-    //   handle errors
-
     this._emitTaskEvent({
       message: res.message,
     });
@@ -411,9 +385,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
     }
 
     const res = await this._checkout.paymentReview();
-
-    //   Both - Go to Process Payment
-    //   handle errors
 
     this._emitTaskEvent({
       message: res.message,
@@ -432,11 +403,7 @@ const { getCheckoutMethod } = require('./classes/checkouts');
     const { monitorDelay, errorDelay } = this._context.task;
     const res = await this._checkout.handleProcessing();
 
-    // start timer
     const res = await this._checkout.paymentProcessing();
-
-    //   Both - Finish - Go To Stopped
-    //   handle errors
 
     this._emitTaskEvent({
       message: res.message,
