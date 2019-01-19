@@ -22,21 +22,21 @@ const TaskRunnerEvents = {
  * Task Runner States
  */
 const TaskRunnerStates = {
-  Initialized: 'INIT',
   Started: 'STARTED',
   Login: 'LOGIN',
-  TaskSetup: 'TASK_SETUP',
-  Queue: 'QUEUE',
+  PaymentToken: 'PAYMENT_TOKEN',
+  CreateCheckout: 'CREATE_CHECKOUT',
+  PollQueue: 'POLL_QUEUE',
   Monitor: 'MONITOR',
-  PatchCart: 'PATCH_CART',
+  AddToCart: 'ADD_TO_CART',
   ShippingRates: 'SHIPPING_RATES',
-  PostPayment: 'POST_PAYMENT',
+  RequestCaptcha: 'REQUEST_CAPTCHA',
+  SubmitContact: 'SUBMIT_CONTACT',
   PaymentGateway: 'PAYMENT_GATEWAY',
-  Review: 'REVIEW',
-  Processing: 'PROCESSING',
-  Restock: 'RESTOCK',
+  PostPayment: 'POST_PAYMENT',
+  PaymentReview: 'PAYMENT_REVIEW',
+  PaymentProcess: 'PAYMENT_PROCESS',
   SwapProxies: 'SWAP_PROXIES',
-  Captcha: 'CAPTCHA',
   Finished: 'FINISHED',
   Errored: 'ERRORED',
   Aborted: 'ABORTED',
@@ -66,7 +66,6 @@ const CheckoutErrorCodes = {
   InvalidCaptchaToken: 'INVALID_CAPTCHA_TOKEN',
   Review: 'REVIEW',
   CardDeclined: 'CARD_DECLINED',
-  Processing: 'PROCESSING',
 };
 
 const CheckoutTimeouts = {

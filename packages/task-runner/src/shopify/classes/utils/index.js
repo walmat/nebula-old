@@ -2,6 +2,8 @@ const $ = require('cheerio');
 const now = require('performance-now');
 const rfrl = require('./rfrl');
 
+const { States } = require('./constants').TaskRunner;
+
 module.exports = {};
 
 const userAgent =
@@ -15,15 +17,40 @@ function waitForDelay(delay) {
 }
 module.exports.waitForDelay = waitForDelay;
 
-function isEmpty(obj) {
-  // eslint-disable-next-line no-restricted-syntax
-  for (const prop in obj) {
-    // eslint-disable-next-line no-prototype-builtins
-    if (obj.hasOwnProperty(prop)) return false;
+function stateForStatusCode(statusCode) {
+  if (statusCode === 303) {
+    return {
+      message: 'Waiting in queue',
+      nextState: States.PollQueue,
+    };
   }
-  return true;
+  if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
+    return {
+      message: 'Swapping proxy',
+      nextState: States.SwapProxies,
+    };
+  }
+  return null;
 }
-module.exports.isEmpty = isEmpty;
+module.exports.stateForStatusCode = stateForStatusCode;
+
+function getHeaders(site) {
+  return {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    'X-Shopify-Checkout-Version': '2016-09-06',
+    'X-Shopify-Access-Token': `${site.apiKey}`,
+    'User-Agent': userAgent,
+    host: `${site.url.split('/')[2]}`,
+    authorization: `Basic ${Buffer.from(`${site.apiKey}::`).toString('base64')}`,
+  };
+}
+module.exports.getHeaders = getHeaders;
+
+function checkStatusCode(statusCode) {
+  return !!(statusCode === 303 || statusCode === 403 || statusCode === 429 || statusCode === 430);
+}
+module.exports.checkStatusCode = checkStatusCode;
 
 /**
  * Formats the proxy correctly to be used in a request
