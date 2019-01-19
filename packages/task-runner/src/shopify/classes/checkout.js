@@ -185,12 +185,12 @@ class Checkout {
       // Check for redirect to checkout url
       if (statusCode === 302) {
         // Get the checkout url
-        const checkoutUrl = headers.Location;
+        const [checkoutUrl] = headers.location.split('?');
         this._logger.verbose(
           'CHECKOUT: Created checkout token after queue: %s',
-          checkoutUrl.split(/\/\?/)[5],
+          checkoutUrl.split('/')[5],
         );
-        let [, , , , , newToken] = checkoutUrl.split(/\/\?/);
+        let [, , , , , newToken] = checkoutUrl.split('/');
         res = await this._request({
           uri: `${url}/wallets/checkouts/${newToken}.json`,
           method: 'GET',

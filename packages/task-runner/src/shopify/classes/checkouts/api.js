@@ -144,6 +144,8 @@ class APICheckout extends Checkout {
           body: patchToCart(product.variants[0], site),
         });
 
+        console.log(res.body);
+
         const { statusCode } = res;
         const checkStatus = stateForStatusCode(statusCode);
         if (checkStatus) {
