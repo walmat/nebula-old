@@ -67,6 +67,34 @@ class Checkout {
     const { url } = site;
     this._logger.verbose('CHECKOUT: Starting login request to %s', url);
 
+    let form;
+    let heads = {
+      'User-Agent': userAgent,
+      Connection: 'keep-alive',
+      Accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    if (this._captchaToken) {
+      form = {
+        utf8: '✓',
+        authenticity_token: '',
+        'g-recaptcha-response': this._captchaToken,
+      };
+      heads = {
+        ...heads,
+        Referer: `${url}/challenge`,
+      };
+    } else {
+      form = {
+        form_data: 'customer_login',
+        utf8: '✓',
+        'customer[email]': username,
+        'customer[password]': password,
+        Referer: `${url}/account/login`,
+      };
+    }
+
     try {
       const res = await this._request({
         uri: `${url}/account/login`,
@@ -74,25 +102,11 @@ class Checkout {
         simple: false,
         rejectUnauthorized: false,
         followAllRedirects: true,
-        proxy: formatProxy(this._context.proxy),
+        proxy: formatProxy(this._proxy),
         resolveWithFullResponse: true,
-        headers: {
-          'User-Agent': userAgent,
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Referer: `${url}/account/login`,
-        },
-        formData: {
-          form_data: 'customer_login',
-          utf8: '✓',
-          'customer[email]': username,
-          'customer[password]': password,
-          authenticity_token: '',
-          'g-recaptcha-response': this.captchaToken,
-        },
+        headers: heads,
+        formData: form,
       });
-
       const { statusCode, request, headers } = res;
       const { href } = request;
 
@@ -100,23 +114,23 @@ class Checkout {
         await waitForDelay(monitorDelay);
         return { message: 'Password page', nextState: States.Login };
       }
+
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
-        return { message: checkStatus.message, nextState: checkStatus.nextState };
+        return checkStatus;
       }
 
       if (href.indexOf('challenge') > -1) {
         this._logger.verbose('CHECKOUT: Login needs captcha');
-        // TODO - find out if this is needed later on
+        // TODO - figure out if auth token is needed here later
         // const $ = cheerio.load(res.body);
-        // const authToken = $('form input[name="authenticity_token"]').attr('value');
-        // this.authTokens.push(authToken);
+        // const loginAuthToken = $('form input[name="authenticity_token"]').attr('value');
         return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
       }
 
       if (href.indexOf('login') > -1) {
         this._logger.verbose('CHECKOUT: Invalid login credentials');
-        return { message: 'Invalid login, stopping...', nextState: States.Stopped };
+        return { message: 'Invalid login credentials, stopping...', nextState: States.Stopped };
       }
 
       this._logger.verbose('CHECKOUT: Login response cookies: %j', headers['set-cookie']);

@@ -66,7 +66,6 @@ const CheckoutErrorCodes = {
   InvalidCaptchaToken: 'INVALID_CAPTCHA_TOKEN',
   Review: 'REVIEW',
   CardDeclined: 'CARD_DECLINED',
-  Processing: 'PROCESSING',
 };
 
 const CheckoutTimeouts = {

@@ -142,6 +142,7 @@ const sites = [
     apiKey: 'c61dfd7121456f05d58cedf7a0b068b6',
     auth: false,
     supported: true,
+    special: true,
   },
   {
     name: 'DSM UK',
@@ -149,6 +150,7 @@ const sites = [
     apiKey: '0386ed516cfb121c71eee5a33b357cc6',
     auth: false,
     supported: true,
+    special: true,
   },
   {
     name: 'DSM SG',
@@ -156,6 +158,7 @@ const sites = [
     apiKey: '0867cfd02e49786c54fd1a9fd02f03cd',
     auth: false,
     supported: true,
+    special: true,
   },
   {
     name: 'DSM JP',
@@ -163,6 +166,7 @@ const sites = [
     apiKey: '8cbefa53e1484d3a39a41396a00b9fe9',
     auth: false,
     supported: true,
+    special: true,
   },
   {
     name: 'Exclucity',
@@ -604,6 +608,7 @@ const sites = [
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     auth: false,
     supported: true,
+    special: true,
   },
   {
     name: 'Yeezy Supply 350',
@@ -611,6 +616,7 @@ const sites = [
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     auth: false,
     supported: true,
+    special: true,
   },
   {
     name: 'Yeezy Supply 700',
@@ -618,6 +624,7 @@ const sites = [
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     auth: false,
     supported: true,
+    special: true,
   },
   {
     name: 'Justin Timberlake',

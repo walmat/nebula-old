@@ -9,6 +9,236 @@ const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Event
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
 const { getCheckoutMethod } = require('./classes/checkouts');
+
+class TaskRunner {
+  get state() {
+    return this._state;
+  }
+
+  constructor(id, task, proxy, loggerPath) {
+    // Add Ids to object
+    this.taskId = task.id;
+    this.id = id;
+    this.proxy = proxy;
+
+    this._jar = request.jar();
+    this._request = request.defaults({
+      timeout: 50000,
+      jar: this._jar,
+    });
+
+    /**
+     * Logger Instance
+     */
+    this._logger = createLogger({
+      dir: loggerPath,
+      name: `TaskRunner-${id}`,
+      filename: `runner-${id}.log`,
+    });
+
+    /**
+     * Internal Task Runner State
+     */
+    this._state = States.Initialized;
+
+    this._captchaQueue = null;
+    this._isSetup = false;
+
+    this._timer = new Timer();
+
+    /**
+     * The context of this task runner
+     *
+     * This is a wrapper that contains all data about the task runner.
+     * @type {TaskRunnerContext}
+     */
+    this._context = {
+      id,
+      task,
+      proxy: proxy ? proxy.proxy : null,
+      request: this._request,
+      setup: this._isSetup,
+      timer: this._timer,
+      logger: this._logger,
+      aborted: false,
+    };
+
+    /**
+     * Create a new monitor object to be used for the task
+     */
+    this._monitor = new Monitor(this._context);
+
+    /**
+     * Create a new checkout object to be used for this task
+     */
+    const CheckoutCreator = getCheckoutMethod(this._context.task.site, this._logger);
+    this._checkout = CheckoutCreator({
+      ...this._context,
+      getCaptcha: this.getCaptcha.bind(this),
+      stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
+    });
+
+    /**
+     * Create a new event emitter to handle all IPC communication
+     *
+     * Events will provide the task id, a message, and a message group
+     */
+    this._events = new EventEmitter();
+
+    this._handleAbort = this._handleAbort.bind(this);
+    this._handleHarvest = this._handleHarvest.bind(this);
+  }
+
+  _waitForErrorDelay() {
+    this._logger.debug('Waiting for error delay...');
+    return waitForDelay(this._context.task.errorDelay);
+  }
+
+  _handleAbort(id) {
+    if (id === this._context.id) {
+      this._context.aborted = true;
+    }
+  }
+
+  _handleHarvest(id, token) {
+    if (id === this._context.id) {
+      this._captchaQueue.insert(token);
+    }
+  }
+
+  _cleanup() {
+    this.stopHarvestCaptcha();
+  }
+
+  async getCaptcha() {
+    if (!this._captchaQueue) {
+      this._captchaQueue = new AsyncQueue();
+      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest);
+      this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
+    }
+    return this._captchaQueue.next();
+  }
+
+  stopHarvestCaptcha() {
+    if (this._captchaQueue) {
+      this._captchaQueue.destroy();
+      this._captchaQueue = null;
+      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest);
+    }
+  }
+
+  async swapProxies() {
+    this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Timeout'));
+      }, 10000); // TODO: Make this a variable delay?
+      this._events.once(Events.ReceiveProxy, (id, proxy) => {
+        clearTimeout(timeout);
+        resolve(proxy);
+      });
+    });
+  }
+
+  // MARK: Event Registration
+  registerForEvent(event, callback) {
+    switch (event) {
+      case Events.TaskStatus: {
+        this._events.on(Events.TaskStatus, callback);
+        break;
+      }
+      case Events.QueueBypassStatus: {
+        this._events.on(Events.QueueBypassStatus, callback);
+        break;
+      }
+      case Events.MonitorStatus: {
+        this._events.on(Events.MonitorStatus, callback);
+        break;
+      }
+      case Events.CheckoutStatus: {
+        this._events.on(Events.CheckoutStatus, callback);
+        break;
+      }
+      case Events.All: {
+        this._events.on(Events.TaskStatus, callback);
+        this._events.on(Events.QueueBypassStatus, callback);
+        this._events.on(Events.MonitorStatus, callback);
+        this._events.on(Events.CheckoutStatus, callback);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  deregisterForEvent(event, callback) {
+    switch (event) {
+      case Events.TaskStatus: {
+        this._events.removeListener(Events.TaskStatus, callback);
+        break;
+      }
+      case Events.QueueBypassStatus: {
+        this._events.removeListener(Events.QueueBypassStatus, callback);
+        break;
+      }
+      case Events.MonitorStatus: {
+        this._events.removeListener(Events.MonitorStatus, callback);
+        break;
+      }
+      case Events.CheckoutStatus: {
+        this._events.removeListener(Events.CheckoutStatus, callback);
+        break;
+      }
+      case Events.All: {
+        this._events.removeListener(Events.TaskStatus, callback);
+        this._events.removeListener(Events.QueueBypassStatus, callback);
+        this._events.removeListener(Events.MonitorStatus, callback);
+        this._events.removeListener(Events.CheckoutStatus, callback);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+
+  // MARK: Event Emitting
+  _emitEvent(event, payload) {
+    switch (event) {
+      // Emit supported events on their specific channel
+      case Events.TaskStatus:
+      case Events.QueueBypassStatus:
+      case Events.MonitorStatus:
+      case Events.CheckoutStatus: {
+        this._events.emit(event, this._context.id, payload, event);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    // Emit all events on the All channel
+    this._events.emit(Events.All, this._context.id, payload, event);
+    this._logger.verbose('Event %s emitted: %j', event, payload);
+  }
+
+  _emitTaskEvent(payload) {
+    this._emitEvent(Events.TaskStatus, payload);
+  }
+
+  _emitQueueBypassEvent(payload) {
+    this._emitEvent(Events.QueueBypassStatus, payload);
+  }
+
+  _emitMonitorEvent(payload) {
+    this._emitEvent(Events.MonitorStatus, payload);
+  }
+
+  _emitCheckoutEvent(payload) {
+    this._emitEvent(Events.CheckoutStatus, payload);
+  }
+
   // MARK: State Machine Step Logic
 
   async _handleStarted() {
@@ -26,16 +256,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
     return States.PaymentToken;
   }
 
-  // Task Setup Promise 2 - create checkout session
-  createCheckout() {
-    return new Promise(async (resolve, reject) => {
-      const checkout = await this._checkout.handleCreateCheckout();
-      if (!checkout.res || checkout.error) {
-        reject(checkout.code);
-      }
-      resolve(checkout.res);
-    });
-  }
   async _handleLogin() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -58,12 +278,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
       return States.Aborted;
     }
 
-    this._logger.silly('Starting task setup');
-    this._emitTaskEvent({
-      message: 'Starting Task Setup',
-    });
-    return States.TaskSetup;
-
     const res = await this._checkout.paymentToken();
 
     this._emitTaskEvent({
@@ -78,48 +292,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
-
-    const { username, password } = this._context.task;
-    const promises =
-      username && password
-        ? [this.generatePaymentToken(), this.createCheckout(), this.login()]
-        : [this.generatePaymentToken(), this.createCheckout()];
-    this._logger.silly('Running Task Setup Promises');
-    const results = await Promise.all(promises.map(reflect));
-    this._logger.silly('Async promises results: %j', results);
-    const failed = results.filter(res => res.status === 'rejected');
-    if (failed.length > 0) {
-      this._logger.silly('Task setup failed: %j', failed);
-      // check banned status
-      const banned = failed.some(f => f.e === 403 || f.e === 429 || f.e === 430);
-      if (banned) {
-        return States.SwapProxies;
-      }
-
-      // check queue
-      const queue = failed.some(f => f.e === 303);
-      if (queue) {
-        this._context.setup = false;
-        this._emitTaskEvent({
-          message: 'Waiting in queue',
-        });
-        return States.Queue;
-      }
-
-      // if not queue, but something failed, let's do task setup later
-      this._context.setup = false;
-      this._logger.verbose('Completing task setup later');
-      this._emitTaskEvent({
-        message: 'Doing task setup later',
-      });
-    } else {
-      this._logger.verbose('Task setup successfully completed');
-      this._context.setup = true;
-    }
-    this._emitTaskEvent({
-      message: 'Monitoring for product...',
-    });
-    return States.Monitor;
 
     const res = await this._checkout.createCheckout();
 
@@ -175,88 +347,12 @@ const { getCheckoutMethod } = require('./classes/checkouts');
     return res.nextState;
   }
 
-  async _handleSwapProxies() {
-    try {
-      this._logger.verbose('Waiting for new proxy...');
-      const proxy = await this.swapProxies();
-      // Update the references
-      this.proxy = proxy;
-      this._context.proxy = proxy.proxy;
-      this.shouldBanProxy = false; // reset ban flag
-    } catch (err) {
-      this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
-      this._emitTaskEvent({
-        message: 'Error Swapping Proxies! Retrying...',
-        errors: err,
-      });
-      await this._waitForErrorDelay();
-    }
-    // Go back to previous state
-    return this._prevState;
-  }
-
-  async _handlePatchCart() {
   async _handleAddToCart() {
     // exit if abort is detected
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
-    const { monitorDelay, errorDelay } = this._context.task;
-
-    const res = await this._checkout.handlePatchCart();
-
-    if (res.status) {
-      switch (res.status) {
-        case 403:
-        case 429:
-        case 430:
-          this.shouldBanProxy = true;
-          this._emitTaskEvent({
-            message: 'Proxy banned, swapping...',
-          });
-          return States.SwapProxies;
-        default:
-          this._emitTaskEvent({
-            message: `Error ${res.status} during ATC, retrying...`,
-          });
-          await waitForDelay(errorDelay);
-          return States.PatchCart;
-      }
-    }
-
-    if (res.errors) {
-      this._logger.verbose('Patch cart error: %j', res.errors);
-      if (res.errors === CheckoutErrorCodes.OOS || res.errors === CheckoutErrorCodes.ATC) {
-        this._emitTaskEvent({
-          message: 'Running for restocks',
-        });
-        await waitForDelay(monitorDelay);
-        return States.PatchCart;
-      }
-      if (res.errors === CheckoutErrorCodes.MonitorForVariant) {
-        this._emitTaskEvent({
-          message: 'Waiting for product',
-        });
-        await waitForDelay(monitorDelay);
-        return States.PatchCart;
-      }
-      if (res.errors === CheckoutErrorCodes.InvalidCheckoutSession) {
-        this._emitTaskEvent({
-          message: 'Invalid checkout session, rewinding...',
-        });
-        return States.CreateCheckout;
-      }
-      await waitForDelay(errorDelay);
-      this._emitTaskEvent({
-        message: 'Failed: Add to cart, stopping...',
-      });
-      return States.Stopped;
-    }
-    this._emitTaskEvent({
-      message: 'Fetching shipping rates',
-    });
-    return States.ShippingRates;
 
     const res = await this._checkout.addToCart();
 
@@ -343,25 +439,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
     return res.nextState;
   }
 
-  async _handleCaptcha() {
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const { errorDelay } = this._context.task;
-    const { errors } = await this._checkout.handleRequestCaptcha();
-    if (errors) {
-      this._emitTaskEvent({
-        message: 'Failed: Unable to get captcha token, stopping...',
-      });
-      await waitForDelay(errorDelay);
-      return States.Stopped;
-    }
-    this._emitTaskEvent({ message: 'Submitting payment...' });
-    return States.PostPayment;
-  }
-
   async _handlePostPayment() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -398,10 +475,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
-    this._context.timer.start(now());
-
-    const { monitorDelay, errorDelay } = this._context.task;
-    const res = await this._checkout.handleProcessing();
 
     const res = await this._checkout.paymentProcessing();
 
@@ -467,8 +540,6 @@ const { getCheckoutMethod } = require('./classes/checkouts');
 
     const stepMap = {
       [States.Started]: this._handleStarted,
-      [States.TaskSetup]: this._handleTaskSetup,
-      [States.Queue]: this._handleCheckoutQueue,
       [States.Login]: this._handleLogin,
       [States.PaymentToken]: this._handlePaymentToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
