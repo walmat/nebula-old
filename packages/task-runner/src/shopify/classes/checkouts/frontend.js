@@ -184,7 +184,7 @@ class FrontendCheckout extends Checkout {
     this._logger.verbose('CHECKOUT: Fetching shipping rates');
     const { site, profile, monitorDelay } = this._context.task;
     const { url } = site;
-    const { shipping, payment } = profile;
+    const { shipping } = profile;
     const { country, province, zipCode } = shipping;
 
     let res;
@@ -204,7 +204,7 @@ class FrontendCheckout extends Checkout {
         },
         qs: {
           'shipping_address[zip]': zipCode,
-          'shipping_address[country]': 'Singapore',
+          'shipping_address[country]': country.value,
           'shipping_address[province]': province.value,
         },
       });
