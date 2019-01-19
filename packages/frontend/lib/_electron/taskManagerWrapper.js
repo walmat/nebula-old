@@ -12,6 +12,7 @@ class TaskManagerWrapper {
     this._context = context;
 
     this._listeners = [];
+    this._captchaSemaphore = 0;
 
     // Use environment to initialize the right task manager
     switch (process.env.NEBULA_RUNNER_CONCURRENCY_TYPE) {
@@ -68,11 +69,11 @@ class TaskManagerWrapper {
       context.ipc.on('debug', (ev, type, ...params) => {
         switch (type) {
           case 'testStartHarvest': {
-            this._startHarvestEventHandler(params[0], params[1]);
+            this._startHarvestEventHandler(params[0] || 'testid1', params[1]);
             break;
           }
           case 'testStopHarvest': {
-            this._stopHarvestEventHandler(params[0], params[1]);
+            this._stopHarvestEventHandler(params[0] || 'testid1', params[1]);
             break;
           }
           case 'viewHarvestedFrontendTokens': {
@@ -98,11 +99,21 @@ class TaskManagerWrapper {
   async _startHarvestEventHandler(runnerId, siteKey) {
     const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
     await this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, key);
+    this._captchaSemaphore += 1;
   }
 
   _stopHarvestEventHandler(runnerId, siteKey) {
     const key = siteKey || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
-    this._context.windowManager.onRequestStopHarvestingCaptcha(runnerId, key);
+    if (this._captchaSemaphore === 1) {
+      // Captcha Harvest Requesters will drop to 0
+      // Drop the semaphore and stop harvesting
+      this._captchaSemaphore -= 1;
+      this._context.windowManager.onRequestStopHarvestingCaptcha(runnerId, key);
+    } else if (this._captchaSemaphore > 0) {
+      // There are still Captcha Harvest Requesters
+      // Drop the semaphore, but continue harvesting
+      this._captchaSemaphore -= 1;
+    }
   }
 
   _addListener(listener) {
