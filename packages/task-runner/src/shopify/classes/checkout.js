@@ -234,8 +234,6 @@ class Checkout {
       const { statusCode, request, headers } = res;
       const { href } = request;
 
-      console.log(res.request.uri);
-
       if (href.indexOf('password') > -1) {
         return { status: CheckoutErrorCodes.Password };
       }
@@ -569,7 +567,11 @@ class Checkout {
         this._gateway = $(".radio-wrapper.content-box__row[data-gateway-group='direct']").attr(
           'data-select-gateway',
         );
-        return { errors: null };
+        if (this._gateway) {
+          this._logger.verbose('CHECKOUT: Using payment gateway: %s', this._gateway);
+          return { errors: null };
+        }
+        return { errors: CheckoutErrorCodes.InvalidGateway };
       }
       return { errors: CheckoutErrorCodes.InvalidGateway };
     } catch (err) {
