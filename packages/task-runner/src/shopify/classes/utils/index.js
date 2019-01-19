@@ -2,6 +2,8 @@ const $ = require('cheerio');
 const now = require('performance-now');
 const rfrl = require('./rfrl');
 
+const { States } = require('./constants').TaskRunner;
+
 module.exports = {};
 
 const userAgent =
@@ -15,10 +17,22 @@ function waitForDelay(delay) {
 }
 module.exports.waitForDelay = waitForDelay;
 
-function checkStatusCode(statusCode) {
-  return !!(statusCode === 303 || statusCode === 403 || statusCode === 429 || statusCode === 430);
+function stateForStatusCode(statusCode) {
+  if (statusCode === 303) {
+    return {
+      message: 'Waiting in queue',
+      nextState: States.Queue,
+    };
+  }
+  if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
+    return {
+      message: 'Swapping proxy',
+      nextState: States.SwapProxies,
+    };
+  }
+  return null;
 }
-module.exports.checkStatusCode = checkStatusCode;
+module.exports.stateForStatusCode = stateForStatusCode;
 
 function getHeaders(site) {
   return {

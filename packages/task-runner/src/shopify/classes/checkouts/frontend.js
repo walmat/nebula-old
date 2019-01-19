@@ -2,23 +2,23 @@ const cheerio = require('cheerio');
 const _ = require('underscore');
 
 const Checkout = require('../checkout');
-const { formatProxy, userAgent, getHeaders, checkStatusCode, now } = require('../utils');
+const {
+  formatProxy,
+  userAgent,
+  getHeaders,
+  stateForStatusCode,
+  now,
+  waitForDelay,
+} = require('../utils');
 const { addToCart, submitCustomerInformation, paymentMethodForm } = require('../utils/forms');
 const { CheckoutErrorCodes } = require('../utils/constants').ErrorCodes;
-const { Delays, CheckoutTimeouts, ShopifyPaymentSteps } = require('../utils/constants').Checkout;
+const { States } = require('../utils/constants').TaskRunner;
+const { CheckoutTimeouts, ShopifyPaymentSteps } = require('../utils/constants').Checkout;
 
 class FrontendCheckout extends Checkout {
   constructor(context) {
     super(context);
     this._context = context;
-  }
-
-  async login() {
-    super.login();
-  }
-
-  async paymentToken() {
-    super.paymentToken();
   }
 
   async addToCart() {
@@ -49,23 +49,26 @@ class FrontendCheckout extends Checkout {
       // check for password page
       if (res && res.request && res.request.uri) {
         if (res.request.uri.href.indexOf('password') > -1) {
-          return { status: 'password' };
+          // TODO - maybe think about looping back to monitor here? Idk...
+          return { nextState: States.AddToCart };
         }
       }
 
       const { statusCode } = res;
-      if (checkStatusCode(statusCode)) {
-        return { error: true, status: statusCode };
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
 
       if (statusCode === 404) {
-        return { error: true, status: 404 };
+        await waitForDelay(this._context.task.monitorDelay);
+        return { message: 'Running for restocks', nextState: States.AddToCart };
       }
 
-      return { error: false };
+      return { message: 'Creating checkout', nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.debug('CART: Request error in add to cart: %s', err);
-      return { error: true };
+      return { message: 'Failed: Add to cart', nextState: States.Stopped };
     }
   }
 
@@ -101,8 +104,9 @@ class FrontendCheckout extends Checkout {
       });
 
       const { statusCode } = res;
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
 
       const { href } = res.request;
@@ -111,44 +115,44 @@ class FrontendCheckout extends Checkout {
         const recaptchaFrame = $('#g-recaptcha');
         const token = $('form.edit_checkout input[name=authenticity_token]').attr('value');
         if (token) {
-          super.authTokens.push(token);
+          this.authTokens.push(token);
         }
         // eslint-disable-next-line prefer-destructuring
-        super.storeId = href.split('/')[3];
+        this.storeId = href.split('/')[3];
         // eslint-disable-next-line prefer-destructuring
-        super.checkoutTokens.push(href.split('/')[5]);
+        this.checkoutTokens.push(href.split('/')[5]);
 
         if (recaptchaFrame.length) {
           this._logger.debug('CHECKOUT: Captcha found in checkout page');
           return {
-            errors: true,
-            status: CheckoutErrorCodes.InvalidCaptchaToken,
+            message: 'Waiting for captcha',
+            nextState: States.RequestCaptcha,
           };
         }
-        return { errors: null };
+        if (this._context.task.product.variants) {
+          return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+        }
+        return { message: 'Monitoring for product', nextState: States.Monitor };
       }
-      return { errors: true };
+      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error proceeding to checkout');
-      return { errors: true };
+      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     }
-  }
-
-  async pollQueue() {
-    super.pollQueue();
   }
 
   async shippingRates() {
     this._logger.verbose('CHECKOUT: Fetching shipping rates');
-    const { site, profile } = this._context.task;
+    const { site, profile, monitorDelay } = this._context.task;
     const { url } = site;
-    const { shipping } = profile;
-    const { country, state, zipCode } = shipping;
+    const { shipping, payment } = profile;
+    const { country, province, zipCode } = shipping;
 
+    let res;
     try {
-      const res = await this._request({
-        uri: `${this._task.site.url}/cart/shipping_rates.json`,
-        proxy: formatProxy(this._proxy),
+      res = await this._request({
+        uri: `${url}/cart/shipping_rates.json`,
+        proxy: formatProxy(this._context.proxy),
         followAllRedirects: true,
         rejectUnauthorized: false,
         simple: false,
@@ -162,7 +166,7 @@ class FrontendCheckout extends Checkout {
         qs: {
           'shipping_address[zip]': zipCode,
           'shipping_address[country]': country.value,
-          'shipping_address[province]': state.value,
+          'shipping_address[province]': province.value,
         },
       });
 
@@ -172,113 +176,101 @@ class FrontendCheckout extends Checkout {
 
       // extra check for carting
       if (statusCode === 422) {
-        return { status: statusCode };
+        return { message: 'Country not supported', nextState: States.Stopped };
       }
 
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
+      let checkStatus = stateForStatusCode(statusCode);
+
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
 
       if (body && body.errors) {
         this._logger.verbose('CHECKOUT: Error getting shipping rates: %j', body.errors);
-        return { errors: CheckoutErrorCodes.ShippingRates };
+        return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
       // eslint-disable-next-line camelcase
       if (body && shipping_rates) {
         shipping_rates.forEach(rate => {
-          super.shippingMethods.push(rate);
+          this.shippingMethods.push(rate);
         });
 
-        const cheapest = _.min(super.shippingMethods, rate => rate.price);
+        const cheapest = _.min(this.shippingMethods, rate => rate.price);
         const { name } = cheapest;
         const id = `${cheapest.source}-${cheapest.name.replace('%20', ' ')}-${cheapest.price}`;
-        super.chosenShippingMethod = { id, name };
-        this._logger.verbose(
-          'CHECKOUT: Using shipping method: %s',
-          super.chosenShippingMethod.name,
-        );
+        this.chosenShippingMethod = { id, name };
+        this._logger.verbose('CHECKOUT: Using shipping method: %s', this.chosenShippingMethod.name);
 
         // set shipping price for cart
-        super.prices.shipping = cheapest.price;
-        this._logger.silly('CHECKOUT: Shipping total: %s', super.prices.shipping);
-        return { errors: null, rate: super.chosenShippingMethod.name };
+        this.prices.shipping = cheapest.price;
+        this._logger.silly('CHECKOUT: Shipping total: %s', this.prices.shipping);
+
+        // BEGIN POST CUSTOMER INFO
+        try {
+          res = await this._request({
+            uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+            method: 'post',
+            proxy: formatProxy(this._context.proxy),
+            rejectUnauthorized: false,
+            followAllRedirects: true,
+            resolveWithFullResponse: true,
+            simple: false,
+            headers: {
+              Origin: `${url}`,
+              Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'User-Agent': userAgent,
+            },
+            formData: submitCustomerInformation(
+              payment,
+              shipping,
+              this.authTokens.shift(),
+              this.captchaToken,
+            ),
+          });
+
+          checkStatus = stateForStatusCode(res.statusCode);
+          if (checkStatus) {
+            return { message: checkStatus.message, nextState: checkStatus.nextState };
+          }
+
+          const $ = cheerio.load(res.body, { xmlMode: true, normalizeWhitespace: true });
+          let step = $('.step').attr('data-step');
+          if (!step) {
+            step = $('#step').attr('data-step');
+          }
+          if (step === ShopifyPaymentSteps.ContactInformation) {
+            return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
+          }
+          const token = $('form.edit_checkout input[name=authenticity_token]').attr('value');
+          if (token) {
+            this.authTokens.push(token);
+          }
+          return {
+            message: `Using rate ${this.chosenShippingMethod.name}`,
+            nextState: States.PaymentGateway,
+          };
+        } catch (err) {
+          this._logger.debug('CHECKOUT: Request error submitting customer information: %j', err);
+          return { message: 'Failed: Posting contact information', nextState: States.Stopped };
+        }
       }
-      this._logger.verbose('No shipping rates available, polling %d ms', Delays.PollShippingRates);
-      return { errors: CheckoutErrorCodes.ShippingRates };
+      this._logger.verbose('No shipping rates available, polling %d ms', monitorDelay);
+      return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error fetching shipping method: %j', err);
-      return { errors: true };
-    }
-  }
-
-  async harvestCaptcha() {
-    super.harvestCaptcha();
-  }
-
-  async postCustomerInformation() {
-    this._logger.verbose('CHECKOUT: Submitting customer information');
-    const { site, profile } = this._context.task;
-    const { payment, shipping } = profile;
-    const { url } = site;
-
-    try {
-      if (super.checkoutTokens.length && !super.checkoutToken) {
-        super.checkoutToken = super.checkoutTokens.pop();
-      }
-      const res = await this._request({
-        uri: `${url}/${super.storeId}/checkouts/${super.checkoutToken}`,
-        method: 'post',
-        proxy: formatProxy(this._context.proxy),
-        rejectUnauthorized: false,
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        simple: false,
-        headers: {
-          Origin: `${url}`,
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'User-Agent': userAgent,
-        },
-        formData: submitCustomerInformation(
-          payment,
-          shipping,
-          super.authTokens.shift(),
-          super.captchaToken,
-        ),
-      });
-
-      const { statusCode, body } = res;
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
-      }
-
-      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      let step = $('.step').attr('data-step');
-      if (!step) {
-        step = $('#step').attr('data-step');
-      }
-      if (step === ShopifyPaymentSteps.ContactInformation) {
-        return { error: CheckoutErrorCodes.InvalidCaptchaToken };
-      }
-      const token = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-      if (token) {
-        super.authTokens.push(token);
-      }
-      return { error: null };
-    } catch (err) {
-      this._logger.verbose('CHECKOUT: Request error submitting customer information %j', err);
-      return { error: true };
+      return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
     }
   }
 
   async paymentGateway() {
     this._logger.verbose('CHECKOUT: Finding payment gateway');
-    const { site } = this._context.task;
+    const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
-    const { item, shipping } = this._prices;
-    let { total } = this._prices;
+    const { item, shipping } = this.prices;
+    let { total } = this.prices;
     const headers = {
-      ...getHeaders(),
+      ...getHeaders(site),
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
@@ -294,8 +286,8 @@ class FrontendCheckout extends Checkout {
 
     try {
       const res = await this._request({
-        uri: `${url}/${super.storeId}/checkouts/${
-          super.checkoutToken
+        uri: `${url}/${this.storeId}/checkouts/${
+          this.checkoutToken
         }?previous_step=shipping_method&step=payment_method`,
         method: 'get',
         followAllRedirects: true,
@@ -308,13 +300,17 @@ class FrontendCheckout extends Checkout {
       // check if redirected to `/account/login` page
       if (res && res.request && res.request.uri) {
         if (res.request.uri.href.indexOf('account') > -1) {
-          return { errors: CheckoutErrorCodes.Account };
+          if (this._context.task.username && this._context.task.password) {
+            return { message: 'Logging in', nextState: States.Login };
+          }
+          return { message: 'Account required, stopping...', nextState: States.Stopped };
         }
       }
 
       const { statusCode, body } = res;
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
 
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
@@ -325,28 +321,29 @@ class FrontendCheckout extends Checkout {
 
       this._logger.silly('CHECKOUT: 1st request step: %s', step);
       if (step === ShopifyPaymentSteps.ContactInformation) {
-        return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
+        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
       if (step === ShopifyPaymentSteps.PaymentMethod) {
-        super.gateway = $(".radio-wrapper.content-box__row[data-gateway-group='direct']").attr(
+        this.gateway = $(".radio-wrapper.content-box__row[data-gateway-group='direct']").attr(
           'data-select-gateway',
         );
-        this._logger.silly('CHECKOUT: Found payment gateway: %s', super.gateway);
-        return { errors: null };
+        this._logger.silly('CHECKOUT: Found payment gateway: %s', this.gateway);
+        return { message: 'Posting payment', nextState: States.PostPayment };
       }
-      return { errors: CheckoutErrorCodes.InvalidGateway };
+      await waitForDelay(monitorDelay);
+      return { message: 'Polling for payment gateway', nextState: States.PaymentGateway };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error fetching payment gateway: %j', err);
-      return { errors: true };
+      return { message: 'Failed: Fetching payment gateway', nextState: States.Stopped };
     }
   }
 
   async postPayment() {
     this._logger.verbose('FRONTEND CHECKOUT: Handling post payment step');
-    const { site } = this._task;
+    const { site } = this._context.task;
     const { url, apiKey } = site;
     const headers = {
-      ...getHeaders(),
+      ...getHeaders(site),
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
@@ -356,33 +353,40 @@ class FrontendCheckout extends Checkout {
       'X-Shopify-Storefront-Access-Token': `${apiKey}`,
     };
 
-    const { id } = super.chosenShippingMethod;
+    const { id } = this.chosenShippingMethod;
 
     try {
       const res = await this._request({
-        uri: `${url}/${this._storeId}/checkouts/${
-          this._checkoutToken
-        }?previous_step=payment_method`,
+        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}?previous_step=payment_method`,
         method: 'post',
         followAllRedirects: true,
         resolveWithFullResponse: true,
         rejectUnauthorized: false,
-        proxy: formatProxy(this._proxy),
+        proxy: formatProxy(this._context.proxy),
         headers,
         formData: paymentMethodForm(
-          super.paymentTokens.pop(),
-          super.gateway,
+          this.paymentTokens.pop(),
+          this.gateway,
           id,
-          super.captchaToken,
-          super.prices.total,
+          this.captchaToken,
+          this.prices.total,
           this._context.task.profile,
           true,
         ),
       });
 
       const { statusCode, body } = res;
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
+
+      // check if redirected to `/processing` page
+      if (res && res.request && res.request.uri) {
+        if (res.request.uri.href.indexOf('processing') > -1) {
+          return { message: 'Processing payment', nextState: States.PaymentProcess };
+        }
+      }
+
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
 
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
@@ -392,25 +396,15 @@ class FrontendCheckout extends Checkout {
       }
 
       this._logger.silly('CHECKOUT: 2nd request step: %s', step);
-
       if (step === ShopifyPaymentSteps.ContactInformation) {
         this._logger.verbose('CHECKOUT: Captcha failed, retrying');
-        return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
+        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
-      if (step === ShopifyPaymentSteps.Review) {
-        this._logger.verbose('CHECKOUT: Review step found, submitting');
-        return { errors: CheckoutErrorCodes.Review };
-      }
-
-      if (step === ShopifyPaymentSteps.Processing) {
-        this._logger.verbose('FRONTEND CHECKOUT: Processing step found, polling');
-        return { errors: CheckoutErrorCodes.Processing };
-      }
-      return { errors: null };
+      return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
-      return { errors: true };
+      return { message: 'Failed: Posting payment', nextState: States.Stopped };
     }
   }
 
@@ -423,7 +417,7 @@ class FrontendCheckout extends Checkout {
     }
 
     const headers = {
-      ...getHeaders(),
+      ...getHeaders(site),
       Accept:
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
@@ -434,12 +428,51 @@ class FrontendCheckout extends Checkout {
     };
 
     try {
-      const res = await this._request({})
+      const res = await this._request({
+        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}/processing`,
+        method: 'GET',
+        proxy: formatProxy(this._context.proxy),
+        simple: false,
+        json: false,
+        rejectUnauthorized: false,
+        resolveWithFullResponse: true,
+        headers,
+      });
+
+      const { statusCode, body } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
+      }
+
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      if ($('input[name="step"]').val() === 'processing') {
+        return { message: 'Processing payment', nextState: States.PaymentProcess };
+      }
+      if (
+        $('title')
+          .text()
+          .indexOf('Processing') > -1
+      ) {
+        return { message: 'Processing payment', nextState: States.PaymentProcess };
+      }
+      if ($('div.notice--error p.notice__text')) {
+        if ($('div.notice--error p.notice__text') === '') {
+          return { message: 'Payment failed', nextState: States.Stopped };
+        }
+        return {
+          message: `${$('div.notice--error p.notice__text')
+            .eq(0)
+            .text()}`,
+          nextState: States.Stopped,
+        };
+      }
+      // TODO - find a success message or something later on
+      return { message: 'Payment successful', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Error processing payment %j', err);
-      return { errors: true };
+      return { message: 'Failed: Processing payment', nextState: States.Stopped };
     }
-
   }
 }
 module.exports = FrontendCheckout;

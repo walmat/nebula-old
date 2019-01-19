@@ -1,8 +1,9 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
-const { waitForDelay, formatProxy, userAgent, getHeaders, checkStatusCode } = require('./utils');
+const { formatProxy, userAgent, getHeaders, stateForStatusCode, waitForDelay } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
 const { Delays } = require('../classes/utils/constants').Checkout;
+const { States } = require('./utils/constants').TaskRunner;
 const { CheckoutErrorCodes } = require('./utils/constants').ErrorCodes;
 
 class Checkout {
@@ -64,7 +65,7 @@ class Checkout {
   // MARK : Shared super class methods
 
   async login() {
-    const { site, username, password } = this._context.task;
+    const { site, username, password, monitorDelay } = this._context.task;
     const { url } = site;
     this._logger.verbose('CHECKOUT: Starting login request to %s', url);
 
@@ -89,7 +90,7 @@ class Checkout {
           utf8: '✓',
           'customer[email]': username,
           'customer[password]': password,
-          authenticity_token: this.authTokens.length > 0 ? this.authTokens.shift() : '',
+          authenticity_token: '',
           'g-recaptcha-response': this.captchaToken,
         },
       });
@@ -98,32 +99,37 @@ class Checkout {
       const { href } = request;
 
       if (href.indexOf('password') > -1) {
-        return { errors: CheckoutErrorCodes.Password };
+        await waitForDelay(monitorDelay);
+        return { message: 'Password page', nextState: States.Login };
       }
-
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
 
       if (href.indexOf('challenge') > -1) {
         this._logger.verbose('CHECKOUT: Login needs captcha');
-        const $ = cheerio.load(res.body);
-        const authToken = $('form input[name="authenticity_token"]').attr('value');
-        this.authTokens.push(authToken);
-        return { errors: CheckoutErrorCodes.InvalidCaptchaToken };
+        // TODO - find out if this is needed later on
+        // const $ = cheerio.load(res.body);
+        // const authToken = $('form input[name="authenticity_token"]').attr('value');
+        // this.authTokens.push(authToken);
+        return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
       }
 
       if (href.indexOf('login') > -1) {
         this._logger.verbose('CHECKOUT: Invalid login credentials');
-        return { errors: CheckoutErrorCodes.InvalidLogin };
+        return { message: 'Invalid login, stopping...', nextState: States.Stopped };
       }
 
       this._logger.verbose('CHECKOUT: Login response cookies: %j', headers['set-cookie']);
-      this._logger.info('Logged in! Proceeding to add to cart');
-      return { errors: null };
+      // if we know the shipping method, it's safe to assume we came from `States.PaymentGateway`
+      if (this.chosenShippingMethod.id) {
+        return { message: 'Fetching payment gateway', nextState: States.PaymentGateway };
+      }
+      return { message: 'Fetching payment token', nextState: States.PaymentToken };
     } catch (err) {
       this._logger.debug('ACCOUNT: Error logging in: %s', err);
-      return { errors: err };
+      return { message: 'Failed: Logging in', nextState: States.Stopped };
     }
   }
 
@@ -164,7 +170,7 @@ class Checkout {
    */
   async pollQueue() {
     this._logger.verbose('CHECKOUT: Waiting in queue');
-    const { site } = this._context.task;
+    const { site, monitorDelay } = this._context.task;
     try {
       const res = await this._request({
         uri: `${site.url}/checkout/poll`,
@@ -175,11 +181,12 @@ class Checkout {
         followAllRedirects: false,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
-        headers: getHeaders,
+        headers: getHeaders(site),
       });
       const { statusCode } = res;
-      if (checkStatusCode(statusCode)) {
-        return { status: statusCode };
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
       let { body } = res;
 
@@ -205,12 +212,13 @@ class Checkout {
             this.paymentUrlKey = checkout.web_url.split('=')[1];
             // push the checkout token to the stack
             this.checkoutTokens.push(clone_url.split('/')[5]);
-            return { errors: null };
+            return { message: 'Monitoring for product', nextState: States.Monitor };
           }
           // might not ever get called, but just a failsafe
           this._logger.verbose('Failed: Creating checkout session after queue %s', res);
-          return { errors: true };
+          return { message: 'Failed: Creating checkout', nextState: States.Stopped };
         } catch (err) {
+          // Frontend queue response
           if (err instanceof SyntaxError) {
             this._logger.verbose('CHECKOUT: Failed to parse body, not typeof JSON');
             const $ = cheerio.load(body);
@@ -224,7 +232,7 @@ class Checkout {
                 this.storeId = data.split('/')[3];
                 // eslint-disable-next-line prefer-destructuring
                 this.checkoutTokens.push(data.split('/')[5]);
-                return { errors: null };
+                return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
               }
             }
             if (statusCode === 303) {
@@ -235,39 +243,26 @@ class Checkout {
                 this.storeId = data.split('/')[3];
                 // eslint-disable-next-line prefer-destructuring
                 this.checkoutTokens.push(data.split('/')[5]);
-                return { errors: null };
+                return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
               }
             }
             this._logger.verbose(
               'CHECKOUT: Failed: Queue responded with status code: %s',
               statusCode,
             );
-            return { errors: true };
+            return { message: 'Failed: Polling queue', nextState: States.Stopped };
           }
           this._logger.verbose('CHECKOUT: Failed to parse body: %j', err);
-          return { errors: true };
+          return { message: 'Failed: Polling queue', nextState: States.Stopped };
         }
       }
-      this._logger.verbose('CHECKOUT: Not passed queue, delaying %d ms', Delays.PollCheckoutQueue);
-      return { status: 303 };
+      this._logger.verbose('CHECKOUT: Not passed queue, delaying %d ms', monitorDelay);
+      await waitForDelay(monitorDelay);
+      return { message: 'Waiting in queue', nextState: States.PollQueue };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %s', err.error);
-      return { errors: true };
+      return { message: 'Failed: Polling queue', nextState: States.Stopped };
     }
-  }
-
-  async requestCaptcha() {
-    this._logger.verbose('CHECKOUT: Getting Solved Captcha...');
-    const token = await this._context.getCaptcha();
-    if (!token) {
-      this._logger.verbose('CHECKOUT: Unable to get token!');
-      return {
-        errors: CheckoutErrorCodes.InvalidCaptchaToken,
-      };
-    }
-    this._logger.verbose('CHECKOUT: Received token from captcha harvesting: %s', token);
-    this.captchaToken = token;
-    return { errors: null };
   }
 }
 
