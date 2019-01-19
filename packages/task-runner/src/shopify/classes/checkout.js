@@ -242,7 +242,6 @@ class Checkout {
         return { status: statusCode };
       }
       if (href.indexOf('challenge') > -1) {
-        fs.writeFileSync(path.join(__dirname, 'loginCaptcha.html'), res.body);
         this._logger.verbose('CHECKOUT: Login needs captcha');
         // TODO - figure out if auth token is needed here later
         // const $ = cheerio.load(res.body);
@@ -259,7 +258,6 @@ class Checkout {
       this._logger.info('Logged in! Proceeding to add to cart');
       return { errors: null };
     } catch (err) {
-      fs.writeFileSync(path.join(__dirname, 'login.html'), err);
       this._logger.verbose('CHECKOUT: Request error with login: %j', err);
       return { errors: true };
     }
@@ -612,8 +610,6 @@ class Checkout {
           this._captchaToken,
         ),
       });
-
-      fs.writeFileSync(path.join(__dirname, 'test-2.html'), res.body);
 
       const { statusCode, body } = res;
       if (this.isBanned(statusCode)) {
