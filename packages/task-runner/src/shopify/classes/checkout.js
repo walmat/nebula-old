@@ -191,6 +191,34 @@ class Checkout {
     const { url } = site;
     this._logger.verbose('CHECKOUT: Starting login request to %s', url);
 
+    let form;
+    let heads = {
+      'User-Agent': userAgent,
+      Connection: 'keep-alive',
+      Accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    if (this._captchaToken) {
+      form = {
+        utf8: '✓',
+        authenticity_token: '',
+        'g-recaptcha-response': this._captchaToken,
+      };
+      heads = {
+        ...heads,
+        Referer: `${url}/challenge`,
+      };
+    } else {
+      form = {
+        form_data: 'customer_login',
+        utf8: '✓',
+        'customer[email]': username,
+        'customer[password]': password,
+        Referer: `${url}/account/login`,
+      };
+    }
+
     try {
       const res = await this._request({
         uri: `${url}/account/login`,
@@ -200,22 +228,13 @@ class Checkout {
         followAllRedirects: true,
         proxy: formatProxy(this._proxy),
         resolveWithFullResponse: true,
-        headers: {
-          'User-Agent': userAgent,
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Referer: `${url}/account/login`,
-        },
-        formData: {
-          form_data: 'customer_login',
-          utf8: '✓',
-          'customer[email]': username,
-          'customer[password]': password,
-        },
+        headers: heads,
+        formData: form,
       });
       const { statusCode, request, headers } = res;
       const { href } = request;
+
+      console.log(res.request.uri);
 
       if (href.indexOf('password') > -1) {
         return { status: CheckoutErrorCodes.Password };
@@ -225,6 +244,7 @@ class Checkout {
         return { status: statusCode };
       }
       if (href.indexOf('challenge') > -1) {
+        fs.writeFileSync(path.join(__dirname, 'loginCaptcha.html'), res.body);
         this._logger.verbose('CHECKOUT: Login needs captcha');
         // TODO - figure out if auth token is needed here later
         // const $ = cheerio.load(res.body);
