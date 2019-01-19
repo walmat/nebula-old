@@ -88,15 +88,6 @@ class APICheckout extends Checkout {
         return { message: checkStatus.message, nextState: checkStatus.nextState };
       }
 
-      // did we receive a queue response?
-      if (body.toString().indexOf('/poll') > -1) {
-        console.log(res.headers);
-        /**
-         * <html><body>You are being <a href="https://yeezysupply.com/checkout/poll">redirected</a>.</body></html>
-         */
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
-
       // let's try to parse the response if not
       try {
         body = JSON.parse(res.body.toString());
