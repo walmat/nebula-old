@@ -1,8 +1,6 @@
 /* eslint-disable camelcase */
 const _ = require('underscore');
 const cheerio = require('cheerio');
-const fs = require('fs');
-const path = require('path');
 
 const {
   formatProxy,
@@ -92,6 +90,7 @@ class APICheckout extends Checkout {
 
       // did we receive a queue response?
       if (body.toString().indexOf('/poll') > -1) {
+        console.log(res.headers);
         /**
          * <html><body>You are being <a href="https://yeezysupply.com/checkout/poll">redirected</a>.</body></html>
          */

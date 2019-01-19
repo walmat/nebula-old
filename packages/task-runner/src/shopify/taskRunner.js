@@ -510,9 +510,11 @@ const { getCheckoutMethod } = require('./classes/checkouts');
         nextState = States.Errored;
       }
       this._logger.verbose('Run Loop finished, state transitioned to: %s', nextState);
-      // TODO: Prevent prevState from starting an infinite loop (prevState === state)
-      this._prevState = this._state;
-      this._state = nextState;
+
+      if (this._state !== nextState) {
+        this._prevState = this._state;
+        this._state = nextState;
+      }
     }
 
     this._cleanup();
