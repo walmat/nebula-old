@@ -27,6 +27,7 @@ const TaskRunnerStates = {
   PaymentToken: 'PAYMENT_TOKEN',
   CreateCheckout: 'CREATE_CHECKOUT',
   PollQueue: 'POLL_QUEUE',
+  PatchCheckout: 'PATCH_CHECKOUT',
   Monitor: 'MONITOR',
   AddToCart: 'ADD_TO_CART',
   ShippingRates: 'SHIPPING_RATES',

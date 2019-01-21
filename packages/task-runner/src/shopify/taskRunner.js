@@ -294,7 +294,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.paymentToken();
+    const res = await this._checkout.getPaymentToken();
 
     this._emitTaskEvent({
       message: res.message,
@@ -310,6 +310,20 @@ class TaskRunner {
     }
 
     const res = await this._checkout.createCheckout();
+
+    this._emitTaskEvent({
+      message: res.message,
+    });
+    return res.nextState;
+  }
+
+  async _handlePatchCheckout() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const res = await this._checkout.patchCheckout();
 
     this._emitTaskEvent({
       message: res.message,
@@ -371,21 +385,6 @@ class TaskRunner {
     }
 
     const res = await this._checkout.addToCart();
-
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
-  }
-
-  async _handleRestocks() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const res = await this._checkout.restocks();
 
     this._emitTaskEvent({
       message: res.message,
@@ -470,14 +469,14 @@ class TaskRunner {
     return res.nextState;
   }
 
-  async _handlePaymentReview() {
+  async _handleCompletePayment() {
     // exit if abort is detected
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
-    const res = await this._checkout.paymentReview();
+    const res = await this._checkout.completePayment();
 
     this._emitTaskEvent({
       message: res.message,
@@ -574,15 +573,13 @@ class TaskRunner {
       [States.PaymentToken]: this._handlePaymentToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
       [States.PollQueue]: this._handlePollQueue,
+      [States.PatchCheckout]: this._handlePatchCheckout,
       [States.Monitor]: this._handleMonitor,
       [States.AddToCart]: this._handleAddToCart,
-      [States.Restocks]: this._handleRestocks,
       [States.ShippingRates]: this._handleShipping,
       [States.RequestCaptcha]: this._handleRequestCaptcha,
-      [States.SubmitContact]: this._handleSubmitContact,
-      [States.PaymentGateway]: this._handlePaymentGateway,
       [States.PostPayment]: this._handlePostPayment,
-      [States.PaymentReview]: this._handlePaymentReview,
+      [States.ComletePayment]: this._handleCompletePayment,
       [States.PaymentProcess]: this._handlePaymentProcess,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Finished]: this._generateEndStateHandler(States.Finished),

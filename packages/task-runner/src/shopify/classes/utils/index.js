@@ -38,8 +38,10 @@ function getHeaders(site) {
   return {
     Accept: 'application/json',
     'Content-Type': 'application/json',
-    'X-Shopify-Checkout-Version': '2016-09-06',
+    Connection: 'keep-alive',
+    'X-Shopify-Checkout-Version': '2019-10-06',
     'X-Shopify-Access-Token': `${site.apiKey}`,
+    'x-barba': 'yes',
     'User-Agent': userAgent,
     host: `${site.url.split('/')[2]}`,
     authorization: `Basic ${Buffer.from(`${site.apiKey}::`).toString('base64')}`,

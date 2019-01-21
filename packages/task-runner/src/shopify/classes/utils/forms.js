@@ -13,53 +13,49 @@ const buildPaymentForm = (payment, billing) => ({
 });
 
 const createCheckoutForm = (profile, shipping, billing, payment) => {
-  let dataString;
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
+  let dataString;
   if (profile.billingMatchesShipping) {
-    dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
+    dataString = `{"complete":"1","checkout":{"secret":true,"email":"${
       payment.email
     }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
       shipping.lastName
-    }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
+    }","address1":"${shipping.address}","address2":"${shipping.apt}","city":"${
       shipping.city
-    }","country_code":"${
+    }","country":"${
       shipping.country.value
-    }","province_code":"${shippingProvinceValue}","phone":"${phoneFormatter.format(
-      shipping.phone,
-      '(NNN) NNN-NNNN',
-    )}","zip":"${shipping.zipCode}"},"billing_address":{"first_name":"${
+    }","province":"${shippingProvinceValue}","state":"${shippingProvinceValue}","zip":"${
+      shipping.zipCode
+    }","phone":"${shipping.phone}"},"billing_address":{"first_name":"${
       shipping.firstName
     }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
       shipping.apt
-    }","company":null,"city":"${shipping.city}","country_code":"${
+    }","city":"${shipping.city}","country":"${
       shipping.country.value
-    }","province_code":"${shippingProvinceValue}","phone":"${phoneFormatter.format(
-      shipping.phone,
-      '(NNN) NNN-NNNN',
-    )}","zip":"${shipping.zipCode}"}}}`;
+    }","province":"${shippingProvinceValue}","state":"${shippingProvinceValue}","zip":"${
+      shipping.zipCode
+    }","phone":"${shipping.phone}"}}}`;
   } else {
     const billingProvinceValue = billing.province ? billing.province.value : '';
-    dataString = `{"card_source":"vault","pollingOptions":{"poll":false},"checkout":{"wallet_name":"default","secret":true,"is_upstream_button":true,"email":"${
+    dataString = `{"complete":"1","checkout":{"secret":true,"email":"${
       payment.email
     }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
       shipping.lastName
-    }","address1":"${shipping.address}","address2":"${shipping.apt}","company":null,"city":"${
+    }","address1":"${shipping.address}","address2":"${shipping.apt}","city":"${
       shipping.city
-    }","country_code":"${
+    }","country":"${
       shipping.country.value
-    }","province_code":"${shippingProvinceValue}","phone":"${phoneFormatter.format(
-      shipping.phone,
-      '(NNN) NNN-NNNN',
-    )}","zip":"${shipping.zipCode}"},"billing_address":{"first_name":"${
-      billing.firstName
-    }","last_name":"${billing.lastName}","address1":"${billing.address}","address2":"${
-      billing.apt
-    }","company":null,"city":"${billing.city}","country_code":"${
-      billing.country.value
-    }","province_code":"${billingProvinceValue}","phone":"${phoneFormatter.format(
-      billing.phone,
-      '(NNN) NNN-NNNN',
-    )}","zip":"${billing.zipCode}"}}}`;
+    }","province":"${shippingProvinceValue}","state":"${shippingProvinceValue}","zip":"${
+      shipping.zipCode
+    }","phone":"${shipping.phone}"},"billing_address":{"first_name":"${
+      shipping.firstName
+    }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
+      shipping.apt
+    }","city":"${shipping.city}","country":"${
+      shipping.country.value
+    }","province":"${billingProvinceValue}","state":"${billingProvinceValue}","zip":"${
+      shipping.zipCode
+    }","phone":"${shipping.phone}"}}}`;
   }
   return dataString;
 };
@@ -88,22 +84,13 @@ const addToCart = (variant, site) => {
   };
 };
 
-const patchToCart = (variant, site) => ({
+const patchToCart = variant => ({
   checkout: {
     line_items: [
       {
         variant_id: variant,
         quantity: '1',
-        properties:
-          site.name === 'DSM US'
-            ? {
-                _HASH: '256779527127',
-              }
-            : site.name === 'DSM EU'
-            ? {
-                _hash: '', // TODO – find this
-              }
-            : {},
+        properties: {},
       },
     ],
   },
