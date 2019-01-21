@@ -725,6 +725,13 @@
     "value": "http://localhost:9000",
     "apiKey": "",
     "auth": false,
+    "supported": false
+  },
+  {
+    "label": "Nebula Bots",
+    "value": "https://nebulabots.com",
+    "apiKey": "6526a5b5393b6316a64853cfe091841c",
+    "auth": false,
     "supported": true
   }
 ]

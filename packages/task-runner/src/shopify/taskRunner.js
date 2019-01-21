@@ -259,6 +259,11 @@ class TaskRunner {
 
   async _handleStarted() {
     this._logger.silly('Starting task setup');
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
 
     if (this._context.task.username && this._context.task.password) {
       this._emitTaskEvent({
@@ -407,21 +412,6 @@ class TaskRunner {
     return res.nextState;
   }
 
-  async _handleSubmitContact() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const res = await this._checkout.submitContact();
-
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
-  }
-
   async _handleRequestCaptcha() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -437,21 +427,6 @@ class TaskRunner {
     }
     this._checkout.captchaToken = token;
     return this._prevState;
-  }
-
-  async _handlePaymentGateway() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const res = await this._checkout.paymentGateway();
-
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
   }
 
   async _handlePostPayment() {
