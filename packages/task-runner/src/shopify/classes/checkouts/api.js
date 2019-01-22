@@ -98,7 +98,7 @@ class APICheckout extends Checkout {
       const redirectUrl = headers.location;
       this._logger.verbose('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
-        if (statusCode >= 200 && statusCode < 310) {
+        if (statusCode === 200) {
           return { message: 'Monitoring for product', nextState: States.Monitor };
         }
         return { message: 'Failed: Patching checkout', nextState: States.Stopped };
