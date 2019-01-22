@@ -7,7 +7,8 @@ import LogTaskRow from '../../tasks/logTaskRow';
 describe('<LogTaskRow />', () => {
   it('should render with required props', () => {
     const task = {
-      id: 1,
+      id: 'testTask',
+      index: 1,
       site: { name: 'Test' },
       output: { message: 'Test Message' },
     };
@@ -27,7 +28,8 @@ describe('<LogTaskRow />', () => {
 
   it('should render properly when id is >= 10', () => {
     const task = {
-      id: 11,
+      id: 'testTask',
+      index: 11,
       site: { name: 'Test' },
       output: { message: 'Test Message' },
     };

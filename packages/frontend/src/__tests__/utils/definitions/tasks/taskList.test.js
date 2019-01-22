@@ -6,8 +6,8 @@ describe('taskList definitions', () => {
   const spy = setupConsoleErrorSpy();
 
   testArray(
-    [initialTaskStates.task, { id: 1, status: 'running' }],
-    [{ id: true }, { id: 3, product: [] }, { id: 5, site: [] }],
+    [initialTaskStates.task, { id: 'test1', status: 'running' }],
+    [{ id: true }, { id: 3, product: [] }, { id: 'test5', site: [] }],
     tDefns.taskList,
     initialTaskStates.list,
     spy,

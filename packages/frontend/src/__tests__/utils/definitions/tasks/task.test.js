@@ -8,7 +8,8 @@ describe('task definitions', () => {
   const testTaskKey = (keyName, valid, invalid) =>
     testKey(keyName, valid, invalid, tDefns.task, initialTaskStates.task, spy);
 
-  testTaskKey('id', [null, '1', 1], false);
+  testTaskKey('id', [null, 'test'], [false, 1, {}, []]);
+  testTaskKey('index', [null, 1], [false, '1', {}, []]);
   testTaskKey('sizes', [null, ['1', '2', '3', '4.5']], [{}, 'test', 3, [{}], [3]]);
   testTaskKey('username', [null, '', 'testing'], [{}, false, 3]);
   testTaskKey('password', [null, '', 'testing'], [{}, false, 3]);
