@@ -30,7 +30,8 @@ const Checkout = require('../checkout');
 class APICheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
-    this._logger.verbose('CHECKOUT: Generating Payment Token');
+
+    this._logger.verbose('API CHECKOUT: Creating payment token');
     try {
       const res = await this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
@@ -53,31 +54,31 @@ class APICheckout extends Checkout {
         const { id } = body;
         this._logger.verbose('Payment token: %s', id);
         this.paymentToken = id;
-        return { message: 'Monitoring for product', nextState: States.CreateCheckout };
+        return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
+      this._logger.debug('CHECKOUT: Error getting payment token: %j', err);
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
 
   async patchCheckout() {
-    const { site, profile } = this._context.task;
+    const { site, profile, monitorDelay } = this._context.task;
     const { shipping, billing, payment } = profile;
     const { url } = site;
 
+    this._logger.verbose('API CHECKOUT: Patching checkout');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
         proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: false,
+        resolveWithFullResponse: true,
         simple: false,
         json: false,
-        encoding: null,
-        followAllRedirects: true,
-        rejectUnauthorized: false,
-        resolveWithFullResponse: true,
         headers: {
           ...getHeaders(site),
           'Accept-Language': 'en-US,en;q=0.8',
@@ -88,29 +89,41 @@ class APICheckout extends Checkout {
         body: createCheckoutForm(profile, shipping, billing, payment),
       });
 
-      const { statusCode, request } = res;
+      const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
 
-      // check for redirects
-      if (request && request.uri) {
-        const { uri } = request;
-        if (uri.href.indexOf('account') > -1) {
-          if (this._context.task.username && this._context.task.password) {
-            return { message: 'Logging in', nextState: States.Login };
-          }
-          return { message: 'Account required', nextState: States.Stopped };
+      const redirectUrl = headers.location;
+      this._logger.verbose('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+      if (!redirectUrl) {
+        if (statusCode >= 200 && statusCode < 310) {
+          return { message: 'Monitoring for product', nextState: States.Monitor };
         }
-        if (uri.href.indexOf('password') > -1) {
-          return { message: 'Password page', nextState: States.CreateCheckout };
-        }
+        return { message: 'Failed: Patching checkout', nextState: States.Stopped };
       }
 
-      if (statusCode >= 200 && statusCode < 310) {
-        return { message: 'Monitoring for product', nextState: States.Monitor };
+      // login needed
+      if (redirectUrl.indexOf('account') > -1) {
+        if (this._context.task.username && this._context.task.password) {
+          return { message: 'Logging in', nextState: States.Login };
+        }
+        return { message: 'Account required', nextState: States.Stopped };
       }
+
+      // password page
+      if (redirectUrl.indexOf('password') > -1) {
+        return { message: 'Password page', nextState: States.CreateCheckout };
+      }
+
+      // queue
+      if (redirectUrl.indexOf('throttle') > -1) {
+        await waitForDelay(monitorDelay);
+        return { message: 'Waiting for queue', nextState: States.PollQueue };
+      }
+
+      // not sure where we are, stop...
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
@@ -122,57 +135,79 @@ class APICheckout extends Checkout {
     const { site, product, monitorDelay } = this._context.task;
     const { url } = site;
 
-    if (this.checkoutToken) {
-      this._logger.verbose('API CHECKOUT: Adding to cart');
-      try {
-        const res = await this._request({
-          uri: `${url}/api/checkouts/${this.checkoutToken}.json`,
-          method: 'PATCH',
-          proxy: formatProxy(this._context.proxy),
-          simple: false,
-          json: true,
-          rejectUnauthorized: false,
-          resolveWithFullResponse: true,
-          headers: getHeaders(site),
-          body: patchToCart(product.variants[0]),
-        });
+    this._logger.verbose('API CHECKOUT: Adding to cart');
+    try {
+      const res = await this._request({
+        uri: `${url}/api/checkouts/${this.checkoutToken}.json`,
+        method: 'PATCH',
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        resolveWithFullResponse: true,
+        simple: false,
+        json: true,
+        headers: getHeaders(site),
+        body: patchToCart(product.variants[0]),
+      });
 
-        const { statusCode } = res;
-        const checkStatus = stateForStatusCode(statusCode);
-        if (checkStatus) {
-          return checkStatus;
-        }
+      const { statusCode, body, headers } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return checkStatus;
+      }
 
-        if (res.body.errors && res.body.errors.line_items[0]) {
-          const error = res.body.errors.line_items[0];
-          this._logger.debug('Error adding to cart: %j', error);
-          if (error.quantity) {
-            await waitForDelay(monitorDelay);
-            return { message: 'Running for restocks', nextState: States.AddToCart };
+      const redirectUrl = headers.location;
+      this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+
+      // check redirects
+      if (redirectUrl) {
+        // account
+        if (redirectUrl.indexOf('account') > -1) {
+          if (this._context.task.username && this._context.task.password) {
+            return { message: 'Logging in', nextState: States.Login };
           }
-          if (error.variant_id && error.variant_id[0]) {
-            await waitForDelay(monitorDelay);
-            return { message: 'Running for restocks', nextState: States.AddToCart };
-          }
-          return { message: 'Failed: Add to cart', nextState: States.Stopped };
+          return { message: 'Account required', nextState: States.Stopped };
         }
 
-        if (res.body.checkout && res.body.checkout.line_items.length > 0) {
-          this._logger.verbose('Successfully added to cart');
-          const { total_price } = res.body.checkout;
-          this.prices.item = parseFloat(total_price).toFixed(2);
-          this._context.timer.reset();
-          this._context.timer.start(now());
-          return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+        // password page
+        if (redirectUrl.indexOf('password') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Password page', nextState: States.CreateCheckout };
         }
-        return { message: 'Failed: Add to cart', nextState: States.Stopped };
-      } catch (err) {
-        this._logger.debug('API CHECKOUT: Request error adding to cart %j', err);
+
+        // queue
+        if (redirectUrl.indexOf('throttle') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Waiting for queue', nextState: States.PollQueue };
+        }
+      }
+
+      if (body.errors && body.errors.line_items[0]) {
+        const error = res.body.errors.line_items[0];
+        this._logger.debug('Error adding to cart: %j', error);
+        if (error.quantity) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Running for restocks', nextState: States.AddToCart };
+        }
+        if (error.variant_id && error.variant_id[0]) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Running for restocks', nextState: States.AddToCart };
+        }
         return { message: 'Failed: Add to cart', nextState: States.Stopped };
       }
+
+      if (body.checkout && body.checkout.line_items.length > 0) {
+        this._logger.verbose('Successfully added to cart');
+        const { total_price } = res.body.checkout;
+        this.prices.item = parseFloat(total_price).toFixed(2);
+        this._context.timer.reset();
+        this._context.timer.start(now());
+        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+      }
+      return { message: 'Failed: Add to cart', nextState: States.Stopped };
+    } catch (err) {
+      this._logger.debug('API CHECKOUT: Request error adding to cart %j', err);
+      return { message: 'Failed: Add to cart', nextState: States.Stopped };
     }
-    this._logger.verbose('API CHECKOUT: Invalid checkout session');
-    return { message: 'Creating checkout', nextState: States.CreateCheckout };
   }
 
   async shippingRates() {
@@ -189,7 +224,7 @@ class APICheckout extends Checkout {
         uri: `${url}/api/checkouts/${this.checkoutToken}/shipping_rates.json`,
         method: 'GET',
         proxy: formatProxy(this._context.proxy),
-        followAllRedirects: true,
+        followAllRedirects: false,
         resolveWithFullResponse: true,
         rejectUnauthorized: false,
         json: true,
@@ -199,19 +234,19 @@ class APICheckout extends Checkout {
 
       const { statusCode, body } = res;
 
-      // extra check for country not supported
-      if (statusCode === 422) {
-        return { message: 'Country not supported', nextState: States.Stopped };
-      }
-
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
 
+      // extra check for country not supported
+      if (statusCode === 422) {
+        return { message: 'Country not supported', nextState: States.Stopped };
+      }
+
       if (body && body.errors) {
         const { errors } = res;
-        this._logger.verbose('CHECKOUT: Error getting shipping rates: %j', errors);
+        this._logger.verbose('API CHECKOUT: Error getting shipping rates: %j', errors);
         await waitForDelay(monitorDelay);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
@@ -225,12 +260,12 @@ class APICheckout extends Checkout {
         const cheapest = _.min(this.shippingMethods, rate => rate.price);
         const { id, title } = cheapest;
         this.chosenShippingMethod = { id, name: title };
-        this._logger.verbose('CHECKOUT: Using shipping method: %s', this.chosenShippingMethod.name);
+        this._logger.silly('API CHECKOUT: Using shipping method: %s', title);
 
         // set shipping price for cart
         let { shipping } = this.prices;
         shipping = parseFloat(cheapest.price).toFixed(2);
-        this._logger.silly('CHECKOUT: Shipping total: %s', shipping);
+        this._logger.silly('API CHECKOUT: Shipping total: %s', shipping);
         return {
           message: `Using rate ${this.chosenShippingMethod.name}`,
           nextState: States.PostPayment,

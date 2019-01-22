@@ -24,7 +24,8 @@ const Checkout = require('../checkout');
 class FrontendCheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
-    this._logger.verbose('CHECKOUT: Generating Payment Token');
+
+    this._logger.verbose('FRONTEND CHECKOUT: Creating payment token');
     try {
       const res = await this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
@@ -61,13 +62,14 @@ class FrontendCheckout extends Checkout {
     const { variants } = product;
     const { url } = site;
 
+    this._logger.verbose('FRONTEND CHECKOUT: Adding to cart');
     try {
       const res = await this._request({
         uri: `${url}/cart/add`,
         method: 'POST',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
-        followAllRedirects: false,
+        followAllRedirects: true,
         resolveWithFullResponse: true,
         simple: false,
         json: false,
@@ -82,21 +84,44 @@ class FrontendCheckout extends Checkout {
         formData: addToCart(variants[0], site),
       });
 
-      // check for password page
-      if (res && res.request && res.request.uri) {
-        if (res.request.uri.href.indexOf('password') > -1) {
-          // TODO - maybe think about looping back to monitor here? Idk...
-          return { message: 'Password page', nextState: States.AddToCart };
-        }
-      }
-
-      const { statusCode } = res;
+      const { statusCode, body, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
 
-      if (statusCode === 404) {
+      const redirectUrl = headers.location;
+      this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+
+      if (redirectUrl) {
+        // out of stock
+        if (redirectUrl.indexOf('stock_problems') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Running for restocks', nextState: States.AddToCart };
+        }
+
+        // account
+        if (redirectUrl.indexOf('account') > -1) {
+          if (this._context.task.username && this._context.task.password) {
+            return { message: 'Logging in', nextState: States.Login };
+          }
+          return { message: 'Account required', nextState: States.Stopped };
+        }
+
+        // password page
+        if (redirectUrl.indexOf('password') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Password page', nextState: States.AddToCart };
+        }
+
+        // queue
+        if (redirectUrl.indexOf('throttle') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Waiting for queue', nextState: States.PollQueue };
+        }
+      }
+
+      if (body && body.status === 404) {
         await waitForDelay(monitorDelay);
         return { message: 'Running for restocks', nextState: States.AddToCart };
       }
@@ -109,7 +134,7 @@ class FrontendCheckout extends Checkout {
   }
 
   async patchCheckout() {
-    const { site, profile } = this._context.task;
+    const { site, profile, monitorDelay } = this._context.task;
     const { shipping, billing, payment } = profile;
     const { url } = site;
 
@@ -118,12 +143,11 @@ class FrontendCheckout extends Checkout {
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
         proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
         simple: false,
         json: false,
-        encoding: null,
-        followAllRedirects: true,
-        rejectUnauthorized: false,
-        resolveWithFullResponse: true,
         headers: {
           ...getHeaders(site),
           'Accept-Language': 'en-US,en;q=0.8',
@@ -134,24 +158,41 @@ class FrontendCheckout extends Checkout {
         body: createCheckoutForm(profile, shipping, billing, payment),
       });
 
-      const { statusCode, request } = res;
+      const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
 
+      const redirectUrl = headers.location;
+      this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+      if (!redirectUrl) {
+        return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+      }
+
       // check for redirects
-      if (request && request.uri) {
-        const { uri } = request;
-        if (uri.href.indexOf('account') > -1) {
+      if (redirectUrl) {
+        // account needed
+        if (redirectUrl.indexOf('account') > -1) {
           if (this._context.task.username && this._context.task.password) {
             return { message: 'Logging in', nextState: States.Login };
           }
           return { message: 'Account required', nextState: States.Stopped };
         }
-        if (uri.href.indexOf('password') > -1) {
+
+        // password page
+        if (redirectUrl.indexOf('password') > -1) {
           return { message: 'Password page', nextState: States.CreateCheckout };
         }
+
+        // queue
+        if (redirectUrl.indexOf('throttle') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Waiting for queue', nextState: States.PollQueue };
+        }
+
+        // unknown redirect, stopping...
+        return { message: 'Failed: Submitting information', nextState: States.Stopped };
       }
 
       if (statusCode >= 200 && statusCode < 310) {
@@ -165,15 +206,14 @@ class FrontendCheckout extends Checkout {
   }
 
   async shippingRates() {
-    this._logger.verbose('CHECKOUT: Fetching shipping rates');
     const { site, profile, monitorDelay } = this._context.task;
     const { url } = site;
     const { shipping } = profile;
     const { country, province, zipCode } = shipping;
 
-    let res;
+    this._logger.verbose('CHECKOUT: Fetching shipping rates');
     try {
-      res = await this._request({
+      const res = await this._request({
         uri: `${url}/cart/shipping_rates.json`,
         method: 'GET',
         proxy: formatProxy(this._context.proxy),

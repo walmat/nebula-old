@@ -55,7 +55,6 @@ class Checkout {
   async login() {
     const { site, username, password, monitorDelay } = this._context.task;
     const { url } = site;
-    this._logger.verbose('CHECKOUT: Starting login request to %s', url);
 
     let form;
     let heads = {
@@ -85,6 +84,7 @@ class Checkout {
       };
     }
 
+    this._logger.verbose('CHECKOUT: Logging in');
     try {
       const res = await this._request({
         uri: `${url}/account/login`,
@@ -97,31 +97,40 @@ class Checkout {
         headers: heads,
         formData: form,
       });
-      const { statusCode, request, headers } = res;
-      const { href } = request;
 
-      if (href.indexOf('password') > -1) {
-        await waitForDelay(monitorDelay);
-        return { message: 'Password page', nextState: States.Login };
-      }
-
+      const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
 
-      if (href.indexOf('challenge') > -1) {
+      const redirectUrl = headers.location;
+      this._logger.verbose('CHECKOUT: Login redirect url: %s', redirectUrl);
+
+      // password page
+      if (redirectUrl.indexOf('password') > -1) {
+        await waitForDelay(monitorDelay);
+        return { message: 'Password page', nextState: States.Login };
+      }
+
+      // challenge page
+      if (redirectUrl.indexOf('challenge') > -1) {
         this._logger.verbose('CHECKOUT: Login needs captcha');
         return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
       }
 
-      if (href.indexOf('login') > -1) {
+      // still at login page
+      if (redirectUrl.indexOf('login') > -1) {
         this._logger.verbose('CHECKOUT: Invalid login credentials');
-        return { message: 'Invalid login credentials, stopping...', nextState: States.Stopped };
+        return { message: 'Invalid login credentials', nextState: States.Stopped };
       }
 
-      this._logger.verbose('CHECKOUT: Login response headers: %j', headers);
-      return { message: 'Fetching payment token', nextState: States.PaymentToken };
+      // since we're here, we can assume `account/login` === false
+      if (redirectUrl.indexOf('account') > -1) {
+        this._logger.verbose('CHECKOUT: Logged in');
+        return { message: 'Fetching payment token', nextState: States.PaymentToken };
+      }
+      return { message: 'Failed: Logging in', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('ACCOUNT: Error logging in: %s', err);
       return { message: 'Failed: Logging in', nextState: States.Stopped };
@@ -132,43 +141,61 @@ class Checkout {
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
+    this._logger.verbose('CHECKOUT: Creating checkout');
     try {
       const res = await this._request({
         uri: `${url}/checkout`,
         method: 'POST',
         proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: false,
+        resolveWithFullResponse: true,
         simple: false,
         json: false,
-        followAllRedirects: false,
-        rejectUnauthorized: false,
-        resolveWithFullResponse: true,
         headers: getHeaders(site),
         body: `{}`,
       });
 
-      const { statusCode, body } = res;
+      const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
-      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      const redirectUrl = $('a').attr('href');
+      const redirectUrl = headers.location;
+      this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+      if (!redirectUrl) {
+        return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+      }
 
+      // account
+      if (redirectUrl.indexOf('account') > -1) {
+        if (this._context.task.username && this._context.task.password) {
+          return { message: 'Logging in', nextState: States.Login };
+        }
+        return { message: 'Account required', nextState: States.Stopped };
+      }
+
+      // password page
       if (redirectUrl.indexOf('password') > -1) {
         await waitForDelay(monitorDelay);
         return { message: 'Password page', nextState: States.CreateCheckout };
       }
 
-      if (redirectUrl.indexOf('throttle') > -1 || body.indexOf('{}') > -1) {
+      // queue
+      if (redirectUrl.indexOf('throttle') > -1) {
         await waitForDelay(monitorDelay);
         return { message: 'Waiting for queue', nextState: States.PollQueue };
       }
 
-      // parse out checkoutToken and storeId
-      [, , , this.storeId] = redirectUrl.split('/');
-      [, , , , , this.checkoutToken] = redirectUrl.split('/');
+      // successful checkout created, parse it
+      if (redirectUrl.indexOf('checkouts') > -1) {
+        [, , , this.storeId] = redirectUrl.split('/');
+        [, , , , , this.checkoutToken] = redirectUrl.split('/');
+        return { message: 'Submiting Information', nextState: States.PatchCheckout };
+      }
 
-      return { message: 'Submiting Information', nextState: States.PatchCheckout };
+      // not sure where we are, stop...
+      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     } catch (error) {
       this._logger.debug('CHECKOUT: Error creating checkout: %j %d', error, error.statusCode);
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
@@ -185,19 +212,20 @@ class Checkout {
    * @returns {} || `CheckoutObject`
    */
   async pollQueue() {
-    this._logger.verbose('CHECKOUT: Waiting in queue');
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
+
+    this._logger.verbose('CHECKOUT: Polling queue');
     try {
       const res = await this._request({
         uri: `${url}/checkout/poll`,
         method: 'GET',
         proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followRedirect: false,
+        resolveWithFullResponse: true,
         simple: false,
         json: false,
-        followRedirect: false,
-        rejectUnauthorized: false,
-        resolveWithFullResponse: true,
         headers: {
           ...getHeaders(site),
           'Upgrade-Insecure-Requests': 1,
@@ -240,21 +268,11 @@ class Checkout {
   }
 
   async postPayment() {
-    this._logger.verbose('CHECKOUT: Handling post payment step');
     const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
-    const headers = {
-      ...getHeaders(site),
-      Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.8',
-      Connection: 'Keep-Alive',
-      'Upgrade-Insecure-Requests': '1',
-      'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-    };
-
     const { id } = this.chosenShippingMethod;
 
+    this._logger.verbose('CHECKOUT: Posting payment');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -264,25 +282,36 @@ class Checkout {
         followAllRedirects: true,
         resolveWithFullResponse: true,
         simple: false,
-        headers,
+        headers: {
+          ...getHeaders(site),
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.8',
+          Connection: 'Keep-Alive',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+        },
         body: `{"complete":"1","s":"${
           this.paymentToken
         }","checkout":{"shipping_rate":{"id":"${id}"}}}`,
       });
 
-      const { statusCode, request } = res;
+      const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
 
+      const redirectUrl = headers.location;
+      this._logger.verbose('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+
       // check if redirected
-      if (request && request.uri) {
-        const { uri } = request;
-        if (uri.href.indexOf('processing') > -1) {
+      if (redirectUrl) {
+        // processing
+        if (redirectUrl.indexOf('processing') > -1) {
           return { message: 'Payment processing', nextState: States.PaymentProcess };
         }
-        if (uri.href.indexOf('stock_problems') > -1) {
+        if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState: States.PostPayment };
         }
@@ -296,61 +325,66 @@ class Checkout {
   }
 
   async completePayment() {
-    this._logger.verbose('API CHECKOUT: Handling review payment step');
     const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
 
-    const headers = {
-      ...getHeaders(site),
-      Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.8',
-      Connection: 'Keep-Alive',
-      'Upgrade-Insecure-Requests': '1',
-      'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-    };
-
+    this._logger.verbose('CHECKOUT: Completing payment');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        simple: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        rejectUnauthorized: false,
         proxy: formatProxy(this._context.proxy),
-        headers,
+        rejectUnauthorized: false,
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
+        simple: false,
+        headers: {
+          ...getHeaders(site),
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.8',
+          Connection: 'Keep-Alive',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+        },
         body: `{"complete":"1"}`,
       });
 
-      const { statusCode, request } = res;
+      const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
 
-      // check if redirected to something...
-      if (request && request.uri) {
-        const { uri } = request;
-        if (uri.href.indexOf('processing') > -1) {
+      const redirectUrl = headers.location;
+      this._logger.verbose('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+
+      if (redirectUrl) {
+        // processing
+        if (redirectUrl.indexOf('processing') > -1) {
           return { message: 'Payment processing', nextState: States.PaymentProcess };
         }
-        if (uri.href.indexOf('stock_problems') > -1) {
+
+        // out of stock
+        if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState: States.PostPayment };
         }
-        if (uri.href.indexOf('account') > -1) {
+
+        // login needed
+        if (redirectUrl.indexOf('account') > -1) {
           if (this._context.task.username && this._context.task.password) {
             return { message: 'Logging in', nextState: States.Login };
           }
           return { message: 'Account required', nextState: States.Stopped };
         }
-        if (uri.href.indexOf('password') > -1) {
+
+        // password page
+        if (redirectUrl.indexOf('password') > -1) {
           return { message: 'Password page', nextState: States.CreateCheckout };
         }
       }
-      this._context.timer.reset();
-      this._context.timer.start(now());
+
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during review payment: %j', err);
@@ -366,28 +400,28 @@ class Checkout {
       return { message: 'Processing timed out, check email', nextState: States.Stopped };
     }
 
-    const headers = {
-      ...getHeaders(site),
-      Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.8',
-      Connection: 'Keep-Alive',
-      'Content-Type': 'multipart/form-data;',
-      'Upgrade-Insecure-Requests': '1',
-      'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-    };
-
+    this._logger.verbose('CHECKOUT: Processing payment');
     try {
       const res = await this._request({
         uri: `${url}/wallets/checkouts/${this.checkoutToken}/payments`,
         method: 'GET',
         proxy: formatProxy(this._context.proxy),
-        simple: false,
-        json: true,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
-        headers,
+        simple: false,
+        json: true,
+        headers: {
+          ...getHeaders(site),
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.8',
+          Connection: 'Keep-Alive',
+          'Content-Type': 'multipart/form-data;',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+        },
       });
+
       const { statusCode, body } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
@@ -396,10 +430,11 @@ class Checkout {
       this._logger.verbose('CHECKOUT: Payments object: %j', body);
       const { payments } = body;
 
+      // TODO - more checks to see if success/failure
       if (body && payments.length > 0) {
-        const { payment_processing_error_message } = payments[0];
-        this._logger.verbose('CHECKOUT: Payment error: %j', payment_processing_error_message);
-        if (payment_processing_error_message) {
+        const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
+        this._logger.verbose('CHECKOUT: Payment error: %j', paymentProcessingErrorMessage);
+        if (paymentProcessingErrorMessage) {
           return { message: 'Payment failed', nextState: States.Stopped };
         }
         if (payments[0].transaction && payments[0].transaction.status !== 'success') {
