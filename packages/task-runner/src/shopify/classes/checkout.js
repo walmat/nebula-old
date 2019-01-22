@@ -384,6 +384,8 @@ class Checkout {
         }
       }
 
+      this._context.timer.reset();
+      this._context.timer.start();
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during review payment: %j', err);
