@@ -9,6 +9,7 @@ import pDefns, { initialProfileStates } from '../profileDefinitions';
 
 export const initialTaskState = {
   id: '',
+  index: 0,
   product: initialTaskProductState,
   site: initialTaskSiteState,
   profile: initialProfileStates.profile,
@@ -24,7 +25,8 @@ export const initialTaskState = {
 };
 
 const task = PropTypes.shape({
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  id: PropTypes.string,
+  index: PropTypes.number,
   product: taskProduct,
   site: taskSite,
   profile: pDefns.profile,

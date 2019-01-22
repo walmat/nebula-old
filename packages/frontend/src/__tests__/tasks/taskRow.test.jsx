@@ -169,11 +169,12 @@ describe('<TaskRow />', () => {
       testActionButtonValues(wrapper, 'copy', 'Copy Task', '');
     };
 
-    test('id < 10', () => {
+    test('index < 10', () => {
       const customProps = {
         task: {
           ...initialTaskStates.task,
-          id: 1,
+          id: 'task1',
+          index: 1,
         },
       };
       const wrapper = renderShallowWithProps(customProps);
@@ -181,11 +182,12 @@ describe('<TaskRow />', () => {
       testTableRowValues(wrapper, { id: '01' });
     });
 
-    test('id >= 10', () => {
+    test('index >= 10', () => {
       const customProps = {
         task: {
           ...initialTaskStates.task,
-          id: 10,
+          id: 'task10',
+          index: 10,
         },
       };
       const wrapper = renderShallowWithProps(customProps);
@@ -328,12 +330,13 @@ describe('<TaskRow />', () => {
     };
 
     describe('for table row', () => {
-      test('id < 10', () => {
+      test('index < 10', () => {
         const customProps = {
           isEditing: true,
           task: {
             ...initialTaskStates.task,
-            id: 1,
+            id: 'task1',
+            index: 1,
           },
         };
         const wrapper = renderShallowWithProps(customProps);
@@ -342,12 +345,13 @@ describe('<TaskRow />', () => {
         testEditMenuValues(wrapper, {});
       });
 
-      test('id >= 10', () => {
+      test('index >= 10', () => {
         const customProps = {
           isEditing: true,
           task: {
             ...initialTaskStates.task,
-            id: 10,
+            id: 'task10',
+            index: 10,
           },
         };
         const wrapper = renderShallowWithProps(customProps);

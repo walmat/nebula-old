@@ -41,7 +41,8 @@ describe('task list reducer', () => {
         const expected = [
           {
             ...expectedBase,
-            id: 1,
+            id: expect.any(String),
+            index: 1,
           },
         ];
         const actual = taskListReducer([], {
@@ -57,17 +58,20 @@ describe('task list reducer', () => {
         const start = [
           {
             ...initialTaskStates.task,
-            id: 1,
+            id: 'task1',
+            index: 1,
           },
         ];
         const expected = [
           {
             ...initialTaskStates.task,
-            id: 1,
+            id: 'task1',
+            index: 1,
           },
           {
             ...expectedBase,
-            id: 2,
+            id: expect.any(String),
+            index: 2,
           },
         ];
         const actual = taskListReducer(start, {
@@ -83,25 +87,30 @@ describe('task list reducer', () => {
         const start = [
           {
             ...initialTaskStates.task,
-            id: 1,
+            id: 'task1',
+            index: 1,
           },
           {
             ...initialTaskStates.task,
-            id: 3,
+            id: 'task3',
+            index: 3,
           },
         ];
         const expected = [
           {
             ...initialTaskStates.task,
-            id: 1,
+            id: 'task1',
+            index: 1,
           },
           {
             ...initialTaskStates.task,
-            id: 3,
+            id: 'task3',
+            index: 3,
           },
           {
             ...expectedBase,
-            id: 2,
+            id: expect.any(String),
+            index: 2,
           },
         ];
         const actual = taskListReducer(start, {
@@ -160,26 +169,30 @@ describe('task list reducer', () => {
         const start = [
           {
             ...initialTaskStates.task,
-            id: 1,
+            id: 'task1',
+            index: 1,
             username: 'test1',
           },
           {
             ...initialTaskStates.task,
-            id: 2,
+            id: 'task2',
+            index: 2,
             username: 'test2',
           },
           {
             ...initialTaskStates.task,
-            id: 3,
+            id: 'task3',
+            index: 3,
             username: 'test3',
           },
         ];
         const expected = JSON.parse(JSON.stringify(start));
         expected.splice(1, 1);
-        expected[1].id = 2;
+        expected[1].id = 'task3';
+        expected[1].index = 3;
         const actual = taskListReducer(start, {
           type: TASK_ACTIONS.REMOVE,
-          response: { task: { id: 2 } },
+          response: { task: { id: 'task2' } },
         });
         expect(actual).toEqual(expected);
       });

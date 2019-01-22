@@ -331,8 +331,8 @@ export class TaskRowPrimitive extends Component {
   renderTableRow() {
     const { task } = this.props;
     let id = '--';
-    if (task.id) {
-      id = task.id < 10 ? `0${task.id}` : task.id;
+    if (task.index) {
+      id = task.index < 10 ? `0${task.index}` : task.index;
     }
     let sizes = 'None';
     if (task.sizes.length) {
