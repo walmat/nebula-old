@@ -725,7 +725,7 @@
     "value": "http://localhost:9000",
     "apiKey": "",
     "auth": false,
-    "supported": false
+    "supported": true
   },
   {
     "label": "Nebula Bots",
