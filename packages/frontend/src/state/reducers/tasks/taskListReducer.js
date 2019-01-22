@@ -1,3 +1,5 @@
+import shortId from 'shortid';
+
 import {
   TASK_ACTIONS,
   PROFILE_ACTIONS,
@@ -10,23 +12,23 @@ import { SETTINGS_ACTIONS } from '../../actions/settings/settingsActions';
 
 let _num = 1;
 
-function _getId(taskList) {
+function _getIndex(taskList) {
   // if the tasksList is empty, reset the numbering
   if (taskList.length === 0) {
     _num = 1;
   }
 
-  // assign new id
-  let newId = _num;
+  // assign new index
+  let newIndex = _num;
 
   // check if generate id already exists
-  const idCheck = t => t.id === newId;
+  const idCheck = t => t.index === newIndex;
   while (taskList.some(idCheck)) {
     _num += 1;
-    newId = _num;
+    newIndex = _num;
   }
 
-  return newId;
+  return newIndex;
 }
 
 export default function taskListReducer(state = initialTaskStates.list, action) {
@@ -99,7 +101,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       };
 
       // add new task
-      newTask.id = _getId(nextState);
+      newTask.id = shortId.generate();
+      newTask.index = _getIndex(nextState);
       nextState.push(newTask);
       break;
     }
@@ -122,9 +125,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       // Check if we have adjusted the array and need to recalculate ids
       if (nextState.length !== state.length && nextState.length !== 0) {
         // adjust the id of each following task to shift down one when a task is deleted
-        for (let i = task.id - 1; i < nextState.length; i += 1) {
-          _num = nextState[i].id;
-          nextState[i].id -= 1;
+        for (let i = task.index - 1; i < nextState.length; i += 1) {
+          _num = nextState[i].index;
+          nextState[i].index -= 1;
         }
       }
       break;
@@ -215,7 +218,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
       // get new task id
-      newTask.id = _getId(nextState);
+      newTask.id = shortId.generate();
+      newTask.index = _getIndex(nextState);
       // reset new task status
       newTask.status = 'idle';
       nextState.push(newTask);
