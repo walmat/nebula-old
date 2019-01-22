@@ -15,9 +15,20 @@ const {
 const { createCheckoutForm, buildPaymentForm, patchToCart } = require('../utils/forms');
 const { States } = require('../utils/constants').TaskRunner;
 const { CheckoutTimeouts } = require('../utils/constants').Checkout;
-
 const Checkout = require('../checkout');
 
+/**
+ * CHECKOUT STEPS:
+ * 1. PAYMENT TOKEN
+ * 2. LOGIN (IF NEEDED)
+ * 2. CREATE CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #3)
+ * 3. PATCH CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #4)
+ * 4. MONITOR
+ * 5. ADD TO CART (POLL QUEUE IF NEEDED AND PROCEED TO #5)
+ * 5. SHIPPING RATES
+ * 6. POST CHECKOUT
+ * 7. COMPLETE CHECKOUT (IF NEEDED)
+ */
 class APICheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
@@ -26,10 +37,11 @@ class APICheckout extends Checkout {
       const res = await this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
         method: 'post',
-        followAllRedirects: false,
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
+        followAllRedirects: true,
         resolveWithFullResponse: true,
+        json: true,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
@@ -331,7 +343,6 @@ class APICheckout extends Checkout {
         }
       }
 
-      // const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
       return { message: 'Completing checkout', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
@@ -358,12 +369,13 @@ class APICheckout extends Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        followAllRedirects: true,
+        simple: false,
+        followAllRedirects: false,
         resolveWithFullResponse: true,
         rejectUnauthorized: false,
         proxy: formatProxy(this._context.proxy),
         headers,
-        formData: `{'complete':'1'}`,
+        body: `{"complete":"1"}`,
       });
 
       const { statusCode, request } = res;

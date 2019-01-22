@@ -30,31 +30,15 @@ class Checkout {
 
   // MARK : Methods defined in subclasses
 
+  async paymentToken() {
+    throw new Error('Should be defined in subclasses');
+  }
+
   async addToCart() {
     throw new Error('Should be defined in subclasses');
   }
 
-  async createCheckout() {
-    throw new Error('Should be defined in subclasses');
-  }
-
   async shippingRates() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async paymentGateway() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async postPayment() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async paymentReview() {
-    throw new Error('Should be defined in subclasses');
-  }
-
-  async paymentProcessing() {
     throw new Error('Should be defined in subclasses');
   }
 
@@ -144,10 +128,9 @@ class Checkout {
    * Handles polling a checkout queue for Shopify
    *
    * Can happen after:
-   * 1. Creating checkout
-   * 2. Patching checkout
-   * 2. Adding to cart (?)
-   * 3.
+   * 1. Creating checkout -> proceed to patching checkout
+   * 2. Patching checkout -> [api] proceed to monitor / [fe] proceed to shipping rates
+   * 3. Add to cart -> [api] proceed to shipping rates / [fe] (?) proceed to create checkout
    * @returns {} || `CheckoutObject`
    */
   async pollQueue() {

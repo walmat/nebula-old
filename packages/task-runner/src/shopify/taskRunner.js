@@ -264,16 +264,12 @@ class TaskRunner {
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
-
-    if (this._context.task.username && this._context.task.password) {
-      this._emitTaskEvent({
-        message: 'Logging in...',
-      });
-      return States.Login;
-    }
     this._emitTaskEvent({
       message: 'Starting Task Setup',
     });
+    if (this._context.task.username && this._context.task.password) {
+      return States.Login;
+    }
     return States.PaymentToken;
   }
 
