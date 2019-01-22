@@ -1,7 +1,13 @@
 const _ = require('underscore');
 
-const { formatProxy, userAgent, stateForStatusCode, waitForDelay } = require('../utils');
-const { addToCart, buildPaymentForm } = require('../utils/forms');
+const {
+  formatProxy,
+  getHeaders,
+  stateForStatusCode,
+  userAgent,
+  waitForDelay,
+} = require('../utils');
+const { addToCart, buildPaymentForm, createCheckoutForm } = require('../utils/forms');
 const { States } = require('../utils/constants').TaskRunner;
 const Checkout = require('../checkout');
 
@@ -16,7 +22,7 @@ const Checkout = require('../checkout');
  * 6. POST CHECKOUT
  */
 class FrontendCheckout extends Checkout {
-  async paymentToken() {
+  async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
     this._logger.verbose('CHECKOUT: Generating Payment Token');
     try {
@@ -28,23 +34,25 @@ class FrontendCheckout extends Checkout {
         followAllRedirects: true,
         resolveWithFullResponse: true,
         json: true,
+        simple: true,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
           Connection: 'Keep-Alive',
         },
-        body: JSON.stringify(buildPaymentForm(payment, billing)),
+        formData: JSON.stringify(buildPaymentForm(payment, billing)),
       });
-      const body = JSON.parse(res.body);
+      const { body } = res;
       if (body && body.id) {
-        this._logger.verbose('Payment token: %s', body.id);
-        this.paymentTokens.push(body.id);
+        const { id } = body;
+        this._logger.verbose('Payment token: %s', id);
+        this.paymentToken = id;
         return { message: 'Monitoring for product', nextState: States.Monitor };
       }
-      return { message: 'Failed: Generating payment token', nextState: States.Stopped };
+      return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
-      return { message: 'Failed: Generating payment token', nextState: States.Stopped };
+      return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
 
@@ -100,6 +108,62 @@ class FrontendCheckout extends Checkout {
     }
   }
 
+  async patchCheckout() {
+    const { site, profile } = this._context.task;
+    const { shipping, billing, payment } = profile;
+    const { url } = site;
+
+    try {
+      const res = await this._request({
+        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+        method: 'PATCH',
+        proxy: formatProxy(this._context.proxy),
+        simple: false,
+        json: false,
+        encoding: null,
+        followAllRedirects: true,
+        rejectUnauthorized: false,
+        resolveWithFullResponse: true,
+        headers: {
+          ...getHeaders(site),
+          'Accept-Language': 'en-US,en;q=0.8',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        body: createCheckoutForm(profile, shipping, billing, payment),
+      });
+
+      const { statusCode, request } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      // check for redirects
+      if (request && request.uri) {
+        const { uri } = request;
+        if (uri.href.indexOf('account') > -1) {
+          if (this._context.task.username && this._context.task.password) {
+            return { message: 'Logging in', nextState: States.Login };
+          }
+          return { message: 'Account required', nextState: States.Stopped };
+        }
+        if (uri.href.indexOf('password') > -1) {
+          return { message: 'Password page', nextState: States.CreateCheckout };
+        }
+      }
+
+      if (statusCode >= 200 && statusCode < 310) {
+        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+      }
+      return { message: 'Failed: Submitting information', nextState: States.Stopped };
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
+      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+    }
+  }
+
   async shippingRates() {
     this._logger.verbose('CHECKOUT: Fetching shipping rates');
     const { site, profile, monitorDelay } = this._context.task;
@@ -114,7 +178,6 @@ class FrontendCheckout extends Checkout {
         method: 'GET',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
-        followAllRedirects: true,
         resolveWithFullResponse: true,
         simple: false,
         json: true,
