@@ -3,8 +3,10 @@ import tDefns from '../utils/definitions/taskDefinitions';
 
 const LogTaskRow = ({ task }) => (
   <div className="tasks-row-container col">
-    <div key={task.id} className="tasks-row row">
-      <div className="col tasks-row__log--id">{task.id < 10 ? `0${task.id}` : task.id}</div>
+    <div key={task.index} className="tasks-row row">
+      <div className="col tasks-row__log--id">
+        {task.index < 10 ? `0${task.index}` : task.index}
+      </div>
       <div className="col col--no-gutter tasks-row__log--site">{task.site.name}</div>
       <div className="col col--no-gutter tasks-row__log--size">{task.sizes}</div>
       <div className="col tasks-row__log--output">{task.output.message}</div>
