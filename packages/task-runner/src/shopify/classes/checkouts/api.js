@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 const _ = require('underscore');
 
 const {
@@ -18,10 +17,10 @@ const Checkout = require('../checkout');
  * CHECKOUT STEPS:
  * 1. LOGIN (IF NEEDED)
  * 2. PAYMENT TOKEN
- * 3. CREATE CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #3)
- * 4. PATCH CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #4)
+ * 3. CREATE CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #4)
+ * 4. PATCH CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #5)
  * 5. MONITOR
- * 6. ADD TO CART (POLL QUEUE IF NEEDED AND PROCEED TO #5)
+ * 6. ADD TO CART (POLL QUEUE IF NEEDED AND PROCEED TO #7)
  * 7. SHIPPING RATES
  * 8. POST CHECKOUT
  * 9. COMPLETE CHECKOUT (IF NEEDED)
@@ -58,7 +57,7 @@ class APICheckout extends Checkout {
       }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error getting payment token: %j', err);
+      this._logger.debug('API CHECKOUT: Request error getting payment token: %j', err);
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
@@ -126,7 +125,7 @@ class APICheckout extends Checkout {
       // not sure where we are, stop...
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
+      this._logger.debug('API CHECKOUT: Request error creating checkout: %j', err);
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     }
   }
@@ -156,7 +155,7 @@ class APICheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+      this._logger.verbose('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       // check redirects
       if (redirectUrl) {
@@ -197,10 +196,8 @@ class APICheckout extends Checkout {
 
       if (body.checkout && body.checkout.line_items.length > 0) {
         this._logger.verbose('Successfully added to cart');
-        const { total_price } = res.body.checkout;
-        this.prices.item = parseFloat(total_price).toFixed(2);
-        this._context.timer.reset();
-        this._context.timer.start(now());
+        const { total_price: totalPrice } = res.body.checkout;
+        this.prices.item = parseFloat(totalPrice).toFixed(2);
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
       return { message: 'Failed: Add to cart', nextState: States.Stopped };
@@ -215,6 +212,7 @@ class APICheckout extends Checkout {
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
+    // TODO - find a shared location for timeouts
     if (this._context.timer.getRunTime(now()) > 10000) {
       return { message: 'Failed: Shipping rates timeout', nextState: States.Stopped };
     }
@@ -275,7 +273,7 @@ class APICheckout extends Checkout {
       await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Request error fetching shipping method: %j', err);
+      this._logger.debug('API CHECKOUT: Request error fetching shipping method: %j', err);
       return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
     }
   }

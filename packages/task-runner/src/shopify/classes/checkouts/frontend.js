@@ -52,7 +52,7 @@ class FrontendCheckout extends Checkout {
       }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error getting payment token: %s', err);
+      this._logger.debug('FRONTEND CHECKOUT: Request error getting payment token: %s', err);
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
@@ -91,7 +91,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+      this._logger.verbose('FRONTEND CHECKOUT: Create checkout redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // out of stock
@@ -138,6 +138,7 @@ class FrontendCheckout extends Checkout {
     const { shipping, billing, payment } = profile;
     const { url } = site;
 
+    this._logger.verbose('FRONTEND CHECKOUT: Patching checkout');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -165,7 +166,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+      this._logger.verbose('FRONTEND CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         return { message: 'Failed: Creating checkout', nextState: States.Stopped };
       }
@@ -200,7 +201,7 @@ class FrontendCheckout extends Checkout {
       }
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
+      this._logger.debug('FRONTEND CHECKOUT: Request error creating checkout: %j', err);
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     }
   }
@@ -211,7 +212,7 @@ class FrontendCheckout extends Checkout {
     const { shipping } = profile;
     const { country, province, zipCode } = shipping;
 
-    this._logger.verbose('CHECKOUT: Fetching shipping rates');
+    this._logger.verbose('FRONTEND CHECKOUT: Fetching shipping rates');
     try {
       const res = await this._request({
         uri: `${url}/cart/shipping_rates.json`,
@@ -246,7 +247,7 @@ class FrontendCheckout extends Checkout {
       }
 
       if (body && body.errors) {
-        this._logger.verbose('CHECKOUT: Error getting shipping rates: %j', body.errors);
+        this._logger.verbose('FRONTEND CHECKOUT: Error getting shipping rates: %j', body.errors);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
@@ -260,21 +261,21 @@ class FrontendCheckout extends Checkout {
         const { name } = cheapest;
         const id = `${cheapest.source}-${cheapest.name.replace('%20', ' ')}-${cheapest.price}`;
         this.chosenShippingMethod = { id, name };
-        this._logger.verbose('CHECKOUT: Using shipping method: %s', this.chosenShippingMethod.name);
+        this._logger.verbose('FRONTEND CHECKOUT: Using shipping rate: %s', name);
 
         // set shipping price for cart
         this.prices.shipping = cheapest.price;
-        this._logger.silly('CHECKOUT: Shipping total: %s', this.prices.shipping);
+        this._logger.silly('FRONTEND CHECKOUT: Shipping cost: %s', this.prices.shipping);
 
         return {
-          message: `Using rate: ${this.chosenShippingMethod.name}`,
+          message: `Using rate: ${name}`,
           nextState: States.PostPayment,
         };
       }
       this._logger.verbose('No shipping rates available, polling %d ms', monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Request error fetching shipping method: %j', err);
+      this._logger.debug('FRONTEND CHECKOUT: Request error fetching shipping rates: %j', err);
       return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
     }
   }

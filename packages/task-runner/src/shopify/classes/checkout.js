@@ -9,7 +9,6 @@ const {
   waitForDelay,
 } = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
-const { CheckoutTimeouts } = require('./utils/constants').Checkout;
 
 class Checkout {
   constructor(context) {
@@ -303,7 +302,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+      this._logger.verbose('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -357,7 +356,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+      this._logger.verbose('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // processing
@@ -396,7 +395,8 @@ class Checkout {
     const { timer } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
-    if (timer.getRunTime(now()) > CheckoutTimeouts.ProcessingPayment) {
+    // TODO - find a shared location for timeouts
+    if (timer.getRunTime(now()) > 10000) {
       return { message: 'Processing timed out, check email', nextState: States.Stopped };
     }
 
