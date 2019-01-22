@@ -291,12 +291,12 @@ class APICheckout extends Checkout {
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
       Connection: 'Keep-Alive',
-      'Content-Type': 'multipart/form-data;',
       'Upgrade-Insecure-Requests': '1',
       'X-Shopify-Storefront-Access-Token': `${apiKey}`,
     };
 
     const { id } = this.chosenShippingMethod;
+
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -332,7 +332,7 @@ class APICheckout extends Checkout {
       }
 
       // const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      return { message: 'Payment processing', nextState: States.PaymentProcess };
+      return { message: 'Completing checkout', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
       return { message: 'Failed: Posting payment', nextState: States.Stopped };
@@ -350,7 +350,6 @@ class APICheckout extends Checkout {
         'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.8',
       Connection: 'Keep-Alive',
-      'Content-Type': 'multipart/form-data;',
       'Upgrade-Insecure-Requests': '1',
       'X-Shopify-Storefront-Access-Token': `${apiKey}`,
     };

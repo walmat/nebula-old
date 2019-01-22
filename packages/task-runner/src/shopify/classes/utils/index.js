@@ -35,16 +35,17 @@ function stateForStatusCode(statusCode) {
 module.exports.stateForStatusCode = stateForStatusCode;
 
 function getHeaders(site) {
+  const { url, apiKey } = site;
   return {
     Accept: 'application/json',
     'Content-Type': 'application/json',
     Connection: 'keep-alive',
     'X-Shopify-Checkout-Version': '2019-10-06',
-    'X-Shopify-Access-Token': `${site.apiKey}`,
+    'X-Shopify-Access-Token': `${apiKey}`,
     'x-barba': 'yes',
     'User-Agent': userAgent,
-    host: `${site.url.split('/')[2]}`,
-    authorization: `Basic ${Buffer.from(`${site.apiKey}::`).toString('base64')}`,
+    host: `${url.split('/')[2]}`,
+    authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
   };
 }
 module.exports.getHeaders = getHeaders;

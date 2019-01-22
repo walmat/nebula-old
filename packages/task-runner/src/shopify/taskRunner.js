@@ -554,7 +554,7 @@ class TaskRunner {
       [States.ShippingRates]: this._handleShipping,
       [States.RequestCaptcha]: this._handleRequestCaptcha,
       [States.PostPayment]: this._handlePostPayment,
-      [States.ComletePayment]: this._handleCompletePayment,
+      [States.CompletePayment]: this._handleCompletePayment,
       [States.PaymentProcess]: this._handlePaymentProcess,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Finished]: this._generateEndStateHandler(States.Finished),
