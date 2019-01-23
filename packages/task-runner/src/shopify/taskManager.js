@@ -240,6 +240,13 @@ class TaskManager {
       shouldRelease = false;
     }
 
+    // Attempt to reserve a proxy first before releasing the old one
+    const newProxy = await this.reserveProxy(runnerId);
+    if (!newProxy) {
+      this._logger.verbose('No new proxy available, skipping release/ban');
+      return null;
+    }
+
     // Check if we need to release the old proxy
     if (shouldRelease) {
       // Check if we need to ban the old proxy
@@ -249,7 +256,7 @@ class TaskManager {
       this.releaseProxy(runnerId, proxyId);
     }
     // Return the new reserved proxy
-    return this.reserveProxy(runnerId);
+    return newProxy;
   }
 
   /**
