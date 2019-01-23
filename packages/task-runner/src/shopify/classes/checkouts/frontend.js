@@ -15,11 +15,11 @@ const Checkout = require('../checkout');
  * CHECKOUT STEPS:
  * 1. PAYMENT TOKEN
  * 2. MONITOR
- * 3. ADD TO CART (POLL QUEUE IF NEEDED)
- * 4. CREATE CHECKOUT (POLL QUEUE IF NEEDED)
- * 5. PATCH CHECKOUT (POLL QUEUE IF NEEDED)
- * 5. SHIPPING RATES
- * 6. POST CHECKOUT
+ * 3. ADD TO CART (POLL QUEUE IF NEEDED AND PROCEED TO #4)
+ * 4. CREATE CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #5)
+ * 5. PATCH CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #6)
+ * 6. SHIPPING RATES
+ * 7. POST CHECKOUT
  */
 class FrontendCheckout extends Checkout {
   async getPaymentToken() {
@@ -144,7 +144,7 @@ class FrontendCheckout extends Checkout {
         method: 'PATCH',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
-        followAllRedirects: true,
+        followAllRedirects: false,
         resolveWithFullResponse: true,
         simple: false,
         json: false,
@@ -167,7 +167,10 @@ class FrontendCheckout extends Checkout {
       const redirectUrl = headers.location;
       this._logger.verbose('FRONTEND CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
-        return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+        if (statusCode >= 200 && statusCode < 310) {
+          return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+        }
+        return { message: 'Failed: Submitting information', nextState: States.Stopped };
       }
 
       // check for redirects
@@ -190,14 +193,9 @@ class FrontendCheckout extends Checkout {
           await waitForDelay(monitorDelay);
           return { message: 'Waiting for queue', nextState: States.PollQueue };
         }
-
-        // unknown redirect, stopping...
-        return { message: 'Failed: Submitting information', nextState: States.Stopped };
       }
 
-      if (statusCode >= 200 && statusCode < 310) {
-        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
-      }
+      // unknown redirect, stopping...
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Request error creating checkout: %j', err);

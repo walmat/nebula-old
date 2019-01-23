@@ -1,7 +1,6 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
-const fs = require('fs');
-const path = require('path');
+
 const {
   formatProxy,
   getHeaders,
@@ -141,7 +140,7 @@ class Checkout {
   }
 
   async createCheckout() {
-    const { site, monitorDelay } = this._context.task;
+    const { site, monitorDelay, errorDelay } = this._context.task;
     const { url } = site;
 
     this._logger.verbose('CHECKOUT: Creating checkout');
@@ -164,6 +163,13 @@ class Checkout {
       if (checkStatus) {
         return checkStatus;
       }
+
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        await waitForDelay(errorDelay);
+        return { message: 'Creating checkout', nextState: States.CreateCheckout };
+      }
+
       const redirectUrl = headers.location;
       this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
@@ -208,6 +214,8 @@ class Checkout {
   /**
    * Handles polling a checkout queue for Shopify
    *
+   * // TODO - mapping to next state
+   *
    * Can happen after:
    * 1. Creating checkout -> proceed to patching checkout
    * 2. Patching checkout -> [api] proceed to monitor / [fe] proceed to shipping rates
@@ -236,23 +244,31 @@ class Checkout {
         },
       });
 
-      const { statusCode, body } = res;
+      const { statusCode, body, headers } = res;
       this._logger.silly('Checkout: poll response %d', statusCode);
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
       }
 
-      this._logger.silly('CHECKOUT: Queue response body: %j', body);
+      this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
       // Check for not empty object – `{}`
       if (Object.keys(JSON.parse(body)).length !== 0) {
-        const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-        if (statusCode === 200 || statusCode === 302) {
-          let redirectUrl = $('input[name="checkout_url"]').val();
-          if (!redirectUrl) {
-            redirectUrl = $('a').attr('href');
+        let redirectUrl;
+
+        // check redirect header `location` parameter
+        if (statusCode === 302) {
+          redirectUrl = headers.location;
+          if (redirectUrl) {
+            [, , , this.storeId] = redirectUrl.split('/');
+            [, , , , , this.checkoutToken] = redirectUrl.split('/');
+            return { message: 'Submitting Information', nextState: States.PatchCheckout };
           }
+        }
+        if (statusCode === 200 || statusCode === 202) {
+          const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+          redirectUrl = $('input[name="checkout_url"]').val();
           if (redirectUrl) {
             [, , , this.storeId] = redirectUrl.split('/');
             [, , , , , this.checkoutToken] = redirectUrl.split('/');
@@ -271,7 +287,7 @@ class Checkout {
   }
 
   async postPayment() {
-    const { site, monitorDelay } = this._context.task;
+    const { site, monitorDelay, errorDelay } = this._context.task;
     const { url, apiKey } = site;
     const { id } = this.chosenShippingMethod;
 
@@ -307,6 +323,11 @@ class Checkout {
         return checkStatus;
       }
 
+      if (statusCode === 500 || statusCode === 503) {
+        await waitForDelay(errorDelay);
+        return { message: 'Posting payment', nextState: States.PostPayment };
+      }
+
       const redirectUrl = headers.location;
       this._logger.verbose('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
@@ -318,6 +339,8 @@ class Checkout {
           this._context.timer.start();
           return { message: 'Payment processing', nextState: States.PaymentProcess };
         }
+
+        // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState: States.PostPayment };
@@ -327,14 +350,17 @@ class Checkout {
       // check if captcha is present
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
 
-      // TODO - check for captcha validation error message
+      // TODO - check for captcha validation error message and proceed to complete checkout after harvesting
+      /**
+       * PATCH `{"complete":"1", "g-recaptcha-response": "${this.captchaToken}}"`
+       */
       const error = $('#error-for-captcha').text();
-      this._logger.silly('CHECKOUT: Recaptcha html %j', error);
+      this._logger.silly('CHECKOUT: Recaptcha text: %j', error);
       if (error) {
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
-      return { message: 'Completing checkout', nextState: States.CompletePayment };
+      return { message: 'Payment processing', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
       return { message: 'Failed: Posting payment', nextState: States.Stopped };

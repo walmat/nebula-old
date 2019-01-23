@@ -140,10 +140,15 @@ class APICheckout extends Checkout {
         method: 'PATCH',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
+        followAllRedirects: false,
         resolveWithFullResponse: true,
         simple: false,
         json: true,
-        headers: getHeaders(site),
+        gzip: true,
+        headers: {
+          ...getHeaders(site),
+          'Accept-Encoding': 'gzip, deflate, br',
+        },
         body: patchToCart(product.variants[0]),
       });
 
@@ -195,7 +200,7 @@ class APICheckout extends Checkout {
 
       if (body.checkout && body.checkout.line_items.length > 0) {
         this._logger.verbose('Successfully added to cart');
-        const { total_price: totalPrice } = res.body.checkout;
+        const { total_price: totalPrice } = body.checkout;
         this.prices.item = parseFloat(totalPrice).toFixed(2);
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
@@ -208,7 +213,7 @@ class APICheckout extends Checkout {
 
   async shippingRates() {
     this._logger.verbose('API CHECKOUT: Fetching shipping rates');
-    const { site, monitorDelay } = this._context.task;
+    const { site, monitorDelay, errorDelay } = this._context.task;
     const { url } = site;
 
     // TODO - find a shared location for timeouts
@@ -221,19 +226,28 @@ class APICheckout extends Checkout {
         uri: `${url}/api/checkouts/${this.checkoutToken}/shipping_rates.json`,
         method: 'GET',
         proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
-        rejectUnauthorized: false,
         json: true,
         simple: false,
-        headers: getHeaders(site),
+        gzip: true,
+        headers: {
+          ...getHeaders(site),
+          'Accept-Encoding': 'gzip, deflate',
+          'Accept-Language': 'en-GB, en-US; en; q=0.8',
+        },
       });
 
       const { statusCode, body } = res;
-
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
+      }
+
+      if (statusCode === 500 || statusCode === 503) {
+        await waitForDelay(errorDelay);
+        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
 
       // extra check for country not supported
@@ -242,8 +256,21 @@ class APICheckout extends Checkout {
       }
 
       if (body && body.errors) {
-        const { errors } = res;
+        const { errors } = body;
         this._logger.verbose('API CHECKOUT: Error getting shipping rates: %j', errors);
+        if (errors && errors.checkout && errors.checkout.base) {
+          const { code } = errors.checkout.base[0];
+          this._logger.verbose('API CHECKOUT: Shipping rates error message: %s', code);
+          if (code.indexOf('does_not_require_shipping') > -1) {
+            this._logger.verbose('API CHECKOUT: Cart empty, retrying add to cart');
+            return { message: 'Cart empty, retrying ATC', nextState: States.AddToCart };
+          }
+
+          if (code.indexOf("can't be blank") > -1) {
+            this._logger.verbose('API CHECKOUT: Country not supported');
+            return { message: 'Country not supported', nextState: States.Stopped };
+          }
+        }
         await waitForDelay(monitorDelay);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
@@ -263,10 +290,7 @@ class APICheckout extends Checkout {
         let { shipping } = this.prices;
         shipping = parseFloat(cheapest.price).toFixed(2);
         this._logger.silly('API CHECKOUT: Shipping total: %s', shipping);
-        return {
-          message: `Using rate ${this.chosenShippingMethod.name}`,
-          nextState: States.PostPayment,
-        };
+        return { message: `Posting payment`, nextState: States.PostPayment };
       }
       this._logger.verbose('No shipping rates available, polling %d ms', monitorDelay);
       await waitForDelay(monitorDelay);
