@@ -47,7 +47,7 @@ class FrontendCheckout extends Checkout {
         const { id } = body;
         this._logger.verbose('Payment token: %s', id);
         this.paymentToken = id;
-        return { message: 'Creating checkout', nextState: States.Monitor };
+        return { message: 'Monitoring for product', nextState: States.Monitor };
       }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
