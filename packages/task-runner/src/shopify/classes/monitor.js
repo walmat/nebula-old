@@ -152,7 +152,7 @@ class Monitor {
           nextState: States.SwapProxies,
         };
       }
-      checkStatus = statuses.find(s => s >= 400);
+      checkStatus = statuses.find(s => s === ErrorCodes.Parser.ProductNotFound || s >= 400);
       if (checkStatus) {
         return this._delay(checkStatus);
       }

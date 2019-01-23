@@ -509,7 +509,7 @@ class TaskManager {
       delay: (id, delay, type) => {
         if (id === runner.id) {
           // TODO: Respect the scope of the _events variable (issue #137)
-          runner._events.emit(TaskRunner.Events.ReceiveDelay, id, delay, type);
+          runner._events.emit(Events.ChangeDelay, id, delay, type);
         }
       },
     };
