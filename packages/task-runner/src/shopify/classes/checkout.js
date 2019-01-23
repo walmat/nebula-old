@@ -392,7 +392,7 @@ class Checkout {
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
-        body: `{"complete":"1"}`,
+        body: `{"complete":"1", "g-recaptcha-response":"${this.captchaToken}"}`,
       });
 
       const { statusCode, headers } = res;
@@ -460,13 +460,13 @@ class Checkout {
         resolveWithFullResponse: true,
         simple: false,
         json: true,
+        gzip: true,
         headers: {
           ...getHeaders(site),
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.8',
-          Connection: 'Keep-Alive',
-          'Content-Type': 'multipart/form-data;',
+          'Accept-Encoding': 'gzip, deflate',
+          'Accept-Language': 'en-GB,en-US;en;q=0.8',
+          Connection: 'keep-alive',
+          'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
@@ -480,8 +480,20 @@ class Checkout {
       this._logger.verbose('CHECKOUT: Payments object: %j', body);
       const { payments } = body;
 
-      // TODO - more checks to see if success/failure
       if (body && payments.length > 0) {
+        const bodyString = JSON.stringify(body);
+
+        // success
+        if (bodyString.indexOf('thank_you') > -1) {
+          return { message: 'Payment successful', nextState: States.Stopped };
+        }
+
+        // out of stock message
+        if (bodyString.indexOf('Some items are no longer available') > -1) {
+          return { message: 'Failed: Out of stock', nextState: States.Stopped };
+        }
+
+        // check error messages
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
         this._logger.verbose('CHECKOUT: Payment error: %j', paymentProcessingErrorMessage);
         if (paymentProcessingErrorMessage) {
@@ -492,7 +504,7 @@ class Checkout {
           this._logger.verbose('CHECKOUT: Payment error: %j', transaction);
           return { message: 'Payment failed', nextState: States.Stopped };
         }
-        return { message: 'Payment successful', nextState: States.Stopped };
+        return { message: 'Payment failed', nextState: States.Stopped };
       }
       this._logger.verbose('CHECKOUT: Processing payment');
       await waitForDelay(monitorDelay);
