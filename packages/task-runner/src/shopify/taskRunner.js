@@ -491,17 +491,31 @@ class TaskRunner {
     try {
       this._logger.verbose('Waiting for new proxy...');
       const proxy = await this.swapProxies();
-      // Update the references
-      this.proxy = proxy;
-      this._context.proxy = proxy.proxy;
-      this.shouldBanProxy = false; // reset ban flag
+      // Proxy is fine, update the references
+      if (proxy) {
+        this.proxy = proxy;
+        this._context.proxy = proxy.proxy;
+        this.shouldBanProxy = false; // reset ban flag
+        return this._prevState;
+      }
+
+      // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
+      await this._waitForErrorDelay();
+      // If we have a hard ban, continue waiting for open proxy
+      if (this.shouldBanProxy) {
+        this._emitTaskEvent({
+          message: 'No open proxies available! Waiting...',
+        });
+        return States.SwapProxies;
+      }
     } catch (err) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitTaskEvent({
-        message: 'Error Swapping Proxies! Retrying...',
+        message: 'Error swapping proxies! Retrying...',
         errors: err,
       });
       await this._waitForErrorDelay();
+      return States.SwapProxies;
     }
     // Go back to previous state
     return this._prevState;
