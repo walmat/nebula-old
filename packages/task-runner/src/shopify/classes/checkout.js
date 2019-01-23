@@ -155,7 +155,7 @@ class Checkout {
         simple: false,
         json: false,
         headers: getHeaders(site),
-        body: `{}`,
+        body: JSON.stringify({}),
       });
 
       const { statusCode, headers } = res;
@@ -312,9 +312,15 @@ class Checkout {
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
-        body: `{"complete":"1","s":"${
-          this.paymentToken
-        }","checkout":{"shipping_rate":{"id":"${id}"}}}`,
+        body: JSON.stringify({
+          complete: 1,
+          s: this.paymentToken,
+          checkout: {
+            shipping_rate: {
+              id,
+            },
+          },
+        }),
       });
 
       const { statusCode, body, headers } = res;
@@ -387,7 +393,10 @@ class Checkout {
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
-        body: `{"complete":"1", "g-recaptcha-response":"${this.captchaToken}"}`,
+        body: JSON.stringify({
+          complete: 1,
+          'g-recaptcha-response': this.captchaToken,
+        }),
       });
 
       const { statusCode, headers } = res;
