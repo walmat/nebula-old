@@ -348,7 +348,6 @@ class TaskRunner {
       return res.nextState;
     }
 
-    // TODO: make sure `prevState` doesn't get overwrote when visiting same state more than once
     return this._prevState;
   }
 
@@ -422,6 +421,12 @@ class TaskRunner {
       return States.Stopped;
     }
     this._checkout.captchaToken = token;
+
+    // if we came from the post payment step, harvest then complete the payment
+    if (this._prevState === States.PostPayment) {
+      return States.CompletePayment;
+    }
+    // otherwise, return to the previous state
     return this._prevState;
   }
 

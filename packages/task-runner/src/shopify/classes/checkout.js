@@ -349,13 +349,8 @@ class Checkout {
 
       // check if captcha is present
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-
-      // TODO - check for captcha validation error message and proceed to complete checkout after harvesting
-      /**
-       * PATCH `{"complete":"1", "g-recaptcha-response": "${this.captchaToken}}"`
-       */
-      const error = $('#error-for-captcha').text();
-      this._logger.silly('CHECKOUT: Recaptcha text: %j', error);
+      const error = $('.g-recaptcha');
+      this._logger.silly('CHECKOUT: Recaptcha obj length: %d %j', error.length, error.text());
       if (error) {
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
