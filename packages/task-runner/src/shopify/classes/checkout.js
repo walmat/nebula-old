@@ -1,5 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
+const fs = require('fs');
+const path = require('path');
 const {
   formatProxy,
   getHeaders,
@@ -16,7 +18,6 @@ class Checkout {
     this._logger = this._context.logger;
     this._request = this._context.request;
 
-    this.authTokens = [];
     this.shippingMethods = [];
     this.chosenShippingMethod = {
       name: null,
@@ -90,7 +91,7 @@ class Checkout {
         method: 'POST',
         proxy: formatProxy(this._proxy),
         rejectUnauthorized: false,
-        followAllRedirects: true,
+        followAllRedirects: false,
         resolveWithFullResponse: true,
         simple: false,
         headers: heads,
@@ -106,29 +107,32 @@ class Checkout {
       const redirectUrl = headers.location;
       this._logger.verbose('CHECKOUT: Login redirect url: %s', redirectUrl);
 
-      // password page
-      if (redirectUrl.indexOf('password') > -1) {
-        await waitForDelay(monitorDelay);
-        return { message: 'Password page', nextState: States.Login };
+      if (redirectUrl) {
+        // password page
+        if (redirectUrl.indexOf('password') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Password page', nextState: States.Login };
+        }
+
+        // challenge page
+        if (redirectUrl.indexOf('challenge') > -1) {
+          this._logger.verbose('CHECKOUT: Login needs captcha');
+          return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
+        }
+
+        // still at login page
+        if (redirectUrl.indexOf('login') > -1) {
+          this._logger.verbose('CHECKOUT: Invalid login credentials');
+          return { message: 'Invalid login credentials', nextState: States.Stopped };
+        }
+
+        // since we're here, we can assume `account/login` === false
+        if (redirectUrl.indexOf('account') > -1) {
+          this._logger.verbose('CHECKOUT: Logged in');
+          return { message: 'Fetching payment token', nextState: States.PaymentToken };
+        }
       }
 
-      // challenge page
-      if (redirectUrl.indexOf('challenge') > -1) {
-        this._logger.verbose('CHECKOUT: Login needs captcha');
-        return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
-      }
-
-      // still at login page
-      if (redirectUrl.indexOf('login') > -1) {
-        this._logger.verbose('CHECKOUT: Invalid login credentials');
-        return { message: 'Invalid login credentials', nextState: States.Stopped };
-      }
-
-      // since we're here, we can assume `account/login` === false
-      if (redirectUrl.indexOf('account') > -1) {
-        this._logger.verbose('CHECKOUT: Logged in');
-        return { message: 'Fetching payment token', nextState: States.PaymentToken };
-      }
       return { message: 'Failed: Logging in', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('ACCOUNT: Error logging in: %s', err);
@@ -278,14 +282,16 @@ class Checkout {
         method: 'PATCH',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
-        followAllRedirects: true,
+        followAllRedirects: false,
         resolveWithFullResponse: true,
         simple: false,
+        gzip: true,
         headers: {
           ...getHeaders(site),
           Accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
           Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
@@ -295,7 +301,7 @@ class Checkout {
         }","checkout":{"shipping_rate":{"id":"${id}"}}}`,
       });
 
-      const { statusCode, headers } = res;
+      const { statusCode, body, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
@@ -308,12 +314,24 @@ class Checkout {
       if (redirectUrl) {
         // processing
         if (redirectUrl.indexOf('processing') > -1) {
+          this._context.timer.reset();
+          this._context.timer.start();
           return { message: 'Payment processing', nextState: States.PaymentProcess };
         }
         if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState: States.PostPayment };
         }
+      }
+
+      // check if captcha is present
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+
+      // TODO - check for captcha validation error message
+      const error = $('#error-for-captcha').text();
+      this._logger.silly('CHECKOUT: Recaptcha html %j', error);
+      if (error) {
+        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
       return { message: 'Completing checkout', nextState: States.CompletePayment };
@@ -334,14 +352,16 @@ class Checkout {
         method: 'PATCH',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
-        followAllRedirects: true,
+        followAllRedirects: false,
         resolveWithFullResponse: true,
         simple: false,
+        gzip: true,
         headers: {
           ...getHeaders(site),
           Accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
           Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
@@ -361,6 +381,8 @@ class Checkout {
       if (redirectUrl) {
         // processing
         if (redirectUrl.indexOf('processing') > -1) {
+          this._context.timer.reset();
+          this._context.timer.start();
           return { message: 'Payment processing', nextState: States.PaymentProcess };
         }
 

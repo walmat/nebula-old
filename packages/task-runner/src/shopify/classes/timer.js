@@ -1,3 +1,5 @@
+const now = require('performance-now');
+
 class Timer {
   constructor() {
     this._total = 0;
@@ -10,7 +12,11 @@ class Timer {
    * @param {UTC Timestamp} time - now();
    */
   start(time) {
-    this._start = time;
+    if (time) {
+      this._start = time;
+    } else {
+      this._start = now();
+    }
   }
 
   /**

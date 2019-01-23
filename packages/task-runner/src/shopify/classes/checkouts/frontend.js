@@ -25,34 +25,33 @@ class FrontendCheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
 
-    this._logger.verbose('FRONTEND CHECKOUT: Creating payment token');
+    this._logger.verbose('FRONTEND CHECKOUT: Creating Payment Token');
     try {
       const res = await this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
-        method: 'POST',
+        followAllRedirects: true,
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
-        followAllRedirects: true,
+        method: 'post',
         resolveWithFullResponse: true,
-        json: true,
-        simple: true,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
           Connection: 'Keep-Alive',
         },
-        formData: JSON.stringify(buildPaymentForm(payment, billing)),
+        body: JSON.stringify(buildPaymentForm(payment, billing)),
       });
-      const { body } = res;
+
+      const body = JSON.parse(res.body);
       if (body && body.id) {
         const { id } = body;
         this._logger.verbose('Payment token: %s', id);
         this.paymentToken = id;
-        return { message: 'Monitoring for product', nextState: States.Monitor };
+        return { message: 'Creating checkout', nextState: States.Monitor };
       }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
-      this._logger.debug('FRONTEND CHECKOUT: Request error getting payment token: %s', err);
+      this._logger.debug('FRONTEND CHECKOUT: Request error creating payment token: %s', err);
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
