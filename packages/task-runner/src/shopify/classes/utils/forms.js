@@ -10,50 +10,66 @@ const buildPaymentForm = (payment, billing) => ({
 
 const createCheckoutForm = (profile, shipping, billing, payment) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
-  let dataString;
+  let data = {
+    complete: 1,
+    checkout: {
+      secret: true,
+      email: payment.email,
+      shipping_address: {
+        first_name: shipping.firstName,
+        last_name: shipping.lastName,
+        address1: shipping.address,
+        address2: shipping.apt,
+        city: shipping.city,
+        country: shipping.country.value,
+        province: shippingProvinceValue,
+        state: shippingProvinceValue,
+        zip: shipping.zipCode,
+        phone: shipping.phone,
+      },
+    },
+  };
   if (profile.billingMatchesShipping) {
-    dataString = `{"complete":"1","checkout":{"secret":true,"email":"${
-      payment.email
-    }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
-      shipping.lastName
-    }","address1":"${shipping.address}","address2":"${shipping.apt}","city":"${
-      shipping.city
-    }","country":"${
-      shipping.country.value
-    }","province":"${shippingProvinceValue}","state":"${shippingProvinceValue}","zip":"${
-      shipping.zipCode
-    }","phone":"${shipping.phone}"},"billing_address":{"first_name":"${
-      shipping.firstName
-    }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
-      shipping.apt
-    }","city":"${shipping.city}","country":"${
-      shipping.country.value
-    }","province":"${shippingProvinceValue}","state":"${shippingProvinceValue}","zip":"${
-      shipping.zipCode
-    }","phone":"${shipping.phone}"}}}`;
+    data = {
+      ...data,
+      checkout: {
+        ...data.checkout,
+        billing_address: {
+          first_name: shipping.firstName,
+          last_name: shipping.lastName,
+          address1: shipping.address,
+          address2: shipping.apt,
+          city: shipping.city,
+          country: shipping.country.value,
+          province: shippingProvinceValue,
+          state: shippingProvinceValue,
+          zip: shipping.zipCode,
+          phone: shipping.phone,
+        },
+      },
+    };
   } else {
     const billingProvinceValue = billing.province ? billing.province.value : '';
-    dataString = `{"complete":"1","checkout":{"secret":true,"email":"${
-      payment.email
-    }","shipping_address":{"first_name":"${shipping.firstName}","last_name":"${
-      shipping.lastName
-    }","address1":"${shipping.address}","address2":"${shipping.apt}","city":"${
-      shipping.city
-    }","country":"${
-      shipping.country.value
-    }","province":"${shippingProvinceValue}","state":"${shippingProvinceValue}","zip":"${
-      shipping.zipCode
-    }","phone":"${shipping.phone}"},"billing_address":{"first_name":"${
-      shipping.firstName
-    }","last_name":"${shipping.lastName}","address1":"${shipping.address}","address2":"${
-      shipping.apt
-    }","city":"${shipping.city}","country":"${
-      shipping.country.value
-    }","province":"${billingProvinceValue}","state":"${billingProvinceValue}","zip":"${
-      shipping.zipCode
-    }","phone":"${shipping.phone}"}}}`;
+    data = {
+      ...data,
+      checkout: {
+        ...data.checkout,
+        billing_address: {
+          first_name: billing.firstName,
+          last_name: billing.lastName,
+          address1: billing.address,
+          address2: billing.apt,
+          city: billing.city,
+          country: billing.country.value,
+          province: billingProvinceValue,
+          state: billingProvinceValue,
+          zip: billing.zipCode,
+          phone: billing.phone,
+        },
+      },
+    };
   }
-  return dataString;
+  return JSON.stringify(data);
 };
 
 const addToCart = (variant, site) => {
