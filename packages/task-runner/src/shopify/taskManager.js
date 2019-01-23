@@ -158,8 +158,13 @@ class TaskManager {
    *
    * @param {String} runnerId the id of the runner for whom the proxy will be reserved
    * @param {String} waitForOpenProxy whether or not this method should wait for an open proxy
+   * @param {Number} waitLimit the recursive call limit on proxy reservations
    */
-  async reserveProxy(runnerId, waitForOpenProxy) {
+  async reserveProxy(runnerId, waitForOpenProxy = false, waitLimit = 5) {
+    if (!waitLimit || Number.isNaN(waitLimit) || waitLimit < 0) {
+      // Force wait limit to be 0 if we have an invalid parameter value passed in
+      waitLimit = 0;
+    }
     this._logger.verbose('Reserving proxy for runner %s ...', runnerId);
     const proxy = Object.values(this._proxies).find(p => !p.assignedRunner && !p.banned);
     if (proxy) {
@@ -167,13 +172,13 @@ class TaskManager {
       this._logger.verbose('Returning proxy: %s', proxy.id);
       return proxy;
     }
-    if (!waitForOpenProxy) {
+    if (!waitForOpenProxy || waitLimit === 0) {
       this._logger.verbose('Not waiting for open proxy, returning null');
       return null;
     }
     this._logger.verbose('All proxies are reserved, waiting for open proxy...');
     return new Promise(resolve => {
-      setTimeout(() => resolve(this.reserveProxy(runnerId, waitForOpenProxy)), 1000); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
+      setTimeout(() => resolve(this.reserveProxy(runnerId, waitForOpenProxy, waitLimit - 1)), 1000); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
     });
   }
 
@@ -235,6 +240,13 @@ class TaskManager {
       shouldRelease = false;
     }
 
+    // Attempt to reserve a proxy first before releasing the old one
+    const newProxy = await this.reserveProxy(runnerId);
+    if (!newProxy) {
+      this._logger.verbose('No new proxy available, skipping release/ban');
+      return null;
+    }
+
     // Check if we need to release the old proxy
     if (shouldRelease) {
       // Check if we need to ban the old proxy
@@ -244,7 +256,7 @@ class TaskManager {
       this.releaseProxy(runnerId, proxyId);
     }
     // Return the new reserved proxy
-    return this.reserveProxy(runnerId);
+    return newProxy;
   }
 
   /**
@@ -283,7 +295,8 @@ class TaskManager {
    * @param {Bool} shouldBan
    */
   async handleSwapProxy(runnerId, proxy, shouldBan) {
-    const newProxy = await this.swapProxy(runnerId, proxy.id, shouldBan);
+    const proxyId = proxy ? proxy.id : null;
+    const newProxy = await this.swapProxy(runnerId, proxyId, shouldBan);
     this._events.emit(Events.SendProxy, runnerId, newProxy);
   }
 
