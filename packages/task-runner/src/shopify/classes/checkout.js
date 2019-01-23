@@ -313,7 +313,7 @@ class Checkout {
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
         body: JSON.stringify({
-          complete: 1,
+          complete: '1',
           s: this.paymentToken,
           checkout: {
             shipping_rate: {
@@ -394,7 +394,7 @@ class Checkout {
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
         body: JSON.stringify({
-          complete: 1,
+          complete: '1',
           'g-recaptcha-response': this.captchaToken,
         }),
       });

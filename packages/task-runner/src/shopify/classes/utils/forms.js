@@ -11,7 +11,7 @@ const buildPaymentForm = (payment, billing) => ({
 const createCheckoutForm = (profile, shipping, billing, payment) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
-    complete: 1,
+    complete: '1',
     checkout: {
       secret: true,
       email: payment.email,

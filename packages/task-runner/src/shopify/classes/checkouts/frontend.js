@@ -57,7 +57,7 @@ class FrontendCheckout extends Checkout {
   }
 
   async addToCart() {
-    const { site, product, monitorDelay } = this._context.task;
+    const { site, product, monitorDelay, errorDelay } = this._context.task;
     const { variants } = product;
     const { url } = site;
 
@@ -68,16 +68,18 @@ class FrontendCheckout extends Checkout {
         method: 'POST',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
-        followAllRedirects: true,
+        followAllRedirects: false,
         resolveWithFullResponse: true,
         simple: false,
         json: false,
+        gzip: true,
         headers: {
           'User-Agent': userAgent,
           'Upgrade-Insecure-Requests': '1',
           Accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         formData: addToCart(variants[0], site),
@@ -87,6 +89,11 @@ class FrontendCheckout extends Checkout {
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
+      }
+
+      if (statusCode === 500 || statusCode === 503) {
+        await waitForDelay(errorDelay);
+        return { message: 'Adding to cart', nextState: States.AddToCart };
       }
 
       const redirectUrl = headers.location;
@@ -256,7 +263,7 @@ class FrontendCheckout extends Checkout {
 
         const cheapest = _.min(this.shippingMethods, rate => rate.price);
         const { name } = cheapest;
-        const id = `${cheapest.source}-${cheapest.name.replace('%20', ' ')}-${cheapest.price}`;
+        const id = `${cheapest.source}-${cheapest.name.replace(/ /g, '%20')}-${cheapest.price}`;
         this.chosenShippingMethod = { id, name };
         this._logger.verbose('FRONTEND CHECKOUT: Using shipping rate: %s', name);
 
