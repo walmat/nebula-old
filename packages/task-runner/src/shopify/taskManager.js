@@ -295,7 +295,8 @@ class TaskManager {
    * @param {Bool} shouldBan
    */
   async handleSwapProxy(runnerId, proxy, shouldBan) {
-    const newProxy = await this.swapProxy(runnerId, proxy.id, shouldBan);
+    const proxyId = proxy ? proxy.id : null;
+    const newProxy = await this.swapProxy(runnerId, proxyId, shouldBan);
     this._events.emit(Events.SendProxy, runnerId, newProxy);
   }
 
