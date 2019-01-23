@@ -131,13 +131,16 @@ class TaskRunner {
   async swapProxies() {
     this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Timeout'));
-      }, 10000); // TODO: Make this a variable delay?
-      this._events.once(Events.ReceiveProxy, (id, proxy) => {
+      let timeout;
+      const proxyHandler = (id, proxy) => {
         clearTimeout(timeout);
         resolve(proxy);
-      });
+      };
+      timeout = setTimeout(() => {
+        this._events.removeListener(Events.ReceiveProxy, proxyHandler);
+        reject(new Error('Timeout'));
+      }, 10000); // TODO: Make this a variable delay?
+      this._events.once(Events.ReceiveProxy, proxyHandler);
     });
   }
 
