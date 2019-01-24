@@ -266,33 +266,28 @@ class Checkout {
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
-      // Check for not empty object – `{}`
-      if (Object.keys(JSON.parse(body)).length !== 0) {
-        let redirectUrl;
+      let redirectUrl;
 
-        // check redirect header `location` parameter
-        if (statusCode === 302) {
-          [redirectUrl] = headers.location.split('?');
-          if (redirectUrl) {
-            [, , , this.storeId] = redirectUrl.split('/');
-            [, , , , , this.checkoutToken] = redirectUrl.split('/');
-            // next state handled by poll queue map
-            return true;
-          }
+      // check redirect header `location` parameter
+      if (statusCode === 302) {
+        [redirectUrl] = headers.location.split('?');
+        if (redirectUrl) {
+          [, , , this.storeId] = redirectUrl.split('/');
+          [, , , , , this.checkoutToken] = redirectUrl.split('/');
+          // next state handled by poll queue map
+          return { queue: 'done' };
         }
-        if (statusCode === 200 || statusCode === 202) {
-          const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-          [redirectUrl] = $('input[name="checkout_url"]')
-            .val()
-            .split('?');
-          if (redirectUrl) {
-            [, , , this.storeId] = redirectUrl.split('/');
-            [, , , , , this.checkoutToken] = redirectUrl.split('/');
-            // next state handled by poll queue map
-            return true;
-          }
+      } else if (statusCode === 200) {
+        const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+        [redirectUrl] = $('input[name="checkout_url"]')
+          .val()
+          .split('?');
+        if (redirectUrl) {
+          [, , , this.storeId] = redirectUrl.split('/');
+          [, , , , , this.checkoutToken] = redirectUrl.split('/');
+          // next state handled by poll queue map
+          return { queue: 'done' };
         }
-        return { message: 'Failed: Polling queue', nextState: States.Stopped };
       }
       this._logger.verbose('CHECKOUT: Not passed queue, delaying %d ms', monitorDelay);
       await waitForDelay(monitorDelay);
