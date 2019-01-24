@@ -4,7 +4,7 @@ const request = require('request-promise');
 const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const AsyncQueue = require('./classes/asyncQueue');
-const { States, Events, CheckoutTypes, DelayTypes, StateMap } = require('./classes/utils/constants').TaskRunner;
+const { States, Events, DelayTypes, StateMap } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
@@ -23,7 +23,7 @@ class TaskRunner {
 
     this._jar = request.jar();
     this._request = request.defaults({
-      timeout: 50000,
+      timeout: 15000,
       jar: this._jar,
     });
 
