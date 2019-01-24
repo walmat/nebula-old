@@ -7,7 +7,7 @@ const {
   userAgent,
   waitForDelay,
 } = require('../utils');
-const { addToCart, buildPaymentForm, createCheckoutForm } = require('../utils/forms');
+const { addToCart, buildPaymentForm, patchCheckoutForm } = require('../utils/forms');
 const { States } = require('../utils/constants').TaskRunner;
 const Checkout = require('../checkout');
 
@@ -162,7 +162,7 @@ class FrontendCheckout extends Checkout {
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Upgrade-Insecure-Requests': '1',
         },
-        body: createCheckoutForm(profile, shipping, billing, payment),
+        body: JSON.stringify(patchCheckoutForm(profile, shipping, billing, payment)),
       });
 
       const { statusCode, headers } = res;

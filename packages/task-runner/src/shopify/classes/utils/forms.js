@@ -8,7 +8,7 @@ const buildPaymentForm = (payment, billing) => ({
   },
 });
 
-const createCheckoutForm = (profile, shipping, billing, payment) => {
+const patchCheckoutForm = (profile, shipping, billing, payment) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
     complete: '1',
@@ -69,7 +69,7 @@ const createCheckoutForm = (profile, shipping, billing, payment) => {
       },
     };
   }
-  return JSON.stringify(data);
+  return data;
 };
 
 const addToCart = (variant, site) => {
@@ -110,7 +110,7 @@ const patchToCart = variant => ({
 
 module.exports = {
   buildPaymentForm,
-  createCheckoutForm,
+  patchCheckoutForm,
   addToCart,
   patchToCart,
 };

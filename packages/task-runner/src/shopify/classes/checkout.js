@@ -174,7 +174,7 @@ class Checkout {
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
-      const [redirectUrl] = headers.location.split('?');
+      const [redirectUrl, qs] = headers.location.split('?');
       this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         return { message: 'Failed: Creating checkout', nextState: States.Stopped };
@@ -184,8 +184,7 @@ class Checkout {
       // account
       if (redirectUrl.indexOf('account') > -1) {
         // try to parse out the query string
-        const [, qs] = redirectUrl.split('?');
-        if (qs.indexOf('checkout_url') > -1) {
+        if (qs && qs.indexOf('checkout_url') > -1) {
           const [, checkoutUrl] = qs.split('=');
           const decodedCheckoutUrl = decodeURIComponent(checkoutUrl);
           [, , , this.storeId] = decodedCheckoutUrl.split('/');
@@ -374,7 +373,7 @@ class Checkout {
       // check if captcha is present
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
       const error = $('.g-recaptcha');
-      this._logger.silly('CHECKOUT: Recaptcha frame present: %d %j', error.length > 0);
+      this._logger.silly('CHECKOUT: Recaptcha frame present: %d', error.length > 0);
       if (error) {
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
