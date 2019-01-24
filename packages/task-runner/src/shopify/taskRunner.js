@@ -41,6 +41,11 @@ class TaskRunner {
      */
     this._state = States.Initialized;
 
+    /**
+     * Type of Checkout Process to be used
+     */
+    this._checkoutType = null;
+
     this._captchaQueue = null;
     this._isSetup = false;
 
@@ -72,7 +77,7 @@ class TaskRunner {
      * Create a new checkout object to be used for this task
      */
     const CheckoutCreator = getCheckoutMethod(this._context.task.site, this._logger);
-    this._checkout = CheckoutCreator({
+    [this._checkoutType, this._checkout] = CheckoutCreator({
       ...this._context,
       getCaptcha: this.getCaptcha.bind(this),
       stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
@@ -349,7 +354,7 @@ class TaskRunner {
     }
 
     // poll queue map should be used to determine where to go next
-    const { message, nextState } = StateMap[this._prevState];
+    const { message, nextState } = StateMap[this._prevState](this._checkoutType);
     this._emitTaskEvent({
       message,
     });
