@@ -4,7 +4,7 @@ import getAllSupportedSitesSorted, { getSite } from '../../constants/getAllSites
 import sites from '../../constants/sites.json';
 
 describe('getAllSites', () => {
-  it('should return all sites correctly', () => {
+  it('should return all supported sites correctly', () => {
     const supported = sites.filter(val => val.supported === true);
     expect(getAllSupportedSitesSorted()).toEqual(_.sortBy(supported, 'label'));
   });

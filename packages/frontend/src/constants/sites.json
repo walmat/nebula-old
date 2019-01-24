@@ -689,7 +689,7 @@
     "label": "Hanon Shop",
     "value": "https://hanon-shop.com",
     "apiKey": "f73913c594921bdd6a18a32bc2e2d7df",
-    "auth": false,
+    "auth": true,
     "supported": true
   },
   {
@@ -724,6 +724,20 @@
     "label": "Mock Server",
     "value": "http://localhost:9000",
     "apiKey": "",
+    "auth": false,
+    "supported": true
+  },
+  {
+    "label": "Nebula Bots",
+    "value": "https://nebulabots.com",
+    "apiKey": "6526a5b5393b6316a64853cfe091841c",
+    "auth": false,
+    "supported": true
+  },
+  {
+    "label": "Diamond Supply",
+    "value": "https://diamondsupplyco.com",
+    "apiKey": "c0912fe6e726508128a3a35ab0cde034",
     "auth": false,
     "supported": true
   }

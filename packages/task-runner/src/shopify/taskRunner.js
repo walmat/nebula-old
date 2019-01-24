@@ -4,7 +4,7 @@ const request = require('request-promise');
 const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const AsyncQueue = require('./classes/asyncQueue');
-const { States, Events, DelayTypes } = require('./classes/utils/constants').TaskRunner;
+const { States, Events, DelayTypes, StateMap } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
@@ -23,7 +23,7 @@ class TaskRunner {
 
     this._jar = request.jar();
     this._request = request.defaults({
-      timeout: 50000,
+      timeout: 15000,
       jar: this._jar,
     });
 
@@ -40,6 +40,11 @@ class TaskRunner {
      * Internal Task Runner State
      */
     this._state = States.Initialized;
+
+    /**
+     * Type of Checkout Process to be used
+     */
+    this._checkoutType = null;
 
     this._captchaQueue = null;
     this._isSetup = false;
@@ -72,7 +77,7 @@ class TaskRunner {
      * Create a new checkout object to be used for this task
      */
     const CheckoutCreator = getCheckoutMethod(this._context.task.site, this._logger);
-    this._checkout = CheckoutCreator({
+    [this._checkoutType, this._checkout] = CheckoutCreator({
       ...this._context,
       getCaptcha: this.getCaptcha.bind(this),
       stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
@@ -259,16 +264,17 @@ class TaskRunner {
 
   async _handleStarted() {
     this._logger.silly('Starting task setup');
-
-    if (this._context.task.username && this._context.task.password) {
-      this._emitTaskEvent({
-        message: 'Logging in...',
-      });
-      return States.Login;
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
     }
     this._emitTaskEvent({
       message: 'Starting Task Setup',
     });
+    if (this._context.task.username && this._context.task.password) {
+      return States.Login;
+    }
     return States.PaymentToken;
   }
 
@@ -294,7 +300,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.paymentToken();
+    const res = await this._checkout.getPaymentToken();
 
     this._emitTaskEvent({
       message: res.message,
@@ -310,6 +316,20 @@ class TaskRunner {
     }
 
     const res = await this._checkout.createCheckout();
+
+    this._emitTaskEvent({
+      message: res.message,
+    });
+    return res.nextState;
+  }
+
+  async _handlePatchCheckout() {
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const res = await this._checkout.patchCheckout();
 
     this._emitTaskEvent({
       message: res.message,
@@ -333,8 +353,12 @@ class TaskRunner {
       return res.nextState;
     }
 
-    // TODO: make sure `prevState` doesn't get overwrote when visiting same state more than once
-    return this._prevState;
+    // poll queue map should be used to determine where to go next
+    const { message, nextState } = StateMap[this._prevState](this._checkoutType);
+    this._emitTaskEvent({
+      message,
+    });
+    return nextState;
   }
 
   async _handleMonitor() {
@@ -378,21 +402,6 @@ class TaskRunner {
     return res.nextState;
   }
 
-  async _handleRestocks() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const res = await this._checkout.restocks();
-
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
-  }
-
   async _handleShipping() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -401,21 +410,6 @@ class TaskRunner {
     }
 
     const res = await this._checkout.shippingRates();
-
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
-  }
-
-  async _handleSubmitContact() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const res = await this._checkout.submitContact();
 
     this._emitTaskEvent({
       message: res.message,
@@ -437,22 +431,12 @@ class TaskRunner {
       return States.Stopped;
     }
     this._checkout.captchaToken = token;
-    return this._prevState;
-  }
 
-  async _handlePaymentGateway() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
-      return States.Aborted;
+    if (this._prevState === States.PostPayment) {
+      return States.CompletePayment;
     }
-
-    const res = await this._checkout.paymentGateway();
-
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    // otherwise, return to the previous state
+    return this._prevState;
   }
 
   async _handlePostPayment() {
@@ -470,14 +454,14 @@ class TaskRunner {
     return res.nextState;
   }
 
-  async _handlePaymentReview() {
+  async _handleCompletePayment() {
     // exit if abort is detected
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
-    const res = await this._checkout.paymentReview();
+    const res = await this._checkout.completePayment();
 
     this._emitTaskEvent({
       message: res.message,
@@ -574,15 +558,13 @@ class TaskRunner {
       [States.PaymentToken]: this._handlePaymentToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
       [States.PollQueue]: this._handlePollQueue,
+      [States.PatchCheckout]: this._handlePatchCheckout,
       [States.Monitor]: this._handleMonitor,
       [States.AddToCart]: this._handleAddToCart,
-      [States.Restocks]: this._handleRestocks,
       [States.ShippingRates]: this._handleShipping,
       [States.RequestCaptcha]: this._handleRequestCaptcha,
-      [States.SubmitContact]: this._handleSubmitContact,
-      [States.PaymentGateway]: this._handlePaymentGateway,
       [States.PostPayment]: this._handlePostPayment,
-      [States.PaymentReview]: this._handlePaymentReview,
+      [States.CompletePayment]: this._handleCompletePayment,
       [States.PaymentProcess]: this._handlePaymentProcess,
       [States.SwapProxies]: this._handleSwapProxies,
       [States.Finished]: this._generateEndStateHandler(States.Finished),
