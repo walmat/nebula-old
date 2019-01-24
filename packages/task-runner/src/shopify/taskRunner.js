@@ -4,7 +4,7 @@ const request = require('request-promise');
 const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const AsyncQueue = require('./classes/asyncQueue');
-const { States, Events, DelayTypes } = require('./classes/utils/constants').TaskRunner;
+const { States, Events, DelayTypes, StateMap } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
@@ -348,7 +348,12 @@ class TaskRunner {
       return res.nextState;
     }
 
-    return this._prevState;
+    // poll queue map should be used to determine where to go next
+    const { message, nextState } = StateMap[this._prevState];
+    this._emitTaskEvent({
+      message,
+    });
+    return nextState;
   }
 
   async _handleMonitor() {
@@ -422,7 +427,6 @@ class TaskRunner {
     }
     this._checkout.captchaToken = token;
 
-    // if we came from the post payment step, harvest then complete the payment
     if (this._prevState === States.PostPayment) {
       return States.CompletePayment;
     }

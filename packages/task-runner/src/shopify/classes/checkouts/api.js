@@ -20,7 +20,7 @@ const Checkout = require('../checkout');
  * 3. CREATE CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #4)
  * 4. PATCH CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #5)
  * 5. MONITOR
- * 6. ADD TO CART (POLL QUEUE IF NEEDED AND PROCEED TO #7)
+ * 6. ADD TO CART
  * 7. SHIPPING RATES
  * 8. POST CHECKOUT
  * 9. COMPLETE CHECKOUT (IF NEEDED)
@@ -215,11 +215,6 @@ class APICheckout extends Checkout {
     this._logger.verbose('API CHECKOUT: Fetching shipping rates');
     const { site, monitorDelay, errorDelay } = this._context.task;
     const { url } = site;
-
-    // TODO - find a shared location for timeouts
-    if (this._context.timer.getRunTime(now()) > 10000) {
-      return { message: 'Failed: Shipping rates timeout', nextState: States.Stopped };
-    }
 
     try {
       const res = await this._request({

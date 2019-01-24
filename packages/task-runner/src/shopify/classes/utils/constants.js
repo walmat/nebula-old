@@ -26,6 +26,7 @@ const TaskRunnerStates = {
   Login: 'LOGIN',
   PaymentToken: 'PAYMENT_TOKEN',
   CreateCheckout: 'CREATE_CHECKOUT',
+  GetCheckout: 'GET_CHECKOUT',
   PollQueue: 'POLL_QUEUE',
   PatchCheckout: 'PATCH_CHECKOUT',
   Monitor: 'MONITOR',
@@ -54,6 +55,24 @@ const ParserErrorCodes = {
   ProductNotFound: 'PRODUCT_MISSING',
 };
 
+/**
+ * Queue state -> next state
+ */
+const PollQueueStateToNextState = {
+  [TaskRunnerStates.AddToCart]: {
+    message: 'Submitting information',
+    nextState: TaskRunnerStates.PatchCheckout,
+  },
+  [TaskRunnerStates.CreateCheckout]: {
+    message: 'Submitting information',
+    nextState: TaskRunnerStates.PatchCheckout,
+  },
+  [TaskRunnerStates.PatchCheckout]: {
+    message: 'Monitoring for product',
+    nextState: TaskRunnerStates.Monitor,
+  },
+};
+
 module.exports = {
   TaskManager: {
     Events: TaskManagerEvents,
@@ -61,6 +80,7 @@ module.exports = {
   TaskRunner: {
     Events: TaskRunnerEvents,
     States: TaskRunnerStates,
+    StateMap: PollQueueStateToNextState,
     DelayTypes: TaskRunnerDelayTypes,
   },
   ErrorCodes: {

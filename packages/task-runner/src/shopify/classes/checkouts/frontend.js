@@ -15,9 +15,9 @@ const Checkout = require('../checkout');
  * CHECKOUT STEPS:
  * 1. PAYMENT TOKEN
  * 2. MONITOR
- * 3. ADD TO CART (POLL QUEUE IF NEEDED AND PROCEED TO #4)
- * 4. CREATE CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #5)
- * 5. PATCH CHECKOUT (POLL QUEUE IF NEEDED AND PROCEED TO #6)
+ * 3. ADD TO CART (POLL QUEUE – PROCEEDS TO #5)
+ * 4. CREATE CHECKOUT (POLL QUEUE – PROCEEDS TO #5)
+ * 5. PATCH CHECKOUT (POLL QUEUE – PROCEEDS TO #6)
  * 6. SHIPPING RATES
  * 7. POST CHECKOUT
  */
@@ -97,7 +97,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('FRONTEND CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+      this._logger.verbose('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // out of stock

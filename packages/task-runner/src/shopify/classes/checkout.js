@@ -32,6 +32,7 @@ class Checkout {
       total: 0,
     };
 
+    this.captchaNeeded = false;
     this.captchaToken = '';
   }
 
@@ -170,12 +171,13 @@ class Checkout {
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
-      const redirectUrl = headers.location;
+      const [redirectUrl] = headers.location.split('?');
       this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         return { message: 'Failed: Creating checkout', nextState: States.Stopped };
       }
 
+      // example: https://www.hanon-shop.com/account/login?checkout_url=https%3A%2F%2Fwww.hanon-shop.com%2F20316995%2Fcheckouts%2Fb92b2aa215abfde741a8cf0e99eeee01
       // account
       if (redirectUrl.indexOf('account') > -1) {
         if (this._context.task.username && this._context.task.password) {
@@ -200,7 +202,7 @@ class Checkout {
       if (redirectUrl.indexOf('checkouts') > -1) {
         [, , , this.storeId] = redirectUrl.split('/');
         [, , , , , this.checkoutToken] = redirectUrl.split('/');
-        return { message: 'Submiting Information', nextState: States.PatchCheckout };
+        return { message: 'Submitting information', nextState: States.PatchCheckout };
       }
 
       // not sure where we are, stop...
@@ -259,20 +261,24 @@ class Checkout {
 
         // check redirect header `location` parameter
         if (statusCode === 302) {
-          redirectUrl = headers.location;
+          [redirectUrl] = headers.location.split('?');
           if (redirectUrl) {
             [, , , this.storeId] = redirectUrl.split('/');
             [, , , , , this.checkoutToken] = redirectUrl.split('/');
-            return { message: 'Submitting Information', nextState: States.PatchCheckout };
+            // next state handled by poll queue map
+            return true;
           }
         }
         if (statusCode === 200 || statusCode === 202) {
           const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-          redirectUrl = $('input[name="checkout_url"]').val();
+          [redirectUrl] = $('input[name="checkout_url"]')
+            .val()
+            .split('?');
           if (redirectUrl) {
             [, , , this.storeId] = redirectUrl.split('/');
             [, , , , , this.checkoutToken] = redirectUrl.split('/');
-            return { message: 'Submitting Information', nextState: States.PatchCheckout };
+            // next state handled by poll queue map
+            return true;
           }
         }
         return { message: 'Failed: Polling queue', nextState: States.Stopped };
@@ -356,7 +362,7 @@ class Checkout {
       // check if captcha is present
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
       const error = $('.g-recaptcha');
-      this._logger.silly('CHECKOUT: Recaptcha obj length: %d %j', error.length, error.text());
+      this._logger.silly('CHECKOUT: Recaptcha frame present: %d %j', error.length > 0);
       if (error) {
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
