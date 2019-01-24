@@ -123,7 +123,7 @@ class FrontendCheckout extends Checkout {
         // queue
         if (redirectUrl.indexOf('throttle') > -1) {
           await waitForDelay(monitorDelay);
-          return { message: 'Waiting for queue', nextState: States.PollQueue };
+          return { message: 'Waiting in queue', nextState: States.PollQueue };
         }
       }
 
@@ -198,7 +198,7 @@ class FrontendCheckout extends Checkout {
         // queue
         if (redirectUrl.indexOf('throttle') > -1) {
           await waitForDelay(monitorDelay);
-          return { message: 'Waiting for queue', nextState: States.PollQueue };
+          return { message: 'Waiting in queue', nextState: States.PollQueue };
         }
       }
 
