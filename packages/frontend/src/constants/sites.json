@@ -689,7 +689,7 @@
     "label": "Hanon Shop",
     "value": "https://hanon-shop.com",
     "apiKey": "f73913c594921bdd6a18a32bc2e2d7df",
-    "auth": false,
+    "auth": true,
     "supported": true
   },
   {
