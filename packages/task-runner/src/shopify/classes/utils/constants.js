@@ -48,6 +48,11 @@ const TaskRunnerDelayTypes = {
   monitor: 'monitorDelay',
 };
 
+const TaskRunnerCheckoutTypes = {
+  fe: 'FRONTEND',
+  api: 'API',
+};
+
 /**
  * Parser Error Codes
  */
@@ -59,18 +64,34 @@ const ParserErrorCodes = {
  * Queue state -> next state
  */
 const PollQueueStateToNextState = {
-  [TaskRunnerStates.AddToCart]: {
-    message: 'Submitting information',
-    nextState: TaskRunnerStates.PatchCheckout,
+  [TaskRunnerStates.AddToCart]: type => {
+    if (type === TaskRunnerCheckoutTypes.fe) {
+      return {
+        message: 'Submitting information',
+        nextState: TaskRunnerStates.PatchCheckout,
+      };
+    }
+    return {
+      message: 'Fetching shipping rates',
+      nextState: TaskRunnerStates.ShippingRates,
+    };
   },
-  [TaskRunnerStates.CreateCheckout]: {
-    message: 'Submitting information',
-    nextState: TaskRunnerStates.PatchCheckout,
+  [TaskRunnerStates.CreateCheckout]: type => {
+    if (type === TaskRunnerCheckoutTypes.fe) {
+      return {
+        message: 'Fetching shipping rates',
+        nextState: TaskRunnerStates.ShippingRates,
+      };
+    }
+    return {
+      message: 'Monitoring for product',
+      nextState: TaskRunnerStates.Monitor,
+    };
   },
-  [TaskRunnerStates.PatchCheckout]: {
+  [TaskRunnerStates.PatchCheckout]: () => ({
     message: 'Monitoring for product',
     nextState: TaskRunnerStates.Monitor,
-  },
+  }),
 };
 
 module.exports = {
@@ -81,6 +102,7 @@ module.exports = {
     Events: TaskRunnerEvents,
     States: TaskRunnerStates,
     StateMap: PollQueueStateToNextState,
+    CheckoutTypes: TaskRunnerCheckoutTypes,
     DelayTypes: TaskRunnerDelayTypes,
   },
   ErrorCodes: {
