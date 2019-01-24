@@ -9,9 +9,12 @@ nebulaEnv.setUpEnvironment();
 const app = new App();
 
 // Allow insecure content if in dev mode
-if (nebulaEnv.isDevelopment()) {
-  Electron.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
-}
+// if (nebulaEnv.isDevelopment()) {
+//   Electron.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
+// }
+// TEMPORARY - Allow insecure content to load the captcha page
+// TODO: Disable this in prod when we find a solution!
+Electron.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
 
 /**
  * Event fired when IPCRenderer triggers 'ready'
