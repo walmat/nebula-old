@@ -32,7 +32,6 @@ class Checkout {
       total: 0,
     };
 
-    this.captchaNeeded = false;
     this.captchaToken = '';
   }
 

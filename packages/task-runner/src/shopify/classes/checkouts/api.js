@@ -3,7 +3,6 @@ const _ = require('underscore');
 const {
   formatProxy,
   getHeaders,
-  now,
   stateForStatusCode,
   userAgent,
   waitForDelay,
