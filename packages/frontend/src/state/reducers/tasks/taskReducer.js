@@ -48,7 +48,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
         }
         case TASK_FIELDS.EDIT_SITE: {
           if (action.value) {
-            if (action.value.name === state.site.name) {
+            if (state.site && action.value.name && action.value.name === state.site.name) {
               break;
             }
             change = {
@@ -149,10 +149,8 @@ export function taskReducer(state = initialTaskStates.task, action) {
         }
         case TASK_FIELDS.EDIT_SITE: {
           if (action.value) {
-            if (state.edits.site) {
-              if (action.value.name === state.edits.site.name) {
-                break;
-              }
+            if (state.edits.site && action.value.name === state.edits.site.name) {
+              break;
             }
             change = {
               edits: {
