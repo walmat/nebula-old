@@ -72,7 +72,7 @@ const urlToOptionIndex = {
   'https://socialstatuspgh.com': 1,
   'https://solefly.com': 2,
   'https://soleheaven.com': 1,
-  'https://www.staplepigeon.com': 1,
+  'https://staplepigeon.com': 1,
   'https://www.stoneisland.co.uk': 1,
   'https://suede-store.com': 1,
   'https://www.trophyroomstore.com': 1,

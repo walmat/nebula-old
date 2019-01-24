@@ -129,6 +129,10 @@ class Checkout {
         // since we're here, we can assume `account/login` === false
         if (redirectUrl.indexOf('account') > -1) {
           this._logger.verbose('CHECKOUT: Logged in');
+          // check to see if we already have the storeId and checkoutToken.
+          if (this.storeId && this.checkoutToken) {
+            return { message: 'Submitting information', nextState: States.PatchCheckout };
+          }
           return { message: 'Fetching payment token', nextState: States.PaymentToken };
         }
       }
@@ -180,6 +184,15 @@ class Checkout {
       // example: https://www.hanon-shop.com/account/login?checkout_url=https%3A%2F%2Fwww.hanon-shop.com%2F20316995%2Fcheckouts%2Fb92b2aa215abfde741a8cf0e99eeee01
       // account
       if (redirectUrl.indexOf('account') > -1) {
+        // try to parse out the query string
+        const [, qs] = redirectUrl.split('?');
+        if (qs.indexOf('checkout_url') > -1) {
+          const [, checkoutUrl] = qs.split('=');
+          const decodedCheckoutUrl = decodeURIComponent(checkoutUrl);
+          [, , , this.storeId] = decodedCheckoutUrl.split('/');
+          [, , , , , this.checkoutToken] = decodedCheckoutUrl.split('/');
+        }
+
         if (this._context.task.username && this._context.task.password) {
           return { message: 'Logging in', nextState: States.Login };
         }
@@ -500,7 +513,7 @@ class Checkout {
 
         // out of stock message
         if (bodyString.indexOf('Some items are no longer available') > -1) {
-          return { message: 'Failed: Out of stock', nextState: States.Stopped };
+          return { message: 'Payment Failed – OOS', nextState: States.Stopped };
         }
 
         // check error messages
