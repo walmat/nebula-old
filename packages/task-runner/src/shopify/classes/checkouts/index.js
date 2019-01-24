@@ -1,6 +1,8 @@
 const APICheckout = require('./api');
 const FrontendCheckout = require('./frontend');
-const { TaskRunner: { CheckoutTypes }} = require('../utils/constants');
+const {
+  TaskRunner: { CheckoutTypes },
+} = require('../utils/constants');
 
 function getCheckoutMethod(site, logger) {
   const _logger = logger || { log: () => {} };
