@@ -502,8 +502,24 @@ describe('task reducer', () => {
           checkExistingFieldEdit(TASK_FIELDS.EDIT_PASSWORD, 'test', 1);
         });
 
-        test('site', () => {
-          checkExistingFieldEdit(TASK_FIELDS.EDIT_SITE, 'test', 1);
+        describe('site', () => {
+          test('when editing empty', () => {
+            checkExistingFieldEdit(TASK_FIELDS.EDIT_SITE, 'test', 1);
+          });
+
+          test('when existing site', () => {
+            checkExistingFieldEdit(
+              TASK_FIELDS.EDIT_SITE,
+              {
+                label: 'Undefeated',
+                value: 'https://undefeated.com',
+                apiKey: 'a0faf54ad7ec6fbbab86cd3f949c3cb9',
+                auth: true,
+                supported: true,
+              },
+              1,
+            );
+          });
         });
 
         test('profile', () => {

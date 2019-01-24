@@ -76,6 +76,7 @@ const urlToOptionIndex = {
   'https://www.stoneisland.co.uk': 1,
   'https://suede-store.com': 1,
   'https://www.trophyroomstore.com': 1,
+  'https://undefeated.com': 2,
   'https://shop.undefeated.com': 2,
   'https://unknwn.com': 2,
   'https://vlone.co': 1,

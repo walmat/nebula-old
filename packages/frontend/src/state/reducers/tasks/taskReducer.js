@@ -28,17 +28,17 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (!URL || !URL.host) {
             break;
           }
-          const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
-          if (site.length === 0) {
+          const newSite = getAllSites().find(s => URL.host.includes(s.value.split('/')[2]));
+          if (!newSite || newSite.label === state.site.name) {
             break;
           }
           change = {
             ...change,
             site: {
-              url: site[0].value,
-              name: site[0].label,
-              apiKey: site[0].apiKey,
-              auth: site[0].auth,
+              url: newSite.value,
+              name: newSite.label,
+              apiKey: newSite.apiKey,
+              auth: newSite.auth,
             },
             username: null,
             password: null,
@@ -48,6 +48,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
         }
         case TASK_FIELDS.EDIT_SITE: {
           if (action.value) {
+            if (state.site && action.value.name && action.value.name === state.site.name) {
+              break;
+            }
             change = {
               site: action.value,
               username: null,
@@ -115,18 +118,18 @@ export function taskReducer(state = initialTaskStates.task, action) {
             if (!URL || !URL.host) {
               break;
             }
-            const site = getAllSites().filter(s => URL.host.includes(s.value.split('/')[2]));
-            if (site.length === 0) {
+            const newSite = getAllSites().find(s => URL.host.includes(s.value.split('/')[2]));
+            if (!newSite || newSite.label === state.site.name) {
               break;
             }
             change = {
               edits: {
                 ...change.edits,
                 site: {
-                  url: site[0].value,
-                  name: site[0].label,
-                  apiKey: site[0].apiKey,
-                  auth: site[0].auth,
+                  url: newSite.value,
+                  name: newSite.label,
+                  apiKey: newSite.apiKey,
+                  auth: newSite.auth,
                 },
                 username: null,
                 password: null,
@@ -146,6 +149,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
         }
         case TASK_FIELDS.EDIT_SITE: {
           if (action.value) {
+            if (state.edits.site && action.value.name === state.edits.site.name) {
+              break;
+            }
             change = {
               edits: {
                 ...state.edits,
