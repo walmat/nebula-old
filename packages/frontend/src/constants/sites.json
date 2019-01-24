@@ -554,7 +554,7 @@
   },
   {
     "label": "Undefeated",
-    "value": "https://shop.undefeated.com",
+    "value": "https://undefeated.com",
     "apiKey": "a0faf54ad7ec6fbbab86cd3f949c3cb9",
     "auth": true,
     "supported": true

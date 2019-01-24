@@ -183,9 +183,9 @@ describe('task reducer', () => {
           };
           const expected = {
             ...initialTaskStates.task,
-            site: 'test',
-            username: null,
-            password: null,
+            site: 'something else',
+            username: 'username',
+            password: 'password',
           };
           const actual = taskReducer(start, {
             type: TASK_ACTIONS.EDIT,
@@ -503,7 +503,17 @@ describe('task reducer', () => {
         });
 
         test('site', () => {
-          checkExistingFieldEdit(TASK_FIELDS.EDIT_SITE, 'test', 1);
+          checkExistingFieldEdit(
+            TASK_FIELDS.EDIT_SITE,
+            {
+              label: 'Undefeated',
+              value: 'https://undefeated.com',
+              apiKey: 'a0faf54ad7ec6fbbab86cd3f949c3cb9',
+              auth: true,
+              supported: true,
+            },
+            1,
+          );
         });
 
         test('profile', () => {
