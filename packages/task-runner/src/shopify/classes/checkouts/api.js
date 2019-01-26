@@ -233,8 +233,6 @@ class APICheckout extends Checkout {
         },
       });
 
-      console.log(res.body);
-
       const { statusCode, body } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
