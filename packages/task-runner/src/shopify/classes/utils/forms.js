@@ -80,7 +80,7 @@ const addToCart = (variant, site) => {
   let opts = {};
   switch (site.name) {
     case 'DSM US': {
-      opts = { 'properties[_HASH]': 256782537687 };
+      opts = { 'properties[_HASH]': 256782942468 };
       break;
     }
     case 'DSM UK': {

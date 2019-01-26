@@ -33,7 +33,7 @@ const sites = [
   },
   {
     name: 'Addict Miami',
-    url: 'https://addictmiami.com',
+    url: 'https://www.addictmiami.com',
     apiKey: '902bdaf4657c0001f57576ff2d7e9950',
     auth: false,
     supported: true,
@@ -82,7 +82,7 @@ const sites = [
   },
   {
     name: 'Black Market US',
-    url: 'http://blkmkt.us',
+    url: 'http://black-market-usa.myshopify.com',
     apiKey: '8fe3dbccac6a59eefb67a5bbeb490b42',
     auth: false,
     supported: true,
@@ -705,7 +705,7 @@ const sites = [
   },
   {
     name: 'Good As Gold',
-    url: 'https://goodasgold.co.nz',
+    url: 'https://goodasgoldshop.com',
     apiKey: '07db20111ebed93006480b20356a4c7a',
     auth: false,
     supported: true,
@@ -736,6 +736,7 @@ const sites = [
     url: 'http://localhost:9000',
     apiKey: '',
     auth: false,
+    special: true,
     supported: true,
   },
 ];

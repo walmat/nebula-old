@@ -2,14 +2,16 @@ const urlToOptionIndex = {
   'https://12amrun.com': 1,
   'https://a-ma-maniere.com': 1,
   'https://apbstore.com': 1,
-  'https://addictmiami.com': 1,
+  'https://www.addictmiami.com': 1,
   'https://shop.antisocialsocialclub.com': 1,
   'https://attic2zoo.com': 1,
   'https://shop.bbcicecream.com': 2,
+  'https://bbcicecream.com': 2,
   'https://bbcicecream.eu': 1,
   'https://us.bape.com': 3,
   'https://beatniconline.com': 1,
   'http://blkmkt.us': 1,
+  'http://black-market-usa.myshopify.com': 1,
   'https://blendsus.com': 1,
   'https://shop.bdgastore.com': 2,
   'https://bowsandarrowsberkeley.com': 1,
@@ -97,7 +99,7 @@ const urlToOptionIndex = {
   'https://thedarksideinitiative.com': 1,
   'https://ficegallery.com': 1,
   'https://hanon-shop.com': 1,
-  'https://goodasgold.co.nz': 1,
+  'https://goodasgoldshop.com': 1,
   'https://laceupnyc.com': 1,
   'https://www.ellenshop.com': 1,
   'https://launch.toytokyo.com': 1,
@@ -124,7 +126,6 @@ const urlToOptionIndex = {
   'https://www.abovethecloudsstore.com': 1, // TODO -- (option 1 looks like: US 7)
   'https://amongstfew.com': 1, // TODO -- (option 1 looks like: US 8 / UK 7 / EU 41)
   'https://bbbranded.com': 2,
-  'https://bbcicecream.com': 2,
   'https://capsuletoronto.com': 1,
   'https://cityblueshop.com': 1,
   'https://courtsidesneakers.com': 2,
@@ -144,7 +145,7 @@ const urlToOptionIndex = {
   'http://usgstore.com.au': 2,
   'https://nebulabots.com': 1,
   'https://diamondsupplyco.com': 1,
-  // "http://localhost:9000": 1, // TEMPORARY for testing purposes only...
+  'http://localhost:9000': 1, // TEMPORARY for testing purposes only...
 };
 
 // Generate the correct "option<index>" from the optionIndex map
@@ -162,6 +163,9 @@ const urlToTitleSegment = (function generateUTTS() {
   Object.keys(urlToOptionIndex).forEach(key => {
     // attach a function for each url
     utts[key] = title => {
+      if (!title) {
+        return null;
+      }
       // split the title into segments based the `/` delimiter
       const segments = title.split('/');
       // Check if we have a valid number of segments

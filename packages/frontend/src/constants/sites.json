@@ -7,13 +7,6 @@
     "supported": true
   },
   {
-    "label": "18 Montrose",
-    "value": "https://18montrose.com",
-    "apiKey": "c59407c143b7e9ae989cfb4d693229e3",
-    "auth": false,
-    "supported": true
-  },
-  {
     "label": "A-Ma-Maniere",
     "value": "https://a-ma-maniere.com",
     "apiKey": "23348e90253d0a4895d5524b79914bbe",
@@ -29,7 +22,7 @@
   },
   {
     "label": "Addict Miami",
-    "value": "https://addictmiami.com",
+    "value": "https://www.addictmiami.com",
     "apiKey": "902bdaf4657c0001f57576ff2d7e9950",
     "auth": false,
     "supported": true
@@ -38,13 +31,6 @@
     "label": "Anti Social Social Club",
     "value": "https://shop.antisocialsocialclub.com",
     "apiKey": "4189262a3c6b7c3fea963c5602c51182",
-    "auth": false,
-    "supported": true
-  },
-  {
-    "label": "Attic",
-    "value": "https://attic2zoo.com",
-    "apiKey": "4ca1df42436419326620ed9f44a0435d",
     "auth": false,
     "supported": true
   },
@@ -277,7 +263,7 @@
     "value": "https://minishopmadrid.com",
     "apiKey": "2c6add37c950bfc5f979b2bcc75da4ac",
     "auth": false,
-    "supported": true
+    "supported": false
   },
   {
     "label": "NRML",
@@ -694,7 +680,7 @@
   },
   {
     "label": "Good As Gold",
-    "value": "https://goodasgold.co.nz",
+    "value": "https://goodasgoldshop.com",
     "apiKey": "07db20111ebed93006480b20356a4c7a",
     "auth": false,
     "supported": true
