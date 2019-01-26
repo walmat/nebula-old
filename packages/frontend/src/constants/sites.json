@@ -259,13 +259,6 @@
     "supported": true
   },
   {
-    "label": "Mini Shop Madrid",
-    "value": "https://minishopmadrid.com",
-    "apiKey": "2c6add37c950bfc5f979b2bcc75da4ac",
-    "auth": false,
-    "supported": false
-  },
-  {
     "label": "NRML",
     "value": "https://nrml.ca",
     "apiKey": "6f55f8c75577c1063d8489c94d9ab122",
