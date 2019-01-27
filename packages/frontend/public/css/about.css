@@ -23,8 +23,8 @@ body, html {
   -webkit-user-select: none;
   -webkit-app-region: drag;
 }
-::-webkit-scrollbar { 
-  display: none; 
+::-webkit-scrollbar {
+  display: none;
 }
 #close {
   position: absolute;
@@ -47,7 +47,7 @@ body, html {
   color: #161318;
   font-size: 12px;
   top: 115px;
-  left: 87px;
+  left: 35%;
   margin: 0;
 }
 
@@ -57,6 +57,6 @@ body, html {
   color: #161318;
   font-size: 9px;
   top: 145px;
-  left: 115px;
+  left: 40%;
   margin: 0;
 }
