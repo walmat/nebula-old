@@ -1,5 +1,5 @@
 import { parseURL } from 'whatwg-url';
-import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
+import { PROFILE_ACTIONS, TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 import getAllSites from '../../../constants/getAllSites';
 // import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
@@ -240,6 +240,20 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
         profile: defaults.useProfile ? defaults.profile : state.profile,
         sizes: defaults.useSizes ? defaults.sizes : state.sizes,
       });
+    }
+    case PROFILE_ACTIONS.ADD:
+    case PROFILE_ACTIONS.UPDATE: {
+      // If there's no profile, we should do nothing
+      if (!action.profile || action.errors) {
+        break;
+      }
+      // eslint-disable-next-line no-restricted-syntax
+      if (state.profile && state.profile.id === action.profile.id) {
+        return Object.assign({}, state, {
+          profile: action.profile,
+        });
+      }
+      break;
     }
     default:
       break;

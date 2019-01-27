@@ -7,7 +7,7 @@ export class LogTaskPrimitive extends Component {
   createTable() {
     const { tasks } = this.props;
     const runningTasks = tasks.filter(task => task.status === 'running');
-    const table = runningTasks.map(t => <LogTaskRow task={t} />);
+    const table = runningTasks.map(t => <LogTaskRow key={t.index} task={t} />);
     return table;
   }
 
