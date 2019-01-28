@@ -106,7 +106,7 @@ const createAuthWindow = () =>
     height: 215,
     webPreferences: {
       ..._defaultWebPreferences,
-      preload: Path.join(__dirname, '../_electron/preload.js'),
+      preload: Path.join(__dirname, '../common/bridge/authPreload.js'),
     },
   });
 
@@ -122,6 +122,10 @@ const createAboutWindow = () =>
   _createWindow({
     width: 300,
     height: 215,
+    webPreferences: {
+      ..._defaultWebPreferences,
+      preload: Path.join(__dirname, '../common/bridge/aboutPreload.js'),
+    },
   });
 
 const aboutUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
@@ -138,7 +142,7 @@ const createCaptchaWindow = () =>
     height: 650,
     webPreferences: {
       ..._defaultWebPreferences,
-      preload: Path.join(__dirname, '../_electron/preload.js'),
+      preload: Path.join(__dirname, '../common/bridge/captchaPreload.js'),
     },
   });
 
@@ -160,7 +164,7 @@ const createYouTubeWindow = () =>
     frame: true,
     webPreferences: {
       ..._defaultWebPreferences,
-      preload: Path.join(__dirname, '../_electron/preload.js'),
+      preload: Path.join(__dirname, '../common/bridge/youtubePreload.js'),
     },
   });
 
@@ -179,7 +183,7 @@ const createMainWindow = () =>
     height: 715,
     webPreferences: {
       ..._defaultWebPreferences,
-      preload: Path.join(__dirname, '../_electron/preload.js'),
+      preload: Path.join(__dirname, '../common/bridge/mainPreload.js'),
     },
   });
 
