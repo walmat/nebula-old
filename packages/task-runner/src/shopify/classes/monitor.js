@@ -177,9 +177,7 @@ class Monitor {
   }
 
   async _monitorUrl() {
-    let { url } = this._context.task.product;
-    // TODO - figure out a cleaner way to do this
-    [url] = url.split('?');
+    const [url] = this._context.task.product.url.split('?');
     try {
       const response = await this._request({
         method: 'GET',
