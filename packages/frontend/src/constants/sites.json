@@ -253,7 +253,7 @@
   },
   {
     "label": "Marathon Sports",
-    "value": "https://marathonsports.com",
+    "value": "https://shop.marathonsports.com",
     "apiKey": "5b9e6bee71016ff1e2911a44701f4d89",
     "auth": false,
     "supported": true
@@ -287,13 +287,6 @@
     "supported": true
   },
   {
-    "label": "Octobers Very Own CA",
-    "value": "https://ca.octobersveryown.com",
-    "apiKey": "97f3874f6d268f1c681d88ef789edee3",
-    "auth": false,
-    "supported": true
-  },
-  {
     "label": "Octobers Very Own US",
     "value": "https://us.octobersveryown.com",
     "apiKey": "97f3874f6d268f1c681d88ef789edee3",
@@ -316,7 +309,7 @@
   },
   {
     "label": "Oipolloi",
-    "value": "https://oipolloi.com",
+    "value": "https://www.oipolloi.com",
     "apiKey": "fc5579f3adf2889237757219239a7f40",
     "auth": false,
     "supported": true
@@ -330,7 +323,7 @@
   },
   {
     "label": "Oneness 287",
-    "value": "https://www.oneness287.com",
+    "value": "https://www.onenessboutique.com",
     "apiKey": "5de5d471976e82ceba582a81606e0ac5",
     "auth": false,
     "supported": true
@@ -367,7 +360,7 @@
     "label": "Par-5 Milano Yeezy",
     "value": "https://par5-milano-yeezy.com",
     "apiKey": "a5ed56888e0d5653c9f59687ed58b0fe",
-    "auth": false,
+    "auth": true,
     "supported": true
   },
   {
@@ -414,7 +407,7 @@
   },
   {
     "label": "Rime NYC",
-    "value": "https://rimenyc.com",
+    "value": "https://www.rimenyc.com",
     "apiKey": "1b12b20efde8a2055a4b11b7821a4e02",
     "auth": false,
     "supported": true
@@ -435,7 +428,7 @@
   },
   {
     "label": "Ronin Division",
-    "value": "https://ronindivision.com",
+    "value": "https://www.ronindivision.com",
     "apiKey": "ce83c8b3b27a07c74b13ada3f4d492f4",
     "auth": false,
     "supported": true
@@ -497,13 +490,6 @@
     "supported": true
   },
   {
-    "label": "Soleheaven",
-    "value": "https://soleheaven.com",
-    "apiKey": "f66897bb7b81a7e1e39961a21b014629",
-    "auth": false,
-    "supported": true
-  },
-  {
     "label": "Staple Pigeon",
     "value": "https://staplepigeon.com",
     "apiKey": "2d91ae06229ae2f075a0db19de909e7c",
@@ -512,7 +498,7 @@
   },
   {
     "label": "Stone Island",
-    "value": "https://stoneisland.co.uk",
+    "value": "https://www.stoneisland.co.uk",
     "apiKey": "aa1ba753ddfb01280ad3bcdc72f34206",
     "auth": false,
     "supported": true
@@ -526,7 +512,7 @@
   },
   {
     "label": "Trophy Room",
-    "value": "https://trophyroomstore.com",
+    "value": "https://www.trophyroomstore.com",
     "apiKey": "1b124ca786ab5fc9065699f1a383a139",
     "auth": false,
     "supported": true
@@ -568,9 +554,9 @@
   },
   {
     "label": "Xhibition",
-    "value": "https://xhibition.co",
+    "value": "https://www.xhibition.co",
     "apiKey": "7f11f1a79cb6f8d07bca2f1d113177ef",
-    "auth": false,
+    "auth": true,
     "supported": true
   },
   {
@@ -654,7 +640,7 @@
     "label": "The Dark Side Initiative",
     "value": "https://thedarksideinitiative.com",
     "apiKey": "3332f96a11efce8997d46bc4962c9737",
-    "auth": false,
+    "auth": true,
     "supported": true
   },
   {

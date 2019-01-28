@@ -174,6 +174,11 @@ class Checkout {
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
+      if (statusCode === 401) {
+        await waitForDelay(monitorDelay);
+        return { message: 'Password page', nextState: States.CreateCheckout };
+      }
+
       const [redirectUrl, qs] = headers.location.split('?');
       this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
