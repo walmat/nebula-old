@@ -241,17 +241,17 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
         sizes: defaults.useSizes ? defaults.sizes : state.sizes,
       });
     }
-    case PROFILE_ACTIONS.ADD:
     case PROFILE_ACTIONS.UPDATE: {
       // If there's no profile, we should do nothing
       if (!action.profile || action.errors) {
         break;
       }
-      // eslint-disable-next-line no-restricted-syntax
+
       if (state.profile && state.profile.id === action.profile.id) {
-        return Object.assign({}, state, {
+        return {
+          ...state,
           profile: action.profile,
-        });
+        };
       }
       break;
     }
