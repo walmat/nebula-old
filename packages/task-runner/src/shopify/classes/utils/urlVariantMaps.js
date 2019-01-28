@@ -144,7 +144,7 @@ const urlToOptionIndex = {
   'http://usgstore.com.au': 2,
   'https://nebulabots.com': 1,
   'https://diamondsupplyco.com': 1,
-  'http://localhost:9000': 1, // TEMPORARY for testing purposes only...
+  // 'http://localhost:9000': 1, // TEMPORARY for testing purposes only...
 };
 
 // Generate the correct "option<index>" from the optionIndex map
