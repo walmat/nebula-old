@@ -218,7 +218,7 @@ const _addProxies = proxies => {
 };
 
 /**
- * Sends task(s) that should be removed to taskManagerWrapper.js
+ * Sends proxies(s) that should be removed to taskManagerWrapper.js
  */
 const _removeProxies = proxies => {
   _sendEvent(IPCKeys.RequestRemoveProxies, proxies);
@@ -234,8 +234,21 @@ const _changeDelay = (delay, type) => {
 //   throw new Error('Sorry, this app does not support window.eval().');
 // };
 
-const _testWebhook = (hook, opt) => {
-  _sendEvent(IPCKeys.RequestWebhookTest, { hook, opt });
+/**
+ * Updates the task manager's reference of the webhook
+ * @param {string} hook string to update the hook on the task manager side
+ * @param {string} type `discord` || `slack`
+ */
+const _updateWebhook = (hook, type) => {
+  _sendEvent(IPCKeys.RequestWebhookUpdate, hook, type);
+};
+
+/**
+ * Sends a test webhook event to the task manager
+ * @param {string} type `discord` || `slack`
+ */
+const _testWebhook = type => {
+  _sendEvent(IPCKeys.RequestWebhookTest, type);
 };
 
 /**
@@ -273,6 +286,7 @@ process.once('loaded', () => {
   window.Bridge.removeProxies = _removeProxies;
   window.Bridge.changeDelay = _changeDelay;
 
+  window.Bridge.updateWebhook = _updateWebhook;
   window.Bridge.testWebhook = _testWebhook;
 
   if (nebulaEnv.isDevelopment()) {
