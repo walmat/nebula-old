@@ -1,5 +1,5 @@
 const nebulaEnv = require('../../_electron/env');
-const { base, util } = require('./index');
+const { base } = require('./index');
 
 nebulaEnv.setUpEnvironment();
 
@@ -9,6 +9,5 @@ nebulaEnv.setUpEnvironment();
 process.once('loaded', () => {
   window.Bridge = window.Bridge || {
     ...base,
-    ...util,
   };
 });

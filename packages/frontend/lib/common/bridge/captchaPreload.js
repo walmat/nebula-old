@@ -58,7 +58,6 @@ const _refreshCaptchaWindow = () => {
 process.once('loaded', () => {
   window.Bridge = window.Bridge || {
     ...base,
-    ...util,
     /* PRIVATE EVENTS */
     launchYoutube: _launchYoutube,
     refreshCaptchaWindow: _refreshCaptchaWindow,

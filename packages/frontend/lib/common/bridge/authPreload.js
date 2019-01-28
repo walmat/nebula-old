@@ -16,7 +16,6 @@ const _authenticate = key => {
 process.once('loaded', () => {
   window.Bridge = window.Bridge || {
     ...base,
-    ...util,
     /* PRIVATE EVENTS */
     authenticate: _authenticate,
   };

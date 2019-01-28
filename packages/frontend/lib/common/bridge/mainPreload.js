@@ -97,8 +97,6 @@ const _sendWebhookTestMessage = (hook, opt) => {
 process.once('loaded', () => {
   window.Bridge = window.Bridge || {
     ...base,
-    ...util,
-
     /* PRIVATE EVENTS */
     launchCaptchaHarvester: _launchCaptchaHarvester,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,

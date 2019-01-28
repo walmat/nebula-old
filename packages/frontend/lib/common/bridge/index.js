@@ -1,6 +1,3 @@
-/**
- * Shared location for all preload scripts
- */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { remote, ipcRenderer, webFrame } = require('electron');
 
@@ -116,17 +113,17 @@ const _confirmDialog = async message =>
 
 const _sendDebugCmd = (...params) => {
   _sendEvent('debug', ...params);
-
-  _handleEvent('debug', (_, type, ...res) => {
-    console.log(`Received Response for type: ${type}`);
-    console.log(res);
-  });
 };
 
 if (nebulaEnv.isDevelopment()) {
   _debug = {
     sendDebugCmd: _sendDebugCmd,
   };
+
+  _handleEvent('debug', (ev, type, ...params) => {
+    console.log(`Received Response for type: ${type}`);
+    console.log(params);
+  });
 }
 
 module.exports = {
