@@ -38,10 +38,25 @@ window.addEventListener(
   false,
 );
 
+const titleCase = str => {
+  const splitStr = str.toLowerCase().split(' ');
+  for (let i = 0; i < splitStr.length; i += 1) {
+    splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+  }
+  return splitStr.join(' ');
+};
+
 /**
  * Send app name/version to the renderer
  */
-const _getAppData = () => ({ name: app.getName(), version: app.getVersion() });
+const _getAppData = () => {
+  const name = app
+    .getName()
+    .replace('/', ' ')
+    .replace('@', '');
+  const version = app.getVersion();
+  return { name: titleCase(name), version };
+};
 
 /**
  * Sends IPCMain an event trigger
@@ -99,10 +114,14 @@ const _confirmDialog = async message =>
   });
 
 module.exports = {
-  _confirmDialog,
-  _close,
-  _removeEvent,
-  _handleEvent,
-  _sendEvent,
-  _getAppData,
+  base: {
+    confirmDialog: _confirmDialog,
+    close: _close,
+    getAppData: _getAppData,
+  },
+  util: {
+    handleEvent: _handleEvent,
+    removeEvent: _removeEvent,
+    sendEvent: _sendEvent,
+  },
 };

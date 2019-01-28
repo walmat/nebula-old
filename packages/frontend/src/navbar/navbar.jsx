@@ -26,18 +26,11 @@ const bodymovinOptions = {
 };
 
 export class NavbarPrimitive extends PureComponent {
-  static titleCase(str) {
-    const splitStr = str.toLowerCase().split(' ');
-    for (let i = 0; i < splitStr.length; i += 1) {
-      splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
-    }
-    return splitStr.join(' ');
-  }
+
 
   static _getAppData() {
     if (window.Bridge) {
-      const { name, version } = window.Bridge.getAppData();
-      return { name: NavbarPrimitive.titleCase(name.replace('/', ' ').replace('@', '')), version };
+      return window.Bridge.getAppData();
     }
     return { name: 'Nebula-Orion', version: null };
   }

@@ -1,6 +1,6 @@
 const IPCKeys = require('../constants');
 const nebulaEnv = require('../../_electron/env');
-const { _close, _sendEvent, _handleEvent } = require('./index');
+const { util, base } = require('./index');
 
 nebulaEnv.setUpEnvironment();
 
@@ -10,21 +10,22 @@ nebulaEnv.setUpEnvironment();
  * @param {String} key user's license key (XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)
  */
 const _authenticate = key => {
-  _sendEvent(IPCKeys.AuthRequestActivate, key);
+  util.sendEvent(IPCKeys.AuthRequestActivate, key);
 };
 
 process.once('loaded', () => {
-  window.Bridge = window.Bridge || {};
-
-  window.Bridge.authenticate = _authenticate;
-  window.Bridge.close = _close;
+  window.Bridge = window.Bridge || {
+    ...base,
+    ...util,
+    authenticate: _authenticate,
+  };
 
   if (nebulaEnv.isDevelopment()) {
     window.Bridge.sendDebugCmd = (...params) => {
-      _sendEvent('debug', ...params);
+      util.sendEvent('debug', ...params);
     };
 
-    _handleEvent('debug', (ev, type, ...params) => {
+    util.handleEvent('debug', (ev, type, ...params) => {
       console.log(`Received Response for type: ${type}`);
       console.log(params);
     });
