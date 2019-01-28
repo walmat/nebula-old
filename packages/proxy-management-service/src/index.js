@@ -1,70 +1,31 @@
-const AWS = require('aws-sdk');
-const connectToAWS = require('./connectToAWS');
-const readline = require('readline');
-const proxyHandler = require('./proxyHandler');
-const errorMessages = require('./errorMessages');
-const keyPairManager = require('./keyPairManager');
+const ProxyManager = require('./proxyManager');
+const aws = require('./providers/aws');
+const gcloud = require('./providers/gcloud');
+const vultr = require('./providers/vultr');
+const dgOcean = require('./providers/dgOcean');
+const upcloud = require('./providers/upcloud');
+const linode = require('./providers/linode');
+const atlantic = require('./providers/atlantic');
+const oneHundredTB = require('./providers/oneHundredTB');
+const vpsie = require('./providers/vpsie');
 
-const inputStream = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+const Events = {
+  StartGenerate: 'START_GENERATE',
+  StopGenerate: 'STOP_GENERATE',
+};
 
-async function init() {
-    try {
-        let args = process.argv;
-        await connectToAWS(args, AWS);
-        console.log('Successfully connected with AWS account');
-
-        console.log('Creating Nebula Key Pair');
-        await createNebulaKeyPair(AWS);
-        console.log('Created Nebula Key Pair');
-        console.log(keyPairManager.getKeyPair().KeyMaterial);
-        inputStream.on('line', main);
-    } catch (err) {
-        //we will need to exit with a process code here telling the main service why the action failed
-        console.log(err);
-    }
-
-}
-
-async function createNebulaKeyPair(AWS) {
-    try {
-        await keyPairManager.createKeyPair(AWS);
-    } catch (err) {
-        if (err.code === 'InvalidKeyPair.Duplicate') {
-            try {
-                await keyPairManager.deleteKeyPair(AWS);
-                await keyPairManager.createKeyPair(AWS);
-            } catch (err) {
-                return Promise.reject(err);
-            }
-        } else {
-            Promise.reject(err);
-        }
-    }
-}
-
-async function main(line) {
-    try {
-        let args = line.split(' ');
-        let command = args.shift();
-        if (command.toLowerCase() === 'exit') {
-            if (args.length !== 0) {
-                console.log(errorMessages.tooManyArgs);
-                return
-            } else {
-                console.log('Deleting Nebula Key Pair');
-                await keyPairManager.deleteKeyPair(AWS);
-                console.log('Deleted Nebula Key Pair');
-                inputStream.close();
-            }
-        } else {
-            await proxyHandler(command, args, AWS);
-        }
-    } catch (err) {
-        console.log(err);
-    }
-}
-
-init();
+module.exports = {
+  providers: {
+    atlantic,
+    aws,
+    dgOcean,
+    gcloud,
+    linode,
+    oneHundredTB,
+    upcloud,
+    vpsie,
+    vultr,
+  },
+  ProxyManager,
+  Events,
+};
