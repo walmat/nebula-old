@@ -26,8 +26,6 @@ const bodymovinOptions = {
 };
 
 export class NavbarPrimitive extends PureComponent {
-
-
   static _getAppData() {
     if (window.Bridge) {
       return window.Bridge.getAppData();

@@ -87,7 +87,7 @@ const _changeDelay = (delay, type) => {
   util.sendEvent(IPCKeys.RequestChangeDelay, delay, type);
 };
 
-const _testWebhook = (hook, opt) => {
+const _sendWebhookTestMessage = (hook, opt) => {
   util.sendEvent(IPCKeys.RequestWebhookTest, { hook, opt });
 };
 
@@ -110,17 +110,6 @@ process.once('loaded', () => {
     addProxies: _addProxies,
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,
-    testWebhook: _testWebhook,
+    sendWebhookTestMessage: _sendWebhookTestMessage,
   };
-
-  if (nebulaEnv.isDevelopment()) {
-    window.Bridge.sendDebugCmd = (...params) => {
-      util.sendEvent('debug', ...params);
-    };
-
-    util.handleEvent('debug', (ev, type, ...params) => {
-      console.log(`Received Response for type: ${type}`);
-      console.log(params);
-    });
-  }
 });

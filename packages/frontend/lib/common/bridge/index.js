@@ -9,6 +9,7 @@ const IPCKeys = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 
 nebulaEnv.setUpEnvironment();
+let _debug = {};
 
 // disable zoom
 webFrame.setVisualZoomLevelLimits(1, 1);
@@ -113,11 +114,27 @@ const _confirmDialog = async message =>
     );
   });
 
+const _sendDebugCmd = (...params) => {
+  _sendEvent('debug', ...params);
+
+  _handleEvent('debug', (_, type, ...res) => {
+    console.log(`Received Response for type: ${type}`);
+    console.log(res);
+  });
+};
+
+if (nebulaEnv.isDevelopment()) {
+  _debug = {
+    sendDebugCmd: _sendDebugCmd,
+  };
+}
+
 module.exports = {
   base: {
     confirmDialog: _confirmDialog,
     close: _close,
     getAppData: _getAppData,
+    ..._debug,
   },
   util: {
     handleEvent: _handleEvent,
