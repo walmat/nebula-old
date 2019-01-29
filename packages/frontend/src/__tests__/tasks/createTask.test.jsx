@@ -144,13 +144,16 @@ describe('<CreateTask />', () => {
       productInput.simulate('change', {
         label: 'test',
         value: 'testUrl',
+        apiKey: 'test',
         auth: true,
       });
       expect(customProps.onFieldChange).toHaveBeenCalledWith({
         field: TASK_FIELDS.EDIT_SITE,
         value: {
           name: 'test',
+          apiKey: 'test',
           url: 'testUrl',
+          special: false,
           auth: true,
         },
       });

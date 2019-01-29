@@ -174,14 +174,20 @@ class Checkout {
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
+      // TODO - test this more.
+      // On stores with password page it makes sense, but idk if it will mess with anything else..
+      if (statusCode === 401) {
+        await waitForDelay(monitorDelay);
+        return { message: 'Password page', nextState: States.CreateCheckout };
+      }
+
       const [redirectUrl, qs] = headers.location.split('?');
       this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         return { message: 'Failed: Creating checkout', nextState: States.Stopped };
       }
 
-      // example: https://www.hanon-shop.com/account/login?checkout_url=https%3A%2F%2Fwww.hanon-shop.com%2F20316995%2Fcheckouts%2Fb92b2aa215abfde741a8cf0e99eeee01
-      // account
+      // account (e.g. – https://www.hanon-shop.com/account/login?checkout_url=https%3A%2F%2Fwww.hanon-shop.com%2F20316995%2Fcheckouts%2Fb92b2aa215abfde741a8cf0e99eeee01)
       if (redirectUrl.indexOf('account') > -1) {
         // try to parse out the query string
         if (qs && qs.indexOf('checkout_url') > -1) {

@@ -2,14 +2,16 @@ const urlToOptionIndex = {
   'https://12amrun.com': 1,
   'https://a-ma-maniere.com': 1,
   'https://apbstore.com': 1,
-  'https://addictmiami.com': 1,
+  'https://www.addictmiami.com': 1,
   'https://shop.antisocialsocialclub.com': 1,
   'https://attic2zoo.com': 1,
   'https://shop.bbcicecream.com': 2,
+  'https://bbcicecream.com': 2,
   'https://bbcicecream.eu': 1,
   'https://us.bape.com': 3,
   'https://beatniconline.com': 1,
   'http://blkmkt.us': 1,
+  'http://black-market-usa.myshopify.com': 1,
   'https://blendsus.com': 1,
   'https://shop.bdgastore.com': 2,
   'https://bowsandarrowsberkeley.com': 1,
@@ -37,18 +39,18 @@ const urlToOptionIndex = {
   'https://deadstock.ca': 1,
   'https://machusonline.com': 1,
   'https://marathonsports.com': 1,
+  'https://shop.marathonsports.com': 1,
   'https://minishopmadrid.com': 1,
   'https://nrml.ca': 2,
   'https://noirfonce.eu': 1,
   'https://notre-shop.com': 1,
   'https://store.obeygiant.com': 1,
-  'https://ca.octobersveryown.com': 1,
   'https://us.octobersveryown.com': 1,
   'https://uk.octobersveryown.com': 1,
   'https://offthehook.ca': 1,
-  'https://oipolloi.com': 1,
+  'https://www.oipolloi.com': 1,
   'https://www.omocat-shop.com': 1,
-  'https://onenessboutique.com': 1,
+  'https://www.onenessboutique.com': 1,
   'https://packershoes.com': 1,
   'https://shop-usa.palaceskateboards.com': 1,
   'https://shop.palaceskateboards.com': 1,
@@ -60,7 +62,7 @@ const urlToOptionIndex = {
   'https://rsvpgallery.com': 1,
   'https://us.reigningchamp.com': 1,
   'https://renarts.com': 1,
-  'https://rimenyc.com': 2,
+  'https://www.rimenyc.com': 1,
   'https://rise45.com': 1,
   'https://rockcitykicks.com': 1,
   'https://www.ronindivision.com': 1,
@@ -71,7 +73,6 @@ const urlToOptionIndex = {
   'https://sneakerworldshop.com': 1,
   'https://socialstatuspgh.com': 1,
   'https://solefly.com': 2,
-  'https://soleheaven.com': 1,
   'https://staplepigeon.com': 1,
   'https://www.stoneisland.co.uk': 1,
   'https://suede-store.com': 1,
@@ -82,7 +83,7 @@ const urlToOptionIndex = {
   'https://vlone.co': 1,
   'https://wishatl.com': 2,
   'https://worldofhombre.com': 1,
-  'https://xhibition.co': 1,
+  'https://www.xhibition.co': 1,
   'https://yeezysupply.com': 1,
   'https://350.yeezysupply.com': 1,
   'https://700.yeezysupply.com': 1,
@@ -97,7 +98,7 @@ const urlToOptionIndex = {
   'https://thedarksideinitiative.com': 1,
   'https://ficegallery.com': 1,
   'https://hanon-shop.com': 1,
-  'https://goodasgold.co.nz': 1,
+  'https://goodasgoldshop.com': 1,
   'https://laceupnyc.com': 1,
   'https://www.ellenshop.com': 1,
   'https://launch.toytokyo.com': 1,
@@ -124,7 +125,6 @@ const urlToOptionIndex = {
   'https://www.abovethecloudsstore.com': 1, // TODO -- (option 1 looks like: US 7)
   'https://amongstfew.com': 1, // TODO -- (option 1 looks like: US 8 / UK 7 / EU 41)
   'https://bbbranded.com': 2,
-  'https://bbcicecream.com': 2,
   'https://capsuletoronto.com': 1,
   'https://cityblueshop.com': 1,
   'https://courtsidesneakers.com': 2,
@@ -144,7 +144,7 @@ const urlToOptionIndex = {
   'http://usgstore.com.au': 2,
   'https://nebulabots.com': 1,
   'https://diamondsupplyco.com': 1,
-  // "http://localhost:9000": 1, // TEMPORARY for testing purposes only...
+  // 'http://localhost:9000': 1, // TEMPORARY for testing purposes only...
 };
 
 // Generate the correct "option<index>" from the optionIndex map
@@ -162,6 +162,9 @@ const urlToTitleSegment = (function generateUTTS() {
   Object.keys(urlToOptionIndex).forEach(key => {
     // attach a function for each url
     utts[key] = title => {
+      if (!title) {
+        return null;
+      }
       // split the title into segments based the `/` delimiter
       const segments = title.split('/');
       // Check if we have a valid number of segments

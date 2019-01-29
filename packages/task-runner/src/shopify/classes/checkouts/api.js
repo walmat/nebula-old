@@ -252,15 +252,15 @@ class APICheckout extends Checkout {
       if (body && body.errors) {
         const { errors } = body;
         this._logger.verbose('API CHECKOUT: Error getting shipping rates: %j', errors);
-        if (errors && errors.checkout && errors.checkout.base) {
-          const { code } = errors.checkout.base[0];
-          this._logger.verbose('API CHECKOUT: Shipping rates error message: %s', code);
-          if (code.indexOf('does_not_require_shipping') > -1) {
+        if (errors && errors.checkout) {
+          const errorMessage = JSON.stringify(errors.checkout);
+          this._logger.verbose('API CHECKOUT: Shipping rates error message: %s', errorMessage);
+          if (errorMessage.indexOf('does_not_require_shipping') > -1) {
             this._logger.verbose('API CHECKOUT: Cart empty, retrying add to cart');
             return { message: 'Cart empty, retrying ATC', nextState: States.AddToCart };
           }
 
-          if (code.indexOf("can't be blank") > -1) {
+          if (errorMessage.indexOf("can't be blank") > -1) {
             this._logger.verbose('API CHECKOUT: Country not supported');
             return { message: 'Country not supported', nextState: States.Stopped };
           }
