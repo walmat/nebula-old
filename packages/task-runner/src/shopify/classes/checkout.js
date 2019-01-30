@@ -508,7 +508,7 @@ class Checkout {
         // TODO - send to webhooks on success
         /**
          * 1. Site:    `this._context.task.site` (name, url)
-         * 2. Product: `this._context.task.product` (name, url, image)
+         * 2. Product: `this._context.task.product` (name, url, image) // TODO url and image
          * 3. Size(s): `this._context.task.sizes`
          * 4. Speed:   `this._context.task.checkoutTime` // TODO
          */
