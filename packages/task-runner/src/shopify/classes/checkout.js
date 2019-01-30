@@ -467,7 +467,7 @@ class Checkout {
     const { timer } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
-    // TODO - find a shared location for timeouts
+
     if (timer.getRunTime(now()) > 10000) {
       return { message: 'Processing timed out, check email', nextState: States.Stopped };
     }
@@ -505,8 +505,23 @@ class Checkout {
       if (body && payments.length > 0) {
         const bodyString = JSON.stringify(body);
 
+        // TODO - send to webhooks on success
+        /**
+         * 1. Site:    `this._context.task.site` (name, url)
+         * 2. Product: `this._context.task.product` (name, url, image)
+         * 3. Size(s): `this._context.task.sizes`
+         * 4. Speed:   `this._context.task.checkoutTime` // TODO
+         */
         // success
         if (bodyString.indexOf('thank_you') > -1) {
+          await this._context.discord.send(
+            true,
+            this._context.task.product,
+            this._context.task.sizes,
+            this._context.task.site,
+            0,
+            '',
+          );
           return { message: 'Payment successful', nextState: States.Stopped };
         }
 

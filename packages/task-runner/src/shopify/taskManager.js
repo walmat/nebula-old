@@ -5,7 +5,6 @@ const hash = require('object-hash');
 const shortid = require('shortid');
 
 const TaskRunner = require('./taskRunner');
-const Hooks = require('./classes/webhooks');
 const { Events } = require('./classes/utils/constants').TaskManager;
 const { createLogger } = require('../common/logger');
 
@@ -379,17 +378,11 @@ class TaskManager {
     });
   }
 
-  updateWebhook(opts) {
-    const { hook, type } = opts;
+  updateHook(hook, type) {
     this._logger.info('Updating %s webhook to: %s', type, hook);
-    /**
-     * TODO - decide where the hooks definition should be..
-     * `option 1`:
-     *  in taskManager.js – contemplate pros and cons
-     *
-     * `option 2`:
-     *  in taskRunner.js – contemplate pros and cons
-     */
+    Object.keys(this._runners).forEach(k => {
+      this._handlers[k].updateHook(k, hook, type);
+    });
   }
 
   /**
@@ -557,6 +550,12 @@ class TaskManager {
           runner._events.emit(Events.ChangeDelay, id, delay, type);
         }
       },
+      updateHook: (id, hook, type) => {
+        if (id === runner.id) {
+          // TODO: Respect the scope of the _events variable (issue #137)
+          runner._events.emit(Events.UpdateHook, id, hook, type);
+        }
+      },
     };
     this._handlers[runner.id] = handlers;
 
@@ -565,6 +564,7 @@ class TaskManager {
     this._events.on(Events.Harvest, handlers.harvest);
     this._events.on(Events.SendProxy, handlers.proxy);
     this._events.on(Events.ChangeDelay, handlers.delay);
+    this._events.on(Events.UpdateHook, handlers.updateHook);
 
     // Attach Manager Handlers to Runner Events
     // TODO: Respect the scope of the _events variable (issue #137)
@@ -576,7 +576,7 @@ class TaskManager {
   }
 
   _cleanup(runner) {
-    const { abort, harvest, proxy, delay } = this._handlers[runner.id];
+    const { abort, harvest, proxy, delay, updateHook } = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
     runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
@@ -589,6 +589,7 @@ class TaskManager {
     this._events.removeListener(Events.Harvest, harvest);
     this._events.removeListener(Events.SendProxy, proxy);
     this._events.removeListener(Events.ChangeDelay, delay);
+    this._events.removeListener(Events.UpdateHook, updateHook);
   }
 
   async _start([runnerId, task, openProxy]) {

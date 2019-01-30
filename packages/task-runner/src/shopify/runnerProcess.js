@@ -65,6 +65,11 @@ function wireEventHandlers(runner) {
         runner._events.emit(TaskManagerEvents.ChangeDelay, ...args);
         break;
       }
+      case TaskManagerEvents.UpdateHook: {
+        // TODO: Respect the scope of Runner (issue #137)
+        runner._events.emit(TaskManagerEvents.UpdateHook, ...args);
+        break;
+      }
       default: {
         break;
       }

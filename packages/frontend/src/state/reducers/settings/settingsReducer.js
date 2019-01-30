@@ -74,7 +74,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       case SETTINGS_FIELDS.EDIT_DISCORD: {
         // TODO - check for errors object once middleware is setup
         if (window.Bridge) {
-          window.Bridge.updateWebhook(action.value, 'discord');
+          window.Bridge.updateHook(action.value, 'discord');
         }
         change = {
           discord: action.value,
@@ -85,7 +85,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       case SETTINGS_FIELDS.EDIT_SLACK: {
         // TODO - check for errors object once middleware is setup
         if (window.Bridge) {
-          window.Bridge.updateWebhook(action.value, 'slack');
+          window.Bridge.updateHook(action.value, 'slack');
         }
         change = {
           slack: action.value,

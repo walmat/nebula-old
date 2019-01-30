@@ -2,15 +2,13 @@ const Discord = require('./discord');
 const Slack = require('./slack');
 
 const colors = {
-  SUCCESS: '#46ADB4',
-  PROCESSING: '#B8D9D2',
-  ERROR: '#EF415E',
-  WHITE: '#F5F5F5',
+  SUCCESS: '4631988',
+  ERROR: '15679838',
 };
 
-const notification = (slack, discord, context) => {
+const notification = (slack, discord, success, context) => {
   discord.send(
-    false,
+    success,
     context.task.product,
     context.task.size,
     context.task.site,
@@ -18,7 +16,7 @@ const notification = (slack, discord, context) => {
     '',
   );
   slack.send(
-    false,
+    success,
     context.task.product,
     context.task.size,
     context.task.site,

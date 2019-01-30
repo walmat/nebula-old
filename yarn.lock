@@ -3785,7 +3785,14 @@ discontinuous-range@1.0.0:
   resolved "https://registry.yarnpkg.com/discontinuous-range/-/discontinuous-range-1.0.0.tgz#e38331f0844bba49b9a9cb71c771585aab1bc65a"
   integrity sha1-44Mx8IRLukm5qctxx3FYWqsbxlo=
 
-discord.js@^11.3.2:
+discord-webhooks@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/discord-webhooks/-/discord-webhooks-1.0.0.tgz#d0bcc07449401f3ef07e4f335f36844bb543663e"
+  integrity sha1-0LzAdElAHz7wfk8zXzaES7VDZj4=
+  dependencies:
+    request "^2.75.0"
+
+discord.js@^11.3.2, discord.js@^11.4.2:
   version "11.4.2"
   resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-11.4.2.tgz#54586981926521572051f2a30b984aad2b49786e"
   integrity sha512-MDwpu0lMFTjqomijDl1Ed9miMQe6kB4ifKdP28QZllmLv/HVOJXhatRgjS8urp/wBlOfx+qAYSXcdI5cKGYsfg==
@@ -5864,6 +5871,13 @@ homedir-polyfill@^1.0.1:
   integrity sha1-TCu8inWJmP7r9e1oWA921GdotLw=
   dependencies:
     parse-passwd "^1.0.0"
+
+hookcord@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/hookcord/-/hookcord-2.0.0.tgz#00878c7a1f188e69e9be2bf76d1eacb4bf673fea"
+  integrity sha512-clpRpND1LjD1gMakL317EYNbsQ2XeQzxibhFZZ+mliFfo+71cYcUvlAUc+27uCMuc0XPNOPIcHf1+R301iUXpw==
+  dependencies:
+    snekfetch "^4.0.2"
 
 hoopy@^0.1.2:
   version "0.1.4"
@@ -11162,7 +11176,7 @@ request-promise@^4.2.2:
     stealthy-require "^1.1.0"
     tough-cookie ">=2.3.3"
 
-request@^2.45.0, request@^2.65.0, request@^2.81.0, request@^2.87.0, request@^2.88.0:
+request@^2.45.0, request@^2.65.0, request@^2.75.0, request@^2.81.0, request@^2.87.0, request@^2.88.0:
   version "2.88.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.0.tgz#9c2fca4f7d35b592efe57c7f0a55e81052124fef"
   integrity sha512-NAqBSrijGLZdM0WZNsInLJpkJokL72XYjUpnB0iwsRgxh7dB6COrHnTBNwN0E+lHDAJzu7kLAkDeY08z2/A0hg==
@@ -11762,6 +11776,11 @@ snekfetch@^3.6.4:
   version "3.6.4"
   resolved "https://registry.yarnpkg.com/snekfetch/-/snekfetch-3.6.4.tgz#d13e80a616d892f3d38daae4289f4d258a645120"
   integrity sha512-NjxjITIj04Ffqid5lqr7XdgwM7X61c/Dns073Ly170bPQHLm6jkmelye/eglS++1nfTWktpP6Y2bFXjdPlQqdw==
+
+snekfetch@^4.0.2:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/snekfetch/-/snekfetch-4.0.4.tgz#e76a03b8476699a1f0c036d6567e386ce5fbde8e"
+  integrity sha512-dyycG9fvwtSJqKPfMVOpXt+60qvMGe7vWLwOJDiSJaiAx+hs2EnFChG2bXCWn7ulz+zGzrHdN9/yeEb0YqEPww==
 
 sockjs-client@1.1.5:
   version "1.1.5"

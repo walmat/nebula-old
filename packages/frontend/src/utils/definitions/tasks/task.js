@@ -20,6 +20,8 @@ export const initialTaskState = {
   output: '',
   errorDelay: initialSettingsState.errorDelay,
   monitorDelay: initialSettingsState.monitorDelay,
+  discord: initialSettingsState.discord,
+  slack: initialSettingsState.slack,
   errors: initialTaskErrorState,
   edits: initialTaskEditState,
 };
@@ -35,6 +37,8 @@ const task = PropTypes.shape({
   status: PropTypes.string,
   errorDelay: PropTypes.number,
   monitorDelay: PropTypes.number,
+  discord: PropTypes.string,
+  slack: PropTypes.string,
   sizes: PropTypes.arrayOf(PropTypes.string),
   edits: taskEdit,
   errors: taskErrors,

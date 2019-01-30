@@ -1,59 +1,50 @@
-const Webhook = require('discord-webhooks');
+const webhook = require('hookcord');
 const { colors } = require('./index');
 
 class Discord {
-  constructor(test = false, hook) {
-    this.test = test;
-    this.hook = hook;
+  constructor(hook) {
+    this.hook = new webhook.Hook().setLink(hook);
   }
 
-  send(success = false, product, size, store, time, image) {
+  send(success = false, site, product, sizes, checkoutSpeed, image) {
     if (this.hook) {
-      const hook = new Webhook(this.hook);
-      hook.on('ready', () => {
-        const exec = {
-          embeds: [
-            {
-              title: success ? 'Successful checkout' : 'Payment failed',
-              color: success ? colors.SUCCESS : colors.ERROR,
-              timestamp: new Date().toISOString(),
-              footer: {
-                icon_url: '',
-                text: 'Nebula Orion',
-              },
-              thumbnail: {
-                url: image,
-              },
-              author: {
-                name: 'Nebua Orion',
-                url: 'https://nebulabots.com',
-                icon_url: '',
-              },
-              fields: [
-                {
-                  name: 'Store',
-                  value: store,
-                },
-                {
-                  name: 'Product',
-                  value: product,
-                },
-                {
-                  name: 'Size(s)',
-                  value: size,
-                },
-                {
-                  name: 'Checkout Time (ms)',
-                  value: time,
-                },
-              ],
+      const embed = {
+        embeds: [
+          {
+            title: success ? 'Successfully checked out!' : 'Payment failed',
+            color: success ? colors.SUCCESS : colors.ERROR,
+            thumbnail: {
+              url: 'https://cdn.discordapp.com/embed/avatars/0.png',
             },
-          ],
-        };
-
-        hook.execute(exec);
-      });
+            fields: [
+              {
+                name: 'Store',
+                value: `[${site.name}](${site.url})`,
+                inline: true,
+              },
+              {
+                name: 'Product',
+                value: `[${product.name}](${product.url})`,
+                inline: true,
+              },
+              {
+                name: 'Size(s)',
+                value: sizes,
+                inline: true,
+              },
+              {
+                name: 'Checkout Speed (ms)',
+                value: checkoutSpeed,
+                inline: true,
+              },
+            ],
+            timestamp: new Date(),
+          },
+        ],
+      };
+      return this.hook.setPayload(embed).fire();
     }
+    return null;
   }
 }
 module.exports = Discord;

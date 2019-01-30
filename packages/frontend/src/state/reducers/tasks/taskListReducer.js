@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import shortId from 'shortid';
 
 import {
@@ -37,21 +38,29 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
   switch (action.type) {
     // patch to check for settings updates
     case SETTINGS_ACTIONS.EDIT: {
-      if (
-        action.field !== SETTINGS_FIELDS.EDIT_ERROR_DELAY &&
-        action.field !== SETTINGS_FIELDS.EDIT_MONITOR_DELAY
-      ) {
-        break;
-      }
-      const strValue = action.value || '0'; // If action.value is empty, we'll use 0
-      const intValue = parseInt(strValue, 10);
-      if (Number.isNaN(intValue)) {
-        // action.value isn't a valid integer, so we do nothing
-        break;
-      }
-      // eslint-disable-next-line no-restricted-syntax
-      for (const task of nextState) {
-        task[mapSettingsFieldToKey[action.field]] = intValue;
+      switch (action.field) {
+        case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
+        case SETTINGS_FIELDS.EDIT_MONITOR_DELAY:
+          const strValue = action.value || '0';
+          const intValue = parseInt(strValue, 10);
+          if (Number.isNaN(intValue)) {
+            break;
+          }
+          // eslint-disable-next-line no-restricted-syntax
+          for (const task of nextState) {
+            task[mapSettingsFieldToKey[action.field]] = intValue;
+          }
+          break;
+        case SETTINGS_FIELDS.EDIT_DISCORD:
+        case SETTINGS_FIELDS.EDIT_SLACK:
+          // update each tasks reference of the discord/slack url
+          // eslint-disable-next-line no-restricted-syntax
+          for (const task of nextState) {
+            task[mapSettingsFieldToKey[action.field]] = action.value;
+          }
+          break;
+        default:
+          break;
       }
       break;
     }
