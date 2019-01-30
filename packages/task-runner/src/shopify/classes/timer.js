@@ -11,12 +11,8 @@ class Timer {
    * Starts the timer by setting the start time
    * @param {UTC Timestamp} time - now();
    */
-  start(time) {
-    if (time) {
-      this._start = time;
-    } else {
-      this._start = now();
-    }
+  start(time = now()) {
+    this._start = time;
   }
 
   /**
@@ -54,7 +50,7 @@ class Timer {
    * Gets the runtime of the Timer class
    * @return
    */
-  getRunTime(time) {
+  getRunTime(time = now()) {
     return (time - this._start).toFixed(3);
   }
 

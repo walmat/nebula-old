@@ -224,8 +224,8 @@ class TaskManagerWrapper {
     this._taskManager.updateHook(hook, type);
   }
 
-  _onRequestWebhookTest(_, type) {
-    this._taskManager.testWebhook(type);
+  _onRequestWebhookTest(_, hook, type) {
+    this._taskManager.testWebhook(hook, type);
   }
 }
 

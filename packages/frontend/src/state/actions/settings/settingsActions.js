@@ -11,7 +11,7 @@ export const SETTINGS_ACTIONS = {
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
 const clearDefaults = makeActionCreator(SETTINGS_ACTIONS.CLEAR);
-const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'opt');
+const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 
 export const settingsActions = {
   edit: editSettings,

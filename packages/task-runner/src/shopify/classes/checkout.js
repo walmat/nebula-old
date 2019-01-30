@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
+const path = require('path');
 
 const {
   formatProxy,
@@ -359,6 +360,7 @@ class Checkout {
       if (redirectUrl) {
         // processing
         if (redirectUrl.indexOf('processing') > -1) {
+          this._context.task.checkoutSpeed = this._context.timer.getRunTime();
           this._context.timer.reset();
           this._context.timer.start();
           return { message: 'Payment processing', nextState: States.PaymentProcess };
@@ -376,9 +378,12 @@ class Checkout {
       const error = $('.g-recaptcha');
       this._logger.silly('CHECKOUT: Recaptcha frame present: %d', error.length > 0);
       if (error) {
+        this._context.task.checkoutSpeed = this._context.timer.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
+      this._context.task.checkoutSpeed = this._context.timer.getRunTime();
+      this._context.timer.reset();
       return { message: 'Payment processing', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
@@ -505,22 +510,25 @@ class Checkout {
       if (body && payments.length > 0) {
         const bodyString = JSON.stringify(body);
 
-        // TODO - send to webhooks on success
         /**
-         * 1. Site:    `this._context.task.site` (name, url)
-         * 2. Product: `this._context.task.product` (name, url, image) // TODO url and image
-         * 3. Size(s): `this._context.task.sizes`
-         * 4. Speed:   `this._context.task.checkoutTime` // TODO
+         * TODO list
+         * 1. change monitor to find image for product
+         * 2. link logger to the actual file
          */
         // success
         if (bodyString.indexOf('thank_you') > -1) {
           await this._context.discord.send(
             true,
-            this._context.task.product,
+            { name: this._context.task.product.name, url: this._context.task.product.url },
+            this.prices.total,
+            { name: this._context.task.site.name, url: this._context.task.site.url },
+            { number: payments[0].checkout.order_id, url: payments[0].checkout.order_status_url },
+            this._context.task.profile.profileName,
             this._context.task.sizes,
-            this._context.task.site,
-            0,
-            '',
+            this._context.task.checkoutSpeed,
+            this.chosenShippingMethod.id,
+            `runner-${this._context.id}.log`,
+            'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
           );
           return { message: 'Payment successful', nextState: States.Stopped };
         }
@@ -530,6 +538,20 @@ class Checkout {
           return { message: 'Payment Failed – OOS', nextState: States.Stopped };
         }
 
+        // TEMPORARY - send failure message to debug format
+        await this._context.discord.send(
+          false,
+          { name: this._context.task.product.name, url: this._context.task.product.url },
+          this.prices.total,
+          { name: this._context.task.site.name, url: this._context.task.site.url },
+          { number: 'None', url: '' },
+          this._context.task.profile.profileName,
+          this._context.task.sizes,
+          this._context.task.checkoutSpeed,
+          this.chosenShippingMethod.id,
+          `runner-${this._context.id}.log`,
+          'https://cdn.shopify.com/s/files/1/0094/2252/products/Solar_Hu_Glide_M_EE8701_9871.progressive.jpg',
+        );
         // check error messages
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
         this._logger.verbose('CHECKOUT: Payment error: %j', paymentProcessingErrorMessage);

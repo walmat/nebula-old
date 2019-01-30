@@ -200,7 +200,7 @@ class Monitor {
         response.statusCode,
       );
       const fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
-
+      console.log(fullProductInfo);
       // Generate Variants
       this._logger.verbose(
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',

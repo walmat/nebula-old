@@ -5,8 +5,10 @@ const hash = require('object-hash');
 const shortid = require('shortid');
 
 const TaskRunner = require('./taskRunner');
-const Hooks = require('./classes/webhooks');
 const { Events } = require('./classes/utils/constants').TaskManager;
+const { HookTypes } = require('./classes/utils/constants').TaskRunner;
+const Discord = require('./classes/hooks/discord');
+const Slack = require('./classes/hooks/slack');
 const { createLogger } = require('../common/logger');
 
 class TaskManager {
@@ -390,18 +392,32 @@ class TaskManager {
    *
    * @param {string} type `discord` || `slack`
    */
-  testWebhook(type) {
-    this._logger.info('Testing webhooks (if non-null)');
-    /**
-     * TODO
-     *  decide if the type that is being tested has a valid webhook
-     *
-     *  IF IT IS...
-     *  1. Test the hook that corresponds to type
-     *
-     *  IF IT IS NOT...
-     *  1. Don't do anything
-     */
+  async testWebhook(hook, type) {
+    this._logger.info('Testing %s with url: %s', type, hook);
+    if (type === HookTypes.discord) {
+      const discord = new Discord(hook);
+      await discord.send(
+        true,
+        { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
+        { name: 'Test Site', url: 'https://example.com' },
+        { number: '123123', url: 'https://example.com' },
+        'Test Profile',
+        ['Random'],
+        '900',
+        'Free Shipping',
+        'None',
+        'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
+      );
+    } else if (type === HookTypes.slack) {
+      await new Slack(hook).send(
+        true,
+        { name: 'Kith', url: 'https://kith.com' },
+        { name: 'Yeezy Boost 350 v2 – Static', url: 'https://kith.com' },
+        ['Random'],
+        '900',
+        '',
+      );
+    }
   }
 
   async setup() {

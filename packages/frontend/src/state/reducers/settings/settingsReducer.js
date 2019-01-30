@@ -116,11 +116,11 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     };
   } else if (action.type === SETTINGS_ACTIONS.UPDATE) {
     if (window.Bridge) {
-      window.Bridge.updateWebhook(action.hook, action.opt);
+      window.Bridge.updateHook(action.hook, action.opt);
     }
   } else if (action.type === SETTINGS_ACTIONS.TEST) {
     if (window.Bridge) {
-      window.Bridge.testWebhook(action.opt);
+      window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
     }
   }
   return Object.assign({}, state, change);

@@ -6,30 +6,57 @@ class Discord {
     this.hook = new webhook.Hook().setLink(hook);
   }
 
-  send(success = false, site, product, sizes, checkoutSpeed, image) {
+  send(
+    success = false,
+    product,
+    price,
+    site,
+    order,
+    profile,
+    sizes,
+    checkoutSpeed,
+    shippingMethod,
+    logger,
+    image,
+  ) {
     if (this.hook) {
-      const embed = {
+      const payload = {
         embeds: [
           {
-            title: success ? 'Successfully checked out!' : 'Payment failed',
+            title: success ? 'Successful checkout!' : 'Payment failed!',
             color: success ? colors.SUCCESS : colors.ERROR,
             thumbnail: {
-              url: 'https://cdn.discordapp.com/embed/avatars/0.png',
+              url: image,
             },
             fields: [
-              {
-                name: 'Store',
-                value: `[${site.name}](${site.url})`,
-                inline: true,
-              },
               {
                 name: 'Product',
                 value: `[${product.name}](${product.url})`,
                 inline: true,
               },
               {
+                name: 'Price',
+                value: price,
+                inline: true,
+              },
+              {
+                name: 'Store',
+                value: `[${site.name}](${site.url})`,
+                inline: true,
+              },
+              {
+                name: 'Order #',
+                value: `[${order.number}](${order.url})`,
+                inline: true,
+              },
+              {
+                name: 'Billing Profile',
+                value: profile,
+                inline: true,
+              },
+              {
                 name: 'Size(s)',
-                value: sizes,
+                value: `${sizes[0]}`,
                 inline: true,
               },
               {
@@ -37,12 +64,26 @@ class Discord {
                 value: checkoutSpeed,
                 inline: true,
               },
+              {
+                name: 'Shipping Method',
+                value: shippingMethod,
+                inline: true,
+              },
+              {
+                name: 'Logger File',
+                value: logger,
+                inline: true,
+              },
             ],
-            timestamp: new Date(),
+            footer: {
+              icon_url: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg',
+              text: 'Nebula Orion © 2018',
+            },
           },
         ],
       };
-      return this.hook.setPayload(embed).fire();
+
+      return this.hook.setPayload(payload).fire();
     }
     return null;
   }

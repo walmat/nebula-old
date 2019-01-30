@@ -50,8 +50,8 @@ const TaskRunnerDelayTypes = {
 };
 
 const TaskRunnerHookTypes = {
-  Slack: 'SLACK',
-  Discord: 'DISCORD',
+  slack: 'slack',
+  discord: 'discord',
 };
 
 const TaskRunnerCheckoutTypes = {
