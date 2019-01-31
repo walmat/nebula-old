@@ -380,8 +380,6 @@ TaskRowPrimitive.propTypes = {
   proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
   profiles: pDefns.profileList.isRequired,
   task: tDefns.task.isRequired,
-  discord: PropTypes.string.isRequired,
-  slack: PropTypes.string.isRequired,
   edits: tDefns.taskEdit.isRequired,
   onSelectTask: PropTypes.func.isRequired,
   onCopyTask: PropTypes.func.isRequired,
@@ -403,8 +401,6 @@ export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   proxies: state.settings.proxies.filter((_, idx) => !state.settings.errors.proxies.includes(idx)), // Only get the valid proxies
   task: ownProps.task,
-  discord: state.settings.discord,
-  slack: state.settings.slack,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
   errors: ownProps.task.edits.errors,

@@ -1,15 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
-
-const {
-  formatProxy,
-  getHeaders,
-  now,
-  stateForStatusCode,
-  userAgent,
-  waitForDelay,
-} = require('./utils');
+const { formatProxy, getHeaders, stateForStatusCode, userAgent, waitForDelay } = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 
 class Checkout {
