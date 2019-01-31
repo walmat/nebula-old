@@ -211,15 +211,15 @@ TasksPrimitive.defaultProps = {
 export const mapStateToProps = state => ({
   newTask: state.newTask,
   tasks: state.tasks,
-  slack: state.settings.slack,
+  proxies: state.settings.proxies,
 });
 
 export const mapDispatchToProps = dispatch => ({
   onDestroyTask: task => {
     dispatch(taskActions.destroy(task, 'all'));
   },
-  onStartTask: (task, proxies, discord, slack) => {
-    dispatch(taskActions.start(task, proxies, discord, slack));
+  onStartTask: (task, proxies) => {
+    dispatch(taskActions.start(task, proxies));
   },
   onStopTask: task => {
     dispatch(taskActions.stop(task));
