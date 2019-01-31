@@ -75,7 +75,7 @@ class Discord {
               },
             ],
             footer: {
-              icon_url: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg',
+              icon_url: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg', // TODO - host our own image
               text: 'Nebula Orion © 2018',
             },
             timestamp: new Date(),

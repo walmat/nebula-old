@@ -27,7 +27,6 @@
     "open": "0.0.5",
     "performance-now": "^2.1.0",
     "phone-formatter": "0.0.2",
-    "platform-folders": "^0.2.7",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
     "shortid": "^2.2.14",

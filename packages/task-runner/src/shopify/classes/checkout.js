@@ -473,7 +473,7 @@ class Checkout {
     const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
 
-    if (timer.getRunTime(now()) > 10000) {
+    if (timer.getRunTime() > 10000) {
       return { message: 'Processing timed out, check email', nextState: States.Stopped };
     }
 
@@ -510,10 +510,6 @@ class Checkout {
       if (body && payments.length > 0) {
         const bodyString = JSON.stringify(body);
 
-        /**
-         * TODO list
-         * 2. link logger to the actual file
-         */
         // success
         if (bodyString.indexOf('thank_you') > -1) {
           try {
@@ -547,6 +543,8 @@ class Checkout {
           return { message: 'Payment Failed – OOS', nextState: States.Stopped };
         }
 
+        // TODO - TEMPORARY
+        // remove this once we verify that the hooks are working properly
         try {
           await notification(this._context.slack, this._context.discord, {
             success: false,

@@ -205,9 +205,12 @@ class APICheckout extends Checkout {
         this._context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
           ? body.checkout.line_items[0].image_url
           : `http:${body.checkout.line_items[0].image_url}`;
-        // start checkout timer
+
+        // start checkout speed timer
         this._context.timer.reset();
         this._context.timer.start();
+
+        // calc item price, then calc total price
         this.prices.item = parseFloat(totalPrice).toFixed(2);
         this.prices.total = (
           parseFloat(this.prices.item) + parseFloat(this.prices.shipping)

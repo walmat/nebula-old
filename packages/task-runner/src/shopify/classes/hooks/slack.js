@@ -74,7 +74,7 @@ class Slack {
             ],
             thumb_url: image,
             footer: 'Nebula Orion @ 2018',
-            footer_icon: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg',
+            footer_icon: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg', // TODO - host our own image
             ts: Math.floor(new Date().getTime() / 1000),
           },
         ],

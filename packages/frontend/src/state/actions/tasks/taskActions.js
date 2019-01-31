@@ -253,8 +253,8 @@ const copyTask = task => dispatch =>
     error => dispatch(handleError(TASK_ACTIONS.COPY, error)),
   );
 
-const startTask = (task, proxies, discord, slack) => dispatch =>
-  _startTaskRequest(task, proxies, discord, slack).then(
+const startTask = (task, proxies) => dispatch =>
+  _startTaskRequest(task, proxies).then(
     response => dispatch(_startTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.START, error)),
   );
