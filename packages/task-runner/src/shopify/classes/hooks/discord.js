@@ -1,5 +1,4 @@
 const webhook = require('hookcord');
-const { colors } = require('./index');
 
 class Discord {
   constructor(hook) {
@@ -24,7 +23,7 @@ class Discord {
         embeds: [
           {
             title: success ? 'Successful checkout!' : 'Payment failed!',
-            color: success ? colors.SUCCESS : colors.ERROR,
+            color: success ? 4631988 : 15679838,
             thumbnail: {
               url: image,
             },
@@ -79,6 +78,7 @@ class Discord {
               icon_url: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg',
               text: 'Nebula Orion © 2018',
             },
+            timestamp: new Date(),
           },
         ],
       };

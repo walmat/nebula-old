@@ -1,45 +1,86 @@
 const Webhook = require('slack-webhook');
-const { colors } = require('./index');
 
 class Slack {
-  constructor(test = false, hook) {
-    this.test = test;
-    this.hook = hook;
+  constructor(hook) {
+    this.hook = new Webhook(hook);
   }
 
-  send(success = false, product, size, store, time, image) {
+  send(
+    success = false,
+    product,
+    price,
+    site,
+    order,
+    profile,
+    sizes,
+    checkoutSpeed,
+    shippingMethod,
+    logger,
+    image,
+  ) {
     if (this.hook) {
-      const hook = new Webhook(this.hook);
-      hook.send({
+      return this.hook.send({
         attachments: [
           {
-            fallback: success ? 'Successful checkout' : 'Payment failed',
-            title: success ? 'Successful checkout' : 'Payment failed',
-            color: success ? colors.SUCCESS : colors.ERROR,
+            fallback: success ? 'Successful checkout!' : 'Payment failed!',
+            title: success ? 'Successful checkout!' : 'Payment failed!',
+            color: success ? '#46ADB4' : '#EF415E',
             fields: [
               {
+                title: 'Product',
+                value: `<${product.url}|${product.name}>`,
+                short: true,
+              },
+              {
+                title: 'Price',
+                value: price,
+                short: true,
+              },
+              {
                 title: 'Store',
-                value: store,
+                value: `<${site.url}|${site.name}>`,
+                short: true,
               },
               {
-                name: 'Product',
-                value: product,
+                title: 'Order #',
+                value: `<${order.url}|${order.number}>`,
+                short: true,
               },
               {
-                name: 'Size(s)',
-                value: size,
+                title: 'Billing Profile',
+                value: profile,
+                short: true,
               },
               {
-                name: 'Checkout Time (ms)',
-                value: time,
+                title: 'Size(s)',
+                value: sizes[0],
+                short: true,
+              },
+              {
+                title: 'Checkout Time (ms)',
+                value: checkoutSpeed,
+                short: true,
+              },
+              {
+                title: 'Shipping Method',
+                value: shippingMethod,
+                short: true,
+              },
+              {
+                title: 'Logger File',
+                value: logger,
+                short: true,
               },
             ],
             thumb_url: image,
-            footer: 'Nebula Orion',
+            footer: 'Nebula Orion @ 2018',
+            footer_icon: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg',
+            ts: Math.floor(new Date().getTime() / 1000),
           },
         ],
       });
     }
+    return null;
   }
 }
 module.exports = Slack;

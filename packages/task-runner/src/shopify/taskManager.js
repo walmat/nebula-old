@@ -395,27 +395,32 @@ class TaskManager {
   async testWebhook(hook, type) {
     this._logger.info('Testing %s with url: %s', type, hook);
     if (type === HookTypes.discord) {
-      const discord = new Discord(hook);
-      await discord.send(
+      await new Discord(hook).send(
         true,
         { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
+        '150.00',
         { name: 'Test Site', url: 'https://example.com' },
         { number: '123123', url: 'https://example.com' },
         'Test Profile',
         ['Random'],
         '900',
-        'Free Shipping',
+        'shopify-Free%20Shipping-0.00',
         'None',
         'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
       );
     } else if (type === HookTypes.slack) {
       await new Slack(hook).send(
         true,
-        { name: 'Kith', url: 'https://kith.com' },
-        { name: 'Yeezy Boost 350 v2 – Static', url: 'https://kith.com' },
+        { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
+        '150.00',
+        { name: 'Test Site', url: 'https://example.com' },
+        { number: '123123', url: 'https://example.com' },
+        'Test Profile',
         ['Random'],
         '900',
-        '',
+        'shopify-Free%20Shipping-0.00',
+        'None',
+        'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
       );
     }
   }

@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
-const path = require('path');
+const { notification } = require('./hooks');
 
 const {
   formatProxy,
@@ -512,24 +512,33 @@ class Checkout {
 
         /**
          * TODO list
-         * 1. change monitor to find image for product
          * 2. link logger to the actual file
          */
         // success
         if (bodyString.indexOf('thank_you') > -1) {
-          await this._context.discord.send(
-            true,
-            { name: this._context.task.product.name, url: this._context.task.product.url },
-            this.prices.total,
-            { name: this._context.task.site.name, url: this._context.task.site.url },
-            { number: payments[0].checkout.order_id, url: payments[0].checkout.order_status_url },
-            this._context.task.profile.profileName,
-            this._context.task.sizes,
-            this._context.task.checkoutSpeed,
-            this.chosenShippingMethod.id,
-            `runner-${this._context.id}.log`,
-            'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
-          );
+          try {
+            await notification(this._context.slack, this._context.discord, {
+              success: true,
+              product: {
+                name: this._context.task.product.name,
+                url: this._context.task.product.url,
+              },
+              price: this.prices.total,
+              site: { name: this._context.task.site.name, url: this._context.task.site.url },
+              order: {
+                number: payments[0].checkout.order_id || 'None',
+                url: payments[0].checkout.order_status_url,
+              },
+              profile: this._context.task.profile.profileName,
+              sizes: this._context.task.sizes,
+              checkoutSpeed: this._context.task.checkoutSpeed,
+              shippingMethod: this.chosenShippingMethod.id,
+              logger: `runner-${this._context.id}.log`,
+              image: this._context.task.product.image,
+            });
+          } catch (err) {
+            this._logger.debug('CHECKOUT: Request error sending webhook: %s', err);
+          }
           return { message: 'Payment successful', nextState: States.Stopped };
         }
 
@@ -538,20 +547,27 @@ class Checkout {
           return { message: 'Payment Failed – OOS', nextState: States.Stopped };
         }
 
-        // TEMPORARY - send failure message to debug format
-        await this._context.discord.send(
-          false,
-          { name: this._context.task.product.name, url: this._context.task.product.url },
-          this.prices.total,
-          { name: this._context.task.site.name, url: this._context.task.site.url },
-          { number: 'None', url: '' },
-          this._context.task.profile.profileName,
-          this._context.task.sizes,
-          this._context.task.checkoutSpeed,
-          this.chosenShippingMethod.id,
-          `runner-${this._context.id}.log`,
-          'https://cdn.shopify.com/s/files/1/0094/2252/products/Solar_Hu_Glide_M_EE8701_9871.progressive.jpg',
-        );
+        try {
+          await notification(this._context.slack, this._context.discord, {
+            success: false,
+            product: { name: this._context.task.product.name, url: this._context.task.product.url },
+            price: this.prices.total,
+            site: { name: this._context.task.site.name, url: this._context.task.site.url },
+            order: {
+              number: payments[0].checkout.order_id || 'None',
+              url: payments[0].checkout.order_status_url,
+            },
+            profile: this._context.task.profile.profileName,
+            sizes: this._context.task.sizes,
+            checkoutSpeed: this._context.task.checkoutSpeed,
+            shippingMethod: this.chosenShippingMethod.id,
+            logger: `runner-${this._context.id}.log`,
+            image: this._context.task.product.image,
+          });
+        } catch (err) {
+          this._logger.debug('CHECKOUT: Request error sending webhook: %s', err);
+        }
+
         // check error messages
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
         this._logger.verbose('CHECKOUT: Payment error: %j', paymentProcessingErrorMessage);

@@ -1,33 +1,46 @@
-const Discord = require('./discord');
-const Slack = require('./slack');
-
-const colors = {
-  SUCCESS: 4631988,
-  ERROR: 15679838,
-};
-
-const notification = (slack, discord, success, context) => {
-  discord.send(
+const notification = async (slack, discord, payload) => {
+  const {
     success,
-    context.task.product,
-    context.task.size,
-    context.task.site,
-    new Date(), // todo - calc checkout speed from atc to beginning of payment processing
-    '',
+    product,
+    price,
+    site,
+    order,
+    profile,
+    sizes,
+    checkoutSpeed,
+    shippingMethod,
+    logger,
+    image,
+  } = payload;
+
+  await discord.send(
+    success,
+    product,
+    price,
+    site,
+    order,
+    profile,
+    sizes,
+    checkoutSpeed,
+    shippingMethod,
+    logger,
+    image,
   );
-  slack.send(
+  return slack.send(
     success,
-    context.task.product,
-    context.task.size,
-    context.task.site,
-    new Date(), // todo - calc checkout speed from atc to beginning of payment processing
-    '',
+    product,
+    price,
+    site,
+    order,
+    profile,
+    sizes,
+    checkoutSpeed,
+    shippingMethod,
+    logger,
+    image,
   );
 };
 
 module.exports = {
-  colors,
-  Discord,
-  Slack,
   notification,
 };

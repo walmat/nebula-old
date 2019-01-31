@@ -3785,14 +3785,7 @@ discontinuous-range@1.0.0:
   resolved "https://registry.yarnpkg.com/discontinuous-range/-/discontinuous-range-1.0.0.tgz#e38331f0844bba49b9a9cb71c771585aab1bc65a"
   integrity sha1-44Mx8IRLukm5qctxx3FYWqsbxlo=
 
-discord-webhooks@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/discord-webhooks/-/discord-webhooks-1.0.0.tgz#d0bcc07449401f3ef07e4f335f36844bb543663e"
-  integrity sha1-0LzAdElAHz7wfk8zXzaES7VDZj4=
-  dependencies:
-    request "^2.75.0"
-
-discord.js@^11.3.2, discord.js@^11.4.2:
+discord.js@^11.3.2:
   version "11.4.2"
   resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-11.4.2.tgz#54586981926521572051f2a30b984aad2b49786e"
   integrity sha512-MDwpu0lMFTjqomijDl1Ed9miMQe6kB4ifKdP28QZllmLv/HVOJXhatRgjS8urp/wBlOfx+qAYSXcdI5cKGYsfg==
@@ -9537,6 +9530,11 @@ pkginfo@0.4.0:
   resolved "https://registry.yarnpkg.com/pkginfo/-/pkginfo-0.4.0.tgz#349dbb7ffd38081fcadc0853df687f0c7744cd65"
   integrity sha1-NJ27f/04CB/K3AhT32h/DHdEzWU=
 
+platform-folders@^0.2.7:
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/platform-folders/-/platform-folders-0.2.7.tgz#dd493ae7b50159a09694361a9c7c71d58999cf78"
+  integrity sha512-bzbpKqk6YjOvPILvZ3bwO4atgKnEHfbO2XAfZApnvwSg7lmJ7i+YEzgEHIiKjqdbAq4jujDpXvg/8Mc04AqMyg==
+
 please-upgrade-node@^3.0.2, please-upgrade-node@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/please-upgrade-node/-/please-upgrade-node-3.1.1.tgz#ed320051dfcc5024fae696712c8288993595e8ac"
@@ -11176,7 +11174,7 @@ request-promise@^4.2.2:
     stealthy-require "^1.1.0"
     tough-cookie ">=2.3.3"
 
-request@^2.45.0, request@^2.65.0, request@^2.75.0, request@^2.81.0, request@^2.87.0, request@^2.88.0:
+request@^2.45.0, request@^2.65.0, request@^2.81.0, request@^2.87.0, request@^2.88.0:
   version "2.88.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.0.tgz#9c2fca4f7d35b592efe57c7f0a55e81052124fef"
   integrity sha512-NAqBSrijGLZdM0WZNsInLJpkJokL72XYjUpnB0iwsRgxh7dB6COrHnTBNwN0E+lHDAJzu7kLAkDeY08z2/A0hg==
@@ -13120,13 +13118,6 @@ wbuf@^1.1.0, wbuf@^1.7.2:
   integrity sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==
   dependencies:
     minimalistic-assert "^1.0.0"
-
-webhook-discord@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/webhook-discord/-/webhook-discord-3.0.3.tgz#50053ec9ee5e93d16c47404893856787113f7fe8"
-  integrity sha512-MY3vEXNDZdlrB3l1YhiI4p2ntaGXkRdTi19v7ohq5XRlqfFPuX/WPRgb3o1TJLxgzkmSo+zkNJZbmu9Hk4c1kw==
-  dependencies:
-    snekfetch "^3.6.4"
 
 webidl-conversions@^4.0.2:
   version "4.0.2"

@@ -200,6 +200,11 @@ class APICheckout extends Checkout {
       if (body.checkout && body.checkout.line_items.length > 0) {
         this._logger.verbose('Successfully added to cart');
         const { total_price: totalPrice } = body.checkout;
+
+        this._context.task.product.name = body.checkout.line_items[0].title;
+        this._context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
+          ? body.checkout.line_items[0].image_url
+          : `http:${body.checkout.line_items[0].image_url}`;
         // start checkout timer
         this._context.timer.reset();
         this._context.timer.start();
