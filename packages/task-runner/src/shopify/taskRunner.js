@@ -31,7 +31,7 @@ class TaskRunner {
 
     this._jar = request.jar();
     this._request = request.defaults({
-      timeout: 15000,
+      timeout: 10000,
       jar: this._jar,
     });
 
@@ -296,7 +296,7 @@ class TaskRunner {
       return States.Aborted;
     }
     this._emitTaskEvent({
-      message: 'Starting Task Setup',
+      message: 'Starting task setup',
     });
     if (this._context.task.username && this._context.task.password) {
       return States.Login;

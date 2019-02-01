@@ -55,7 +55,10 @@ class APICheckout extends Checkout {
       }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
-      this._logger.debug('API CHECKOUT: Request error creating payment token: %s', err);
+      this._logger.debug('API CHECKOUT: Request error creating payment token: %j', err);
+      if (err.error.code === 'ETIMEDOUT') {
+        return { message: 'Starting task setup', nextState: States.PaymentToken };
+      }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
@@ -124,7 +127,10 @@ class APICheckout extends Checkout {
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error creating checkout: %j', err);
-      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+      if (err.error.code === 'ETIMEDOUT') {
+        return { message: 'Submitting information', nextState: States.PatchCheckout };
+      }
+      return { message: 'Failed: Submitting information', nextState: States.Stopped };
     }
   }
 
@@ -220,6 +226,9 @@ class APICheckout extends Checkout {
       return { message: 'Failed: Add to cart', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error adding to cart %j', err);
+      if (err.error.code === 'ETIMEDOUT') {
+        return { message: 'Adding to cart', nextState: States.AddToCart };
+      }
       return { message: 'Failed: Add to cart', nextState: States.Stopped };
     }
   }
@@ -304,6 +313,9 @@ class APICheckout extends Checkout {
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error fetching shipping method: %j', err);
+      if (err.error.code === 'ETIMEDOUT') {
+        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+      }
       return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
     }
   }
