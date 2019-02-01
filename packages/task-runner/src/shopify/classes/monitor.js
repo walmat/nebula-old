@@ -168,6 +168,7 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
+    this._context.task.product.url = `${this._context.task.site.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
@@ -200,7 +201,6 @@ class Monitor {
         response.statusCode,
       );
       const fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
-
       // Generate Variants
       this._logger.verbose(
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',

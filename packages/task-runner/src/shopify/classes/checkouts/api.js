@@ -200,7 +200,21 @@ class APICheckout extends Checkout {
       if (body.checkout && body.checkout.line_items.length > 0) {
         this._logger.verbose('Successfully added to cart');
         const { total_price: totalPrice } = body.checkout;
+
+        this._context.task.product.name = body.checkout.line_items[0].title;
+        this._context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
+          ? body.checkout.line_items[0].image_url
+          : `http:${body.checkout.line_items[0].image_url}`;
+
+        // start checkout speed timer
+        this._context.timer.reset();
+        this._context.timer.start();
+
+        // calc item price, then calc total price
         this.prices.item = parseFloat(totalPrice).toFixed(2);
+        this.prices.total = (
+          parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
+        ).toFixed(2);
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
       return { message: 'Failed: Add to cart', nextState: States.Stopped };
@@ -281,9 +295,8 @@ class APICheckout extends Checkout {
         this._logger.silly('API CHECKOUT: Using shipping method: %s', title);
 
         // set shipping price for cart
-        let { shipping } = this.prices;
-        shipping = parseFloat(cheapest.price).toFixed(2);
-        this._logger.silly('API CHECKOUT: Shipping total: %s', shipping);
+        this.prices.shipping = parseFloat(cheapest.price).toFixed(2);
+        this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
         return { message: `Posting payment`, nextState: States.PostPayment };
       }
       this._logger.verbose('No shipping rates available, polling %d ms', monitorDelay);

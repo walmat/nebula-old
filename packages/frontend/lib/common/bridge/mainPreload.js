@@ -87,8 +87,13 @@ const _changeDelay = (delay, type) => {
   util.sendEvent(IPCKeys.RequestChangeDelay, delay, type);
 };
 
-const _sendWebhookTestMessage = (hook, opt) => {
-  util.sendEvent(IPCKeys.RequestWebhookTest, { hook, opt });
+const _updateHook = (hook, type) => {
+  util.sendEvent(IPCKeys.RequestWebhookUpdate, hook, type);
+};
+
+const _sendWebhookTestMessage = (hook, type) => {
+  console.log(hook, type, 'here');
+  util.sendEvent(IPCKeys.RequestWebhookTest, hook, type);
 };
 
 /**
@@ -108,6 +113,7 @@ process.once('loaded', () => {
     addProxies: _addProxies,
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,
+    updateHook: _updateHook,
     sendWebhookTestMessage: _sendWebhookTestMessage,
   };
 });

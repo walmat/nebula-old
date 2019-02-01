@@ -24,18 +24,9 @@ class AuthManager {
      */
     this._store = new Store();
 
-    context.ipc.on(
-      IPCKeys.AuthRequestActivate,
-      this._onAuthRequestActivate.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.AuthRequestDeactivate,
-      this._onAuthRequestDeactivate.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.AuthRequestStatus,
-      this._onAuthRequestStatus.bind(this),
-    );
+    context.ipc.on(IPCKeys.AuthRequestActivate, this._onAuthRequestActivate.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestDeactivate, this._onAuthRequestDeactivate.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestStatus, this._onAuthRequestStatus.bind(this));
   }
 
   /**
@@ -84,10 +75,7 @@ class AuthManager {
       if (res.ok) {
         const data = await res.json();
         const { accessToken, refreshToken, expiry } = data;
-        this._store.set(
-          'session',
-          JSON.stringify({ accessToken, refreshToken, expiry }),
-        );
+        this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
         return { accessToken, refreshToken, expiry };
       }
       const { error } = await res.json();
@@ -156,10 +144,7 @@ class AuthManager {
     if (res.ok) {
       const data = await res.json();
       const { accessToken, refreshToken, expiry } = data;
-      this._store.set(
-        'session',
-        JSON.stringify({ accessToken, refreshToken, expiry }),
-      );
+      this._store.set('session', JSON.stringify({ accessToken, refreshToken, expiry }));
 
       return { accessToken, refreshToken, expiry };
     }

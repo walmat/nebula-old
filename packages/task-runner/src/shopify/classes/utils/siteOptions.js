@@ -39,6 +39,13 @@ const sites = [
     supported: true,
   },
   {
+    label: 'Atmos NYC',
+    value: 'https://atmosny.com',
+    apiKey: '5d257a7900ff521cf3affdcc1ba2bcbc',
+    auth: false,
+    supported: true,
+  },
+  {
     name: 'BBC Ice Cream US',
     url: 'https://shop.bbcicecream.com',
     apiKey: '344bd1cc389a1b9d715d6a9103761258',

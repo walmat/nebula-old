@@ -71,6 +71,28 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         };
         break;
       }
+      case SETTINGS_FIELDS.EDIT_DISCORD: {
+        // TODO - check for valid `action.value` once validation middleware is setup
+        if (window.Bridge) {
+          window.Bridge.updateHook(action.value, 'discord');
+        }
+        change = {
+          discord: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
+        };
+        break;
+      }
+      case SETTINGS_FIELDS.EDIT_SLACK: {
+        // TODO - check for valid `a`ction.value` once validation middleware is setup
+        if (window.Bridge) {
+          window.Bridge.updateHook(action.value, 'slack');
+        }
+        change = {
+          slack: action.value,
+          errors: Object.assign({}, state.errors, action.errors),
+        };
+        break;
+      }
       default: {
         change = {
           [mapSettingsFieldToKey[action.field]]: action.value,
@@ -94,7 +116,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     };
   } else if (action.type === SETTINGS_ACTIONS.TEST) {
     if (window.Bridge) {
-      window.Bridge.testWebhook(action.hook, action.opt);
+      window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
     }
   }
   return Object.assign({}, state, change);

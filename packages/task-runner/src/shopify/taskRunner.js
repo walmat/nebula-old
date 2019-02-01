@@ -3,8 +3,16 @@ const request = require('request-promise');
 
 const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
+const Discord = require('./classes/hooks/discord');
+const Slack = require('./classes/hooks/slack');
 const AsyncQueue = require('./classes/asyncQueue');
-const { States, Events, DelayTypes, StateMap } = require('./classes/utils/constants').TaskRunner;
+const {
+  States,
+  Events,
+  DelayTypes,
+  HookTypes,
+  StateMap,
+} = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
@@ -47,9 +55,9 @@ class TaskRunner {
     this._checkoutType = null;
 
     this._captchaQueue = null;
-    this._isSetup = false;
-
     this._timer = new Timer();
+    this._discord = new Discord(task.discord);
+    this._slack = new Slack(task.slack);
 
     /**
      * The context of this task runner
@@ -62,8 +70,9 @@ class TaskRunner {
       task,
       proxy: proxy ? proxy.proxy : null,
       request: this._request,
-      setup: this._isSetup,
       timer: this._timer,
+      discord: this._discord,
+      slack: this._slack,
       logger: this._logger,
       aborted: false,
     };
@@ -95,6 +104,7 @@ class TaskRunner {
     this._handleDelay = this._handleDelay.bind(this);
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay);
+    this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks);
   }
 
   _waitForErrorDelay() {
@@ -120,6 +130,22 @@ class TaskRunner {
         this._context.task.errorDelay = delay;
       } else if (type === DelayTypes.monitor) {
         this._context.task.monitorDelay = delay;
+      }
+    }
+  }
+
+  /**
+   * Propagates to change the appropriate hook
+   * @param {String} id
+   * @param {String} hook
+   * @param {String} type
+   */
+  _handleUpdateHooks(id, hook, type) {
+    if (id === this._context.id) {
+      if (type === HookTypes.Discord) {
+        this._context.task.discord = hook;
+      } else if (type === HookTypes.Slack) {
+        this._context.task.slack = hook;
       }
     }
   }

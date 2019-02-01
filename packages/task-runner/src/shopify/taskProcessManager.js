@@ -101,6 +101,15 @@ class TaskProcessManager extends TaskManager {
           });
         }
       },
+      updateHook: (id, hook, type) => {
+        if (id === child.id) {
+          child.send({
+            target: 'child',
+            event: TaskManagerEvents.UpdateHook,
+            args: [id, hook, type],
+          });
+        }
+      },
       child: ({ target, event, args }) => {
         // Only handle events that target the main process
         if (target !== 'main') {
@@ -135,6 +144,7 @@ class TaskProcessManager extends TaskManager {
     this._events.on(TaskManagerEvents.Harvest, handlers.harvest);
     this._events.on(TaskManagerEvents.SendProxy, handlers.proxy);
     this._events.on(TaskManagerEvents.ChangeDelay, handlers.delay);
+    this._events.on(TaskManagerEvents.UpdateHook, handlers.updateHook);
     // Attach child handler to child process
     child.on('message', handlers.child);
 
@@ -144,7 +154,9 @@ class TaskProcessManager extends TaskManager {
 
   _cleanup(child) {
     this._logger.verbose('Cleaning up Child Process Handlers for runner: %s', child.id);
-    const { abort, harvest, proxy, delay, child: childHandler } = this._handlers[child.id];
+    const { abort, harvest, proxy, delay, updateHook, child: childHandler } = this._handlers[
+      child.id
+    ];
     delete this._handlers[child.id];
 
     // Remove child handler
@@ -155,6 +167,7 @@ class TaskProcessManager extends TaskManager {
     this._events.removeListener(TaskManagerEvents.Harvest, harvest);
     this._events.removeListener(TaskManagerEvents.SendProxy, proxy);
     this._events.removeListener(TaskManagerEvents.ChangeDelay, delay);
+    this._events.removeListener(TaskManagerEvents.UpdateHook, updateHook);
   }
 
   async _start([runnerId, task, openProxy]) {

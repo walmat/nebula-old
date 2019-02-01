@@ -4,6 +4,7 @@ const TaskManagerEvents = {
   Harvest: 'CAPTCHA_HARVEST',
   SendProxy: 'SEND_PROXY',
   ChangeDelay: 'CHANGE_DELAY',
+  UpdateHook: 'UPDATE_HOOK',
 };
 
 /**
@@ -46,6 +47,11 @@ const TaskRunnerStates = {
 const TaskRunnerDelayTypes = {
   error: 'errorDelay',
   monitor: 'monitorDelay',
+};
+
+const TaskRunnerHookTypes = {
+  slack: 'slack',
+  discord: 'discord',
 };
 
 const TaskRunnerCheckoutTypes = {
@@ -104,6 +110,7 @@ module.exports = {
     StateMap: PollQueueStateToNextState,
     CheckoutTypes: TaskRunnerCheckoutTypes,
     DelayTypes: TaskRunnerDelayTypes,
+    HookTypes: TaskRunnerHookTypes,
   },
   ErrorCodes: {
     Parser: ParserErrorCodes,

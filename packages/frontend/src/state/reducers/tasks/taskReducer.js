@@ -2,6 +2,11 @@ import { parseURL } from 'whatwg-url';
 import { PROFILE_ACTIONS, TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 import getAllSites from '../../../constants/getAllSites';
+import {
+  SETTINGS_ACTIONS,
+  SETTINGS_FIELDS,
+  mapSettingsFieldToKey,
+} from '../../actions/settings/settingsActions';
 // import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
 
 export function taskReducer(state = initialTaskStates.task, action) {
@@ -240,6 +245,18 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
         profile: defaults.useProfile ? defaults.profile : state.profile,
         sizes: defaults.useSizes ? defaults.sizes : state.sizes,
       });
+    }
+    case SETTINGS_ACTIONS.EDIT: {
+      if (
+        action.field !== SETTINGS_FIELDS.EDIT_DISCORD &&
+        action.field !== SETTINGS_FIELDS.EDIT_SLACK
+      ) {
+        break;
+      }
+      return {
+        ...state,
+        [mapSettingsFieldToKey[action.field]]: action.value,
+      };
     }
     case PROFILE_ACTIONS.UPDATE: {
       // If there's no profile, we should do nothing

@@ -1,14 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
-
-const {
-  formatProxy,
-  getHeaders,
-  now,
-  stateForStatusCode,
-  userAgent,
-  waitForDelay,
-} = require('./utils');
+const { notification } = require('./hooks');
+const { formatProxy, getHeaders, stateForStatusCode, userAgent, waitForDelay } = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 
 class Checkout {
@@ -359,9 +352,10 @@ class Checkout {
       if (redirectUrl) {
         // processing
         if (redirectUrl.indexOf('processing') > -1) {
+          this._context.task.checkoutSpeed = this._context.timer.getRunTime();
           this._context.timer.reset();
           this._context.timer.start();
-          return { message: 'Payment processing', nextState: States.PaymentProcess };
+          return { message: 'Processing payment', nextState: States.PaymentProcess };
         }
 
         // out of stock
@@ -373,13 +367,16 @@ class Checkout {
 
       // check if captcha is present
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      const error = $('.g-recaptcha');
-      this._logger.silly('CHECKOUT: Recaptcha frame present: %d', error.length > 0);
-      if (error) {
+      const recaptcha = $('.g-recaptcha');
+      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
+      if (recaptcha.length > 0) {
+        this._context.task.checkoutSpeed = this._context.timer.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
-      return { message: 'Payment processing', nextState: States.CompletePayment };
+      this._context.task.checkoutSpeed = this._context.timer.getRunTime();
+      this._context.timer.reset();
+      return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
       return { message: 'Failed: Posting payment', nextState: States.Stopped };
@@ -431,7 +428,7 @@ class Checkout {
         if (redirectUrl.indexOf('processing') > -1) {
           this._context.timer.reset();
           this._context.timer.start();
-          return { message: 'Payment processing', nextState: States.PaymentProcess };
+          return { message: 'Processing payment', nextState: States.PaymentProcess };
         }
 
         // out of stock
@@ -464,18 +461,19 @@ class Checkout {
   }
 
   async paymentProcessing() {
-    const { timer } = this._context;
-    const { site, monitorDelay } = this._context.task;
-    const { url, apiKey } = site;
-    // TODO - find a shared location for timeouts
-    if (timer.getRunTime(now()) > 10000) {
+    const { timer, slack, discord, id } = this._context;
+    const { site, product, profile, sizes, checkoutSpeed } = this._context.task;
+    const { profileName } = profile;
+    const { url, apiKey, name } = site;
+
+    if (timer.getRunTime() > 10000) {
       return { message: 'Processing timed out, check email', nextState: States.Stopped };
     }
 
     this._logger.verbose('CHECKOUT: Processing payment');
     try {
       const res = await this._request({
-        uri: `${url}/wallets/checkouts/${this.checkoutToken}/payments`,
+        uri: `${url}/api/checkouts/${this.checkoutToken}/payments`,
         method: 'GET',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
@@ -497,39 +495,59 @@ class Checkout {
       const { statusCode, body } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
-        return { message: checkStatus.message, nextState: checkStatus.nextState };
+        return checkStatus;
       }
-      this._logger.verbose('CHECKOUT: Payments object: %j', body);
       const { payments } = body;
 
       if (body && payments.length > 0) {
-        const bodyString = JSON.stringify(body);
+        const bodyString = JSON.stringify(payments[0]);
 
+        this._logger.verbose('CHECKOUT: Payments object: %j', body.payments[0]);
         // success
         if (bodyString.indexOf('thank_you') > -1) {
+          const { order } = payments[0].checkout;
+          const { total } = this.prices;
+
+          try {
+            await notification(slack, discord, {
+              success: true,
+              product: {
+                name: product.name,
+                url: product.url,
+              },
+              price: total,
+              site: { name, url },
+              order: {
+                number: order.name || 'None',
+                url: order.status_url,
+              },
+              profile: profileName,
+              sizes,
+              checkoutSpeed,
+              shippingMethod: this.chosenShippingMethod.id,
+              logger: `runner-${id}.log`,
+              image: product.image,
+            });
+          } catch (err) {
+            this._logger.debug('CHECKOUT: Request error sending webhook: %s', err);
+          }
           return { message: 'Payment successful', nextState: States.Stopped };
         }
 
-        // out of stock message
-        if (bodyString.indexOf('Some items are no longer available') > -1) {
-          return { message: 'Payment Failed – OOS', nextState: States.Stopped };
-        }
-
-        // check error messages
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
-        this._logger.verbose('CHECKOUT: Payment error: %j', paymentProcessingErrorMessage);
-        if (paymentProcessingErrorMessage) {
+
+        if (paymentProcessingErrorMessage !== null) {
+          // out of stock during payment processing
+          if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
+            return { message: 'Payment failed (OOS)', nextState: States.Stopped };
+          }
+
+          // generic payment processing failure
           return { message: 'Payment failed', nextState: States.Stopped };
         }
-        if (payments[0].transaction && payments[0].transaction.status !== 'success') {
-          const { transaction } = payments[0];
-          this._logger.verbose('CHECKOUT: Payment error: %j', transaction);
-          return { message: 'Payment failed', nextState: States.Stopped };
-        }
-        return { message: 'Payment failed', nextState: States.Stopped };
       }
       this._logger.verbose('CHECKOUT: Processing payment');
-      await waitForDelay(monitorDelay);
+      await waitForDelay(2000);
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error failed processing payment: %s', err);
