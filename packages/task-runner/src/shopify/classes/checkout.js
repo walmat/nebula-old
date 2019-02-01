@@ -367,9 +367,9 @@ class Checkout {
 
       // check if captcha is present
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      const error = $('.g-recaptcha');
-      this._logger.silly('CHECKOUT: Recaptcha frame present: %d', error.length > 0);
-      if (error) {
+      const recaptcha = $('.g-recaptcha');
+      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
+      if (recaptcha.length > 0) {
         this._context.task.checkoutSpeed = this._context.timer.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
