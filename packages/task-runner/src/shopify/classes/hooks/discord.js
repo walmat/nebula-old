@@ -2,7 +2,9 @@ const webhook = require('hookcord');
 
 class Discord {
   constructor(hook) {
-    this.hook = new webhook.Hook().setLink(hook);
+    if (hook) {
+      this.hook = new webhook.Hook().setLink(hook);
+    }
   }
 
   build(

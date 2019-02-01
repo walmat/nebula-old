@@ -2,7 +2,9 @@ const Webhook = require('slack-webhook');
 
 class Slack {
   constructor(hook) {
-    this.hook = new Webhook(hook);
+    if (hook) {
+      this.hook = new Webhook(hook);
+    }
   }
 
   build(
