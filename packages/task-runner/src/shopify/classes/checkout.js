@@ -355,7 +355,7 @@ class Checkout {
           this._context.task.checkoutSpeed = this._context.timer.getRunTime();
           this._context.timer.reset();
           this._context.timer.start();
-          return { message: 'Payment processing', nextState: States.PaymentProcess };
+          return { message: 'Processing payment', nextState: States.PaymentProcess };
         }
 
         // out of stock
@@ -376,7 +376,7 @@ class Checkout {
 
       this._context.task.checkoutSpeed = this._context.timer.getRunTime();
       this._context.timer.reset();
-      return { message: 'Payment processing', nextState: States.CompletePayment };
+      return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
       return { message: 'Failed: Posting payment', nextState: States.Stopped };
@@ -428,7 +428,7 @@ class Checkout {
         if (redirectUrl.indexOf('processing') > -1) {
           this._context.timer.reset();
           this._context.timer.start();
-          return { message: 'Payment processing', nextState: States.PaymentProcess };
+          return { message: 'Processing payment', nextState: States.PaymentProcess };
         }
 
         // out of stock
@@ -462,7 +462,7 @@ class Checkout {
 
   async paymentProcessing() {
     const { timer } = this._context;
-    const { site, monitorDelay } = this._context.task;
+    const { site } = this._context.task;
     const { url, apiKey } = site;
 
     if (timer.getRunTime() > 10000) {
@@ -472,7 +472,7 @@ class Checkout {
     this._logger.verbose('CHECKOUT: Processing payment');
     try {
       const res = await this._request({
-        uri: `${url}/wallets/checkouts/${this.checkoutToken}/payments`,
+        uri: `${url}/api/checkouts/${this.checkoutToken}/payments`,
         method: 'GET',
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
@@ -494,14 +494,14 @@ class Checkout {
       const { statusCode, body } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
-        return { message: checkStatus.message, nextState: checkStatus.nextState };
+        return checkStatus;
       }
-      this._logger.verbose('CHECKOUT: Payments object: %j', body);
       const { payments } = body;
 
       if (body && payments.length > 0) {
-        const bodyString = JSON.stringify(body);
+        const bodyString = JSON.stringify(payments[0]);
 
+        this._logger.verbose('CHECKOUT: Payments object: %j', body.payments[0]);
         // success
         if (bodyString.indexOf('thank_you') > -1) {
           try {
@@ -514,8 +514,8 @@ class Checkout {
               price: this.prices.total,
               site: { name: this._context.task.site.name, url: this._context.task.site.url },
               order: {
-                number: payments[0].checkout.order_id || 'None',
-                url: payments[0].checkout.order_status_url,
+                number: payments[0].checkout.order.name || 'None',
+                url: payments[0].checkout.order.status_url,
               },
               profile: this._context.task.profile.profileName,
               sizes: this._context.task.sizes,
@@ -530,49 +530,20 @@ class Checkout {
           return { message: 'Payment successful', nextState: States.Stopped };
         }
 
-        // out of stock message
-        if (bodyString.indexOf('Some items are no longer available') > -1) {
-          return { message: 'Payment Failed – OOS', nextState: States.Stopped };
-        }
-
-        // TODO - TEMPORARY
-        // remove this once we verify that the hooks are working properly
-        try {
-          await notification(this._context.slack, this._context.discord, {
-            success: false,
-            product: { name: this._context.task.product.name, url: this._context.task.product.url },
-            price: this.prices.total,
-            site: { name: this._context.task.site.name, url: this._context.task.site.url },
-            order: {
-              number: payments[0].checkout.order_id || 'None',
-              url: payments[0].checkout.order_status_url,
-            },
-            profile: this._context.task.profile.profileName,
-            sizes: this._context.task.sizes,
-            checkoutSpeed: this._context.task.checkoutSpeed,
-            shippingMethod: this.chosenShippingMethod.id,
-            logger: `runner-${this._context.id}.log`,
-            image: this._context.task.product.image,
-          });
-        } catch (err) {
-          this._logger.debug('CHECKOUT: Request error sending webhook: %s', err);
-        }
-
-        // check error messages
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
-        this._logger.verbose('CHECKOUT: Payment error: %j', paymentProcessingErrorMessage);
-        if (paymentProcessingErrorMessage) {
+
+        if (paymentProcessingErrorMessage !== null) {
+          // out of stock during payment processing
+          if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
+            return { message: 'Payment failed (OOS)', nextState: States.Stopped };
+          }
+
+          // generic payment processing failure
           return { message: 'Payment failed', nextState: States.Stopped };
         }
-        if (payments[0].transaction && payments[0].transaction.status !== 'success') {
-          const { transaction } = payments[0];
-          this._logger.verbose('CHECKOUT: Payment error: %j', transaction);
-          return { message: 'Payment failed', nextState: States.Stopped };
-        }
-        return { message: 'Payment failed', nextState: States.Stopped };
       }
       this._logger.verbose('CHECKOUT: Processing payment');
-      await waitForDelay(monitorDelay);
+      await waitForDelay(2000);
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error failed processing payment: %s', err);

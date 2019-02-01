@@ -395,7 +395,7 @@ class TaskManager {
   async testWebhook(hook, type) {
     this._logger.info('Testing %s with url: %s', type, hook);
     if (type === HookTypes.discord) {
-      await new Discord(hook).send(
+      await new Discord(hook).build(
         true,
         { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
         '150.00',
@@ -409,7 +409,7 @@ class TaskManager {
         'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
       );
     } else if (type === HookTypes.slack) {
-      await new Slack(hook).send(
+      await new Slack(hook).build(
         true,
         { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
         '150.00',

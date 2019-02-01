@@ -5,7 +5,7 @@ class Slack {
     this.hook = new Webhook(hook);
   }
 
-  send(
+  build(
     success = false,
     product,
     price,
@@ -19,7 +19,7 @@ class Slack {
     image,
   ) {
     if (this.hook) {
-      return this.hook.send({
+      const payload = {
         attachments: [
           {
             fallback: success ? 'Successful checkout!' : 'Payment failed!',
@@ -78,7 +78,8 @@ class Slack {
             ts: Math.floor(new Date().getTime() / 1000),
           },
         ],
-      });
+      };
+      return this.hook.send(payload);
     }
     return null;
   }

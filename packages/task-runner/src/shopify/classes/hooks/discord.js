@@ -5,7 +5,7 @@ class Discord {
     this.hook = new webhook.Hook().setLink(hook);
   }
 
-  send(
+  build(
     success = false,
     product,
     price,

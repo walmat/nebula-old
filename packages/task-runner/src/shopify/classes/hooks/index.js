@@ -13,32 +13,36 @@ const notification = async (slack, discord, payload) => {
     image,
   } = payload;
 
-  await discord.send(
-    success,
-    product,
-    price,
-    site,
-    order,
-    profile,
-    sizes,
-    checkoutSpeed,
-    shippingMethod,
-    logger,
-    image,
-  );
-  return slack.send(
-    success,
-    product,
-    price,
-    site,
-    order,
-    profile,
-    sizes,
-    checkoutSpeed,
-    shippingMethod,
-    logger,
-    image,
-  );
+  const promises = [
+    await discord.build(
+      success,
+      product,
+      price,
+      site,
+      order,
+      profile,
+      sizes,
+      checkoutSpeed,
+      shippingMethod,
+      logger,
+      image,
+    ),
+    await slack.build(
+      success,
+      product,
+      price,
+      site,
+      order,
+      profile,
+      sizes,
+      checkoutSpeed,
+      shippingMethod,
+      logger,
+      image,
+    ),
+  ];
+
+  return Promise.all(promises);
 };
 
 module.exports = {
