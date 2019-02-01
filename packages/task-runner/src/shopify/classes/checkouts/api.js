@@ -30,9 +30,8 @@ class APICheckout extends Checkout {
     const { payment, billing } = this._context.task.profile;
 
     this._logger.verbose('API CHECKOUT: Creating Payment Token');
-    let res;
     try {
-      res = await this._request({
+      const res = await this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
         followAllRedirects: true,
         proxy: formatProxy(this._context.proxy),
