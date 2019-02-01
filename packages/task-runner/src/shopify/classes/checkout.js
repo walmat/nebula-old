@@ -461,9 +461,10 @@ class Checkout {
   }
 
   async paymentProcessing() {
-    const { timer } = this._context;
-    const { site } = this._context.task;
-    const { url, apiKey } = site;
+    const { timer, slack, discord, id } = this._context;
+    const { site, product, profile, sizes, checkoutSpeed } = this._context.task;
+    const { profileName } = profile;
+    const { url, apiKey, name } = site;
 
     if (timer.getRunTime() > 10000) {
       return { message: 'Processing timed out, check email', nextState: States.Stopped };
@@ -504,25 +505,28 @@ class Checkout {
         this._logger.verbose('CHECKOUT: Payments object: %j', body.payments[0]);
         // success
         if (bodyString.indexOf('thank_you') > -1) {
+          const { order } = payments[0].checkout;
+          const { total } = this.prices;
+
           try {
-            await notification(this._context.slack, this._context.discord, {
+            await notification(slack, discord, {
               success: true,
               product: {
-                name: this._context.task.product.name,
-                url: this._context.task.product.url,
+                name: product.name,
+                url: product.url,
               },
-              price: this.prices.total,
-              site: { name: this._context.task.site.name, url: this._context.task.site.url },
+              price: total,
+              site: { name, url },
               order: {
-                number: payments[0].checkout.order.name || 'None',
-                url: payments[0].checkout.order.status_url,
+                number: order.name || 'None',
+                url: order.status_url,
               },
-              profile: this._context.task.profile.profileName,
-              sizes: this._context.task.sizes,
-              checkoutSpeed: this._context.task.checkoutSpeed,
+              profile: profileName,
+              sizes,
+              checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
-              logger: `runner-${this._context.id}.log`,
-              image: this._context.task.product.image,
+              logger: `runner-${id}.log`,
+              image: product.image,
             });
           } catch (err) {
             this._logger.debug('CHECKOUT: Request error sending webhook: %s', err);

@@ -46,18 +46,17 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
           if (Number.isNaN(intValue)) {
             break;
           }
-          // eslint-disable-next-line no-restricted-syntax
-          for (const task of nextState) {
-            task[mapSettingsFieldToKey[action.field]] = intValue;
-          }
+          nextState = nextState.map(task => ({
+            ...task,
+            [mapSettingsFieldToKey[action.field]]: intValue,
+          }));
           break;
         case SETTINGS_FIELDS.EDIT_DISCORD:
         case SETTINGS_FIELDS.EDIT_SLACK:
-          // update each tasks reference of the discord/slack url
-          // eslint-disable-next-line no-restricted-syntax
-          for (const task of nextState) {
-            task[mapSettingsFieldToKey[action.field]] = action.value;
-          }
+          nextState = nextState.map(task => ({
+            ...task,
+            [mapSettingsFieldToKey[action.field]]: action.value,
+          }));
           break;
         default:
           break;
@@ -71,12 +70,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (!action.profile || action.errors) {
         break;
       }
-      // eslint-disable-next-line no-restricted-syntax
-      for (const task of nextState) {
-        if (task.profile.id === action.profile.id) {
-          task.profile = action.profile;
-        }
-      }
+      nextState = nextState.map(task => ({
+        ...task,
+        profile: action.profile.id === task.profile.id ? action.profile : task.profile,
+      }));
       break;
     }
     // patch to remove tasks containing removed profile

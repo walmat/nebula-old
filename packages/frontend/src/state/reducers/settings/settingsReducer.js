@@ -72,7 +72,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         break;
       }
       case SETTINGS_FIELDS.EDIT_DISCORD: {
-        // TODO - check for errors object once middleware is setup
+        // TODO - check for valid `action.value` once validation middleware is setup
         if (window.Bridge) {
           window.Bridge.updateHook(action.value, 'discord');
         }
@@ -83,7 +83,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         break;
       }
       case SETTINGS_FIELDS.EDIT_SLACK: {
-        // TODO - check for errors object once middleware is setup
+        // TODO - check for valid `a`ction.value` once validation middleware is setup
         if (window.Bridge) {
           window.Bridge.updateHook(action.value, 'slack');
         }
@@ -114,10 +114,6 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       defaults: initialSettingsStates.defaults,
       errors: Object.assign({}, state.errors, action.errors),
     };
-  } else if (action.type === SETTINGS_ACTIONS.UPDATE) {
-    if (window.Bridge) {
-      window.Bridge.updateHook(action.hook, action.opt);
-    }
   } else if (action.type === SETTINGS_ACTIONS.TEST) {
     if (window.Bridge) {
       window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
