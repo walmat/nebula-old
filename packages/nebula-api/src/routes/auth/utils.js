@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const config = require('../../utils/setupDynamoConfig').getConfig();
@@ -19,7 +20,7 @@ function generateTokens(key, refreshPayload) {
       issuer: process.env.NEBULA_API_ID,
       subject: 'feauth',
       audience: 'fe',
-      expiresIn: '2d',
+      expiresIn: '1d',
     },
   );
   const { exp } = jwt.decode(accessToken);
@@ -35,7 +36,7 @@ function generateTokens(key, refreshPayload) {
       issuer: process.env.NEBULA_API_ID,
       subject: 'feref',
       audience: 'api',
-      expiresIn: '90d',
+      expiresIn: '28d',
     },
   );
 
@@ -243,7 +244,11 @@ async function checkIsInUse(key) {
           if (data.Items.length > 1) {
             console.log('[WARN]: Data Items is longer than one! Using first response');
           }
-          return data.Items[0];
+          const item = data.Items[0];
+          if (!item.expiry || item.expiry > Date.now() / 1000) {
+            console.log('[VERBOSE]: User found and refresh has not expired yet');
+            return item;
+          }
         }
         return null;
       },
@@ -279,8 +284,17 @@ async function verifyKey(key) {
     };
   }
 
-  const refreshTokenPayload = await storeUser(keyHash);
-  if (!refreshTokenPayload) {
+  const refreshTokenPayload = await new Promise((resolve) => {
+    crypto.randomBytes(48, (err, buffer) => {
+      resolve(buffer.toString('hex'));
+    });
+  });
+  const response = generateTokens(key, refreshTokenPayload);
+  const { exp: expiry } = jwt.decode(response.refreshToken);
+
+  try {
+    await storeUser(keyHash, refreshTokenPayload, expiry);
+  } catch (err) {
     console.log('[TRACE]: UNABLE TO STORE USER, returning error...');
     return {
       error: {
@@ -289,8 +303,6 @@ async function verifyKey(key) {
       },
     };
   }
-
-  const response = generateTokens(key, refreshTokenPayload);
 
   console.log('[TRACE]: KEY VERIFIED: Returning Response: ', response);
   return response;
@@ -371,10 +383,18 @@ async function verifyToken(token) {
     };
   }
 
-  // Update store with new refresh payload
-  const refreshTokenPayload = await storeUser(keyHash);
-  if (!refreshTokenPayload) {
-    console.log('[TRACE]: UNABLE TO UPDATE USER, returning error...');
+  const refreshTokenPayload = await new Promise((resolve) => {
+    crypto.randomBytes(48, (err, buffer) => {
+      resolve(buffer.toString('hex'));
+    });
+  });
+  const response = generateTokens(key, refreshTokenPayload);
+  const { exp: expiry } = jwt.decode(response.refreshToken);
+
+  try {
+    await storeUser(keyHash, refreshTokenPayload, expiry);
+  } catch (err) {
+    console.log('[TRACE]: UNABLE TO STORE USER, returning error...');
     return {
       error: {
         name: 'InternalError',
@@ -382,8 +402,6 @@ async function verifyToken(token) {
       },
     };
   }
-
-  const response = generateTokens(decoded.key, refreshTokenPayload);
 
   console.log('[TRACE]: KEY VERIFIED: Returning Response: ', response);
   return response;
