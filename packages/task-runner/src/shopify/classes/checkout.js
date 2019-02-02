@@ -132,7 +132,7 @@ class Checkout {
       return { message: 'Failed: Logging in', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('ACCOUNT: Error logging in: %j', err);
-      if (err.error.code === 'ETIMEDOUT') {
+      if (err.error.code === 'ESOCKETTIMEDOUT') {
         return { message: 'Logging in', nextState: States.Login };
       }
       return { message: 'Failed: Logging in', nextState: States.Stopped };
@@ -222,7 +222,7 @@ class Checkout {
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
-      if (err.error.code === 'ETIMEDOUT') {
+      if (err.error.code === 'ESOCKETTIMEDOUT') {
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
@@ -295,11 +295,11 @@ class Checkout {
         }
       }
       this._logger.verbose('CHECKOUT: Not passed queue, delaying %d ms', monitorDelay);
-      await waitForDelay(monitorDelay);
+      await waitForDelay(2000);
       return { message: 'Waiting in queue', nextState: States.PollQueue };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %j', err, err);
-      if (err.error.code === 'ETIMEDOUT') {
+      if (err.error.code === 'ESOCKETTIMEDOUT') {
         return { message: 'Waiting in queue', nextState: States.PollQueue };
       }
       return { message: 'Failed: Polling queue', nextState: States.Stopped };
@@ -388,7 +388,7 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
-      if (err.error.code === 'ETIMEDOUT') {
+      if (err.error.code === 'ESOCKETTIMEDOUT') {
         return { message: 'Posting payment', nextState: States.PostPayment };
       }
       return { message: 'Failed: Posting payment', nextState: States.Stopped };
@@ -468,7 +468,7 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during review payment: %j', err);
-      if (err.error.code === 'ETIMEDOUT') {
+      if (err.error.code === 'ESOCKETTIMEDOUT') {
         return { message: 'Processing payment', nextState: States.CompletePayment };
       }
       return { message: 'Failed: Posting payment review', nextState: States.Stopped };

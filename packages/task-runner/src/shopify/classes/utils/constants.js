@@ -90,8 +90,8 @@ const PollQueueStateToNextState = {
       };
     }
     return {
-      message: 'Monitoring for product',
-      nextState: TaskRunnerStates.Monitor,
+      message: 'Submitting information',
+      nextState: TaskRunnerStates.PatchCheckout,
     };
   },
   [TaskRunnerStates.PatchCheckout]: () => ({

@@ -9530,11 +9530,6 @@ pkginfo@0.4.0:
   resolved "https://registry.yarnpkg.com/pkginfo/-/pkginfo-0.4.0.tgz#349dbb7ffd38081fcadc0853df687f0c7744cd65"
   integrity sha1-NJ27f/04CB/K3AhT32h/DHdEzWU=
 
-platform-folders@^0.2.7:
-  version "0.2.7"
-  resolved "https://registry.yarnpkg.com/platform-folders/-/platform-folders-0.2.7.tgz#dd493ae7b50159a09694361a9c7c71d58999cf78"
-  integrity sha512-bzbpKqk6YjOvPILvZ3bwO4atgKnEHfbO2XAfZApnvwSg7lmJ7i+YEzgEHIiKjqdbAq4jujDpXvg/8Mc04AqMyg==
-
 please-upgrade-node@^3.0.2, please-upgrade-node@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/please-upgrade-node/-/please-upgrade-node-3.1.1.tgz#ed320051dfcc5024fae696712c8288993595e8ac"
