@@ -62,31 +62,53 @@ module.exports = async function authenticateMiddleware(req, res, next) {
     });
   }
 
-  // Check if tokens key is valid
-  const keyHash = await authUtils.checkValidKey(decoded.key);
-  console.log(keyHash);
-  if (!keyHash) {
-    console.log('[ERROR]: INVALID KEY!');
-    console.log('===============================================');
-    return res.status(401).json({
-      error: {
-        name: 'InvalidToken',
-        message: 'Token is invalid',
-      },
-    });
-  }
+  // [BETA]: If the decoded key matches the limited access key, bypass verification
+  if (decoded.key !== process.env.NEBULA_API_LTD_ACCESS_KEY) {
+    // Check if tokens key is valid
+    const keyHash = await authUtils.checkValidKey(decoded.key);
+    if (!keyHash) {
+      let statusCode = 401;
+      console.log(`[DEBUG]: ${req.method}`);
+      if (req.method === 'DELETE') {
+        statusCode = 200;
+        console.log('[WARNING]: INVALID KEY! req was delete method, responding with 200 early');
+        console.log('===============================================');
+      } else {
+        console.log('[ERROR]: INVALID KEY!');
+        console.log('===============================================');
+      }
+      return res.status(statusCode).json({
+        error: {
+          name: 'InvalidToken',
+          message: 'Token is invalid',
+        },
+      });
+    }
 
-  // Check if key is registered
-  const inUse = await authUtils.checkIsInUse(keyHash);
-  if (!inUse) {
-    console.log('[ERROR]: Key is not registered!');
-    console.log('===============================================');
-    return res.status(403).json({
-      error: {
-        name: 'InvalidToken',
-        message: 'Token is invalid',
-      },
-    });
+    // Check if key is registered
+    const inUse = await authUtils.checkIsInUse(keyHash);
+    if (!inUse) {
+      let statusCode = 403;
+      console.log(`[DEBUG]: ${req.method}`);
+      if (req.method === 'delete') {
+        statusCode = 200;
+        console.log(
+          '[WARNING]: Key is not registered! req was delete method, responding with 200 early',
+        );
+        console.log('===============================================');
+      } else {
+        console.log('[ERROR]: Key is not registered!');
+        console.log('===============================================');
+      }
+      return res.status(statusCode).json({
+        error: {
+          name: 'InvalidToken',
+          message: 'Token is invalid',
+        },
+      });
+    }
+  } else {
+    console.log('[TRACE]: LTD ACCESS KEY DETECTED: bypassing validation...');
   }
 
   console.log('[DEBUG]: Token is valid, continuing...');

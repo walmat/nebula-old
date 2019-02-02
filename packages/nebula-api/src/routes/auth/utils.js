@@ -245,6 +245,8 @@ async function checkIsInUse(key) {
             console.log('[WARN]: Data Items is longer than one! Using first response');
           }
           const item = data.Items[0];
+
+          // If a found user has a non-expired refresh token, the key is still in use, return it
           if (!item.expiry || item.expiry > Date.now() / 1000) {
             console.log('[VERBOSE]: User found and refresh has not expired yet');
             return item;
@@ -262,29 +264,37 @@ module.exports.checkIsInUse = checkIsInUse;
 
 async function verifyKey(key) {
   console.log(`[TRACE]: Starting Key Verification with key: ${key} ...`);
-  const keyHash = await checkValidKey(key);
-  if (!keyHash) {
-    console.log('[TRACE]: KEY IS INVALID, returning error...');
-    return {
-      error: {
-        name: 'InvalidKey',
-        message: 'Invalid Key',
-      },
-    };
+
+  // [BETA]: If a found user is using the special access key, we should bypass
+  // The verification and in use checks and generate jwts for them
+  let keyHash = hash(algo, key, salt, output);
+  if (key !== process.env.NEBULA_API_LTD_ACCESS_KEY) {
+    keyHash = await checkValidKey(key);
+    if (!keyHash) {
+      console.log('[TRACE]: KEY IS INVALID, returning error...');
+      return {
+        error: {
+          name: 'InvalidKey',
+          message: 'Invalid Key',
+        },
+      };
+    }
+
+    const inUse = await checkIsInUse(keyHash);
+    if (inUse) {
+      console.log('[TRACE]: KEY IS IN USE, returning error...');
+      return {
+        error: {
+          name: 'KeyInUse',
+          message: 'Key In Use',
+        },
+      };
+    }
+  } else {
+    console.log(`[TRACE]: LTD ACCESS KEY DETECTED: bypassing check...`);
   }
 
-  const inUse = await checkIsInUse(keyHash);
-  if (inUse) {
-    console.log('[TRACE]: KEY IS IN USE, returning error...');
-    return {
-      error: {
-        name: 'KeyInUse',
-        message: 'Key In Use',
-      },
-    };
-  }
-
-  const refreshTokenPayload = await new Promise((resolve) => {
+  const refreshTokenPayload = await new Promise(resolve => {
     crypto.randomBytes(48, (err, buffer) => {
       resolve(buffer.toString('hex'));
     });
@@ -292,16 +302,21 @@ async function verifyKey(key) {
   const response = generateTokens(key, refreshTokenPayload);
   const { exp: expiry } = jwt.decode(response.refreshToken);
 
-  try {
-    await storeUser(keyHash, refreshTokenPayload, expiry);
-  } catch (err) {
-    console.log('[TRACE]: UNABLE TO STORE USER, returning error...');
-    return {
-      error: {
-        name: 'InternalError',
-        message: 'Internal Error',
-      },
-    };
+  // [BETA]: No need to store the user in the users table if they have the ltd access key
+  if (key === process.env.NEBULA_API_LTD_ACCESS_KEY) {
+    console.log('[TRACE]: LTD ACCESS KEY DETECTED: bypassing store user...');
+  } else {
+    try {
+      await storeUser(keyHash, refreshTokenPayload, expiry);
+    } catch (err) {
+      console.log('[TRACE]: UNABLE TO STORE USER, returning error...');
+      return {
+        error: {
+          name: 'InternalError',
+          message: 'Internal Error',
+        },
+      };
+    }
   }
 
   console.log('[TRACE]: KEY VERIFIED: Returning Response: ', response);
@@ -344,63 +359,73 @@ async function verifyToken(token) {
 
   console.log('[DEBUG]: JWT VERIFICIATION: Received decoded key: ', decoded);
 
-  // Check if key is valid
-  const keyHash = await checkValidKey(decoded.key);
-  if (!keyHash) {
-    console.log('[ERROR]: INVALID KEY!');
-    return {
-      error: {
-        name: 'InvalidKey',
-        message: 'Invalid Key',
-      },
-    };
+  // [BETA]: If a found user is using the special access key, we should bypass
+  // The verification and in use checks and generate jwts for them
+  let keyHash = hash(algo, decoded.key, salt, output);
+  if (decoded.key !== process.env.NEBULA_API_LTD_ACCESS_KEY) {
+    // Check if key is valid
+    keyHash = await checkValidKey(decoded.key);
+    if (!keyHash) {
+      console.log('[ERROR]: INVALID KEY!');
+      return {
+        error: {
+          name: 'InvalidKey',
+          message: 'Invalid Key',
+        },
+      };
+    }
+
+    // Check if key has been previously registered
+    const inUse = await checkIsInUse(keyHash);
+    if (!inUse) {
+      console.log('[ERROR]: INVALID STATE: Key has not been registered');
+      return {
+        error: {
+          name: 'InvalidToken',
+          message: 'token is invalid',
+        },
+      };
+    }
+
+    console.log('[DEBUG]: Comparing payload to token now...');
+
+    // Check if refresh payload is the same as the database
+    if (decoded.ref !== inUse.refresh_token) {
+      console.log('[ERROR]: INVALID STATE: Refresh token has an invalid payload');
+      console.log('Database: ', inUse);
+      console.log('Token: ', token);
+      return {
+        error: {
+          name: 'InvalidToken',
+          message: 'Token is invalid',
+        },
+      };
+    }
   }
 
-  // Check if key has been previously registered
-  const inUse = await checkIsInUse(keyHash);
-  if (!inUse) {
-    console.log('[ERROR]: INVALID STATE: Key has not been registered');
-    return {
-      error: {
-        name: 'InvalidToken',
-        message: 'token is invalid',
-      },
-    };
-  }
-
-  console.log('[DEBUG]: Comparing payload to token now...');
-
-  // Check if refresh payload is the same as the database
-  if (decoded.ref !== inUse.refresh_token) {
-    console.log('[ERROR]: INVALID STATE: Refresh token has an invalid payload');
-    console.log('Database: ', inUse);
-    console.log('Token: ', token);
-    return {
-      error: {
-        name: 'InvalidToken',
-        message: 'Token is invalid',
-      },
-    };
-  }
-
-  const refreshTokenPayload = await new Promise((resolve) => {
+  const refreshTokenPayload = await new Promise(resolve => {
     crypto.randomBytes(48, (err, buffer) => {
       resolve(buffer.toString('hex'));
     });
   });
-  const response = generateTokens(key, refreshTokenPayload);
+  const response = generateTokens(decoded.key, refreshTokenPayload);
   const { exp: expiry } = jwt.decode(response.refreshToken);
 
-  try {
-    await storeUser(keyHash, refreshTokenPayload, expiry);
-  } catch (err) {
-    console.log('[TRACE]: UNABLE TO STORE USER, returning error...');
-    return {
-      error: {
-        name: 'InternalError',
-        message: 'Internal Error',
-      },
-    };
+  // [BETA]: No need to store the user in the users table if they have the ltd access key
+  if (decoded.key === process.env.NEBULA_API_LTD_ACCESS_KEY) {
+    console.log('[TRACE]: LTD ACCESS KEY DETECTED: bypassing store user...');
+  } else {
+    try {
+      await storeUser(keyHash, refreshTokenPayload, expiry);
+    } catch (err) {
+      console.log('[TRACE]: UNABLE TO STORE USER, returning error...');
+      return {
+        error: {
+          name: 'InternalError',
+          message: 'Internal Error',
+        },
+      };
+    }
   }
 
   console.log('[TRACE]: KEY VERIFIED: Returning Response: ', response);

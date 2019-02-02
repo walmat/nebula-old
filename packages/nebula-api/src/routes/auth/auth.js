@@ -14,6 +14,15 @@ module.exports = function setupApiRoutes(app) {
       dec: { key },
     } = res.locals.jwt;
 
+    // [BETA]: if using a limited access key, bypass deleting key
+    if (key === process.env.NEBULA_API_LTD_ACCESS_KEY) {
+      console.log('[TRACE]: LTD ACCESS KEY DETECTED: bypassing delete key...');
+      return res.status(200).json({
+        response: 'success',
+        message: 'success',
+      });
+    }
+
     // Attempt to Delete Key
     const response = await authUtils.deleteKey(key);
 
