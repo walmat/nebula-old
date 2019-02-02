@@ -12,8 +12,6 @@ import {
 export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
   if (action.type === TASK_ACTIONS.EDIT) {
-
-    console.log(state);
     // Check if we are editing a new task or an existing one
     if (!action.id) {
       if (!action.field) {

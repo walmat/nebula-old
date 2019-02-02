@@ -1,7 +1,12 @@
 /* global describe expect it test jest */
 import { newTaskReducer } from '../../../../state/reducers/tasks/taskReducer';
 import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import { TASK_ACTIONS, TASK_FIELDS } from '../../../../state/actions';
+import {
+  TASK_ACTIONS,
+  TASK_FIELDS,
+  SETTINGS_ACTIONS,
+  SETTINGS_FIELDS,
+} from '../../../../state/actions';
 
 describe('new task reducer', () => {
   it('should return initial state', () => {
@@ -19,6 +24,68 @@ describe('new task reducer', () => {
         type: TASK_ACTIONS.EDIT,
         id: null,
         field: TASK_FIELDS.EDIT_USERNAME,
+        value: 'test',
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when updating error delay', () => {
+      const expected = {
+        ...initialTaskStates.task,
+        monitorDelay: 1500,
+        errorDelay: 5000,
+      };
+
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: SETTINGS_ACTIONS.EDIT,
+        id: null,
+        field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+        value: 5000,
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when updating monitor delay', () => {
+      const expected = {
+        ...initialTaskStates.task,
+        monitorDelay: 5000,
+        errorDelay: 1500,
+      };
+
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: SETTINGS_ACTIONS.EDIT,
+        id: null,
+        field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+        value: 5000,
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when updating discord webhook', () => {
+      const expected = {
+        ...initialTaskStates.task,
+        discord: 'test',
+      };
+
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: SETTINGS_ACTIONS.EDIT,
+        id: null,
+        field: SETTINGS_FIELDS.EDIT_DISCORD,
+        value: 'test',
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when updating slack webhook', () => {
+      const expected = {
+        ...initialTaskStates.task,
+        slack: 'test',
+      };
+
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: SETTINGS_ACTIONS.EDIT,
+        id: null,
+        field: SETTINGS_FIELDS.EDIT_SLACK,
         value: 'test',
       });
       expect(actual).toEqual(expected);
