@@ -5,7 +5,7 @@ const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
 const Discord = require('./classes/hooks/discord');
 const Slack = require('./classes/hooks/slack');
-const AsyncQueue = require('./classes/asyncQueue');
+const AsyncQueue = require('../common/asyncQueue');
 const {
   States,
   Events,
