@@ -23,7 +23,7 @@
   "scripts": {
     "build": "babel src/ -d build/",
     "ci": "exit 0",
-    "dev": "cross-env NODE_ENV=development npm run build && nodemon build/app.js",
+    "dev": "cross-env NODE_ENV=development nodemon src/app.js",
     "lint": "eslint src",
     "prestart": "npm run build",
     "prod": "cross-env NODE_ENV=production nodemon build/app.js",

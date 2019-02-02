@@ -103,7 +103,7 @@ async function deactivateUser(res, userData) {
   });
 }
 
-module.exports = function(app) {
+module.exports = app => {
   app.post('/auth/discord', async (req, res) => {
     const userData = req.body;
 
@@ -112,9 +112,20 @@ module.exports = function(app) {
         name: 'MalformedRequest',
         message: 'Malformed Request',
       });
-    } else {
-      await createDiscordUser(res, userData);
+      return;
     }
+
+    // [BETA]: If the key matches the limited access key, bypass creating discord user
+    if (userData.licenseKey === process.env.NEBULA_API_LTD_ACCESS_KEY) {
+      console.log('[TRACE]: LTD ACCESS KEY DETECTED: bypassing create discord user...');
+      res.status(200).json({
+        name: 'Success',
+        message: `Key Bound Successfully!`,
+      });
+      return;
+    }
+
+    await createDiscordUser(res, userData);
   });
 
   app.delete('/auth/discord', async (req, res) => {
@@ -125,8 +136,19 @@ module.exports = function(app) {
         name: 'MalformedRequest',
         message: 'Malformed Request',
       });
-    } else {
-      await deactivateUser(res, userData);
+      return;
     }
+
+    // [BETA]: If the key matches the limited access key, bypass deleting discord user
+    if (userData.licenseKey === process.env.NEBULA_API_LTD_ACCESS_KEY) {
+      console.log('[TRACE]: LTD ACCESS KEY DETECTED: bypassing delete discord user...');
+      res.status(200).json({
+        name: 'Success',
+        message: `Deactivated!`,
+      });
+      return;
+    }
+
+    await deactivateUser(res, userData);
   });
 };
