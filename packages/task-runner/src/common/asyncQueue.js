@@ -24,6 +24,8 @@ class AsyncQueue {
     if (this._waitQueue.length) {
       // Get the resolution and invoke it with the data
       const resolution = this._waitQueue.pop();
+      resolution.request.status = 'fulfilled';
+      resolution.request.value = datum;
       resolution.resolve(datum);
     } else {
       // Add data to the backlog
@@ -33,16 +35,40 @@ class AsyncQueue {
   }
 
   next() {
+    // initialize request
+    const nextRequest = {
+      status: 'pending', // status of the request
+      cancel: null, // function to cancel the request with a given reason
+      promise: null, // the async promise that is waiting for the next value
+      reason: '', // the reason for cancelling the request
+      value: null, // the resolved value
+    };
+
     // Check if we don't have any waiters and we do have a backlog
     if (!this._waitQueue.length && this._backlog.length) {
       // return from the backlog immediately
-      return Promise.resolve(this._backlog.pop());
+      const value = this._backlog.pop();
+      const promise = Promise.resolve(value);
+      return {
+        ...nextRequest,
+        status: 'fulfilled',
+        promise,
+        value,
+      };
     }
 
-    // Return a new promise that waits in line for data
-    return new Promise((resolve, reject) => {
-      this._waitQueue.push({ resolve, reject });
+    // Setup request promise and cancel function
+    nextRequest.promise = new Promise((resolve, reject) => {
+      nextRequest.cancel = reason => {
+        nextRequest.status = 'cancelled';
+        nextRequest.reason = reason;
+        this._waitQueue = this._waitQueue.filter(r => r.request !== nextRequest);
+        reject(reason);
+      };
+      this._waitQueue.push({ resolve, reject, request: nextRequest });
     });
+
+    return nextRequest;
   }
 
   clear() {
@@ -52,8 +78,10 @@ class AsyncQueue {
 
   destroy() {
     // Reject all resolutions in the wait queue
-    this._waitQueue.forEach(r => {
-      r.reject('Queue was destroyed');
+    this._waitQueue.forEach(({ reject, request }) => {
+      request.status = 'destroyed';
+      request.reason = 'Queue was destroyed';
+      reject('Queue was destroyed');
     });
     this._waitQueue = [];
 
