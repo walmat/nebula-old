@@ -1,7 +1,7 @@
 const fs = require('fs');
 const dotenv = require('dotenv');
 
-const _isDevelopment = process.env.NEBULA_API_ENV === 'development';
+const _isDevelopment = process.env.NODE_ENV === 'development';
 
 function _setUpEnvironment(envFname) {
   const envConfig = dotenv.parse(fs.readFileSync(envFname));
