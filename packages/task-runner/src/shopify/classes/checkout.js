@@ -26,6 +26,7 @@ class Checkout {
     };
 
     this.captchaToken = '';
+    this.captchaTokenRequest = null;
   }
 
   // MARK : Methods defined in subclasses

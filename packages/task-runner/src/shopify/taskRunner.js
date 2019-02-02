@@ -154,12 +154,13 @@ class TaskRunner {
     this.stopHarvestCaptcha();
   }
 
-  async getCaptcha() {
+  getCaptcha() {
     if (!this._captchaQueue) {
       this._captchaQueue = new AsyncQueue();
       this._events.on(TaskManagerEvents.Harvest, this._handleHarvest);
       this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
     }
+    // return the captcha request
     return this._captchaQueue.next();
   }
 
@@ -447,22 +448,53 @@ class TaskRunner {
     // exit if abort is detected
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
+      if (this._checkout.captchaTokenRequest) {
+        // cancel the request if it was previously started
+        this._checkout.captchaTokenRequest.cancel('aborted');
+      }
       return States.Aborted;
     }
 
-    const token = await this.getCaptcha();
-
-    if (!token) {
-      this._logger.verbose('Failed: Harvesting captcha token');
-      return States.Stopped;
+    // start request if it hasn't started already
+    if (!this._checkout.captchaTokenRequest) {
+      this._checkout.captchaTokenRequest = await this.getCaptcha();
     }
-    this._checkout.captchaToken = token;
 
-    if (this._prevState === States.PostPayment) {
-      return States.CompletePayment;
+    // Check the status of the request
+    switch (this._checkout.captchaTokenRequest.status) {
+      case 'pending': {
+        // waiting for token, sleep for delay and then return same state to check again
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return States.RequestCaptcha;
+      }
+      case 'fulfilled': {
+        // token was returned, store it and remove the request
+        ({ value: this._checkout.captchaToken } = this._checkout.captchaTokenRequest);
+        this._checkout.captchaTokenRequest = null;
+
+        if (this._prevState === States.PostPayment) {
+          return States.CompletePayment;
+        }
+        // return to the previous state
+        return this._prevState;
+      }
+      case 'cancelled':
+      case 'destroyed': {
+        this._logger.verbose(
+          'Harvest Captcha status: %s, stopping...',
+          this._checkout.captchaTokenRequest.status,
+        );
+        // TODO: should we emit a status update here?
+        return States.Stopped;
+      }
+      default: {
+        this._logger.verbose(
+          'Unknown Harvest Captcha status! %s, stopping...',
+          this._checkout.captchaTokenRequest.status,
+        );
+        return States.Stopped;
+      }
     }
-    // otherwise, return to the previous state
-    return this._prevState;
   }
 
   async _handlePostPayment() {
