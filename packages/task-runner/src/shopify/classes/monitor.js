@@ -45,8 +45,7 @@ class Monitor {
   async _delay(status) {
     let delay = this._waitForRefreshDelay;
     switch (status || 404) {
-      case 401:
-      case 404: {
+      case 401: {
         delay = this._waitForErrorDelay;
         break;
       }

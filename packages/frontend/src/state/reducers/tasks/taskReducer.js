@@ -247,16 +247,31 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
       });
     }
     case SETTINGS_ACTIONS.EDIT: {
-      if (
-        action.field !== SETTINGS_FIELDS.EDIT_DISCORD &&
-        action.field !== SETTINGS_FIELDS.EDIT_SLACK
-      ) {
-        break;
+      switch (action.field) {
+        case SETTINGS_FIELDS.EDIT_DISCORD:
+        case SETTINGS_FIELDS.EDIT_SLACK: {
+          return {
+            ...state,
+            [mapSettingsFieldToKey[action.field]]: action.value,
+          };
+        }
+        case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
+        case SETTINGS_FIELDS.EDIT_MONITOR_DELAY: {
+          const strValue = action.value || '0';
+          const intValue = parseInt(strValue, 10);
+          if (Number.isNaN(intValue)) {
+            // action.value isn't a valid integer, so we do nothing
+            break;
+          }
+          return {
+            ...state,
+            [mapSettingsFieldToKey[action.field]]: intValue,
+          };
+        }
+        default:
+          break;
       }
-      return {
-        ...state,
-        [mapSettingsFieldToKey[action.field]]: action.value,
-      };
+      break;
     }
     case PROFILE_ACTIONS.UPDATE: {
       // If there's no profile, we should do nothing
