@@ -54,6 +54,7 @@ const formatProxy = input => {
     return `http://${data[0]}:${data[1]}`;
   }
   if (data.length === 4) {
+    console.log(`http://${data[2]}:${data[3]}@${data[0]}:${data[1]}`);
     return `http://${data[2]}:${data[3]}@${data[0]}:${data[1]}`;
   }
   return null;

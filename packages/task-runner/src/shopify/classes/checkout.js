@@ -200,6 +200,11 @@ class Checkout {
         return { message: 'Account required', nextState: States.Stopped };
       }
 
+      if (redirectUrl.indexOf('stock_problems') > -1) {
+        await waitForDelay(monitorDelay);
+        return { message: 'Running for restocks', nextState: States.CreateCheckout };
+      }
+
       // password page
       if (redirectUrl.indexOf('password') > -1) {
         await waitForDelay(monitorDelay);
@@ -447,7 +452,7 @@ class Checkout {
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.PostPayment };
+          return { message: 'Running for restocks', nextState: States.CompletePayment };
         }
 
         // login needed

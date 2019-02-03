@@ -351,6 +351,7 @@
     "value": "https://shop-usa.palaceskateboards.com",
     "apiKey": "59571a4e503fc3164848c544a5fda777",
     "auth": false,
+    "special": true,
     "supported": true
   },
   {
@@ -358,6 +359,7 @@
     "value": "https://shop.palaceskateboards.com",
     "apiKey": "c1369ef0027f554f66e555f2c1347048",
     "auth": false,
+    "special": true,
     "supported": true
   },
   {
@@ -365,6 +367,7 @@
     "value": "https://shop-jp.palaceskateboards.com",
     "apiKey": "174834a020c4994e48f0405e0017ea51",
     "auth": false,
+    "special": true,
     "supported": true
   },
   {

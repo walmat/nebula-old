@@ -233,7 +233,7 @@ class FrontendCheckout extends Checkout {
         qs: {
           'shipping_address[zip]': zipCode,
           'shipping_address[country]': country.value,
-          'shipping_address[province]': province.value,
+          'shipping_address[province]': province ? province.value : '',
         },
       });
 
