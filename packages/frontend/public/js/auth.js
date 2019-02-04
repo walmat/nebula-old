@@ -8,7 +8,17 @@ window.onload = () => {
     path: './js/nebula.json',
   };
   const anim = bodymovin.loadAnimation(animData);
+  const close = document.getElementById('close');
+  const submit = document.getElementById('license-key-submit');
+  const input = document.getElementById('license-key-input');
 
-  document.getElementById('close').onclick = window.Bridge.close;
-  document.getElementById('license-key-submit').onclick = checkLicense;
+  input.onkeypress = e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      checkLicense();
+    }
+  };
+
+  close.onclick = window.Bridge.close;
+  submit.onclick = checkLicense;
 };
