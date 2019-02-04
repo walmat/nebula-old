@@ -9,6 +9,7 @@ publish:
   provider: "github"
   owner: "walmat"
   repo: "nebula"
+  private: true
 
 directories:
   buildResources: _assets/

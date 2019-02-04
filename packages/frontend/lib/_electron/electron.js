@@ -10,12 +10,6 @@ nebulaEnv.setUpEnvironment();
 // reference to our application
 const app = new App();
 
-/* Handling squirrel.windows events on windows
-only required if you have build the windows with target squirrel. For NSIS target you don't need it. */
-if (require('electron-squirrel-startup')) {
-  app.quit();
-}
-
 // Allow insecure content if in dev mode
 // if (nebulaEnv.isDevelopment()) {
 //   Electron.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
