@@ -87,6 +87,10 @@ const addToCart = (variant, site) => {
       opts = { 'properties[_hash]': 'ee3e8f7a9322eaa382e04f8539a7474c11555' };
       break;
     }
+    case 'Funko Shop': {
+      opts = { 'properties[_sELerAVIcKmA_aRCesTiVanDl_]': 'Zfq3N1cDdi1@' };
+      break;
+    }
     default:
       break;
   }

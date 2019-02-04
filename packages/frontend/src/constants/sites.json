@@ -183,6 +183,7 @@
     "value": "https://funko-shop.myshopify.com",
     "apiKey": "a861544cb572058d21ab033f62010615",
     "auth": false,
+    "special": true,
     "supported": true
   },
   {
