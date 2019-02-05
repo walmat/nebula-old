@@ -2,8 +2,6 @@
 /* eslint-disable global-require */
 /* eslint-disable class-methods-use-this */
 const Electron = require('electron');
-const { autoUpdater } = require('electron-updater');
-const log = require('electron-log');
 const CaptchaServerManager = require('./captchaServerManager');
 const MainMenu = require('./mainMenu');
 const DialogManager = require('./dialogManager');
@@ -14,33 +12,6 @@ const nebulaEnv = require('./env');
 const { bindDebugEvents } = require('./debug');
 
 nebulaEnv.setUpEnvironment();
-
-autoUpdater.logger = log;
-
-autoUpdater.on('checking-for-update', e => {
-  log.info('CHECKING FOR UPDATE', e);
-});
-
-autoUpdater.on('update-available', info => {
-  log.info('UPDATE AVAILABLE: ', info);
-});
-
-autoUpdater.on('update-not-available', info => {
-  log.info('UPDATE NOT AVAILABLE: ', info);
-});
-
-autoUpdater.on('error', err => {
-  log.info('ERROR: ', err);
-});
-
-autoUpdater.on('download-progress', progressObj => {
-  log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
-});
-
-autoUpdater.on('update-downloaded', info => {
-  log.info('UPDATING: ', info);
-  autoUpdater.quitAndInstall();
-});
 
 /**
  * Application entry point.
@@ -170,9 +141,6 @@ class App {
     await this._windowManager.createNewWindow('main');
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
-
-    const update = await autoUpdater.checkForUpdatesAndNotify();
-    log.info(update);
   }
 
   /**

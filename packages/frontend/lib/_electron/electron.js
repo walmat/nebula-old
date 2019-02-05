@@ -1,11 +1,42 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable global-require */
 const Electron = require('electron');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
 const nebulaEnv = require('./env');
 const App = require('./app');
 
 // setup nebula environment
 nebulaEnv.setUpEnvironment();
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'debug';
+
+autoUpdater.on('checking-for-update', e => {
+  log.info('CHECKING FOR UPDATE', e);
+});
+
+autoUpdater.on('update-available', info => {
+  log.info('UPDATE AVAILABLE: ', info);
+});
+
+autoUpdater.on('update-not-available', info => {
+  log.info('UPDATE NOT AVAILABLE: ', info);
+});
+
+autoUpdater.on('error', err => {
+  log.info('ERROR: ', err);
+});
+
+autoUpdater.on('download-progress', progressObj => {
+  log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
+});
+
+autoUpdater.on('update-downloaded', info => {
+  log.info('UPDATING: ', info);
+  // autoUpdater.quitAndInstall();
+});
 
 // reference to our application
 const app = new App();
@@ -26,7 +57,17 @@ Electron.app.on('ready', () => {
     console.log('Application is ready');
   }
 
-  app.onReady();
+  app.onReady().then(() => {
+    log.info('Starting update check...');
+    autoUpdater
+      .checkForUpdatesAndNotify()
+      .then(info => {
+        log.info(info);
+      })
+      .catch(err => {
+        log.error(err);
+      });
+  });
 });
 
 /**

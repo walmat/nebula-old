@@ -6,10 +6,8 @@ compression: maximum
 extends: null
 
 publish:
-  provider: "github"
-  owner: "walmat"
-  repo: "nebula"
-  private: true
+  provider: generic
+  url: 'https://nebula-orion-deployment.herokuapp.com'
 
 directories:
   buildResources: _assets/
