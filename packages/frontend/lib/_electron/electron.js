@@ -69,7 +69,7 @@ Electron.app.on('ready', () => {
 
   app.onReady().then(() => {
     log.info('Starting update check...');
-    autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdatesAndNotify();
   });
 });
 
