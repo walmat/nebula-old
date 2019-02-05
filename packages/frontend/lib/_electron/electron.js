@@ -35,7 +35,17 @@ autoUpdater.on('download-progress', progressObj => {
 
 autoUpdater.on('update-downloaded', info => {
   log.info('UPDATING: ', info);
-  // autoUpdater.quitAndInstall();
+  Electron.dialog.showMessageBox(
+    {
+      type: 'info',
+      title: 'New Update',
+      message: 'New Updated Downloaded, Nebula will restart',
+      buttons: ['Ok'],
+    },
+    () => {
+      autoUpdater.quitAndInstall();
+    },
+  );
 });
 
 // reference to our application
@@ -59,14 +69,7 @@ Electron.app.on('ready', () => {
 
   app.onReady().then(() => {
     log.info('Starting update check...');
-    autoUpdater
-      .checkForUpdatesAndNotify()
-      .then(info => {
-        log.info(info);
-      })
-      .catch(err => {
-        log.error(err);
-      });
+    autoUpdater.checkForUpdates();
   });
 });
 
