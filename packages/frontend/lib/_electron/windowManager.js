@@ -1,7 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
-const log = require('electron-log');
-const { autoUpdater } = require('electron-updater');
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 const {
@@ -196,39 +194,7 @@ class WindowManager {
       this._windows.set(win.id, win);
       this._notifyUpdateWindowIDs(win.id);
       win.show();
-
-      // // check for updates
-      if (win === this._main) {
-        autoUpdater.checkForUpdatesAndNotify();
-
-        autoUpdater.on('checking-for-update', () => {
-          // TODO - IPC
-        });
-        autoUpdater.on('update-available', info => {
-          // TODO - IPC
-        });
-        autoUpdater.on('update-not-available', info => {
-          // TODO - IPC
-        });
-        autoUpdater.on('error', err => {
-          // TODO - IPC
-        });
-        autoUpdater.on('download-progress', progressObj => {
-          let msg = `Download speed: ${progressObj.bytesPerSecond}`;
-          msg = `${msg} - Downloaded ${progressObj.percent}%`;
-          msg = `${msg}(${progressObj.transferred}/${progressObj.total})`;
-          // TODO - IPC
-        });
-        autoUpdater.on('update-downloaded', info => {
-          // TODO - IPC
-        });
-      }
     };
-  }
-
-  static sendStatusToWindow(win, text) {
-    log.info(text);
-    win.webContents.send('message', text);
   }
 
   /**

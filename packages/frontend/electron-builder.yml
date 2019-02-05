@@ -36,7 +36,6 @@ dmg:
       y: 150
 
 mac:
-  target: dmg
   category: public.app-category.productivity
   icon: "build/assets/icons/mac/icon.icns"
 
