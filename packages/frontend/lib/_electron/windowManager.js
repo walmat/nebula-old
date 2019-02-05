@@ -1,5 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 const {
@@ -14,6 +17,44 @@ const {
 const CaptchaWindowManager = require('./captchaWindowManager');
 
 nebulaEnv.setUpEnvironment();
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'debug';
+
+autoUpdater.on('checking-for-update', e => {
+  log.info('CHECKING FOR UPDATE', e);
+});
+
+autoUpdater.on('update-available', info => {
+  log.info('UPDATE AVAILABLE: ', info);
+});
+
+autoUpdater.on('update-not-available', info => {
+  log.info('UPDATE NOT AVAILABLE: ', info);
+});
+
+autoUpdater.on('error', err => {
+  log.info('ERROR: ', err);
+});
+
+autoUpdater.on('download-progress', progressObj => {
+  log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
+});
+
+autoUpdater.on('update-downloaded', info => {
+  log.info('UPDATING: ', info);
+  Electron.dialog.showMessageBox(
+    {
+      type: 'info',
+      title: 'New Update',
+      message: 'New Updated Downloaded, Nebula will restart',
+      buttons: ['Ok'],
+    },
+    () => {
+      autoUpdater.quitAndInstall();
+    },
+  );
+});
 
 /**
  * Manage the window.
@@ -194,6 +235,11 @@ class WindowManager {
       this._windows.set(win.id, win);
       this._notifyUpdateWindowIDs(win.id);
       win.show();
+
+      if (win === this._main) {
+        log.info('Starting update check...');
+        autoUpdater.checkForUpdatesAndNotify();
+      }
     };
   }
 
