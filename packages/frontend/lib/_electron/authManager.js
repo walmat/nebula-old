@@ -103,7 +103,7 @@ class AuthManager {
           'Content-Type': 'application/json',
         },
       });
-      if (!res.ok && res.status != 403) {
+      if (!res.ok && res.status !== 403) {
         const { error } = await res.json();
         console.log('[ERROR]: Unable to Delete: ', error);
         return false;

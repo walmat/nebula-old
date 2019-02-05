@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
+const { autoUpdater } = require('electron-updater');
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 const {
@@ -194,6 +195,12 @@ class WindowManager {
       this._windows.set(win.id, win);
       this._notifyUpdateWindowIDs(win.id);
       win.show();
+
+      // // check for updates
+      // TODO - causing app to exit every time??
+      if (win === this._main) {
+        autoUpdater.checkForUpdates();
+      }
     };
   }
 
@@ -253,7 +260,6 @@ class WindowManager {
     this._auth.loadURL(winUrl);
 
     this._auth.on('ready-to-show', this.handleShow(this._auth));
-
     this._auth.on('close', this.handleClose(this._auth));
 
     this._windows.forEach(w => {
@@ -273,7 +279,6 @@ class WindowManager {
     this._main.loadURL(winUrl);
 
     this._main.on('ready-to-show', this.handleShow(this._main));
-
     this._main.on('close', this.handleClose(this._main));
 
     this._windows.forEach(w => {
@@ -291,6 +296,8 @@ class WindowManager {
    */
   _notifyUpdateWindowIDs(excludeID) {
     const windowIDs = [];
+
+    // eslint-disable-next-line no-restricted-syntax
     for (const key of this._windows.keys()) {
       windowIDs.push(key);
     }
