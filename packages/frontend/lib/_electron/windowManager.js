@@ -21,37 +21,37 @@ nebulaEnv.setUpEnvironment();
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'debug';
 
-autoUpdater.on('checking-for-update', e => {
-  log.info('CHECKING FOR UPDATE', e);
-});
-
-autoUpdater.on('update-available', info => {
-  log.info('UPDATE AVAILABLE: ', info);
-});
-
-autoUpdater.on('update-not-available', info => {
-  log.info('UPDATE NOT AVAILABLE: ', info);
-});
-
-autoUpdater.on('error', err => {
-  log.info('ERROR: ', err);
-});
-
-autoUpdater.on('download-progress', progressObj => {
-  log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
-});
+// TODO: Enable these once we start adding a custom UI (See issue #305)
+// autoUpdater.on('checking-for-update', e => {
+//   log.info('CHECKING FOR UPDATE', e);
+// });
+// autoUpdater.on('update-available', info => {
+//   log.info('UPDATE AVAILABLE: ', info);
+// });
+// autoUpdater.on('update-not-available', info => {
+//   log.info('UPDATE NOT AVAILABLE: ', info);
+// });
+// autoUpdater.on('error', err => {
+//   log.info('ERROR: ', err);
+// });
+// autoUpdater.on('download-progress', progressObj => {
+//   log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
+// });
 
 autoUpdater.on('update-downloaded', info => {
-  log.info('UPDATING: ', info);
+  log.info('NEW UPDATE DOWNLOADED: ', info);
+  const { version } = info;
   Electron.dialog.showMessageBox(
     {
-      type: 'info',
+      type: 'question',
       title: 'New Update',
-      message: 'New Updated Downloaded, Nebula will restart',
-      buttons: ['Ok'],
+      message: `Version ${version} has been downloaded! Nebula will automatically update on the next launch. Would you like to update now?`,
+      buttons: ['Update Now', 'Update Later'],
     },
-    () => {
-      autoUpdater.quitAndInstall();
+    response => {
+      if (response === 0) {
+        autoUpdater.quitAndInstall();
+      }
     },
   );
 });
@@ -336,10 +336,7 @@ class WindowManager {
   _notifyUpdateWindowIDs(excludeID) {
     const windowIDs = [];
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const key of this._windows.keys()) {
-      windowIDs.push(key);
-    }
+    this._windows.keys().forEach(windowIDs.push);
 
     this._windows.forEach(w => {
       if (w.id === excludeID) {

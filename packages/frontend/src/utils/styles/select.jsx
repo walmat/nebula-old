@@ -1,5 +1,6 @@
 import { components } from 'react-select';
 import React from 'react';
+import PropTypes from 'prop-types';
 import DDD from '../../_assets/dropdown-down.svg';
 import DDU from '../../_assets/dropdown-up.svg';
 
@@ -12,6 +13,9 @@ export const DropdownIndicator = props => {
       <img src={menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
     </components.DropdownIndicator>
   );
+};
+DropdownIndicator.propTypes = {
+  selectProps: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export const colourStyles = provided => ({
