@@ -17,7 +17,8 @@ function validateExp(exp) {
 
 function validateCVV(cvv) {
   // TODO: Validate cvv for specific cc types (e.g. - AMEX, VISA, DISCOVER, etc.)
-  return cvv && valid.cvv(cvv).isValid;
+  // return cvv && valid.cvv(cvv).isValid;
+  return cvv && cvv !== '';
 }
 
 const paymentAttributeValidators = {
