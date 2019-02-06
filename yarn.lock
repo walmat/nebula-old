@@ -3970,11 +3970,6 @@ dotenv@6.0.0:
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-6.0.0.tgz#24e37c041741c5f4b25324958ebbc34bca965935"
   integrity sha512-FlWbnhgjtwD+uNLUGHbMykMOYQaTivdHEmYwAKFjn6GKe/CqY0fNae93ZHTd20snh9ZLr8mTzIL9m0APQ1pjQg==
 
-dotenv@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-4.0.0.tgz#864ef1379aced55ce6f95debecdce179f7a0cd1d"
-  integrity sha1-hk7xN5rO1Vzm+V3r7NzhefegzR0=
-
 dotenv@^6.0.0, dotenv@^6.2.0:
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-6.2.0.tgz#941c0410535d942c8becf28d3f357dbd9d476064"
@@ -4236,9 +4231,9 @@ env-variable@0.0.x:
   integrity sha512-zoB603vQReOFvTg5xMl9I1P2PnHsHQQKTEowsKKD7nseUfJq6UWzK+4YtlWUO1nhiQUxe6XMkk+JleSZD1NZFA==
 
 enzyme-adapter-react-16@^1.5.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/enzyme-adapter-react-16/-/enzyme-adapter-react-16-1.9.0.tgz#b3bc951cb90d619ead85b49760300be1bbaced80"
-  integrity sha512-tUqmeLi0Y3PxuiPSykjn8ZMqzCnaRIVywNx0i50+nhd4y/b3JtXRbsvIc8HKxn3heE4t969EI2461Kc9FYxjdw==
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/enzyme-adapter-react-16/-/enzyme-adapter-react-16-1.9.1.tgz#6d49a3a31c3a0fccf527610f31b837e0f307128a"
+  integrity sha512-Egzogv1y77DUxdnq/CyHxLHaNxmSSKDDSDNNB/EiAXCZVFXdFibaNy2uUuRQ1n24T2m6KH/1Rw16XDRq+1yVEg==
   dependencies:
     enzyme-adapter-utils "^1.10.0"
     function.prototype.name "^1.1.0"
@@ -10703,13 +10698,14 @@ react-app-rewire-yarn-workspaces@^1.0.3:
   dependencies:
     get-yarn-workspaces "^1.0.0"
 
-react-app-rewired@^1.6.2:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/react-app-rewired/-/react-app-rewired-1.6.2.tgz#32ce90abc2c4e2b86c71e4e270bd36663b3b1c9a"
-  integrity sha512-TxbP1W9jPPTmj0YJeFNgcJc6IMg7sv845aHUIUvVQtXdA8IWzOZairk3Bth6GHbxoF2QitbvUlM7/NAH4VmmJg==
+react-app-rewired@^2.0.0:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/react-app-rewired/-/react-app-rewired-2.0.3.tgz#1b5a40ca27c30a6438720c96c96b16c9c46772b9"
+  integrity sha512-IGL8uSMu4cwW2OhpU0Dhe3zCKU1vuuTguM6ZLQI/+70ppO1J6SfRjhjVb5THQTkxToSCLw7DFd4Eltv38yH8WQ==
   dependencies:
-    cross-spawn "^5.1.0"
-    dotenv "^4.0.0"
+    cross-spawn "^6.0.5"
+    dotenv "^6.2.0"
+    semver "^5.6.0"
 
 react-dev-utils@^7.0.1:
   version "7.0.1"
