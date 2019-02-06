@@ -20,6 +20,7 @@ nebulaEnv.setUpEnvironment();
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'debug';
+autoUpdater.autoInstallOnAppQuit = false;
 
 // TODO: Enable these once we start adding a custom UI (See issue #305)
 // autoUpdater.on('checking-for-update', e => {
@@ -47,6 +48,8 @@ autoUpdater.on('update-downloaded', info => {
       title: 'New Update',
       message: `Version ${version} has been downloaded! Nebula will automatically update on the next launch. Would you like to update now?`,
       buttons: ['Update Now', 'Update Later'],
+      cancelId: 1,
+      defaultId: 0,
     },
     response => {
       if (response === 0) {
