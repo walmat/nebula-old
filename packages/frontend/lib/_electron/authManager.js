@@ -3,7 +3,6 @@ const fetch = require('node-fetch');
 
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
-const nebulaCheckUpdates = require('./checkUpdates');
 
 // Set up nebula environment variables
 nebulaEnv.setUpEnvironment();
@@ -104,7 +103,7 @@ class AuthManager {
           'Content-Type': 'application/json',
         },
       });
-      if (!res.ok && res.status != 403) {
+      if (!res.ok && res.status !== 403) {
         const { error } = await res.json();
         console.log('[ERROR]: Unable to Delete: ', error);
         return false;
@@ -169,9 +168,7 @@ class AuthManager {
         windowManager.transitionToDeauthedState();
       }
     } else {
-      const win = windowManager.transitiontoAuthedState();
-      // TODO - write proper check for updates functionality
-      // nebulaCheckUpdates.checkForUpdates(win);
+      windowManager.transitiontoAuthedState();
     }
   }
 

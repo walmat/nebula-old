@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 const Electron = require('electron');
 const CaptchaServerManager = require('./captchaServerManager');
 const MainMenu = require('./mainMenu');
@@ -135,7 +136,6 @@ class App {
     if (nebulaEnv.isDevelopment()) {
       await App.installExtensions();
     }
-
     await this._windowManager.createNewWindow('main');
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
@@ -164,14 +164,7 @@ class App {
     Electron.app.quit();
   }
 
-  onCertificateErrorHandler(
-    event,
-    webContents,
-    url,
-    error,
-    certificate,
-    callback,
-  ) {
+  onCertificateErrorHandler(event, webContents, url, error, certificate, callback) {
     const serverPort = this._captchaServerManager.port;
     if (serverPort && url.startsWith(`https://127.0.0.1:${serverPort}`)) {
       event.preventDefault();
@@ -190,7 +183,8 @@ class App {
       default: installExtension,
       REACT_DEVELOPER_TOOLS,
       REDUX_DEVTOOLS,
-    } = require('electron-devtools-installer');
+      // eslint-disable-next-line global-require
+    } = require('electron-devtools-installer'); // dev only require
     const devExts = [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS];
     await Promise.all(
       devExts.map(ext =>

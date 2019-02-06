@@ -129,12 +129,7 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = dispatch => ({
   onConnectServer: (serverOptions, awsCredentials) => {
-    dispatch(
-      serverActions.connect(
-        serverOptions,
-        awsCredentials,
-      ),
-    );
+    dispatch(serverActions.connect(serverOptions, awsCredentials));
   },
   onStartServer: (serverOptions, awsCredentials) => {
     dispatch(serverActions.start(serverOptions, awsCredentials));

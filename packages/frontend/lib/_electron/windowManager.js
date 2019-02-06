@@ -1,4 +1,8 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
 const {
@@ -13,6 +17,47 @@ const {
 const CaptchaWindowManager = require('./captchaWindowManager');
 
 nebulaEnv.setUpEnvironment();
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'debug';
+autoUpdater.autoInstallOnAppQuit = false;
+
+// TODO: Enable these once we start adding a custom UI (See issue #305)
+// autoUpdater.on('checking-for-update', e => {
+//   log.info('CHECKING FOR UPDATE', e);
+// });
+// autoUpdater.on('update-available', info => {
+//   log.info('UPDATE AVAILABLE: ', info);
+// });
+// autoUpdater.on('update-not-available', info => {
+//   log.info('UPDATE NOT AVAILABLE: ', info);
+// });
+// autoUpdater.on('error', err => {
+//   log.info('ERROR: ', err);
+// });
+// autoUpdater.on('download-progress', progressObj => {
+//   log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
+// });
+
+autoUpdater.on('update-downloaded', info => {
+  log.info('NEW UPDATE DOWNLOADED: ', info);
+  const { version } = info;
+  Electron.dialog.showMessageBox(
+    {
+      type: 'question',
+      title: 'New Update',
+      message: `Version ${version} has been downloaded! Nebula will automatically update on the next launch. Would you like to update now?`,
+      buttons: ['Update Now', 'Update Later'],
+      cancelId: 1,
+      defaultId: 0,
+    },
+    response => {
+      if (response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    },
+  );
+});
 
 /**
  * Manage the window.
@@ -193,6 +238,11 @@ class WindowManager {
       this._windows.set(win.id, win);
       this._notifyUpdateWindowIDs(win.id);
       win.show();
+
+      if (win === this._main) {
+        log.info('Starting update check...');
+        autoUpdater.checkForUpdatesAndNotify();
+      }
     };
   }
 
@@ -252,7 +302,6 @@ class WindowManager {
     this._auth.loadURL(winUrl);
 
     this._auth.on('ready-to-show', this.handleShow(this._auth));
-
     this._auth.on('close', this.handleClose(this._auth));
 
     this._windows.forEach(w => {
@@ -272,7 +321,6 @@ class WindowManager {
     this._main.loadURL(winUrl);
 
     this._main.on('ready-to-show', this.handleShow(this._main));
-
     this._main.on('close', this.handleClose(this._main));
 
     this._windows.forEach(w => {
@@ -290,9 +338,10 @@ class WindowManager {
    */
   _notifyUpdateWindowIDs(excludeID) {
     const windowIDs = [];
-    for (const key of this._windows.keys()) {
+
+    this._windows.forEach((_, key) => {
       windowIDs.push(key);
-    }
+    });
 
     this._windows.forEach(w => {
       if (w.id === excludeID) {

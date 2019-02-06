@@ -5,6 +5,10 @@ asar: true
 compression: maximum
 extends: null
 
+publish:
+  provider: generic
+  url: 'https://nebula-deployment.herokuapp.com'
+
 directories:
   buildResources: _assets/
   output: orion/
@@ -30,9 +34,9 @@ dmg:
       y: 150
 
 mac:
-  target: dmg
   category: public.app-category.productivity
   icon: "build/assets/icons/mac/icon.icns"
+  artifactName: 'Nebula.Orion-${version}.${ext}'
 
 win:
   target: nsis
@@ -45,7 +49,10 @@ linux:
     - AppImage
   category: linux.category.productivity
 nsis:
+  artifactName: 'Nebula.Orion-${version}.${ext}'
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
   perMachine: true
-  oneClick: true
+  oneClick: false
 npmRebuild: true
 nodeGypRebuild: false

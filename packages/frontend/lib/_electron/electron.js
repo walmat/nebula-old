@@ -1,4 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable global-require */
 const Electron = require('electron');
+
 const nebulaEnv = require('./env');
 const App = require('./app');
 
@@ -23,7 +26,6 @@ Electron.app.on('ready', () => {
   if (nebulaEnv.isDevelopment()) {
     console.log('Application is ready');
   }
-
   app.onReady();
 });
 
@@ -68,17 +70,21 @@ Electron.app.on('web-contents-created', (evt1, contents) => {
     webPreferences.experimentalFeatures = false;
     webPreferences.blinkFeatures = '';
 
-    if (!params.src.startsWith('file:///') &&
-        !params.src.startsWith('https://localhost') &&
-        !params.src.startsWith('https://accounts.google.com')) {
+    if (
+      !params.src.startsWith('file:///') &&
+      !params.src.startsWith('https://localhost') &&
+      !params.src.startsWith('https://accounts.google.com')
+    ) {
       evt2.preventDefault();
     }
   });
 
   contents.on('will-navigate', (evt2, navigationUrl) => {
-    if (!navigationUrl.startsWith('file:///') &&
-        !navigationUrl.startsWith('https://localhost') &&
-        !navigationUrl.startsWith('https://accounts.google.com')) {
+    if (
+      !navigationUrl.startsWith('file:///') &&
+      !navigationUrl.startsWith('https://localhost') &&
+      !navigationUrl.startsWith('https://accounts.google.com')
+    ) {
       evt2.preventDefault();
     }
   });
