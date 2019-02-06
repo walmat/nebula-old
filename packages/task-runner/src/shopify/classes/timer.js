@@ -18,7 +18,7 @@ class Timer {
   /**
    * Stops the timer by clearing the start and end time
    */
-  stop(time) {
+  stop(time = now()) {
     this._end = time;
     this._total += this._end - this._start;
   }

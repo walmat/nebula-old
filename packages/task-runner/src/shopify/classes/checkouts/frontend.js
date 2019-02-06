@@ -52,6 +52,9 @@ class FrontendCheckout extends Checkout {
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Request error creating payment token: %s', err);
+      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
+        return { message: 'Starting task setup', nextState: States.PaymentToken };
+      }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
@@ -135,6 +138,9 @@ class FrontendCheckout extends Checkout {
       return { message: 'Creating checkout', nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.debug('CART: Request error in add to cart: %s', err);
+      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
+        return { message: 'Adding to cart', nextState: States.AddToCart };
+      }
       return { message: 'Failed: Add to cart', nextState: States.Stopped };
     }
   }
@@ -205,8 +211,11 @@ class FrontendCheckout extends Checkout {
       // unknown redirect, stopping...
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
-      this._logger.debug('FRONTEND CHECKOUT: Request error creating checkout: %j', err);
-      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+      this._logger.debug('FRONTEND CHECKOUT: Request error patching checkout: %j', err);
+      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
+        return { message: 'Patch checkout', nextState: States.PatchCheckout };
+      }
+      return { message: 'Failed: Patching checkout', nextState: States.Stopped };
     }
   }
 
@@ -280,6 +289,9 @@ class FrontendCheckout extends Checkout {
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Request error fetching shipping rates: %j', err);
+      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
+        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+      }
       return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
     }
   }
