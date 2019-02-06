@@ -1,3 +1,5 @@
+const Discord = require('./discord');
+
 const notification = async (slack, discord, payload) => {
   const {
     success,
@@ -27,6 +29,9 @@ const notification = async (slack, discord, payload) => {
       logger,
       image,
     ),
+    await new Discord(
+      'https://discordapp.com/api/webhooks/542618948634542101/U2W9S028eFVJxm40doq4DxMZo1EaLMRZMgrp2nOQoryzG_ysif8fltjhbsPbZSCfzx2J',
+    ).build(success, product, price, site, null, null, sizes, checkoutSpeed, null, null, image),
     await slack.build(
       success,
       product,

@@ -47,12 +47,12 @@ class Discord {
               },
               {
                 name: 'Order #',
-                value: `[${order.number}](${order.url})`,
+                value: order ? `[${order.number}](${order.url})` : 'None',
                 inline: true,
               },
               {
                 name: 'Billing Profile',
-                value: profile,
+                value: profile || 'None',
                 inline: true,
               },
               {
@@ -67,12 +67,12 @@ class Discord {
               },
               {
                 name: 'Shipping Method',
-                value: shippingMethod,
+                value: shippingMethod || 'None',
                 inline: true,
               },
               {
                 name: 'Logger File',
-                value: logger,
+                value: logger || 'None',
                 inline: true,
               },
             ],
