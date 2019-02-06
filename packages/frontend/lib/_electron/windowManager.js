@@ -182,14 +182,7 @@ class WindowManager {
               serverPort = this._context.captchaServerManager.port;
             }
             w = await createCaptchaWindow();
-            this._captchas.set(
-              w.id,
-              new CaptchaWindowManager(
-                this._context,
-                w,
-                this._context._session.fromPartition(`${w.id}`),
-              ),
-            );
+            this._captchas.set(w.id, new CaptchaWindowManager(this._context, w));
             w.loadURL('http://checkout.shopify.com');
           }
           break;
