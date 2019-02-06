@@ -39,7 +39,7 @@ export class PaymentFieldsPrimitive extends Component {
           style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])}
         />
         <NumberFormat
-          format="#### #### #### ####"
+          format="#### #### #### #### ##"
           placeholder="XXXX XXXX XXXX XXXX"
           id="card-number"
           onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)}

@@ -1,3 +1,4 @@
+import valid from 'card-validator';
 import regexes from '../validation';
 import { PAYMENT_FIELDS } from '../../state/actions';
 
@@ -6,16 +7,18 @@ function validateEmail(email) {
 }
 
 function validateCardNumber(cardNumber) {
-  return cardNumber && regexes.creditCardNumber.test(cardNumber);
+  return cardNumber && valid.number(cardNumber).isValid;
 }
 
 function validateExp(exp) {
   // TODO: create regex for this
-  return exp && regexes.creditCardExp.test(exp);
+  return exp && valid.expirationDate(exp).isValid;
 }
 
 function validateCVV(cvv) {
-  return cvv && regexes.creditCardCvv.test(cvv);
+  // TODO: Validate cvv for specific cc types (e.g. - AMEX, VISA, DISCOVER, etc.)
+  // return cvv && valid.cvv(cvv).isValid;
+  return cvv && cvv !== '';
 }
 
 const paymentAttributeValidators = {

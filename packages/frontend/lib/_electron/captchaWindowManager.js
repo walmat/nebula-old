@@ -5,7 +5,7 @@ const IPCKeys = require('../common/constants');
 const TokenContainer = require('../common/classes/tokenContainer');
 
 class CaptchaWindowManager {
-  constructor(context, captchaWindow, session) {
+  constructor(context, captchaWindow) {
     /**
      * Application context
      */
@@ -39,7 +39,7 @@ class CaptchaWindowManager {
     /**
      * Session that the captcha window will use / YouTube window will set
      */
-    this._session = session;
+    this._session = captchaWindow.webContents.session;
 
     /**
      * IPC Function Definitions

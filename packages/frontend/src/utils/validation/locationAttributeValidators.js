@@ -1,4 +1,4 @@
-import regexes from '../validation';
+// import regexes from '../validation';
 import { LOCATION_FIELDS } from '../../state/actions';
 import getAllCountries, { getProvinces } from '../../constants/getAllCountries';
 
@@ -33,7 +33,8 @@ function validateLastName(lastName) {
 }
 
 function validatePhoneNumber(phoneNumber) {
-  return phoneNumber && regexes.phoneNumber.test(phoneNumber);
+  // trust that the phone number they gave us is right
+  return phoneNumber && phoneNumber !== '';
 }
 
 function validateProvince({ country = {}, province = {} }) {
