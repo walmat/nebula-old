@@ -336,7 +336,9 @@ class WindowManager {
   _notifyUpdateWindowIDs(excludeID) {
     const windowIDs = [];
 
-    this._windows.keys().forEach(windowIDs.push);
+    this._windows.forEach((_, key) => {
+      windowIDs.push(key);
+    });
 
     this._windows.forEach(w => {
       if (w.id === excludeID) {

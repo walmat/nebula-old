@@ -1,4 +1,4 @@
 provider: generic
-url: 'https://nebula-orion-deployment.herokuapp.com'
+url: 'https://nebula-deployment.herokuapp.com'
 channel: beta
 updaterCacheDirName: '@nebulaorion-updater'
