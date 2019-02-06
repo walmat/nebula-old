@@ -452,6 +452,7 @@ class Checkout {
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
+          // TODO - fix restock mode loopback check
           return { message: 'Running for restocks', nextState: States.CompletePayment };
         }
 
