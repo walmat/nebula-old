@@ -168,7 +168,9 @@ class FrontendCheckout extends Checkout {
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Upgrade-Insecure-Requests': '1',
         },
-        body: JSON.stringify(patchCheckoutForm(profile, shipping, billing, payment)),
+        body: JSON.stringify(
+          patchCheckoutForm(profile, shipping, billing, payment, this.captchaToken),
+        ),
       });
 
       const { statusCode, headers } = res;
@@ -272,7 +274,7 @@ class FrontendCheckout extends Checkout {
 
         const cheapest = _.min(this.shippingMethods, rate => rate.price);
         const { name } = cheapest;
-        const id = `${cheapest.source}-${cheapest.name.replace(/ /g, '%20')}-${cheapest.price}`;
+        const id = `${cheapest.source}-${encodeURIComponent(cheapest.name)}-${cheapest.price}`;
         this.chosenShippingMethod = { id, name };
         this._logger.verbose('FRONTEND CHECKOUT: Using shipping rate: %s', name);
 

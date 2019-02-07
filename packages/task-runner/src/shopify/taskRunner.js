@@ -490,6 +490,10 @@ class TaskRunner {
         if (this._prevState === States.PostPayment) {
           return States.CompletePayment;
         }
+
+        if (this._prevState === States.GetCheckout) {
+          return States.PatchCheckout;
+        }
         // return to the previous state
         return this._prevState;
       }

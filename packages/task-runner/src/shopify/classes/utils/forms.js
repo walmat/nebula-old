@@ -8,10 +8,11 @@ const buildPaymentForm = (payment, billing) => ({
   },
 });
 
-const patchCheckoutForm = (profile, shipping, billing, payment) => {
+const patchCheckoutForm = (profile, shipping, billing, payment, captchaToken) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
     complete: '1',
+    'g-recaptcha-response': captchaToken,
     checkout: {
       secret: true,
       email: payment.email,

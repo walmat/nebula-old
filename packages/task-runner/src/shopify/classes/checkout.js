@@ -259,7 +259,7 @@ class Checkout {
         },
       });
 
-      const { statusCode, headers } = res;
+      const { statusCode, body, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
@@ -299,6 +299,15 @@ class Checkout {
           await waitForDelay(monitorDelay);
           return { message: 'Waiting in queue', nextState: States.PollQueue };
         }
+      }
+
+      // check if captcha is present
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      const recaptcha = $('.g-recaptcha');
+      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
+      if (recaptcha.length > 0) {
+        this._context.task.checkoutSpeed = this._context.timer.getRunTime();
+        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
       return { message: 'Submitting information', nextState: States.PatchCheckout };
