@@ -3,7 +3,7 @@ import regexes from '../validation';
 import { PAYMENT_FIELDS } from '../../state/actions';
 
 function validateEmail(email) {
-  return email && regexes.email.test(email);
+  return email && regexes.email.test(email.toLowerCase());
 }
 
 function validateCardNumber(cardNumber) {

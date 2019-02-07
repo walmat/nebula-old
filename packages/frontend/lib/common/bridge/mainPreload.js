@@ -92,7 +92,6 @@ const _updateHook = (hook, type) => {
 };
 
 const _sendWebhookTestMessage = (hook, type) => {
-  console.log(hook, type, 'here');
   util.sendEvent(IPCKeys.RequestWebhookTest, hook, type);
 };
 

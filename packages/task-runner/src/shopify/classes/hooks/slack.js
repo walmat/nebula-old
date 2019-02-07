@@ -7,7 +7,7 @@ class Slack {
     }
   }
 
-  build(
+  async build(
     success = false,
     product,
     price,
