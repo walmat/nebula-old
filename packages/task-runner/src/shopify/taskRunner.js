@@ -350,6 +350,21 @@ class TaskRunner {
     return res.nextState;
   }
 
+  async _handleGetCheckout() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const res = await this._checkout.getCheckout();
+
+    this._emitTaskEvent({
+      message: res.message,
+    });
+    return res.nextState;
+  }
+
   async _handlePatchCheckout() {
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
@@ -615,6 +630,7 @@ class TaskRunner {
       [States.Login]: this._handleLogin,
       [States.PaymentToken]: this._handlePaymentToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
+      [States.GetCheckout]: this._handleGetCheckout,
       [States.PollQueue]: this._handlePollQueue,
       [States.PatchCheckout]: this._handlePatchCheckout,
       [States.Monitor]: this._handleMonitor,
