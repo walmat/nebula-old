@@ -304,7 +304,7 @@ class Checkout {
       await waitForDelay(2000);
       return { message: 'Waiting in queue', nextState: States.PollQueue };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error polling queue: %j', err, err);
+      this._logger.debug('CHECKOUT: Error polling queue: %j', err);
       if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
         return { message: 'Waiting in queue', nextState: States.PollQueue };
       }

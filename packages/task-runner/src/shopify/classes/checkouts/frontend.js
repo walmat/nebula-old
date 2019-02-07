@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const cheerio = require('cheerio');
 
 const {
   formatProxy,
@@ -145,6 +146,101 @@ class FrontendCheckout extends Checkout {
     }
   }
 
+  async createCheckout(...params) {
+    // call super implementation:
+    const { message, nextState } = await super.createCheckout(...params);
+    // Send it to
+    return {
+      message,
+      nextState: nextState === States.PatchCheckout ? States.GetCheckout : nextState,
+    };
+  }
+
+  async getCheckout() {
+    const { site, monitorDelay, errorDelay } = this._context.task;
+    const { url } = site;
+
+    this._logger.verbose('FRONTEND CHECKOUT: Getting checkout');
+    try {
+      const res = await this._request({
+        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+        method: 'GET',
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
+        simple: false,
+        json: false,
+        headers: {
+          ...getHeaders(site),
+          'Accept-Language': 'en-US,en;q=0.8',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Upgrade-Insecure-Requests': '1',
+        },
+      });
+
+      const { statusCode, body, headers } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      if (statusCode === 500 || statusCode === 503) {
+        await waitForDelay(errorDelay);
+        return { message: 'Getting checkout', nextState: States.GetCheckout };
+      }
+
+      const redirectUrl = headers.location || res.request.href;
+      this._logger.verbose('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
+
+      // check for redirects
+      if (redirectUrl) {
+        // account needed
+        if (redirectUrl.indexOf('account') > -1) {
+          if (this._context.task.username && this._context.task.password) {
+            return { message: 'Logging in', nextState: States.Login };
+          }
+          return { message: 'Account required', nextState: States.Stopped };
+        }
+
+        // out of stock
+        if (redirectUrl.indexOf('stock_problems') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Running for restocks', nextState: States.GetCheckout };
+        }
+
+        // password page
+        if (redirectUrl.indexOf('password') > -1) {
+          return { message: 'Password page', nextState: States.CreateCheckout };
+        }
+
+        // queue
+        if (redirectUrl.indexOf('throttle') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Waiting in queue', nextState: States.PollQueue };
+        }
+      }
+
+      // check if captcha is present
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      const recaptcha = $('.g-recaptcha');
+      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
+      if (recaptcha.length > 0) {
+        this._context.task.checkoutSpeed = this._context.timer.getRunTime();
+        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
+      }
+
+      return { message: 'Submitting information', nextState: States.PatchCheckout };
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Error getting checkout %j', err);
+      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
+        return { message: 'Getting checkout', nextState: States.GetCheckout };
+      }
+      return { message: 'Failed: Getting checkout', nextState: States.Stopped };
+    }
+  }
+
   async patchCheckout() {
     const { site, profile, monitorDelay } = this._context.task;
     const { shipping, billing, payment } = profile;
@@ -168,7 +264,9 @@ class FrontendCheckout extends Checkout {
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Upgrade-Insecure-Requests': '1',
         },
-        body: JSON.stringify(patchCheckoutForm(profile, shipping, billing, payment)),
+        body: JSON.stringify(
+          patchCheckoutForm(profile, shipping, billing, payment, this.captchaToken),
+        ),
       });
 
       const { statusCode, headers } = res;
@@ -272,7 +370,7 @@ class FrontendCheckout extends Checkout {
 
         const cheapest = _.min(this.shippingMethods, rate => rate.price);
         const { name } = cheapest;
-        const id = `${cheapest.source}-${cheapest.name.replace(/ /g, '%20')}-${cheapest.price}`;
+        const id = `${cheapest.source}-${encodeURIComponent(cheapest.name)}-${cheapest.price}`;
         this.chosenShippingMethod = { id, name };
         this._logger.verbose('FRONTEND CHECKOUT: Using shipping rate: %s', name);
 

@@ -350,6 +350,19 @@ class TaskRunner {
     return res.nextState;
   }
 
+  async _handleGetCheckout() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { message, nextState } = await this._checkout.getCheckout();
+
+    this._emitTaskEvent({ message });
+    return nextState;
+  }
+
   async _handlePatchCheckout() {
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
@@ -474,6 +487,10 @@ class TaskRunner {
 
         if (this._prevState === States.PostPayment) {
           return States.CompletePayment;
+        }
+
+        if (this._prevState === States.GetCheckout) {
+          return States.PatchCheckout;
         }
         // return to the previous state
         return this._prevState;
@@ -615,6 +632,7 @@ class TaskRunner {
       [States.Login]: this._handleLogin,
       [States.PaymentToken]: this._handlePaymentToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
+      [States.GetCheckout]: this._handleGetCheckout,
       [States.PollQueue]: this._handlePollQueue,
       [States.PatchCheckout]: this._handlePatchCheckout,
       [States.Monitor]: this._handleMonitor,
