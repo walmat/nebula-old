@@ -74,7 +74,6 @@ export class ProxyListPrimitive extends Component {
     // Get the clipboard data and sanitize the text
     const data = e.clipboardData || window.clipboardData;
 
-    console.log(data.getData('text'));
     const text = ProxyListPrimitive.sanitize(data.getData('text'));
 
     // Perform the insert using the plain text to mimic the paste
