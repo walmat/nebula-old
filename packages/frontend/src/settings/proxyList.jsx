@@ -73,6 +73,7 @@ export class ProxyListPrimitive extends Component {
 
     // Get the clipboard data and sanitize the text
     const data = e.clipboardData || window.clipboardData;
+
     const text = ProxyListPrimitive.sanitize(data.getData('text'));
 
     // Perform the insert using the plain text to mimic the paste
@@ -93,6 +94,7 @@ export class ProxyListPrimitive extends Component {
     // TODO: Figure out a better way to do this without using innerText
     // Get the new proxies from the domNodes innerText,
     //   then mapping it to sanitized input, then removing empty lines
+
     const newProxies = this.domNode.current.innerText
       .trim()
       .split('\n')

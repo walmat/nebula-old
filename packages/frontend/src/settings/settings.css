@@ -32,7 +32,6 @@ input::placeholder, input {
 #proxy-list-text {
     position:absolute;
     font-family: AvenirNext-Medium;
-    text-transform: capitalize;
     font-size: 9px;
     color: #6D6E70;
     letter-spacing: 0;

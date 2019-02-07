@@ -84,7 +84,6 @@ class Discord {
           },
         ],
       };
-
       return this.hook.setPayload(payload).fire();
     }
     return null;

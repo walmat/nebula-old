@@ -19,7 +19,7 @@ function getSpecialParser(site) {
     case 'DSM SG':
     case 'DSM JP':
     case 'DSM US':
-    case 'DSM EU': {
+    case 'DSM UK': {
       return (...params) => new DsmParser(...params);
     }
     case 'Yeezy Supply':
