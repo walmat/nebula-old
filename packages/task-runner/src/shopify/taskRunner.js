@@ -357,12 +357,10 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.getCheckout();
+    const { message, nextState } = await this._checkout.getCheckout();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    this._emitTaskEvent({ message });
+    return nextState;
   }
 
   async _handlePatchCheckout() {
