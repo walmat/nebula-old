@@ -78,7 +78,6 @@ const addToCart = (variant, site, { hash }) => {
     id: variant,
     add: '',
   };
-
   let opts = {};
   switch (site.name) {
     case 'DSM US': {
@@ -90,7 +89,8 @@ const addToCart = (variant, site, { hash }) => {
       break;
     }
     case 'Funko Shop': {
-      opts = { 'properties[_sELerAVIcKmA_aRCesTiVanDl_]': hash };
+      // TODO : figure out if this changes and we need to parse it out somewhere
+      opts = { 'properties[_sELerAVIcKmA_aRCesTiVanDl_]': 'Zfq3N1cDdi1@' };
       break;
     }
     default:
