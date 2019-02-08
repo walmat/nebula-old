@@ -158,7 +158,12 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
-    const variants = this._generateValidVariants(parsed);
+    let variants;
+    if (this._context.task.product.variant) {
+      variants = [this._context.task.product.variant];
+    } else {
+      variants = this._generateValidVariants(parsed);
+    }
     if (!variants) {
       return {
         message: `Unable to match variants`,

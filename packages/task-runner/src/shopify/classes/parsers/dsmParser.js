@@ -18,6 +18,12 @@ const HashRegexes = {
 class DsmParser extends SpecialParser {
   constructor(request, task, proxy, logger) {
     super(request, task, proxy, logger, 'DsmParser');
+
+    /**
+     *
+     * Map of { id: hash }
+     */
+    this.hashIds = {};
   }
 
   get initialPageContainsProducts() {
@@ -72,6 +78,11 @@ class DsmParser extends SpecialParser {
       error.status = ErrorCodes.ProductNotFound;
       throw error;
     }
+
+    const hash = this.findHashProperty($, this._task.site);
+    this._task.product.hash = { id: product.id, hash };
+
+    // call findHashProperty and store it in the map
     return JSON.parse(product.html());
   }
 
@@ -91,10 +102,10 @@ class DsmParser extends SpecialParser {
     });
   }
 
-  async findHashProperty($, site) {
+  findHashProperty($, site) {
     // TODO: DSM London, find the .custom js file and make the request before this
     try {
-      const hash = await this.parseProductInfoPageForHash($, HashRegexes[site.name]);
+      const hash = this.parseProductInfoPageForHash($, HashRegexes[site.name]);
       return hash;
     } catch (err) {
       this._logger.debug(
@@ -105,6 +116,10 @@ class DsmParser extends SpecialParser {
       );
       return null;
     }
+  }
+
+  async run() {
+    const matchedProduct = await super.run();
   }
 }
 
