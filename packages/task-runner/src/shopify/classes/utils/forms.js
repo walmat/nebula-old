@@ -81,11 +81,11 @@ const addToCart = (variant, site, { hash }) => {
   let opts = {};
   switch (site.name) {
     case 'DSM US': {
-      opts = { 'properties[_HASH]': hash };
+      opts = { 'properties[_HASH]': hash || 256783362428 };
       break;
     }
     case 'DSM UK': {
-      opts = { 'properties[_hash]': hash };
+      opts = { 'properties[_hash]': hash || 'ee3e8f7a9322eaa382e04f8539a7474c11555' };
       break;
     }
     case 'Funko Shop': {
