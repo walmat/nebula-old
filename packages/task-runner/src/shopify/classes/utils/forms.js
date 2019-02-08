@@ -73,23 +73,24 @@ const patchCheckoutForm = (profile, shipping, billing, payment, captchaToken) =>
   return data;
 };
 
-const addToCart = (variant, site) => {
+const addToCart = (variant, site, { hash }) => {
   const base = {
     id: variant,
     add: '',
   };
+
   let opts = {};
   switch (site.name) {
     case 'DSM US': {
-      opts = { 'properties[_HASH]': 256782942468 };
+      opts = { 'properties[_HASH]': hash };
       break;
     }
     case 'DSM UK': {
-      opts = { 'properties[_hash]': 'ee3e8f7a9322eaa382e04f8539a7474c11555' };
+      opts = { 'properties[_hash]': hash };
       break;
     }
     case 'Funko Shop': {
-      opts = { 'properties[_sELerAVIcKmA_aRCesTiVanDl_]': 'Zfq3N1cDdi1@' };
+      opts = { 'properties[_sELerAVIcKmA_aRCesTiVanDl_]': hash };
       break;
     }
     default:
