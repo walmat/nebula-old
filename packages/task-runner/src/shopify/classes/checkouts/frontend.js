@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 const {
   formatProxy,
   getHeaders,
+  stateForError,
   stateForStatusCode,
   userAgent,
   waitForDelay,
@@ -63,30 +64,12 @@ class FrontendCheckout extends Checkout {
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Request error creating payment token: %s', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Starting task setup', nextState: States.PaymentToken };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Starting task setup', nextState: States.PaymentToken };
-      }
-      return { message: 'Failed: Creating payment token', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Starting task setup',
+        nextState: States.PaymentToken,
+      });
+      return nextState || { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
 
@@ -168,30 +151,12 @@ class FrontendCheckout extends Checkout {
       return { message: 'Creating checkout', nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.debug('CART: Request error in add to cart: %s', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Adding to cart', nextState: States.AddToCart };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Adding to cart', nextState: States.AddToCart };
-      }
-      return { message: 'Failed: Add to cart', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Adding to cart',
+        nextState: States.AddToCart,
+      });
+      return nextState || { message: 'Failed: Add to cart', nextState: States.Stopped };
     }
   }
 
@@ -282,30 +247,12 @@ class FrontendCheckout extends Checkout {
       return { message: 'Submitting information', nextState: States.PatchCheckout };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error getting checkout %j', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Fetching checkout', nextState: States.GetCheckout };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Fetching checkout', nextState: States.GetCheckout };
-      }
-      return { message: 'Failed: Fetching checkout', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Fetching checkout',
+        nextState: States.GetCheckout,
+      });
+      return nextState || { message: 'Failed: Fetching checkout', nextState: States.Stopped };
     }
   }
 
@@ -382,30 +329,12 @@ class FrontendCheckout extends Checkout {
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Request error patching checkout: %j', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Submitting information', nextState: States.PatchCheckout };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Submitting information', nextState: States.PatchCheckout };
-      }
-      return { message: 'Failed: Submitting information', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Submitting information',
+        nextState: States.PatchCheckout,
+      });
+      return nextState || { message: 'Failed: Submitting information', nextState: States.Stopped };
     }
   }
 
@@ -483,30 +412,12 @@ class FrontendCheckout extends Checkout {
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Request error fetching shipping rates: %j', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
-      }
-      return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Fetching shipping rates',
+        nextState: States.ShippingRates,
+      });
+      return nextState || { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
     }
   }
 }

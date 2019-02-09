@@ -1,7 +1,14 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
-const { formatProxy, getHeaders, stateForStatusCode, userAgent, waitForDelay } = require('./utils');
+const {
+  formatProxy,
+  getHeaders,
+  stateForError,
+  stateForStatusCode,
+  userAgent,
+  waitForDelay,
+} = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 
 class Checkout {
@@ -138,30 +145,13 @@ class Checkout {
       return { message: 'Failed: Logging in', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('ACCOUNT: Error logging in: %j', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Starting task setup', nextState: States.Login };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Starting task setup', nextState: States.Login };
-      }
-      return { message: 'Failed: Logging in', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Starting task setup',
+        nextState: States.Login,
+      });
+
+      return nextState || { message: 'Failed: Logging in', nextState: States.Stopped };
     }
   }
 
@@ -252,30 +242,12 @@ class Checkout {
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Creating checkout', nextState: States.CreateCheckout };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Creating checkout', nextState: States.CreateCheckout };
-      }
-      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Creating checkout',
+        nextState: States.CreateCheckout,
+      });
+      return nextState || { message: 'Failed: Creating checkout', nextState: States.Stopped };
     }
   }
 
@@ -359,30 +331,12 @@ class Checkout {
       return { message: 'Waiting in queue', nextState: States.PollQueue };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %j', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
-      return { message: 'Failed: Polling queue', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Waiting in queue',
+        nextState: States.PollQueue,
+      });
+      return nextState || { message: 'Failed: Polling queue', nextState: States.Stopped };
     }
   }
 
@@ -467,30 +421,12 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Posting payment', nextState: States.PostPayment };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Posting payment', nextState: States.PostPayment };
-      }
-      return { message: 'Failed: Posting payment', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Posting payment',
+        nextState: States.PostPayment,
+      });
+      return nextState || { message: 'Failed: Posting payment', nextState: States.Stopped };
     }
   }
 
@@ -573,30 +509,12 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during review payment: %j', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        return { message: 'Processing payment', nextState: States.CompletePayment };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        return { message: 'Processing payment', nextState: States.CompletePayment };
-      }
-      return { message: 'Failed: Posting payment review', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Processing payment',
+        nextState: States.CompletePayment,
+      });
+      return nextState || { message: 'Failed: Posting payment review', nextState: States.Stopped };
     }
   }
 
@@ -697,36 +615,12 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error failed processing payment: %s', err);
-      const { cause, error } = err;
 
-      // connection reset
-      if (
-        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
-        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
-      ) {
-        return { message: 'Swapping proxy', nextState: States.SwapProxies };
-      }
-      // request timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
-      ) {
-        // reset timer
-        timer.stop();
-        timer.start();
-        return { message: 'Processing payment', nextState: States.PaymentProcess };
-      }
-      // socket freeze timeout
-      if (
-        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
-        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
-      ) {
-        // reset timer
-        timer.stop();
-        timer.start();
-        return { message: 'Processing payment', nextState: States.PaymentProcess };
-      }
-      return { message: 'Failed: Processing payment', nextState: States.Stopped };
+      const nextState = stateForError(err, {
+        message: 'Processing payment',
+        nextState: States.PaymentProcess,
+      });
+      return nextState || { message: 'Failed: Processing payment', nextState: States.Stopped };
     }
   }
 }
