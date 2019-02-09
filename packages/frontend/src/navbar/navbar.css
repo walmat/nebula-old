@@ -1,104 +1,56 @@
-/* Navbar */
-
-.nav-container {
-    height: 100%;
-    width: 112px; /* 2px extra for border*/
-    position: fixed;
-    z-index: 1;
-    top: 0;
-    left: 0;
-    overflow-x: hidden;
+.navbar .wrapper {
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
 }
-.react-bodymovin-container {
-    position: absolute;
-    top: 28px;
-    left: 19px;
-    width: 74px;
-    height: 74px;
+.navbar .separator {
+  top: 8.5px;
+  height: calc(body_height - 8.5px);
+  border: 1px solid #efefef;
+  display: block;
 }
-
-#vert-line {
-    position: absolute;
-    display: block;
-    top: 8.5px;
-    left: 110px;
-    height: 700.28px;
-    width: 1px;
-    border-left: 2px solid #EFEFEF;
+.navbar .icons {
+  cursor: pointer;
+  margin: 0 0 15% 0;
 }
-
-#try-line {
-    position: absolute;
-    display: block;
-    top: 8.5px;
-    left: 32px;
-    height: 700.28px;
-    width: 1px;
-    border-left: 2px solid #EFEFEF;
-}
-
-.active {
+.navbar .icons--active {
   opacity: 0.5;
 }
-
-#icon-tasks {
-    position:absolute;
-    top:175px;
-    left:32px;
-    width:61px;
-    height:49px;
-    cursor: pointer;
+.navbar .icons--tasks {
+  margin-left: 16px;
+  width: 61px;
+  height: 49px;
+}
+.navbar .icons--profiles {
+  width: 44px;
+  height: 43px;
+}
+.navbar .icons--servers {
+  width: 42px;
+  height: 46px;
+}
+.navbar .icons--settings {
+  width: 40px;
+  height: 60px;
+}
+.navbar .footer--name {
+  text-transform: capitalize;
+  text-align: center;
+}
+.navbar .footer--name p {
+  opacity: 0.75;
+  color: #46ADB4;
+}
+.navbar .footer--version {
+  text-align: center;
+}
+.navbar .footer--version p {
+  opacity: 0.75;
+  color: #F0405E;
 }
 
-#icon-profiles {
-    position:absolute;
-    top:271px;
-    left:32px;
-    width:44px;
-    height:43px;
-    cursor: pointer;
-}
-
-#icon-server {
-    position:absolute;
-    top:360px;
-    left:32px;
-    width:42px;
-    height:46px;
-    cursor: pointer;
-}
-
-#icon-settings {
-    position:absolute;
-    top:445px;
-    left:32px;
-    width:40px;
-    height:60px;
-    cursor: pointer;
-}
-
-.appName {
-    position:absolute;
-    bottom: 32px;
-    width:110px;
-    height:12px;
-    text-transform: capitalize;
-    text-align: center;
-}
-.appName > p {
-    opacity: 0.75;
-    color: #46ADB4;
-}
-
-.appVersion > p {
-    opacity: 0.75;
-    color: #F0405E;
-}
-
-.appVersion {
-    position:absolute;
-    bottom: 16px;
-    width:110px;
-    height:12px;
-    text-align: center;
-}
+/*# sourceMappingURL=navbar.css.map */

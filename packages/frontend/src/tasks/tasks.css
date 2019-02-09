@@ -107,7 +107,7 @@
   letter-spacing: 0;
 }
 .tasks .tasks-create__input--bordered {
-  border: 1px solid #F0405E;
+  border: 1px solid #f0405e;
 }
 .tasks .tasks-create__input--field {
   width: 119px;
@@ -125,19 +125,19 @@
   width: 83px;
   height: 29px;
   cursor: pointer;
-  background: #F0405E;
+  background: #f0405e;
   border: none;
   border-radius: 3px;
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #EFEFEF;
+  color: #efefef;
   letter-spacing: 0;
 }
 
-.tasks .tasks-log__header--output, .tasks .tasks-log__header--site, .tasks .tasks-log__header--size, .tasks .tasks-log__header--id {
+.tasks .tasks-log__header__output, .tasks .tasks-log__header__site, .tasks .tasks-log__header__id {
   margin: 0;
 }
-.tasks .tasks-log__header--output > p, .tasks .tasks-log__header--site > p, .tasks .tasks-log__header--size > p, .tasks .tasks-log__header--id > p {
+.tasks .tasks-log__header__output > p, .tasks .tasks-log__header__site > p, .tasks .tasks-log__header__id > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   color: #161318;
@@ -148,7 +148,7 @@
 .tasks .tasks-log-container {
   width: 504px;
   height: 300px;
-  border: 1px solid #F0405E;
+  border: 1px solid #f0405e;
   border-radius: 3px;
 }
 .tasks .tasks-log-container .tasks-table__wrapper {
@@ -190,17 +190,17 @@
   margin-left: -1px;
   padding-left: 14px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row__log--site {
-  width: 205px;
-  white-space: nowrap;
-  padding-left: 3px;
+.tasks .tasks-table .tasks-row-container .tasks-row__log--sizes {
+  width: 50px;
+  margin-left: 7px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row__log--size {
-  width: 150px;
-  padding-left: 20px;
+.tasks .tasks-table .tasks-row-container .tasks-row__log--site {
+  width: 116px;
+  padding-left: 15px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__log--output {
   width: 440px;
+  padding-left: 5px;
 }
 .tasks .tasks-log {
   width: 504px;
@@ -214,24 +214,21 @@
 .tasks .tasks-log__header {
   padding-bottom: 1px;
 }
-.tasks .tasks-log__header--id {
+.tasks .tasks-log__header__id {
   width: 7px;
   padding-left: 14px;
 }
-.tasks .tasks-log__header--site {
-  width: 110px;
-  padding-left: 15px;
-}
-.tasks .tasks-log__header--size {
-  width: 65px;
+.tasks .tasks-log__header__site {
+  width: 60px;
   padding-left: 18px;
 }
-.tasks .tasks-log__header--output {
-  width: 20x;
-  padding-left: 28px;
+.tasks .tasks-log__header__output {
+  width: 40px;
+  padding-left: 50px;
 }
 
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product {
+  text-transform: uppercase;
   text-overflow: ellipsis;
 }
 
@@ -249,7 +246,7 @@
 .tasks .tasks-table-container {
   width: 741px;
   height: 300px;
-  border: 1px solid #F0405E;
+  border: 1px solid #f0405e;
   border-radius: 3px;
   margin: 0 16px 0 0 !important;
 }
@@ -266,7 +263,7 @@
   min-height: 26px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit {
-  width: 5px;
+  width: 16px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id {
   width: 26px;
@@ -275,19 +272,19 @@
   text-align: center;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product {
-  width: 200px;
+  width: 129px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites {
-  width: 125px;
+  width: 73px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile {
-  width: 125px;
+  width: 268px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes {
-  width: 65px;
+  width: 54px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs {
-  width: 65px;
+  width: 50px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions {
   width: 50px;
@@ -352,7 +349,7 @@
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input {
   vertical-align: middle;
   height: 29px;
-  border: #F0405E solid 1px;
+  border: #f0405e solid 1px;
   border-radius: 3px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input:disabled {
@@ -370,14 +367,14 @@
   border-radius: 3px;
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #EFEFEF;
+  color: #efefef;
   letter-spacing: 0;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--cancel {
-  background: #46ADB4;
+  background: #46adb4;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--save {
-  background: #F0405E;
+  background: #f0405e;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row img {
   cursor: pointer;
@@ -391,50 +388,42 @@
   text-align: center;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__product {
-  width: 200px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  max-width: 200px;
-  overflow-x: scroll;
+  width: 129px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sites {
   text-overflow: ellipsis;
-  width: 125px;
+  width: 73px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile {
-  width: 125px;
+  width: 268px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile > p {
   text-overflow: ellipsis;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes {
-  overflow-x: scroll;
-  white-space: nowrap;
-  vertical-align: middle;
-  width: 65px;
+  width: 54px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account {
-  width: 65px;
+  width: 50px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions {
   width: 50px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:first-child {
-  margin-left: -10px;
+  margin-left: -5px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(3) {
   margin-top: 1px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button {
   padding-bottom: 3px;
-  margin-right: 1.5px;
+  margin-right: 5px;
   width: 16px;
 }
 
 .view-line {
   margin: 0;
-  border: 1px solid #EDBCC6;
+  border: 1px solid #edbcc6;
   flex: 1 1 100%;
 }
 
