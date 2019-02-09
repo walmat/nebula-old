@@ -46,6 +46,16 @@ class APICheckout extends Checkout {
         body: JSON.stringify(buildPaymentForm(payment, billing)),
       });
 
+      const { statusCode } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Starting task setup', nextState: States.PaymentToken };
+      }
+
       const body = JSON.parse(res.body);
       if (body && body.id) {
         const { id } = body;
@@ -56,7 +66,27 @@ class APICheckout extends Checkout {
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error creating payment token: %j', err);
-      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Starting task setup', nextState: States.PaymentToken };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         return { message: 'Starting task setup', nextState: States.PaymentToken };
       }
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
@@ -127,7 +157,27 @@ class APICheckout extends Checkout {
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error creating checkout: %j', err);
-      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Submitting information', nextState: States.PatchCheckout };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         return { message: 'Submitting information', nextState: States.PatchCheckout };
       }
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
@@ -226,7 +276,27 @@ class APICheckout extends Checkout {
       return { message: 'Failed: Add to cart', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error adding to cart %j', err);
-      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Adding to cart', nextState: States.AddToCart };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         return { message: 'Adding to cart', nextState: States.AddToCart };
       }
       return { message: 'Failed: Add to cart', nextState: States.Stopped };
@@ -313,7 +383,27 @@ class APICheckout extends Checkout {
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error fetching shipping method: %j', err);
-      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
       return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };

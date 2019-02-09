@@ -97,6 +97,11 @@ class Checkout {
         return checkStatus;
       }
 
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Starting task setup', nextState: States.Login };
+      }
+
       const redirectUrl = headers.location;
       this._logger.verbose('CHECKOUT: Login redirect url: %s', redirectUrl);
 
@@ -133,15 +138,35 @@ class Checkout {
       return { message: 'Failed: Logging in', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('ACCOUNT: Error logging in: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Logging in', nextState: States.Login };
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Starting task setup', nextState: States.Login };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
+        return { message: 'Starting task setup', nextState: States.Login };
       }
       return { message: 'Failed: Logging in', nextState: States.Stopped };
     }
   }
 
   async createCheckout() {
-    const { site, monitorDelay, errorDelay } = this._context.task;
+    const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
     this._logger.verbose('CHECKOUT: Creating checkout');
@@ -167,7 +192,6 @@ class Checkout {
 
       // check server error
       if (statusCode === 500 || statusCode === 503) {
-        await waitForDelay(errorDelay);
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
@@ -228,7 +252,27 @@ class Checkout {
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Creating checkout', nextState: States.CreateCheckout };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
@@ -275,6 +319,16 @@ class Checkout {
         return checkStatus;
       }
 
+      // check server error
+      if (statusCode === 400) {
+        return { message: 'Failed: Invalid queue', nextState: States.Stopped };
+      }
+
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Polling queue', nextState: States.PollQueue };
+      }
+
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
       let redirectUrl;
@@ -305,7 +359,27 @@ class Checkout {
       return { message: 'Waiting in queue', nextState: States.PollQueue };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Waiting in queue', nextState: States.PollQueue };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         return { message: 'Waiting in queue', nextState: States.PollQueue };
       }
       return { message: 'Failed: Polling queue', nextState: States.Stopped };
@@ -313,7 +387,7 @@ class Checkout {
   }
 
   async postPayment() {
-    const { site, monitorDelay, errorDelay } = this._context.task;
+    const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
     const { id } = this.chosenShippingMethod;
 
@@ -356,7 +430,6 @@ class Checkout {
       }
 
       if (statusCode === 500 || statusCode === 503) {
-        await waitForDelay(errorDelay);
         return { message: 'Posting payment', nextState: States.PostPayment };
       }
 
@@ -394,7 +467,27 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Posting payment', nextState: States.PostPayment };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         return { message: 'Posting payment', nextState: States.PostPayment };
       }
       return { message: 'Failed: Posting payment', nextState: States.Stopped };
@@ -438,6 +531,11 @@ class Checkout {
         return checkStatus;
       }
 
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Processing payment', nextState: States.CompletePayment };
+      }
+
       const redirectUrl = headers.location;
       this._logger.verbose('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
@@ -475,7 +573,27 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during review payment: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        return { message: 'Processing payment', nextState: States.CompletePayment };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         return { message: 'Processing payment', nextState: States.CompletePayment };
       }
       return { message: 'Failed: Posting payment review', nextState: States.Stopped };
@@ -519,6 +637,12 @@ class Checkout {
       if (checkStatus) {
         return checkStatus;
       }
+
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Processing payment', nextState: States.PaymentProcess };
+      }
+
       const { payments } = body;
 
       if (body && payments.length > 0) {
@@ -573,7 +697,30 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error failed processing payment: %s', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
+      const { cause, error } = err;
+
+      // connection reset
+      if (
+        (cause && cause.code && cause.code.indexOf('ECONNRESET') > -1) ||
+        (error && error.code && error.code.indexOf('ECONNRESET') > -1)
+      ) {
+        return { message: 'Swapping proxy', nextState: States.SwapProxies };
+      }
+      // request timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ETIMEDOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ETIMEDOUT') > -1)
+      ) {
+        // reset timer
+        timer.stop();
+        timer.start();
+        return { message: 'Processing payment', nextState: States.PaymentProcess };
+      }
+      // socket freeze timeout
+      if (
+        (cause && cause.code && cause.code.indexOf('ESOCKETTIMEOUT') > -1) ||
+        (error && error.code && error.code.indexOf('ESOCKETTIMEOUT') > -1)
+      ) {
         // reset timer
         timer.stop();
         timer.start();

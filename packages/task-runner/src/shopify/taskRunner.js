@@ -576,7 +576,7 @@ class TaskRunner {
       // If we have a hard ban, continue waiting for open proxy
       if (this.shouldBanProxy) {
         this._emitTaskEvent({
-          message: 'No open proxies available! Waiting...',
+          message: `No open proxies! Waiting ${this._context.task.errorDelay} ms`,
         });
         return States.SwapProxies;
       }
@@ -586,7 +586,6 @@ class TaskRunner {
         message: 'Error swapping proxies! Retrying...',
         errors: err,
       });
-      await this._waitForErrorDelay();
       return States.SwapProxies;
     }
     // Go back to previous state
