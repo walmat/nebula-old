@@ -28,14 +28,14 @@ function getParseType(product, logger, site) {
     return ParseType.Unknown;
   }
 
-  if (product.variant) {
-    _logger.log('silly', 'Parse Type determined as %s', ParseType.Variant);
-    return ParseType.Variant;
-  }
-
   if (site && isSpecialSite(site)) {
     _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
     return ParseType.Special;
+  }
+
+  if (product.variant) {
+    _logger.log('silly', 'Parse Type determined as %s', ParseType.Variant);
+    return ParseType.Variant;
   }
 
   if (product.url) {
