@@ -1,7 +1,14 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
-const { formatProxy, getHeaders, stateForStatusCode, userAgent, waitForDelay } = require('./utils');
+const {
+  formatProxy,
+  getHeaders,
+  stateForError,
+  stateForStatusCode,
+  userAgent,
+  waitForDelay,
+} = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 
 class Checkout {
@@ -97,6 +104,11 @@ class Checkout {
         return checkStatus;
       }
 
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Starting task setup', nextState: States.Login };
+      }
+
       const redirectUrl = headers.location;
       this._logger.verbose('CHECKOUT: Login redirect url: %s', redirectUrl);
 
@@ -133,15 +145,18 @@ class Checkout {
       return { message: 'Failed: Logging in', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('ACCOUNT: Error logging in: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Logging in', nextState: States.Login };
-      }
-      return { message: 'Failed: Logging in', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Starting task setup',
+        nextState: States.Login,
+      });
+
+      return nextState || { message: 'Failed: Logging in', nextState: States.Stopped };
     }
   }
 
   async createCheckout() {
-    const { site, monitorDelay, errorDelay } = this._context.task;
+    const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
     this._logger.verbose('CHECKOUT: Creating checkout');
@@ -167,7 +182,6 @@ class Checkout {
 
       // check server error
       if (statusCode === 500 || statusCode === 503) {
-        await waitForDelay(errorDelay);
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
@@ -228,10 +242,12 @@ class Checkout {
       return { message: 'Failed: Creating checkout', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Creating checkout', nextState: States.CreateCheckout };
-      }
-      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Creating checkout',
+        nextState: States.CreateCheckout,
+      });
+      return nextState || { message: 'Failed: Creating checkout', nextState: States.Stopped };
     }
   }
 
@@ -275,6 +291,16 @@ class Checkout {
         return checkStatus;
       }
 
+      // check server error
+      if (statusCode === 400) {
+        return { message: 'Failed: Invalid queue', nextState: States.Stopped };
+      }
+
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Polling queue', nextState: States.PollQueue };
+      }
+
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
       let redirectUrl;
@@ -305,15 +331,17 @@ class Checkout {
       return { message: 'Waiting in queue', nextState: States.PollQueue };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error polling queue: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
-      return { message: 'Failed: Polling queue', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Waiting in queue',
+        nextState: States.PollQueue,
+      });
+      return nextState || { message: 'Failed: Polling queue', nextState: States.Stopped };
     }
   }
 
   async postPayment() {
-    const { site, monitorDelay, errorDelay } = this._context.task;
+    const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
     const { id } = this.chosenShippingMethod;
 
@@ -356,7 +384,6 @@ class Checkout {
       }
 
       if (statusCode === 500 || statusCode === 503) {
-        await waitForDelay(errorDelay);
         return { message: 'Posting payment', nextState: States.PostPayment };
       }
 
@@ -394,10 +421,12 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Posting payment', nextState: States.PostPayment };
-      }
-      return { message: 'Failed: Posting payment', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Posting payment',
+        nextState: States.PostPayment,
+      });
+      return nextState || { message: 'Failed: Posting payment', nextState: States.Stopped };
     }
   }
 
@@ -438,6 +467,11 @@ class Checkout {
         return checkStatus;
       }
 
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Processing payment', nextState: States.CompletePayment };
+      }
+
       const redirectUrl = headers.location;
       this._logger.verbose('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
@@ -475,10 +509,12 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during review payment: %j', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Processing payment', nextState: States.CompletePayment };
-      }
-      return { message: 'Failed: Posting payment review', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Processing payment',
+        nextState: States.CompletePayment,
+      });
+      return nextState || { message: 'Failed: Posting payment review', nextState: States.Stopped };
     }
   }
 
@@ -519,6 +555,12 @@ class Checkout {
       if (checkStatus) {
         return checkStatus;
       }
+
+      // check server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Processing payment', nextState: States.PaymentProcess };
+      }
+
       const { payments } = body;
 
       if (body && payments.length > 0) {
@@ -573,13 +615,12 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error failed processing payment: %s', err);
-      if (err && err.error && err.error.code === 'ESOCKETTIMEDOUT') {
-        // reset timer
-        timer.stop();
-        timer.start();
-        return { message: 'Processing payment', nextState: States.PaymentProcess };
-      }
-      return { message: 'Failed: Processing payment', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Processing payment',
+        nextState: States.PaymentProcess,
+      });
+      return nextState || { message: 'Failed: Processing payment', nextState: States.Stopped };
     }
   }
 }

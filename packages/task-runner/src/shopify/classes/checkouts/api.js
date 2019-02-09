@@ -3,6 +3,7 @@ const _ = require('underscore');
 const {
   formatProxy,
   getHeaders,
+  stateForError,
   stateForStatusCode,
   userAgent,
   waitForDelay,
@@ -46,6 +47,16 @@ class APICheckout extends Checkout {
         body: JSON.stringify(buildPaymentForm(payment, billing)),
       });
 
+      const { statusCode } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Starting task setup', nextState: States.PaymentToken };
+      }
+
       const body = JSON.parse(res.body);
       if (body && body.id) {
         const { id } = body;
@@ -56,10 +67,12 @@ class APICheckout extends Checkout {
       return { message: 'Failed: Creating payment token', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error creating payment token: %j', err);
-      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Starting task setup', nextState: States.PaymentToken };
-      }
-      return { message: 'Failed: Creating payment token', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Starting task setup',
+        nextState: States.PaymentToken,
+      });
+      return nextState || { message: 'Failed: Creating payment token', nextState: States.Stopped };
     }
   }
 
@@ -95,6 +108,11 @@ class APICheckout extends Checkout {
         return checkStatus;
       }
 
+      // server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Submitting information', nextState: States.PatchCheckout };
+      }
+
       const redirectUrl = headers.location;
       this._logger.verbose('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
@@ -127,10 +145,12 @@ class APICheckout extends Checkout {
       return { message: 'Failed: Submitting information', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error creating checkout: %j', err);
-      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Submitting information', nextState: States.PatchCheckout };
-      }
-      return { message: 'Failed: Submitting information', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Submitting information',
+        nextState: States.PatchCheckout,
+      });
+      return nextState || { message: 'Failed: Submitting information', nextState: States.Stopped };
     }
   }
 
@@ -161,6 +181,11 @@ class APICheckout extends Checkout {
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
+      }
+
+      // server error
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Adding to cart', nextState: States.AddToCart };
       }
 
       const redirectUrl = headers.location;
@@ -226,10 +251,12 @@ class APICheckout extends Checkout {
       return { message: 'Failed: Add to cart', nextState: States.Stopped };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error adding to cart %j', err);
-      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Adding to cart', nextState: States.AddToCart };
-      }
-      return { message: 'Failed: Add to cart', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Adding to cart',
+        nextState: States.AddToCart,
+      });
+      return nextState || { message: 'Failed: Add to cart', nextState: States.Stopped };
     }
   }
 
@@ -313,10 +340,12 @@ class APICheckout extends Checkout {
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error fetching shipping method: %j', err);
-      if (err && err.code && err.error.code === 'ESOCKETTIMEDOUT') {
-        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
-      }
-      return { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
+
+      const nextState = stateForError(err, {
+        message: 'Fetching shipping rates',
+        nextState: States.ShippingRates,
+      });
+      return nextState || { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
     }
   }
 }
