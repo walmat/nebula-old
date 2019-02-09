@@ -8,7 +8,7 @@ const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
  * L: <input type="hidden" name="properties[_hash]" />
  */
 const HashRegexes = {
-  'DSM NY': /\$\(\s*atob\(\s*'PGlucHV0IHR5cGU9ImhpZGRlbiIgbmFtZT0icHJvcGVydGllc1tfSEFTSF0iIC8\+'\s*\)\s*\)\s*\.val\(\s*'(.+)'\s*\)/,
+  'DSM US': /\$\(\s*atob\(\s*'PGlucHV0IHR5cGU9ImhpZGRlbiIgbmFtZT0icHJvcGVydGllc1tfSEFTSF0iIC8\+'\s*\)\s*\)\s*\.val\(\s*'(.+)'\s*\)/,
   'DSM UK': /\$\(\s*atob\(\s*'PGlucHV0IHR5cGU9ImhpZGRlbiIgbmFtZT0icHJvcGVydGllc1tfaGFzaF0iIC8\+'\s*\)\s*\)\s*\.val\(\s*'(.+)'\s*\)/,
 };
 
@@ -102,13 +102,15 @@ class DsmParser extends SpecialParser {
       const hashes = [];
       $('#MainContent > script').each((i, e) => {
         // should match only one, but just in case, let's loop over all possibilities
-        this._logger.silly('%s: parsing %d script element for hash: %j', this._name, i, e);
-        if (e && e.attr('type') !== 'application/json') {
+        this._logger.silly('%s: parsing script element %d for hash...', this._name, i);
+        if (e.children) {
           // check to see if we can find the hash property
-          this._logger.silly('%s: innerHTML', this._name, e.innerHTML);
-          const elements = regex.exec(e.innerHTML);
+          const elements = regex.exec(e.children[0].data);
           if (elements) {
+            this._logger.debug('%s: Found match %s', this._name, elements[0]);
             hashes.push(elements[1]);
+          } else {
+            this._logger.debug('%s: No match found %s', this._name, e.children[0].data);
           }
         }
       });
