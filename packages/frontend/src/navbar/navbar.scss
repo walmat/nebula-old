@@ -1,0 +1,66 @@
+// Server Page Rules
+// @import 'grid';
+
+.navbar {
+  .wrapper {
+    margin: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+
+  .separator {
+    top: 8.5px;
+    height: calc(body_height - 8.5px);
+    border: 1px solid #efefef;
+    display: block;
+  }
+
+  .icons {
+    cursor: pointer;
+    margin: 0 0 15% 0;
+    &--active {
+      opacity: 0.5;
+    }
+    &--tasks {
+      margin-left: 16px;
+      width: 61px;
+      height: 49px;
+    }
+    &--profiles {
+      width: 44px;
+      height: 43px;
+    }
+    &--servers {
+      width: 42px;
+      height: 46px;
+    }
+    &--settings {
+      width: 40px;
+      height: 60px;
+    }
+  }
+
+  .footer {
+    &--name {
+      text-transform: capitalize;
+      text-align: center;
+
+      p {
+        opacity: 0.75;
+        color: #46adb4;
+      }
+    }
+    &--version {
+      text-align: center;
+
+      p {
+        opacity: 0.75;
+        color: #f0405e;
+      }
+    }
+  }
+}
