@@ -1,5 +1,7 @@
 const $ = require('cheerio');
 const now = require('performance-now');
+const { StatusCodeError, RequestError } = require('request-promise/errors');
+
 const rfrl = require('./rfrl');
 const { States } = require('./constants').TaskRunner;
 
@@ -7,6 +9,50 @@ const userAgent =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 
 const waitForDelay = delay => new Promise(resolve => setTimeout(resolve, delay));
+
+const stateForError = (err, currentState) => {
+  const { statusCode, cause } = err;
+  if (err instanceof StatusCodeError) {
+    // Check request status code
+    if (statusCode === 303) {
+      return {
+        message: 'Waiting in queue',
+        nextState: States.PollQueue,
+      };
+    }
+    if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
+      return {
+        message: 'Swapping proxy',
+        nextState: States.SwapProxies,
+      };
+    }
+    if (statusCode >= 500) {
+      return currentState;
+    }
+  } else if (err instanceof RequestError) {
+    // Look for errors in cause
+    const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT)/.exec(cause.code);
+
+    if (match) {
+      // Check capturing group
+      switch (match[1]) {
+        // connection reset
+        case 'ECONNRESET': {
+          return { message: 'Swapping proxy', nextState: States.SwapProxies };
+        }
+        // request timeout or socket freeze timeout
+        case 'ETIMEDOUT':
+        case 'ESOCKETTIMEDOUT': {
+          return currentState;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+  }
+  return null;
+};
 
 const stateForStatusCode = statusCode => {
   if (statusCode === 303) {
@@ -109,6 +155,7 @@ module.exports = {
   userAgent,
   now,
   waitForDelay,
+  stateForError,
   stateForStatusCode,
   getHeaders,
   formatProxy,
