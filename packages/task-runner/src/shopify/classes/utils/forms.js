@@ -73,7 +73,7 @@ const patchCheckoutForm = (profile, shipping, billing, payment, captchaToken) =>
   return data;
 };
 
-const addToCart = (variant, site, { hash }) => {
+const addToCart = (variant, site, hash) => {
   const base = {
     id: variant,
     add: '',

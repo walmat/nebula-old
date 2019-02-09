@@ -23,7 +23,7 @@ class DsmParser extends SpecialParser {
      *
      * Map of { id: hash }
      */
-    this.hashIds = {};
+    this._hashIds = {};
   }
 
   get initialPageContainsProducts() {
@@ -79,34 +79,60 @@ class DsmParser extends SpecialParser {
       throw error;
     }
 
-    const hash = this.findHashProperty($, this._task.site);
-    this._task.product.hash = { id: product.id, hash };
+    const parsedProduct = JSON.parse(product.html());
 
-    // call findHashProperty and store it in the map
-    return JSON.parse(product.html());
+    // Calcalate and store hash for this product
+    const hash = this.parseProductInfoPageForHash($, this._task.site);
+    this._hashIds[parsedProduct.id] = hash;
+
+    return parsedProduct;
   }
 
-  parseProductInfoPageForHash($, regex) {
-    $('#MainContent > script').each((i, e) => {
-      // should match only one, but just in case, let's loop over all possibilities
-      this._logger.silly('%s: parsing %d script element for hash: %j', this._name, i, e);
-      if (e && e.attr('type') !== 'application/json') {
-        // check to see if we can find the hash property
-        this._logger.silly('%s: innerHTML', this._name, e.innerHTML);
-        const elements = regex.exec(e.innerHTML);
-        if (elements) {
-          return elements[1];
+  parseProductInfoPageForHash($, site) {
+    // TODO: DSM London, find the .custom js file and make the request before this
+    const regex = HashRegexes[site.name];
+    if (!regex) {
+      this._logger.debug(
+        '%s: Parsing for hash is not required for this site, skipping...',
+        this._name,
+      );
+      return null;
+    }
+    try {
+      const hashes = [];
+      $('#MainContent > script').each((i, e) => {
+        // should match only one, but just in case, let's loop over all possibilities
+        this._logger.silly('%s: parsing %d script element for hash: %j', this._name, i, e);
+        if (e && e.attr('type') !== 'application/json') {
+          // check to see if we can find the hash property
+          this._logger.silly('%s: innerHTML', this._name, e.innerHTML);
+          const elements = regex.exec(e.innerHTML);
+          if (elements) {
+            hashes.push(elements[1]);
+          }
+        }
+      });
+      switch (hashes.length) {
+        case 0: {
+          this._logger.debug('%s: No Hash Found, returning null...', this._name);
+          return null;
+        }
+        case 1: {
+          const [hash] = hashes;
+          this._logger.debug('%s: Found 1 Hash: %s, returning...', this._name, hash);
+          return hash;
+        }
+        default: {
+          const [hash] = hashes;
+          this._logger.debug(
+            '%s: Found %d Hashes! using the first one: %s',
+            this._name,
+            hashes.length,
+            hash,
+          );
+          return hash;
         }
       }
-      return null;
-    });
-  }
-
-  findHashProperty($, site) {
-    // TODO: DSM London, find the .custom js file and make the request before this
-    try {
-      const hash = this.parseProductInfoPageForHash($, HashRegexes[site.name]);
-      return hash;
     } catch (err) {
       this._logger.debug(
         'ERROR parsing %s hash property: %s %s',
@@ -120,6 +146,20 @@ class DsmParser extends SpecialParser {
 
   async run() {
     const matchedProduct = await super.run();
+
+    // Check for hash and store it before returning
+    const hash = this._hashIds[matchedProduct.id];
+    if (hash) {
+      this._logger.debug(
+        '%s, Found hash %s for matched product %s, storing on task...',
+        this._name,
+        hash,
+        matchedProduct.title,
+      );
+      this._task.product.hash = hash;
+    }
+
+    return matchedProduct;
   }
 }
 

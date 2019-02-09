@@ -158,12 +158,7 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
-    let variants;
-    if (this._context.task.product.variant) {
-      variants = [this._context.task.product.variant];
-    } else {
-      variants = this._generateValidVariants(parsed);
-    }
+    const variants = this._generateValidVariants(parsed);
     if (!variants) {
       return {
         message: `Unable to match variants`,
@@ -239,14 +234,11 @@ class Monitor {
   }
 
   async _monitorSpecial() {
+    const { task, request, proxy, logger } = this._context;
+    const { product, site } = task;
     // Get the correct special parser
-    const ParserCreator = getSpecialParser(this._context.task.site);
-    const parser = ParserCreator(
-      this._context.request,
-      this._context.task,
-      this._context.proxy,
-      this._context.logger,
-    );
+    const ParserCreator = getSpecialParser(site);
+    const parser = ParserCreator(request, task, proxy, logger);
 
     let parsed;
     try {
@@ -261,7 +253,12 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
-    const variants = this._generateValidVariants(parsed);
+    let variants;
+    if (product.variant) {
+      variants = [product.variant];
+    } else {
+      variants = this._generateValidVariants(parsed);
+    }
     if (!variants) {
       return {
         message: `Unable to generate variants`,
