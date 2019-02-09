@@ -62,7 +62,7 @@ class FrontendCheckout extends Checkout {
 
   async addToCart() {
     const { site, product, monitorDelay, errorDelay } = this._context.task;
-    const { variants } = product;
+    const { variants, hash } = product;
     const { url } = site;
 
     this._logger.verbose('FRONTEND CHECKOUT: Adding to cart');
@@ -86,7 +86,7 @@ class FrontendCheckout extends Checkout {
           'Accept-Encoding': 'gzip, deflate, br',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        formData: addToCart(variants[0], site),
+        formData: addToCart(variants[0], site, hash),
       });
 
       const { statusCode, body, headers } = res;
