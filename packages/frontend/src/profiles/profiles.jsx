@@ -115,32 +115,66 @@ export class ProfilesPrimitive extends Component {
     }
     return (
       <form>
-        <div className="container">
-          {/* HEADER */}
-          <h1 className="text-header" id="profiles-header">
-            Profiles
-          </h1>
-
-          {/* LOAD PROFILE */}
-          <p className="body-text" id="load-profile-label">
-            Load Profile
-          </p>
-          <div id="load-profile-box" />
-          <p id="profile-name-label">Profile Name</p>
-          <Select
-            required
-            placeholder="Load Profile"
-            components={{ DropdownIndicator }}
-            id="profile-load"
-            classNamePrefix="select"
-            styles={colourStyles(buildStyle(false, true))}
-            onChange={this.onProfileChange}
-            value={selectProfileValue}
-            options={this.buildProfileOptions()}
-          />
-          <button type="button" id="load-profile" onClick={this.loadProfile}>
-            Load
-          </button>
+        <div className="container profiles">
+          <div className="row">
+            <div className="col col--start">
+              <div className="row row--start">
+                <div className="col col--no-gutter-left">
+                  <h1 className="text-header profiles__title">Profiles</h1>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <div className="row row--start">
+                    <div className="col col--no-gutter-left">
+                      <p className="body-text section-header profiles-load__section-header">
+                        Load Profile
+                      </p>
+                    </div>
+                  </div>
+                  <div className="row">
+                    <div className="col col--no-gutter-left">
+                      <p id="profile-name-label">Profile Name</p>
+                      <Select
+                        required
+                        placeholder="Load Profile"
+                        components={{ DropdownIndicator }}
+                        id="profile-load"
+                        classNamePrefix="select"
+                        styles={colourStyles(buildStyle(false, true))}
+                        onChange={this.onProfileChange}
+                        value={selectProfileValue}
+                        options={this.buildProfileOptions()}
+                      />
+                      <button type="button" id="load-profile" onClick={this.loadProfile}>
+                        Load
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="row row--start">
+            <div className="col col--start">
+              <div className="row row--start">
+                <p className="body-text section-header profiles-shipping__section-header">
+                  Shipping
+                </p>
+              </div>
+              {/* TOOD: Shipping Section */}
+            </div>
+            <div className="col">
+              <div className="row row--start">
+                <p className="body-text section-header profiles-billing__section-header">Billing</p>
+              </div>
+            </div>
+            <div className="col">
+              <div className="row row--start">
+                <p className="body-text section-header profiles-payment__section-header">Payment</p>
+              </div>
+            </div>
+          </div>
 
           {/* SHIPPING INFORMATION */}
           <div className="flex-col">
