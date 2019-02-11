@@ -14,3 +14,4 @@ cd "$ROOT_DIR/packages/frontend"
 ./node_modules/.bin/sass --no-source-map src/server/server.scss src/server/server.css
 ./node_modules/.bin/sass --no-source-map src/navbar/navbar.scss src/navbar/navbar.css
 ./node_modules/.bin/sass --no-source-map src/settings/settings.scss src/settings/settings.css
+./node_modules/.bin/sass --no-source-map src/profiles/profiles.scss src/profiles/profiles.css
