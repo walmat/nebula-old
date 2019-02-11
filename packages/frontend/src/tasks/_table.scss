@@ -2,8 +2,9 @@
 @import '_mixins';
 
 %tasks-table__text-field {
-  text-transform: uppercase;
+  white-space: nowrap;
   text-overflow: ellipsis;
+  overflow-x: hidden;
 }
 
 %tasks-table__header__field {
@@ -41,7 +42,7 @@
 
       .tasks-table__header__edit {
         @extend %tasks-table__header__field;
-        width: 16px;
+        width: 5px;
       }
 
       .tasks-table__header__id {
@@ -55,27 +56,27 @@
 
       .tasks-table__header__product {
         @extend %tasks-table__header__field;
-        width: 129px;
+        width: 200px;
       }
 
       .tasks-table__header__sites {
         @extend %tasks-table__header__field;
-        width: 73px;
+        width: 125px;
       }
 
       .tasks-table__header__profile {
         @extend %tasks-table__header__field;
-        width: 268px;
+        width: 125px;
       }
 
       .tasks-table__header__sizes {
         @extend %tasks-table__header__field;
-        width: 54px;
+        width: 65px;
       }
 
       .tasks-table__header__pairs {
         @extend %tasks-table__header__field;
-        width: 50px;
+        width: 65px;
       }
 
       .tasks-table__header__actions {
@@ -115,7 +116,6 @@
       .tasks-row {
         display: flex;
         height: 30px;
-        // align-items: center;
 
         &.tasks-row--edit {
           padding: 10px;
@@ -195,17 +195,22 @@
 
         &__product {
           @extend %tasks-table__text-field;
-          width: 129px;
+          width: 200px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          vertical-align: middle;
+          max-width: 200px;
+          overflow: hidden;
         }
 
         &__sites {
           text-overflow: ellipsis;
-          width: 73px;
+          width: 125px;
         }
 
         &__profile {
           @extend %tasks-table__text-field;
-          width: 268px;
+          width: 125px;
 
           & > p {
             text-overflow: ellipsis;
@@ -214,18 +219,18 @@
 
         &__sizes {
           @extend %tasks-table__text-field;
-          width: 54px;
+          width: 65px;
         }
 
         &__account {
-          width: 50px;
+          width: 65px;
         }
 
         &__actions {
           width: 50px;
 
           &__button:first-child {
-            margin-left: -5px;
+            margin-left: -10px;
           }
 
           &__button:nth-child(3) {
@@ -234,7 +239,7 @@
 
           &__button {
             padding-bottom: 3px;
-            margin-right: 5px;
+            margin-right: 1.5px;
             width: 16px;
           }
         }

@@ -153,6 +153,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Variant, Keywords, Link"
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
                 value={editProduct}
+                title={editProduct}
                 style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
                 required
                 data-testid={addTestId(`${testIdBase}.productInput`)}
@@ -338,7 +339,7 @@ export class TaskRowPrimitive extends Component {
     if (task.sizes.length) {
       sizes = task.sizes.reduce((acc, cur, idx) => `${idx ? `${acc}, ` : ''}${cur}`, '');
     }
-    let taskAccountValue = 'None';
+    let taskAccountValue = null;
     if (task.username && task.password) {
       taskAccountValue = task.username;
     }
@@ -346,13 +347,17 @@ export class TaskRowPrimitive extends Component {
       <div key={task.id} className="tasks-row row">
         <div className="col col--no-gutter tasks-edit">{this.renderTableRowEditButton()}</div>
         <div className="col col--no-gutter tasks-row__id">{id}</div>
-        <div className="col col--no-gutter tasks-row__product">{task.product.raw || 'None'}</div>
+        <div className="col col--no-gutter tasks-row__product" title={task.product.raw || 'None'}>
+          {task.product.raw || 'None'}
+        </div>
         <div className="col col--no-gutter tasks-row__sites">{task.site.name || 'None'}</div>
         <div className="col col--no-gutter tasks-row__profile">
           {task.profile.profileName || 'None'}
         </div>
         <div className="col col--no-gutter tasks-row__sizes">{sizes}</div>
-        <div className="col col--no-gutter tasks-row__account">{taskAccountValue}</div>
+        <div className="col col--no-gutter tasks-row__account">
+          {taskAccountValue ? 'Yes' : 'None'}
+        </div>
         <div className="col col--no-gutter tasks-row__actions">
           <div className="row row--gutter">
             {this.renderTableRowCopyActionButton()}

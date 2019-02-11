@@ -1,11 +1,11 @@
 // Server Page Rules
 
 @import 'grid';
-@import 'login';
-@import 'connect';
-@import 'proxy';
-@import 'table';
-@import 'server';
+@import '_login';
+@import '_connect';
+@import '_proxy';
+@import '_table';
+@import '_server';
 
 /* Temporary */
 .temp-debug {
