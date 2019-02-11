@@ -84,7 +84,7 @@ class DsmUkParser extends DsmParser {
     // Check for correct name
     if (name !== 'properties[_hash]') {
       throw new Error(
-        `Invalid Invalid name property was used ("${name}" , but was expecting "properties[_hash]").`,
+        `Invalid name property was used ("${name}" , but was expecting "properties[_hash]").`,
       );
     }
     // Check for valid value
