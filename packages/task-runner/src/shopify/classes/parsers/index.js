@@ -14,7 +14,6 @@ function getSpecialParser(site) {
   // TODO: Figure out a better way to do this!
   switch (site.name) {
     case 'Mock Server': {
-      console.log('Mock Server Picked!');
       return getSpecialParser({ name: MOCK_SPECIAL_PARSER });
     }
     case 'DSM SG':
