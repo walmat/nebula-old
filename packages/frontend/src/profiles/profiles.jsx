@@ -168,11 +168,14 @@ export class ProfilesPrimitive extends Component {
               <div className="row row--start">
                 <p className="body-text section-header profiles-billing__section-header">Billing</p>
               </div>
+              {/* TODO: Billing Section */}
             </div>
             <div className="col">
               <div className="row row--start">
                 <p className="body-text section-header profiles-payment__section-header">Payment</p>
               </div>
+              {/* TODO: Payment Section */}
+              {/* TODO: Save Profile */}
             </div>
           </div>
 
