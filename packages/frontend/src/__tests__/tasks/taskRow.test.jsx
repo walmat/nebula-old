@@ -313,7 +313,7 @@ describe('<TaskRow />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       initialTests(wrapper);
-      testTableRowValues(wrapper, { account: 'user' });
+      testTableRowValues(wrapper, { account: 'Yes' });
     });
   });
 
@@ -495,7 +495,7 @@ describe('<TaskRow />', () => {
         };
         const wrapper = renderShallowWithProps(customProps);
         initialTests(wrapper);
-        testTableRowValues(wrapper, { account: 'user' });
+        testTableRowValues(wrapper, { account: 'Yes' });
         testEditMenuValues(wrapper, {});
       });
     });
