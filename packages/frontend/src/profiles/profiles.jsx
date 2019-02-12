@@ -134,19 +134,19 @@ export class ProfilesPrimitive extends Component {
                   </div>
                   <div className="row">
                     <div className="col col--no-gutter-left">
-                      <p id="profile-name-label">Profile Name</p>
+                      <p id="profiles__label--name">Profile Name</p>
                       <Select
                         required
                         placeholder="Load Profile"
                         components={{ DropdownIndicator }}
-                        id="profile-load"
+                        className="profiles__fields--load"
                         classNamePrefix="select"
                         styles={colourStyles(buildStyle(false, true))}
                         onChange={this.onProfileChange}
                         value={selectProfileValue}
                         options={this.buildProfileOptions()}
                       />
-                      <button type="button" id="load-profile" onClick={this.loadProfile}>
+                      <button type="button" id="profiles__button--load" onClick={this.loadProfile}>
                         Load
                       </button>
                     </div>
@@ -162,94 +162,96 @@ export class ProfilesPrimitive extends Component {
                   Shipping
                 </p>
               </div>
-              {/* TOOD: Shipping Section */}
+              <div className="row">
+                <div className="col col--start profiles-shipping-container">
+                  <LocationFields
+                    className="profiles__fields--shipping"
+                    profileToEdit={currentProfile}
+                    fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
+                    disabled={false}
+                  />
+                </div>
+                {/* BILLING MATCHES SHIPPING */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onKeyPress={onKeyPress}
+                  onClick={onClickBillingMatchesShipping}
+                >
+                  <img
+                    src={
+                      currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked
+                    }
+                    alt={
+                      currentProfile.billingMatchesShipping
+                        ? 'Billing Matches Shipping'
+                        : 'Billing does not Match Shipping'
+                    }
+                    className="profiles__fields--matches"
+                    draggable="false"
+                  />
+                </div>
+              </div>
             </div>
             <div className="col">
               <div className="row row--start">
                 <p className="body-text section-header profiles-billing__section-header">Billing</p>
               </div>
-              {/* TODO: Billing Section */}
+              <div className="row">
+                <div className="col col--start profiles-billing-container">
+                  <LocationFields
+                    id="profiles__fields--billing"
+                    profileToEdit={currentProfile}
+                    fieldToEdit={
+                      currentProfile.billingMatchesShipping
+                        ? PROFILE_FIELDS.EDIT_SHIPPING
+                        : PROFILE_FIELDS.EDIT_BILLING
+                    }
+                    disabled={currentProfile.billingMatchesShipping}
+                  />
+                </div>
+              </div>
             </div>
             <div className="col">
               <div className="row row--start">
                 <p className="body-text section-header profiles-payment__section-header">Payment</p>
               </div>
-              {/* TODO: Payment Section */}
-              {/* TODO: Save Profile */}
+              <div className="row">
+                <div className="col col--start profiles-payment-container">
+                  <PaymentFields
+                    className="profiles__fields--payment"
+                    profileToEdit={currentProfile}
+                  />
+                </div>
+              </div>
+              <div className="row">
+                <input
+                  className="profiles__fields--name"
+                  required
+                  onChange={onProfileNameChange}
+                  value={currentProfile.profileName}
+                  style={validationStatus(
+                    currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
+                  )}
+                  placeholder="Profile Name"
+                />
+                <button
+                  type="button"
+                  className="profiles__button--submit"
+                  onClick={this.saveProfile}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="profiles__button--delete"
+                  onClick={this.deleteProfile}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* SHIPPING INFORMATION */}
-          <div className="flex-col">
-            <p className="body-text" id="shipping-label">
-              Shipping
-            </p>
-            <LocationFields
-              id="shipping"
-              profileToEdit={currentProfile}
-              fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
-              disabled={false}
-            />
-          </div>
-
-          {/* BILLING MATCHES SHIPPING */}
-          <div
-            role="button"
-            tabIndex={0}
-            onKeyPress={onKeyPress}
-            onClick={onClickBillingMatchesShipping}
-          >
-            <img
-              src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
-              alt={
-                currentProfile.billingMatchesShipping
-                  ? 'Billing Matches Shipping'
-                  : 'Billing does not Match Shipping'
-              }
-              id="billing-match-shipping"
-              draggable="false"
-            />
-          </div>
-
-          {/* BILLING INFORMATION */}
-          <div className="flex-col">
-            <p className="body-text" id="billing-label">
-              Billing
-            </p>
-            <LocationFields
-              id="billing"
-              profileToEdit={currentProfile}
-              fieldToEdit={
-                currentProfile.billingMatchesShipping
-                  ? PROFILE_FIELDS.EDIT_SHIPPING
-                  : PROFILE_FIELDS.EDIT_BILLING
-              }
-              disabled={currentProfile.billingMatchesShipping}
-            />
-          </div>
-
-          {/* PAYMENT INFORMATION */}
-          <PaymentFields id="payment" profileToEdit={currentProfile} />
-
-          {/* SAVE PROFILE */}
-          <input
-            id="profile-save"
-            required
-            onChange={onProfileNameChange}
-            value={currentProfile.profileName}
-            style={validationStatus(
-              currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
-            )}
-            placeholder="Profile Name"
-          />
-          <button type="button" id="submit-profile" onClick={this.saveProfile}>
-            Save
-          </button>
-
-          {/* DELETE PROFILE */}
-          <button type="button" id="delete-profile" onClick={this.deleteProfile}>
-            Delete
-          </button>
         </div>
       </form>
     );
