@@ -1,11 +1,11 @@
 // Profiles Page Rules
 
 @import 'grid';
-@import 'load';
-@import 'shipping';
-@import 'billing';
-@import 'payment';
-@import 'profiles';
+@import '_load';
+@import '_shipping';
+@import '_billing';
+@import '_payment';
+@import '_profiles';
 
 /* Temporary */
 .temp-debug {
