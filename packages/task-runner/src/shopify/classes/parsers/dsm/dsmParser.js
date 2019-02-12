@@ -15,11 +15,15 @@ class DsmParser extends SpecialParser {
      * so they can be used. By default, this map is not used, but
      * subclasses can extend this class and add support in the following ways:
      *
-     * 1. implementing parseInitialPageForHash($) - this method receves the
+     * 1. implementing parseInitialPageForHash($) - this method receives the
      *    initial page loaded with cheerio and expects a hash to be returned.
      *    The hash is set as the default hash for all products unless they are
      *    set specifically for a product
-     * 2. implementing parseProductPageForHash($) - This method
+     * 2. implementing parseProductPageForHash($) - this method receives the
+     *    product page loaded with cheerio and expects a hash to be returned.
+     *    The hash is set for that product's id. If the matched product has an
+     *    id stored for it through this method, it is used, then the default hash
+     *    is used and finally the backup hash is used.
      */
     this._hashIds = {};
   }
