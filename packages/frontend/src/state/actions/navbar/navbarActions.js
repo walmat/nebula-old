@@ -7,12 +7,14 @@ export const NAVBAR_ACTIONS = {
   ROUTE_PROFILES: 'ROUTE_PROFILES',
   ROUTE_SERVER: 'ROUTE_SERVER',
   ROUTE_SETTINGS: 'ROUTE_SETTINGS',
+  ROUTE_SETTINGS_OLD: 'ROUTE_SETTINGS_OLD',
 };
 
 export const ROUTES = {
   HOME: '/',
   TASKS: '/tasks',
   PROFILES: '/profiles',
+  SETTINGS_OLD: '/test',
   SERVER: '/server',
   SETTINGS: '/settings',
 };
@@ -23,6 +25,7 @@ export const mapActionsToRoutes = {
   [NAVBAR_ACTIONS.ROUTE_PROFILES]: ROUTES.PROFILES,
   [NAVBAR_ACTIONS.ROUTE_SERVER]: ROUTES.SERVER,
   [NAVBAR_ACTIONS.ROUTE_SETTINGS]: ROUTES.SETTINGS,
+  [NAVBAR_ACTIONS.ROUTE_SETTINGS_OLD]: ROUTES.SETTINGS_OLD,
 };
 
 // Private Action Object Generator for Reducer
@@ -48,4 +51,5 @@ export const navbarActions = {
   routeProfiles: routeAction(NAVBAR_ACTIONS.ROUTE_PROFILES),
   routeServer: routeAction(NAVBAR_ACTIONS.ROUTE_SERVER),
   routeSettings: routeAction(NAVBAR_ACTIONS.ROUTE_SETTINGS),
+  routeSettingsOld: routeAction(NAVBAR_ACTIONS.ROUTE_SETTINGS_OLD),
 };
