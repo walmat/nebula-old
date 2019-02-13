@@ -74,93 +74,119 @@ export class LocationFieldsPrimitive extends Component {
   render() {
     const { id, value, errors, disabled } = this.props;
     return (
-      <div>
-        <input
-          id={`${id}-first-name`}
-          required
-          placeholder="First Name"
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)}
-          value={value.firstName}
-          style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
-          disabled={disabled}
-        />
-        <input
-          id={`${id}-last-name`}
-          required
-          placeholder="Last Name"
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)}
-          value={value.lastName}
-          style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
-          disabled={disabled}
-        />
-        <input
-          id={`${id}-address-one`}
-          required
-          placeholder="Address Line 1"
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)}
-          value={value.address}
-          style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
-          disabled={disabled}
-        />
-        <input
-          id={`${id}-address-two`}
-          placeholder="Address Line 2"
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)}
-          value={value.apt}
-          style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
-          disabled={disabled}
-        />
-        <input
-          id={`${id}-city`}
-          required
-          placeholder="City"
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)}
-          value={value.city}
-          style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
-          disabled={disabled}
-        />
-        <Select
-          required
-          placeholder="Province"
-          components={{ DropdownIndicator }}
-          id={`${id}-province`}
-          classNamePrefix="select"
-          options={LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined}
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
-          value={value.province}
-          styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]))}
-          isDisabled={this.isProvinceFieldDisabled()}
-        />
-        <input
-          id={`${id}-zip-code`}
-          required
-          placeholder="Zip Code"
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
-          value={value.zipCode}
-          style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
-          disabled={disabled}
-        />
-        <Select
-          required
-          placeholder="Country"
-          components={{ DropdownIndicator }}
-          id={`${id}-country`}
-          classNamePrefix="select"
-          options={LocationFieldsPrimitive.buildCountryOptions()}
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
-          value={value.country}
-          styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]))}
-          isDisabled={disabled}
-        />
-        <input
-          id={`${id}-phone`}
-          required
-          placeholder="Phone"
-          onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
-          value={value.phone}
-          style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
-          disabled={disabled}
-        />
+      <div className="profiles-location col col--start col--no-gutter">
+        <div className="row row--start row--gutter">
+          <div className="col profiles-location__input-group">
+            <div className="row row--gutter">
+              <input
+                className={`${id}__input-group--first-name`}
+                required
+                placeholder="First Name"
+                onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)}
+                value={value.firstName}
+                style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
+                disabled={disabled}
+              />
+            </div>
+            <div className="row row--gutter">
+              <input
+                id={`${id}__input-group--last-name`}
+                required
+                placeholder="Last Name"
+                onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)}
+                value={value.lastName}
+                style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
+                disabled={disabled}
+              />
+            </div>
+            <div className="row row--gutter">
+              <input
+                id={`${id}__input-group--address-one`}
+                required
+                placeholder="Address Line 1"
+                onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)}
+                value={value.address}
+                style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
+                disabled={disabled}
+              />
+            </div>
+            <div className="row row--gutter">
+              <input
+                id={`${id}__input-group--address-two`}
+                placeholder="Address Line 2"
+                onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)}
+                value={value.apt}
+                style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
+                disabled={disabled}
+              />
+            </div>
+            <div className="row row--gutter">
+              <div className="col col--no-gutter">
+                <input
+                  id={`${id}__input-group--city`}
+                  required
+                  placeholder="City"
+                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)}
+                  value={value.city}
+                  style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="col col--no-gutter">
+                <Select
+                  required
+                  placeholder="Province"
+                  components={{ DropdownIndicator }}
+                  id={`${id}__input-group--province`}
+                  classNamePrefix="select"
+                  options={LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined}
+                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
+                  value={value.province}
+                  styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]))}
+                  isDisabled={this.isProvinceFieldDisabled()}
+                />
+              </div>
+            </div>
+            <div className="row row--gutter">
+              <div className="col col--no-gutter">
+                <input
+                  id={`${id}__input-group--zip-code`}
+                  required
+                  placeholder="Zip Code"
+                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
+                  value={value.zipCode}
+                  style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="col col--no-gutter">
+                <Select
+                  required
+                  placeholder="Country"
+                  components={{ DropdownIndicator }}
+                  id={`${id}__input-group--country`}
+                  classNamePrefix="select"
+                  options={LocationFieldsPrimitive.buildCountryOptions()}
+                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
+                  value={value.country}
+                  styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]))}
+                  isDisabled={disabled}
+                />
+              </div>
+            </div>
+            <div className="row row--gutter">
+              <input
+                id={`${id}__input-group--phone`}
+                required
+                placeholder="Phone"
+                onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
+                value={value.phone}
+                style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

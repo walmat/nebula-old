@@ -52,11 +52,12 @@
   }
 
   &--expand {
+    width: 100%;
     flex: 1 1 auto;
   }
 
   &--gutter-left {
-    margin-left: 0 !important;
+    margin-left: 15px !important;
   }
 
   &--gutter-right {

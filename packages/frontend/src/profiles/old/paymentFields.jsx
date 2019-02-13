@@ -2,11 +2,11 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import NumberFormat from 'react-number-format';
 import PropTypes from 'prop-types';
-import validationStatus from '../utils/validationStatus';
-import defns from '../utils/definitions/profileDefinitions';
-import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
+import validationStatus from '../../utils/validationStatus';
+import defns from '../../utils/definitions/profileDefinitions';
+import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../../state/actions';
 
-import info from '../_assets/info.svg';
+import info from '../../_assets/info.svg';
 
 import './profiles.css';
 
@@ -27,6 +27,9 @@ export class PaymentFieldsPrimitive extends Component {
     const { errors, value } = this.props;
     return (
       <div className="flex-col">
+        <p className="body-text" id="payment-label">
+          Payment
+        </p>
         <input
           required
           id="email"

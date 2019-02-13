@@ -1,0 +1,19 @@
+// Shared Mixins
+@mixin image() {
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+@mixin tasks-select-font() {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}
+
+@mixin button-font() {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #efefef;
+  letter-spacing: 0;
+}

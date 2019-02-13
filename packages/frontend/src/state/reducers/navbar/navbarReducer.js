@@ -1,7 +1,7 @@
 import { mapActionsToRoutes } from '../../actions';
 
 export const initialNavbarState = {
-  location: '/',
+  location: '/tasks',
 };
 
 export function navbarReducer(state = initialNavbarState, action) {

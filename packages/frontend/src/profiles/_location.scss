@@ -1,0 +1,17 @@
+.profiles {
+  .profiles-location {
+    &__section-header {
+      margin-top: 25px;
+    }
+
+    &__input-group {
+      border: 1px solid #f0405e;
+      border-radius: 3px;
+    }
+
+    &__first-name {
+      width: 249px;
+      height: 29px;
+    }
+  }
+}

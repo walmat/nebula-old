@@ -40,6 +40,7 @@ export class NavbarPrimitive extends PureComponent {
       onKeyPress,
       onRouteTasks,
       onRouteProfiles,
+      onRouteProfilesOld,
       // onRouteServer,
       onRouteSettings,
     } = this.props;
@@ -191,6 +192,7 @@ NavbarPrimitive.propTypes = {
   navbar: PropTypes.objectOf(PropTypes.any).isRequired,
   onRouteTasks: PropTypes.func.isRequired,
   onRouteProfiles: PropTypes.func.isRequired,
+  onRouteProfilesOld: PropTypes.func.isRequired,
   // onRouteServer: PropTypes.func.isRequired,
   onRouteSettings: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
@@ -207,6 +209,7 @@ export const mapStateToProps = state => ({
 export const mapDispatchToProps = dispatch => ({
   onRouteTasks: history => dispatch(navbarActions.routeTasks(history)),
   onRouteProfiles: history => dispatch(navbarActions.routeProfiles(history)),
+  onRouteProfilesOld: history => dispatch(navbarActions.routeProfilesOld(history)),
   onRouteServer: history => dispatch(navbarActions.routeServer(history)),
   onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
 });
