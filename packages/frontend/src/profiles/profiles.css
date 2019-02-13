@@ -25,14 +25,13 @@
   justify-content: space-between;
 }
 .row--expand {
-  width: 100%;
   flex: 1 1 auto;
 }
 .row--gutter-left {
   margin-left: 15px !important;
 }
 .row--gutter-right {
-  margin-right: 0 !important;
+  margin-right: 25px !important;
 }
 .row--gutter {
   margin-left: 0 !important;
@@ -72,7 +71,7 @@
 .profiles .profiles-load {
   height: 112px;
   width: 277px;
-  border: 1px solid #F0405E;
+  border: 1px solid #f0405e;
   border-radius: 3px;
 }
 .profiles .profiles-load__section-header {
@@ -102,7 +101,7 @@
   font-size: 12px;
   color: #efefef;
   letter-spacing: 0;
-  background: #46ADB4;
+  background: #46adb4;
   border-radius: 3px;
   border: none;
   width: 83px;
@@ -116,7 +115,7 @@
   font-size: 12px;
   color: #efefef;
   letter-spacing: 0;
-  background: #F0405E;
+  background: #f0405e;
   border-radius: 3px;
   border: none;
   width: 83px;
@@ -125,24 +124,100 @@
   margin-top: 14px;
 }
 
-.profiles .profiles-location__section-header {
-  margin-top: 25px;
-}
-.profiles .profiles-location__input-group {
-  border: 1px solid #F0405E;
-  border-radius: 3px;
-}
-.profiles .profiles-location__first-name {
-  width: 249px;
+.profiles .profiles__fields--save, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .profiles-location__input-group--phone, .profiles .profiles-location__input-group--zip-code, .profiles .profiles-location__input-group--city, .profiles .profiles-location__input-group--address-two, .profiles .profiles-location__input-group--address-one, .profiles .profiles-location__input-group--last-name, .profiles .profiles-location__input-group--first-name {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
   height: 29px;
 }
 
-.profiles .profiles-billing__section-header {
+.profiles .profiles-location__section-header {
+  margin: 0;
   margin-top: 25px;
+}
+.profiles .profiles-location__input-group {
+  border-radius: 3px;
+}
+.profiles .profiles-location__input-group--first-name {
+  width: 249px;
+}
+.profiles .profiles-location__input-group--last-name {
+  width: 249px;
+}
+.profiles .profiles-location__input-group--address-one {
+  width: 249px;
+}
+.profiles .profiles-location__input-group--address-two {
+  width: 249px;
+}
+.profiles .profiles-location__input-group--city {
+  width: 140px;
+}
+.profiles .profiles-location__input-group--province {
+  width: 94px;
+}
+.profiles .profiles-location__input-group--zip-code {
+  width: 78px;
+}
+.profiles .profiles-location__input-group--country {
+  width: 155px;
+}
+.profiles .profiles-location__input-group--phone {
+  width: 147px;
+}
+
+.profiles .profiles__fields--save, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .profiles-location__input-group--first-name, .profiles .profiles-location__input-group--last-name, .profiles .profiles-location__input-group--address-one, .profiles .profiles-location__input-group--address-two, .profiles .profiles-location__input-group--city, .profiles .profiles-location__input-group--zip-code, .profiles .profiles-location__input-group--phone {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
 }
 
 .profiles .profiles-payment__section-header {
+  margin: 0;
   margin-top: 25px;
+}
+.profiles .profiles-payment__input-group {
+  border-radius: 3px;
+}
+.profiles .profiles-payment__input-group--email {
+  width: 249px;
+}
+.profiles .profiles-payment__input-group--card-number {
+  width: 249px;
+}
+.profiles .profiles-payment__input-group--expiration {
+  width: 155px;
+}
+.profiles .profiles-payment__input-group--cvv {
+  width: 78px;
+}
+
+.profiles .profiles__fields--save, .profiles .profiles-location__input-group--first-name, .profiles .profiles-location__input-group--last-name, .profiles .profiles-location__input-group--address-one, .profiles .profiles-location__input-group--address-two, .profiles .profiles-location__input-group--city, .profiles .profiles-location__input-group--zip-code, .profiles .profiles-location__input-group--phone, .profiles .profiles-payment__input-group--email, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--cvv {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
+}
+
+.profiles .profiles__fields--name {
+  width: 164px;
+  height: 29px;
+  border: 1px solid;
+  border-radius: 3px;
+  margin-left: -25px;
+}
+.profiles .profiles__fields--save {
+  margin-top: 15px;
+  background: #f0405e;
+  color: #efefef;
+  font-size: 12px;
+  letter-spacing: 0;
+  border-radius: 3px;
+  border: none;
+  width: 98px;
+  height: 29px;
+  cursor: pointer;
 }
 
 /* Temporary */

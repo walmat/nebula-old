@@ -123,7 +123,7 @@ export class ProfilesPrimitive extends Component {
                   <h1 className="text-header profiles__title">Profiles</h1>
                 </div>
               </div>
-              <div className="row row--expand row--gutter-left">
+              <div className="row row--expand row--no-gutter-left">
                 <div className="col">
                   <div className="row row--start">
                     <div className="col col--no-gutter-left">
@@ -194,7 +194,6 @@ export class ProfilesPrimitive extends Component {
                     disabled={false}
                   />
                 </div>
-                {/* BILLING MATCHES SHIPPING */}
                 <div
                   role="button"
                   tabIndex={0}
@@ -241,7 +240,7 @@ export class ProfilesPrimitive extends Component {
               <div className="row row--start">
                 <p className="body-text section-header profiles-payment__section-header">Payment</p>
               </div>
-              <div className="row">
+              <div className="row row--start row--expand">
                 <div className="col col--no-gutter col--start profiles-payment-container">
                   <PaymentFields
                     className="profiles__fields--payment"
@@ -249,6 +248,10 @@ export class ProfilesPrimitive extends Component {
                   />
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="row row--expand row--end row--gutter">
+            <div className="col col--start col--no-gutter-left">
               <div className="row row--extend row--end row--gutter">
                 <input
                   className="profiles__fields--name"
@@ -260,19 +263,10 @@ export class ProfilesPrimitive extends Component {
                   )}
                   placeholder="Profile Name"
                 />
-                <button
-                  type="button"
-                  className="profiles__button--submit"
-                  onClick={this.saveProfile}
-                >
+              </div>
+              <div className="row row--extend row--end row--no-gutter">
+                <button type="button" className="profiles__fields--save" onClick={this.saveProfile}>
                   Save
-                </button>
-                <button
-                  type="button"
-                  className="profiles__button--delete"
-                  onClick={this.deleteProfile}
-                >
-                  Delete
                 </button>
               </div>
             </div>
