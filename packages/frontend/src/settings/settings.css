@@ -50,7 +50,7 @@
 .settings-defaults__input-group {
   width: 422px;
   height: 108px;
-  border: 1px solid #F0405E;
+  border: 1px solid #f0405e;
   padding-bottom: 3px;
   border-radius: 3px;
 }
@@ -75,7 +75,7 @@
 }
 .settings-defaults__input-group--clear {
   width: 83px;
-  background: #46ADB4;
+  background: #46adb4;
   margin-right: 7.5px;
 }
 
@@ -94,7 +94,7 @@
   width: 205px;
 }
 .settings__button--close-captcha {
-  background: #46ADB4;
+  background: #46adb4;
   margin-top: 19px;
   width: 205px;
 }
