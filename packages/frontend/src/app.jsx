@@ -14,6 +14,8 @@ import addTestId from './utils/addTestId';
 import closeImg from './_assets/close.svg';
 import deactivateImg from './_assets/logout.svg';
 
+import ProfilesOld from './profiles/old/profiles';
+
 import './app.css';
 
 export class App extends PureComponent {
@@ -138,6 +140,7 @@ export class App extends PureComponent {
                 <Route component={Profiles} path={ROUTES.PROFILES} />
                 <Route component={Server} path={ROUTES.SERVER} />
                 <Route component={Settings} path={ROUTES.SETTINGS} />
+                <Route component={ProfilesOld} path={ROUTES.PROFILES_OLD} />
                 <Route path="/">
                   <Redirect to={redirectRoute} />
                 </Route>

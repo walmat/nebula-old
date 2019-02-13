@@ -116,14 +116,14 @@ export class ProfilesPrimitive extends Component {
     return (
       <form>
         <div className="container profiles">
-          <div className="row">
+          <div className="row row--start row--expand">
             <div className="col col--start">
               <div className="row row--start">
                 <div className="col col--no-gutter-left">
                   <h1 className="text-header profiles__title">Profiles</h1>
                 </div>
               </div>
-              <div className="row">
+              <div className="row row--expand row--gutter-left">
                 <div className="col">
                   <div className="row row--start">
                     <div className="col col--no-gutter-left">
@@ -134,21 +134,44 @@ export class ProfilesPrimitive extends Component {
                   </div>
                   <div className="row">
                     <div className="col col--no-gutter-left">
-                      <p id="profiles__label--name">Profile Name</p>
-                      <Select
-                        required
-                        placeholder="Load Profile"
-                        components={{ DropdownIndicator }}
-                        className="profiles__fields--load"
-                        classNamePrefix="select"
-                        styles={colourStyles(buildStyle(false, true))}
-                        onChange={this.onProfileChange}
-                        value={selectProfileValue}
-                        options={this.buildProfileOptions()}
-                      />
-                      <button type="button" id="profiles__button--load" onClick={this.loadProfile}>
-                        Load
-                      </button>
+                      <div className="profiles-load col col--start col--no-gutter">
+                        <div className="row row--start row--gutter">
+                          <div className="col profiles-load__input-group">
+                            <div className="row row--gutter">
+                              <div className="col col--no-gutter">
+                                <p className="profiles-load__label">Profile Name</p>
+                                <Select
+                                  required
+                                  placeholder="Load Profile"
+                                  components={{ DropdownIndicator }}
+                                  className="profiles-load__input-group--select"
+                                  classNamePrefix="select"
+                                  styles={colourStyles(buildStyle(false, true))}
+                                  onChange={this.onProfileChange}
+                                  value={selectProfileValue}
+                                  options={this.buildProfileOptions()}
+                                />
+                              </div>
+                            </div>
+                            <div className="row row--gutter row--end row--expand">
+                              <button
+                                type="button"
+                                className="profiles-load__input-group--delete"
+                                onClick={this.deleteProfile}
+                              >
+                                Delete
+                              </button>
+                              <button
+                                type="button"
+                                className="profiles-load__input-group--load"
+                                onClick={this.loadProfile}
+                              >
+                                Load
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -158,12 +181,12 @@ export class ProfilesPrimitive extends Component {
           <div className="row row--start">
             <div className="col col--start">
               <div className="row row--start">
-                <p className="body-text section-header profiles-shipping__section-header">
+                <p className="body-text section-header profiles-location__section-header">
                   Shipping
                 </p>
               </div>
               <div className="row">
-                <div className="col col--start profiles-shipping-container">
+                <div className="col col--no-gutter col--start profiles-shipping-container">
                   <LocationFields
                     className="profiles__fields--shipping"
                     profileToEdit={currentProfile}
@@ -195,12 +218,14 @@ export class ProfilesPrimitive extends Component {
             </div>
             <div className="col">
               <div className="row row--start">
-                <p className="body-text section-header profiles-billing__section-header">Billing</p>
+                <p className="body-text section-header profiles-location__section-header">
+                  Billing
+                </p>
               </div>
               <div className="row">
-                <div className="col col--start profiles-billing-container">
+                <div className="col col--no-gutter col--start profiles-billing-container">
                   <LocationFields
-                    id="profiles__fields--billing"
+                    className="profiles__fields--billing"
                     profileToEdit={currentProfile}
                     fieldToEdit={
                       currentProfile.billingMatchesShipping
@@ -217,14 +242,14 @@ export class ProfilesPrimitive extends Component {
                 <p className="body-text section-header profiles-payment__section-header">Payment</p>
               </div>
               <div className="row">
-                <div className="col col--start profiles-payment-container">
+                <div className="col col--no-gutter col--start profiles-payment-container">
                   <PaymentFields
                     className="profiles__fields--payment"
                     profileToEdit={currentProfile}
                   />
                 </div>
               </div>
-              <div className="row">
+              <div className="row row--extend row--end row--gutter">
                 <input
                   className="profiles__fields--name"
                   required
