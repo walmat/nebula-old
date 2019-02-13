@@ -1,0 +1,32 @@
+@import '_mixins';
+
+%input-base {
+  height: 29px;
+  border: 1px solid #f0405e;
+  border-radius: 3px;
+}
+
+.settings {
+  &__label {
+    @include settings-font();
+    height: 12px;
+    margin-bottom: 3px;
+    margin-top: 19px;
+    padding-left: 0.5px;
+  }
+
+  &__input {
+    @include settings-font();
+  }
+
+  &__input-group {
+    &--webhook {
+      @extend %input-base;
+      width: 344px;
+    }
+  }
+
+  &__extras {
+    margin-top: 15px;
+  }
+}

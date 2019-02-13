@@ -93,153 +93,82 @@ export class SettingsPrimitive extends Component {
       };
     }
     return (
-      <div className="container">
-        <h1 className="text-header" id="setting-header">
-          Settings
-        </h1>
-
-        {/* Proxy List */}
-        <p className="body-text" id="proxy-list-label">
-          Proxy List
-        </p>
-        <div id="proxy-list-box" />
-        <ProxyList id="proxy-list-text" />
-
-        {/* CAPTCHA Window */}
-        {/* <button type="button" id="proxy-button-youtube" onClick={SettingsPrimitive.launchYoutube} >YouTube</button> */}
-        <button type="button" id="proxy-button-captcha" onClick={SettingsPrimitive.harvester}>
-          Captcha Window
-        </button>
-        <button
-          type="button"
-          id="proxy-button-captcha-close"
-          onClick={SettingsPrimitive.closeAllCaptchaWindows}
-        >
-          Close All Windows
-        </button>
-
-        {/* EXTRAS */}
-        <p id="discord-label">Discord URL</p>
-        <input
-          id="discord-input"
-          placeholder="https://discordapp.com/api/webhooks/..."
-          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
-          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]])}
-          value={settings.discord}
-        />
-        <button
-          type="button"
-          id="test-discord"
-          tabIndex={0}
-          onKeyPress={onKeyPress}
-          onClick={() => {
-            onTestDiscord(settings.discord);
-          }}
-        >
-          Test
-        </button>
-        <p id="slack-label">Slack URL</p>
-        <input
-          id="slack-input"
-          placeholder="https://hooks.slack.com/services/..."
-          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
-          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]])}
-          value={settings.slack}
-        />
-        <button
-          type="button"
-          id="test-slack"
-          tabIndex={0}
-          onKeyPress={onKeyPress}
-          onClick={() => {
-            onTestSlack(settings.slack);
-          }}
-        >
-          Test
-        </button>
-        {/* DEFAULTS */}
-        <p className="body-text" id="defaults-label">
-          Defaults
-        </p>
-        <div id="defaults-box" />
-        <p id="default-profile-label">Profile</p>
-        <Select
-          required
-          placeholder="Choose Profile"
-          components={{ DropdownIndicator }}
-          id="default-profile"
-          classNamePrefix="select"
-          styles={colourStyles(
-            buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]]),
-          )}
-          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE)}
-          value={defaultProfileValue}
-          options={this.buildProfileOptions()}
-        />
-
-        <p id="default-sizes-label">Sizes</p>
-        <Select
-          required
-          isMulti
-          isClearable={false}
-          placeholder="Choose Sizes"
-          components={{ DropdownIndicator }}
-          id="default-sizes"
-          classNamePrefix="select"
-          styles={colourStyles(
-            buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]]),
-          )}
-          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
-          value={defaultSizes}
-          options={SettingsPrimitive.buildSizeOptions()}
-        />
-        <button
-          type="button"
-          id="save-defaults"
-          tabIndex={0}
-          onKeyPress={onKeyPress}
-          onClick={() => {
-            onSaveDefaults(settings.defaults);
-          }}
-        >
-          Save
-        </button>
-
-        <button
-          type="button"
-          id="clear-defaults"
-          tabIndex={0}
-          onKeyPress={onKeyPress}
-          onClick={() => {
-            onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
-          }}
-        >
-          Clear
-        </button>
-
-        {/* Delays */}
-        <p id="monitor-label">Monitor Delay</p>
-        <NumberFormat
-          value={settings.monitorDelay}
-          placeholder="1500"
-          id="monitor-input"
-          style={buildStyle(
-            false,
-            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_MONITOR_DELAY]],
-          )}
-          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_MONITOR_DELAY)}
-          required
-        />
-
-        <p id="error-label">Error Delay</p>
-        <NumberFormat
-          value={settings.errorDelay}
-          placeholder="1500"
-          id="error-input"
-          style={buildStyle(false, errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ERROR_DELAY]])}
-          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_ERROR_DELAY)}
-          required
-        />
+      <div className="container settings">
+        <div className="row">
+          <div className="col col--start">
+            <div className="row row--start">
+              <div className="col col--no-gutter-left">
+                <h1 className="text-header settings__title">Settings</h1>
+              </div>
+            </div>
+            <div className="row">
+              <div className="col">
+                <div className="row row--start">
+                  <div className="col col--no-gutter-left">
+                    <p className="body-text section-header proxy-list__section-header">
+                      Proxy List
+                    </p>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col col--no-gutter-left col--expand">
+                    <div className="proxy-list col col--start col--no-gutter">
+                      <div className="row row--start row--gutter">
+                        <div className="col proxy-list__input-group">
+                          <div className="row row--gutter">
+                            <div className="col col--no-gutter">
+                              <ProxyList className="proxy-list__input-group--text" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="col col--start settings__extras">
+                <div className="row row--start">
+                  <div className="col">
+                    <p className="settings__label">Discord URL</p>
+                  </div>
+                </div>
+                <div className="row row--no-gutter-left">
+                  <div className="col col--start">
+                    <input
+                      className="settings__input-group--webhook"
+                      placeholder="https://discordapp.com/api/webhooks/..."
+                      onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
+                      style={buildStyle(
+                        false,
+                        errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]],
+                      )}
+                      value={settings.discord}
+                    />
+                  </div>
+                </div>
+                <div className="row row--start">
+                  <div className="col">
+                    <p className="settings__label">Slack URL</p>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col col--start">
+                    <input
+                      className="settings__input-group--webhook"
+                      placeholder="https://hooks.slack.com/services/..."
+                      onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
+                      style={buildStyle(
+                        false,
+                        errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]],
+                      )}
+                      value={settings.slack}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
