@@ -1,66 +1,60 @@
-// Server Page Rules
-// @import 'grid';
+%icons-base {
+  cursor: pointer;
+  &--active {
+    opacity: 0.5;
+  }
+}
 
 .navbar {
-  .wrapper {
-    margin: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: stretch;
-  }
-
-  .separator {
-    top: 8.5px;
-    height: calc(body_height - 8.5px);
+  height: 100%;
+  &--separator {
+    margin-top: 8.5px;
+    height: calc(100% - 8.5px);
     border: 1px solid #efefef;
     display: block;
   }
 
-  .icons {
-    cursor: pointer;
-    margin: 0 0 15% 0;
+  &__icons {
     &--active {
+      @extend %icons-base;
       opacity: 0.5;
     }
     &--tasks {
-      margin-left: 16px;
+      @extend %icons-base;
+      margin-left: 5px;
       width: 61px;
       height: 49px;
     }
     &--profiles {
+      @extend %icons-base;
       width: 44px;
       height: 43px;
     }
     &--servers {
+      @extend %icons-base;
       width: 42px;
       height: 46px;
     }
     &--settings {
+      @extend %icons-base;
       width: 40px;
       height: 60px;
     }
   }
 
-  .footer {
-    &--name {
+  &__text {
+    &--app-name {
       text-transform: capitalize;
       text-align: center;
-
-      p {
-        opacity: 0.75;
-        color: #46adb4;
-      }
+      margin: 0;
+      margin-top: 10px;
+      opacity: 0.75;
+      color: #46adb4;
     }
-    &--version {
+    &--app-version {
       text-align: center;
-
-      p {
-        opacity: 0.75;
-        color: #f0405e;
-      }
+      opacity: 0.75;
+      color: #f0405e;
     }
   }
 }

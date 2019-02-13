@@ -1,56 +1,45 @@
-.navbar .wrapper {
-  margin: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-items: stretch;
+.navbar__icons--settings, .navbar__icons--servers, .navbar__icons--profiles, .navbar__icons--tasks, .navbar__icons--active {
+  cursor: pointer;
 }
-.navbar .separator {
-  top: 8.5px;
-  height: calc(body_height - 8.5px);
+.navbar {
+  height: 100%;
+}
+.navbar--separator {
+  margin-top: 8.5px;
+  height: calc(100% - 8.5px);
   border: 1px solid #efefef;
   display: block;
 }
-.navbar .icons {
-  cursor: pointer;
-  margin: 0 0 15% 0;
-}
-.navbar .icons--active {
+.navbar__icons--active {
   opacity: 0.5;
 }
-.navbar .icons--tasks {
-  margin-left: 16px;
+.navbar__icons--tasks {
+  margin-left: 5px;
   width: 61px;
   height: 49px;
 }
-.navbar .icons--profiles {
+.navbar__icons--profiles {
   width: 44px;
   height: 43px;
 }
-.navbar .icons--servers {
+.navbar__icons--servers {
   width: 42px;
   height: 46px;
 }
-.navbar .icons--settings {
+.navbar__icons--settings {
   width: 40px;
   height: 60px;
 }
-.navbar .footer--name {
+.navbar__text--app-name {
   text-transform: capitalize;
   text-align: center;
-}
-.navbar .footer--name p {
+  margin: 0;
+  margin-top: 10px;
   opacity: 0.75;
-  color: #46ADB4;
+  color: #46adb4;
 }
-.navbar .footer--version {
+.navbar__text--app-version {
   text-align: center;
-}
-.navbar .footer--version p {
   opacity: 0.75;
-  color: #F0405E;
+  color: #f0405e;
 }
-
-/*# sourceMappingURL=navbar.css.map */
