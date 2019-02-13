@@ -1,17 +1,62 @@
+%input_field {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
+}
+
 .profiles {
   .profiles-location {
     &__section-header {
+      margin: 0;
       margin-top: 25px;
     }
 
     &__input-group {
-      border: 1px solid #f0405e;
       border-radius: 3px;
-    }
 
-    &__first-name {
-      width: 249px;
-      height: 29px;
+      &--first-name {
+        @extend %input_field;
+        width: 249px;
+      }
+
+      &--last-name {
+        @extend %input_field;
+        width: 249px;
+      }
+
+      &--address-one {
+        @extend %input_field;
+        width: 249px;
+      }
+
+      &--address-two {
+        @extend %input_field;
+        width: 249px;
+      }
+
+      &--city {
+        @extend %input_field;
+        width: 140px;
+      }
+
+      &--province {
+        width: 94px;
+      }
+
+      &--zip-code {
+        @extend %input_field;
+        width: 78px;
+      }
+
+      &--country {
+        width: 155px;
+      }
+
+      &--phone {
+        @extend %input_field;
+        width: 147px;
+      }
     }
   }
 }

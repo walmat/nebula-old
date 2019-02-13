@@ -52,7 +52,7 @@
   }
 
   &--expand {
-    width: 100%;
+    // width: 100%;
     flex: 1 1 auto;
   }
 
@@ -61,7 +61,7 @@
   }
 
   &--gutter-right {
-    margin-right: 0 !important;
+    margin-right: 25px !important;
   }
 
   &--gutter {

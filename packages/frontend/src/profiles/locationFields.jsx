@@ -75,11 +75,11 @@ export class LocationFieldsPrimitive extends Component {
     const { id, value, errors, disabled } = this.props;
     return (
       <div className="profiles-location col col--start col--no-gutter">
-        <div className="row row--start row--gutter">
+        <div className="row row--start row--no-gutter-left row--gutter-right">
           <div className="col profiles-location__input-group">
             <div className="row row--gutter">
               <input
-                className={`${id}__input-group--first-name`}
+                className={`${id} profiles-location__input-group--first-name`}
                 required
                 placeholder="First Name"
                 onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)}
@@ -90,7 +90,7 @@ export class LocationFieldsPrimitive extends Component {
             </div>
             <div className="row row--gutter">
               <input
-                id={`${id}__input-group--last-name`}
+                className={`${id} profiles-location__input-group--last-name`}
                 required
                 placeholder="Last Name"
                 onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)}
@@ -101,7 +101,7 @@ export class LocationFieldsPrimitive extends Component {
             </div>
             <div className="row row--gutter">
               <input
-                id={`${id}__input-group--address-one`}
+                className={`${id} profiles-location__input-group--address-one`}
                 required
                 placeholder="Address Line 1"
                 onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)}
@@ -112,7 +112,7 @@ export class LocationFieldsPrimitive extends Component {
             </div>
             <div className="row row--gutter">
               <input
-                id={`${id}__input-group--address-two`}
+                className={`${id} profiles-location__input-group--address-two`}
                 placeholder="Address Line 2"
                 onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)}
                 value={value.apt}
@@ -120,10 +120,10 @@ export class LocationFieldsPrimitive extends Component {
                 disabled={disabled}
               />
             </div>
-            <div className="row row--gutter">
+            <div className="row row--start row--gutter">
               <div className="col col--no-gutter">
                 <input
-                  id={`${id}__input-group--city`}
+                  className={`${id} profiles-location__input-group--city`}
                   required
                   placeholder="City"
                   onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)}
@@ -137,7 +137,7 @@ export class LocationFieldsPrimitive extends Component {
                   required
                   placeholder="Province"
                   components={{ DropdownIndicator }}
-                  id={`${id}__input-group--province`}
+                  className={`${id} profiles-location__input-group--province`}
                   classNamePrefix="select"
                   options={LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined}
                   onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
@@ -147,10 +147,10 @@ export class LocationFieldsPrimitive extends Component {
                 />
               </div>
             </div>
-            <div className="row row--gutter">
+            <div className="row row--start row--gutter">
               <div className="col col--no-gutter">
                 <input
-                  id={`${id}__input-group--zip-code`}
+                  className={`${id} profiles-location__input-group--zip-code`}
                   required
                   placeholder="Zip Code"
                   onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
@@ -164,7 +164,7 @@ export class LocationFieldsPrimitive extends Component {
                   required
                   placeholder="Country"
                   components={{ DropdownIndicator }}
-                  id={`${id}__input-group--country`}
+                  className={`${id} profiles-location__input-group--country`}
                   classNamePrefix="select"
                   options={LocationFieldsPrimitive.buildCountryOptions()}
                   onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
@@ -174,9 +174,9 @@ export class LocationFieldsPrimitive extends Component {
                 />
               </div>
             </div>
-            <div className="row row--gutter">
+            <div className="row row--start row--gutter">
               <input
-                id={`${id}__input-group--phone`}
+                className={`${id} profiles-location__input-group--phone`}
                 required
                 placeholder="Phone"
                 onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
