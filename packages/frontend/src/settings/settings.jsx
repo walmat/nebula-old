@@ -127,42 +127,223 @@ export class SettingsPrimitive extends Component {
                 </div>
               </div>
               <div className="col col--start settings__extras">
-                <div className="row row--start">
+                <div className="row row--start row-gutter">
                   <div className="col">
-                    <p className="settings__label">Discord URL</p>
+                    <div className="row row--gutter">
+                      <div className="col col--no-gutter">
+                        <p className="settings__label">Discord URL</p>
+                        <input
+                          className="settings__input-group--webhook"
+                          placeholder="https://discordapp.com/api/webhooks/..."
+                          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
+                          style={buildStyle(
+                            false,
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]],
+                          )}
+                          value={settings.discord}
+                        />
+                      </div>
+                      <div className="col col--end col--no-gutter-right">
+                        <button
+                          type="button"
+                          className="settings__input-group--button"
+                          tabIndex={0}
+                          onKeyPress={onKeyPress}
+                          onClick={() => {
+                            onTestDiscord(settings.discord);
+                          }}
+                        >
+                          Test
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="row row--no-gutter-left">
-                  <div className="col col--start">
-                    <input
-                      className="settings__input-group--webhook"
-                      placeholder="https://discordapp.com/api/webhooks/..."
-                      onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
-                      style={buildStyle(
-                        false,
-                        errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DISCORD]],
-                      )}
-                      value={settings.discord}
-                    />
-                  </div>
-                </div>
-                <div className="row row--start">
+                <div className="row row--start row-gutter">
                   <div className="col">
-                    <p className="settings__label">Slack URL</p>
+                    <div className="row row--gutter">
+                      <div className="col col--no-gutter">
+                        <p className="settings__label">Slack URL</p>
+                        <input
+                          className="settings__input-group--webhook"
+                          placeholder="https://hooks.slack.com/services/..."
+                          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
+                          style={buildStyle(
+                            false,
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]],
+                          )}
+                          value={settings.slack}
+                        />
+                      </div>
+                      <div className="col col--end col--no-gutter-right">
+                        <button
+                          type="button"
+                          className="settings__input-group--button"
+                          tabIndex={0}
+                          onKeyPress={onKeyPress}
+                          onClick={() => {
+                            onTestSlack(settings.slack);
+                          }}
+                        >
+                          Test
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="row">
-                  <div className="col col--start">
-                    <input
-                      className="settings__input-group--webhook"
-                      placeholder="https://hooks.slack.com/services/..."
-                      onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
-                      style={buildStyle(
-                        false,
-                        errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SLACK]],
-                      )}
-                      value={settings.slack}
-                    />
+                <div className="row row--gutter">
+                  <div className="col">
+                    <div className="row row--start">
+                      <div className="col col--no-gutter-left">
+                        <p className="body-text section-header settings-defaults__section-header">
+                          Defaults
+                        </p>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col col--no-gutter-left">
+                        <div className="row row--start row-gutter">
+                          <div className="col settings-defaults__input-group">
+                            <div className="row row--gutter">
+                              <div className="col col--no-gutter-right">
+                                <p className="settings-defaults__input-group--label">Profile</p>
+                                <Select
+                                  required
+                                  placeholder="Choose Profile"
+                                  components={{ DropdownIndicator }}
+                                  className="settings-defaults__input-group--select"
+                                  classNamePrefix="select"
+                                  styles={colourStyles(
+                                    buildStyle(
+                                      false,
+                                      errors[
+                                        mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]
+                                      ],
+                                    ),
+                                  )}
+                                  onChange={this.createOnChangeHandler(
+                                    SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
+                                  )}
+                                  value={defaultProfileValue}
+                                  options={this.buildProfileOptions()}
+                                />
+                              </div>
+                              <div className="col col--end col--gutter-left">
+                                <p className="settings-defaults__input-group--label">Sizes</p>
+                                <Select
+                                  required
+                                  isMulti
+                                  isClearable={false}
+                                  placeholder="Choose Sizes"
+                                  components={{ DropdownIndicator }}
+                                  className="settings-defaults__input-group--select"
+                                  classNamePrefix="select"
+                                  styles={colourStyles(
+                                    buildStyle(
+                                      false,
+                                      errors[
+                                        mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]
+                                      ],
+                                    ),
+                                  )}
+                                  onChange={this.createOnChangeHandler(
+                                    SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
+                                  )}
+                                  value={defaultSizes}
+                                  options={SettingsPrimitive.buildSizeOptions()}
+                                />
+                              </div>
+                            </div>
+                            <div className="row row--gutter row--end">
+                              <div className="col col--no-gutter-right">
+                                <button
+                                  type="button"
+                                  className="settings-defaults__input-group--save"
+                                  tabIndex={0}
+                                  onKeyPress={onKeyPress}
+                                  onClick={() => {
+                                    onSaveDefaults(settings.defaults);
+                                  }}
+                                >
+                                  Save
+                                </button>
+                              </div>
+                              <div className="col col--end col--gutter-left">
+                                <button
+                                  type="button"
+                                  className="settings-defaults__input-group--clear"
+                                  tabIndex={0}
+                                  onKeyPress={onKeyPress}
+                                  onClick={() => {
+                                    onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
+                                  }}
+                                >
+                                  Clear
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row row--start row-gutter">
+                  <div className="col">
+                    <div className="row row--gutter">
+                      <div className="col col--no-gutter">
+                        <p className="settings__label">Monitor Delay</p>
+                        <NumberFormat
+                          value={settings.monitorDelay}
+                          placeholder="1500"
+                          className="settings__input-group--delays"
+                          style={buildStyle(
+                            false,
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_MONITOR_DELAY]],
+                          )}
+                          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_MONITOR_DELAY)}
+                          required
+                        />
+                      </div>
+                      <div className="col col--end col--no-gutter-right">
+                        <p className="settings__label">Error Delay</p>
+                        <NumberFormat
+                          value={settings.errorDelay}
+                          placeholder="1500"
+                          className="settings__input-group--delays"
+                          style={buildStyle(
+                            false,
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ERROR_DELAY]],
+                          )}
+                          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_ERROR_DELAY)}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row row--start row-gutter">
+                  <div className="col">
+                    <div className="row row--gutter">
+                      <div className="col col--no-gutter">
+                        <button
+                          type="button"
+                          className="settings__button--open-captcha"
+                          onClick={SettingsPrimitive.harvester}
+                        >
+                          Captcha Window
+                        </button>
+                      </div>
+                      <div className="col col--end col--no-gutter-right">
+                        <button
+                          type="button"
+                          className="settings__button--close-captcha"
+                          onClick={SettingsPrimitive.closeAllCaptchaWindows}
+                        >
+                          Close All Windows
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -13,7 +13,7 @@
   letter-spacing: 0;
   margin-top: 10px;
   margin-bottom: 10px;
-  color: #6D6E70;
+  color: #6d6e70;
   width: 330px;
   height: 545px;
   background: #f4f4f4;
@@ -23,10 +23,60 @@
   overflow-x: hidden;
 }
 
-.settings__input-group--webhook {
+.settings__input-group--delays, .settings__input-group--webhook {
   height: 29px;
   border: 1px solid #f0405e;
   border-radius: 3px;
+}
+
+.settings__input-group--button, .settings__button--close-captcha, .settings__button--open-captcha, .settings-defaults__input-group--clear, .settings-defaults__input-group--save {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+  font-size: 12px;
+  color: #efefef;
+  background: #f0405e;
+  width: 65px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+}
+
+.settings-defaults__section-header {
+  margin-top: 15px;
+}
+.settings-defaults__input-group {
+  width: 422px;
+  height: 108px;
+  border: 1px solid #F0405E;
+  padding-bottom: 3px;
+  border-radius: 3px;
+}
+.settings-defaults__input-group--select {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+  width: 170px;
+  border-radius: 3px;
+}
+.settings-defaults__input-group--label {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+  margin: 0;
+  margin-bottom: 2px;
+}
+.settings-defaults__input-group--save {
+  width: 83px;
+}
+.settings-defaults__input-group--clear {
+  width: 83px;
+  background: #46ADB4;
+  margin-right: 7.5px;
 }
 
 .settings__label {
@@ -39,6 +89,15 @@
   margin-top: 19px;
   padding-left: 0.5px;
 }
+.settings__button--open-captcha {
+  margin-top: 19px;
+  width: 205px;
+}
+.settings__button--close-captcha {
+  background: #46ADB4;
+  margin-top: 19px;
+  width: 205px;
+}
 .settings__input {
   font-family: AvenirNext-Medium;
   font-size: 9px;
@@ -47,6 +106,9 @@
 }
 .settings__input-group--webhook {
   width: 344px;
+}
+.settings__input-group--delays {
+  width: 205px;
 }
 .settings__extras {
   margin-top: 15px;
