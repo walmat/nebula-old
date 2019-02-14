@@ -1,0 +1,23 @@
+$themes: (
+  light: (
+    backgroundColor: #f5f5f5,
+    textColor: #161318,
+    buttonTextColor: #efefef,
+    buttonTextTransform: none,
+    buttonHoverOpacity: 0.8333,
+    buttonColorPrimary: #f0405e,
+    buttonColorSecondary: #46adb4,
+    buttonBorder: none,
+    border-radius: 3px,
+  ),
+  dark: (
+    backgroundColor: #222,
+    textColor: #ddd,
+    buttonTextColor: #aaa,
+    buttonTextTransform: uppercase,
+    buttonHoverOpacity: 0.8333,
+    buttonColorPrimary: #333,
+    buttonBorder: none,
+    border-radius: 3px,
+  ),
+);
