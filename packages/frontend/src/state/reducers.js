@@ -31,6 +31,7 @@ export const initialState = {
   serverInfo: initialServerStates.serverInfo,
   servers: initialServerStates.serverList,
   serverListOptions,
+  theme: 'light',
 };
 
 const topLevelReducer = (state = initialState, action) => {
@@ -42,6 +43,16 @@ const topLevelReducer = (state = initialState, action) => {
   if (action.type === GLOBAL_ACTIONS.RESET) {
     return { ...initialState };
   }
+
+  if (action.type === GLOBAL_ACTIONS.TOGGLE_THEME) {
+    if (action.mode) {
+      return {
+        ...state,
+        theme: action.mode,
+      };
+    }
+  }
+
   // If not a reset, handle the action with sub reducers
   const changes = {
     tasks: taskListReducer(state.tasks, action),
