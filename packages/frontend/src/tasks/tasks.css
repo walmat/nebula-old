@@ -190,17 +190,17 @@
   margin-left: -1px;
   padding-left: 14px;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row__log--sizes {
-  width: 50px;
-  margin-left: 7px;
-}
 .tasks .tasks-table .tasks-row-container .tasks-row__log--site {
-  width: 116px;
-  padding-left: 15px;
+  width: 205px;
+  white-space: nowrap;
+  padding-left: 3px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__log--size {
+  width: 150px;
+  padding-left: 20px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__log--output {
   width: 440px;
-  padding-left: 5px;
 }
 .tasks .tasks-log {
   width: 504px;
@@ -214,12 +214,16 @@
 .tasks .tasks-log__header {
   padding-bottom: 1px;
 }
-.tasks .tasks-log__header__id {
+.tasks .tasks-log__header--id {
   width: 7px;
   padding-left: 14px;
 }
-.tasks .tasks-log__header__site {
-  width: 60px;
+.tasks .tasks-log__header--site {
+  width: 110px;
+  padding-left: 15px;
+}
+.tasks .tasks-log__header--size {
+  width: 65px;
   padding-left: 18px;
 }
 .tasks .tasks-log__header--output {
@@ -264,7 +268,7 @@
   min-height: 26px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit {
-  width: 16px;
+  width: 5px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id {
   width: 26px;
@@ -273,19 +277,19 @@
   text-align: center;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product {
-  width: 129px;
+  width: 200px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites {
-  width: 73px;
+  width: 125px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile {
-  width: 268px;
+  width: 125px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes {
-  width: 54px;
+  width: 65px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs {
-  width: 50px;
+  width: 65px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions {
   width: 50px;
@@ -398,10 +402,10 @@
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sites {
   text-overflow: ellipsis;
-  width: 73px;
+  width: 125px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile {
-  width: 268px;
+  width: 125px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile > p {
   text-overflow: ellipsis;
@@ -410,20 +414,20 @@
   width: 65px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account {
-  width: 50px;
+  width: 65px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions {
   width: 50px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:first-child {
-  margin-left: -5px;
+  margin-left: -10px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(3) {
   margin-top: 1px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button {
   padding-bottom: 3px;
-  margin-right: 5px;
+  margin-right: 1.5px;
   width: 16px;
 }
 

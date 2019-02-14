@@ -126,7 +126,7 @@ body {
 }
 .theme-dark html,
 .theme-dark body {
-  background: #6D6E70;
+  background: #6d6e70;
 }
 
 td {
@@ -222,8 +222,9 @@ button:focus {
   outline: none;
 }
 
-input, select {
-  text-transform: none;
+input,
+select {
+  text-transform: capitalize;
   padding-left: 7.5px;
   padding-right: 7.5px;
   box-sizing: border-box;
@@ -268,7 +269,7 @@ select {
 }
 .theme-dark input,
 .theme-dark select {
-  background: #6D6E70;
+  background: #6d6e70;
 }
 
 /*clear placeholder text on input focus*/
