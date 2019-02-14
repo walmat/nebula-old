@@ -208,9 +208,7 @@ select {
   opacity: 0.5;
 }
 
-.close-area-1:hover,
-.close-area-2:hover,
-.theme-toggle:hover {
+.close-area-2:hover {
   opacity: 0.8333;
   cursor: pointer;
 }
@@ -269,7 +267,7 @@ select {
 }
 .theme-dark input,
 .theme-dark select {
-  background: #6d6e70;
+  background: #6D6E70;
 }
 
 /*clear placeholder text on input focus*/
