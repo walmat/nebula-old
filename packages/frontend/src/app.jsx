@@ -78,7 +78,7 @@ export class App extends PureComponent {
     return (
       <Provider store={store}>
         <BrowserRouter>
-          <div id="container-wrapper">
+          <div id="container-wrapper" className="theme-dark">
             <div className="titlebar">
               <div
                 className="close-area-1"
