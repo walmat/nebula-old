@@ -286,6 +286,17 @@ select {
   cursor: pointer;
 }
 
+.theme-toggle {
+  position: absolute;
+  top: 0;
+  right: 52px;
+  width: 25px;
+  height: 25px;
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
+  z-index: 1;
+  cursor: pointer;
+}
 .close-area-1 > img,
 .close-area-2 > img {
   cursor: pointer;
@@ -296,7 +307,8 @@ select {
 }
 
 .close-area-1:hover,
-.close-area-2:hover {
+.close-area-2:hover,
+.theme-toggle:hover {
   opacity: 0.8333;
   cursor: pointer;
 }
