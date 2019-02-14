@@ -13,6 +13,8 @@ import addTestId from './utils/addTestId';
 
 import closeImg from './_assets/close.svg';
 import deactivateImg from './_assets/logout.svg';
+import night from './_assets/moon.svg';
+import day from './_assets/sun.svg';
 
 import './app.css';
 
@@ -37,6 +39,20 @@ export class App extends PureComponent {
         }
       }
     };
+  }
+
+  static toggleTheme(store) {
+    const { theme } = store.getState();
+    switch (theme) {
+      case 'light':
+        store.dispatch(globalActions.toggleTheme('dark'));
+        break;
+      case 'dark':
+        store.dispatch(globalActions.toggleTheme('light'));
+        break;
+      default:
+        break;
+    }
   }
 
   constructor(props) {
@@ -69,6 +85,7 @@ export class App extends PureComponent {
 
   render() {
     const { store, onKeyPress } = this.props;
+    const { theme } = store.getState();
     const stateLocation = store.getState().navbar.location;
     const windowLocation = window.location.pathname;
     let redirectRoute = ROUTES.TASKS;
@@ -78,7 +95,7 @@ export class App extends PureComponent {
     return (
       <Provider store={store}>
         <BrowserRouter>
-          <div id="container-wrapper" className="theme-dark">
+          <div id="container-wrapper" className={`theme-${theme}`}>
             <div className="titlebar">
               <div
                 className="close-area-1"
@@ -119,6 +136,30 @@ export class App extends PureComponent {
                   src={closeImg}
                   draggable="false"
                   alt="close"
+                  style={{
+                    position: 'absolute',
+                    top: '6px',
+                    right: '6px',
+                    cursor: 'pointer',
+                    verticalAlign: 'middle',
+                    width: '12px',
+                    height: '12px',
+                  }}
+                />
+              </div>
+              <div
+                className="theme-toggle"
+                role="button"
+                tabIndex={0}
+                title={theme === 'light' ? 'dark mode' : 'light mode'}
+                onKeyPress={onKeyPress}
+                onClick={() => App.toggleTheme(store)}
+                draggable="false"
+              >
+                <img
+                  src={theme === 'light' ? night : day}
+                  draggable="false"
+                  alt="theme"
                   style={{
                     position: 'absolute',
                     top: '6px',
