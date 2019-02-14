@@ -3,12 +3,22 @@
 }
 .navbar {
   height: 100%;
+  position: fixed;
 }
 .navbar--separator {
   margin-top: 8.5px;
   height: calc(100% - 8.5px);
   border: 1px solid #efefef;
   display: block;
+}
+.navbar__row-item--first {
+  margin-top: 15px !important;
+}
+.navbar__row-item--second {
+  margin-top: 55px !important;
+}
+.navbar__row-item--last {
+  margin-bottom: 75px !important;
 }
 .navbar__icons--active {
   opacity: 0.5;

@@ -48,15 +48,15 @@ export class NavbarPrimitive extends PureComponent {
     return (
       <div className="container navbar">
         <div className="row">
-          <div className="col col--no-gutter col--start">
-            <div className="row--start">
-              <div className="col col--between">
-                <Bodymovin options={bodymovinOptions} />
-              </div>
-              <div className="col col--expand">
-                <div className="row">
+          <div className="col col--gutter">
+            <div className="row row--expand">
+              <div className="col col--start col--expand">
+                <div className="row row--start row--gutter navbar__row-item--first">
+                  <Bodymovin options={bodymovinOptions} />
+                </div>
+                <div className="row row--expand navbar__row-item--second">
                   <div className="col">
-                    <div className="row row--start">
+                    <div className="row row--start row--gutter">
                       <div className="navbar__icons--tasks">
                         <div
                           role="button"
@@ -83,8 +83,8 @@ export class NavbarPrimitive extends PureComponent {
                     </div>
                   </div>
                 </div>
-                <div className="row--profiles">
-                  <div className="col col--between">
+                <div className="row row--gutter row--expand">
+                  <div className="col col--no-gutter">
                     <div className="row">
                       <div className="navbar__icons--profils">
                         <div
@@ -108,8 +108,8 @@ export class NavbarPrimitive extends PureComponent {
                     </div>
                   </div>
                 </div>
-                <div className="row--servers">
-                  <div className="col col--between">
+                <div className="row row--gutter row--expand">
+                  <div className="col col--no-gutter">
                     <div className="row">
                       <div className="navbar__icons--servers">
                         <div
@@ -135,8 +135,8 @@ export class NavbarPrimitive extends PureComponent {
                     </div>
                   </div>
                 </div>
-                <div className="row--settings">
-                  <div className="col col--between">
+                <div className="row row--gutter row--expand navbar__row-item--last">
+                  <div className="col col--no-gutter">
                     <div className="row">
                       <div className="navbar__icons--settings">
                         <div
@@ -161,7 +161,7 @@ export class NavbarPrimitive extends PureComponent {
                   </div>
                 </div>
                 <div className="row">
-                  <div className="col col--between">
+                  <div className="col col--no-gutter">
                     <div className="row row--start">
                       <div>
                         <p className="navbar__text--app-name">{name.replace('-', ' ')}</p>

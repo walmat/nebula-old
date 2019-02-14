@@ -7,11 +7,25 @@
 
 .navbar {
   height: 100%;
+  position: fixed;
+
   &--separator {
     margin-top: 8.5px;
     height: calc(100% - 8.5px);
     border: 1px solid #efefef;
     display: block;
+  }
+
+  &__row-item {
+    &--first {
+      margin-top: 15px !important;
+    }
+    &--second {
+      margin-top: 55px !important;
+    }
+    &--last {
+      margin-bottom: 75px !important;
+    }
   }
 
   &__icons {
