@@ -5,6 +5,10 @@
   }
 }
 
+.active {
+  opacity: 0.5;
+}
+
 .navbar {
   height: 100%;
   position: fixed;
@@ -29,10 +33,6 @@
   }
 
   &__icons {
-    &--active {
-      @extend %icons-base;
-      opacity: 0.5;
-    }
     &--tasks {
       @extend %icons-base;
       margin-left: 5px;

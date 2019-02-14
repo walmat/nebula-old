@@ -1,6 +1,10 @@
-.navbar__icons--settings, .navbar__icons--servers, .navbar__icons--profiles, .navbar__icons--tasks, .navbar__icons--active {
+.navbar__icons--settings, .navbar__icons--servers, .navbar__icons--profiles, .navbar__icons--tasks {
   cursor: pointer;
 }
+.active {
+  opacity: 0.5;
+}
+
 .navbar {
   height: 100%;
   position: fixed;
@@ -19,9 +23,6 @@
 }
 .navbar__row-item--last {
   margin-bottom: 75px !important;
-}
-.navbar__icons--active {
-  opacity: 0.5;
 }
 .navbar__icons--tasks {
   margin-left: 5px;
