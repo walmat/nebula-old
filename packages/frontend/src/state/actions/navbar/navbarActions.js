@@ -14,7 +14,6 @@ export const ROUTES = {
   HOME: '/',
   TASKS: '/tasks',
   PROFILES: '/profiles',
-  SETTINGS_OLD: '/test',
   SERVER: '/server',
   SETTINGS: '/settings',
 };
