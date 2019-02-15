@@ -60,15 +60,15 @@ describe('<Navbar />', () => {
       global.window.Bridge = Bridge;
       const wrapper = renderShallowWithProps();
       expect(Bridge.getAppData).toHaveBeenCalled();
-      const appName = wrapper.find('.appName').text();
-      const version = wrapper.find('.appVersion').text();
+      const appName = wrapper.find('.navbar__text--app-name').text();
+      const version = wrapper.find('.navbar__text--app-version').text();
       expect(appName).toEqual('Nebula Orion');
       expect(version).toEqual('1.0.0');
     });
     test('when window Bridge is undefined', () => {
       const wrapper = renderShallowWithProps();
-      const appName = wrapper.find('.appName').text();
-      const version = wrapper.find('.appVersion').text();
+      const appName = wrapper.find('.navbar__text--app-name').text();
+      const version = wrapper.find('.navbar__text--app-version').text();
       expect(appName).toEqual('Nebula Orion');
       expect(version).toEqual('');
     });

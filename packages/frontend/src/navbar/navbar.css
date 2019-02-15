@@ -1,104 +1,56 @@
-/* Navbar */
-
-.nav-container {
-    height: 100%;
-    width: 112px; /* 2px extra for border*/
-    position: fixed;
-    z-index: 1;
-    top: 0;
-    left: 0;
-    overflow-x: hidden;
+.navbar__icons--settings, .navbar__icons--servers, .navbar__icons--profiles, .navbar__icons--tasks {
+  cursor: pointer;
 }
-.react-bodymovin-container {
-    position: absolute;
-    top: 28px;
-    left: 19px;
-    width: 74px;
-    height: 74px;
-}
-
-#vert-line {
-    position: absolute;
-    display: block;
-    top: 8.5px;
-    left: 110px;
-    height: 700.28px;
-    width: 1px;
-    border-left: 2px solid #EFEFEF;
-}
-
-#try-line {
-    position: absolute;
-    display: block;
-    top: 8.5px;
-    left: 32px;
-    height: 700.28px;
-    width: 1px;
-    border-left: 2px solid #EFEFEF;
-}
-
 .active {
   opacity: 0.5;
 }
 
-#icon-tasks {
-    position:absolute;
-    top:175px;
-    left:32px;
-    width:61px;
-    height:49px;
-    cursor: pointer;
+.navbar {
+  height: 100%;
+  position: fixed;
 }
-
-#icon-profiles {
-    position:absolute;
-    top:271px;
-    left:32px;
-    width:44px;
-    height:43px;
-    cursor: pointer;
+.navbar--separator {
+  margin-top: 8.5px;
+  height: calc(100% - 8.5px);
+  border: 1px solid #efefef;
+  display: block;
 }
-
-#icon-server {
-    position:absolute;
-    top:360px;
-    left:32px;
-    width:42px;
-    height:46px;
-    cursor: pointer;
+.navbar__row-item--first {
+  margin-top: 15px !important;
 }
-
-#icon-settings {
-    position:absolute;
-    top:445px;
-    left:32px;
-    width:40px;
-    height:60px;
-    cursor: pointer;
+.navbar__row-item--second {
+  margin-top: 55px !important;
 }
-
-.appName {
-    position:absolute;
-    bottom: 32px;
-    width:110px;
-    height:12px;
-    text-transform: capitalize;
-    text-align: center;
+.navbar__row-item--last {
+  margin-bottom: 75px !important;
 }
-.appName > p {
-    opacity: 0.75;
-    color: #46ADB4;
+.navbar__icons--tasks {
+  margin-left: 5px;
+  width: 61px;
+  height: 49px;
 }
-
-.appVersion > p {
-    opacity: 0.75;
-    color: #F0405E;
+.navbar__icons--profiles {
+  width: 44px;
+  height: 43px;
 }
-
-.appVersion {
-    position:absolute;
-    bottom: 16px;
-    width:110px;
-    height:12px;
-    text-align: center;
+.navbar__icons--servers {
+  width: 42px;
+  height: 46px;
+}
+.navbar__icons--settings {
+  width: 40px;
+  height: 60px;
+}
+.navbar__text--app-name {
+  text-transform: capitalize;
+  text-align: center;
+  margin: 0;
+  margin-top: 10px;
+  opacity: 0.75;
+  color: #46adb4;
+}
+.navbar__text--app-version {
+  text-align: center;
+  opacity: 0.75;
+  color: #f0405e;
 }
