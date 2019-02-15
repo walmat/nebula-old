@@ -49,5 +49,4 @@ export const navbarActions = {
   routeProfiles: routeAction(NAVBAR_ACTIONS.ROUTE_PROFILES),
   routeServer: routeAction(NAVBAR_ACTIONS.ROUTE_SERVER),
   routeSettings: routeAction(NAVBAR_ACTIONS.ROUTE_SETTINGS),
-  routeSettingsOld: routeAction(NAVBAR_ACTIONS.ROUTE_SETTINGS_OLD),
 };
