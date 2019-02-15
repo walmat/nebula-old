@@ -193,7 +193,6 @@ NavbarPrimitive.propTypes = {
   onRouteProfiles: PropTypes.func.isRequired,
   // onRouteServer: PropTypes.func.isRequired,
   onRouteSettings: PropTypes.func.isRequired,
-  onRouteSettingsOld: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
 
