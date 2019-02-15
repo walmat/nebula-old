@@ -23,7 +23,7 @@
   overflow-x: hidden;
 }
 
-.settings__input-group--delays, .settings__input-group--webhook {
+.settings__input-group--delays__error, .settings__input-group--delays__monitor, .settings__input-group--webhook__slack, .settings__input-group--webhook__discord {
   height: 29px;
   border: 1px solid #f0405e;
   border-radius: 3px;
@@ -54,7 +54,15 @@
   padding-bottom: 3px;
   border-radius: 3px;
 }
-.settings-defaults__input-group--select {
+.settings-defaults__input-group--select__profile {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+  width: 170px;
+  border-radius: 3px;
+}
+.settings-defaults__input-group--select__sizes {
   font-family: AvenirNext-Medium;
   font-size: 9px;
   color: #161318;
@@ -104,10 +112,16 @@
   color: #161318;
   letter-spacing: 0;
 }
-.settings__input-group--webhook {
+.settings__input-group--webhook__discord {
   width: 344px;
 }
-.settings__input-group--delays {
+.settings__input-group--webhook__slack {
+  width: 344px;
+}
+.settings__input-group--delays__monitor {
+  width: 205px;
+}
+.settings__input-group--delays__error {
   width: 205px;
 }
 .settings__extras {

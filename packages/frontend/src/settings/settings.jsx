@@ -133,7 +133,7 @@ export class SettingsPrimitive extends Component {
                       <div className="col col--no-gutter">
                         <p className="settings__label">Discord URL</p>
                         <input
-                          className="settings__input-group--webhook"
+                          className="settings__input-group--webhook__discord"
                           placeholder="https://discordapp.com/api/webhooks/..."
                           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DISCORD)}
                           style={buildStyle(
@@ -165,7 +165,7 @@ export class SettingsPrimitive extends Component {
                       <div className="col col--no-gutter">
                         <p className="settings__label">Slack URL</p>
                         <input
-                          className="settings__input-group--webhook"
+                          className="settings__input-group--webhook__slack"
                           placeholder="https://hooks.slack.com/services/..."
                           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_SLACK)}
                           style={buildStyle(
@@ -211,7 +211,7 @@ export class SettingsPrimitive extends Component {
                                   required
                                   placeholder="Choose Profile"
                                   components={{ DropdownIndicator }}
-                                  className="settings-defaults__input-group--select"
+                                  className="settings-defaults__input-group--select__profile"
                                   classNamePrefix="select"
                                   styles={colourStyles(
                                     buildStyle(
@@ -236,7 +236,7 @@ export class SettingsPrimitive extends Component {
                                   isClearable={false}
                                   placeholder="Choose Sizes"
                                   components={{ DropdownIndicator }}
-                                  className="settings-defaults__input-group--select"
+                                  className="settings-defaults__input-group--select__sizes"
                                   classNamePrefix="select"
                                   styles={colourStyles(
                                     buildStyle(
@@ -296,7 +296,7 @@ export class SettingsPrimitive extends Component {
                         <NumberFormat
                           value={settings.monitorDelay}
                           placeholder="1500"
-                          className="settings__input-group--delays"
+                          className="settings__input-group--delays__monitor"
                           style={buildStyle(
                             false,
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_MONITOR_DELAY]],
@@ -310,7 +310,7 @@ export class SettingsPrimitive extends Component {
                         <NumberFormat
                           value={settings.errorDelay}
                           placeholder="1500"
-                          className="settings__input-group--delays"
+                          className="settings__input-group--delays__error"
                           style={buildStyle(
                             false,
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ERROR_DELAY]],

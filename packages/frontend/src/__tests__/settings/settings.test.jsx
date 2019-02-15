@@ -50,16 +50,16 @@ describe('<Settings />', () => {
 
   it('renders with required props', () => {
     const wrapper = renderShallowWithProps();
-    expect(wrapper.find('#proxy-button-captcha')).toHaveLength(1);
-    expect(wrapper.find('#proxy-button-captcha-close')).toHaveLength(1);
-    expect(wrapper.find('#discord-input')).toHaveLength(1);
-    expect(wrapper.find('#slack-input')).toHaveLength(1);
-    expect(wrapper.find('#default-profile')).toHaveLength(1);
-    expect(wrapper.find('#default-sizes')).toHaveLength(1);
-    expect(wrapper.find('#save-defaults')).toHaveLength(1);
-    expect(wrapper.find('#clear-defaults')).toHaveLength(1);
-    expect(wrapper.find('#monitor-input')).toHaveLength(1);
-    expect(wrapper.find('#error-input')).toHaveLength(1);
+    expect(wrapper.find('.settings__button--open-captcha')).toHaveLength(1);
+    expect(wrapper.find('.settings__button--close-captcha')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--webhook__discord')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--webhook__slack')).toHaveLength(1);
+    expect(wrapper.find('.settings-defaults__input-group--select__profile')).toHaveLength(1);
+    expect(wrapper.find('.settings-defaults__input-group--select__sizes')).toHaveLength(1);
+    expect(wrapper.find('.settings-defaults__input-group--save')).toHaveLength(1);
+    expect(wrapper.find('.settings-defaults__input-group--clear')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--delays__monitor')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--delays__error')).toHaveLength(1);
   });
 
   it('renders with non-default props', () => {
@@ -75,29 +75,29 @@ describe('<Settings />', () => {
       },
     };
     const wrapper = renderShallowWithProps(customProps);
-    expect(wrapper.find('#proxy-button-captcha')).toHaveLength(1);
-    expect(wrapper.find('#proxy-button-captcha-close')).toHaveLength(1);
-    expect(wrapper.find('#discord-input')).toHaveLength(1);
-    expect(wrapper.find('#slack-input')).toHaveLength(1);
-    expect(wrapper.find('#default-profile')).toHaveLength(1);
-    expect(wrapper.find('#default-sizes')).toHaveLength(1);
-    expect(wrapper.find('#save-defaults')).toHaveLength(1);
-    expect(wrapper.find('#clear-defaults')).toHaveLength(1);
-    expect(wrapper.find('#monitor-input')).toHaveLength(1);
-    expect(wrapper.find('#error-input')).toHaveLength(1);
+    expect(wrapper.find('.settings__button--open-captcha')).toHaveLength(1);
+    expect(wrapper.find('.settings__button--close-captcha')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--webhook__discord')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--webhook__slack')).toHaveLength(1);
+    expect(wrapper.find('.settings-defaults__input-group--select__profile')).toHaveLength(1);
+    expect(wrapper.find('.settings-defaults__input-group--select__sizes')).toHaveLength(1);
+    expect(wrapper.find('.settings-defaults__input-group--save')).toHaveLength(1);
+    expect(wrapper.find('.settings-defaults__input-group--clear')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--delays__monitor')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--delays__error')).toHaveLength(1);
 
-    expect(wrapper.find('#discord-input').prop('value')).toBe('discordTest');
-    expect(wrapper.find('#slack-input').prop('value')).toBe('slackTest');
-    expect(wrapper.find('#default-profile').prop('value')).toEqual({
+    expect(wrapper.find('.settings__input-group--webhook__discord').prop('value')).toBe('discordTest');
+    expect(wrapper.find('.settings__input-group--webhook__slack').prop('value')).toBe('slackTest');
+    expect(wrapper.find('.settings-defaults__input-group--select__profile').prop('value')).toEqual({
       value: 1,
       label: 'profile1',
     });
-    expect(wrapper.find('#default-sizes').prop('value')).toEqual([
+    expect(wrapper.find('.settings-defaults__input-group--select__sizes').prop('value')).toEqual([
       { value: '4', label: '4' },
       { value: '4.5', label: '4.5' },
       { value: '5', label: '5' },
     ]);
-    wrapper.find('#save-defaults').simulate('keyPress');
+    wrapper.find('.settings-defaults__input-group--save').simulate('keyPress');
   });
 
   describe('calls correct handler when editing', () => {
@@ -106,7 +106,7 @@ describe('<Settings />', () => {
         onSettingsChange: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const profileSelector = wrapper.find('#default-profile');
+      const profileSelector = wrapper.find('.settings-defaults__input-group--select__profile');
       expect(profileSelector.prop('value')).toBeNull();
       expect(profileSelector.prop('onChange')).toBeDefined();
       expect(profileSelector.prop('options')).toEqual([
@@ -134,7 +134,7 @@ describe('<Settings />', () => {
         onSettingsChange: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const sizeSelector = wrapper.find('#default-sizes');
+      const sizeSelector = wrapper.find('.settings-defaults__input-group--select__sizes');
       expect(sizeSelector.prop('value')).toEqual([]);
       expect(sizeSelector.prop('onChange')).toBeDefined();
       expect(sizeSelector.prop('options')).toEqual(getAllSizes());
@@ -162,7 +162,7 @@ describe('<Settings />', () => {
         onSettingsChange: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const discordInput = wrapper.find('#discord-input');
+      const discordInput = wrapper.find('.settings__input-group--webhook__discord');
       expect(discordInput.prop('value')).toBe('');
       expect(discordInput.prop('onChange')).toBeDefined();
 
@@ -178,7 +178,7 @@ describe('<Settings />', () => {
         onSettingsChange: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const slackInput = wrapper.find('#slack-input');
+      const slackInput = wrapper.find('.settings__input-group--webhook__slack');
       expect(slackInput.prop('value')).toBe('');
       expect(slackInput.prop('onChange')).toBeDefined();
 
@@ -204,7 +204,7 @@ describe('<Settings />', () => {
         onKeyPress: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const saveButton = wrapper.find('#save-defaults');
+      const saveButton = wrapper.find('.settings-defaults__input-group--save');
       saveButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       saveButton.simulate('click');
@@ -217,7 +217,7 @@ describe('<Settings />', () => {
         onKeyPress: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const clearButton = wrapper.find('#clear-defaults');
+      const clearButton = wrapper.find('.settings-defaults__input-group--clear');
       clearButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       clearButton.simulate('click');
@@ -243,13 +243,13 @@ describe('<Settings />', () => {
     });
 
     test('launch captcha button calls correct function', () => {
-      const button = wrapper.find('#proxy-button-captcha');
+      const button = wrapper.find('.settings__button--open-captcha');
       button.simulate('click');
       expect(Bridge.launchCaptchaHarvester).toHaveBeenCalled();
     });
 
     test('close all harvester button calls correct function', () => {
-      const button = wrapper.find('#proxy-button-captcha-close');
+      const button = wrapper.find('.settings__button--close-captcha');
       button.simulate('click');
       expect(Bridge.closeAllCaptchaWindows).toHaveBeenCalled();
     });
@@ -268,14 +268,8 @@ describe('<Settings />', () => {
       consoleSpy.mockRestore();
     });
 
-    test('launch youtube button displays error', () => {
-      const button = wrapper.find('#proxy-button-captcha');
-      button.simulate('click');
-      expect(consoleSpy).toHaveBeenCalled();
-    });
-
     test('launch harvester button displays error', () => {
-      const button = wrapper.find('#proxy-button-captcha-close');
+      const button = wrapper.find('.settings__button--open-captcha');
       button.simulate('click');
       expect(consoleSpy).toHaveBeenCalled();
     });
