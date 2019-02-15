@@ -14,7 +14,6 @@ import addTestId from './utils/addTestId';
 import closeImg from './_assets/close.svg';
 import deactivateImg from './_assets/logout.svg';
 
-import settingsOld from './settings/old/settings';
 
 import './app.css';
 
