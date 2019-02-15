@@ -42,7 +42,6 @@ export class NavbarPrimitive extends PureComponent {
       onRouteProfiles,
       // onRouteServer,
       onRouteSettings,
-      onRouteSettingsOld,
     } = this.props;
     const { name, version } = NavbarPrimitive._getAppData();
 
