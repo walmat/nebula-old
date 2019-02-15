@@ -209,7 +209,6 @@ export const mapDispatchToProps = dispatch => ({
   onRouteProfiles: history => dispatch(navbarActions.routeProfiles(history)),
   onRouteServer: history => dispatch(navbarActions.routeServer(history)),
   onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
-  onRouteSettingsOld: history => dispatch(navbarActions.routeSettingsOld(history)),
 });
 
 export default connect(
