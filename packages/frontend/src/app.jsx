@@ -139,7 +139,6 @@ export class App extends PureComponent {
                 <Route component={Profiles} path={ROUTES.PROFILES} />
                 <Route component={Server} path={ROUTES.SERVER} />
                 <Route component={Settings} path={ROUTES.SETTINGS} />
-                <Route component={settingsOld} path={ROUTES.SETTINGS_OLD} />
                 <Route path="/">
                   <Redirect to={redirectRoute} />
                 </Route>
