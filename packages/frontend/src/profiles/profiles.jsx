@@ -188,6 +188,7 @@ export class ProfilesPrimitive extends Component {
               <div className="row">
                 <div className="col col--no-gutter col--start profiles-shipping-container">
                   <LocationFields
+                    id="shipping"
                     className="profiles__fields--shipping"
                     profileToEdit={currentProfile}
                     fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
@@ -224,6 +225,7 @@ export class ProfilesPrimitive extends Component {
               <div className="row">
                 <div className="col col--no-gutter col--start profiles-billing-container">
                   <LocationFields
+                    id="billing"
                     className="profiles__fields--billing"
                     profileToEdit={currentProfile}
                     fieldToEdit={
