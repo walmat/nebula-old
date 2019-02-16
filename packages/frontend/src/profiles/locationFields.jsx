@@ -93,10 +93,15 @@ export class LocationFieldsPrimitive extends Component {
           >
             <img
               src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
+              title={
+                currentProfile.billingMatchesShipping
+                  ? 'Billing Matches Shipping'
+                  : "Billing Doesn't Match Shipping"
+              }
               alt={
                 currentProfile.billingMatchesShipping
                   ? 'Billing Matches Shipping'
-                  : 'Billing does not Match Shipping'
+                  : "Billing Doesn't Match Shipping"
               }
               className="profiles__fields--matches"
               draggable="false"

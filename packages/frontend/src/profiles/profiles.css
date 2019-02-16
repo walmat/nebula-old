@@ -240,6 +240,7 @@
 .profiles .profiles__fields--matches {
   height: 21px;
   width: 21px;
+  cursor: pointer;
 }
 .profiles .profiles__fields--name {
   width: 164px;
