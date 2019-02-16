@@ -1,0 +1,12 @@
+// Shared Mixins
+@mixin image() {
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+@mixin settings-font() {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+}

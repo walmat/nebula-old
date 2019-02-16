@@ -1,0 +1,29 @@
+@import '_mixins';
+
+.settings {
+  .proxy-list {
+    border: 1px solid #f0405e;
+    border-radius: 3px;
+
+    &__section-header {
+      margin-top: 10px;
+      padding-bottom: 1px;
+    }
+
+    &__input-group {
+      &--text {
+        @include settings-font();
+        margin-top: 10px;
+        margin-bottom: 10px;
+        color: #6d6e70;
+        width: 330px;
+        height: 545px;
+        background: #f4f4f4;
+        border-radius: 3px;
+        border: none;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }
+    }
+  }
+}

@@ -38,7 +38,7 @@ describe('<ProxyList />', () => {
 
   it('should render with required props', () => {
     const wrapper = renderShallowWithProps();
-    expect(wrapper.prop('id')).toBe('proxyList');
+    expect(wrapper.prop('className')).toBe('proxy-list__input-group--text');
     expect(wrapper.prop('onInput')).toBeDefined();
     expect(wrapper.prop('onFocus')).toBeDefined();
     expect(wrapper.prop('onBlur')).toBeDefined();
@@ -52,9 +52,9 @@ describe('<ProxyList />', () => {
     expect(wrapper.state('reduxUpdate')).toBeFalsy();
   });
 
-  it('should render with given id', () => {
-    const wrapper = renderShallowWithProps({ id: 'test' });
-    expect(wrapper.prop('id')).toBe('test');
+  it('should render with given class name', () => {
+    const wrapper = renderShallowWithProps({ className: 'proxy-list__input-group--text' });
+    expect(wrapper.prop('className')).toBe('proxy-list__input-group--text');
   });
 
   it('should render proxies when not editing', () => {

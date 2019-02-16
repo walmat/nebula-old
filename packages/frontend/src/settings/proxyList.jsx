@@ -132,12 +132,12 @@ export class ProxyListPrimitive extends Component {
   }
 
   render() {
-    const { id } = this.props;
+    const { className } = this.props;
     // Create a div with the innerHtml set dangerously
     // This is to allow styling, while still allowing content to be editable
     return React.createElement('div', {
       ref: this.domNode,
-      id,
+      className,
       onInput: this.handleUpdate,
       onFocus: this.focus,
       onBlur: this.blur,
@@ -149,14 +149,14 @@ export class ProxyListPrimitive extends Component {
 }
 
 ProxyListPrimitive.propTypes = {
-  id: PropTypes.string,
+  className: PropTypes.string,
   proxies: PropTypes.arrayOf(defns.proxy).isRequired,
   errors: defns.proxyErrors.isRequired,
   onUpdateProxies: PropTypes.func.isRequired,
 };
 
 ProxyListPrimitive.defaultProps = {
-  id: 'proxyList',
+  className: 'proxy-list__input-group--text',
 };
 
 export const mapStateToProps = state => ({
