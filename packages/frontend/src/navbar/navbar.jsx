@@ -40,7 +40,6 @@ export class NavbarPrimitive extends PureComponent {
       onKeyPress,
       onRouteTasks,
       onRouteProfiles,
-      onRouteProfilesOld,
       // onRouteServer,
       onRouteSettings,
     } = this.props;
