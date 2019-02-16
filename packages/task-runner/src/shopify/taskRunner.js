@@ -578,7 +578,7 @@ class TaskRunner {
         this._emitTaskEvent({
           message: `No open proxies! Waiting ${this._context.task.errorDelay} ms`,
         });
-        return States.SwapProxies;
+        return this._prevState;
       }
     } catch (err) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
