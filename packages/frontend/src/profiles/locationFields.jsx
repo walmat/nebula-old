@@ -4,10 +4,19 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import defns from '../utils/definitions/profileDefinitions';
 import getAllCountries, { getProvinces, getCountry } from '../constants/getAllCountries';
-import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../state/actions';
+import {
+  LOCATION_FIELDS,
+  profileActions,
+  mapProfileFieldToKey,
+  PROFILE_FIELDS,
+} from '../state/actions';
 import './profiles.css';
 import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+
+// images
+import checkboxChecked from '../_assets/Check_icons-01.svg';
+import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 export class LocationFieldsPrimitive extends Component {
   static buildCountryOptions() {
@@ -69,6 +78,34 @@ export class LocationFieldsPrimitive extends Component {
       }
     }
     return disabled;
+  }
+
+  renderBillingMatchesShipping() {
+    const { id, onClickBillingMatchesShipping, onKeyPress, currentProfile } = this.props;
+    if (id === 'shipping') {
+      return (
+        <div className="row row--end">
+          <div
+            role="button"
+            tabIndex={0}
+            onKeyPress={onKeyPress}
+            onClick={onClickBillingMatchesShipping}
+          >
+            <img
+              src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
+              alt={
+                currentProfile.billingMatchesShipping
+                  ? 'Billing Matches Shipping'
+                  : 'Billing does not Match Shipping'
+              }
+              className="profiles__fields--matches"
+              draggable="false"
+            />
+          </div>
+        </div>
+      );
+    }
+    return null;
   }
 
   render() {
@@ -175,15 +212,18 @@ export class LocationFieldsPrimitive extends Component {
               </div>
             </div>
             <div className="row row--start row--gutter">
-              <input
-                className={`${id}-profiles-location__input-group--phone`}
-                required
-                placeholder="Phone"
-                onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
-                value={value.phone}
-                style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
-                disabled={disabled}
-              />
+              <div className="col col--no-gutter">
+                <input
+                  className={`${id}-profiles-location__input-group--phone`}
+                  required
+                  placeholder="Phone"
+                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
+                  value={value.phone}
+                  style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="col col--no-gutter-right">{this.renderBillingMatchesShipping()}</div>
             </div>
           </div>
         </div>
@@ -193,16 +233,24 @@ export class LocationFieldsPrimitive extends Component {
 }
 
 LocationFieldsPrimitive.propTypes = {
+  currentProfile: defns.profile.isRequired,
   errors: defns.locationStateErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
   id: PropTypes.string.isRequired,
   value: defns.locationState.isRequired,
+  onClickBillingMatchesShipping: PropTypes.func.isRequired,
+  onKeyPress: PropTypes.func,
+};
+
+LocationFieldsPrimitive.defaultProps = {
+  onKeyPress: () => {},
 };
 
 export const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
   disabled: ownProps.disabled,
+  currentProfile: state.currentProfile,
   errors: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]].errors,
   value: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]],
 });
@@ -217,6 +265,9 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
         changes.field,
       ),
     );
+  },
+  onClickBillingMatchesShipping: () => {
+    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''));
   },
 });
 

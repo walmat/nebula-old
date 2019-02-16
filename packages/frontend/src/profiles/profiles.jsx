@@ -12,9 +12,6 @@ import './profiles.css';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
-// images
-import checkboxChecked from '../_assets/Check_icons-01.svg';
-import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 export class ProfilesPrimitive extends Component {
   constructor(props) {
@@ -99,13 +96,7 @@ export class ProfilesPrimitive extends Component {
   }
 
   render() {
-    const {
-      currentProfile,
-      selectedProfile,
-      onProfileNameChange,
-      onKeyPress,
-      onClickBillingMatchesShipping,
-    } = this.props;
+    const { currentProfile, selectedProfile, onProfileNameChange } = this.props;
     let selectProfileValue = null;
     if (selectedProfile.id !== null) {
       selectProfileValue = {
@@ -196,25 +187,6 @@ export class ProfilesPrimitive extends Component {
                     disabled={false}
                   />
                 </div>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onKeyPress={onKeyPress}
-                  onClick={onClickBillingMatchesShipping}
-                >
-                  <img
-                    src={
-                      currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked
-                    }
-                    alt={
-                      currentProfile.billingMatchesShipping
-                        ? 'Billing Matches Shipping'
-                        : 'Billing does not Match Shipping'
-                    }
-                    className="profiles__fields--matches"
-                    draggable="false"
-                  />
-                </div>
               </div>
             </div>
             <div className="col">
@@ -284,18 +256,12 @@ ProfilesPrimitive.propTypes = {
   profiles: defns.profileList.isRequired,
   currentProfile: defns.profile.isRequired,
   selectedProfile: defns.profile.isRequired,
-  onClickBillingMatchesShipping: PropTypes.func.isRequired,
   onProfileNameChange: PropTypes.func.isRequired,
   onAddNewProfile: PropTypes.func.isRequired,
   onLoadProfile: PropTypes.func.isRequired,
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
   onUpdateProfile: PropTypes.func.isRequired,
-  onKeyPress: PropTypes.func,
-};
-
-ProfilesPrimitive.defaultProps = {
-  onKeyPress: () => {},
 };
 
 export const mapStateToProps = state => ({
