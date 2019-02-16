@@ -13,7 +13,6 @@ export const ROUTES = {
   HOME: '/',
   TASKS: '/tasks',
   PROFILES: '/profiles',
-  PROFILES_OLD: '/test',
   SERVER: '/server',
   SETTINGS: '/settings',
 };
