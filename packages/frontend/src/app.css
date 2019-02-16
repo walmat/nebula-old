@@ -253,7 +253,7 @@ button:focus {
 }
 
 input, select {
-  text-transform: capitalize;
+  text-transform: none;
   padding-left: 7.5px;
   padding-right: 7.5px;
   box-sizing: border-box;
