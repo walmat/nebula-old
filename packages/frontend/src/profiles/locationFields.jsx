@@ -84,7 +84,7 @@ export class LocationFieldsPrimitive extends Component {
     const { id, onClickBillingMatchesShipping, onKeyPress, currentProfile } = this.props;
     if (id === 'shipping') {
       return (
-        <div className="row row--end">
+        <div className="row">
           <div
             role="button"
             tabIndex={0}
@@ -228,7 +228,9 @@ export class LocationFieldsPrimitive extends Component {
                   disabled={disabled}
                 />
               </div>
-              <div className="col col--no-gutter-right">{this.renderBillingMatchesShipping()}</div>
+              <div className="col col--gutter col--expand">
+                {this.renderBillingMatchesShipping()}
+              </div>
             </div>
           </div>
         </div>

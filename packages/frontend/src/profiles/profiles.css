@@ -237,10 +237,17 @@
 .profiles--input-fields {
   margin-top: 22px !important;
 }
+.profiles .profiles__fields:hover {
+  opacity: 0.8333;
+}
 .profiles .profiles__fields--matches {
+  margin-top: 0.5px;
   height: 21px;
   width: 21px;
   cursor: pointer;
+}
+.profiles .profiles__fields--matches:hover {
+  opacity: 0.8333;
 }
 .profiles .profiles__fields--name {
   width: 164px;

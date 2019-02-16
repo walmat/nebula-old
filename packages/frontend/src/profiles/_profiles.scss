@@ -12,9 +12,13 @@
 
   .profiles__fields {
     &--matches {
+      margin-top: 0.5px;
       height: 21px;
       width: 21px;
       cursor: pointer;
+      &:hover {
+        opacity: 0.8333;
+      }
     }
     &--name {
       width: 164px;
