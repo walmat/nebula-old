@@ -34,7 +34,7 @@ describe('navbar actions', () => {
 
   it('should create an action to route to home', () => {
     const routeAction = navbarActions.routeHome(mockHistory);
-    const expectedActions = [{ type: NAVBAR_ACTIONS.ROUTE_HOME, history: mockHistory }];
+    const expectedActions = [{ type: NAVBAR_ACTIONS.ROUTE_TASKS, history: mockHistory }];
     routeTests(routeAction, ROUTES.TASKS, expectedActions);
   });
 

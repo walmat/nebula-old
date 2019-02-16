@@ -21,24 +21,40 @@ describe('<LocationFields />', () => {
         value={{ ...initialProfileStates.location }}
       />,
     );
-    expect(wrapper.find('#test-first-name')).toHaveLength(1);
-    expect(wrapper.find('#test-last-name')).toHaveLength(1);
-    expect(wrapper.find('#test-address-one')).toHaveLength(1);
-    expect(wrapper.find('#test-address-two')).toHaveLength(1);
-    expect(wrapper.find('#test-city')).toHaveLength(1);
-    expect(wrapper.find('#test-province')).toHaveLength(1);
-    expect(wrapper.find('#test-zip-code')).toHaveLength(1);
-    expect(wrapper.find('#test-country')).toHaveLength(1);
-    expect(wrapper.find('#test-phone')).toHaveLength(1);
-    expect(wrapper.find('#test-first-name').prop('disabled')).toBeFalsy();
-    expect(wrapper.find('#test-last-name').prop('disabled')).toBeFalsy();
-    expect(wrapper.find('#test-address-one').prop('disabled')).toBeFalsy();
-    expect(wrapper.find('#test-address-two').prop('disabled')).toBeFalsy();
-    expect(wrapper.find('#test-city').prop('disabled')).toBeFalsy();
-    expect(wrapper.find('#test-province').prop('isDisabled')).toBeFalsy();
-    expect(wrapper.find('#test-zip-code').prop('disabled')).toBeFalsy();
-    expect(wrapper.find('#test-country').prop('isDisabled')).toBeFalsy();
-    expect(wrapper.find('#test-phone').prop('disabled')).toBeFalsy();
+    expect(wrapper.find('.test-profiles-location__input-group--first-name')).toHaveLength(1);
+    expect(wrapper.find('.test-profiles-location__input-group--last-name')).toHaveLength(1);
+    expect(wrapper.find('.test-profiles-location__input-group--address-one')).toHaveLength(1);
+    expect(wrapper.find('.test-profiles-location__input-group--address-two')).toHaveLength(1);
+    expect(wrapper.find('.test-profiles-location__input-group--city')).toHaveLength(1);
+    expect(wrapper.find('.test-profiles-location__input-group--province')).toHaveLength(1);
+    expect(wrapper.find('.test-profiles-location__input-group--zip-code')).toHaveLength(1);
+    expect(wrapper.find('.test-profiles-location__input-group--country')).toHaveLength(1);
+    expect(wrapper.find('.test-profiles-location__input-group--phone')).toHaveLength(1);
+    expect(
+      wrapper.find('.test-profiles-location__input-group--first-name').prop('disabled'),
+    ).toBeFalsy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--last-name').prop('disabled'),
+    ).toBeFalsy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--address-one').prop('disabled'),
+    ).toBeFalsy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--address-two').prop('disabled'),
+    ).toBeFalsy();
+    expect(wrapper.find('.test-profiles-location__input-group--city').prop('disabled')).toBeFalsy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--province').prop('isDisabled'),
+    ).toBeFalsy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--zip-code').prop('disabled'),
+    ).toBeFalsy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--country').prop('isDisabled'),
+    ).toBeFalsy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--phone').prop('disabled'),
+    ).toBeFalsy();
   });
 
   it('should render with disabled styling', () => {
@@ -51,15 +67,33 @@ describe('<LocationFields />', () => {
         value={{ ...initialProfileStates.location }}
       />,
     );
-    expect(wrapper.find('#test-first-name').prop('disabled')).toBeTruthy();
-    expect(wrapper.find('#test-last-name').prop('disabled')).toBeTruthy();
-    expect(wrapper.find('#test-address-one').prop('disabled')).toBeTruthy();
-    expect(wrapper.find('#test-address-two').prop('disabled')).toBeTruthy();
-    expect(wrapper.find('#test-city').prop('disabled')).toBeTruthy();
-    expect(wrapper.find('#test-province').prop('isDisabled')).toBeTruthy();
-    expect(wrapper.find('#test-zip-code').prop('disabled')).toBeTruthy();
-    expect(wrapper.find('#test-country').prop('isDisabled')).toBeTruthy();
-    expect(wrapper.find('#test-phone').prop('disabled')).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--first-name').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--last-name').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--address-one').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--address-two').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--city').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--province').prop('isDisabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--zip-code').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--country').prop('isDisabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.test-profiles-location__input-group--phone').prop('disabled'),
+    ).toBeTruthy();
   });
 
   describe('should render correct values for', () => {
@@ -77,7 +111,8 @@ describe('<LocationFields />', () => {
           disabled={disabled}
         />,
       );
-      let inputField = wrapper.find(`#test-${id}`);
+      console.log(id);
+      let inputField = wrapper.find(`.test-profiles-location__input-group--${id}`);
       expect(inputField.prop('value')).toEqual(value1);
       input[field] = value2;
       wrapper.setProps({
