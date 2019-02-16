@@ -6,13 +6,22 @@
 }
 
 .profiles {
+  &--input-fields {
+    margin-top: 22px !important;
+  }
+
   .profiles__fields {
+    &--matches {
+      height: 21px;
+      width: 21px;
+    }
     &--name {
       width: 164px;
       height: 29px;
       border: 1px solid;
       border-radius: 3px;
       margin-left: -25px;
+      margin-top: -18px;
     }
 
     &--save {

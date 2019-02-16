@@ -113,6 +113,7 @@ export class ProfilesPrimitive extends Component {
         label: selectedProfile.profileName,
       };
     }
+
     return (
       <form>
         <div className="container profiles">
@@ -178,7 +179,7 @@ export class ProfilesPrimitive extends Component {
               </div>
             </div>
           </div>
-          <div className="row row--start">
+          <div className="row row--start profiles--input-fields">
             <div className="col col--start">
               <div className="row row--start">
                 <p className="body-text section-header profiles-location__section-header">

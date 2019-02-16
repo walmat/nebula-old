@@ -208,8 +208,8 @@
 }
 
 .profiles .profiles-payment__section-header {
-  margin: 0;
-  margin-top: 25px;
+  max-height: 32px;
+  margin: 6px 0;
 }
 .profiles .profiles-payment__input-group {
   border-radius: 3px;
@@ -234,12 +234,20 @@
   height: 29px;
 }
 
+.profiles--input-fields {
+  margin-top: 22px !important;
+}
+.profiles .profiles__fields--matches {
+  height: 21px;
+  width: 21px;
+}
 .profiles .profiles__fields--name {
   width: 164px;
   height: 29px;
   border: 1px solid;
   border-radius: 3px;
   margin-left: -25px;
+  margin-top: -18px;
 }
 .profiles .profiles__fields--save {
   margin-top: 15px;
