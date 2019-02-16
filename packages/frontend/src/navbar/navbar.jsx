@@ -207,7 +207,6 @@ export const mapStateToProps = state => ({
 export const mapDispatchToProps = dispatch => ({
   onRouteTasks: history => dispatch(navbarActions.routeTasks(history)),
   onRouteProfiles: history => dispatch(navbarActions.routeProfiles(history)),
-  onRouteProfilesOld: history => dispatch(navbarActions.routeProfilesOld(history)),
   onRouteServer: history => dispatch(navbarActions.routeServer(history)),
   onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
 });
