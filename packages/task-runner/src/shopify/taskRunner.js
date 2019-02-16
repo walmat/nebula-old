@@ -586,7 +586,7 @@ class TaskRunner {
         message: 'Error swapping proxies! Retrying...',
         errors: err,
       });
-      return States.SwapProxies;
+      return this._prevState;
     }
     // Go back to previous state
     return this._prevState;
