@@ -111,7 +111,6 @@ describe('<LocationFields />', () => {
           disabled={disabled}
         />,
       );
-      console.log(id);
       let inputField = wrapper.find(`.test-profiles-location__input-group--${id}`);
       expect(inputField.prop('value')).toEqual(value1);
       input[field] = value2;
@@ -119,7 +118,7 @@ describe('<LocationFields />', () => {
         ...wrapper.props(),
         value: input,
       });
-      inputField = wrapper.find(`#test-${id}`);
+      inputField = wrapper.find(`.test-profiles-location__input-group--${id}`);
       expect(inputField.prop('value')).toEqual(value2);
     };
 
@@ -199,7 +198,7 @@ describe('<LocationFields />', () => {
           disabled={false}
         />,
       );
-      const inputField = wrapper.find(`#test-${id}`);
+      const inputField = wrapper.find(`.test-profiles-location__input-group--${id}`);
       inputField.simulate('change', event);
       expect(onChangeHandler).toHaveBeenCalledWith(expectedCall);
     };
