@@ -126,7 +126,11 @@ body {
 }
 .theme-dark html,
 .theme-dark body {
+<<<<<<< HEAD
   background: #222;
+=======
+  background: #6d6e70;
+>>>>>>> app themes progress
 }
 
 td {
@@ -138,6 +142,13 @@ select {
   /* Safari and Chrome */
   -moz-appearance: none;
   appearance: none;
+}
+
+.theme-light #app {
+  background: #f5f5f5;
+}
+.theme-dark #app {
+  background: #6d6e70;
 }
 
 #app,
@@ -273,6 +284,7 @@ select {
 .theme-light input,
 .theme-light select {
 <<<<<<< HEAD
+<<<<<<< HEAD
   background: #f5f5f5;
 }
 .theme-dark input,
@@ -285,6 +297,13 @@ select {
 .theme-dark select {
   background: #6D6E70;
 >>>>>>> more progress toward app theming
+=======
+  background: #f5f5f5;
+}
+.theme-dark input,
+.theme-dark select {
+  background: #6d6e70;
+>>>>>>> app themes progress
 }
 
 /*clear placeholder text on input focus*/
