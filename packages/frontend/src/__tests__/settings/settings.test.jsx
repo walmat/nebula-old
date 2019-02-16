@@ -86,7 +86,9 @@ describe('<Settings />', () => {
     expect(wrapper.find('.settings__input-group--delays__monitor')).toHaveLength(1);
     expect(wrapper.find('.settings__input-group--delays__error')).toHaveLength(1);
 
-    expect(wrapper.find('.settings__input-group--webhook__discord').prop('value')).toBe('discordTest');
+    expect(wrapper.find('.settings__input-group--webhook__discord').prop('value')).toBe(
+      'discordTest',
+    );
     expect(wrapper.find('.settings__input-group--webhook__slack').prop('value')).toBe('slackTest');
     expect(wrapper.find('.settings-defaults__input-group--select__profile').prop('value')).toEqual({
       value: 1,
