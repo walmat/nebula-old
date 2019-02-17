@@ -90,11 +90,11 @@
   font-size: 9px;
   letter-spacing: 0;
 }
-.theme-light .body-text, .theme-light td, .theme-light * {
+.body-text .theme-light, td .theme-light, * .theme-light {
   color: #161318;
 }
-.theme-dark .body-text, .theme-dark td, .theme-dark * {
-  color: #f4f4f4;
+.body-text .theme-dark, td .theme-dark, * .theme-dark {
+  color: #f5f5f5;
 }
 
 * {
@@ -126,15 +126,7 @@ body {
 }
 .theme-dark html,
 .theme-dark body {
-<<<<<<< HEAD
   background: #6d6e70;
-=======
-<<<<<<< HEAD
-  background: #222;
-=======
-  background: #6d6e70;
->>>>>>> app themes progress
->>>>>>> app themes progress
 }
 
 td {
@@ -146,13 +138,6 @@ select {
   /* Safari and Chrome */
   -moz-appearance: none;
   appearance: none;
-}
-
-.theme-light #app {
-  background: #f5f5f5;
-}
-.theme-dark #app {
-  background: #6d6e70;
 }
 
 #app,
@@ -278,33 +263,20 @@ select {
 }
 .theme-light input,
 .theme-light select {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
   background: #f5f5f5;
 }
 .theme-dark input,
 .theme-dark select {
   background: #222;
-=======
->>>>>>> app themes progress
   background: #f4f4f4;
 }
 .theme-dark input,
 .theme-dark select {
-  background: #6D6E70;
-<<<<<<< HEAD
-=======
->>>>>>> more progress toward app theming
-=======
   background: #f5f5f5;
 }
 .theme-dark input,
 .theme-dark select {
   background: #6d6e70;
->>>>>>> app themes progress
->>>>>>> app themes progress
 }
 
 /*clear placeholder text on input focus*/
@@ -329,10 +301,10 @@ input:focus {
   font-size: 12px;
   letter-spacing: 0;
 }
-.theme-light .body-text {
+.body-text .theme-light {
   color: #f0405e;
 }
-.theme-dark .body-text {
+.body-text .theme-dark {
   color: #f0405e;
 }
 
