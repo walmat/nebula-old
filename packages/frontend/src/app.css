@@ -90,11 +90,11 @@
   font-size: 9px;
   letter-spacing: 0;
 }
-.theme-light .body-text, .theme-light td, .theme-light * {
+.body-text .theme-light, td .theme-light, * .theme-light {
   color: #161318;
 }
-.theme-dark .body-text, .theme-dark td, .theme-dark * {
-  color: #f4f4f4;
+.body-text .theme-dark, td .theme-dark, * .theme-dark {
+  color: #f5f5f5;
 }
 
 * {
@@ -120,19 +120,6 @@ body {
   margin: 0;
   overflow: hidden;
 }
-.theme-light html,
-.theme-light body {
-  background: #f5f5f5;
-}
-.theme-dark html,
-.theme-dark body {
-<<<<<<< HEAD
-  background: #222;
-=======
-  background: #6d6e70;
->>>>>>> app themes progress
-}
-
 td {
   font-size: 12px;
 }
@@ -142,13 +129,6 @@ select {
   /* Safari and Chrome */
   -moz-appearance: none;
   appearance: none;
-}
-
-.theme-light #app {
-  background: #f5f5f5;
-}
-.theme-dark #app {
-  background: #6d6e70;
 }
 
 #app,
@@ -198,8 +178,6 @@ select {
   cursor: pointer;
 }
 
-<<<<<<< HEAD
-=======
 .theme-toggle {
   position: absolute;
   top: 0;
@@ -212,7 +190,6 @@ select {
   cursor: pointer;
 }
 
->>>>>>> more progress toward app theming
 .close-area-1 > img,
 .close-area-2 > img {
   cursor: pointer;
@@ -223,12 +200,8 @@ select {
 }
 
 .close-area-1:hover,
-<<<<<<< HEAD
-.close-area-2:hover {
-=======
 .close-area-2:hover,
 .theme-toggle:hover {
->>>>>>> more progress toward app theming
   opacity: 0.8333;
   cursor: pointer;
 }
@@ -281,31 +254,6 @@ select {
   border-radius: 4px;
   cursor: pointer;
 }
-.theme-light input,
-.theme-light select {
-<<<<<<< HEAD
-<<<<<<< HEAD
-  background: #f5f5f5;
-}
-.theme-dark input,
-.theme-dark select {
-  background: #222;
-=======
-  background: #f4f4f4;
-}
-.theme-dark input,
-.theme-dark select {
-  background: #6D6E70;
->>>>>>> more progress toward app theming
-=======
-  background: #f5f5f5;
-}
-.theme-dark input,
-.theme-dark select {
-  background: #6d6e70;
->>>>>>> app themes progress
-}
-
 /*clear placeholder text on input focus*/
 input:focus::-webkit-input-placeholder {
   opacity: 0;
@@ -328,10 +276,10 @@ input:focus {
   font-size: 12px;
   letter-spacing: 0;
 }
-.theme-light .body-text {
+.body-text .theme-light {
   color: #f0405e;
 }
-.theme-dark .body-text {
+.body-text .theme-dark {
   color: #f0405e;
 }
 
