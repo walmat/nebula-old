@@ -120,6 +120,15 @@ body {
   margin: 0;
   overflow: hidden;
 }
+.theme-light html,
+.theme-light body {
+  background: #f4f4f4;
+}
+.theme-dark html,
+.theme-dark body {
+  background: #6D6E70;
+}
+
 td {
   font-size: 12px;
 }
@@ -254,6 +263,15 @@ select {
   border-radius: 4px;
   cursor: pointer;
 }
+.theme-light input,
+.theme-light select {
+  background: #f4f4f4;
+}
+.theme-dark input,
+.theme-dark select {
+  background: #6D6E70;
+}
+
 /*clear placeholder text on input focus*/
 input:focus::-webkit-input-placeholder {
   opacity: 0;
@@ -276,10 +294,10 @@ input:focus {
   font-size: 12px;
   letter-spacing: 0;
 }
-.body-text .theme-light {
+.theme-light .body-text {
   color: #f0405e;
 }
-.body-text .theme-dark {
+.theme-dark .body-text {
   color: #f0405e;
 }
 

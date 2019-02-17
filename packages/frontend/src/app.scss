@@ -239,14 +239,11 @@ select {
   appearance: none;
 }
 
-#app {
+#app,
+#container-wrapper {
   @include themify($themes) {
     background: themed('backgroundColor');
   }
-}
-
-#app,
-#container-wrapper {
   overflow: hidden;
   height: inherit !important;
   width: 100%;
