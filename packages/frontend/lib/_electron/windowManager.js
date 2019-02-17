@@ -171,15 +171,14 @@ class WindowManager {
           }
           w = await createMainWindow();
           this._main = w;
+          this._context.taskWrapper.start();
           break;
         }
         case 'captcha': {
           if (this._captchas.size < 5) {
-            let serverPort = this._context.captchaServerManager.port;
             if (!this._context.captchaServerManager.isRunning) {
               console.log('[DEBUG]: Starting captcha server...');
               this._context.captchaServerManager.start();
-              serverPort = this._context.captchaServerManager.port;
             }
             w = await createCaptchaWindow();
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, w));
@@ -302,6 +301,7 @@ class WindowManager {
         w.close();
       }
     });
+    this._context.taskWrapper.stop();
     return this._auth;
   }
 
@@ -394,6 +394,7 @@ class WindowManager {
       this._windows.forEach(w => {
         w.close();
       });
+      this._context.taskWrapper.stop();
     } else if (this._auth && this._auth.id === id) {
       this._windows.forEach(w => {
         w.close();
@@ -421,7 +422,7 @@ class WindowManager {
    * @param {EventEmitter} ev - close event
    * BUG: closes one at a time..
    */
-  _onRequestCloseAllCaptchaWindows(ev) {
+  _onRequestCloseAllCaptchaWindows() {
     if (this._captchas.size > 0) {
       this._captchas.forEach(captchaWindowManager => {
         captchaWindowManager._captchaWindow.close();
