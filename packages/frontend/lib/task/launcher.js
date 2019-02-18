@@ -142,15 +142,31 @@ class TaskLauncher {
     console.log('Launched!');
   }
 
-  stop() {
+  async stop() {
     if (!this._launcherWindow) {
       console.log('launcher was already stopped');
       return;
     }
 
     console.log('Closing Launcher...');
+    await this.abortAllTasks();
     this._launcherWindow.close();
     this._launcherWindow = null;
+  }
+
+  async abortAllTasks() {
+    // Nothing to do if we haven't launched yet
+    if (!this._launcherWindow) {
+      return;
+    }
+    await new Promise(resolve => {
+      this._context.ipc.once(IPCKeys.CleanupTasks, ev => {
+        if (this._launcherWindow.webContents === ev.sender) {
+          resolve();
+        }
+      });
+      this._launcherWindow.webContents.send(IPCKeys.CleanupTasks);
+    });
   }
 
   _taskEventHandler(_, taskId, statusMessage) {
