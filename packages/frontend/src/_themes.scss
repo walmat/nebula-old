@@ -1,63 +1,39 @@
 $themes: (
   light: (
     background: #f4f4f4,
-    // page backgrounds
-      navbarDividerColor: #efefef,
-    // navbar seperator color
-      inputBackground: #f4f4f4,
-    // text input background
-      inputBackgroundDisabled: #dcdcdc,
-    // text input background (disabled)
-      textColor: #161318,
-    // main text color
-      placerholderColor: #6d6e70,
-    // main text placeholder color
-      pageTitleColor: #6d6e70,
-    // main page title color
-      sectionHeaderColor: #f0405e,
-    // section title color within pages
-      tableBorderColor: #f0405e,
-    // table border color
-      tableHeaderColor: #161318,
+    navbarDividerColor: #efefef,
+    inputBackground: #f4f4f4,
+    inputBackgroundDisabled: #dcdcdc,
+    textColor: #161318,
+    placerholderColor: #6d6e70,
+    pageTitleColor: #6d6e70,
+    sectionHeaderColor: #f0405e,
+    tableBorderColor: #f0405e,
+    tableHeaderColor: #161318,
     tableEditBorderColor: #b8d9d2,
     tableRowBottomBorderColow: #dfdfdf,
     tableHeaderLineColor: #edbcc6,
-    // table header color
-      buttonPrimaryText: #f4f4f4,
+    buttonPrimaryText: #f4f4f4,
     buttonColorPrimary: #f0405e,
-    // positive button color
-      buttonColorSecondary: #46adb4,
-    // negative button color,,
+    buttonColorSecondary: #46adb4,
   ),
   dark: (
     background: #313236,
-    // page backgrounds
-      navbarDividerColor: #3c3d42,
-    // navbar seperator color
-      inputBackground: #393c3f,
-    // text input background
-      inputBackgroundDisabled: #262626,
-    // text input background (disabled)
-      textColor: #efefef,
-    // main text color
-      placeHolderColor: #6d6e70,
-    // main text placeholder color
-      pageTitleColor: #6d6e70,
-    // main page title color
-      sectionHeaderColor: #f0405e,
-    // section title color with pages
-      tableBorderColor: #f0405e,
-    // table border color
-      tableHeaderColor: #dcdcdc,
+    navbarDividerColor: #3c3d42,
+    inputBackground: #393c3f,
+    inputBackgroundDisabled: #262626,
+    textColor: #efefef,
+    placeHolderColor: #6d6e70,
+    pageTitleColor: #6d6e70,
+    sectionHeaderColor: #f0405e,
+    tableBorderColor: #f0405e,
+    tableHeaderColor: #dcdcdc,
     tableEditBorderColor: #b8d9d2,
     tableRowBottomBorderColow: #6d6e70,
     tableHeaderLineColor: #edbcc6,
-    // table header color
-      buttonPrimaryText: #f4f4f4,
+    buttonPrimaryText: #f4f4f4,
     buttonColorPrimary: #f0405e,
-    // positive button color
-      buttonColorSecondary: #46adb4,
-    // negative button color,
+    buttonColorSecondary: #46adb4,
   ),
 );
 
