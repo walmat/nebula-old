@@ -1,451 +1,273 @@
-/*Profiles CSS*/
-input::placeholder, select {
-    font-family: AvenirNext-Medium;
-    text-transform: capitalize;
-    font-size: 9px;
-    color: #6D6E70;
-    letter-spacing: 0;
+.container {
+  margin: 0 15px;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
 }
 
-input, select {
-    text-transform: none;
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-around;
+  margin: 0 -15px;
+}
+.row--start {
+  justify-content: flex-start;
+}
+.row--end {
+  justify-content: flex-end;
+}
+.row--between {
+  justify-content: space-between;
+}
+.row--expand {
+  flex: 1 1 auto;
+}
+.row--gutter-left {
+  margin-left: 15px !important;
+}
+.row--gutter-right {
+  margin-right: 25px !important;
+}
+.row--gutter {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
-.text-header {
-    margin:0;
-    font-family: AvenirNext-DemiBold;
-    font-size: 48px;
-    color: #6D6E70;
-    letter-spacing: 0.01px;
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-around;
+  margin: 0 15px;
+}
+.col--start {
+  justify-content: flex-start;
+}
+.col--end {
+  justify-content: flex-end;
+}
+.col--between {
+  justify-content: space-between;
+}
+.col--expand {
+  flex: 1 1 auto;
+}
+.col--no-gutter-left {
+  margin-left: 0 !important;
+}
+.col--no-gutter-right {
+  margin-right: 0 !important;
+}
+.col--no-gutter {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
-.body-text {
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
-    color: #F0405E;
-    letter-spacing: 0;
+.profiles .profiles-load {
+  height: 112px;
+  width: 277px;
+  border: 1px solid #f0405e;
+  border-radius: 3px;
+}
+.profiles .profiles-load__section-header {
+  margin-top: 10px;
+  padding-bottom: 1px;
+}
+.profiles .profiles-load__label {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  color: #161318;
+  letter-spacing: 0;
+  height: 12px;
+  margin-bottom: 3px;
+  margin-top: 9px;
+  padding-left: 0.5px;
+}
+.profiles .profiles-load__input-group {
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+}
+.profiles .profiles-load__input-group--select {
+  width: 254px;
+  height: 29px;
+}
+.profiles .profiles-load__input-group--delete {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #efefef;
+  letter-spacing: 0;
+  background: #46adb4;
+  border-radius: 3px;
+  border: none;
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  margin-top: 14px;
+  margin-right: 14px;
+}
+.profiles .profiles-load__input-group--load {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  color: #efefef;
+  letter-spacing: 0;
+  background: #f0405e;
+  border-radius: 3px;
+  border: none;
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  margin-top: 14px;
 }
 
-.flex-container {
-    height: 100%;
-    padding: 0;
-    margin: 0;
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.profiles .profiles__fields--save, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .shipping-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--phone, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--first-name {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
 }
 
-#profiles-header {
-    margin: 0;
-    position: absolute;
-    top: 26px;
-    left: 139px;
-    width: 118px;
-    height: 66px;
+.profiles .billing-profiles-location__section-header {
+  margin: 0;
+  margin-top: 25px;
+}
+.profiles .billing-profiles-location__input-group {
+  border-radius: 3px;
+}
+.profiles .billing-profiles-location__input-group--first-name {
+  width: 249px;
+}
+.profiles .billing-profiles-location__input-group--last-name {
+  width: 249px;
+}
+.profiles .billing-profiles-location__input-group--address-one {
+  width: 249px;
+}
+.profiles .billing-profiles-location__input-group--address-two {
+  width: 249px;
+}
+.profiles .billing-profiles-location__input-group--city {
+  width: 140px;
+}
+.profiles .billing-profiles-location__input-group--province {
+  width: 94px;
+}
+.profiles .billing-profiles-location__input-group--zip-code {
+  width: 78px;
+}
+.profiles .billing-profiles-location__input-group--country {
+  width: 155px;
+}
+.profiles .billing-profiles-location__input-group--phone {
+  width: 147px;
+}
+.profiles .shipping-profiles-location__section-header {
+  margin: 0;
+  margin-top: 25px;
+}
+.profiles .shipping-profiles-location__input-group {
+  border-radius: 3px;
+}
+.profiles .shipping-profiles-location__input-group--first-name {
+  width: 249px;
+}
+.profiles .shipping-profiles-location__input-group--last-name {
+  width: 249px;
+}
+.profiles .shipping-profiles-location__input-group--address-one {
+  width: 249px;
+}
+.profiles .shipping-profiles-location__input-group--address-two {
+  width: 249px;
+}
+.profiles .shipping-profiles-location__input-group--city {
+  width: 140px;
+}
+.profiles .shipping-profiles-location__input-group--province {
+  width: 94px;
+}
+.profiles .shipping-profiles-location__input-group--zip-code {
+  width: 78px;
+}
+.profiles .shipping-profiles-location__input-group--country {
+  width: 155px;
+}
+.profiles .shipping-profiles-location__input-group--phone {
+  width: 147px;
 }
 
-#load-profile-label {
-    margin: 0;
-    position: absolute;
-    top: 101px;
-    left: 139px;
-    width: 66px;
-    height: 16px;
+.profiles .profiles__fields--save, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
 }
 
-#load-profile-box {
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-    position: absolute;
-    top: 124px;
-    left: 139px;
-    width: 277px;
-    height: 112px;
+.profiles .profiles-payment__section-header {
+  max-height: 32px;
+  margin: 6px 0;
+}
+.profiles .profiles-payment__input-group {
+  border-radius: 3px;
+}
+.profiles .profiles-payment__input-group--email {
+  width: 249px;
+}
+.profiles .profiles-payment__input-group--card-number {
+  width: 249px;
+}
+.profiles .profiles-payment__input-group--expiration {
+  width: 155px;
+}
+.profiles .profiles-payment__input-group--cvv {
+  width: 78px;
 }
 
-#profile-name-label {
-    margin: 0;
-    position: absolute;
-    top: 134px;
-    left: 151px;
-    width: 54px;
-    height: 12px;
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
+.profiles .profiles__fields--save, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone, .profiles .profiles-payment__input-group--email, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--cvv {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
 }
 
-#profile-load {
-    border-radius: 3px;
-    position: absolute;
-    top: 149px;
-    left: 151px;
-    width: 254px;
-    height: 29px;
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
+.profiles--input-fields {
+  margin-top: 22px !important;
+}
+.profiles .profiles__fields--matches {
+  margin-top: 0.5px;
+  height: 21px;
+  width: 21px;
+  cursor: pointer;
+}
+.profiles .profiles__fields--matches:hover {
+  opacity: 0.8333;
+}
+.profiles .profiles__fields--name {
+  width: 164px;
+  height: 29px;
+  border: 1px solid;
+  border-radius: 3px;
+  margin-left: -25px;
+  margin-top: -18px;
+}
+.profiles .profiles__fields--save {
+  margin-top: 15px;
+  background: #f0405e;
+  color: #efefef;
+  font-size: 12px;
+  letter-spacing: 0;
+  border-radius: 3px;
+  border: none;
+  width: 98px;
+  height: 29px;
+  cursor: pointer;
 }
 
-#profile-select-arrow {
-    position: absolute;
-    top: 154px;
-    left: 379px;
-    width: 21px;
-    height: 21px;
-    cursor: pointer;
-}
-
-#load-profile {
-    background: #F0405E;
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
-    color: #EFEFEF;
-    letter-spacing: 0;
-    border-radius: 3px;
-    border: none;
-    position: absolute;
-    top: 192px;
-    left: 322px;
-    width: 83px;
-    height: 29px;
-    cursor: pointer;
-}
-
-#delete-profile {
-    background: #46ADB4;
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
-    color: #EFEFEF;
-    letter-spacing: 0;
-    border-radius: 3px;
-    border: none;
-    position: absolute;
-    top: 192px;
-    left: 226px;
-    width: 83px;
-    height: 29px;
-    cursor: pointer;
-}
-
-#shipping-label {
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
-    color: #F0405E;
-    letter-spacing: 0;
-    margin: 0;
-    position: absolute;
-    top: 264px;
-    left: 139px;
-    width: 50px;
-    height: 16px;
-}
-
-#shipping-first-name {
-    position: absolute;
-    top: 287px;
-    left: 139px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#shipping-last-name {
-    position: absolute;
-    top: 333px;
-    left: 139px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#shipping-address-one {
-    position: absolute;
-    top: 379px;
-    left: 139px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#shipping-address-two {
-    position: absolute;
-    top: 425px;
-    left: 139px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#shipping-city {
-    position: absolute;
-    top: 471px;
-    left: 139px;
-    width: 147px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#shipping-province {
-    position: absolute;
-    top: 471px;
-    left: 295px;
-    width: 94px;
-    height: 29px;
-    border-radius: 3px;
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
-}
-
-#shipping-zip-code {
-    position: absolute;
-    top: 516px;
-    left: 139px;
-    width: 78px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#shipping-country {
-    position: absolute;
-    top: 516px;
-    left: 224px;
-    width: 165px;
-    height: 29px;
-    border-radius: 3px;
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
-}
-
-#shipping-phone {
-    position: absolute;
-    top: 561px;
-    left: 139px;
-    width: 147px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#billing-match-shipping {
-    position: absolute;
-    top: 564px;
-    left: 330px;
-    width: 21px;
-    height: 21px;
-    cursor: pointer;
-}
-
-#billing-label {
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
-    color: #F0405E;
-    letter-spacing: 0;
-    margin: 0;
-    position: absolute;
-    top: 264px;
-    left: 417px;
-    width: 35px;
-    height: 16px;
-}
-
-#billing-first-name {
-    position: absolute;
-    top: 287px;
-    left: 417px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#billing-last-name {
-    position: absolute;
-    top: 333px;
-    left: 417px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#billing-address-one {
-    position: absolute;
-    top: 379px;
-    left: 417px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#billing-address-two {
-    position: absolute;
-    top: 425px;
-    left: 417px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#billing-city {
-    position: absolute;
-    top: 471px;
-    left: 417px;
-    width: 147px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#billing-province {
-    position: absolute;
-    top: 471px;
-    left: 571px;
-    width: 94px;
-    height: 29px;
-    border-radius: 3px;
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
-}
-
-#billing-zip-code {
-    position: absolute;
-    top: 516px;
-    left: 417px;
-    width: 78px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#billing-country {
-    position: absolute;
-    top: 516px;
-    left: 502px;
-    width: 165px;
-    height: 29px;
-    border-radius: 3px;
-    font-family: AvenirNext-Medium;
-    font-size: 9px;
-    color: #161318;
-    letter-spacing: 0;
-}
-
-#billing-phone {
-    position: absolute;
-    top: 561px;
-    left: 417px;
-    width: 147px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#payment-label {
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
-    color: #F0405E;
-    letter-spacing: 0;
-    margin: 0;
-    position: absolute;
-    top: 264px;
-    left: 698px;
-    width: 48px;
-    height: 16px;
-}
-
-#email {
-    position: absolute;
-    top: 287px;
-    left: 698px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-    text-transform: lowercase;
-}
-
-#card-number {
-    position: absolute;
-    top: 332px;
-    left: 698px;
-    width: 249px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#expiration {
-    position: absolute;
-    top: 377px;
-    left: 698px;
-    width: 164px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#cvv {
-    position: absolute;
-    top: 377px;
-    left: 868px;
-    width: 78px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#payment-info-btn {
-    position: absolute;
-    top: 386px;
-    left: 952px;
-    width: 12px;
-    height: 12px;
-    cursor: pointer;
-}
-
-#profile-save {
-    position: absolute;
-    top: 583px;
-    left: 782px;
-    width: 164px;
-    height: 29px;
-    border: 1px solid #F0405E;
-    border-radius: 3px;
-}
-
-#submit-profile {
-    background: #F0405E;
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
-    color: #EFEFEF;
-    letter-spacing: 0;
-    border-radius: 3px;
-    border: none;
-    position: absolute;
-    top: 628px;
-    left: 848px;
-    width: 98px;
-    height: 29px;
-    cursor: pointer;
+/* Temporary */
+.temp-debug {
+  background-color: gray;
 }

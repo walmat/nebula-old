@@ -1,0 +1,57 @@
+// Load Task Specific Rules
+@import '_mixins';
+
+.profiles {
+  .profiles-load {
+    height: 112px;
+    width: 277px;
+    border: 1px solid #f0405e;
+    border-radius: 3px;
+
+    &__section-header {
+      margin-top: 10px;
+      padding-bottom: 1px;
+    }
+
+    &__label {
+      @include tasks-select-font();
+      height: 12px;
+      margin-bottom: 3px;
+      margin-top: 9px;
+      padding-left: 0.5px;
+    }
+
+    &__input-group {
+      margin: 0 11.5px !important;
+      padding-bottom: 2px;
+
+      &--select {
+        width: 254px;
+        height: 29px;
+      }
+
+      &--delete {
+        @include button-font();
+        background: #46adb4;
+        border-radius: 3px;
+        border: none;
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        margin-top: 14px;
+        margin-right: 14px;
+      }
+
+      &--load {
+        @include button-font();
+        background: #f0405e;
+        border-radius: 3px;
+        border: none;
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        margin-top: 14px;
+      }
+    }
+  }
+}

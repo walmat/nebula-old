@@ -12,9 +12,6 @@ import './profiles.css';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
-// images
-import checkboxChecked from '../_assets/Check_icons-01.svg';
-import checkboxUnchecked from '../_assets/Check_icons-02.svg';
 
 export class ProfilesPrimitive extends Component {
   constructor(props) {
@@ -99,13 +96,7 @@ export class ProfilesPrimitive extends Component {
   }
 
   render() {
-    const {
-      currentProfile,
-      selectedProfile,
-      onProfileNameChange,
-      onKeyPress,
-      onClickBillingMatchesShipping,
-    } = this.props;
+    const { currentProfile, selectedProfile, onProfileNameChange } = this.props;
     let selectProfileValue = null;
     if (selectedProfile.id !== null) {
       selectProfileValue = {
@@ -113,106 +104,148 @@ export class ProfilesPrimitive extends Component {
         label: selectedProfile.profileName,
       };
     }
+
     return (
       <form>
-        <div className="container">
-          {/* HEADER */}
-          <h1 className="text-header" id="profiles-header">
-            Profiles
-          </h1>
-
-          {/* LOAD PROFILE */}
-          <p className="body-text" id="load-profile-label">
-            Load Profile
-          </p>
-          <div id="load-profile-box" />
-          <p id="profile-name-label">Profile Name</p>
-          <Select
-            required
-            placeholder="Load Profile"
-            components={{ DropdownIndicator }}
-            id="profile-load"
-            classNamePrefix="select"
-            styles={colourStyles(buildStyle(false, true))}
-            onChange={this.onProfileChange}
-            value={selectProfileValue}
-            options={this.buildProfileOptions()}
-          />
-          <button type="button" id="load-profile" onClick={this.loadProfile}>
-            Load
-          </button>
-
-          {/* SHIPPING INFORMATION */}
-          <div className="flex-col">
-            <p className="body-text" id="shipping-label">
-              Shipping
-            </p>
-            <LocationFields
-              id="shipping"
-              profileToEdit={currentProfile}
-              fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
-              disabled={false}
-            />
+        <div className="container profiles">
+          <div className="row row--start row--expand">
+            <div className="col col--start">
+              <div className="row row--start">
+                <div className="col col--no-gutter-left">
+                  <h1 className="text-header profiles__title">Profiles</h1>
+                </div>
+              </div>
+              <div className="row row--expand row--no-gutter-left">
+                <div className="col">
+                  <div className="row row--start">
+                    <div className="col col--no-gutter-left">
+                      <p className="body-text section-header profiles-load__section-header">
+                        Load Profile
+                      </p>
+                    </div>
+                  </div>
+                  <div className="row">
+                    <div className="col col--no-gutter-left">
+                      <div className="profiles-load col col--start col--no-gutter">
+                        <div className="row row--start row--gutter">
+                          <div className="col profiles-load__input-group">
+                            <div className="row row--gutter">
+                              <div className="col col--no-gutter">
+                                <p className="profiles-load__label">Profile Name</p>
+                                <Select
+                                  required
+                                  placeholder="Load Profile"
+                                  components={{ DropdownIndicator }}
+                                  className="profiles-load__input-group--select"
+                                  classNamePrefix="select"
+                                  styles={colourStyles(buildStyle(false, true))}
+                                  onChange={this.onProfileChange}
+                                  value={selectProfileValue}
+                                  options={this.buildProfileOptions()}
+                                />
+                              </div>
+                            </div>
+                            <div className="row row--gutter row--end row--expand">
+                              <button
+                                type="button"
+                                className="profiles-load__input-group--delete"
+                                onClick={this.deleteProfile}
+                              >
+                                Delete
+                              </button>
+                              <button
+                                type="button"
+                                className="profiles-load__input-group--load"
+                                onClick={this.loadProfile}
+                              >
+                                Load
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* BILLING MATCHES SHIPPING */}
-          <div
-            role="button"
-            tabIndex={0}
-            onKeyPress={onKeyPress}
-            onClick={onClickBillingMatchesShipping}
-          >
-            <img
-              src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
-              alt={
-                currentProfile.billingMatchesShipping
-                  ? 'Billing Matches Shipping'
-                  : 'Billing does not Match Shipping'
-              }
-              id="billing-match-shipping"
-              draggable="false"
-            />
+          <div className="row row--start profiles--input-fields">
+            <div className="col col--start">
+              <div className="row row--start">
+                <p className="body-text section-header profiles-location__section-header">
+                  Shipping
+                </p>
+              </div>
+              <div className="row">
+                <div className="col col--no-gutter col--start profiles-shipping-container">
+                  <LocationFields
+                    id="shipping"
+                    className="profiles__fields--shipping"
+                    profileToEdit={currentProfile}
+                    fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
+                    disabled={false}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="col">
+              <div className="row row--start">
+                <p className="body-text section-header profiles-location__section-header">
+                  Billing
+                </p>
+              </div>
+              <div className="row">
+                <div className="col col--no-gutter col--start profiles-billing-container">
+                  <LocationFields
+                    id="billing"
+                    className="profiles__fields--billing"
+                    profileToEdit={currentProfile}
+                    fieldToEdit={
+                      currentProfile.billingMatchesShipping
+                        ? PROFILE_FIELDS.EDIT_SHIPPING
+                        : PROFILE_FIELDS.EDIT_BILLING
+                    }
+                    disabled={currentProfile.billingMatchesShipping}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="col">
+              <div className="row row--start">
+                <p className="body-text section-header profiles-payment__section-header">Payment</p>
+              </div>
+              <div className="row row--start row--expand">
+                <div className="col col--no-gutter col--start profiles-payment-container">
+                  <PaymentFields
+                    className="profiles__fields--payment"
+                    profileToEdit={currentProfile}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* BILLING INFORMATION */}
-          <div className="flex-col">
-            <p className="body-text" id="billing-label">
-              Billing
-            </p>
-            <LocationFields
-              id="billing"
-              profileToEdit={currentProfile}
-              fieldToEdit={
-                currentProfile.billingMatchesShipping
-                  ? PROFILE_FIELDS.EDIT_SHIPPING
-                  : PROFILE_FIELDS.EDIT_BILLING
-              }
-              disabled={currentProfile.billingMatchesShipping}
-            />
+          <div className="row row--expand row--end row--gutter">
+            <div className="col col--start col--no-gutter-left">
+              <div className="row row--extend row--end row--gutter">
+                <input
+                  className="profiles__fields--name"
+                  required
+                  onChange={onProfileNameChange}
+                  value={currentProfile.profileName}
+                  style={validationStatus(
+                    currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
+                  )}
+                  placeholder="Profile Name"
+                />
+              </div>
+              <div className="row row--extend row--end row--no-gutter">
+                <button type="button" className="profiles__fields--save" onClick={this.saveProfile}>
+                  Save
+                </button>
+              </div>
+            </div>
           </div>
-
-          {/* PAYMENT INFORMATION */}
-          <PaymentFields id="payment" profileToEdit={currentProfile} />
-
-          {/* SAVE PROFILE */}
-          <input
-            id="profile-save"
-            required
-            onChange={onProfileNameChange}
-            value={currentProfile.profileName}
-            style={validationStatus(
-              currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
-            )}
-            placeholder="Profile Name"
-          />
-          <button type="button" id="submit-profile" onClick={this.saveProfile}>
-            Save
-          </button>
-
-          {/* DELETE PROFILE */}
-          <button type="button" id="delete-profile" onClick={this.deleteProfile}>
-            Delete
-          </button>
         </div>
       </form>
     );
@@ -223,18 +256,12 @@ ProfilesPrimitive.propTypes = {
   profiles: defns.profileList.isRequired,
   currentProfile: defns.profile.isRequired,
   selectedProfile: defns.profile.isRequired,
-  onClickBillingMatchesShipping: PropTypes.func.isRequired,
   onProfileNameChange: PropTypes.func.isRequired,
   onAddNewProfile: PropTypes.func.isRequired,
   onLoadProfile: PropTypes.func.isRequired,
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
   onUpdateProfile: PropTypes.func.isRequired,
-  onKeyPress: PropTypes.func,
-};
-
-ProfilesPrimitive.defaultProps = {
-  onKeyPress: () => {},
 };
 
 export const mapStateToProps = state => ({

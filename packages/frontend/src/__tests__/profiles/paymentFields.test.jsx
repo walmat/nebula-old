@@ -18,10 +18,10 @@ describe('<PaymentFields />', () => {
     const wrapper = shallow(
       <PaymentFieldsPrimitive onChange={() => {}} value={payment} errors={payment.errors} />,
     );
-    expect(wrapper.find('#email')).toHaveLength(1);
-    expect(wrapper.find('#expiration')).toHaveLength(1);
-    expect(wrapper.find('#card-number')).toHaveLength(1);
-    expect(wrapper.find('#cvv')).toHaveLength(1);
+    expect(wrapper.find('.profiles-payment__input-group--email')).toHaveLength(1);
+    expect(wrapper.find('.profiles-payment__input-group--expiration')).toHaveLength(1);
+    expect(wrapper.find('.profiles-payment__input-group--card-number')).toHaveLength(1);
+    expect(wrapper.find('.profiles-payment__input-group--cvv')).toHaveLength(1);
   });
 
   describe('should render correct values for', () => {
@@ -33,7 +33,7 @@ describe('<PaymentFields />', () => {
       const wrapper = shallow(
         <PaymentFieldsPrimitive onChange={() => {}} value={payment} errors={payment.errors} />,
       );
-      let inputField = wrapper.find(`#${id}`);
+      let inputField = wrapper.find(`.profiles-payment__input-group--${id}`);
       expect(inputField).toHaveLength(1);
       expect(inputField.prop('value')).toBe(value1);
 
@@ -42,7 +42,7 @@ describe('<PaymentFields />', () => {
         ...wrapper.props(),
         value: payment,
       });
-      inputField = wrapper.find(`#${id}`);
+      inputField = wrapper.find(`.profiles-payment__input-group--${id}`);
       expect(inputField).toHaveLength(1);
       expect(inputField.prop('value')).toBe(value2);
     };
@@ -76,7 +76,7 @@ describe('<PaymentFields />', () => {
       const wrapper = shallow(
         <PaymentFieldsPrimitive onChange={onChangeHandler} value={input} errors={input.errors} />,
       );
-      const inputField = wrapper.find(`#${id}`);
+      const inputField = wrapper.find(`.profiles-payment__input-group--${id}`);
       expect(inputField).toHaveLength(1);
       inputField.simulate('change', event);
       expect(onChangeHandler).toHaveBeenCalledWith(expectedCall);
