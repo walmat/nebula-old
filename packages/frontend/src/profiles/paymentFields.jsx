@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
+import addTestId from '../utils/addTestId';
 
 import info from '../_assets/info.svg';
 
@@ -37,6 +38,7 @@ export class PaymentFieldsPrimitive extends Component {
                 onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)}
                 value={value.email}
                 style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])}
+                data-testid={addTestId(`PaymentFieldsPrimitive.email`)}
               />
             </div>
             <div className="row row--gutter">
@@ -47,6 +49,7 @@ export class PaymentFieldsPrimitive extends Component {
                 onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)}
                 value={value.cardNumber}
                 style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])}
+                data-testid={addTestId(`PaymentFieldsPrimitive.card-number`)}
               />
             </div>
             <div className="row row--start row--gutter">
@@ -59,6 +62,7 @@ export class PaymentFieldsPrimitive extends Component {
                   value={value.exp}
                   style={validationStatus(errors[PAYMENT_FIELDS.EXP])}
                   mask={['M', 'M', 'Y', 'Y']}
+                  data-testid={addTestId(`PaymentFieldsPrimitive.expiration`)}
                 />
               </div>
               <div className="row row--start row--no-gutter-left">
@@ -70,6 +74,7 @@ export class PaymentFieldsPrimitive extends Component {
                     onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)}
                     value={value.cvv}
                     style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
+                    data-testid={addTestId(`PaymentFieldsPrimitive.cvv`)}
                   />
                 </div>
                 <div className="col col--no-gutter">

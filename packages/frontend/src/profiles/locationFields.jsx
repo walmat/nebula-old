@@ -13,6 +13,7 @@ import {
 import './profiles.css';
 import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import addTestId from '../utils/addTestId';
 
 // images
 import checkboxChecked from '../_assets/Check_icons-01.svg';
@@ -105,6 +106,7 @@ export class LocationFieldsPrimitive extends Component {
               }
               className="profiles__fields--matches"
               draggable="false"
+              data-testid={addTestId(`LocationFieldsPrimitive.${id}-billingMatchesShipping`)}
             />
           </div>
         </div>
@@ -128,6 +130,7 @@ export class LocationFieldsPrimitive extends Component {
                 value={value.firstName}
                 style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
                 disabled={disabled}
+                data-testid={addTestId(`LocationFieldsPrimitive.${id}-firstName`)}
               />
             </div>
             <div className="row row--gutter">
@@ -139,6 +142,7 @@ export class LocationFieldsPrimitive extends Component {
                 value={value.lastName}
                 style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
                 disabled={disabled}
+                data-testid={addTestId(`LocationFieldsPrimitive.${id}-lastName`)}
               />
             </div>
             <div className="row row--gutter">
@@ -150,6 +154,7 @@ export class LocationFieldsPrimitive extends Component {
                 value={value.address}
                 style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
                 disabled={disabled}
+                data-testid={addTestId(`LocationFieldsPrimitive.${id}-address`)}
               />
             </div>
             <div className="row row--gutter">
@@ -160,6 +165,7 @@ export class LocationFieldsPrimitive extends Component {
                 value={value.apt}
                 style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
                 disabled={disabled}
+                data-testid={addTestId(`LocationFieldsPrimitive.${id}-apt`)}
               />
             </div>
             <div className="row row--start row--gutter">
@@ -172,6 +178,7 @@ export class LocationFieldsPrimitive extends Component {
                   value={value.city}
                   style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
                   disabled={disabled}
+                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-city`)}
                 />
               </div>
               <div className="col col--no-gutter">
@@ -186,6 +193,7 @@ export class LocationFieldsPrimitive extends Component {
                   value={value.province}
                   styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]))}
                   isDisabled={this.isProvinceFieldDisabled()}
+                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-province`)}
                 />
               </div>
             </div>
@@ -199,6 +207,7 @@ export class LocationFieldsPrimitive extends Component {
                   value={value.zipCode}
                   style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
                   disabled={disabled}
+                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-zipCode`)}
                 />
               </div>
               <div className="col col--no-gutter">
@@ -213,6 +222,7 @@ export class LocationFieldsPrimitive extends Component {
                   value={value.country}
                   styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]))}
                   isDisabled={disabled}
+                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-country`)}
                 />
               </div>
             </div>
@@ -226,6 +236,7 @@ export class LocationFieldsPrimitive extends Component {
                   value={value.phone}
                   style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
                   disabled={disabled}
+                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-phone`)}
                 />
               </div>
               <div className="col col--gutter col--expand">
