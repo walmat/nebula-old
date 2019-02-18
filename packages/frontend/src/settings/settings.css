@@ -30,7 +30,7 @@
   color: #161318;
 }
 .theme-dark .settings .proxy-list__input-group--text {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .theme-light .settings .proxy-list__input-group--text {
   background: #f4f4f4;
@@ -68,7 +68,7 @@
   color: #161318;
 }
 .theme-dark .settings__input-group--button, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save {
-  color: #EFEFEF;
+  color: #efefef;
 }
 
 .settings-defaults__section-header {
@@ -99,7 +99,7 @@
   color: #161318;
 }
 .theme-dark .settings-defaults__input-group--select__profile {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .settings-defaults__input-group--select__sizes {
   font-family: AvenirNext-Medium;
@@ -112,7 +112,7 @@
   color: #161318;
 }
 .theme-dark .settings-defaults__input-group--select__sizes {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .settings-defaults__input-group--label {
   font-family: AvenirNext-Medium;
@@ -125,7 +125,7 @@
   color: #161318;
 }
 .theme-dark .settings-defaults__input-group--label {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .theme-light .settings-defaults__input-group--label {
   color: #161318;
@@ -170,7 +170,7 @@
   color: #161318;
 }
 .theme-dark .settings__label {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .theme-light .settings__label {
   color: #161318;
@@ -211,7 +211,7 @@
   color: #161318;
 }
 .theme-dark .settings__input {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .settings__input-group--webhook__discord {
   width: 344px;

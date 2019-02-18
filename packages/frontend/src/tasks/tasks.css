@@ -103,7 +103,7 @@
   color: #161318;
 }
 .theme-dark .tasks .tasks-create__label {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .theme-light .tasks .tasks-create__label {
   color: #161318;
@@ -136,7 +136,7 @@
   background: #f4f4f4;
 }
 .theme-dark .tasks .tasks-create__input--field {
-  background: #393C3F;
+  background: #393c3f;
 }
 .theme-light .tasks .tasks-create__input--field:disabled {
   background: #dcdcdc;
@@ -430,7 +430,7 @@
   color: #161318;
 }
 .theme-dark .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__label {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {
   font-family: AvenirNext-Medium;
@@ -441,7 +441,7 @@
   color: #161318;
 }
 .theme-dark .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {
-  color: #EFEFEF;
+  color: #efefef;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input {
   vertical-align: middle;

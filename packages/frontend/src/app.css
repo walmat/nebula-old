@@ -93,7 +93,7 @@
   color: #161318;
 }
 .theme-dark .body-text, .theme-dark td, .theme-dark * {
-  color: #EFEFEF;
+  color: #efefef;
 }
 
 * {
@@ -237,19 +237,23 @@ select {
 }
 .theme-dark input,
 .theme-dark select {
-  background: #393C3F;
+  background: #393c3f;
 }
 
-.theme-light input::placeholder, .theme-light select::placeholder {
+.theme-light input::placeholder,
+.theme-light select::placeholder {
   color: #6d6e70;
 }
-input:disabled, select:disabled {
+input:disabled,
+select:disabled {
   cursor: not-allowed;
 }
-.theme-light input:disabled, .theme-light select:disabled {
+.theme-light input:disabled,
+.theme-light select:disabled {
   background: #dcdcdc;
 }
-.theme-dark input:disabled, .theme-dark select:disabled {
+.theme-dark input:disabled,
+.theme-dark select:disabled {
   background: #262626;
 }
 
