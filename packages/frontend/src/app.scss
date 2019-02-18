@@ -1,206 +1,9 @@
-@import '_themes';
-
-/*
- * Implementation of themes
- */
-@mixin themify($themes) {
-  @each $theme, $map in $themes {
-    .theme-#{$theme} {
-      $theme-map: () !global;
-      @each $key, $submap in $map {
-        $value: map-get(map-get($themes, $theme), '#{$key}');
-        $theme-map: map-merge(
-          $theme-map,
-          (
-            $key: $value,
-          )
-        ) !global;
-      }
-      @content;
-      $theme-map: null !global;
-    }
-  }
-}
-
-@function themed($key) {
-  @return map-get($theme-map, $key);
-}
-
-@font-face {
-  font-family: 'AvenirNext-Bold';
-  src: url('./_assets/fonts/AvenirNext-Bold.eot');
-  src: url('./_assets/fonts/AvenirNext-Bold.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-Bold.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-Bold.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-Bold.svg#AvenirNext-Bold') format('svg'),
-    url('./_assets/fonts/AvenirNext-Bold.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-BoldItalic';
-  src: url('./_assets/fonts/AvenirNext-BoldItalic.eot');
-  src: url('./_assets/fonts/AvenirNext-BoldItalic.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-BoldItalic.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-BoldItalic.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-BoldItalic.svg#AvenirNext-BoldItalic')
-      format('svg'),
-    url('./_assets/fonts/AvenirNext-BoldItalic.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-DemiBold';
-  src: url('./_assets/fonts/AvenirNext-DemiBold.eot');
-  src: url('./_assets/fonts/AvenirNext-DemiBold.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-DemiBold.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-DemiBold.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-DemiBold.svg#AvenirNext-DemiBold')
-      format('svg'),
-    url('./_assets/fonts/AvenirNext-DemiBold.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-DemiBoldItalic';
-  src: url('./_assets/fonts/AvenirNext-DemiBoldItalic.eot');
-  src: url('./_assets/fonts/AvenirNext-DemiBoldItalic.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-DemiBoldItalic.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-DemiBoldItalic.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-DemiBoldItalic.svg#AvenirNext-DemiBoldItalic')
-      format('svg'),
-    url('./_assets/fonts/AvenirNext-DemiBoldItalic.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-Heavy';
-  src: url('./_assets/fonts/AvenirNext-Heavy.eot');
-  src: url('./_assets/fonts/AvenirNext-Heavy.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-Heavy.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-Heavy.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-Heavy.svg#AvenirNext-Heavy') format('svg'),
-    url('./_assets/fonts/AvenirNext-Heavy.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-HeavyItalic';
-  src: url('./_assets/fonts/AvenirNext-HeavyItalic.eot');
-  src: url('./_assets/fonts/AvenirNext-HeavyItalic.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-HeavyItalic.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-HeavyItalic.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-HeavyItalic.svg#AvenirNext-HeavyItalic')
-      format('svg'),
-    url('./_assets/fonts/AvenirNext-HeavyItalic.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-Italic';
-  src: url('./_assets/fonts/AvenirNext-Italic.eot');
-  src: url('./_assets/fonts/AvenirNext-Italic.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-Italic.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-Italic.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-Italic.svg#AvenirNext-Italic') format('svg'),
-    url('./_assets/fonts/AvenirNext-Italic.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-Medium';
-  src: url('./_assets/fonts/AvenirNext-Medium.eot');
-  src: url('./_assets/fonts/AvenirNext-Medium.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-Medium.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-Medium.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-Medium.svg#AvenirNext-Medium') format('svg'),
-    url('./_assets/fonts/AvenirNext-Medium.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-MediumItalic';
-  src: url('./_assets/fonts/AvenirNext-MediumItalic.eot');
-  src: url('./_assets/fonts/AvenirNext-MediumItalic.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-MediumItalic.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-MediumItalic.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-MediumItalic.svg#AvenirNext-MediumItalic')
-      format('svg'),
-    url('./_assets/fonts/AvenirNext-MediumItalic.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-Regular';
-  src: url('./_assets/fonts/AvenirNext-Regular.eot');
-  src: url('./_assets/fonts/AvenirNext-Regular.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-Regular.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-Regular.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-Regular.svg#AvenirNext-Regular')
-      format('svg'),
-    url('./_assets/fonts/AvenirNext-Regular.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-UltraLight';
-  src: url('./_assets/fonts/AvenirNext-UltraLight.eot');
-  src: url('./_assets/fonts/AvenirNext-UltraLight.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-UltraLight.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-UltraLight.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-UltraLight.svg#AvenirNext-UltraLight')
-      format('svg'),
-    url('./_assets/fonts/AvenirNext-UltraLight.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'AvenirNext-UltraLightItalic';
-  src: url('./_assets/fonts/AvenirNext-UltraLightItalic.eot');
-  src: url('./_assets/fonts/AvenirNext-UltraLightItalic.woff2') format('woff2'),
-    url('./_assets/fonts/AvenirNext-UltraLightItalic.woff') format('woff'),
-    url('./_assets/fonts/AvenirNext-UltraLightItalic.ttf') format('truetype'),
-    url('./_assets/fonts/AvenirNext-UltraLightItalic.svg#AvenirNext-UltraLightItalic')
-      format('svg'),
-    url('./_assets/fonts/AvenirNext-UltraLightItalic.eot?#iefix')
-      format('embedded-opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-
-%font-base {
-  @include themify($themes) {
-    color: themed('textColor');
-  }
-  font-family: AvenirNext-Medium;
-  font-size: 9px;
-  letter-spacing: 0;
-}
+@import 'themes';
+@import 'fonts';
 
 * {
   @extend %font-base;
+  font-size: 9px;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -208,7 +11,7 @@
   -ms-user-select: none;
   user-select: none;
   cursor: default;
-  text-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
 
   :focus {
     outline: 0px solid transparent;
@@ -217,8 +20,8 @@
 
 html,
 body {
-  @include themify($themes) {
-    background: themed('backgroundColor');
+  @include base($themes) {
+    background: themed('background');
   }
   width: 100%;
   height: 100%;
@@ -237,12 +40,6 @@ select {
   -webkit-appearance: none; /* Safari and Chrome */
   -moz-appearance: none;
   appearance: none;
-}
-
-#app {
-  @include themify($themes) {
-    background: themed('backgroundColor');
-  }
 }
 
 #app,
@@ -328,25 +125,30 @@ button:focus {
 
 input,
 select {
-  text-transform: capitalize;
+  @include themify($themes) {
+    background: themed('inputBackground');
+  }
+  text-transform: none;
   padding-left: 7.5px;
   padding-right: 7.5px;
+  border-radius: 3px;
   box-sizing: border-box;
   cursor: pointer;
 }
 
+input::placeholder,
+select::placeholder {
+  @include themify($themes) {
+    color: themed('placerholderColor');
+  }
+}
+
 input:disabled,
 select:disabled {
-  cursor: default;
-}
-
-/*clear placeholder text on input focus*/
-input:focus::-webkit-input-placeholder {
-  opacity: 0;
-}
-
-input:focus {
-  cursor: default;
+  @include themify($themes) {
+    background: themed('inputBackgroundDisabled');
+  }
+  cursor: not-allowed;
 }
 
 .main-container {
@@ -358,18 +160,6 @@ input:focus {
   height: 665px;
 }
 
-input,
-select {
-  /* Rectangle 163: */
-  @include themify($themes) {
-    background: themed('backgroundColor');
-  }
-  border: 2px solid rgba(0, 0, 0, 0.33);
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/*clear placeholder text on input focus*/
 input:focus::-webkit-input-placeholder {
   opacity: 0;
 }
@@ -378,22 +168,22 @@ input:focus {
   cursor: default;
 }
 
-/* GENERIC CLASSES */
 .text-header {
+  @include themify($themes) {
+    color: themed('pageTitleColor');
+  }
   margin: 0;
   font-family: AvenirNext-DemiBold;
   font-size: 48px;
-  color: #6d6e70;
   letter-spacing: 0.01px;
 }
 
 .body-text {
-  @extend %font-base;
   @include themify($themes) {
-    color: themed('buttonColorPrimary');
+    color: themed('sectionHeaderColor');
   }
+  @extend %font-base;
   font-size: 12px;
-  letter-spacing: 0;
 }
 
 .flex-container {
@@ -409,15 +199,6 @@ input:focus {
   justify-content: center;
 }
 
-#task-header {
-  position: absolute;
-  top: 26px;
-  left: 140px;
-  width: 118px;
-  height: 66px;
-}
-
 button:enabled:hover {
   opacity: 0.8333;
 }
-/* END GENERIC CLASSES*/

@@ -1,3 +1,10 @@
+/*
+ * Implementation of themes
+ */
+.invalidProxy {
+  color: #f0405e;
+}
+
 .settings .proxy-list {
   border: 1px solid #f0405e;
   border-radius: 3px;
@@ -9,39 +16,59 @@
 .settings .proxy-list__input-group--text {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
   margin-top: 10px;
   margin-bottom: 10px;
-  color: #6d6e70;
   width: 330px;
   height: 545px;
-  background: #f4f4f4;
   border-radius: 3px;
   border: none;
   overflow-y: scroll;
   overflow-x: hidden;
 }
+.theme-light .settings .proxy-list__input-group--text {
+  color: #161318;
+}
+.theme-dark .settings .proxy-list__input-group--text {
+  color: #EFEFEF;
+}
+.theme-light .settings .proxy-list__input-group--text {
+  background: #f4f4f4;
+  color: #6d6e70;
+}
+.theme-dark .settings .proxy-list__input-group--text {
+  background: #313236;
+}
 
+/*
+ * Implementation of themes
+ */
+/*
+ * Implementation of themes
+ */
 .settings__input-group--delays__error, .settings__input-group--delays__monitor, .settings__input-group--webhook__slack, .settings__input-group--webhook__discord {
   height: 29px;
-  border: 1px solid #f0405e;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 3px;
 }
 
 .settings__input-group--button, .settings__button--close-captcha, .settings__button--open-captcha, .settings-defaults__input-group--clear, .settings-defaults__input-group--save {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
   font-size: 12px;
-  color: #efefef;
-  background: #f0405e;
   width: 65px;
   height: 29px;
   cursor: pointer;
   border: none;
   border-radius: 3px;
+}
+.theme-light .settings__input-group--button, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save {
+  color: #161318;
+}
+.theme-dark .settings__input-group--button, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save {
+  color: #EFEFEF;
 }
 
 .settings-defaults__section-header {
@@ -50,67 +77,141 @@
 .settings-defaults__input-group {
   width: 422px;
   height: 108px;
-  border: 1px solid #f0405e;
+  border-width: 1px;
+  border-style: solid;
   padding-bottom: 3px;
   border-radius: 3px;
+}
+.theme-light .settings-defaults__input-group {
+  border-color: #f0405e;
+}
+.theme-dark .settings-defaults__input-group {
+  border-color: #f0405e;
 }
 .settings-defaults__input-group--select__profile {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
   width: 170px;
   border-radius: 3px;
+}
+.theme-light .settings-defaults__input-group--select__profile {
+  color: #161318;
+}
+.theme-dark .settings-defaults__input-group--select__profile {
+  color: #EFEFEF;
 }
 .settings-defaults__input-group--select__sizes {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
   width: 170px;
   border-radius: 3px;
 }
+.theme-light .settings-defaults__input-group--select__sizes {
+  color: #161318;
+}
+.theme-dark .settings-defaults__input-group--select__sizes {
+  color: #EFEFEF;
+}
 .settings-defaults__input-group--label {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
   margin: 0;
   margin-bottom: 2px;
 }
+.theme-light .settings-defaults__input-group--label {
+  color: #161318;
+}
+.theme-dark .settings-defaults__input-group--label {
+  color: #EFEFEF;
+}
+.theme-light .settings-defaults__input-group--label {
+  color: #161318;
+}
+.theme-dark .settings-defaults__input-group--label {
+  color: #dcdcdc;
+}
 .settings-defaults__input-group--save {
   width: 83px;
 }
+.theme-light .settings-defaults__input-group--save {
+  background: #f0405e;
+  color: #f4f4f4;
+}
+.theme-dark .settings-defaults__input-group--save {
+  background: #f0405e;
+  color: #f4f4f4;
+}
 .settings-defaults__input-group--clear {
   width: 83px;
-  background: #46adb4;
   margin-right: 7.5px;
+}
+.theme-light .settings-defaults__input-group--clear {
+  background: #46adb4;
+  color: #f4f4f4;
+}
+.theme-dark .settings-defaults__input-group--clear {
+  background: #46adb4;
+  color: #f4f4f4;
 }
 
 .settings__label {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
   margin-top: 19px;
   padding-left: 0.5px;
 }
+.theme-light .settings__label {
+  color: #161318;
+}
+.theme-dark .settings__label {
+  color: #EFEFEF;
+}
+.theme-light .settings__label {
+  color: #161318;
+}
+.theme-dark .settings__label {
+  color: #dcdcdc;
+}
 .settings__button--open-captcha {
   margin-top: 19px;
   width: 205px;
 }
+.theme-light .settings__button--open-captcha {
+  background: #f0405e;
+  color: #f4f4f4;
+}
+.theme-dark .settings__button--open-captcha {
+  background: #f0405e;
+  color: #f4f4f4;
+}
 .settings__button--close-captcha {
-  background: #46adb4;
   margin-top: 19px;
   width: 205px;
+}
+.theme-light .settings__button--close-captcha {
+  background: #46adb4;
+  color: #f4f4f4;
+}
+.theme-dark .settings__button--close-captcha {
+  background: #46adb4;
+  color: #f4f4f4;
 }
 .settings__input {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
+}
+.theme-light .settings__input {
+  color: #161318;
+}
+.theme-dark .settings__input {
+  color: #EFEFEF;
 }
 .settings__input-group--webhook__discord {
   width: 344px;
@@ -123,6 +224,14 @@
 }
 .settings__input-group--delays__error {
   width: 205px;
+}
+.theme-light .settings__input-group--button {
+  background: #f0405e;
+  color: #f4f4f4;
+}
+.theme-dark .settings__input-group--button {
+  background: #f0405e;
+  color: #f4f4f4;
 }
 .settings__extras {
   margin-top: 15px;

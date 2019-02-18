@@ -1,19 +1,25 @@
+@import '../themes';
+
 // Shared Mixins
 @mixin image() {
   cursor: pointer;
   vertical-align: middle;
 }
 
-@mixin tasks-select-font() {
+@mixin profiles-select-font() {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
+  @include themify($themes) {
+    color: themed('textColor');
+  }
   letter-spacing: 0;
 }
 
 @mixin button-font() {
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #efefef;
+  @include themify($themes) {
+    color: themed('textColor');
+  }
   letter-spacing: 0;
 }

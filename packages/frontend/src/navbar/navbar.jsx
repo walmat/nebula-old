@@ -202,6 +202,7 @@ NavbarPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   navbar: state.navbar,
+  theme: state.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

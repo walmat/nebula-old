@@ -1,11 +1,16 @@
 // Load Task Specific Rules
-@import '_mixins';
+@import 'mixins';
+@import '../themes';
 
 .profiles {
   .profiles-load {
     height: 112px;
     width: 277px;
-    border: 1px solid #f0405e;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-width: 1px;
+    border-style: solid;
     border-radius: 3px;
 
     &__section-header {
@@ -14,7 +19,10 @@
     }
 
     &__label {
-      @include tasks-select-font();
+      @include profiles-select-font();
+      @include themify($themes) {
+        color: themed('tableHeaderColor');
+      }
       height: 12px;
       margin-bottom: 3px;
       margin-top: 9px;
@@ -32,7 +40,10 @@
 
       &--delete {
         @include button-font();
-        background: #46adb4;
+        @include themify($themes) {
+          background: themed('buttonColorSecondary');
+          color: themed('buttonPrimaryText');
+        }
         border-radius: 3px;
         border: none;
         width: 83px;
@@ -44,7 +55,10 @@
 
       &--load {
         @include button-font();
-        background: #f0405e;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+        }
         border-radius: 3px;
         border: none;
         width: 83px;

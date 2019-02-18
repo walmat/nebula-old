@@ -1,11 +1,16 @@
 // Create Task Specific Rules
 @import '_mixins';
+@import '../themes';
 
 .tasks {
   .tasks-create {
     height: 226px;
     width: 277px;
-    border: 1px solid #f0405e;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-width: 1px;
+    border-style: solid;
     border-radius: 3px;
 
     &__section-header {
@@ -14,6 +19,9 @@
 
     &__label {
       @include tasks-select-font();
+      @include themify($themes) {
+        color: themed('tableHeaderColor');
+      }
       height: 12px;
       margin-bottom: 3px;
       margin-top: 9px;
@@ -38,18 +46,23 @@
     }
 
     &__input {
-      @include tasks-select-font();
+      // @include tasks-select-font();
 
       &--bordered {
-        border: 1px solid #f0405e;
+        border-width: 1px;
+        border-style: solid;
       }
 
       &--field {
         width: 119px;
         height: 29px;
+        @include themify($themes) {
+          background: themed('inputBackground');
+        }
         &:disabled {
-          background: rgb(229, 229, 229);
-          cursor: not-allowed;
+          @include themify($themes) {
+            background: themed('inputBackgroundDisabled');
+          }
         }
       }
     }
@@ -63,7 +76,9 @@
       width: 83px;
       height: 29px;
       cursor: pointer;
-      background: #f0405e;
+      @include themify($themes) {
+        background: themed('buttonColorPrimary');
+      }
       border: none;
       border-radius: 3px;
       font-family: AvenirNext-Medium;

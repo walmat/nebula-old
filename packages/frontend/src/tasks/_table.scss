@@ -1,5 +1,6 @@
 // Tasks Table Specific Rules
 @import '_mixins';
+@import '../themes';
 
 %tasks-table__text-field {
   white-space: nowrap;
@@ -13,7 +14,9 @@
   & > p {
     font-family: AvenirNext-Medium;
     font-size: 12px;
-    color: #161318;
+    @include themify($themes) {
+      color: themed('tableHeaderColor');
+    }
     letter-spacing: 0;
     margin: 5px 0;
   }
@@ -23,7 +26,11 @@
   .tasks-table-container {
     width: 741px;
     height: 300px;
-    border: 1px solid #f0405e;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-style: solid;
+    border-width: 1px;
     border-radius: 3px;
     margin: 0 16px 0 0 !important;
 
@@ -111,7 +118,11 @@
     }
 
     .tasks-row-container {
-      border-bottom: #dfdfdf solid 1px;
+      @include themify($themes) {
+        border-bottom-color: themed('tableRowBottomBorderColow');
+      }
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
 
       .tasks-row {
         display: flex;
@@ -121,9 +132,13 @@
           padding: 10px;
           height: 80px;
           align-items: flex-start;
-          border: #b8d9d2 solid 1px;
+          @include themify($themes) {
+            border-color: themed('tableEditBorderColor');
+          }
+          border-width: 1px;
+          border-style: solid;
           margin: 0 -5px 5px -5px;
-          border-radius: 3px !important;
+          border-radius: 3px;
 
           .edit-field {
             vertical-align: middle;
@@ -137,21 +152,14 @@
 
             &__select {
               @include tasks-select-font();
-              &:disabled {
-                background: rgb(229, 229, 229);
-                cursor: not-allowed;
-              }
             }
 
             &__input {
               vertical-align: middle;
               height: 29px;
-              border: #f0405e solid 1px;
+              border-width: 1px;
+              border-style: solid;
               border-radius: 3px;
-              &:disabled {
-                background: rgb(229, 229, 229);
-                cursor: not-allowed;
-              }
             }
           }
 
@@ -170,11 +178,15 @@
               letter-spacing: 0;
 
               &--cancel {
-                background: #46adb4;
+                @include themify($themes) {
+                  background: themed('buttonColorSecondary');
+                }
               }
 
               &--save {
-                background: #f0405e;
+                @include themify($themes) {
+                  background: themed('buttonColorPrimary');
+                }
               }
             }
           }
