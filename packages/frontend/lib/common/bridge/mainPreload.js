@@ -26,7 +26,7 @@ const _launchCaptchaHarvester = () => {
 };
 
 /**
- * Sends a listener for task events to taskWrapper.js
+ * Sends a listener for task events to launcher.js
  */
 const _registerForTaskEvents = handler => {
   util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
@@ -41,7 +41,7 @@ const _registerForTaskEvents = handler => {
 };
 
 /**
- * Removes a listener for task events to taskWrapper.js
+ * Removes a listener for task events to launcher.js
  */
 const _deregisterForTaskEvents = handler => {
   util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
@@ -56,28 +56,28 @@ const _deregisterForTaskEvents = handler => {
 };
 
 /**
- * Sends task(s) that should be started to taskWrapper.js
+ * Sends task(s) that should be started to launcher.js
  */
 const _startTasks = tasks => {
   util.sendEvent(IPCKeys.RequestStartTasks, tasks);
 };
 
 /**
- * Sends task(s) that should be stopped to taskWrapper.js
+ * Sends task(s) that should be stopped to launcher.js
  */
 const _stopTasks = tasks => {
   util.sendEvent(IPCKeys.RequestStopTasks, tasks);
 };
 
 /**
- * Sends proxies(s) that should be add to taskWrapper.js
+ * Sends proxies(s) that should be add to launcher.js
  */
 const _addProxies = proxies => {
   util.sendEvent(IPCKeys.RequestAddProxies, proxies);
 };
 
 /**
- * Sends task(s) that should be removed to taskWrapper.js
+ * Sends task(s) that should be removed to launcher.js
  */
 const _removeProxies = proxies => {
   util.sendEvent(IPCKeys.RequestRemoveProxies, proxies);

@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
-const path = require('path');
 const { TaskManager, TaskProcessManager } = require('@nebula/task-runner').shopify;
 
 const IPCKeys = require('../common/constants');
@@ -10,10 +9,8 @@ nebulaEnv.setUpEnvironment();
 
 const _TASK_EVENT_KEY = 'TaskEventKey';
 
-class TaskManagerWrapper {
+class TaskManagerAdapter {
   constructor(logPath) {
-    console.log('Constructed');
-
     // Use environment to initialize the right task manager
     switch (process.env.NEBULA_RUNNER_CONCURRENCY_TYPE) {
       case 'single': {
@@ -112,10 +109,10 @@ class TaskManagerWrapper {
 }
 
 process.once('loaded', () => {
-  let tmw = null;
+  let tma = null;
   ipcRenderer.once('LOG_PATH', (_, logPath) => {
     console.log('received log path...');
     console.log(ipcRenderer);
-    tmw = new TaskManagerWrapper(logPath);
+    tma = new TaskManagerAdapter(logPath);
   });
 });

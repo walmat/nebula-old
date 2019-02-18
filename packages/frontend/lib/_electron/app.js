@@ -5,7 +5,7 @@ const MainMenu = require('./mainMenu');
 const DialogManager = require('./dialogManager');
 const WindowManager = require('./windowManager');
 const AuthManager = require('./authManager');
-const TaskWrapper = require('../task/wrapper');
+const TaskLauncher = require('../task/launcher');
 const nebulaEnv = require('./env');
 const { bindDebugEvents } = require('./debug');
 
@@ -57,9 +57,9 @@ class App {
 
     /**
      * Wrapper for task management
-     * @type {TaskWrapper}
+     * @type {TaskLauncher}
      */
-    this._taskWrapper = new TaskWrapper(this);
+    this._taskLauncher = new TaskLauncher(this);
 
     /**
      * Manage the captcha server
@@ -132,10 +132,10 @@ class App {
   /**
    * Get the task wrapper
    *
-   * @return {TaskWrapper} Instance of the task wrapper
+   * @return {TaskLauncher} Instance of the task wrapper
    */
-  get taskWrapper() {
-    return this._taskWrapper;
+  get taskLauncher() {
+    return this._taskLauncher;
   }
 
   /**

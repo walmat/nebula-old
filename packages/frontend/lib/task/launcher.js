@@ -11,7 +11,7 @@ const _TASK_EVENT_KEY = 'TaskEventKey';
 
 const _LOG_PATH = Electron.app.getPath('documents');
 
-class TaskWrapper {
+class TaskLauncher {
   constructor(context) {
     this._context = context;
     this._launcherWindow = null;
@@ -118,7 +118,7 @@ class TaskWrapper {
         experimentalCanvasFeatures: false,
         experimentalFeatures: false,
         enableBlinkFeatures: '',
-        preload: path.resolve(__dirname, 'manager.js'),
+        preload: path.resolve(__dirname, 'adapter.js'),
       },
     });
 
@@ -244,4 +244,4 @@ class TaskWrapper {
   }
 }
 
-module.exports = TaskWrapper;
+module.exports = TaskLauncher;

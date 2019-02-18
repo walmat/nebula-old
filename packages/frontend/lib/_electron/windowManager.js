@@ -171,7 +171,7 @@ class WindowManager {
           }
           w = await createMainWindow();
           this._main = w;
-          this._context.taskWrapper.start();
+          this._context.taskLauncher.start();
           break;
         }
         case 'captcha': {
@@ -301,7 +301,7 @@ class WindowManager {
         w.close();
       }
     });
-    this._context.taskWrapper.stop();
+    this._context.taskLauncher.stop();
     return this._auth;
   }
 
@@ -394,7 +394,7 @@ class WindowManager {
       this._windows.forEach(w => {
         w.close();
       });
-      this._context.taskWrapper.stop();
+      this._context.taskLauncher.stop();
     } else if (this._auth && this._auth.id === id) {
       this._windows.forEach(w => {
         w.close();
