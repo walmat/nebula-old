@@ -74,6 +74,16 @@ select {
   -webkit-app-region: no-drag;
   z-index: 1;
   cursor: pointer;
+
+  & > img {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+    width: 12px;
+    height: 12px;
+  }
 }
 
 .close-area-2 {
@@ -87,19 +97,43 @@ select {
   -webkit-app-region: no-drag;
   z-index: 1;
   cursor: pointer;
+
+  & > img {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+    width: 12px;
+    height: 12px;
+  }
 }
 
-.theme-toggle {
+.theme-icon {
   position: absolute;
   top: 0;
-  right: 52px;
+  right: 50px;
   width: 25px;
   height: 25px;
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
   z-index: 1;
   cursor: pointer;
+
+  & > img {
+    position: absolute;
+    @include themify($themes) {
+      top: themed('iconPositionTop');
+      right: themed('iconPositionRight');
+    }
+    cursor: 'pointer';
+    vertical-align: middle;
+    z-index: 1;
+    width: 12px;
+    height: 12px;
+  }
 }
+
 .close-area-1 > img,
 .close-area-2 > img {
   cursor: pointer;

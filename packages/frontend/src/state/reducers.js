@@ -15,6 +15,7 @@ import { initialProfileStates } from '../utils/definitions/profileDefinitions';
 import { initialTaskStates } from '../utils/definitions/taskDefinitions';
 import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
 import { initialServerStates } from '../utils/definitions/serverDefinitions';
+import { themes } from '../constants/themes';
 
 /**
  * Application State
@@ -31,7 +32,7 @@ export const initialState = {
   serverInfo: initialServerStates.serverInfo,
   servers: initialServerStates.serverList,
   serverListOptions,
-  theme: 'light',
+  theme: themes.LIGHT,
 };
 
 const topLevelReducer = (state = initialState, action) => {
@@ -44,11 +45,12 @@ const topLevelReducer = (state = initialState, action) => {
     return { ...initialState };
   }
 
-  if (action.type === GLOBAL_ACTIONS.TOGGLE_THEME) {
-    if (action.mode) {
+  if (action.type === GLOBAL_ACTIONS.SET_THEME) {
+    if (action.theme) {
+      const { theme } = action;
       return {
         ...state,
-        theme: action.mode,
+        theme,
       };
     }
   }

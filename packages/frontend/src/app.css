@@ -173,6 +173,15 @@ select {
   z-index: 1;
   cursor: pointer;
 }
+.close-area-1 > img {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  cursor: pointer;
+  vertical-align: middle;
+  width: 12px;
+  height: 12px;
+}
 
 .close-area-2 {
   position: absolute;
@@ -186,17 +195,42 @@ select {
   z-index: 1;
   cursor: pointer;
 }
+.close-area-2 > img {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  cursor: pointer;
+  vertical-align: middle;
+  width: 12px;
+  height: 12px;
+}
 
-.theme-toggle {
+.theme-icon {
   position: absolute;
   top: 0;
-  right: 52px;
+  right: 50px;
   width: 25px;
   height: 25px;
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
   z-index: 1;
   cursor: pointer;
+}
+.theme-icon > img {
+  position: absolute;
+  cursor: "pointer";
+  vertical-align: middle;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+}
+.theme-light .theme-icon > img {
+  top: 6px;
+  right: 6px;
+}
+.theme-dark .theme-icon > img {
+  top: 6.5px;
+  right: 7px;
 }
 
 .close-area-1 > img,

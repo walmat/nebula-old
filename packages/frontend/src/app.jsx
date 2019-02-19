@@ -8,6 +8,7 @@ import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
+import { themes } from './constants/themes';
 
 import addTestId from './utils/addTestId';
 
@@ -41,20 +42,6 @@ export class App extends PureComponent {
     };
   }
 
-  static toggleTheme(store) {
-    const { theme } = store.getState();
-    switch (theme) {
-      case 'light':
-        store.dispatch(globalActions.toggleTheme('dark'));
-        break;
-      case 'dark':
-        store.dispatch(globalActions.toggleTheme('light'));
-        break;
-      default:
-        break;
-    }
-  }
-
   constructor(props) {
     super(props);
     this.taskHandler = this.taskHandler.bind(this);
@@ -72,6 +59,22 @@ export class App extends PureComponent {
     window.removeEventListener('beforeunload', this._cleanupTaskEvents);
   }
 
+  setTheme(store) {
+    const { theme } = store.getState();
+    switch (theme) {
+      case themes.DARK:
+        store.dispatch(globalActions.setTheme(themes.LIGHT));
+        this.forceUpdate();
+        break;
+      case themes.LIGHT:
+        store.dispatch(globalActions.setTheme(themes.DARK));
+        this.forceUpdate();
+        break;
+      default:
+        break;
+    }
+  }
+
   taskHandler(event, taskId, statusMessage) {
     const { store } = this.props;
     store.dispatch(taskActions.status(taskId, statusMessage));
@@ -85,8 +88,10 @@ export class App extends PureComponent {
 
   render() {
     const { store, onKeyPress } = this.props;
-    const { theme } = store.getState();
-    const stateLocation = store.getState().navbar.location;
+    const {
+      theme,
+      navbar: { location: stateLocation },
+    } = store.getState();
     const windowLocation = window.location.pathname;
     let redirectRoute = ROUTES.TASKS;
     if (windowLocation !== stateLocation) {
@@ -107,20 +112,7 @@ export class App extends PureComponent {
                 draggable="false"
                 data-testid={addTestId('App.button.deactivate')}
               >
-                <img
-                  src={deactivateImg}
-                  draggable="false"
-                  alt="close"
-                  style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '6px',
-                    cursor: 'pointer',
-                    verticalAlign: 'middle',
-                    width: '12px',
-                    height: '12px',
-                  }}
-                />
+                <img src={deactivateImg} draggable="false" alt="close" />
               </div>
               <div
                 className="close-area-2"
@@ -132,44 +124,18 @@ export class App extends PureComponent {
                 draggable="false"
                 data-testid={addTestId('App.button.close')}
               >
-                <img
-                  src={closeImg}
-                  draggable="false"
-                  alt="close"
-                  style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '6px',
-                    cursor: 'pointer',
-                    verticalAlign: 'middle',
-                    width: '12px',
-                    height: '12px',
-                  }}
-                />
+                <img src={closeImg} draggable="false" alt="close" />
               </div>
               <div
-                className="theme-toggle"
+                className="theme-icon"
                 role="button"
                 tabIndex={0}
-                title={theme === 'light' ? 'dark mode' : 'light mode'}
+                title={theme === themes.LIGHT ? 'night mode' : 'day mode'}
                 onKeyPress={onKeyPress}
-                onClick={() => App.toggleTheme(store)}
+                onClick={() => this.setTheme(store)}
                 draggable="false"
               >
-                <img
-                  src={theme === 'light' ? night : day}
-                  draggable="false"
-                  alt="theme"
-                  style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '6px',
-                    cursor: 'pointer',
-                    verticalAlign: 'middle',
-                    width: '12px',
-                    height: '12px',
-                  }}
-                />
+                <img src={theme === themes.LIGHT ? night : day} draggable="false" alt="theme" />
               </div>
             </div>
             <Navbar />
