@@ -243,15 +243,25 @@
 
           &__button:first-child {
             margin-left: -10px;
+            margin-top: 2.5px;
+          }
+
+          &__button:nth-child(2) {
+            margin-top: 3px;
           }
 
           &__button:nth-child(3) {
-            margin-top: 1px;
+            margin-top: 3.5px;
+          }
+
+          &__button:nth-child(4) {
+            margin-top: 3.35px;
           }
 
           &__button {
             padding-bottom: 3px;
             margin-right: 1.5px;
+            margin-left: 1.5px;
             width: 16px;
           }
         }
