@@ -63,7 +63,6 @@ export const colourStyles = (theme, provided) => ({
       outline: 'none',
       boxShadow: 'none',
       overflow: 'hidden',
-      'border-color': theme === themes.DARK ? '#f4f4f4' : '#393c3f',
       backgroundColor: theme === themes.DARK ? '#393c3f' : '#f4f4f4',
       ':selected': {
         color: '#161318',
