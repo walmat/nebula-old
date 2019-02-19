@@ -77,6 +77,7 @@ export class SettingsPrimitive extends Component {
   render() {
     const {
       errors,
+      theme,
       settings,
       onKeyPress,
       onSaveDefaults,
@@ -214,6 +215,7 @@ export class SettingsPrimitive extends Component {
                                   className="settings-defaults__input-group--select__profile"
                                   classNamePrefix="select"
                                   styles={colourStyles(
+                                    theme,
                                     buildStyle(
                                       false,
                                       errors[
@@ -239,6 +241,7 @@ export class SettingsPrimitive extends Component {
                                   className="settings-defaults__input-group--select__sizes"
                                   classNamePrefix="select"
                                   styles={colourStyles(
+                                    theme,
                                     buildStyle(
                                       false,
                                       errors[
@@ -365,6 +368,7 @@ SettingsPrimitive.propTypes = {
   profiles: pDefns.profileList.isRequired,
   settings: sDefns.settings.isRequired,
   errors: sDefns.settingsErrors.isRequired,
+  theme: PropTypes.string.isRequired,
 };
 
 SettingsPrimitive.defaultProps = {
@@ -375,6 +379,7 @@ export const mapStateToProps = state => ({
   profiles: state.profiles,
   settings: state.settings,
   errors: state.settings.errors,
+  theme: state.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

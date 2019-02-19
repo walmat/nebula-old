@@ -172,6 +172,9 @@
   color: #f4f4f4;
 }
 
+/*
+ * Implementation of themes
+ */
 .profiles .profiles__fields--save, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .shipping-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--phone, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--first-name {
   border: 1px solid;
   margin: 9px 0;

@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import { components } from 'react-select';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -18,12 +19,19 @@ DropdownIndicator.propTypes = {
   selectProps: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
-export const colourStyles = provided => ({
+export const colourStyles = (theme, provided) => ({
   control: (styles, { isDisabled }) => ({
     ...styles,
     border: '1px solid',
     'border-color': (provided && provided.borderColor) || '#46ADB4',
-    backgroundColor: isDisabled ? 'rgb(229, 229, 229)' : '#f4f4f4',
+    backgroundColor:
+      isDisabled && theme === 'dark'
+        ? '#262626'
+        : isDisabled && theme === 'light'
+        ? '#dcdcdc'
+        : theme === 'dark'
+        ? '#393c3f'
+        : '#f4f4f4',
     height: '29px',
     minHeight: '29px',
     borderRadius: '3px',
@@ -39,8 +47,8 @@ export const colourStyles = provided => ({
     if (isDisabled) {
       return {
         ...styles,
-        backgroundColor: '#ccc',
-        color: '#161318',
+        backgroundColor: theme === 'dark' ? '#262626' : '#dcdcdc',
+        color: theme === 'dark' ? '#efefef' : '#161318',
         cursor: 'not-allowed',
         outline: 'none',
         boxShadow: 'none',
@@ -49,18 +57,22 @@ export const colourStyles = provided => ({
     }
     const retVal = {
       ...styles,
-      color: '#161318',
+      color: theme === 'dark' ? '#efefef' : '#161318',
       cursor: 'pointer',
       outline: 'none',
       boxShadow: 'none',
       overflow: 'hidden',
-      backgroundColor: '#fff', // fallback
+      'border-color': theme === 'dark' ? '#f4f4f4' : '#393c3f',
+      backgroundColor: theme === 'dark' ? '#393c3f' : '#f4f4f4',
     };
     if (isFocused) {
       return { ...retVal, backgroundColor: '#EDBCC6' };
     }
     if (isSelected) {
-      return { ...retVal, backgroundColor: '#fff' };
+      return {
+        ...retVal,
+        backgroundColor: theme === 'dark' ? '#393c3f' : '#f4f4f4',
+      };
     }
     return retVal;
   },
@@ -111,18 +123,19 @@ export const colourStyles = provided => ({
   multiValueRemove: styles => ({
     ...styles,
     cursor: 'pointer',
+    color: theme === 'dark' ? '#393c3f' : '#f4f4f4',
     ':hover': {
       backgroundColor: '#46ADB4',
-      color: '#f4f4f4',
+      color: theme === 'dark' ? '#393c3f' : '#f4f4f4',
       cursor: 'pointer',
     },
   }),
-  placeholder: (styles, { isDisabled }) => ({
+  placeholder: styles => ({
     ...styles,
     fontFamily: 'AvenirNext-Medium',
     textTransform: 'capitalize',
     fontSize: '9px',
-    color: isDisabled ? '#6D6E70' : '#6D6E70',
+    color: '#6D6E70',
     letterSpacing: 0,
     cursor: 'pointer',
   }),
@@ -131,15 +144,17 @@ export const colourStyles = provided => ({
     fontFamily: 'AvenirNext-Medium',
     textTransform: 'capitalize',
     fontSize: '9px',
-    color: '#161318',
+    color: theme === 'dark' ? '#efefef' : '#161318',
     letterSpacing: 0,
     cursor: 'pointer',
   }),
   menu: styles => ({
     ...styles,
+    backgroundColor: theme === 'dark' ? '#393c3f' : '#f4f4f4',
   }),
   menuList: styles => ({
     ...styles,
+    backgroundColor: theme === 'dark' ? '#393c3f' : '#f4f4f4',
     maxHeight: '150px',
   }),
 });
