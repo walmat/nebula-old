@@ -241,12 +241,16 @@ class TaskLauncher {
     }
   }
 
-  async _startHarvestEventHandler(runnerId, siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
+  async _startHarvestEventHandler(
+    _,
+    runnerId,
+    siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
+  ) {
     await this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, siteKey);
     this._captchaSemaphore += 1;
   }
 
-  _stopHarvestEventHandler(runnerId, siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
+  _stopHarvestEventHandler(_, runnerId, siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
     if (this._captchaSemaphore === 1) {
       // Captcha Harvest Requesters will drop to 0
       // Drop the semaphore and stop harvesting
