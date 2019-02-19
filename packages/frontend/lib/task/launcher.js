@@ -110,7 +110,7 @@ class TaskLauncher {
         // This is needed to make sure the task manager runs properly
         // TODO: Investigate more secure methods of running the task manager in a browser window
         nodeIntegration: true,
-        // This is needed when runnig in multi thread mode
+        // This is needed when running in multi thread mode
         // TODO: Add a check to make sure we are running in this mode before enabling
         nodeIntegrationInWorker: true,
         webSecurity: true,
