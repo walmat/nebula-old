@@ -1,3 +1,6 @@
+/*
+ * Implementation of themes
+ */
 .navbar__icons--settings, .navbar__icons--servers, .navbar__icons--profiles, .navbar__icons--tasks {
   cursor: pointer;
 }
@@ -11,9 +14,19 @@
 }
 .navbar--separator {
   margin-top: 8.5px;
-  height: calc(100% - 8.5px);
-  border: 1px solid #efefef;
+  margin-bottom: 8.5px;
+  height: 100%;
   display: block;
+}
+.theme-light .navbar--separator {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #efefef;
+}
+.theme-dark .navbar--separator {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #3c3d42;
 }
 .navbar__row-item--first {
   margin-top: 15px !important;
@@ -47,10 +60,10 @@
   margin: 0;
   margin-top: 10px;
   opacity: 0.75;
-  color: #46adb4;
+  color: #46adb4 !important;
 }
 .navbar__text--app-version {
   text-align: center;
   opacity: 0.75;
-  color: #f0405e;
+  color: #f0405e !important;
 }

@@ -1,3 +1,5 @@
+@import '../themes';
+
 // Shared Mixins
 @mixin image() {
   cursor: pointer;
@@ -7,6 +9,8 @@
 @mixin settings-font() {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
+  @include themify($themes) {
+    color: themed('textColor');
+  }
   letter-spacing: 0;
 }

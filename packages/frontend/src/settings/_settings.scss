@@ -1,16 +1,16 @@
 @import '_mixins';
+@import '../themes';
 
 %input-base {
   height: 29px;
-  border: 1px solid #f0405e;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 3px;
 }
 
 %button-base {
   @include settings-font();
   font-size: 12px;
-  color: #efefef;
-  background: #f0405e;
   width: 65px;
   height: 29px;
   cursor: pointer;
@@ -26,7 +26,11 @@
   &__input-group {
     width: 422px;
     height: 108px;
-    border: 1px solid #f0405e;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-width: 1px;
+    border-style: solid;
     padding-bottom: 3px;
     border-radius: 3px;
 
@@ -45,19 +49,29 @@
 
     &--label {
       @include settings-font();
+      @include themify($themes) {
+        color: themed('tableHeaderColor');
+      }
       margin: 0;
       margin-bottom: 2px;
     }
 
     &--save {
       @extend %button-base;
+      @include themify($themes) {
+        background: themed('buttonColorPrimary');
+        color: themed('buttonPrimaryText');
+      }
       width: 83px;
     }
 
     &--clear {
       @extend %button-base;
+      @include themify($themes) {
+        background: themed('buttonColorSecondary');
+        color: themed('buttonPrimaryText');
+      }
       width: 83px;
-      background: #46adb4;
       margin-right: 7.5px;
     }
   }
@@ -66,6 +80,9 @@
 .settings {
   &__label {
     @include settings-font();
+    @include themify($themes) {
+      color: themed('tableHeaderColor');
+    }
     height: 12px;
     margin-bottom: 3px;
     margin-top: 19px;
@@ -75,12 +92,19 @@
   &__button {
     &--open-captcha {
       @extend %button-base;
+      @include themify($themes) {
+        background: themed('buttonColorPrimary');
+        color: themed('buttonPrimaryText');
+      }
       margin-top: 19px;
       width: 205px;
     }
     &--close-captcha {
       @extend %button-base;
-      background: #46adb4;
+      @include themify($themes) {
+        background: themed('buttonColorSecondary');
+        color: themed('buttonPrimaryText');
+      }
       margin-top: 19px;
       width: 205px;
     }
@@ -114,6 +138,10 @@
     }
     &--button {
       @extend %button-base;
+      @include themify($themes) {
+        background: themed('buttonColorPrimary');
+        color: themed('buttonPrimaryText');
+      }
     }
   }
 

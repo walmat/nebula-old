@@ -116,7 +116,7 @@ export class LocationFieldsPrimitive extends Component {
   }
 
   render() {
-    const { id, value, errors, disabled } = this.props;
+    const { id, value, errors, disabled, theme } = this.props;
     return (
       <div className="profiles-location col col--start col--no-gutter">
         <div className="row row--start row--no-gutter-left row--gutter-right">
@@ -191,7 +191,10 @@ export class LocationFieldsPrimitive extends Component {
                   options={LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined}
                   onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
                   value={value.province}
-                  styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]))}
+                  styles={colourStyles(
+                    theme,
+                    buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]),
+                  )}
                   isDisabled={this.isProvinceFieldDisabled()}
                   data-testid={addTestId(`LocationFieldsPrimitive.${id}-province`)}
                 />
@@ -220,7 +223,10 @@ export class LocationFieldsPrimitive extends Component {
                   options={LocationFieldsPrimitive.buildCountryOptions()}
                   onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
                   value={value.country}
-                  styles={colourStyles(buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]))}
+                  styles={colourStyles(
+                    theme,
+                    buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]),
+                  )}
                   isDisabled={disabled}
                   data-testid={addTestId(`LocationFieldsPrimitive.${id}-country`)}
                 />
@@ -256,6 +262,7 @@ LocationFieldsPrimitive.propTypes = {
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
   id: PropTypes.string.isRequired,
+  theme: PropTypes.string.isRequired,
   value: defns.locationState.isRequired,
   onClickBillingMatchesShipping: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
@@ -267,6 +274,7 @@ LocationFieldsPrimitive.defaultProps = {
 
 export const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
+  theme: state.theme,
   disabled: ownProps.disabled,
   currentProfile: state.currentProfile,
   errors: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]].errors,

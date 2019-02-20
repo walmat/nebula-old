@@ -15,6 +15,7 @@ import { initialProfileStates } from '../utils/definitions/profileDefinitions';
 import { initialTaskStates } from '../utils/definitions/taskDefinitions';
 import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
 import { initialServerStates } from '../utils/definitions/serverDefinitions';
+import THEMES from '../constants/themes';
 
 /**
  * Application State
@@ -31,6 +32,7 @@ export const initialState = {
   serverInfo: initialServerStates.serverInfo,
   servers: initialServerStates.serverList,
   serverListOptions,
+  theme: THEMES.LIGHT,
 };
 
 const topLevelReducer = (state = initialState, action) => {
@@ -42,6 +44,17 @@ const topLevelReducer = (state = initialState, action) => {
   if (action.type === GLOBAL_ACTIONS.RESET) {
     return { ...initialState };
   }
+
+  if (action.type === GLOBAL_ACTIONS.SET_THEME) {
+    if (action.theme) {
+      const { theme } = action;
+      return {
+        ...state,
+        theme,
+      };
+    }
+  }
+
   // If not a reset, handle the action with sub reducers
   const changes = {
     tasks: taskListReducer(state.tasks, action),

@@ -1,5 +1,9 @@
 @import '_mixins';
 
+.invalidProxy {
+  color: #f0405e;
+}
+
 .settings {
   .proxy-list {
     border: 1px solid #f0405e;
@@ -15,10 +19,12 @@
         @include settings-font();
         margin-top: 10px;
         margin-bottom: 10px;
-        color: #6d6e70;
+        @include themify($themes) {
+          background: themed('background');
+          color: themed('placerholderColor');
+        }
         width: 330px;
         height: 545px;
-        background: #f4f4f4;
         border-radius: 3px;
         border: none;
         overflow-y: scroll;

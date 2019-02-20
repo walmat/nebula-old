@@ -1,0 +1,89 @@
+$themes: (
+  light: (
+    background: #f4f4f4,
+    navbarDividerColor: #efefef,
+    inputBackground: #f4f4f4,
+    inputBackgroundDisabled: #dcdcdc,
+    textColor: #161318,
+    placerholderColor: #6d6e70,
+    pageTitleColor: #6d6e70,
+    sectionHeaderColor: #f0405e,
+    tableBorderColor: #f0405e,
+    tableHeaderColor: #161318,
+    tableEditBorderColor: #b8d9d2,
+    tableRowBottomBorderColow: #dfdfdf,
+    tableHeaderLineColor: #edbcc6,
+    buttonPrimaryText: #f4f4f4,
+    buttonColorPrimary: #f0405e,
+    buttonColorSecondary: #46adb4,
+    iconPositionTop: 6px,
+    iconPositionRight: 6px,
+  ),
+  dark: (
+    background: #313236,
+    navbarDividerColor: #3c3d42,
+    inputBackground: #393c3f,
+    inputBackgroundDisabled: #262626,
+    textColor: #efefef,
+    placeHolderColor: #6d6e70,
+    pageTitleColor: #6d6e70,
+    sectionHeaderColor: #f0405e,
+    tableBorderColor: #f0405e,
+    tableHeaderColor: #dcdcdc,
+    tableEditBorderColor: #b8d9d2,
+    tableRowBottomBorderColow: #6d6e70,
+    tableHeaderLineColor: #edbcc6,
+    buttonPrimaryText: #f4f4f4,
+    buttonColorPrimary: #f0405e,
+    buttonColorSecondary: #46adb4,
+    iconPositionTop: 6.5px,
+    iconPositionRight: 7px,
+  ),
+);
+
+/*
+ * Implementation of themes
+ */
+@mixin themify($themes: $themes) {
+  @each $theme, $map in $themes {
+    .theme-#{$theme} & {
+      $theme-map: () !global;
+      @each $key, $submap in $map {
+        $value: map-get(map-get($themes, $theme), '#{$key}');
+        $theme-map: map-merge(
+          $theme-map,
+          (
+            $key: $value,
+          )
+        ) !global;
+      }
+
+      @content;
+      $theme-map: null !global;
+    }
+  }
+}
+
+@mixin base($themes: $themes) {
+  @each $theme, $map in $themes {
+    .theme-#{$theme} {
+      $theme-map: () !global;
+      @each $key, $submap in $map {
+        $value: map-get(map-get($themes, $theme), '#{$key}');
+        $theme-map: map-merge(
+          $theme-map,
+          (
+            $key: $value,
+          )
+        ) !global;
+      }
+
+      @content;
+      $theme-map: null !global;
+    }
+  }
+}
+
+@function themed($key) {
+  @return map-get($theme-map, $key);
+}

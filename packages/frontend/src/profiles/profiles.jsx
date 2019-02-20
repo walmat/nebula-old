@@ -96,7 +96,7 @@ export class ProfilesPrimitive extends Component {
   }
 
   render() {
-    const { currentProfile, selectedProfile, onProfileNameChange } = this.props;
+    const { currentProfile, selectedProfile, onProfileNameChange, theme } = this.props;
     let selectProfileValue = null;
     if (selectedProfile.id !== null) {
       selectProfileValue = {
@@ -138,7 +138,7 @@ export class ProfilesPrimitive extends Component {
                                   components={{ DropdownIndicator }}
                                   className="profiles-load__input-group--select"
                                   classNamePrefix="select"
-                                  styles={colourStyles(buildStyle(false, true))}
+                                  styles={colourStyles(theme, buildStyle(false, true))}
                                   onChange={this.onProfileChange}
                                   value={selectProfileValue}
                                   options={this.buildProfileOptions()}
@@ -262,12 +262,14 @@ ProfilesPrimitive.propTypes = {
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
   onUpdateProfile: PropTypes.func.isRequired,
+  theme: PropTypes.string.isRequired,
 };
 
 export const mapStateToProps = state => ({
   profiles: state.profiles,
   currentProfile: state.currentProfile,
   selectedProfile: state.selectedProfile,
+  theme: state.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

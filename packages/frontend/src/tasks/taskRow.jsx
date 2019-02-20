@@ -111,7 +111,7 @@ export class TaskRowPrimitive extends Component {
   }
 
   renderEditMenu() {
-    const { isEditing, task, onKeyPress } = this.props;
+    const { isEditing, task, onKeyPress, theme } = this.props;
     if (!isEditing) {
       return null;
     }
@@ -168,6 +168,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Choose Site"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
+                  theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
@@ -185,6 +186,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
+                  theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
                 )}
                 value={editProfile}
@@ -204,6 +206,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
+                  theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
                 )}
                 value={editSizes}
@@ -395,6 +398,7 @@ TaskRowPrimitive.propTypes = {
   onCommitEdits: PropTypes.func.isRequired,
   onCancelEdits: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
+  theme: PropTypes.string.isRequired,
   errors: tDefns.taskEditErrors.isRequired,
 };
 
@@ -408,6 +412,7 @@ export const mapStateToProps = (state, ownProps) => ({
   task: ownProps.task,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
+  theme: state.theme,
   errors: ownProps.task.edits.errors,
 });
 

@@ -12,10 +12,12 @@ import * as navbar from './actions/navbar/navbarActions';
 // Global Actions
 export const GLOBAL_ACTIONS = {
   RESET: '@@RESET',
+  SET_THEME: '@@SET_THEME',
 };
 
 export const globalActions = {
   reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
+  setTheme: makeActionCreator(GLOBAL_ACTIONS.SET_THEME, 'theme'),
 };
 
 // Reimports
