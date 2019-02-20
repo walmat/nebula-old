@@ -5,7 +5,7 @@ const MainMenu = require('./mainMenu');
 const DialogManager = require('./dialogManager');
 const WindowManager = require('./windowManager');
 const AuthManager = require('./authManager');
-const TaskManagerWrapper = require('./taskManagerWrapper');
+const TaskLauncher = require('../task/launcher');
 const nebulaEnv = require('./env');
 const { bindDebugEvents } = require('./debug');
 
@@ -56,10 +56,10 @@ class App {
     this._authManager = new AuthManager(this);
 
     /**
-     * Wrapper for the TaskManager
-     * @type {TaskManagerWrapper}
+     * Wrapper for task management
+     * @type {TaskLauncher}
      */
-    this._taskManagerWrapper = new TaskManagerWrapper(this);
+    this._taskLauncher = new TaskLauncher(this);
 
     /**
      * Manage the captcha server
@@ -130,6 +130,15 @@ class App {
   }
 
   /**
+   * Get the task wrapper
+   *
+   * @return {TaskLauncher} Instance of the task wrapper
+   */
+  get taskLauncher() {
+    return this._taskLauncher;
+  }
+
+  /**
    * Occurs when a application launched.
    */
   async onReady() {
@@ -144,12 +153,12 @@ class App {
   /**
    * Occurs right before application quit
    */
+  // eslint-disable-next-line class-methods-use-this
   async onBeforeQuit() {
     // Perform any cleanup that needs to get done
     if (nebulaEnv.isDevelopment()) {
       console.log('cleaning up tasks...');
     }
-    await this._taskManagerWrapper.abortAllTasks();
   }
 
   /**

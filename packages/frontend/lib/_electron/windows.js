@@ -66,7 +66,7 @@ const _createWindow = options => {
       case 'idle':
       case 'proxy':
       case 'sessions':
-      case 'webReqeust': {
+      case 'webRequest': {
         callback(true);
         break;
       }

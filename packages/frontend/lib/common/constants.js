@@ -32,6 +32,8 @@ const IPCKeys = {
   RequestCloseWindow: 'RequestCloseWindow',
   RequestEndSession: 'RequestEndSession',
   RequestGetAppVersion: 'RequestGetAppVersion',
+  RequestStartHarvestCaptcha: 'RequestStartHarvestCaptcha',
+  RequestStopHarvestCaptcha: 'RequestStopHarvestCaptcha',
 
   StartHarvestCaptcha: 'StartHarvestCaptcha',
   StopHarvestCaptcha: 'StopHarvestCaptcha',
@@ -39,11 +41,14 @@ const IPCKeys = {
   RequestRefresh: 'RequestRefresh',
 
   RequestRegisterTaskEventHandler: 'RequestRegisterTaskEventHandler',
+  RegisterTaskEventHandler: 'RegisterTaskEventHander',
   RequestDeregisterTaskEventHandler: 'RequestDeregisterTaskEventhandler',
+  DeregisterTaskEventHandler: 'DeregisterTaskEventHander',
   RequestStartTasks: 'RequestStartTasks',
   RequestStopTasks: 'RequestStopTasks',
   RequestAddProxies: 'RequestAddProxies',
   RequestRemoveProxies: 'RequestRemoveProxies',
+  RequestAbortAllTasksForClose: 'RequestAbortAllTasksForClose',
 
   RequestChangeDelay: 'RequestChangeDelay',
   RequestWebhookUpdate: 'RequestWebhookUpdate',
