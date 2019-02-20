@@ -22,11 +22,18 @@ DropdownIndicator.propTypes = {
 
 export const colourStyles = (theme, provided) => ({
   control: (styles, { isDisabled }) => {
-    let base = {
+    const backgroundColorMap = {
+      [THEMES.DARK]: '#393c3f',
+      [`${THEMES.DARK}--disabled`]: '#262626',
+      [THEMES.LIGHT]: '#f4f4f4',
+      [`${THEMES.LIGHT}--disabled`]: '#dcdcdc',
+    };
+    const key = `${theme}${isDisabled ? '--disabled' : ''}`;
+    const backgroundColor = backgroundColorMap[key];
+    return {
       ...styles,
       border: '1px solid',
       'border-color': (provided && provided.borderColor) || '#46ADB4',
-      backgroundColor: '#f4f4f4',
       height: '29px',
       minHeight: '29px',
       borderRadius: '3px',
@@ -37,30 +44,8 @@ export const colourStyles = (theme, provided) => ({
         'border-color': (provided && provided.borderColor) || '#46ADB4',
         cursor: 'pointer',
       },
+      backgroundColor,
     };
-
-    if (theme === THEMES.DARK) {
-      base = {
-        ...base,
-        backgroundColor: '#393c3f',
-      };
-    }
-
-    if (theme === THEMES.DARK && isDisabled) {
-      base = {
-        ...base,
-        backgroundColor: '#262626',
-      };
-    }
-
-    if (theme === THEMES.LIGHT && isDisabled) {
-      base = {
-        ...base,
-        backgroundColor: '#dcdcdc',
-      };
-    }
-
-    return base;
   },
   option: (styles, { isDisabled, isFocused, isSelected }) => {
     if (isDisabled) {
