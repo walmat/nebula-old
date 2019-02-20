@@ -144,7 +144,7 @@ class WindowManager {
    * @param {String} tag String matching window to be created
    * @return {BrowserWindow} Created window
    */
-  async createNewWindow(tag) {
+  async createNewWindow(tag, opts) {
     let w; // window reference
     const session = await this._context._authManager.getSession();
     if (session || ['auth', 'about'].includes(tag)) {
@@ -181,7 +181,7 @@ class WindowManager {
               this._context.captchaServerManager.start();
               serverPort = this._context.captchaServerManager.port;
             }
-            w = await createCaptchaWindow();
+            w = await createCaptchaWindow(opts);
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, w));
             w.loadURL('http://checkout.shopify.com');
           }
@@ -350,8 +350,8 @@ class WindowManager {
    *
    * @param {IPCEvent} ev Event data.
    */
-  _onRequestCreateNewWindow(ev, tag) {
-    const createdWindow = this.createNewWindow(tag);
+  _onRequestCreateNewWindow(ev, tag, opts) {
+    const createdWindow = this.createNewWindow(tag, opts);
     ev.sender.send(IPCKeys.FinishCreateNewWindow);
 
     this._notifyUpdateWindowIDs(createdWindow.id);

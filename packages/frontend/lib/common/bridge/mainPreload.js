@@ -21,8 +21,8 @@ const _closeAllCaptchaWindows = () => {
 /**
  * Sends the launch captcha window trigger to windowManager.js
  */
-const _launchCaptchaHarvester = () => {
-  util.sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha');
+const _launchCaptchaHarvester = opts => {
+  util.sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha', opts);
 };
 
 /**

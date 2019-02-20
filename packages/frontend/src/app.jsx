@@ -8,7 +8,7 @@ import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
-import THEMES from './constants/themes';
+import { THEMES } from './constants/themes';
 
 import addTestId from './utils/addTestId';
 

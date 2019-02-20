@@ -4,7 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import DDD from '../../_assets/dropdown-down.svg';
 import DDU from '../../_assets/dropdown-up.svg';
-import THEMES from '../../constants/themes';
+import { THEMES, mapThemeToColor } from '../../constants/themes';
 
 export const DropdownIndicator = props => {
   const {
@@ -22,14 +22,8 @@ DropdownIndicator.propTypes = {
 
 export const colourStyles = (theme, provided) => ({
   control: (styles, { isDisabled }) => {
-    const backgroundColorMap = {
-      [THEMES.DARK]: '#393c3f',
-      [`${THEMES.DARK}--disabled`]: '#262626',
-      [THEMES.LIGHT]: '#f4f4f4',
-      [`${THEMES.LIGHT}--disabled`]: '#dcdcdc',
-    };
     const key = `${theme}${isDisabled ? '--disabled' : ''}`;
-    const backgroundColor = backgroundColorMap[key];
+    const backgroundColor = mapThemeToColor[key];
     return {
       ...styles,
       border: '1px solid',

@@ -136,10 +136,11 @@ urls.set('about', aboutUrl);
  *
  * @return {BrowserWindow} Captcha Window
  */
-const createCaptchaWindow = () =>
+const createCaptchaWindow = ({ backgroundColor }) =>
   _createWindow({
     width: 400,
     height: 650,
+    backgroundColor,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/captchaPreload.js'),

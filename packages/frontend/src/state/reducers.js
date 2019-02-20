@@ -15,7 +15,7 @@ import { initialProfileStates } from '../utils/definitions/profileDefinitions';
 import { initialTaskStates } from '../utils/definitions/taskDefinitions';
 import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
 import { initialServerStates } from '../utils/definitions/serverDefinitions';
-import THEMES from '../constants/themes';
+import { THEMES } from '../constants/themes';
 
 /**
  * Application State
