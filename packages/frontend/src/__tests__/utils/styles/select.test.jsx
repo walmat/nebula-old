@@ -3,7 +3,7 @@ import React from 'react';
 import Select, { components } from 'react-select';
 import { mount } from 'enzyme';
 import { DropdownIndicator, colourStyles } from '../../../utils/styles/select';
-import { themes } from '../../../constants/themes';
+import THEMES from '../../../constants/themes';
 
 describe('Custom Select', () => {
   describe('<DropdownIndicator />', () => {
@@ -40,7 +40,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           height: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).control(initialStyle, { isDisabled: false });
+        const actualStyle = colourStyles(THEMES.LIGHT).control(initialStyle, { isDisabled: false });
         expect(actualStyle).toEqual({
           border: '1px solid',
           'border-color': '#46ADB4',
@@ -62,7 +62,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           height: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).control(initialStyle, { isDisabled: false });
+        const actualStyle = colourStyles(THEMES.DARK).control(initialStyle, { isDisabled: false });
         expect(actualStyle).toEqual({
           border: '1px solid',
           'border-color': '#46ADB4',
@@ -84,7 +84,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           height: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).control(initialStyle, { isDisabled: true });
+        const actualStyle = colourStyles(THEMES.LIGHT).control(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           border: '1px solid',
           'border-color': '#46ADB4',
@@ -106,7 +106,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           height: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).control(initialStyle, { isDisabled: true });
+        const actualStyle = colourStyles(THEMES.DARK).control(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           border: '1px solid',
           'border-color': '#46ADB4',
@@ -130,7 +130,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).option(initialStyle, {});
+        const actualStyle = colourStyles(THEMES.LIGHT).option(initialStyle, {});
         expect(actualStyle).toEqual({
           backgroundColor: '#f4f4f4',
           color: '#161318',
@@ -151,7 +151,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).option(initialStyle, {
+        const actualStyle = colourStyles(THEMES.DARK).option(initialStyle, {
           isFocused: false,
           isSelected: false,
           isDisabled: false,
@@ -176,7 +176,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).option(initialStyle, { isDisabled: true });
+        const actualStyle = colourStyles(THEMES.LIGHT).option(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#dcdcdc',
           color: '#161318',
@@ -191,7 +191,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).option(initialStyle, { isDisabled: true });
+        const actualStyle = colourStyles(THEMES.DARK).option(initialStyle, { isDisabled: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#262626',
           color: '#efefef',
@@ -206,7 +206,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).option(initialStyle, { isFocused: true });
+        const actualStyle = colourStyles(THEMES.LIGHT).option(initialStyle, { isFocused: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#EDBCC6',
           color: '#161318',
@@ -227,7 +227,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).option(initialStyle, { isFocused: true });
+        const actualStyle = colourStyles(THEMES.DARK).option(initialStyle, { isFocused: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#EDBCC6',
           color: '#161318',
@@ -248,7 +248,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).option(initialStyle, { isSelected: true });
+        const actualStyle = colourStyles(THEMES.LIGHT).option(initialStyle, { isSelected: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#f4f4f4',
           color: '#161318',
@@ -269,7 +269,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           outline: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).option(initialStyle, { isSelected: true });
+        const actualStyle = colourStyles(THEMES.DARK).option(initialStyle, { isSelected: true });
         expect(actualStyle).toEqual({
           backgroundColor: '#393c3f',
           color: '#efefef',
@@ -358,7 +358,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           cursor: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).multiValueRemove(initialStyle);
+        const actualStyle = colourStyles(THEMES.LIGHT).multiValueRemove(initialStyle);
         expect(actualStyle).toEqual({
           cursor: 'pointer',
           color: '#f4f4f4',
@@ -374,7 +374,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           cursor: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).multiValueRemove(initialStyle);
+        const actualStyle = colourStyles(THEMES.DARK).multiValueRemove(initialStyle);
         expect(actualStyle).toEqual({
           cursor: 'pointer',
           color: '#393c3f',
@@ -409,7 +409,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           color: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).singleValue(initialStyle);
+        const actualStyle = colourStyles(THEMES.LIGHT).singleValue(initialStyle);
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',
@@ -424,7 +424,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           color: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).singleValue(initialStyle);
+        const actualStyle = colourStyles(THEMES.DARK).singleValue(initialStyle);
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',
@@ -438,14 +438,14 @@ describe('Custom Select', () => {
 
     describe('menu should return correct style', () => {
       test('when light mode', () => {
-        const actualStyle = colourStyles(themes.LIGHT).menu({});
+        const actualStyle = colourStyles(THEMES.LIGHT).menu({});
         expect(actualStyle).toEqual({
           backgroundColor: '#f4f4f4',
         });
       });
 
       test('when light mode', () => {
-        const actualStyle = colourStyles(themes.DARK).menu({});
+        const actualStyle = colourStyles(THEMES.DARK).menu({});
         expect(actualStyle).toEqual({
           backgroundColor: '#393c3f',
         });
@@ -457,7 +457,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           maxHeight: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.LIGHT).menuList(initialStyle);
+        const actualStyle = colourStyles(THEMES.LIGHT).menuList(initialStyle);
         expect(actualStyle).toEqual({
           backgroundColor: '#f4f4f4',
           maxHeight: '150px',
@@ -468,7 +468,7 @@ describe('Custom Select', () => {
         const initialStyle = {
           maxHeight: 'invalid', // invalid key to make sure it gets overwritten
         };
-        const actualStyle = colourStyles(themes.DARK).menuList(initialStyle);
+        const actualStyle = colourStyles(THEMES.DARK).menuList(initialStyle);
         expect(actualStyle).toEqual({
           backgroundColor: '#393c3f',
           maxHeight: '150px',
