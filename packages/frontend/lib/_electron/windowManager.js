@@ -115,6 +115,7 @@ class WindowManager {
       IPCKeys.RequestCloseAllCaptchaWindows,
       this._onRequestCloseAllCaptchaWindows.bind(this),
     );
+    context.ipc.on(IPCKeys.ChangeTheme, this.onRequestChangeTheme.bind(this));
   }
 
   /**
@@ -459,6 +460,15 @@ class WindowManager {
         captchaWindowManager.stopHarvestingCaptcha(runnerId, siteKey);
       });
     }
+  }
+
+  onRequestChangeTheme(_, opts) {
+    const { backgroundColor } = opts;
+
+    this._captchas.forEach((_cwm, windowId) => {
+      const win = this._windows.get(windowId);
+      win.setBackgroundColor(`${backgroundColor}`);
+    });
   }
 }
 

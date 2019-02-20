@@ -48,6 +48,8 @@ const IPCKeys = {
   RequestChangeDelay: 'RequestChangeDelay',
   RequestWebhookUpdate: 'RequestWebhookUpdate',
   RequestWebhookTest: 'RequestWebhookTest',
+
+  ChangeTheme: 'ChangeTheme',
 };
 
 module.exports = IPCKeys;

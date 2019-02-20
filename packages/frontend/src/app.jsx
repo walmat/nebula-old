@@ -8,7 +8,7 @@ import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
-import { THEMES } from './constants/themes';
+import { THEMES, mapThemeToColor } from './constants/themes';
 
 import addTestId from './utils/addTestId';
 
@@ -62,12 +62,22 @@ export class App extends PureComponent {
   setTheme(store) {
     const { theme } = store.getState();
     switch (theme) {
-      case THEMES.DARK:
+      case THEMES.DARK: {
         store.dispatch(globalActions.setTheme(THEMES.LIGHT));
+        const backgroundColor = mapThemeToColor[THEMES.LIGHT];
+        if (window.Bridge) {
+          window.Bridge.setTheme({ backgroundColor });
+        }
         break;
-      case THEMES.LIGHT:
+      }
+      case THEMES.LIGHT: {
         store.dispatch(globalActions.setTheme(THEMES.DARK));
+        const backgroundColor = mapThemeToColor[THEMES.DARK];
+        if (window.Bridge) {
+          window.Bridge.setTheme({ backgroundColor });
+        }
         break;
+      }
       default:
         break;
     }

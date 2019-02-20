@@ -95,6 +95,10 @@ const _sendWebhookTestMessage = (hook, type) => {
   util.sendEvent(IPCKeys.RequestWebhookTest, hook, type);
 };
 
+const _setTheme = opts => {
+  util.sendEvent(IPCKeys.ChangeTheme, opts);
+};
+
 /**
  * On process load, create the Bridge
  */
@@ -103,6 +107,7 @@ process.once('loaded', () => {
     ...base,
     /* PRIVATE EVENTS */
     launchCaptchaHarvester: _launchCaptchaHarvester,
+    setTheme: _setTheme,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,
