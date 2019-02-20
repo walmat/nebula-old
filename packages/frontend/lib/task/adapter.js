@@ -41,9 +41,9 @@ class TaskManagerAdapter {
       ipcRenderer.send(IPCKeys.RequestStopHarvestCaptcha, ...args),
     );
 
-    ipcRenderer.on(IPCKeys.CleanupTasks, async () => {
+    ipcRenderer.on(IPCKeys.RequestAbortAllTasksForClose, async () => {
       await this.abortAllTasks();
-      ipcRenderer.send(IPCKeys.CleanupTasks);
+      ipcRenderer.send(IPCKeys.RequestAbortAllTasksForClose);
     });
     ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
       if (this._taskManager) {

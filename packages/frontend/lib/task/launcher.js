@@ -160,12 +160,12 @@ class TaskLauncher {
       return;
     }
     await new Promise(resolve => {
-      this._context.ipc.once(IPCKeys.CleanupTasks, ev => {
+      this._context.ipc.once(IPCKeys.RequestAbortAllTasksForClose, ev => {
         if (this._launcherWindow.webContents === ev.sender) {
           resolve();
         }
       });
-      this._launcherWindow.webContents.send(IPCKeys.CleanupTasks);
+      this._launcherWindow.webContents.send(IPCKeys.RequestAbortAllTasksForClose);
     });
   }
 

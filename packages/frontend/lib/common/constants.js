@@ -48,7 +48,7 @@ const IPCKeys = {
   RequestStopTasks: 'RequestStopTasks',
   RequestAddProxies: 'RequestAddProxies',
   RequestRemoveProxies: 'RequestRemoveProxies',
-  CleanupTasks: 'CleanupTasks',
+  RequestAbortAllTasksForClose: 'RequestAbortAllTasksForClose',
 
   RequestChangeDelay: 'RequestChangeDelay',
   RequestWebhookUpdate: 'RequestWebhookUpdate',
