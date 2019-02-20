@@ -18,6 +18,12 @@
   }
 }
 
+/* makes scrollbars invisible */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* make scrollbar transparent */
+}
+
 html,
 body {
   @include base($themes) {

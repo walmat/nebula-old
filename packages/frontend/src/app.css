@@ -111,6 +111,13 @@
   outline: 0px solid transparent;
 }
 
+/* makes scrollbars invisible */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+  /* make scrollbar transparent */
+}
+
 html,
 body {
   width: 100%;
