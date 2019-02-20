@@ -182,7 +182,15 @@ class WindowManager {
             }
             w = await createCaptchaWindow();
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, w));
-            w.loadURL('http://checkout.shopify.com');
+            w.webContents.session.setProxy(
+              {
+                proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
+                proxyBypassRules: '.google.com,.gstatic.com',
+              },
+              () => {
+                w.loadURL('http://checkout.shopify.com');
+              },
+            );
           }
           break;
         }

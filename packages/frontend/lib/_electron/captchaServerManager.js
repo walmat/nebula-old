@@ -1,11 +1,8 @@
-const fs = require('fs');
-const https = require('https');
+const http = require('http');
 const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { protocol } = require('electron');
 
 const nebulaEnv = require('./env');
 
@@ -46,6 +43,7 @@ class CaptchaServerManager {
         return;
       }
       // Redirect all other requests to the captcha html
+      console.log('[DEBUG]: Sending Captcha html!');
       res.sendFile(path.join(rootDir, 'captcha.html'));
     });
     app.use(express.static(rootDir));
@@ -65,24 +63,9 @@ class CaptchaServerManager {
       console.log(`[ERROR]: Captcha Server has already started on port: ${this._port}`);
       return;
     }
-    const httpsOptions = {
-      key: fs.readFileSync(path.join(__dirname, '../common/_keys/key.pem')),
-      cert: fs.readFileSync(path.join(__dirname, '../common/_keys/cert.pem')),
-    };
-    this._server = https.createServer(httpsOptions, this._app).listen();
+    this._server = http.createServer(this._app).listen();
     this._port = this._server.address().port;
     this._app.set('port', this._port);
-    // Setup the protocol interceptor
-    protocol.interceptHttpProtocol('http', async (req, callback) => {
-      if (!this._server || !req.url.startsWith('http://checkout.shopify.com')) {
-        callback(req);
-        return;
-      }
-      callback({
-        ...req,
-        url: req.url.replace('http://checkout.shopify.com', `https://127.0.0.1:${this._port}`),
-      });
-    });
     console.log(`[INFO]: Captcha Server started listening on port: ${this._port}`);
   }
 
@@ -94,8 +77,6 @@ class CaptchaServerManager {
     this._server.close();
     this._server = null;
     this._port = 0;
-    // Remove the protocol interceptor
-    protocol.uninterceptProtocol('http');
     console.log('[INFO]: Captcha server stopped');
   }
 }
