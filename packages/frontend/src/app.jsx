@@ -8,7 +8,7 @@ import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
-import { themes } from './constants/themes';
+import THEMES from './constants/themes';
 
 import addTestId from './utils/addTestId';
 
@@ -62,17 +62,16 @@ export class App extends PureComponent {
   setTheme(store) {
     const { theme } = store.getState();
     switch (theme) {
-      case themes.DARK:
-        store.dispatch(globalActions.setTheme(themes.LIGHT));
-        this.forceUpdate();
+      case THEMES.DARK:
+        store.dispatch(globalActions.setTheme(THEMES.LIGHT));
         break;
-      case themes.LIGHT:
-        store.dispatch(globalActions.setTheme(themes.DARK));
-        this.forceUpdate();
+      case THEMES.LIGHT:
+        store.dispatch(globalActions.setTheme(THEMES.DARK));
         break;
       default:
         break;
     }
+    this.forceUpdate();
   }
 
   taskHandler(event, taskId, statusMessage) {
@@ -130,12 +129,12 @@ export class App extends PureComponent {
                 className="theme-icon"
                 role="button"
                 tabIndex={0}
-                title={theme === themes.LIGHT ? 'night mode' : 'day mode'}
+                title={theme === THEMES.LIGHT ? 'night mode' : 'light mode'}
                 onKeyPress={onKeyPress}
                 onClick={() => this.setTheme(store)}
                 draggable="false"
               >
-                <img src={theme === themes.LIGHT ? night : day} draggable="false" alt="theme" />
+                <img src={theme === THEMES.LIGHT ? night : day} draggable="false" alt="theme" />
               </div>
             </div>
             <Navbar />

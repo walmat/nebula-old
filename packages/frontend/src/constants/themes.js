@@ -1,5 +1,4 @@
-// eslint-disable-next-line import/prefer-default-export
-export const themes = {
+export default {
   DARK: 'dark',
   LIGHT: 'light',
 };

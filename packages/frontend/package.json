@@ -33,7 +33,8 @@
     "private:publish": "build --mac --win -p always",
     "publish": "run-s private:clean private:compile private:publish",
     "prod": "cross-env NODE_ENV=production electron .",
-    "sass": "./tool/compile_css.sh",
+    "sass": "./node_modules/.bin/sass --no-source-map",
+    "compile-sass": "./tool/compile_css.sh",
     "start": "yarn run prod",
     "test": "react-app-rewired test --env=jsdom"
   },

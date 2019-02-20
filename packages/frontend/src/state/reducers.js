@@ -15,7 +15,7 @@ import { initialProfileStates } from '../utils/definitions/profileDefinitions';
 import { initialTaskStates } from '../utils/definitions/taskDefinitions';
 import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
 import { initialServerStates } from '../utils/definitions/serverDefinitions';
-import { themes } from '../constants/themes';
+import THEMES from '../constants/themes';
 
 /**
  * Application State
@@ -32,7 +32,7 @@ export const initialState = {
   serverInfo: initialServerStates.serverInfo,
   servers: initialServerStates.serverList,
   serverListOptions,
-  theme: themes.LIGHT,
+  theme: THEMES.LIGHT,
 };
 
 const topLevelReducer = (state = initialState, action) => {

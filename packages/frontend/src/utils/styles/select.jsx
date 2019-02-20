@@ -4,7 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import DDD from '../../_assets/dropdown-down.svg';
 import DDU from '../../_assets/dropdown-up.svg';
-import { themes } from '../../constants/themes';
+import THEMES from '../../constants/themes';
 
 export const DropdownIndicator = props => {
   const {
@@ -21,35 +21,53 @@ DropdownIndicator.propTypes = {
 };
 
 export const colourStyles = (theme, provided) => ({
-  control: (styles, { isDisabled }) => ({
-    ...styles,
-    border: '1px solid',
-    'border-color': (provided && provided.borderColor) || '#46ADB4',
-    backgroundColor:
-      isDisabled && theme === themes.DARK
-        ? '#262626'
-        : isDisabled && theme === themes.LIGHT
-        ? '#dcdcdc'
-        : theme === themes.DARK
-        ? '#393c3f'
-        : '#f4f4f4',
-    height: '29px',
-    minHeight: '29px',
-    borderRadius: '3px',
-    outline: 'none',
-    cursor: isDisabled ? 'not-allowed' : 'pointer',
-    boxShadow: 'none',
-    ':hover': {
+  control: (styles, { isDisabled }) => {
+    let base = {
+      ...styles,
+      border: '1px solid',
       'border-color': (provided && provided.borderColor) || '#46ADB4',
-      cursor: 'pointer',
-    },
-  }),
+      backgroundColor: '#f4f4f4',
+      height: '29px',
+      minHeight: '29px',
+      borderRadius: '3px',
+      outline: 'none',
+      cursor: isDisabled ? 'not-allowed' : 'pointer',
+      boxShadow: 'none',
+      ':hover': {
+        'border-color': (provided && provided.borderColor) || '#46ADB4',
+        cursor: 'pointer',
+      },
+    };
+
+    if (theme === THEMES.DARK) {
+      base = {
+        ...base,
+        backgroundColor: '#393c3f',
+      };
+    }
+
+    if (theme === THEMES.DARK && isDisabled) {
+      base = {
+        ...base,
+        backgroundColor: '#262626',
+      };
+    }
+
+    if (theme === THEMES.LIGHT && isDisabled) {
+      base = {
+        ...base,
+        backgroundColor: '#dcdcdc',
+      };
+    }
+
+    return base;
+  },
   option: (styles, { isDisabled, isFocused, isSelected }) => {
     if (isDisabled) {
       return {
         ...styles,
-        backgroundColor: theme === themes.DARK ? '#262626' : '#dcdcdc',
-        color: theme === themes.DARK ? '#efefef' : '#161318',
+        backgroundColor: theme === THEMES.DARK ? '#262626' : '#dcdcdc',
+        color: theme === THEMES.DARK ? '#efefef' : '#161318',
         cursor: 'not-allowed',
         outline: 'none',
         boxShadow: 'none',
@@ -58,12 +76,12 @@ export const colourStyles = (theme, provided) => ({
     }
     const retVal = {
       ...styles,
-      color: theme === themes.DARK && !isFocused ? '#efefef' : '#161318',
+      color: theme === THEMES.DARK && !isFocused ? '#efefef' : '#161318',
       cursor: 'pointer',
       outline: 'none',
       boxShadow: 'none',
       overflow: 'hidden',
-      backgroundColor: theme === themes.DARK ? '#393c3f' : '#f4f4f4',
+      backgroundColor: theme === THEMES.DARK ? '#393c3f' : '#f4f4f4',
       ':selected': {
         color: '#161318',
       },
@@ -77,7 +95,7 @@ export const colourStyles = (theme, provided) => ({
     if (isSelected) {
       return {
         ...retVal,
-        backgroundColor: theme === themes.DARK ? '#393c3f' : '#f4f4f4',
+        backgroundColor: theme === THEMES.DARK ? '#393c3f' : '#f4f4f4',
       };
     }
     return retVal;
@@ -129,10 +147,10 @@ export const colourStyles = (theme, provided) => ({
   multiValueRemove: styles => ({
     ...styles,
     cursor: 'pointer',
-    color: theme === themes.DARK ? '#393c3f' : '#f4f4f4',
+    color: theme === THEMES.DARK ? '#393c3f' : '#f4f4f4',
     ':hover': {
       backgroundColor: '#46ADB4',
-      color: theme === themes.DARK ? '#393c3f' : '#f4f4f4',
+      color: theme === THEMES.DARK ? '#393c3f' : '#f4f4f4',
       cursor: 'pointer',
     },
   }),
@@ -150,17 +168,17 @@ export const colourStyles = (theme, provided) => ({
     fontFamily: 'AvenirNext-Medium',
     textTransform: 'capitalize',
     fontSize: '9px',
-    color: theme === themes.DARK ? '#efefef' : '#161318',
+    color: theme === THEMES.DARK ? '#efefef' : '#161318',
     letterSpacing: 0,
     cursor: 'pointer',
   }),
   menu: styles => ({
     ...styles,
-    backgroundColor: theme === themes.DARK ? '#393c3f' : '#f4f4f4',
+    backgroundColor: theme === THEMES.DARK ? '#393c3f' : '#f4f4f4',
   }),
   menuList: styles => ({
     ...styles,
-    backgroundColor: theme === themes.DARK ? '#393c3f' : '#f4f4f4',
+    backgroundColor: theme === THEMES.DARK ? '#393c3f' : '#f4f4f4',
     maxHeight: '150px',
   }),
 });
