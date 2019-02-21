@@ -1,11 +1,11 @@
 const TaskManager = require('./managers/taskManager');
-const TaskThreadManager = require('./managers/taskThreadManager');
-const TaskProcessManager = require('./managers/taskProcessManager');
+const SplitThreadTaskManager = require('./managers/splitThreadTaskManager');
+const SplitProcessTaskManager = require('./managers/splitProcessTaskManager');
 const TaskRunner = require('./taskRunner');
 
 module.exports = {
   TaskManager,
-  TaskThreadManager,
-  TaskProcessManager,
+  SplitThreadTaskManager,
+  SplitProcessTaskManager,
   TaskRunner,
 };

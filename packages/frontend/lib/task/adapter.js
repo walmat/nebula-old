@@ -2,8 +2,8 @@
 const { ipcRenderer } = require('electron');
 const {
   TaskManager,
-  TaskThreadManager,
-  TaskProcessManager,
+  SplitThreadTaskManager,
+  SplitProcessTaskManager,
 } = require('@nebula/task-runner').shopify;
 
 const IPCKeys = require('../common/constants');
@@ -22,23 +22,23 @@ class TaskManagerAdapter {
         break;
       }
       case 'process': {
-        this._taskManager = new TaskProcessManager(logPath);
+        this._taskManager = new SplitProcessTaskManager(logPath);
         break;
       }
       case 'thread': {
         try {
-          this._taskManager = new TaskThreadManager(logPath);
+          this._taskManager = new SplitThreadTaskManager(logPath);
         } catch (_) {
           console.log(
             '[WARNING]: Worker Thread are not supported in this environment! Falling back to multi-process manager...',
           );
-          this._taskManager = new TaskProcessManager(logPath);
+          this._taskManager = new SplitProcessTaskManager(logPath);
         }
         break;
       }
       default: {
         // Use multiprocess TaskManager as default
-        this._taskManager = new TaskProcessManager(logPath);
+        this._taskManager = new SplitProcessTaskManager(logPath);
         break;
       }
     }

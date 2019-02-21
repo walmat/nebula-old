@@ -5,7 +5,7 @@ const TaskManagerEvents = constants.TaskManager.Events;
 const TaskRunnerEvents = constants.TaskRunner.Events;
 
 /**
- * This class is the base for all multi-context runners
+ * This class is the base for all split-context runners
  *
  * The goal of this script is to wire events from the parent
  * context to the child context by acting as a silent man-in-the-middle.
