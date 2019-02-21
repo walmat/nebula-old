@@ -1,124 +1,26 @@
-/**
- * This script is run in a child process by the TaskProcessManager
- *
- * The goal of this script is to wire events between processes and
- * act as a silent man-in-the-middle between the TaskManager and TaskRunner.
- */
-const constants = require('../classes/utils/constants');
-const TaskRunner = require('../taskRunner');
+const TaskRunnerContextTransformer = require('./base');
 
-const TaskManagerEvents = constants.TaskManager.Events;
-const TaskRunnerEvents = constants.TaskRunner.Events;
-
-/**
- * Notify the main process that and error occurred
- *
- * @param {Error} error
- */
-function forwardError(error) {
-  const { stack, message } = error;
-  process.send({
-    target: 'main',
-    event: '__error',
-    error: { stack, message },
-  });
-}
-
-let errorHandlersWired = false;
-function wireErrorHandlers() {
-  if (errorHandlersWired) {
-    return;
-  }
-  // Attach Runner Handlers to Errors
-  process.on('uncaughtException', forwardError);
-  process.on('unhandledRejection', forwardError);
-  errorHandlersWired = true;
-}
-
-function wireEventHandlers(runner) {
-  // Handle Incoming Process Events by calling the correct runner methods
-  process.on('message', ({ target, event, args }) => {
-    // Only respond to events that are targeting the child
-    if (target !== 'child') {
-      return;
-    }
-
-    // Only Handle Certain Events
-    switch (event) {
-      case TaskManagerEvents.Abort: {
-        // TODO: Respect the scope of Runner (issue #137)
-        runner._handleAbort(...args);
-        break;
-      }
-      case TaskManagerEvents.Harvest: {
-        // TODO: Respect the scope of Runner (issue #137)
-        runner._handleHarvest(...args);
-        break;
-      }
-      case TaskManagerEvents.SendProxy: {
-        // TODO: Respect the scope of Runner (issue #137)
-        runner._events.emit(TaskRunnerEvents.ReceiveProxy, ...args);
-        break;
-      }
-      case TaskManagerEvents.ChangeDelay: {
-        // TODO: Respect the scope of Runner (issue #137)
-        runner._events.emit(TaskManagerEvents.ChangeDelay, ...args);
-        break;
-      }
-      case TaskManagerEvents.UpdateHook: {
-        // TODO: Respect the scope of Runner (issue #137)
-        runner._events.emit(TaskManagerEvents.UpdateHook, ...args);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-  });
-
-  // Forward Runner Events to the Main Process
-  [
-    TaskRunnerEvents.TaskStatus,
-    TaskManagerEvents.StartHarvest,
-    TaskManagerEvents.StopHarvest,
-    TaskRunnerEvents.SwapProxy,
-  ].forEach(event => {
-    // TODO: Respect the scope of Runner (issue #137)
-    runner._events.on(event, (...args) => {
-      process.send({
-        target: 'main',
-        event,
-        args,
-      });
-    });
-  });
-}
-
-function cleanupEventHandlers(runner) {
-  // Detach runner event listeners
-  // TODO: Respect the scope of Runner (issue #137)
-  runner._events.removeAllListeners();
-}
-
-// Create the Runner, wire up events, run it, then cleanup events
-async function _start([rId, task, proxy, loggerPath]) {
-  const runner = new TaskRunner(rId, task, proxy, loggerPath);
-  wireEventHandlers(runner);
-  await runner.start();
-  cleanupEventHandlers(runner);
-}
-
-// Setup a handler to listen for the start message...
-process.on('message', async ({ target, event, args }) => {
-  // Ensure target is child, and event is correct
-  if (target !== 'child' || event !== '__start') {
-    return;
+class TaskRunnerProcessTransformer extends TaskRunnerContextTransformer {
+  constructor(contextName = 'child') {
+    super(contextName);
   }
 
-  wireErrorHandlers();
-  await _start(args);
-  process.send({
-    target: 'main',
-    event: '__done',
-  });
-});
+  wireErrors(errorTransformer) {
+    process.on('uncaughtException', errorTransformer.bind(this));
+    process.on('unhandledRejection', errorTransformer.bind(this));
+  }
+
+  // TODO: Research if there is another way to implement this
+  // without needing the eslint-disable comment
+  // eslint-disable-next-line class-methods-use-this
+  send(payload) {
+    process.send(payload);
+  }
+
+  receive(handler) {
+    process.on('message', ({ target, event, args }) => handler.call(this, target, event, args));
+  }
+}
+
+const transformer = new TaskRunnerProcessTransformer();
+transformer.start();
