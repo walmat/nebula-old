@@ -3,6 +3,11 @@ export const THEMES = {
   LIGHT: 'light',
 };
 
+export const mapToNextTheme = {
+  [THEMES.LIGHT]: THEMES.DARK,
+  [THEMES.DARK]: THEMES.LIGHT,
+};
+
 export const mapThemeToColor = {
   [THEMES.DARK]: '#393c3f',
   [`${THEMES.DARK}--disabled`]: '#262626',
