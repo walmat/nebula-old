@@ -465,7 +465,7 @@ class WindowManager {
   onRequestChangeTheme(_, opts) {
     const { backgroundColor } = opts;
     console.log(`${backgroundColor}`);
-    this._captcha.forEach((__, windowId) => {
+    this._captchas.forEach((__, windowId) => {
       const win = this._windows.get(windowId);
       // somehow change the background color here?
       /**
