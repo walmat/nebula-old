@@ -136,15 +136,19 @@ urls.set('about', aboutUrl);
  *
  * @return {BrowserWindow} Captcha Window
  */
-const createCaptchaWindow = () =>
-  _createWindow({
+const createCaptchaWindow = (opts = {}) => {
+  const { backgroundColor } = opts;
+  return _createWindow({
     width: 400,
     height: 650,
+    backgroundColor: backgroundColor || '#f4f4f4',
+    transparent: true,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/captchaPreload.js'),
     },
   });
+};
 
 let captchaUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
 if (nebulaEnv.isDevelopment()) {

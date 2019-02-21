@@ -3,7 +3,7 @@ import React from 'react';
 import Select, { components } from 'react-select';
 import { mount } from 'enzyme';
 import { DropdownIndicator, colourStyles } from '../../../utils/styles/select';
-import THEMES from '../../../constants/themes';
+import { THEMES } from '../../../constants/themes';
 
 describe('Custom Select', () => {
   describe('<DropdownIndicator />', () => {

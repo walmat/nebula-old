@@ -21,8 +21,8 @@ const _closeAllCaptchaWindows = () => {
 /**
  * Sends the launch captcha window trigger to windowManager.js
  */
-const _launchCaptchaHarvester = () => {
-  util.sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha');
+const _launchCaptchaHarvester = opts => {
+  util.sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha', opts);
 };
 
 /**
@@ -95,6 +95,10 @@ const _sendWebhookTestMessage = (hook, type) => {
   util.sendEvent(IPCKeys.RequestWebhookTest, hook, type);
 };
 
+const _setTheme = opts => {
+  util.sendEvent(IPCKeys.ChangeTheme, opts);
+};
+
 /**
  * On process load, create the Bridge
  */
@@ -103,6 +107,7 @@ process.once('loaded', () => {
     ...base,
     /* PRIVATE EVENTS */
     launchCaptchaHarvester: _launchCaptchaHarvester,
+    setTheme: _setTheme,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,

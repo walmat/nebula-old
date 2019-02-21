@@ -115,6 +115,7 @@ class WindowManager {
       IPCKeys.RequestCloseAllCaptchaWindows,
       this._onRequestCloseAllCaptchaWindows.bind(this),
     );
+    context.ipc.on(IPCKeys.ChangeTheme, this.onRequestChangeTheme.bind(this));
   }
 
   /**
@@ -144,7 +145,7 @@ class WindowManager {
    * @param {String} tag String matching window to be created
    * @return {BrowserWindow} Created window
    */
-  async createNewWindow(tag) {
+  async createNewWindow(tag, opts) {
     let w; // window reference
     const session = await this._context._authManager.getSession();
     if (session || ['auth', 'about'].includes(tag)) {
@@ -180,7 +181,7 @@ class WindowManager {
               console.log('[DEBUG]: Starting captcha server...');
               this._context.captchaServerManager.start();
             }
-            w = await createCaptchaWindow();
+            w = await createCaptchaWindow(opts);
             this._captchas.set(w.id, new CaptchaWindowManager(this._context, w));
             w.webContents.session.setProxy(
               {
@@ -358,8 +359,8 @@ class WindowManager {
    *
    * @param {IPCEvent} ev Event data.
    */
-  _onRequestCreateNewWindow(ev, tag) {
-    const createdWindow = this.createNewWindow(tag);
+  _onRequestCreateNewWindow(ev, tag, opts) {
+    const createdWindow = this.createNewWindow(tag, opts);
     ev.sender.send(IPCKeys.FinishCreateNewWindow);
 
     this._notifyUpdateWindowIDs(createdWindow.id);
@@ -450,6 +451,7 @@ class WindowManager {
     let open = false;
     if (this._captchas.size === 0) {
       open = true;
+      // TODO: This should encorporate the themes in #350 (https://github.com/walmat/nebula/issues/350)
       await this.createNewWindow('captcha');
     }
     this._captchas.forEach(captchaWindowManager => {
@@ -468,6 +470,20 @@ class WindowManager {
         captchaWindowManager.stopHarvestingCaptcha(runnerId, siteKey);
       });
     }
+  }
+
+  onRequestChangeTheme(_, opts) {
+    const { backgroundColor } = opts;
+
+    this._captchas.forEach((__, windowId) => {
+      const win = this._windows.get(windowId);
+      // #350 (https://github.com/walmat/nebula/issues/350)
+      /**
+       * I've tried:
+       * 1. win.setBackgroundColor(backgroundColor);
+       * 2. win.webContents.browserWindowOptions.backgroundColor = backgroundColor;
+       */
+    });
   }
 }
 

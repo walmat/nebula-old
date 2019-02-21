@@ -12,21 +12,9 @@ import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
 import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
+import { mapThemeToColor } from '../constants/themes';
 
 export class SettingsPrimitive extends Component {
-  /*
-   * Launch a sub-window with built in AI for image recognition
-   * and capabilities of one-click harvesting
-   */
-  static harvester() {
-    if (window.Bridge) {
-      window.Bridge.launchCaptchaHarvester();
-    } else {
-      // TODO - error handling
-      console.error('Unable to launch harvester!');
-    }
-  }
-
   /*
    * Signs current google user out. Will clear cookies as well
    */
@@ -71,6 +59,20 @@ export class SettingsPrimitive extends Component {
             value: event.target.value,
           });
         };
+    }
+  }
+
+  /*
+   * Launch a sub-window with built in AI for image recognition
+   * and capabilities of one-click harvesting
+   */
+  harvester() {
+    const { theme } = this.props;
+    if (window.Bridge) {
+      window.Bridge.launchCaptchaHarvester({ backgroundColor: mapThemeToColor[theme] });
+    } else {
+      // TODO - error handling
+      console.error('Unable to launch harvester!');
     }
   }
 
@@ -332,7 +334,7 @@ export class SettingsPrimitive extends Component {
                         <button
                           type="button"
                           className="settings__button--open-captcha"
-                          onClick={SettingsPrimitive.harvester}
+                          onClick={() => this.harvester()}
                         >
                           Captcha Window
                         </button>

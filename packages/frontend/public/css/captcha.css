@@ -1,5 +1,4 @@
 html, body {
-    background: #f5f5f5;
     border-radius: 3px;
     border: none;
     height: 100%;
@@ -78,8 +77,8 @@ button:focus {
     -webkit-app-region: drag;
 }
 
-::-webkit-scrollbar { 
-    display: none; 
+::-webkit-scrollbar {
+    display: none;
 }
 .loader {
     position: absolute;
@@ -128,5 +127,4 @@ button:focus {
         transform: scale(1);
     }
 }
-  
-  
+
