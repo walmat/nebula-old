@@ -1,201 +1,188 @@
 const moment = require('moment');
-const _ = require('underscore');
 
 const IPCKeys = require('../common/constants');
-const TokenContainer = require('../common/classes/tokenContainer');
+
+// TODO: Should we move this to the constants file?
+const HARVEST_STATE = {
+  IDLE: 'idle',
+  ACTIVE: 'active',
+};
 
 class CaptchaWindowManager {
-  constructor(context, captchaWindow) {
+  /**
+   * Check if given token is valid
+   *
+   * Tokens are invalid if they have exceeded their lifespan
+   * of 110 seconds. Use moment to check the timestamp
+   */
+  static isTokenValid({ timestamp }) {
+    return moment().diff(moment(timestamp), 'seconds') <= 110;
+  }
+
+  constructor(context) {
     /**
-     * Application context
+     * Application Context
      */
     this._context = context;
 
     /**
-     * Main window reference
+     * Array of created captcha windows
      */
-    this._main = this._context._windowManager._main;
+    this._captchaWindows = [];
 
     /**
-     * Captcha window that the manager takes care of
+     * Map of created youtube windows
+     *
+     * Associated with a created captcha window
      */
-    this._captchaWindow = captchaWindow;
+    this._youtubeWindows = {};
 
     /**
-     * Window Manager reference
+     * Map of harvested tokens based on sitekey
      */
-    this._windowManager = this._context._windowManager;
+    this._tokens = {};
 
     /**
-     * YouTube window that the manager takes care of
+     * Id for check token interval
+     *
+     * Prevents creating multiple token checkers
      */
-    this._youtubeWindow = null;
+    this._checkTokenIntervalId = null;
 
     /**
-     * All harvested tokens for this window
+     * Current Harvest State
      */
-    this._tokens = [];
+    this._harvestState = HARVEST_STATE.IDLE;
 
-    /**
-     * Session that the captcha window will use / YouTube window will set
-     */
-    this._session = captchaWindow.webContents.session;
+    this.validateSender = this.validateSender.bind(this);
 
-    /**
-     * IPC Function Definitions
-     */
-    context.ipc.on(IPCKeys.RequestLaunchYoutube, this._onRequestLaunchYoutube.bind(this));
-    context.ipc.on(IPCKeys.RequestEndSession, this._onRequestEndSession.bind(this));
-    context.ipc.on(IPCKeys.HarvestCaptcha, this._onRequestHarvestToken.bind(this));
-    context.ipc.on(IPCKeys.RequestRefresh, this._onRequestRefreshCaptchaWindow.bind(this));
-
-    /**
-     * Constantly check for expired tokens every second
-     */
-    this._checkTokens = setInterval(this.checkTokens, 1000);
+    // Attach IPC handlers
+    context.ipc.on(IPCKeys.RequestLaunchYoutube, this.validateSender(this._onRequestLaunchYoutube));
+    context.ipc.on(IPCKeys.RequestEndSession, this.validateSender(this._onRequestEndSession));
+    context.ipc.on(IPCKeys.HarvestCaptcha, this.validateSender(this._onHarvestToken));
+    context.ipc.on(IPCKeys.RequestRefresh, this.validateSender(ev => ev.sender.reload()));
   }
 
   /**
-   * Check harvested captcha tokens to see if they're expired or not
-   */
-  checkTokens() {
-    if (this._tokens && this._tokens.length > 0) {
-      this._tokens.forEach(token => {
-        token.setTimestamp(110 - moment().diff(moment(token.timestamp, 'seconds')));
-        if (this.isTokenExpired(token)) {
-          this.removeExpiredToken(token);
-        }
-      });
-    } else {
-      // don't run the interval check if no tokens are present
-      clearInterval(this._checkTokens);
-      this._checkTokens = null;
-    }
-  }
-
-  static isTokenExpired(token) {
-    // if token has existed for > 110 seconds
-    if (moment().diff(moment(token.timestamp), 'seconds') > 110) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Get the current session
-   */
-  getSession() {
-    return this._session;
-  }
-
-  /**
-   * Sets the session
-   * @param {Object} session - session object to use
-   */
-  setSession(session) {
-    this._session = session;
-  }
-
-  /**
-   * See what the proxy is for the given url
-   * @param {String} url - urk to ping
-   */
-  resolveProxy(url) {
-    return this._session.resolveProxy(url, proxy => proxy);
-  }
-
-  /**
-   * Sets the proxy for the window's session
+   * Validate Sender
    *
-   * @param {String} proxy proxyRules = schemeProxies[";"<schemeProxies>]
-                           schemeProxies = [<urlScheme>"="]<proxyURIList>
-                           urlScheme = "http" | "https" | "ftp" | "socks"
-                           proxyURIList = <proxyURL>[","<proxyURIList>]
-                           proxyURL = [<proxyScheme>"://"]<proxyHost>[":"<proxyPort>]
-   *
-   *
+   * Validate that the sender is a captcha window before proceeding
+   * to the event handler. This prevents non-captcha windows from causing
+   * errors if they accidentally send a captcha-window-specific ipc event
    */
-  setProxy(proxy) {
-    this._session.setProxy(
-      {
-        pacScript: null,
-        proxyRules: proxy,
-        proxyBypassRules: null,
-      },
-      () => {
-        const p = this.resolveProxy('https://www.google.com/');
-        console.log(`Using proxy: ${p}`);
-      },
-    );
+  validateSender(handler) {
+    return (ev, ...params) => {
+      // Check for window to be a captcha windows
+      const check = this._captchaWindows.find(win => win.webContents.id === ev.sender.id);
+      if (check) {
+        // call the handler
+        handler.apply(this, [ev, ...params]);
+      }
+    };
   }
 
   /**
-   * Sets the 'User-Agent' header for the session
-   * @param {String} userAgent - user agent to set on all headers
-   * @param {String} acceptLanguages - the incoming languages to accept from the response (optional)
-   *                                   should be a comma separated list: "en-US,fr,de,ko,zh-CN,ja"
+   * Start Harvesting
+   *
+   * Tell all captcha windows to start harvesting and set the
+   * harvest state to 'active'.
+   *
+   * If no captcha windows are present, one is created
    */
-  setUserAgent(userAgent, acceptLanguages) {
-    this._session.setUserAgent(userAgent, acceptLanguages);
-  }
-
-  /**
-   * Gets the 'User-Agent' header for the session
-   */
-  getUserAgent() {
-    return this._session.getUserAgent();
-  }
-
-  removeExpiredToken(token) {
-    this._tokens = _.reject(this._tokens, el => el.token === token);
-  }
-
-  startHarvestingCaptcha(runnerId, siteKey, wait) {
-    if (wait) {
-      this._captchaWindow.webContents.once('did-finish-load', () => {
-        this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
-      });
-    } else {
-      this._captchaWindow.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+  startHarvesting(runnerId, siteKey) {
+    this._harvestState = HARVEST_STATE.ACTIVE;
+    if (this._captchaWindows === 0) {
+      // TODO: create captcha window...
     }
+
+    this._captchaWindows.forEach(win => {
+      win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+    });
   }
 
-  stopHarvestingCaptcha(runnerId, siteKey) {
-    this._captchaWindow.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
+  /**
+   * Stop Harvesting
+   *
+   * Tell all captcha windows to stop harvesting and set the
+   * harvest state to 'idle'
+   */
+  stopHarvesting(runnerId, siteKey) {
+    this._captchaWindows.forEach(win => {
+      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
+    });
+    this._harvestState = HARVEST_STATE.IDLE;
+  }
+
+  _checkTokens() {
+    let tokensTotal = 0;
+    // Iterate through all sitekey token lists
+    Object.keys(this._tokens).forEach(siteKey => {
+      // Filter out invalid tokens
+      this._tokens[siteKey] = this._tokens[siteKey].filter(CaptchaWindowManager.isTokenValid);
+      tokensTotal += this._tokens[siteKey].length;
+    });
+
+    // Clear the interval if there are no more tokens
+    if (this._checkTokenIntervalId && tokensTotal === 0) {
+      clearInterval(this._checkTokenIntervalId);
+      this._checkTokenIntervalId = null;
+    }
   }
 
   /**
    * Clears the storage data and cache for the session
    */
-  _onRequestEndSession() {
-    this._session.flushStorageData();
-    this._session.clearStorageData([], () => {});
-    this._session.clearCache(() => {});
+  _onRequestEndSession(ev) {
+    // TODO: Implement
   }
 
-  _onRequestHarvestToken(ev, runnerId, token, sitekey, host) {
-    this._tokens.push(new TokenContainer(token, moment(), host, sitekey));
-    if (this._checkTokens === null) {
-      this._checkTokens = setInterval(this.checkTokens, 1000);
+  /**
+   * Harvest Token
+   *
+   * Harvest the token and store it with other tokens sharing the same site key.
+   * Start the check token interval if it hasn't started already. This will
+   * periodically check and remove expired tokens
+   */
+  _onHarvestToken(_, __, token, siteKey = 'unattached', host) {
+    if (!this._tokens[siteKey]) {
+      // Create token array if it hasn't been created for this sitekey
+      this._tokens[siteKey] = [];
+    }
+    // Store the new token
+    this._tokens[siteKey].push({
+      token,
+      siteKey,
+      host,
+      timestamp: moment(),
+    });
+    // Start the check token interval if it hasn't been started
+    if (this._checkTokenIntervalId === null) {
+      this._checkTokenIntervalId = setInterval(this._checkTokens.bind(this), 1000);
     }
   }
 
   /**
-   * Refresh window object
+   * Launch Youtube Window
+   *
+   * Check if the captcha window already has a youtube window
+   * and focus it. If no window is present, create a new
+   * youtube window and focus it
    */
-  _onRequestRefreshCaptchaWindow() {
-    if (this._captchaWindow) {
-      this._captchaWindow.reload();
-    }
-  }
+  async _onRequestLaunchYoutube(ev) {
+    // Check if win already exists. if not, create it
+    let win = this._youtubeWindows[ev.sender.id];
+    if (!win) {
+      win = await this._context.windowManager.createNewWindow('youtube');
+      this._youtubeWindows[ev.sender.id] = win;
 
-  async _onRequestLaunchYoutube() {
-    if (this._youtubeWindow === null) {
-      const w = await this._windowManager.createNewWindow('youtube');
-      this._youtubeWindow = w;
-    } else {
-      this._youtubeWindow.show();
+      win.webContents.on('destroyed', () => {
+        this._youtubeWindows[ev.sender.id] = null;
+      });
     }
+
+    // Focus the window
+    win.focus();
   }
 }
+
 module.exports = CaptchaWindowManager;

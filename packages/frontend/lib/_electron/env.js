@@ -9,9 +9,7 @@ let _isDevelopment = process.env.NODE_ENV === 'development';
  * @param {String} envFname name of environment file to open
  */
 function _setUpEnvironment(envFname) {
-  const envConfig = dotenv.parse(
-    fs.readFileSync(path.join(__dirname, `../../${envFname}`)),
-  );
+  const envConfig = dotenv.parse(fs.readFileSync(path.join(__dirname, `../../${envFname}`)));
   if (envConfig) {
     Object.keys(envConfig).forEach(k => {
       if (k.startsWith('NEBULA_')) {

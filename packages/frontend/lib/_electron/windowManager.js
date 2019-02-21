@@ -14,7 +14,7 @@ const {
   urls,
 } = require('./windows');
 
-const CaptchaWindowManager = require('./captchaWindowManager');
+const CaptchaWindowManager = require('./captchaWindowManager.old');
 
 nebulaEnv.setUpEnvironment();
 
