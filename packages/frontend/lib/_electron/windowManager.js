@@ -464,10 +464,15 @@ class WindowManager {
 
   onRequestChangeTheme(_, opts) {
     const { backgroundColor } = opts;
-
+    console.log(`${backgroundColor}`);
     this._captchas.forEach((_cwm, windowId) => {
       const win = this._windows.get(windowId);
-      win.setBackgroundColor(`${backgroundColor}`);
+      // somehow change the background color here?
+      /**
+       * I've tried:
+       * 1. win.setBackgroundColor(backgroundColor);
+       * 2. win.webContents.browserWindowOptions.backgroundColor = backgroundColor;
+       */
     });
   }
 }
