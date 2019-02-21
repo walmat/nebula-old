@@ -160,7 +160,7 @@ class TaskProcessManager extends TaskManager {
     delete this._handlers[child.id];
 
     // Remove child handler
-    child.removeListener('mesage', childHandler);
+    child.removeListener('message', childHandler);
 
     // Remove manager event handlers
     this._events.removeListener('abort', abort);
@@ -217,12 +217,7 @@ class TaskProcessManager extends TaskManager {
       });
       this._logger.info('Runner %s finished without errors', runnerId);
     } catch (error) {
-      this._logger.error(
-        'Runner %s was stopped due to an errors: %s',
-        runnerId,
-        error.message,
-        error,
-      );
+      this._logger.error('Runner %s was stopped due to error: %s', runnerId, error.message, error);
     }
 
     // Remove the done handler first

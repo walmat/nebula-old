@@ -11,7 +11,7 @@ const TaskManagerEvents = constants.TaskManager.Events;
 const TaskRunnerEvents = constants.TaskRunner.Events;
 
 /**
- * Notify the main process that and error occured
+ * Notify the main process that and error occurred
  *
  * @param {Error} error
  */
@@ -38,7 +38,7 @@ function wireErrorHandlers() {
 function wireEventHandlers(runner) {
   // Handle Incoming Process Events by calling the correct runner methods
   process.on('message', ({ target, event, args }) => {
-    // Only respond to events that are targetting the child
+    // Only respond to events that are targeting the child
     if (target !== 'child') {
       return;
     }
@@ -110,7 +110,7 @@ async function _start([rId, task, proxy, loggerPath]) {
 
 // Setup a handler to listen for the start message...
 process.on('message', async ({ target, event, args }) => {
-  // Ensure target is child, and event correct
+  // Ensure target is child, and event is correct
   if (target !== 'child' || event !== '__start') {
     return;
   }
