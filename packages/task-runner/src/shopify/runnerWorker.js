@@ -45,7 +45,7 @@ function wireEventHandlers(runner) {
 
     // Only Handle Certain Events
     switch (event) {
-      case 'abort': {
+      case TaskManagerEvents.Abort: {
         // TODO: Respect the scope of Runner (issue #137)
         runner._handleAbort(...args);
         break;
@@ -55,7 +55,7 @@ function wireEventHandlers(runner) {
         runner._handleHarvest(...args);
         break;
       }
-      case TaskRunnerEvents.ReceiveProxy: {
+      case TaskManagerEvents.SendProxy: {
         // TODO: Respect the scope of Runner (issue #137)
         runner._events.emit(TaskRunnerEvents.ReceiveProxy, ...args);
         break;

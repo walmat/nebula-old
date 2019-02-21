@@ -7,6 +7,14 @@ const TaskManagerEvents = constants.TaskManager.Events;
 const TaskRunnerEvents = constants.TaskRunner.Events;
 
 class TaskThreadManager extends TaskManager {
+  constructor(loggerPath) {
+    super(loggerPath);
+
+    if (!global.window || !global.window.Worker) {
+      throw new Error('This TaskManager Requires Webworker Threads!');
+    }
+  }
+
   /**
    * Stop a Task
    *
@@ -34,15 +42,20 @@ class TaskThreadManager extends TaskManager {
           forceKill = null;
           // Terminate the worker thread
           worker.terminate();
+          resolve();
         }, 5000);
         const next = worker.onmessage;
         worker.onmessage = evt => {
           const { event } = evt.data;
-          // make sure our message is an exit message
-          if (event === 'exit') {
+          // make sure our message is a done message
+          if (event === '__done') {
             this._logger.debug('Worker thread exited for task: %s', rId);
             if (forceKill) {
               clearTimeout(forceKill);
+            }
+            if (next) {
+              // Run next message handler to perform cleanup of the worker
+              next(evt);
             }
             resolve();
           } else if (next) {
@@ -67,115 +80,97 @@ class TaskThreadManager extends TaskManager {
     return Promise.all(super.stopAll(tasks, options));
   }
 
-  _setup(worker) {
-    this._logger.verbose('Setting up Worker Thread Handlers for runner: %s', worker.id);
+  _setup(rId) {
+    const worker = this._runners[rId];
+    this._logger.verbose('Setting up Worker Thread Handlers for runner: %s', rId);
+    const handlerGenerator = (event, sideEffects) => (id, ...params) => {
+      if (id === rId) {
+        const args = [id, ...params];
+        if (sideEffects) {
+          // Call side effect before posting message
+          sideEffects.apply(this, args);
+        }
+        worker.postMessage({
+          target: 'worker',
+          event,
+          args,
+        });
+      }
+    };
     const handlers = {
-      abort: id => {
-        if (id === worker.id) {
-          worker.postMessage({
-            target: 'worker',
-            event: 'abort',
-            args: [id],
-          });
-        }
-      },
-      harvest: (id, token) => {
-        if (id === worker.id) {
-          worker.postMessage({
-            target: 'worker',
-            event: TaskManagerEvents.Harvest,
-            args: [id, token],
-          });
-        }
-      },
-      proxy: (id, proxy) => {
-        if (id === worker.id) {
-          // eslint-disable-next-line no-param-reassign
-          worker.proxy = proxy;
-          worker.postMessage({
-            target: 'worker',
-            evetn: TaskRunnerEvents.ReceiveProxy,
-            args: [id, proxy],
-          });
-        }
-      },
-      delay: (id, delay, type) => {
-        if (id === worker.id) {
-          worker.postMessage({
-            target: 'worker',
-            event: TaskManagerEvents.ChangeDelay,
-            args: [id, delay, type],
-          });
-        }
-      },
-      updateHook: (id, hook, type) => {
-        if (id === worker.id) {
-          worker.postMessage({
-            target: 'worker',
-            event: TaskManagerEvents.UpdateHook,
-            args: [id, hook, type],
-          });
-        }
-      },
       onmessage: ({ data: { target, event, args } }) => {
         // Only handle events that target the main process
         if (target !== 'main') {
           return;
         }
-        switch (event) {
-          case TaskRunnerEvents.TaskStatus: {
-            this.mergeStatusUpdates(...args);
-            break;
-          }
-          case TaskManagerEvents.StartHarvest: {
-            this.handleStartHarvest(...args);
-            break;
-          }
-          case TaskManagerEvents.StopHarvest: {
-            this.handleStopHarvest(...args);
-            break;
-          }
-          case TaskRunnerEvents.SwapProxy: {
-            this.handleSwapProxy(...args);
-            break;
-          }
-          default: {
-            break;
-          }
+
+        const eventHandlerMap = {
+          [TaskRunnerEvents.TaskStatus]: this.mergeStatusUpdates,
+          [TaskRunnerEvents.SwapProxy]: this.handleSwapProxy,
+          [TaskManagerEvents.StartHarvest]: this.handleStartHarvest,
+          [TaskManagerEvents.StopHarvest]: this.handleStopHarvest,
+        };
+
+        const handler = eventHandlerMap[event];
+        if (handler) {
+          handler.apply(this, args);
         }
       },
     };
 
-    // Attach handlers to manager events
-    this._events.on('abort', handlers.abort);
-    this._events.on(TaskManagerEvents.Harvest, handlers.harvest);
-    this._events.on(TaskManagerEvents.SendProxy, handlers.proxy);
-    this._events.on(TaskManagerEvents.ChangeDelay, handlers.delay);
-    this._events.on(TaskManagerEvents.UpdateHook, handlers.updateHook);
+    // Generate Handlers for each event
+    [
+      TaskManagerEvents.Abort,
+      TaskManagerEvents.Harvest,
+      TaskManagerEvents.SendProxy,
+      TaskManagerEvents.ChangeDelay,
+      TaskManagerEvents.UpdateHook,
+    ].forEach(event => {
+      let sideEffects;
+      switch (event) {
+        case TaskManagerEvents.SendProxy: {
+          sideEffects = ([id, proxy]) => {
+            // Store proxy on worker so we can release it during cleanup
+            this._runners[id].proxy = proxy;
+          };
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+      const handler = handlerGenerator(event, sideEffects);
+      // Store handler for cleanup
+      handlers[event] = handler;
+      // Attach handler for event (with side effect if applicable)
+      this._events.on(event, handler);
+    });
 
     // Attach onmessage handler to worker
-    // eslint-disable-next-line no-param-reassign
     worker.onmessage = handlers.onmessage;
 
     // Store handlers for cleanup
-    this._handlers[worker.id] = handlers;
+    this._handlers[rId] = handlers;
   }
 
-  _cleanup(worker) {
-    this._logger.verbose('Cleanup Worker Thread Handlers for runner: %s', worker.id);
-    const { abort, harvest, proxy, delay, updateHook } = this._handlers[worker.id];
-    delete this._handlers[worker.id];
+  _cleanup(rId) {
+    this._logger.verbose('Cleanup Worker Thread Handlers for runner: %s', rId);
+    const handlers = this._handlers[rId];
+    delete this._handlers[rId];
 
     // Remove onmessage handler
-    // eslint-disable-next-line no-param-reassign
-    worker.onmessage = null;
+    this._runners[rId].onmessage = null;
 
     // Remove manager event handlers
-    this._events.removeListener('abort', abort);
-    this._events.removeListener(TaskManagerEvents.Harvest, harvest);
-    this._events.removeListener(TaskManagerEvents.SendProxy, proxy);
-    this._events.removeListener(TaskManagerEvents.ChangeDelay, delay);
-    this._events.removeListener(TaskManagerEvents.UpdateHook, updateHook);
+    [
+      TaskManagerEvents.Abort,
+      TaskManagerEvents.Harvest,
+      TaskManagerEvents.SendProxy,
+      TaskManagerEvents.ChangeDelay,
+      TaskManagerEvents.UpdateHook,
+    ].forEach(event => {
+      this._events.removeListener(event, handlers[event]);
+    });
   }
 
   async _start([runnerId, task, openProxy]) {
@@ -189,7 +184,7 @@ class TaskThreadManager extends TaskManager {
     this._runners[runnerId] = worker;
 
     // Perform Worker Thread Setup
-    this._setup(worker);
+    this._setup(runnerId);
 
     // Start the runner
     let doneHandler;
@@ -233,7 +228,7 @@ class TaskThreadManager extends TaskManager {
     }
 
     // Perform worker thread cleanup
-    this._cleanup(worker);
+    this._cleanup(runnerId);
 
     // Terminate the worker thread
     worker.terminate();

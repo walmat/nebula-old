@@ -1,4 +1,5 @@
 const TaskManagerEvents = {
+  Abort: 'ABORT',
   StartHarvest: 'START_CAPTCHA_HARVEST',
   StopHarvest: 'STOP_CAPTCHA_HARVEST',
   Harvest: 'CAPTCHA_HARVEST',

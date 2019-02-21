@@ -498,7 +498,7 @@ class TaskManager {
     }
 
     // Send abort signal
-    this._events.emit('abort', rId);
+    this._events.emit(Events.Abort, rId);
     this._logger.verbose('Stop signal sent');
     return rId;
   }
@@ -571,7 +571,7 @@ class TaskManager {
     this._handlers[runner.id] = handlers;
 
     // Attach Runner Handlers to Manager Events
-    this._events.on('abort', handlers.abort);
+    this._events.on(Events.Abort, handlers.abort);
     this._events.on(Events.Harvest, handlers.harvest);
     this._events.on(Events.SendProxy, handlers.proxy);
     this._events.on(Events.ChangeDelay, handlers.delay);
@@ -596,7 +596,7 @@ class TaskManager {
     runner._events.removeListener(Events.StopHarvest, this.handleStopHarvest);
 
     // Cleanup runner handlers
-    this._events.removeListener('abort', abort);
+    this._events.removeListener(Events.Abort, abort);
     this._events.removeListener(Events.Harvest, harvest);
     this._events.removeListener(Events.SendProxy, proxy);
     this._events.removeListener(Events.ChangeDelay, delay);

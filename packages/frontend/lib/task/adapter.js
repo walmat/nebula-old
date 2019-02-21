@@ -26,15 +26,14 @@ class TaskManagerAdapter {
         break;
       }
       case 'thread': {
-        if (global.window.Worker) {
+        try {
           this._taskManager = new TaskThreadManager(logPath);
-        } else {
+        } catch (_) {
           console.log(
             '[WARNING]: Worker Thread are not supported in this environment! Falling back to multi-process manager...',
           );
           this._taskManager = new TaskProcessManager(logPath);
         }
-
         break;
       }
       default: {

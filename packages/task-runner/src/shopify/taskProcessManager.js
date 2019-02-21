@@ -35,6 +35,7 @@ class TaskProcessManager extends TaskManager {
           forceKill = null;
           // force kill the child process
           child.kill();
+          resolve();
         }, 5000);
         child.on('exit', () => {
           this._logger.debug('Child process exited for task: %s', rId);
@@ -60,114 +61,98 @@ class TaskProcessManager extends TaskManager {
     return Promise.all(super.stopAll(tasks, options));
   }
 
-  _setup(child) {
-    this._logger.verbose('Setting up Child Process Handlers for runner: %s', child.id);
+  _setup(rId) {
+    const child = this._runners[rId];
+    this._logger.verbose('Setting up Child Process Handlers for runner: %s', rId);
+    const handlerGenerator = (event, sideEffects) => (id, ...params) => {
+      if (id === rId) {
+        const args = [id, ...params];
+        if (sideEffects) {
+          // Call side effect before posting message
+          sideEffects.apply(this, args);
+        }
+        child.send({
+          target: 'child',
+          event,
+          args,
+        });
+      }
+    };
     const handlers = {
-      abort: id => {
-        if (id === child.id) {
-          child.send({
-            target: 'child',
-            event: 'abort',
-            args: [id],
-          });
-        }
-      },
-      harvest: (id, token) => {
-        if (id === child.id) {
-          child.send({
-            target: 'child',
-            event: TaskManagerEvents.Harvest,
-            args: [id, token],
-          });
-        }
-      },
-      proxy: (id, proxy) => {
-        if (id === child.id) {
-          // eslint-disable-next-line no-param-reassign
-          child.proxy = proxy; // update the latest proxy so we can release it at the end
-          child.send({
-            target: 'child',
-            event: TaskRunnerEvents.ReceiveProxy,
-            args: [id, proxy],
-          });
-        }
-      },
-      delay: (id, delay, type) => {
-        if (id === child.id) {
-          child.send({
-            target: 'child',
-            event: TaskManagerEvents.ChangeDelay,
-            args: [id, delay, type],
-          });
-        }
-      },
-      updateHook: (id, hook, type) => {
-        if (id === child.id) {
-          child.send({
-            target: 'child',
-            event: TaskManagerEvents.UpdateHook,
-            args: [id, hook, type],
-          });
-        }
-      },
       child: ({ target, event, args }) => {
         // Only handle events that target the main process
         if (target !== 'main') {
           return;
         }
-        switch (event) {
-          case TaskRunnerEvents.TaskStatus: {
-            this.mergeStatusUpdates(...args);
-            break;
-          }
-          case TaskManagerEvents.StartHarvest: {
-            this.handleStartHarvest(...args);
-            break;
-          }
-          case TaskManagerEvents.StopHarvest: {
-            this.handleStopHarvest(...args);
-            break;
-          }
-          case TaskRunnerEvents.SwapProxy: {
-            this.handleSwapProxy(...args);
-            break;
-          }
-          default: {
-            break;
-          }
+
+        const eventHandlerMap = {
+          [TaskRunnerEvents.TaskStatus]: this.mergeStatusUpdates,
+          [TaskRunnerEvents.SwapProxy]: this.handleSwapProxy,
+          [TaskManagerEvents.StartHarvest]: this.handleStartHarvest,
+          [TaskManagerEvents.StopHarvest]: this.handleStopHarvest,
+        };
+
+        const handler = eventHandlerMap[event];
+        if (handler) {
+          handler.apply(this, args);
         }
       },
     };
 
-    // Attach handlers to manager events
-    this._events.on('abort', handlers.abort);
-    this._events.on(TaskManagerEvents.Harvest, handlers.harvest);
-    this._events.on(TaskManagerEvents.SendProxy, handlers.proxy);
-    this._events.on(TaskManagerEvents.ChangeDelay, handlers.delay);
-    this._events.on(TaskManagerEvents.UpdateHook, handlers.updateHook);
+    // Generate Handlers for each event
+    [
+      TaskManagerEvents.Abort,
+      TaskManagerEvents.Harvest,
+      TaskManagerEvents.SendProxy,
+      TaskManagerEvents.ChangeDelay,
+      TaskManagerEvents.UpdateHook,
+    ].forEach(event => {
+      let sideEffects;
+      switch (event) {
+        case TaskManagerEvents.SendProxy: {
+          sideEffects = ([id, proxy]) => {
+            // Store proxy on worker so we can release it during cleanup
+            this._runners[id].proxy = proxy;
+          };
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+      const handler = handlerGenerator(event, sideEffects);
+      // Store handler for cleanup
+      handlers[event] = handler;
+      // Attach handler for event (with side effect if applicable)
+      this._events.on(event, handler);
+    });
+
     // Attach child handler to child process
     child.on('message', handlers.child);
 
     // Store handlers for cleanup
-    this._handlers[child.id] = handlers;
+    this._handlers[rId] = handlers;
   }
 
-  _cleanup(child) {
-    this._logger.verbose('Cleaning up Child Process Handlers for runner: %s', child.id);
-    const { abort, harvest, proxy, delay, updateHook, child: childHandler } = this._handlers[
-      child.id
-    ];
-    delete this._handlers[child.id];
+  _cleanup(rId) {
+    this._logger.verbose('Cleaning up Child Process Handlers for runner: %s', rId);
+    const handlers = this._handlers[rId];
+    delete this._handlers[rId];
 
     // Remove child handler
-    child.removeListener('message', childHandler);
+    this._runners[rId].removeListener('message', handlers.child);
 
     // Remove manager event handlers
-    this._events.removeListener('abort', abort);
-    this._events.removeListener(TaskManagerEvents.Harvest, harvest);
-    this._events.removeListener(TaskManagerEvents.SendProxy, proxy);
-    this._events.removeListener(TaskManagerEvents.ChangeDelay, delay);
-    this._events.removeListener(TaskManagerEvents.UpdateHook, updateHook);
+    // Remove manager event handlers
+    [
+      TaskManagerEvents.Abort,
+      TaskManagerEvents.Harvest,
+      TaskManagerEvents.SendProxy,
+      TaskManagerEvents.ChangeDelay,
+      TaskManagerEvents.UpdateHook,
+    ].forEach(event => {
+      this._events.removeListener(event, handlers[event]);
+    });
   }
 
   async _start([runnerId, task, openProxy]) {
@@ -180,7 +165,7 @@ class TaskProcessManager extends TaskManager {
     this._runners[runnerId] = child;
 
     // Perform Child Process Setup
-    this._setup(child);
+    this._setup(runnerId);
 
     // Start the runner
     let doneHandler;
@@ -224,7 +209,7 @@ class TaskProcessManager extends TaskManager {
     child.removeListener('message', doneHandler);
 
     // Perform Child Process Cleanup
-    this._cleanup(child);
+    this._cleanup(runnerId);
 
     // Kill the child process
     child.kill();
