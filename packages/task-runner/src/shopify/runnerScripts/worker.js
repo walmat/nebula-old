@@ -4,8 +4,8 @@
  * The goal of this script is to wire events between the worker and main thread
  * and act as a silent man-in-the-middle between the TaskManager and TaskRunner
  */
-const constants = require('./classes/utils/constants');
-const TaskRunner = require('./taskRunner');
+const constants = require('../classes/utils/constants');
+const TaskRunner = require('../taskRunner');
 
 const TaskManagerEvents = constants.TaskManager.Events;
 const TaskRunnerEvents = constants.TaskRunner.Events;

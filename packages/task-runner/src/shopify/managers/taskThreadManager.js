@@ -1,6 +1,6 @@
 const path = require('path');
 
-const constants = require('./classes/utils/constants');
+const constants = require('../classes/utils/constants');
 const TaskManager = require('./taskManager');
 
 const TaskManagerEvents = constants.TaskManager.Events;
@@ -176,7 +176,7 @@ class TaskThreadManager extends TaskManager {
   async _start([runnerId, task, openProxy]) {
     const { Worker } = global.window;
     this._logger.verbose('Spawning Worker Thread for runner: %s', runnerId);
-    const worker = new Worker(path.resolve(__dirname, 'runnerWorker.js'));
+    const worker = new Worker(path.resolve(__dirname, '../runnerScripts/worker.js'));
     // Setup ids
     worker.id = runnerId;
     worker.taskId = task.id;

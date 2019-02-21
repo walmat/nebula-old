@@ -1,7 +1,7 @@
 const childProcess = require('child_process');
 const path = require('path');
 
-const constants = require('./classes/utils/constants');
+const constants = require('../classes/utils/constants');
 const TaskManager = require('./taskManager');
 
 const TaskManagerEvents = constants.TaskManager.Events;
@@ -157,7 +157,7 @@ class TaskProcessManager extends TaskManager {
 
   async _start([runnerId, task, openProxy]) {
     this._logger.verbose('Spawning Child Process for runner: %s', runnerId);
-    const child = childProcess.fork(path.resolve(__dirname, 'runnerProcess.js'));
+    const child = childProcess.fork(path.resolve(__dirname, '../runnerScripts/process.js'));
     // Setup ids
     child.id = runnerId;
     child.taskId = task.id;

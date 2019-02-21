@@ -4,12 +4,12 @@ const EventEmitter = require('events');
 const hash = require('object-hash');
 const shortid = require('shortid');
 
-const TaskRunner = require('./taskRunner');
-const { Events } = require('./classes/utils/constants').TaskManager;
-const { HookTypes } = require('./classes/utils/constants').TaskRunner;
-const Discord = require('./classes/hooks/discord');
-const Slack = require('./classes/hooks/slack');
-const { createLogger } = require('../common/logger');
+const TaskRunner = require('../taskRunner');
+const { Events } = require('../classes/utils/constants').TaskManager;
+const { HookTypes } = require('../classes/utils/constants').TaskRunner;
+const Discord = require('../classes/hooks/discord');
+const Slack = require('../classes/hooks/slack');
+const { createLogger } = require('../../common/logger');
 
 class TaskManager {
   get loggerPath() {
