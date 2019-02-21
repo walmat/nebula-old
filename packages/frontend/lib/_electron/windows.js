@@ -136,11 +136,8 @@ urls.set('about', aboutUrl);
  *
  * @return {BrowserWindow} Captcha Window
  */
-const createCaptchaWindow = opts => {
-  let backgroundColor;
-  if (opts) {
-    ({ backgroundColor } = opts);
-  }
+const createCaptchaWindow = (opts = {}) => {
+  const { backgroundColor } = opts;
   return _createWindow({
     width: 400,
     height: 650,

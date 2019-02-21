@@ -442,6 +442,7 @@ class WindowManager {
     let open = false;
     if (this._captchas.size === 0) {
       open = true;
+      // TODO: This should encorporate the themes in #350 (https://github.com/walmat/nebula/issues/350)
       await this.createNewWindow('captcha');
     }
     this._captchas.forEach(captchaWindowManager => {
@@ -464,10 +465,10 @@ class WindowManager {
 
   onRequestChangeTheme(_, opts) {
     const { backgroundColor } = opts;
-    console.log(`${backgroundColor}`);
+
     this._captchas.forEach((__, windowId) => {
       const win = this._windows.get(windowId);
-      // somehow change the background color here?
+      // #350 (https://github.com/walmat/nebula/issues/350)
       /**
        * I've tried:
        * 1. win.setBackgroundColor(backgroundColor);
