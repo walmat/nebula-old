@@ -104,7 +104,8 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
-    context.ipc.on(IPCKeys.ChangeTheme, this.onRequestChangeTheme.bind(this));
+    // TODO: Add this back in #350 (https://github.com/walmat/nebula/issues/350)
+    // context.ipc.on(IPCKeys.ChangeTheme, this.onRequestChangeTheme.bind(this));
   }
 
   /**
@@ -143,7 +144,7 @@ class WindowManager {
           if (this._aboutDialog) {
             return this._aboutDialog;
           }
-          w = await createAboutWindow();
+          w = createAboutWindow();
           this._aboutDialog = w;
           break;
         }
@@ -151,7 +152,7 @@ class WindowManager {
           if (this._auth) {
             return this._auth;
           }
-          w = await createAuthWindow();
+          w = createAuthWindow();
           this._auth = w;
           break;
         }
@@ -159,24 +160,19 @@ class WindowManager {
           if (this._main) {
             return this._main;
           }
-          w = await createMainWindow();
+          w = createMainWindow();
           this._main = w;
           this._context.taskLauncher.start();
           break;
         }
-        default:
-          break;
+        default: {
+          // throw error if unsupported tag was passed
+          throw new Error('Window Tag is Unsupported!');
+        }
       }
 
-      if (tag !== 'captcha') {
-        w.loadURL(urls.get(tag));
-      }
-
-      // Make sure window was created before adding event listeners
-      if (w) {
-        this.addWindowEventListeners(w);
-      }
-
+      w.loadURL(urls.get(tag));
+      this.addWindowEventListeners(w);
       return w;
     }
     return this.transitionToDeauthedState();
@@ -218,18 +214,21 @@ class WindowManager {
    * @param {BrowserWindow} win reference to the window being closed
    */
   handleClose(win) {
+    // Store the winId in the upper scope so we don't throw an exception when
+    // Trying to access win (which could already be destroyed)
+    const winId = win.id;
     return () => {
       if (nebulaEnv.isDevelopment()) {
-        console.log(`Window was closed, id = ${win.id}`);
+        console.log(`Window was closed, id = ${winId}`);
       }
-      this._windows.delete(win.id);
-      this._notifyUpdateWindowIDs(win.id);
+      this._windows.delete(winId);
+      this._notifyUpdateWindowIDs(winId);
 
-      if (this._aboutDialog && win.id === this._aboutDialog.id) {
+      if (this._aboutDialog && winId === this._aboutDialog.id) {
         this._aboutDialog = null;
-      } else if (this._main && win.id === this._main.id) {
+      } else if (this._main && winId === this._main.id) {
         this._main = null;
-      } else if (this._auth && win.id === this._auth.id) {
+      } else if (this._auth && winId === this._auth.id) {
         this._auth = null;
       }
     };
@@ -306,9 +305,14 @@ class WindowManager {
       this._captchaWindowManager.spawnCaptchaWindow(opts);
       ev.sender.send(IPCKeys.FinishCreateNewWindow);
     } else {
-      const createdWindow = this.createNewWindow(tag);
-      ev.sender.send(IPCKeys.FinishCreateNewWindow);
-      this._notifyUpdateWindowIDs(createdWindow.id);
+      try {
+        const createdWindow = this.createNewWindow(tag);
+        ev.sender.send(IPCKeys.FinishCreateNewWindow);
+        this._notifyUpdateWindowIDs(createdWindow.id);
+      } catch (err) {
+        console.log('[ERROR]: %s', err.message);
+        ev.sender.send(IPCKeys.FinishCreateNewWindow);
+      }
     }
   }
 
@@ -361,35 +365,35 @@ class WindowManager {
 
   /**
    * Start Harvesting Captchas for a specific task
-   * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
-   * // https://github.com/walmat/nebula/issues/97
+   *
+   * Forward call to Captcha Window Manager
    */
-  async onRequestStartHarvestingCaptcha(runnerId, siteKey) {
+  startHarvestingCaptcha(runnerId, siteKey) {
     this._captchaWindowManager.startHarvesting(runnerId, siteKey);
   }
 
   /**
    * Stop Harvesting Captchas for a specific task
-   * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
-   * // https://github.com/walmat/nebula/issues/97
+   *
+   * Forward call to Captcha Window Manager
    */
-  onRequestStopHarvestingCaptcha(runnerId, siteKey) {
+  stopHarvestingCaptcha(runnerId, siteKey) {
     this._captchaWindowManager.stopHarvesting(runnerId, siteKey);
   }
 
-  onRequestChangeTheme(_, opts) {
-    const { backgroundColor } = opts;
-
-    this._captchas.forEach((__, windowId) => {
-      const win = this._windows.get(windowId);
-      // #350 (https://github.com/walmat/nebula/issues/350)
-      /**
-       * I've tried:
-       * 1. win.setBackgroundColor(backgroundColor);
-       * 2. win.webContents.browserWindowOptions.backgroundColor = backgroundColor;
-       */
-    });
-  }
+  // // TODO: Add this back in #350 (https://github.com/walmat/nebula/issues/350)
+  // onRequestChangeTheme(_, opts) {
+  //   const { backgroundColor } = opts;
+  //   // TODO: Use captcha window manager in this case...
+  //   this._captchas.forEach((__, windowId) => {
+  //     const win = this._windows.get(windowId);
+  //     /**
+  //      * I've tried:
+  //      * 1. win.setBackgroundColor(backgroundColor);
+  //      * 2. win.webContents.browserWindowOptions.backgroundColor = backgroundColor;
+  //      */
+  //   });
+  // }
 }
 
 module.exports = WindowManager;

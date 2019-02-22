@@ -240,6 +240,10 @@ class CaptchaWindowManager {
    * Close all captcha windows
    */
   closeAllCaptchaWindows() {
+    // Do nothing if we don't have any captcha windows
+    if (this._captchaWindows.length === 0) {
+      return;
+    }
     console.log('[DEBUG]: Closing all captcha windows...');
     this._captchaWindows.forEach(win => {
       win.close();
