@@ -59,7 +59,11 @@ class CaptchaWindowManager {
     /**
      * Current Harvest State
      */
-    this._harvestState = HARVEST_STATE.IDLE;
+    this._harvestStatus = {
+      state: HARVEST_STATE.IDLE,
+      runnerId: null,
+      siteKey: null,
+    };
 
     this.validateSender = this.validateSender.bind(this);
 
@@ -107,10 +111,14 @@ class CaptchaWindowManager {
    * If no captcha windows are present, one is created
    */
   startHarvesting(runnerId, siteKey) {
-    this._harvestState = HARVEST_STATE.ACTIVE;
+    this._harvestStatus = {
+      state: HARVEST_STATE.ACTIVE,
+      runnerId,
+      siteKey,
+    };
     if (this._captchaWindows === 0) {
       const win = this.spawnCaptchaWindow();
-      win.webContents.on('did-finish-load', () => {
+      win.webContents.once('did-finish-load', () => {
         win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
       });
     } else {
@@ -127,10 +135,14 @@ class CaptchaWindowManager {
    * harvest state to 'idle'
    */
   stopHarvesting(runnerId, siteKey) {
+    this._harvestStatus = {
+      state: HARVEST_STATE.IDLE,
+      runnerId: null,
+      siteKey: null,
+    };
     this._captchaWindows.forEach(win => {
       win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
     });
-    this._harvestState = HARVEST_STATE.IDLE;
   }
 
   /**
@@ -168,6 +180,14 @@ class CaptchaWindowManager {
 
       win.show();
     });
+
+    // If we are actively harvesting, start harvesting on the new window as well
+    if (this._harvestStatus.state === HARVEST_STATE.ACTIVE) {
+      const { runnerId, siteKey } = this._harvestStatus;
+      win.webContents.once('did-finish-load', () => {
+        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+      });
+    }
 
     const handleClose = () => {
       if (nebulaEnv.isDevelopment()) {
