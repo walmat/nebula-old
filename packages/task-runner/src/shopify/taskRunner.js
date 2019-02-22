@@ -98,6 +98,7 @@ class TaskRunner {
      * Events will provide the task id, a message, and a message group
      */
     this._events = new EventEmitter();
+    this._events.setMaxListeners(100);
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleHarvest = this._handleHarvest.bind(this);

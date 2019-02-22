@@ -19,6 +19,7 @@ class TaskManager {
   constructor(loggerPath) {
     // Event Emitter for this manager
     this._events = new EventEmitter();
+    this._events.setMaxListeners(100);
 
     // Logger file path
     this._loggerPath = loggerPath;
