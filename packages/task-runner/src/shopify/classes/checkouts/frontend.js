@@ -171,6 +171,7 @@ class FrontendCheckout extends Checkout {
   }
 
   async getCheckout() {
+    const { timers } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
@@ -240,7 +241,7 @@ class FrontendCheckout extends Checkout {
       const recaptcha = $('.g-recaptcha');
       this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
       if (recaptcha.length > 0) {
-        this._context.task.checkoutSpeed = this._context.timer.getRunTime();
+        this._context.task.checkoutSpeed = timers.checkout.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 

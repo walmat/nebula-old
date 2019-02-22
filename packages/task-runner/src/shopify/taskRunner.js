@@ -55,7 +55,10 @@ class TaskRunner {
     this._checkoutType = null;
 
     this._captchaQueue = null;
-    this._timer = new Timer();
+    this._timers = {
+      checkout: new Timer(),
+      monitor: new Timer(),
+    };
     this._discord = new Discord(task.discord);
     this._slack = new Slack(task.slack);
 
@@ -70,7 +73,7 @@ class TaskRunner {
       task,
       proxy: proxy ? proxy.proxy : null,
       request: this._request,
-      timer: this._timer,
+      timers: this._timers,
       discord: this._discord,
       slack: this._slack,
       logger: this._logger,
