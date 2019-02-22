@@ -1,6 +1,13 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { session: Session } = require('electron');
 const moment = require('moment');
+const shortid = require('shortid');
 
+const { createCaptchaWindow, createYoutubeWindow, urls } = require('./windows');
+const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
+
+nebulaEnv.setUpEnvironment();
 
 // TODO: Should we move this to the constants file?
 const HARVEST_STATE = {
@@ -113,6 +120,112 @@ class CaptchaWindowManager {
     this._harvestState = HARVEST_STATE.IDLE;
   }
 
+  /**
+   * Create a captcha window and show it
+   */
+  spawnCaptchaWindow() {
+    // Prevent more than 5 windows from spawning
+    if (this._captchaWindows.length >= 5) {
+      return null;
+    }
+    if (this._context.captchaServerManager.isRunning) {
+      console.log('[DEBUG]: Starting captcha server');
+      this._context.captchaServerManager.start();
+    }
+    // Create window with randomly generated session partition
+    const session = Session.fromPartition(shortid.generate());
+    const win = createCaptchaWindow(null, { session });
+    const webContentsId = win.webContents.id;
+    this._captchaWindows.push(win);
+    win.webContents.session.setProxy(
+      {
+        proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
+        proxyBypassRules: '.google.com,.gstatic.com',
+      },
+      () => {
+        win.loadUrl('http://checkout.shopify.com');
+      },
+    );
+    win.on('ready-to-show', () => {
+      if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
+        console.log(`[DEBUG]: Window was opened, id = ${win.id}`);
+        win.webContents.openDevTools();
+      }
+
+      win.show();
+    });
+    win.on('close', () => {
+      if (nebulaEnv.isDevelopment()) {
+        console.log(`[DEBUG]: Window was closed, id = ${win.id}`);
+      }
+      this._captchaWindows = this._captchaWindows.filter(w => w.id !== win.id);
+      const ytWin = this._youtubeWindows[webContentsId];
+      if (ytWin) {
+        // Close youtube window
+        delete this._youtubeWindows[webContentsId];
+        ytWin.close();
+      }
+    });
+    win.webContents.on('destroyed', () => {
+      // Cleanup window if it was destroyed from outside source
+      if (nebulaEnv.isDevelopment()) {
+        console.log(`[DEBUG]: Window was destroyed, id = ${win.id}`);
+      }
+      this._captchaWindows = this._captchaWindows.filter(w => w.id !== win.id);
+      const ytWin = this._youtubeWindows[webContentsId];
+      if (ytWin) {
+        // Close youtube window
+        delete this._youtubeWindows[webContentsId];
+        ytWin.close();
+      }
+    });
+
+    return win;
+  }
+
+  spawnYoutubeWindow(parentId, parentSession) {
+    // Use parent session to link the two windows together
+    const win = createYoutubeWindow(null, { session: parentSession });
+    this._youtubeWindows[parentId] = win;
+    win.on('ready-to-show', () => {
+      if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
+        console.log(`[DEBUG]: Window was opened, id = ${win.id}`);
+        win.webContents.openDevTools(); // TODO: do we need this for youtube windows?
+      }
+      win.show();
+    });
+    win.on('close', () => {
+      if (nebulaEnv.isDevelopment()) {
+        console.log(`[DEBUG]: Window was closed, id = ${win.id}`);
+      }
+      // remove reference if it still exists
+      if (this._youtubeWindows[parentId]) {
+        delete this._youtubeWindows[parentId];
+      }
+    });
+    win.on('destroyed', () => {
+      if (nebulaEnv.isDevelopment()) {
+        console.log(`[DEBUG]: Window was destroyed, id = ${win.id}`);
+      }
+      // remove reference if it still exists
+      if (this._youtubeWindows[parentId]) {
+        delete this._youtubeWindows[parentId];
+      }
+    });
+    win.loadURL(urls.get('youtube'));
+
+    return win;
+  }
+
+  /**
+   * Close all captcha windows
+   */
+  closeAllCaptchaWindows() {
+    this._captchaWindows.forEach(win => {
+      win.close();
+    });
+  }
+
   _checkTokens() {
     let tokensTotal = 0;
     // Iterate through all sitekey token lists
@@ -133,7 +246,14 @@ class CaptchaWindowManager {
    * Clears the storage data and cache for the session
    */
   _onRequestEndSession(ev) {
-    // TODO: Implement
+    ev.sender.session.flushStorageData();
+    ev.sender.session.clearStorageData();
+    ev.sender.session.clearCache(() => {});
+    // close the youtube window if it exists
+    const win = this._youtubeWindows[ev.sender.id];
+    if (win) {
+      win.close();
+    }
   }
 
   /**
@@ -168,18 +288,13 @@ class CaptchaWindowManager {
    * and focus it. If no window is present, create a new
    * youtube window and focus it
    */
-  async _onRequestLaunchYoutube(ev) {
+  _onRequestLaunchYoutube(ev) {
+    const { id, session } = ev.sender;
     // Check if win already exists. if not, create it
-    let win = this._youtubeWindows[ev.sender.id];
+    let win = this._youtubeWindows[id];
     if (!win) {
-      win = await this._context.windowManager.createNewWindow('youtube');
-      this._youtubeWindows[ev.sender.id] = win;
-
-      win.webContents.on('destroyed', () => {
-        this._youtubeWindows[ev.sender.id] = null;
-      });
+      win = this.spawnYoutubeWindow(id, session);
     }
-
     // Focus the window
     win.focus();
   }
