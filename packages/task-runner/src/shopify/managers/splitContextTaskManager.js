@@ -119,7 +119,7 @@ class SplitContextTaskManager extends TaskManager {
       let sideEffects;
       switch (event) {
         case TaskManagerEvents.SendProxy: {
-          sideEffects = ([id, proxy]) => {
+          sideEffects = (id, proxy) => {
             // Store proxy on worker so we can release it during cleanup
             this._runners[id].proxy = proxy;
           };
