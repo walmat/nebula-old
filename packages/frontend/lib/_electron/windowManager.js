@@ -319,6 +319,7 @@ class WindowManager {
    */
   async transitiontoAuthedState() {
     this._main = await createMainWindow();
+    this._context.taskLauncher.start();
     const winUrl = urls.get('main');
     this._main.loadURL(winUrl);
 

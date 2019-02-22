@@ -4,12 +4,12 @@ const EventEmitter = require('events');
 const hash = require('object-hash');
 const shortid = require('shortid');
 
-const TaskRunner = require('./taskRunner');
-const { Events } = require('./classes/utils/constants').TaskManager;
-const { HookTypes } = require('./classes/utils/constants').TaskRunner;
-const Discord = require('./classes/hooks/discord');
-const Slack = require('./classes/hooks/slack');
-const { createLogger } = require('../common/logger');
+const TaskRunner = require('../taskRunner');
+const { Events } = require('../classes/utils/constants').TaskManager;
+const { HookTypes } = require('../classes/utils/constants').TaskRunner;
+const Discord = require('../classes/hooks/discord');
+const Slack = require('../classes/hooks/slack');
+const { createLogger } = require('../../common/logger');
 
 class TaskManager {
   get loggerPath() {
@@ -19,6 +19,7 @@ class TaskManager {
   constructor(loggerPath) {
     // Event Emitter for this manager
     this._events = new EventEmitter();
+    this._events.setMaxListeners(100);
 
     // Logger file path
     this._loggerPath = loggerPath;
@@ -376,16 +377,12 @@ class TaskManager {
 
   changeDelay(delay, type) {
     this._logger.info('Changing %s to: %s ms', type, delay);
-    Object.keys(this._runners).forEach(k => {
-      this._handlers[k].delay(k, delay, type);
-    });
+    this._events.emit(Events.ChangeDelay, 'ALL', delay, type);
   }
 
   updateHook(hook, type) {
     this._logger.info('Updating %s webhook to: %s', type, hook);
-    Object.keys(this._runners).forEach(k => {
-      this._handlers[k].updateHook(k, hook, type);
-    });
+    this._events.emit(Events.UpdateHook, 'ALL', hook, type);
   }
 
   /**
@@ -498,7 +495,7 @@ class TaskManager {
     }
 
     // Send abort signal
-    this._events.emit('abort', rId);
+    this._events.emit(Events.Abort, rId);
     this._logger.verbose('Stop signal sent');
     return rId;
   }
@@ -536,46 +533,65 @@ class TaskManager {
 
   // MARK: Private Methods
   _setup(runner) {
-    const handlers = {
-      abort: id => {
-        if (id === runner.id) {
-          // TODO: Respect the scope of the runner's methods (issue #137)
-          runner._handleAbort(id);
+    const handlerGenerator = (event, sideEffects) => (id, ...params) => {
+      if (id === runner.id || id === 'ALL') {
+        const args = [runner.id, ...params];
+        if (sideEffects) {
+          // Call side effect before sending message
+          sideEffects.apply(this, args);
         }
-      },
-      harvest: (id, token) => {
-        if (id === runner.id) {
-          // TODO: Respect the scope of the _events variable (issue #137)
-          runner._events.emit(Events.Harvest, id, token);
-        }
-      },
-      proxy: (id, proxy) => {
-        if (id === runner.id) {
-          // TODO: Respect the scope of the _events variable (issue #137)
-          runner._events.emit(TaskRunner.Events.ReceiveProxy, id, proxy);
-        }
-      },
-      delay: (id, delay, type) => {
-        if (id === runner.id) {
-          // TODO: Respect the scope of the _events variable (issue #137)
-          runner._events.emit(Events.ChangeDelay, id, delay, type);
-        }
-      },
-      updateHook: (id, hook, type) => {
-        if (id === runner.id) {
-          // TODO: Respect the scope of the _events variable (issue #137)
-          runner._events.emit(Events.UpdateHook, id, hook, type);
-        }
-      },
+        // TODO: Respect the scope of the _events variable (issue #137)
+        runner._events.emit(event, ...args);
+      }
     };
-    this._handlers[runner.id] = handlers;
 
-    // Attach Runner Handlers to Manager Events
-    this._events.on('abort', handlers.abort);
-    this._events.on(Events.Harvest, handlers.harvest);
-    this._events.on(Events.SendProxy, handlers.proxy);
-    this._events.on(Events.ChangeDelay, handlers.delay);
-    this._events.on(Events.UpdateHook, handlers.updateHook);
+    const handlers = {};
+
+    // Generate Handlers for each event
+    [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook].forEach(
+      event => {
+        let handler;
+        switch (event) {
+          case Events.Abort: {
+            // Abort handler has a special function so use that instead of default handler
+            handler = id => {
+              if (id === runner.id || id === 'ALL') {
+                // TODO: Respect the scope of the runner's methods (issue #137)
+                runner._handleAbort(runner.id);
+              }
+            };
+            break;
+          }
+          case Events.Harvest: {
+            // Harvest handler has a special function so use that instead of default handler
+            handler = (id, token) => {
+              if (id === runner.id || id === 'ALL') {
+                // TODO: Respect the scope of the runner's methods (issue #137)
+                runner._handleHarvest(runner.id, token);
+              }
+            };
+            break;
+          }
+          case Events.SendProxy: {
+            // Send proxy has a side effect so set it then generate the handler
+            const sideEffects = (id, proxy) => {
+              // Store proxy on worker so we can release it during cleanup
+              this._runners[id].proxy = proxy;
+            };
+            handler = handlerGenerator(TaskRunner.Events.ReceiveProxy, sideEffects);
+            break;
+          }
+          default: {
+            handler = handlerGenerator(event, null);
+            break;
+          }
+        }
+        // Store handler for cleanup
+        handlers[event] = handler;
+        this._events.on(event, handler);
+      },
+    );
+    this._handlers[runner.id] = handlers;
 
     // Attach Manager Handlers to Runner Events
     // TODO: Respect the scope of the _events variable (issue #137)
@@ -587,20 +603,19 @@ class TaskManager {
   }
 
   _cleanup(runner) {
-    const { abort, harvest, proxy, delay, updateHook } = this._handlers[runner.id];
+    const handlers = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
     runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     // TODO: Respect the scope of the _events variable (issue #137)
-    runner._events.removeListener(Events.StartHarvest, this.handleStartHarvest);
-    runner._events.removeListener(Events.StopHarvest, this.handleStopHarvest);
+    runner._events.removeAllListeners();
 
     // Cleanup runner handlers
-    this._events.removeListener('abort', abort);
-    this._events.removeListener(Events.Harvest, harvest);
-    this._events.removeListener(Events.SendProxy, proxy);
-    this._events.removeListener(Events.ChangeDelay, delay);
-    this._events.removeListener(Events.UpdateHook, updateHook);
+    [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook].forEach(
+      event => {
+        this._events.removeListener(event, handlers[event]);
+      },
+    );
   }
 
   async _start([runnerId, task, openProxy]) {
