@@ -143,6 +143,13 @@ class FrontendCheckout extends Checkout {
         }
       }
 
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      const cartError = $('.content--desc').text();
+      if (cartError && cartError.indexOf('Cannot find variant') > -1) {
+        await waitForDelay(monitorDelay);
+        return { message: 'Monitoring for product', nextState: States.AddToCart };
+      }
+
       if (body && body.status === 404) {
         await waitForDelay(monitorDelay);
         return { message: 'Running for restocks', nextState: States.AddToCart };
@@ -172,48 +179,88 @@ class FrontendCheckout extends Checkout {
 
   async getCheckout() {
     const { timers } = this._context;
-    const { monitorDelay } = this._context.task;
+    const { site, monitorDelay } = this._context.task;
+    const { url } = site;
 
-    const { redirectUrl, body } = await super.getCheckout();
-    this._logger.verbose('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
+    this._logger.verbose('FRONTEND CHECKOUT: Getting checkout');
+    try {
+      const res = await this._request({
+        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+        method: 'GET',
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: true,
+        resolveWithFullResponse: true,
+        simple: false,
+        json: false,
+        headers: {
+          ...getHeaders(site),
+          'Accept-Language': 'en-US,en;q=0.8',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Upgrade-Insecure-Requests': '1',
+        },
+      });
 
-    // check for redirects
-    if (redirectUrl) {
-      // account needed
-      if (redirectUrl.indexOf('account') > -1) {
-        if (this._context.task.username && this._context.task.password) {
-          return { message: 'Logging in', nextState: States.Login };
+      const { statusCode, body, headers } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Fetching checkout', nextState: States.GetCheckout };
+      }
+
+      const redirectUrl = headers.location || res.request.href;
+      this._logger.verbose('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
+
+      // check for redirects
+      if (redirectUrl) {
+        // account needed
+        if (redirectUrl.indexOf('account') > -1) {
+          if (this._context.task.username && this._context.task.password) {
+            return { message: 'Logging in', nextState: States.Login };
+          }
+          return { message: 'Account required', nextState: States.Stopped };
         }
-        return { message: 'Account required', nextState: States.Stopped };
+
+        // out of stock
+        if (redirectUrl.indexOf('stock_problems') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Running for restocks', nextState: States.GetCheckout };
+        }
+
+        // password page
+        if (redirectUrl.indexOf('password') > -1) {
+          return { message: 'Password page', nextState: States.CreateCheckout };
+        }
+
+        // queue
+        if (redirectUrl.indexOf('throttle') > -1) {
+          return { message: 'Waiting in queue', nextState: States.PollQueue };
+        }
       }
 
-      // out of stock
-      if (redirectUrl.indexOf('stock_problems') > -1) {
-        await waitForDelay(monitorDelay);
-        return { message: 'Running for restocks', nextState: States.GetCheckout };
+      // check if captcha is present
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      const recaptcha = $('.g-recaptcha');
+      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
+      if (recaptcha.length > 0) {
+        this._context.task.checkoutSpeed = timers.checkout.getRunTime();
+        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
-      // password page
-      if (redirectUrl.indexOf('password') > -1) {
-        return { message: 'Password page', nextState: States.CreateCheckout };
-      }
+      return { message: 'Submitting information', nextState: States.PatchCheckout };
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Error getting checkout %j', err);
 
-      // queue
-      if (redirectUrl.indexOf('throttle') > -1) {
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
+      const nextState = stateForError(err, {
+        message: 'Fetching checkout',
+        nextState: States.GetCheckout,
+      });
+      return nextState || { message: 'Failed: Fetching checkout', nextState: States.Stopped };
     }
-
-    // check if captcha is present
-    const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-    const recaptcha = $('.g-recaptcha');
-    this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
-    if (recaptcha.length > 0) {
-      this._context.task.checkoutSpeed = timers.checkout.getRunTime();
-      return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
-    }
-
-    return { message: 'Submitting information', nextState: States.PatchCheckout };
   }
 
   async patchCheckout() {

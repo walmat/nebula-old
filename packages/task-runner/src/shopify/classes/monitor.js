@@ -281,14 +281,6 @@ class Monitor {
       return { nextState: States.Aborted };
     }
 
-    // check checkout session timer
-    this._logger.verbose('Checkout session timer: %d', this._context.timers.monitor.getRunTime());
-    if (this._context.timers.monitor.getRunTime() > 420000) {
-      this._context.timers.monitor.reset();
-      this._context.timers.monitor.start();
-      return { message: 'Fetching checkout', nextState: States.GetCheckout };
-    }
-
     this._parseType = getParseType(
       this._context.task.product,
       this._logger,

@@ -254,59 +254,8 @@ class Checkout {
     }
   }
 
-  async getCheckout() {
-    const { site } = this._context.task;
-    const { url } = site;
-
-    this._logger.verbose('FRONTEND CHECKOUT: Getting checkout');
-    try {
-      const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
-        method: 'GET',
-        proxy: formatProxy(this._context.proxy),
-        rejectUnauthorized: false,
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: false,
-        headers: {
-          ...getHeaders(site),
-          'Accept-Language': 'en-US,en;q=0.8',
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Upgrade-Insecure-Requests': '1',
-        },
-      });
-
-      const { statusCode, body, headers } = res;
-      const checkStatus = stateForStatusCode(statusCode);
-      if (checkStatus) {
-        return checkStatus;
-      }
-
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Fetching checkout', nextState: States.GetCheckout };
-      }
-
-      const redirectUrl = headers.location || res.request.href;
-      this._logger.verbose('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
-
-      return { redirectUrl, body };
-    } catch (err) {
-      this._logger.debug('CHECKOUT: Error getting checkout %j', err);
-
-      const nextState = stateForError(err, {
-        message: 'Fetching checkout',
-        nextState: States.GetCheckout,
-      });
-      return nextState || { message: 'Failed: Fetching checkout', nextState: States.Stopped };
-    }
-  }
-
   /**
    * Handles polling a checkout queue for Shopify
-   *
-   * // TODO - mapping to next state
    *
    * Can happen after:
    * 1. Creating checkout -> proceed to patching checkout

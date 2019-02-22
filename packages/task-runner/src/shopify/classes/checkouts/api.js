@@ -154,33 +154,6 @@ class APICheckout extends Checkout {
     }
   }
 
-  async getCheckout() {
-    const { redirectUrl } = await super.getCheckout();
-    this._logger.verbose('API CHECKOUT: Get checkout redirect url: %s', redirectUrl);
-
-    // check for redirects
-    if (redirectUrl) {
-      // account needed
-      if (redirectUrl.indexOf('account') > -1) {
-        if (this._context.task.username && this._context.task.password) {
-          return { message: 'Logging in', nextState: States.Login };
-        }
-        return { message: 'Account required', nextState: States.Stopped };
-      }
-
-      // password page
-      if (redirectUrl.indexOf('password') > -1) {
-        return { message: 'Password page', nextState: States.CreateCheckout };
-      }
-
-      // queue
-      if (redirectUrl.indexOf('throttle') > -1) {
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
-    }
-    return { message: 'Monitoring for product' };
-  }
-
   async addToCart() {
     const { timers } = this._context;
     const { site, product, monitorDelay } = this._context.task;
@@ -251,11 +224,6 @@ class APICheckout extends Checkout {
         }
         if (error.variant_id && error.variant_id[0]) {
           // if we've been monitoring for more than ~7 minutes, let's refresh the checkout session
-          if (timers.monitor.getRunTime() > 420000) {
-            timers.monitor.reset();
-            timers.monitor.start();
-            return { message: 'Fetching checkout', nextState: States.GetCheckout };
-          }
           await waitForDelay(monitorDelay);
           return { message: 'Monitoring for product', nextState: States.AddToCart };
         }

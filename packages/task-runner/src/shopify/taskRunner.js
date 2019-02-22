@@ -57,7 +57,7 @@ class TaskRunner {
     this._captchaQueue = null;
     this._timers = {
       checkout: new Timer(),
-      monitor: new Timer(),
+      monitor: new Timer(), // TODO: https://github.com/walmat/nebula/issues/354
     };
     this._discord = new Discord(task.discord);
     this._slack = new Slack(task.slack);
