@@ -3,7 +3,7 @@ const { session: Session } = require('electron');
 const moment = require('moment');
 const shortid = require('shortid');
 
-const { createCaptchaWindow, createYoutubeWindow, urls } = require('./windows');
+const { createCaptchaWindow, createYouTubeWindow, urls } = require('./windows');
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
 
@@ -68,6 +68,16 @@ class CaptchaWindowManager {
     context.ipc.on(IPCKeys.RequestEndSession, this.validateSender(this._onRequestEndSession));
     context.ipc.on(IPCKeys.HarvestCaptcha, this.validateSender(this._onHarvestToken));
     context.ipc.on(IPCKeys.RequestRefresh, this.validateSender(ev => ev.sender.reload()));
+    context.ipc.on(IPCKeys.RequestCloseAllCaptchaWindows, () => {
+      this.closeAllCaptchaWindows();
+    });
+    context.ipc.on(
+      IPCKeys.RequestCloseWindow,
+      this.validateSender(ev => {
+        // No need to check for `undefined` because `validateSender` has done that for us...
+        this._captchaWindows.find(win => win.webContents.id === ev.sender.id).close();
+      }),
+    );
   }
 
   /**
@@ -81,7 +91,7 @@ class CaptchaWindowManager {
     return (ev, ...params) => {
       // Check for window to be a captcha windows
       const check = this._captchaWindows.find(win => win.webContents.id === ev.sender.id);
-      if (check) {
+      if (check && !check.isDestroyed()) {
         // call the handler
         handler.apply(this, [ev, ...params]);
       }
@@ -99,12 +109,15 @@ class CaptchaWindowManager {
   startHarvesting(runnerId, siteKey) {
     this._harvestState = HARVEST_STATE.ACTIVE;
     if (this._captchaWindows === 0) {
-      // TODO: create captcha window...
+      const win = this.spawnCaptchaWindow();
+      win.webContents.on('did-finish-load', () => {
+        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+      });
+    } else {
+      this._captchaWindows.forEach(win => {
+        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+      });
     }
-
-    this._captchaWindows.forEach(win => {
-      win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
-    });
   }
 
   /**
@@ -123,18 +136,19 @@ class CaptchaWindowManager {
   /**
    * Create a captcha window and show it
    */
-  spawnCaptchaWindow() {
+  spawnCaptchaWindow(options = {}) {
     // Prevent more than 5 windows from spawning
     if (this._captchaWindows.length >= 5) {
       return null;
     }
-    if (this._context.captchaServerManager.isRunning) {
+    if (!this._context.captchaServerManager.isRunning) {
       console.log('[DEBUG]: Starting captcha server');
       this._context.captchaServerManager.start();
     }
     // Create window with randomly generated session partition
     const session = Session.fromPartition(shortid.generate());
-    const win = createCaptchaWindow(null, { session });
+    const win = createCaptchaWindow(options, { session });
+    const winId = win.id;
     const webContentsId = win.webContents.id;
     this._captchaWindows.push(win);
     win.webContents.session.setProxy(
@@ -143,41 +157,44 @@ class CaptchaWindowManager {
         proxyBypassRules: '.google.com,.gstatic.com',
       },
       () => {
-        win.loadUrl('http://checkout.shopify.com');
+        win.loadURL('http://checkout.shopify.com');
       },
     );
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
-        console.log(`[DEBUG]: Window was opened, id = ${win.id}`);
+        console.log(`[DEBUG]: Window was opened, id = ${winId}`);
         win.webContents.openDevTools();
       }
 
       win.show();
     });
+
+    const handleClose = () => {
+      if (nebulaEnv.isDevelopment()) {
+        console.log(`[DEBUG]: Window was closed, id = ${winId}`);
+      }
+      this._captchaWindows = this._captchaWindows.filter(w => w.id !== winId);
+      const ytWin = this._youtubeWindows[webContentsId];
+      if (ytWin) {
+        // Close youtube window
+        delete this._youtubeWindows[webContentsId];
+        ytWin.close();
+      }
+
+      if (this._captchaWindows.length === 0) {
+        // Close the server
+        console.log('[DEBUG]: Stopping captcha server...');
+        this._context.captchaServerManager.stop();
+      }
+    };
+
+    // Cleanup window if it was destroyed from outside source
+    win.webContents.on('destroyed', handleClose);
     win.on('close', () => {
-      if (nebulaEnv.isDevelopment()) {
-        console.log(`[DEBUG]: Window was closed, id = ${win.id}`);
-      }
-      this._captchaWindows = this._captchaWindows.filter(w => w.id !== win.id);
-      const ytWin = this._youtubeWindows[webContentsId];
-      if (ytWin) {
-        // Close youtube window
-        delete this._youtubeWindows[webContentsId];
-        ytWin.close();
-      }
-    });
-    win.webContents.on('destroyed', () => {
-      // Cleanup window if it was destroyed from outside source
-      if (nebulaEnv.isDevelopment()) {
-        console.log(`[DEBUG]: Window was destroyed, id = ${win.id}`);
-      }
-      this._captchaWindows = this._captchaWindows.filter(w => w.id !== win.id);
-      const ytWin = this._youtubeWindows[webContentsId];
-      if (ytWin) {
-        // Close youtube window
-        delete this._youtubeWindows[webContentsId];
-        ytWin.close();
-      }
+      // Remove destroyed event since we are handling closing here
+      win.webContents.removeListener('destroyed', handleClose);
+
+      handleClose();
     });
 
     return win;
@@ -185,32 +202,34 @@ class CaptchaWindowManager {
 
   spawnYoutubeWindow(parentId, parentSession) {
     // Use parent session to link the two windows together
-    const win = createYoutubeWindow(null, { session: parentSession });
+    const win = createYouTubeWindow(null, { session: parentSession });
+    const winId = win.id;
     this._youtubeWindows[parentId] = win;
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
-        console.log(`[DEBUG]: Window was opened, id = ${win.id}`);
+        console.log(`[DEBUG]: Window was opened, id = ${winId}`);
         win.webContents.openDevTools(); // TODO: do we need this for youtube windows?
       }
       win.show();
     });
+
+    const handleClose = () => {
+      if (nebulaEnv.isDevelopment()) {
+        console.log(`[DEBUG]: Window was closed, id = ${winId}`);
+      }
+      // remove reference if it still exists
+      if (this._youtubeWindows[parentId]) {
+        delete this._youtubeWindows[parentId];
+      }
+    };
+
+    // Cleanup window if it was destroyed from outside source
+    win.webContents.on('destroyed', handleClose);
     win.on('close', () => {
-      if (nebulaEnv.isDevelopment()) {
-        console.log(`[DEBUG]: Window was closed, id = ${win.id}`);
-      }
-      // remove reference if it still exists
-      if (this._youtubeWindows[parentId]) {
-        delete this._youtubeWindows[parentId];
-      }
-    });
-    win.on('destroyed', () => {
-      if (nebulaEnv.isDevelopment()) {
-        console.log(`[DEBUG]: Window was destroyed, id = ${win.id}`);
-      }
-      // remove reference if it still exists
-      if (this._youtubeWindows[parentId]) {
-        delete this._youtubeWindows[parentId];
-      }
+      // Remove destroyed event since we are handling closing here
+      win.webContents.removeListener('destroyed', handleClose);
+
+      handleClose();
     });
     win.loadURL(urls.get('youtube'));
 
@@ -221,6 +240,7 @@ class CaptchaWindowManager {
    * Close all captcha windows
    */
   closeAllCaptchaWindows() {
+    console.log('[DEBUG]: Closing all captcha windows...');
     this._captchaWindows.forEach(win => {
       win.close();
     });
