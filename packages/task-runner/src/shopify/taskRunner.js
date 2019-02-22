@@ -364,7 +364,7 @@ class TaskRunner {
     const { message, nextState } = await this._checkout.getCheckout();
 
     this._emitTaskEvent({ message });
-    return nextState;
+    return nextState || this._prevState;
   }
 
   async _handlePatchCheckout() {
