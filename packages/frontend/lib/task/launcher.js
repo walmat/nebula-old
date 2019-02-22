@@ -87,17 +87,23 @@ class TaskLauncher {
   async start() {
     const session = await this._context.authManager.getSession();
     if (!session) {
-      console.log('Frontend is not authed! Skipping start...');
+      if (nebulaEnv.isDevelopment()) {
+        console.log('Frontend is not authed! Skipping start...');
+      }
       return;
     }
 
     if (this._launcherWindow) {
-      console.log('Already Launched! skipping start...');
+      if (nebulaEnv.isDevelopment()) {
+        console.log('Already Launched! skipping start...');
+      }
       return;
     }
 
-    console.log('Launching...');
-    const managerUrl = `file:///${path.resolve(__dirname, 'manager.html')}`;
+    if (nebulaEnv.isDevelopment()) {
+      console.log('Launching...');
+    }
+    const managerUrl = `file:///${path.resolve(__dirname, 'launcher.html')}`;
     this._launcherWindow = new Electron.BrowserWindow({
       frame: false,
       fullscreenable: false,
@@ -131,29 +137,43 @@ class TaskLauncher {
         console.log('Launcher Ready!');
         this._launcherWindow.webContents.openDevTools();
       }
+
+      // Start listening for events since we have at least one listener
+      this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
+      this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
     });
 
     this._launcherWindow.webContents.on('destroyed', () => {
       // Remove launcher window reference if it gets destroyed by an outside source
       this._launcherWindow = null;
+
+      // Remove the handler for listening to task event statuses
+      this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
     });
 
     this._launcherWindow.on('close', () => {
       if (nebulaEnv.isDevelopment()) {
         console.log('Launcher Closed!');
       }
+      this._launcherWindow = null;
     });
 
-    console.log('Launched!');
+    if (nebulaEnv.isDevelopment()) {
+      console.log('Launched!');
+    }
   }
 
   async stop() {
     if (!this._launcherWindow) {
-      console.log('launcher was already stopped');
+      if (nebulaEnv.isDevelopment()) {
+        console.log('launcher was already stopped');
+      }
       return;
     }
 
-    console.log('Closing Launcher...');
+    if (nebulaEnv.isDevelopment()) {
+      console.log('Closing Launcher...');
+    }
     await this.abortAllTasks();
     this._launcherWindow.close();
     this._launcherWindow = null;
@@ -181,7 +201,10 @@ class TaskLauncher {
   }
 
   _taskEventHandler(_, taskId, statusMessage) {
-    this._eventListeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
+    // forward event if we have listeners
+    if (this._eventListeners.length > 0) {
+      this._eventListeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
+    }
   }
 
   _onRegisterEventRequest(event) {
@@ -232,11 +255,6 @@ class TaskLauncher {
       return;
     }
     this._eventListeners.push(listener);
-    if (this._eventListeners.length === 1) {
-      // Start listening for events since we have at least one listener
-      this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
-      this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
-    }
   }
 
   _removeEventListener(listener) {
@@ -245,11 +263,6 @@ class TaskLauncher {
       return;
     }
     this._eventListeners = this._eventListeners.filter(l => l !== listener);
-    if (this._eventListeners.length === 0) {
-      // Stop listening for events since we don't have any listeners
-      this._sendToLauncher(IPCKeys.DeregisterTaskEventHandler);
-      this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
-    }
   }
 
   async _startHarvestEventHandler(
