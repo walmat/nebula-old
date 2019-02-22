@@ -45,7 +45,7 @@ class TaskLauncher {
     ].forEach(key => {
       context.ipc.on(key, (ev, ...params) => {
         if (this._launcherWindow && ev.sender !== this._launcherWindow.webContents) {
-          this._launcherWindow.webContents.send(key, ...params);
+          this._sendToLauncher(key, ...params);
         }
       });
     });
@@ -125,12 +125,17 @@ class TaskLauncher {
     this._launcherWindow.loadURL(managerUrl);
 
     this._launcherWindow.on('ready-to-show', () => {
-      this._launcherWindow.webContents.send('LOG_PATH', _LOG_PATH);
+      this._sendToLauncher('LOG_PATH', _LOG_PATH);
       // open dev tools if dev env
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log('Launcher Ready!');
         this._launcherWindow.webContents.openDevTools();
       }
+    });
+
+    this._launcherWindow.webContents.on('destroyed', () => {
+      // Remove launcher window reference if it gets destroyed by an outside source
+      this._launcherWindow = null;
     });
 
     this._launcherWindow.on('close', () => {
@@ -165,8 +170,14 @@ class TaskLauncher {
           resolve();
         }
       });
-      this._launcherWindow.webContents.send(IPCKeys.RequestAbortAllTasksForClose);
+      this._sendToLauncher(IPCKeys.RequestAbortAllTasksForClose);
     });
+  }
+
+  _sendToLauncher(channel, ...params) {
+    if (this._launcherWindow) {
+      this._launcherWindow.webContents.send(channel, ...params);
+    }
   }
 
   _taskEventHandler(_, taskId, statusMessage) {
@@ -223,7 +234,7 @@ class TaskLauncher {
     this._eventListeners.push(listener);
     if (this._eventListeners.length === 1) {
       // Start listening for events since we have at least one listener
-      this._launcherWindow.webContents.send(IPCKeys.RegisterTaskEventHandler);
+      this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
       this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
     }
   }
@@ -236,7 +247,7 @@ class TaskLauncher {
     this._eventListeners = this._eventListeners.filter(l => l !== listener);
     if (this._eventListeners.length === 0) {
       // Stop listening for events since we don't have any listeners
-      this._launcherWindow.webContents.send(IPCKeys.DeregisterTaskEventHandler);
+      this._sendToLauncher(IPCKeys.DeregisterTaskEventHandler);
       this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
     }
   }
