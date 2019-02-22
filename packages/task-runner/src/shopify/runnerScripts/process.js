@@ -1,3 +1,4 @@
+/* eslint class-methods-use-this: ["error", { "exceptMethods": ["wireErrors", "send", "receive"] }] */
 const TaskRunnerContextTransformer = require('./base');
 
 class TaskRunnerProcessTransformer extends TaskRunnerContextTransformer {
@@ -10,9 +11,6 @@ class TaskRunnerProcessTransformer extends TaskRunnerContextTransformer {
     process.on('unhandledRejection', errorTransformer.bind(this));
   }
 
-  // TODO: Research if there is another way to implement this
-  // without needing the eslint-disable comment
-  // eslint-disable-next-line class-methods-use-this
   send(payload) {
     process.send(payload);
   }

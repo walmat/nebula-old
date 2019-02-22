@@ -1,3 +1,4 @@
+/* eslint class-methods-use-this: ["error", { "exceptMethods": ["wireErrors", "send", "receive"] }] */
 const TaskRunnerContextTransformer = require('./base');
 
 class TaskRunnerWorkerTransformer extends TaskRunnerContextTransformer {
@@ -21,16 +22,10 @@ class TaskRunnerWorkerTransformer extends TaskRunnerContextTransformer {
     };
   }
 
-  // TODO: Research if there is another way to implement this
-  // without needing the eslint-disable comment
-  // eslint-disable-next-line class-methods-use-this
   wireErrors(errorTransformer) {
     global.onerror = errorTransformer;
   }
 
-  // TODO: Research if there is another way to implement this
-  // without needing the eslint-disable comment
-  // eslint-disable-next-line class-methods-use-this
   send(payload) {
     global.postMessage(payload);
   }
