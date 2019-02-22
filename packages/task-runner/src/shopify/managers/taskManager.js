@@ -377,16 +377,12 @@ class TaskManager {
 
   changeDelay(delay, type) {
     this._logger.info('Changing %s to: %s ms', type, delay);
-    Object.keys(this._runners).forEach(k => {
-      this._handlers[k].delay(k, delay, type);
-    });
+    this._events.emit(Events.ChangeDelay, 'ALL', delay, type);
   }
 
   updateHook(hook, type) {
     this._logger.info('Updating %s webhook to: %s', type, hook);
-    Object.keys(this._runners).forEach(k => {
-      this._handlers[k].updateHook(k, hook, type);
-    });
+    this._events.emit(Events.UpdateHook, 'ALL', hook, type);
   }
 
   /**
@@ -557,15 +553,15 @@ class TaskManager {
         }
       },
       delay: (id, delay, type) => {
-        if (id === runner.id) {
+        if (id === runner.id || id === 'ALL') {
           // TODO: Respect the scope of the _events variable (issue #137)
-          runner._events.emit(Events.ChangeDelay, id, delay, type);
+          runner._events.emit(Events.ChangeDelay, runner.id, delay, type);
         }
       },
       updateHook: (id, hook, type) => {
-        if (id === runner.id) {
+        if (id === runner.id || id === 'ALL') {
           // TODO: Respect the scope of the _events variable (issue #137)
-          runner._events.emit(Events.UpdateHook, id, hook, type);
+          runner._events.emit(Events.UpdateHook, runner.id, hook, type);
         }
       },
     };

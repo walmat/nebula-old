@@ -71,8 +71,8 @@ class SplitContextTaskManager extends TaskManager {
     const childContext = this._runners[rId];
     this._logger.verbose('Setting up %s handlers for runner: %s', childContext.name, rId);
     const handlerGenerator = (event, sideEffects) => (id, ...params) => {
-      if (id === rId) {
-        const args = [id, ...params];
+      if (id === rId || id === 'ALL') {
+        const args = [rId, ...params];
         if (sideEffects) {
           // Call side effect before sending message
           sideEffects.apply(this, args);
