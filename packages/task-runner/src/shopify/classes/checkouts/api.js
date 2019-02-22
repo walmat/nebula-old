@@ -224,8 +224,8 @@ class APICheckout extends Checkout {
         }
         if (error.variant_id && error.variant_id[0]) {
           // if we've been monitoring for more than ~7 minutes, let's refresh the checkout session
-          if (timers.monitor.getRunTime() > 5000) {
-            return { message: 'Pinging checkout', nextState: States.GetCheckout };
+          if (timers.monitor.getRunTime() > 420000) {
+            return { message: 'Fetching checkout', nextState: States.GetCheckout };
           }
           await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState: States.AddToCart };

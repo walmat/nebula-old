@@ -156,6 +156,7 @@ class Checkout {
   }
 
   async createCheckout() {
+    const { timers } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
@@ -233,6 +234,8 @@ class Checkout {
 
       // successful checkout created, parse it
       if (redirectUrl.indexOf('checkouts') > -1) {
+        // start checkout session timer
+        timers.monitor.start();
         [, , , this.storeId] = redirectUrl.split('/');
         [, , , , , this.checkoutToken] = redirectUrl.split('/');
         return { message: 'Submitting information', nextState: States.PatchCheckout };
