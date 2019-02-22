@@ -25,7 +25,9 @@ class TaskManagerAdapter {
         this._taskManager = new SplitProcessTaskManager(logPath);
         break;
       }
-      case 'thread': {
+      case 'thread':
+      default: {
+        // Use multithread TaskManager as default if supported
         try {
           this._taskManager = new SplitThreadTaskManager(logPath);
         } catch (_) {
@@ -34,11 +36,6 @@ class TaskManagerAdapter {
           );
           this._taskManager = new SplitProcessTaskManager(logPath);
         }
-        break;
-      }
-      default: {
-        // Use multiprocess TaskManager as default
-        this._taskManager = new SplitProcessTaskManager(logPath);
         break;
       }
     }
