@@ -1,0 +1,16 @@
+@import '../themes';
+
+// Shared Mixins
+@mixin image() {
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+@mixin settings-font() {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  @include themify($themes) {
+    color: themed('textColor');
+  }
+  letter-spacing: 0;
+}

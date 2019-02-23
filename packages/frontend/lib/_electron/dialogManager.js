@@ -55,7 +55,7 @@ class DialogManager {
    * @param {Object} options Options of a dialog.
    */
   _onRequestShowMessage(ev, options) {
-    if (!(options)) {
+    if (!options) {
       ev.sender.send(IPCKeys.FinishShowMessage, new Error('Invalid arguments.'), null);
       return;
     }
@@ -71,7 +71,7 @@ class DialogManager {
    * @param {Object} options Options of a dialog.
    */
   _onRequestShowOpenDialog(ev, options) {
-    if (!(options)) {
+    if (!options) {
       ev.sender.send(IPCKeys.FinishShowOpenDialog, new Error('Invalid arguments.'), null);
       return;
     }

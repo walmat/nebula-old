@@ -1,0 +1,46 @@
+%input_field {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
+}
+
+.profiles {
+  &--input-fields {
+    margin-top: 22px !important;
+  }
+
+  .profiles__fields {
+    &--matches {
+      margin-top: 0.5px;
+      height: 21px;
+      width: 21px;
+      cursor: pointer;
+      &:hover {
+        opacity: 0.8333;
+      }
+    }
+    &--name {
+      width: 164px;
+      height: 29px;
+      border: 1px solid;
+      border-radius: 3px;
+      margin-left: -25px;
+      margin-top: -18px;
+    }
+
+    &--save {
+      @extend %input_field;
+      margin-top: 15px;
+      background: #f0405e;
+      color: #efefef;
+      font-size: 12px;
+      letter-spacing: 0;
+      border-radius: 3px;
+      border: none;
+      width: 98px;
+      height: 29px;
+      cursor: pointer;
+    }
+  }
+}

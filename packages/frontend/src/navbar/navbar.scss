@@ -1,0 +1,81 @@
+@import '../themes';
+
+%icons-base {
+  cursor: pointer;
+  &--active {
+    opacity: 0.5;
+  }
+}
+
+.active {
+  opacity: 0.5;
+}
+
+.navbar {
+  height: 100%;
+  position: fixed;
+
+  &--separator {
+    @include themify($themes) {
+      border-style: solid;
+      border-width: 1px;
+      border-color: themed('navbarDividerColor');
+    }
+    margin-top: 8.5px;
+    margin-bottom: 8.5px;
+    height: 100%;
+    display: block;
+  }
+
+  &__row-item {
+    &--first {
+      margin-top: 15px !important;
+    }
+    &--second {
+      margin-top: 55px !important;
+    }
+    &--last {
+      margin-bottom: 75px !important;
+    }
+  }
+
+  &__icons {
+    &--tasks {
+      @extend %icons-base;
+      margin-left: 5px;
+      width: 61px;
+      height: 49px;
+    }
+    &--profiles {
+      @extend %icons-base;
+      width: 44px;
+      height: 43px;
+    }
+    &--servers {
+      @extend %icons-base;
+      width: 42px;
+      height: 46px;
+    }
+    &--settings {
+      @extend %icons-base;
+      width: 40px;
+      height: 60px;
+    }
+  }
+
+  &__text {
+    &--app-name {
+      text-transform: capitalize;
+      text-align: center;
+      margin: 0;
+      margin-top: 10px;
+      opacity: 0.75;
+      color: #46adb4 !important;
+    }
+    &--app-version {
+      text-align: center;
+      opacity: 0.75;
+      color: #f0405e !important;
+    }
+  }
+}

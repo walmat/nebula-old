@@ -8,11 +8,14 @@ import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
+import { THEMES, mapThemeToColor, mapToNextTheme } from './constants/themes';
 
 import addTestId from './utils/addTestId';
 
 import closeImg from './_assets/close.svg';
 import deactivateImg from './_assets/logout.svg';
+import night from './_assets/moon.svg';
+import day from './_assets/sun.svg';
 
 import './app.css';
 
@@ -56,6 +59,18 @@ export class App extends PureComponent {
     window.removeEventListener('beforeunload', this._cleanupTaskEvents);
   }
 
+  // Next you can import it here and use it
+  setTheme(store) {
+    const { theme } = store.getState();
+    const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT; // assign a default theme in case an invalid theme is given
+    store.dispatch(globalActions.setTheme(nextTheme));
+    if (window.Bridge) {
+      const backgroundColor = mapThemeToColor[nextTheme];
+      window.Bridge.setTheme({ backgroundColor });
+    }
+    this.forceUpdate();
+  }
+
   taskHandler(event, taskId, statusMessage) {
     const { store } = this.props;
     store.dispatch(taskActions.status(taskId, statusMessage));
@@ -69,7 +84,10 @@ export class App extends PureComponent {
 
   render() {
     const { store, onKeyPress } = this.props;
-    const stateLocation = store.getState().navbar.location;
+    const {
+      theme,
+      navbar: { location: stateLocation },
+    } = store.getState();
     const windowLocation = window.location.pathname;
     let redirectRoute = ROUTES.TASKS;
     if (windowLocation !== stateLocation) {
@@ -78,7 +96,7 @@ export class App extends PureComponent {
     return (
       <Provider store={store}>
         <BrowserRouter>
-          <div id="container-wrapper">
+          <div id="container-wrapper" className={`theme-${theme}`}>
             <div className="titlebar">
               <div
                 className="close-area-1"
@@ -90,20 +108,7 @@ export class App extends PureComponent {
                 draggable="false"
                 data-testid={addTestId('App.button.deactivate')}
               >
-                <img
-                  src={deactivateImg}
-                  draggable="false"
-                  alt="close"
-                  style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '6px',
-                    cursor: 'pointer',
-                    verticalAlign: 'middle',
-                    width: '12px',
-                    height: '12px',
-                  }}
-                />
+                <img src={deactivateImg} draggable="false" alt="close" />
               </div>
               <div
                 className="close-area-2"
@@ -115,20 +120,18 @@ export class App extends PureComponent {
                 draggable="false"
                 data-testid={addTestId('App.button.close')}
               >
-                <img
-                  src={closeImg}
-                  draggable="false"
-                  alt="close"
-                  style={{
-                    position: 'absolute',
-                    top: '6px',
-                    right: '6px',
-                    cursor: 'pointer',
-                    verticalAlign: 'middle',
-                    width: '12px',
-                    height: '12px',
-                  }}
-                />
+                <img src={closeImg} draggable="false" alt="close" />
+              </div>
+              <div
+                className="theme-icon"
+                role="button"
+                tabIndex={0}
+                title={theme === THEMES.LIGHT ? 'night mode' : 'light mode'}
+                onKeyPress={onKeyPress}
+                onClick={() => this.setTheme(store)}
+                draggable="false"
+              >
+                <img src={theme === THEMES.LIGHT ? night : day} draggable="false" alt="theme" />
               </div>
             </div>
             <Navbar />

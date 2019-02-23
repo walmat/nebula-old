@@ -111,7 +111,7 @@ export class TaskRowPrimitive extends Component {
   }
 
   renderEditMenu() {
-    const { isEditing, task, onKeyPress } = this.props;
+    const { isEditing, task, onKeyPress, theme } = this.props;
     if (!isEditing) {
       return null;
     }
@@ -153,6 +153,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Variant, Keywords, Link"
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
                 value={editProduct}
+                title={editProduct}
                 style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
                 required
                 data-testid={addTestId(`${testIdBase}.productInput`)}
@@ -167,6 +168,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Choose Site"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
+                  theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
@@ -184,6 +186,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
+                  theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
                 )}
                 value={editProfile}
@@ -203,6 +206,7 @@ export class TaskRowPrimitive extends Component {
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
+                  theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
                 )}
                 value={editSizes}
@@ -338,7 +342,7 @@ export class TaskRowPrimitive extends Component {
     if (task.sizes.length) {
       sizes = task.sizes.reduce((acc, cur, idx) => `${idx ? `${acc}, ` : ''}${cur}`, '');
     }
-    let taskAccountValue = 'None';
+    let taskAccountValue = null;
     if (task.username && task.password) {
       taskAccountValue = task.username;
     }
@@ -346,13 +350,17 @@ export class TaskRowPrimitive extends Component {
       <div key={task.id} className="tasks-row row">
         <div className="col col--no-gutter tasks-edit">{this.renderTableRowEditButton()}</div>
         <div className="col col--no-gutter tasks-row__id">{id}</div>
-        <div className="col col--no-gutter tasks-row__product">{task.product.raw || 'None'}</div>
+        <div className="col col--no-gutter tasks-row__product" title={task.product.raw || 'None'}>
+          {task.product.raw || 'None'}
+        </div>
         <div className="col col--no-gutter tasks-row__sites">{task.site.name || 'None'}</div>
         <div className="col col--no-gutter tasks-row__profile">
           {task.profile.profileName || 'None'}
         </div>
         <div className="col col--no-gutter tasks-row__sizes">{sizes}</div>
-        <div className="col col--no-gutter tasks-row__account">{taskAccountValue}</div>
+        <div className="col col--no-gutter tasks-row__account">
+          {taskAccountValue ? 'Yes' : 'None'}
+        </div>
         <div className="col col--no-gutter tasks-row__actions">
           <div className="row row--gutter">
             {this.renderTableRowCopyActionButton()}
@@ -390,6 +398,7 @@ TaskRowPrimitive.propTypes = {
   onCommitEdits: PropTypes.func.isRequired,
   onCancelEdits: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
+  theme: PropTypes.string.isRequired,
   errors: tDefns.taskEditErrors.isRequired,
 };
 
@@ -403,6 +412,7 @@ export const mapStateToProps = (state, ownProps) => ({
   task: ownProps.task,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
+  theme: state.theme,
   errors: ownProps.task.edits.errors,
 });
 

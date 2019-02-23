@@ -143,6 +143,13 @@ class FrontendCheckout extends Checkout {
         }
       }
 
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      const cartError = $('.content--desc').text();
+      if (cartError && cartError.indexOf('Cannot find variant') > -1) {
+        await waitForDelay(monitorDelay);
+        return { message: 'Monitoring for product', nextState: States.AddToCart };
+      }
+
       if (body && body.status === 404) {
         await waitForDelay(monitorDelay);
         return { message: 'Running for restocks', nextState: States.AddToCart };
@@ -171,6 +178,7 @@ class FrontendCheckout extends Checkout {
   }
 
   async getCheckout() {
+    const { timers } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
@@ -230,7 +238,6 @@ class FrontendCheckout extends Checkout {
 
         // queue
         if (redirectUrl.indexOf('throttle') > -1) {
-          await waitForDelay(monitorDelay);
           return { message: 'Waiting in queue', nextState: States.PollQueue };
         }
       }
@@ -240,7 +247,7 @@ class FrontendCheckout extends Checkout {
       const recaptcha = $('.g-recaptcha');
       this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
       if (recaptcha.length > 0) {
-        this._context.task.checkoutSpeed = this._context.timer.getRunTime();
+        this._context.task.checkoutSpeed = timers.checkout.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 

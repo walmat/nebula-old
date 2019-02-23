@@ -66,7 +66,7 @@ const _createWindow = options => {
       case 'idle':
       case 'proxy':
       case 'sessions':
-      case 'webReqeust': {
+      case 'webRequest': {
         callback(true);
         break;
       }
@@ -136,12 +136,17 @@ urls.set('about', aboutUrl);
  *
  * @return {BrowserWindow} Captcha Window
  */
-const createCaptchaWindow = () =>
+const createCaptchaWindow = (options = {}, webPreferences = {}) =>
   _createWindow({
+    // assign default background color first, so it can be overwritten by parameter options
+    backgroundColor: '#f4f4f4',
+    ...options,
     width: 400,
     height: 650,
+    transparent: true,
     webPreferences: {
       ..._defaultWebPreferences,
+      ...webPreferences,
       preload: Path.join(__dirname, '../common/bridge/captchaPreload.js'),
     },
   });
@@ -157,13 +162,15 @@ urls.set('captcha', captchaUrl);
  *
  * @return {BrowserWindow} YouTube Window
  */
-const createYouTubeWindow = () =>
+const createYouTubeWindow = (options = {}, webPreferences = {}) =>
   _createWindow({
+    ...options,
     width: 450,
     height: 475,
     frame: true,
     webPreferences: {
       ..._defaultWebPreferences,
+      ...webPreferences,
       preload: Path.join(__dirname, '../common/bridge/youtubePreload.js'),
     },
   });

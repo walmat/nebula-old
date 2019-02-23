@@ -68,11 +68,24 @@
   margin-right: 0 !important;
 }
 
+/*
+ * Implementation of themes
+ */
+/*
+ * Implementation of themes
+ */
 .tasks .tasks-create {
   height: 226px;
   width: 277px;
-  border: 1px solid #f0405e;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 3px;
+}
+.theme-light .tasks .tasks-create {
+  border-color: #f0405e;
+}
+.theme-dark .tasks .tasks-create {
+  border-color: #f0405e;
 }
 .tasks .tasks-create__section-header {
   padding-bottom: 1px;
@@ -80,12 +93,23 @@
 .tasks .tasks-create__label {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
   margin-top: 9px;
   padding-left: 0.5px;
+}
+.theme-light .tasks .tasks-create__label {
+  color: #161318;
+}
+.theme-dark .tasks .tasks-create__label {
+  color: #efefef;
+}
+.theme-light .tasks .tasks-create__label {
+  color: #161318;
+}
+.theme-dark .tasks .tasks-create__label {
+  color: #dcdcdc;
 }
 .tasks .tasks-create__input-group {
   margin: 0 11.5px !important;
@@ -100,22 +124,25 @@
 .tasks .tasks-create__input-group--sizes {
   margin-right: 14px !important;
 }
-.tasks .tasks-create__input {
-  font-family: AvenirNext-Medium;
-  font-size: 9px;
-  color: #161318;
-  letter-spacing: 0;
-}
 .tasks .tasks-create__input--bordered {
-  border: 1px solid #F0405E;
+  border-width: 1px;
+  border-style: solid;
 }
 .tasks .tasks-create__input--field {
   width: 119px;
   height: 29px;
 }
-.tasks .tasks-create__input--field:disabled {
-  background: #e5e5e5;
-  cursor: not-allowed;
+.theme-light .tasks .tasks-create__input--field {
+  background: #f4f4f4;
+}
+.theme-dark .tasks .tasks-create__input--field {
+  background: #393c3f;
+}
+.theme-light .tasks .tasks-create__input--field:disabled {
+  background: #dcdcdc;
+}
+.theme-dark .tasks .tasks-create__input--field:disabled {
+  background: #262626;
 }
 .tasks .tasks-create__submit-row {
   align-self: flex-end;
@@ -125,31 +152,51 @@
   width: 83px;
   height: 29px;
   cursor: pointer;
-  background: #F0405E;
   border: none;
   border-radius: 3px;
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #EFEFEF;
+  color: #efefef;
   letter-spacing: 0;
+}
+.theme-light .tasks .tasks-create__submit {
+  background: #f0405e;
+}
+.theme-dark .tasks .tasks-create__submit {
+  background: #f0405e;
 }
 
-.tasks .tasks-log__header--output, .tasks .tasks-log__header--site, .tasks .tasks-log__header--size, .tasks .tasks-log__header--id {
+/*
+ * Implementation of themes
+ */
+.tasks .tasks-log__header--output, .tasks .tasks-log__header--size, .tasks .tasks-log__header--site, .tasks .tasks-log__header--id {
   margin: 0;
 }
-.tasks .tasks-log__header--output > p, .tasks .tasks-log__header--site > p, .tasks .tasks-log__header--size > p, .tasks .tasks-log__header--id > p {
+.tasks .tasks-log__header--output > p, .tasks .tasks-log__header--size > p, .tasks .tasks-log__header--site > p, .tasks .tasks-log__header--id > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #161318;
   letter-spacing: 0;
   margin: 5px 0;
+}
+.theme-light .tasks .tasks-log__header--output > p, .tasks .theme-light .tasks-log__header--output > p, .theme-light .tasks .tasks-log__header--size > p, .tasks .theme-light .tasks-log__header--size > p, .theme-light .tasks .tasks-log__header--site > p, .tasks .theme-light .tasks-log__header--site > p, .theme-light .tasks .tasks-log__header--id > p, .tasks .theme-light .tasks-log__header--id > p {
+  color: #161318;
+}
+.theme-dark .tasks .tasks-log__header--output > p, .tasks .theme-dark .tasks-log__header--output > p, .theme-dark .tasks .tasks-log__header--size > p, .tasks .theme-dark .tasks-log__header--size > p, .theme-dark .tasks .tasks-log__header--site > p, .tasks .theme-dark .tasks-log__header--site > p, .theme-dark .tasks .tasks-log__header--id > p, .tasks .theme-dark .tasks-log__header--id > p {
+  color: #dcdcdc;
 }
 
 .tasks .tasks-log-container {
   width: 504px;
   height: 300px;
-  border: 1px solid #F0405E;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 3px;
+}
+.theme-light .tasks .tasks-log-container {
+  border-color: #f0405e;
+}
+.theme-dark .tasks .tasks-log-container {
+  border-color: #f0405e;
 }
 .tasks .tasks-log-container .tasks-table__wrapper {
   min-width: 0;
@@ -179,7 +226,14 @@
   padding-bottom: 0;
 }
 .tasks .tasks-table .tasks-row-container {
-  border-bottom: #dfdfdf solid 1px;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+.theme-light .tasks .tasks-table .tasks-row-container {
+  border-bottom-color: #dfdfdf;
+}
+.theme-dark .tasks .tasks-table .tasks-row-container {
+  border-bottom-color: #6d6e70;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row {
   display: flex;
@@ -227,12 +281,20 @@
   padding-left: 18px;
 }
 .tasks .tasks-log__header--output {
-  width: 20x;
-  padding-left: 28px;
+  width: 20px;
+  padding-left: 30px;
 }
 
+/*
+ * Implementation of themes
+ */
+/*
+ * Implementation of themes
+ */
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product {
+  white-space: nowrap;
   text-overflow: ellipsis;
+  overflow-x: hidden;
 }
 
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit {
@@ -241,17 +303,29 @@
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #161318;
   letter-spacing: 0;
   margin: 5px 0;
+}
+.theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__actions > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__pairs > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__sizes > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__profile > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__sites > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__product > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__id > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__edit > p {
+  color: #161318;
+}
+.theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__actions > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__pairs > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__sizes > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__profile > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__sites > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__product > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__id > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__edit > p {
+  color: #dcdcdc;
 }
 
 .tasks .tasks-table-container {
   width: 741px;
   height: 300px;
-  border: 1px solid #F0405E;
+  border-style: solid;
+  border-width: 1px;
   border-radius: 3px;
   margin: 0 16px 0 0 !important;
+}
+.theme-light .tasks .tasks-table-container {
+  border-color: #f0405e;
+}
+.theme-dark .tasks .tasks-table-container {
+  border-color: #f0405e;
 }
 .tasks .tasks-table-container .tasks-table__wrapper {
   min-width: 0;
@@ -313,7 +387,14 @@
   padding-bottom: 0;
 }
 .tasks .tasks-table .tasks-row-container {
-  border-bottom: #dfdfdf solid 1px;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+.theme-light .tasks .tasks-table .tasks-row-container {
+  border-bottom-color: #dfdfdf;
+}
+.theme-dark .tasks .tasks-table .tasks-row-container {
+  border-bottom-color: #6d6e70;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row {
   display: flex;
@@ -323,9 +404,16 @@
   padding: 10px;
   height: 80px;
   align-items: flex-start;
-  border: #b8d9d2 solid 1px;
+  border-width: 1px;
+  border-style: solid;
   margin: 0 -5px 5px -5px;
-  border-radius: 3px !important;
+  border-radius: 3px;
+}
+.theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
+  border-color: #b8d9d2;
+}
+.theme-dark .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
+  border-color: #b8d9d2;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field {
   vertical-align: middle;
@@ -336,28 +424,31 @@
   margin: 0;
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
+}
+.theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__label {
+  color: #161318;
+}
+.theme-dark .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__label {
+  color: #efefef;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {
   font-family: AvenirNext-Medium;
   font-size: 9px;
-  color: #161318;
   letter-spacing: 0;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select:disabled {
-  background: #e5e5e5;
-  cursor: not-allowed;
+.theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {
+  color: #161318;
+}
+.theme-dark .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {
+  color: #efefef;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input {
   vertical-align: middle;
   height: 29px;
-  border: #F0405E solid 1px;
+  border-width: 1px;
+  border-style: solid;
   border-radius: 3px;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__input:disabled {
-  background: #e5e5e5;
-  cursor: not-allowed;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action {
   margin: 12px 7px 0 7px;
@@ -370,14 +461,20 @@
   border-radius: 3px;
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #EFEFEF;
+  color: #efefef;
   letter-spacing: 0;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--cancel {
-  background: #46ADB4;
+.theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--cancel {
+  background: #46adb4;
 }
-.tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--save {
-  background: #F0405E;
+.theme-dark .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--cancel {
+  background: #46adb4;
+}
+.theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--save {
+  background: #f0405e;
+}
+.theme-dark .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button--save {
+  background: #f0405e;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row img {
   cursor: pointer;
@@ -396,7 +493,7 @@
   text-overflow: ellipsis;
   vertical-align: middle;
   max-width: 200px;
-  overflow-x: scroll;
+  overflow: hidden;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sites {
   text-overflow: ellipsis;
@@ -409,9 +506,6 @@
   text-overflow: ellipsis;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes {
-  overflow-x: scroll;
-  white-space: nowrap;
-  vertical-align: middle;
   width: 65px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account {
@@ -422,19 +516,27 @@
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:first-child {
   margin-left: -10px;
+  margin-top: 2.5px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(2) {
+  margin-top: 3px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(3) {
-  margin-top: 1px;
+  margin-top: 3.5px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(4) {
+  margin-top: 3.35px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button {
   padding-bottom: 3px;
   margin-right: 1.5px;
+  margin-left: 1.5px;
   width: 16px;
 }
 
 .view-line {
   margin: 0;
-  border: 1px solid #EDBCC6;
+  border: 1px solid #edbcc6;
   flex: 1 1 100%;
 }
 
@@ -460,5 +562,3 @@
 .temp-debug {
   background-color: gray;
 }
-
-/*# sourceMappingURL=tasks.css.map */

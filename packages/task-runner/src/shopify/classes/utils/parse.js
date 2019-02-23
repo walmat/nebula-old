@@ -133,9 +133,9 @@ function matchVariant(products, variantId, logger) {
   // Sometimes the objects in the variants list don't include a product_id hook back to the associated product.
   // In order to counteract this, we first add this hook in (if it doesn't exist)
   const transformedProducts = products.map(({ id, variants, ...otherProductData }) => {
-    const transformedVariants = variants.map(({ product_id, ...otherVariantData }) => ({
+    const transformedVariants = variants.map(({ product_id: productId, ...otherVariantData }) => ({
       ...otherVariantData,
-      product_id: product_id || id,
+      product_id: productId || id,
     }));
     return {
       ...otherProductData,

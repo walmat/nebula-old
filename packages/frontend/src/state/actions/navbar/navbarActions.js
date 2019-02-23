@@ -43,7 +43,7 @@ const routeAction = type => history => route(type, history);
 
 export const navbarActions = {
   route,
-  routeHome: routeAction(NAVBAR_ACTIONS.ROUTE_HOME),
+  routeHome: routeAction(NAVBAR_ACTIONS.ROUTE_TASKS),
   routeTasks: routeAction(NAVBAR_ACTIONS.ROUTE_TASKS),
   routeProfiles: routeAction(NAVBAR_ACTIONS.ROUTE_PROFILES),
   routeServer: routeAction(NAVBAR_ACTIONS.ROUTE_SERVER),

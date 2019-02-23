@@ -30,7 +30,7 @@ export class NavbarPrimitive extends PureComponent {
     if (window.Bridge) {
       return window.Bridge.getAppData();
     }
-    return { name: 'Nebula-Orion', version: null };
+    return { name: 'Nebula Orion', version: null };
   }
 
   render() {
@@ -46,85 +46,139 @@ export class NavbarPrimitive extends PureComponent {
     const { name, version } = NavbarPrimitive._getAppData();
 
     return (
-      <div className="nav-container">
-        <div className="flex-column">
-          <Bodymovin options={bodymovinOptions} />
-          <div id="vert-line" />
-          <div
-            role="button"
-            tabIndex={0}
-            title="TASKS"
-            onKeyPress={onKeyPress}
-            className={
-              navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null
-            }
-            onClick={() => {
-              onRouteTasks(history);
-            }}
-          >
-            <img src={tasks} className="main-icons" id="icon-tasks" alt="tasks" draggable="false" />
+      <div className="container navbar">
+        <div className="row">
+          <div className="col col--gutter">
+            <div className="row row--expand">
+              <div className="col col--start col--expand">
+                <div className="row row--start row--gutter navbar__row-item--first">
+                  <Bodymovin options={bodymovinOptions} />
+                </div>
+                <div className="row row--expand navbar__row-item--second">
+                  <div className="col">
+                    <div className="row row--start row--gutter">
+                      <div className="navbar__icons--tasks">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          title="TASKS"
+                          onKeyPress={onKeyPress}
+                          className={
+                            navbar.location === '/' || navbar.location === ROUTES.TASKS
+                              ? 'active'
+                              : null
+                          }
+                          onClick={() => {
+                            onRouteTasks(history);
+                          }}
+                        >
+                          <img
+                            src={tasks}
+                            className="navbar__icons--tasks"
+                            alt="tasks"
+                            draggable="false"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row row--gutter row--expand">
+                  <div className="col col--no-gutter">
+                    <div className="row">
+                      <div className="navbar__icons--profils">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          title="PROFILES"
+                          onKeyPress={onKeyPress}
+                          className={navbar.location === ROUTES.PROFILES ? 'active' : null}
+                          onClick={() => {
+                            onRouteProfiles(history);
+                          }}
+                        >
+                          <img
+                            src={profiles}
+                            className="navbar__icons--profiles"
+                            alt="profiles"
+                            draggable="false"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row row--gutter row--expand">
+                  <div className="col col--no-gutter">
+                    <div className="row">
+                      <div className="navbar__icons--servers">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          title="SERVERS"
+                          // title="DISABLED"
+                          onKeyPress={onKeyPress}
+                          className="disabled"
+                          // className={navbar.location === ROUTES.SERVER ? 'active' : null}
+                          // onClick={() => {
+                          //   onRouteServer(history);
+                          // }}
+                        >
+                          <img
+                            src={serverDisabled}
+                            className="navbar__icons--servers"
+                            alt="server"
+                            draggable="false"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row row--gutter row--expand navbar__row-item--last">
+                  <div className="col col--no-gutter">
+                    <div className="row">
+                      <div className="navbar__icons--settings">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          title="SETTINGS"
+                          onKeyPress={onKeyPress}
+                          className={navbar.location === ROUTES.SETTINGS ? 'active' : null}
+                          onClick={() => {
+                            onRouteSettings(history);
+                          }}
+                        >
+                          <img
+                            src={settings}
+                            className="navbar__icons--settings"
+                            alt="settings"
+                            draggable="false"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col col--no-gutter">
+                    <div className="row row--start">
+                      <div>
+                        <p className="navbar__text--app-name">{name.replace('-', ' ')}</p>
+                      </div>
+                    </div>
+                    <div className="row row--end">
+                      <div>
+                        <p className="navbar__text--app-version">{version}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div
-            role="button"
-            tabIndex={0}
-            title="PROFILES"
-            onKeyPress={onKeyPress}
-            className={navbar.location === ROUTES.PROFILES ? 'active' : null}
-            onClick={() => {
-              onRouteProfiles(history);
-            }}
-          >
-            <img
-              src={profiles}
-              className="main-icons"
-              id="icon-profiles"
-              alt="profiles"
-              draggable="false"
-            />
-          </div>
-          <div
-            role="button"
-            tabIndex={0}
-            title="SERVERS"
-            // title="DISABLED"
-            onKeyPress={onKeyPress}
-            className="disabled"
-            // className={navbar.location === ROUTES.SERVER ? 'active' : null}
-            // onClick={() => {
-            //   onRouteServer(history);
-            // }}
-          >
-            <img
-              src={serverDisabled}
-              className="main-icons"
-              id="icon-server"
-              alt="server"
-              draggable="false"
-            />
-          </div>
-          <div
-            role="button"
-            tabIndex={0}
-            title="SETTINGS"
-            onKeyPress={onKeyPress}
-            className={navbar.location === ROUTES.SETTINGS ? 'active' : null}
-            onClick={() => {
-              onRouteSettings(history);
-            }}
-          >
-            <img
-              src={settings}
-              className="main-icons"
-              id="icon-settings"
-              alt="settings"
-              draggable="false"
-            />
-          </div>
-          <div className="appName">
-            <p>{name.replace('-', ' ')}</p>
-          </div>
-          <div className="appVersion">
-            <p>{version}</p>
+          <div className="col col--no-gutter col--start">
+            <div className="navbar--separator" />
           </div>
         </div>
       </div>
@@ -148,6 +202,7 @@ NavbarPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   navbar: state.navbar,
+  theme: state.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

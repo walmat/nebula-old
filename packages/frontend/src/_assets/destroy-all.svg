@@ -1,27 +1,8 @@
 
 <svg width="51px" height="51px" viewBox="0 0 51 51" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M3.73918269,3.04261364 L24.1514423,3.04261364 L24.1514423,23.9029235 C24.1514423,24.7849645 23.4369279,25.5 22.5497265,25.5 L5.34089847,25.5 C4.45629527,25.5 3.73918269,24.7782376 3.73918269,23.9029235 L3.73918269,3.04261364 Z" id="path-1"></path>
-    </defs>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Artboard" transform="translate(-899.000000, -520.000000)">
-            <g id="Action-Icons_All-Selection" transform="translate(899.000000, 382.000000)">
-                <g id="Delete-All-Icon" transform="translate(0.000000, 138.000000)">
-                    <rect id="Rectangle-8" fill="#B8D9D2" x="0" y="0" width="51" height="51" rx="2.4"></rect>
-                    <g id="Trash-ViewTask-Icon" transform="translate(11.156250, 13.546875)">
-                        <ellipse id="Oval" stroke="#EFEFEF" stroke-width="2.4" cx="13.9453125" cy="3.36860795" rx="3.40204327" ry="3.36860795"></ellipse>
-                        <g id="Rectangle-7">
-                            <use fill="#B8D9D2" fill-rule="evenodd" xlink:href="#path-1"></use>
-                            <path stroke="#EFEFEF" stroke-width="2.4" d="M4.93918269,4.24261364 L4.93918269,23.9029235 C4.93918269,24.1178204 5.12136144,24.3 5.34089847,24.3 L22.5497265,24.3 C22.7737664,24.3 22.9514423,24.12264 22.9514423,23.9029235 L22.9514423,4.24261364 L4.93918269,4.24261364 Z"></path>
-                        </g>
-                        <path d="M10.7578125,11.15625 L10.7578125,20.1392045" id="Path-8" stroke="#EFEFEF" stroke-width="2.4" stroke-linecap="round"></path>
-                        <path d="M17.1328125,11.15625 L17.1328125,20.1392045" id="Path-8" stroke="#EFEFEF" stroke-width="2.4" stroke-linecap="round"></path>
-                        <rect id="Rectangle-6" fill="#EFEFEF" x="0" y="2.390625" width="27.890625" height="4.24869472" rx="2.12434736"></rect>
-                    </g>
-                </g>
-            </g>
+        <g id="destroy-all">
+            <image id="Bitmap" x="0" y="0" width="51" height="51" xlink:href="data:image/png;base64,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"></image>
         </g>
     </g>
 </svg>

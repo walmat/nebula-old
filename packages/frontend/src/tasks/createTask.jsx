@@ -92,7 +92,7 @@ export class CreateTaskPrimitive extends Component {
   }
 
   render() {
-    const { task, errors, onKeyPress } = this.props;
+    const { task, errors, onKeyPress, theme } = this.props;
     let newTaskProfileValue = null;
     if (task.profile.id) {
       newTaskProfileValue = {
@@ -135,9 +135,11 @@ export class CreateTaskPrimitive extends Component {
                 <Select
                   required
                   className="tasks-create__input tasks-create__input--field"
+                  classNamePrefix="select"
                   placeholder="Choose Site"
                   components={{ DropdownIndicator }}
                   styles={colourStyles(
+                    theme,
                     buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
@@ -156,9 +158,11 @@ export class CreateTaskPrimitive extends Component {
               <Select
                 required
                 className="tasks-create__input tasks-create__input--field"
+                classNamePrefix="select"
                 placeholder="Choose Profile"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
+                  theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
@@ -176,12 +180,14 @@ export class CreateTaskPrimitive extends Component {
                 placeholder="Choose Sizes"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
+                  theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
                 value={sizes}
                 options={getAllSizes.default()}
                 className="tasks-create__input tasks-create__input--field"
+                classNamePrefix="select"
                 data-testid={addTestId('CreateTask.sizesSelect')}
               />
             </div>
@@ -250,6 +256,7 @@ CreateTaskPrimitive.propTypes = {
   onFieldChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   task: tDefns.task.isRequired,
+  theme: PropTypes.string.isRequired,
   errors: tDefns.taskErrors.isRequired,
   onAddNewTask: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
@@ -262,6 +269,7 @@ CreateTaskPrimitive.defaultProps = {
 export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   task: ownProps.taskToEdit,
+  theme: state.theme,
   errors: ownProps.taskToEdit.errors,
 });
 

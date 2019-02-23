@@ -79,7 +79,7 @@ class SpecialParser extends Parser {
       if (this.initialPageContainsProducts) {
         // Attempt to parse the initial page for product data
         try {
-          products = this.parseInitialPageForProducts(response);
+          products = await this.parseInitialPageForProducts(response);
         } catch (error) {
           this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
@@ -91,7 +91,7 @@ class SpecialParser extends Parser {
         // Generate Product Pages to Visit
         let productsToVisit;
         try {
-          productsToVisit = this.parseInitialPageForUrls(response);
+          productsToVisit = await this.parseInitialPageForUrls(response);
         } catch (error) {
           this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
@@ -110,7 +110,7 @@ class SpecialParser extends Parser {
           productsToVisit.map(async url => {
             try {
               const $ = await this.getProductInfoPage(url);
-              return this.parseProductInfoPageForProduct.call(this, $);
+              return await this.parseProductInfoPageForProduct.call(this, $);
             } catch (err) {
               this._logger.debug(
                 '%s: ERROR parsing product info page',

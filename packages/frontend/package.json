@@ -1,6 +1,6 @@
 {
   "name": "@nebula/orion",
-  "version": "1.0.0-beta.5.4",
+  "version": "1.0.0-beta.6",
   "private": true,
   "main": "./lib/_electron/electron.js",
   "homepage": "./",
@@ -33,7 +33,7 @@
     "private:publish": "build --mac --win -p always",
     "publish": "run-s private:clean private:compile private:publish",
     "prod": "cross-env NODE_ENV=production electron .",
-    "sass": "./tool/compile_css.sh",
+    "compile-sass": "./tool/compile_css.sh",
     "start": "yarn run prod",
     "test": "react-app-rewired test --env=jsdom"
   },
