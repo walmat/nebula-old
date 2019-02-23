@@ -90,7 +90,9 @@ class SplitContextTaskManager extends TaskManager {
         if (target !== 'main') {
           return;
         }
-
+        if (event === TaskRunnerEvents.SwapProxy) {
+          this._logger.warn('Sending swap proxy... %j', args);
+        }
         const eventHandlerMap = {
           [TaskRunnerEvents.TaskStatus]: this.mergeStatusUpdates,
           [TaskRunnerEvents.SwapProxy]: this.handleSwapProxy,
