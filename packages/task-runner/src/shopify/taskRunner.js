@@ -579,6 +579,7 @@ class TaskRunner {
     try {
       this._logger.verbose('Waiting for new proxy...');
       const proxy = await this.swapProxies();
+      this._logger.verbose('nebulakey %j', proxy);
       // Proxy is fine, update the references
       if (proxy) {
         this.proxy = proxy;

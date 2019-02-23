@@ -89,7 +89,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/account/login`,
         method: 'POST',
-        proxy: formatProxy(this._proxy),
+        proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
