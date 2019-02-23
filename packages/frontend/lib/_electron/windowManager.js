@@ -228,6 +228,8 @@ class WindowManager {
         this._aboutDialog = null;
       } else if (this._main && winId === this._main.id) {
         this._main = null;
+        // Always close captcha windows when the main window closes
+        this._captchaWindowManager.closeAllCaptchaWindows();
       } else if (this._auth && winId === this._auth.id) {
         this._auth = null;
       }
