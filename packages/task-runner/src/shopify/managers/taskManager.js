@@ -238,13 +238,15 @@ class TaskManager {
    *
    * @param {String} runnerId the runner who needs the proxy
    * @param {String} proxyId the old proxy to release
+   * @param {String} site the site the proxy is banned
    * @param {bool} shouldBan whether the old proxy should be banned
    */
-  async swapProxy(runnerId, proxyId, shouldBan) {
+  async swapProxy(runnerId, proxyId, site, shouldBan) {
     this._logger.verbose(
-      'Swapping Proxy %s for runner %s. Should ban? %s ...',
+      'Swapping Proxy %s for runner %s on site %s. Should ban? %s ...',
       proxyId,
       runnerId,
+      site,
       shouldBan,
     );
     let shouldRelease = true;
@@ -310,7 +312,8 @@ class TaskManager {
    */
   async handleSwapProxy(runnerId, proxy, shouldBan) {
     const proxyId = proxy ? proxy.id : null;
-    const newProxy = await this.swapProxy(runnerId, proxyId, shouldBan);
+    const { site } = this._runners[runnerId];
+    const newProxy = await this.swapProxy(runnerId, proxyId, site, shouldBan);
     this._events.emit(Events.SendProxy, runnerId, newProxy);
   }
 
