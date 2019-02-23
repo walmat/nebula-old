@@ -116,11 +116,8 @@ class CaptchaWindowManager {
       runnerId,
       siteKey,
     };
-    if (this._captchaWindows === 0) {
-      const win = this.spawnCaptchaWindow();
-      win.webContents.once('did-finish-load', () => {
-        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
-      });
+    if (this._captchaWindows.length === 0) {
+      this.spawnCaptchaWindow();
     } else {
       this._captchaWindows.forEach(win => {
         win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
