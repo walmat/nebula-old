@@ -233,6 +233,7 @@ class TaskManager {
       return;
     }
     proxy.banList[site] = true;
+    setTimeout(() => delete proxy.banList[site], 30000);
     this._logger.verbose('Banned Proxy %s', proxyId);
   }
 

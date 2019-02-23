@@ -148,7 +148,7 @@ class Monitor {
         this._logger.info('Proxy was Banned, swapping proxies...');
         return {
           message: 'Swapping proxy',
-          shouldBan: false,
+          shouldBan: true,
           nextState: States.SwapProxies,
         };
       }
