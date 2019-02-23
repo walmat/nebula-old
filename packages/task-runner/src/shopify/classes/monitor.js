@@ -99,24 +99,25 @@ class Monitor {
       return option.toUpperCase();
     });
 
+    this._context.logger.verbose('MONITOR: variants by size: %j', variantsBySize);
+
     // Get the groups in the same order as the sizes
     const mappedVariants = sizes.map(size => {
       // if we're choosing a random size ..generate a random size for now for each respective category
       // TODO - implement a "stock checker" to choose the one with the most stock
       // (this will give our users a better chance of at least getting one)
       if (size === 'Random') {
-        const val = getRandomIntInclusive(0, Object.keys(variantsBySize).length);
+        const val = getRandomIntInclusive(0, Object.keys(variantsBySize).length - 1);
         const variant = variantsBySize[Object.keys(variantsBySize)[val]];
         return variant;
       }
       const variant = Object.keys(variantsBySize).find(
         s => s.toUpperCase().indexOf(size.toUpperCase()) > -1,
       );
-
       return variantsBySize[variant];
     });
 
-    // this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
+    this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
     // Flatten the groups to a one-level array and remove null elements
     const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
     // only pick certain properties of the variants to print
