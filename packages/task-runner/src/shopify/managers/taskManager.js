@@ -136,6 +136,7 @@ class TaskManager {
     for (const val of this._proxies.values()) {
       if (val.hash === proxyHash) {
         storedProxy = val;
+        break;
       }
     }
 
@@ -178,6 +179,7 @@ class TaskManager {
       if (!val.assignedRunner && !val.banned) {
         // todo - remove it, push it to end
         proxy = val;
+        break;
       }
     }
     if (proxy) {
