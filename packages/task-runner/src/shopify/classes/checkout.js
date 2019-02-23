@@ -254,8 +254,6 @@ class Checkout {
   /**
    * Handles polling a checkout queue for Shopify
    *
-   * // TODO - mapping to next state
-   *
    * Can happen after:
    * 1. Creating checkout -> proceed to patching checkout
    * 2. Patching checkout -> [api] proceed to monitor / [fe] proceed to shipping rates
@@ -341,6 +339,9 @@ class Checkout {
   }
 
   async postPayment() {
+    const {
+      timers: { checkout: checkoutTimer },
+    } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
     const { id } = this.chosenShippingMethod;
@@ -394,9 +395,9 @@ class Checkout {
       if (redirectUrl) {
         // processing
         if (redirectUrl.indexOf('processing') > -1) {
-          this._context.task.checkoutSpeed = this._context.timer.getRunTime();
-          this._context.timer.reset();
-          this._context.timer.start();
+          this._context.task.checkoutSpeed = checkoutTimer.getRunTime();
+          checkoutTimer.reset();
+          checkoutTimer.start();
           return { message: 'Processing payment', nextState: States.PaymentProcess };
         }
 
@@ -412,12 +413,12 @@ class Checkout {
       const recaptcha = $('.g-recaptcha');
       this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
       if (recaptcha.length > 0) {
-        this._context.task.checkoutSpeed = this._context.timer.getRunTime();
+        this._context.task.checkoutSpeed = checkoutTimer.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
-      this._context.task.checkoutSpeed = this._context.timer.getRunTime();
-      this._context.timer.reset();
+      this._context.task.checkoutSpeed = checkoutTimer.getRunTime();
+      checkoutTimer.reset();
       return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
@@ -431,6 +432,9 @@ class Checkout {
   }
 
   async completePayment() {
+    const {
+      timers: { checkout: checkoutTimer },
+    } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url, apiKey } = site;
 
@@ -478,8 +482,8 @@ class Checkout {
       if (redirectUrl) {
         // processing
         if (redirectUrl.indexOf('processing') > -1) {
-          this._context.timer.reset();
-          this._context.timer.start();
+          checkoutTimer.reset();
+          checkoutTimer.start();
           return { message: 'Processing payment', nextState: States.PaymentProcess };
         }
 
@@ -504,8 +508,8 @@ class Checkout {
         }
       }
 
-      this._context.timer.reset();
-      this._context.timer.start();
+      checkoutTimer.reset();
+      checkoutTimer.start();
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.debug('CHECKOUT: Request error during review payment: %j', err);
@@ -519,12 +523,17 @@ class Checkout {
   }
 
   async paymentProcessing() {
-    const { timer, slack, discord, id } = this._context;
+    const {
+      timers: { checkout: checkoutTimer },
+      slack,
+      discord,
+      id,
+    } = this._context;
     const { site, product, profile, sizes, checkoutSpeed } = this._context.task;
     const { profileName } = profile;
     const { url, apiKey, name } = site;
 
-    if (timer.getRunTime() > 10000) {
+    if (checkoutTimer.getRunTime() > 10000) {
       return { message: 'Processing timed out, check email', nextState: States.Stopped };
     }
 

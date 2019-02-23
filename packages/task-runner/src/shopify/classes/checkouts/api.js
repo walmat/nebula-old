@@ -155,6 +155,7 @@ class APICheckout extends Checkout {
   }
 
   async addToCart() {
+    const { timers } = this._context;
     const { site, product, monitorDelay } = this._context.task;
     const { url } = site;
 
@@ -222,8 +223,9 @@ class APICheckout extends Checkout {
           return { message: 'Running for restocks', nextState: States.AddToCart };
         }
         if (error.variant_id && error.variant_id[0]) {
+          // if we've been monitoring for more than ~7 minutes, let's refresh the checkout session
           await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.AddToCart };
+          return { message: 'Monitoring for product', nextState: States.AddToCart };
         }
         return { message: 'Failed: Add to cart', nextState: States.Stopped };
       }
@@ -238,8 +240,8 @@ class APICheckout extends Checkout {
           : `http:${body.checkout.line_items[0].image_url}`;
 
         // start checkout speed timer
-        this._context.timer.reset();
-        this._context.timer.start();
+        timers.checkout.reset();
+        timers.checkout.start();
 
         // calc item price, then calc total price
         this.prices.item = parseFloat(totalPrice).toFixed(2);
