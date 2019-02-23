@@ -183,9 +183,9 @@ class TaskManager {
       }
     }
     if (proxy) {
+      proxy.assignedRunner = runnerId;
       this._proxies.delete(proxy.id);
       this._proxies.set(proxy.id, proxy);
-      proxy.assignedRunner = runnerId;
       this._logger.verbose('Returning proxy: %s', proxy.id);
       return proxy;
     }
@@ -225,14 +225,14 @@ class TaskManager {
    * @param {String} runnerId the id of the runner
    * @param {String} proxyId the id of the proxy to ban
    */
-  banProxy(runnerId, proxyId) {
+  banProxy(runnerId, site, proxyId) {
     this._logger.verbose('Banning proxy %s for runner %s ...', proxyId, runnerId);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.verbose('No proxy found, skipping ban');
       return;
     }
-    proxy.banned = true;
+    proxy.banList[site] = true;
     this._logger.verbose('Banned Proxy %s', proxyId);
   }
 
@@ -273,7 +273,7 @@ class TaskManager {
     if (shouldRelease) {
       // Check if we need to ban the old proxy
       if (shouldBan) {
-        this.banProxy(runnerId, proxyId);
+        this.banProxy(runnerId, site, proxyId);
       }
       this.releaseProxy(runnerId, proxyId);
     }
