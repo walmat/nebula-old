@@ -156,7 +156,6 @@ class Checkout {
   }
 
   async createCheckout() {
-    const { timers } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
