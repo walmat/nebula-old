@@ -181,13 +181,19 @@ class CaptchaWindowManager {
       win.show();
     });
 
-    // If we are actively harvesting, start harvesting on the new window as well
-    if (this._harvestStatus.state === HARVEST_STATE.ACTIVE) {
-      const { runnerId, siteKey } = this._harvestStatus;
-      win.webContents.once('did-finish-load', () => {
+    win.webContents.once('did-finish-load', () => {
+      win.webContents.session.setProxy(
+        {
+          proxyRules: '',
+        },
+        () => {},
+      );
+      // If we are actively harvesting, start harvesting on the new window as well
+      const { state, runnerId, siteKey } = this._harvestStatus;
+      if (state === HARVEST_STATE.ACTIVE) {
         win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
-      });
-    }
+      }
+    });
 
     const handleClose = () => {
       if (nebulaEnv.isDevelopment()) {
