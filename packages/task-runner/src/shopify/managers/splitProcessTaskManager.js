@@ -4,9 +4,10 @@ const path = require('path');
 const SplitContextTaskManager = require('./splitContextTaskManager');
 
 class ProcessContext {
-  constructor(rId, tId, proxy) {
+  constructor(rId, task, proxy) {
     this.id = rId;
-    this.taskId = tId;
+    this.taskId = task.id;
+    this.site = task.site.url;
     this.proxy = proxy;
     this._name = 'Child Process';
     this._target = 'child';

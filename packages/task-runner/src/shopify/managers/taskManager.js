@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */
 const EventEmitter = require('events');
@@ -37,7 +38,7 @@ class TaskManager {
     this._tokenReserveQueue = [];
 
     // Proxy Map
-    this._proxies = {};
+    this._proxies = new Map();
 
     // Logger
     this._logger = createLogger({
@@ -87,24 +88,23 @@ class TaskManager {
     this._logger.verbose('Registering proxy...');
     let proxyId;
     const proxyHash = hash(proxy);
-    if (
-      Object.keys(this._proxies)
-        .map(key => this._proxies[key].hash)
-        .includes(proxyHash)
-    ) {
-      this._logger.verbose('Proxy already exists with hash %s! proxy not added', proxyHash);
-      return;
+    for (const val of this._proxies.values()) {
+      if (val.hash.includes(proxyHash)) {
+        this._logger.verbose('Proxy already exists with hash %s! proxy not added', proxyHash);
+        return;
+      }
     }
     this._logger.verbose('New Proxy Detected with hash %s. Adding now', proxyHash);
     do {
       proxyId = shortid.generate();
-    } while (this._proxies[proxyId]);
+    } while (this._proxies.get(proxyId));
 
-    this._proxies[proxyId] = {
+    this._proxies.set(proxyId, {
       id: proxyId,
       hash: proxyHash,
       proxy,
-    };
+      banList: {},
+    });
     this._logger.verbose('Proxy Added with id %s', proxyId);
   }
 
@@ -133,15 +133,20 @@ class TaskManager {
   deregisterProxy(proxy) {
     this._logger.verbose('Deregistering proxy...');
     const proxyHash = hash(proxy);
-    const storedProxy = Object.values(this._proxies).find(p => p.hash === proxyHash);
+    let storedProxy = null;
+    for (const val of this._proxies.values()) {
+      if (val.hash === proxyHash) {
+        storedProxy = val;
+        break;
+      }
+    }
 
     if (!storedProxy) {
       this._logger.verbose('Proxy with hash %s not found! Skipping removal', proxyHash);
       return;
     }
     this._logger.verbose('Proxy found with hash %s. Removing now', proxyHash);
-
-    delete this._proxies[storedProxy.id];
+    this._proxies.delete(storedProxy.id);
     this._logger.verbose('Proxy removed with id %s', storedProxy.id);
   }
 
@@ -164,15 +169,23 @@ class TaskManager {
    * @param {String} waitForOpenProxy whether or not this method should wait for an open proxy
    * @param {Number} waitLimit the recursive call limit on proxy reservations
    */
-  async reserveProxy(runnerId, waitForOpenProxy = false, waitLimit = 5) {
+  async reserveProxy(runnerId, site, waitForOpenProxy = false, waitLimit = 5) {
     if (!waitLimit || Number.isNaN(waitLimit) || waitLimit < 0) {
       // Force wait limit to be 0 if we have an invalid parameter value passed in
       waitLimit = 0;
     }
     this._logger.verbose('Reserving proxy for runner %s ...', runnerId);
-    const proxy = Object.values(this._proxies).find(p => !p.assignedRunner && !p.banned);
+    let proxy = null;
+    for (const val of this._proxies.values()) {
+      if (!val.assignedRunner && !val.banList[site]) {
+        proxy = val;
+        break;
+      }
+    }
     if (proxy) {
       proxy.assignedRunner = runnerId;
+      this._proxies.delete(proxy.id);
+      this._proxies.set(proxy.id, proxy);
       this._logger.verbose('Returning proxy: %s', proxy.id);
       return proxy;
     }
@@ -182,7 +195,10 @@ class TaskManager {
     }
     this._logger.verbose('All proxies are reserved, waiting for open proxy...');
     return new Promise(resolve => {
-      setTimeout(() => resolve(this.reserveProxy(runnerId, waitForOpenProxy, waitLimit - 1)), 1000); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
+      setTimeout(
+        () => resolve(this.reserveProxy(runnerId, site, waitForOpenProxy, waitLimit - 1)),
+        1000,
+      ); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
     });
   }
 
@@ -194,7 +210,7 @@ class TaskManager {
    */
   releaseProxy(runnerId, proxyId) {
     this._logger.verbose('Releasing proxy %s for runner %s ...', proxyId, runnerId);
-    const proxy = this._proxies[proxyId];
+    const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.verbose('No proxy found, skipping release');
       return;
@@ -209,14 +225,15 @@ class TaskManager {
    * @param {String} runnerId the id of the runner
    * @param {String} proxyId the id of the proxy to ban
    */
-  banProxy(runnerId, proxyId) {
+  banProxy(runnerId, site, proxyId) {
     this._logger.verbose('Banning proxy %s for runner %s ...', proxyId, runnerId);
-    const proxy = this._proxies[proxyId];
+    const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.verbose('No proxy found, skipping ban');
       return;
     }
-    proxy.banned = true;
+    proxy.banList[site] = true;
+    setTimeout(() => delete proxy.banList[site], 30000);
     this._logger.verbose('Banned Proxy %s', proxyId);
   }
 
@@ -229,23 +246,25 @@ class TaskManager {
    *
    * @param {String} runnerId the runner who needs the proxy
    * @param {String} proxyId the old proxy to release
+   * @param {String} site the site the proxy is banned
    * @param {bool} shouldBan whether the old proxy should be banned
    */
-  async swapProxy(runnerId, proxyId, shouldBan) {
+  async swapProxy(runnerId, proxyId, site, shouldBan) {
     this._logger.verbose(
-      'Swapping Proxy %s for runner %s. Should ban? %s ...',
+      'Swapping Proxy %s for runner %s on site %s. Should ban? %s ...',
       proxyId,
       runnerId,
+      site,
       shouldBan,
     );
     let shouldRelease = true;
-    if (!this._proxies[proxyId]) {
+    if (!this._proxies.get(proxyId)) {
       this._logger.verbose('No proxy found, skipping release/ban');
       shouldRelease = false;
     }
 
     // Attempt to reserve a proxy first before releasing the old one
-    const newProxy = await this.reserveProxy(runnerId);
+    const newProxy = await this.reserveProxy(runnerId, site);
     if (!newProxy) {
       this._logger.verbose('No new proxy available, skipping release/ban');
       return null;
@@ -255,10 +274,11 @@ class TaskManager {
     if (shouldRelease) {
       // Check if we need to ban the old proxy
       if (shouldBan) {
-        this.banProxy(runnerId, proxyId);
+        this.banProxy(runnerId, site, proxyId);
       }
       this.releaseProxy(runnerId, proxyId);
     }
+    this._logger.verbose('New proxy: %j', newProxy);
     // Return the new reserved proxy
     return newProxy;
   }
@@ -300,7 +320,8 @@ class TaskManager {
    */
   async handleSwapProxy(runnerId, proxy, shouldBan) {
     const proxyId = proxy ? proxy.id : null;
-    const newProxy = await this.swapProxy(runnerId, proxyId, shouldBan);
+    const { site } = this._runners[runnerId];
+    const newProxy = await this.swapProxy(runnerId, proxyId, site, shouldBan);
     this._events.emit(Events.SendProxy, runnerId, newProxy);
   }
 
@@ -411,12 +432,12 @@ class TaskManager {
     }
   }
 
-  async setup() {
+  async setup(site) {
     let runnerId;
     do {
       runnerId = shortid.generate();
     } while (this._runners[runnerId]);
-    const openProxy = await this.reserveProxy(runnerId);
+    const openProxy = await this.reserveProxy(runnerId, site);
     return {
       runnerId,
       openProxy,
@@ -451,7 +472,7 @@ class TaskManager {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
-    const { runnerId, openProxy } = await this.setup();
+    const { runnerId, openProxy } = await this.setup(task.site);
     this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
     this._start([runnerId, task, openProxy]).then(() => {
@@ -627,6 +648,7 @@ class TaskManager {
       this._discord,
       this._slack,
     );
+    runner.site = task.site.url;
     this._runners[runnerId] = runner;
 
     this._logger.verbose('Wiring up TaskRunner Events ...');

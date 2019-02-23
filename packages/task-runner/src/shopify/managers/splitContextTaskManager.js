@@ -90,7 +90,9 @@ class SplitContextTaskManager extends TaskManager {
         if (target !== 'main') {
           return;
         }
-
+        if (event === TaskRunnerEvents.SwapProxy) {
+          this._logger.warn('Sending swap proxy... %j', args);
+        }
         const eventHandlerMap = {
           [TaskRunnerEvents.TaskStatus]: this.mergeStatusUpdates,
           [TaskRunnerEvents.SwapProxy]: this.handleSwapProxy,
@@ -166,7 +168,7 @@ class SplitContextTaskManager extends TaskManager {
 
   async _start([runnerId, task, openProxy]) {
     this._logger.verbose('Spawning Child Context for runner: %s', runnerId);
-    const childContext = new this._ContextCtor(runnerId, task.id, openProxy);
+    const childContext = new this._ContextCtor(runnerId, task, openProxy);
     this._runners[runnerId] = childContext;
 
     // Perform child context setup

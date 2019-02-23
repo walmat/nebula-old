@@ -316,12 +316,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.login();
+    const { message, shouldBan, nextState } = await this._checkout.login();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
   }
 
   async _handlePaymentToken() {
@@ -331,12 +332,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.getPaymentToken();
+    const { message, shouldBan, nextState } = await this._checkout.getPaymentToken();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
   }
 
   async _handleCreateCheckout() {
@@ -346,12 +348,12 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.createCheckout();
-
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    const { message, shouldBan, nextState } = await this._checkout.createCheckout();
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
   }
 
   async _handleGetCheckout() {
@@ -361,9 +363,12 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, nextState } = await this._checkout.getCheckout();
+    const { message, shouldBan, nextState } = await this._checkout.getCheckout();
 
     this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
     return nextState;
   }
 
@@ -378,6 +383,9 @@ class TaskRunner {
     this._emitTaskEvent({
       message: res.message,
     });
+    if (res.nextState === States.SwapProxies) {
+      this.shouldBanProxy = res.shouldBan; // Set a flag to ban the proxy if necessary
+    }
     return res.nextState;
   }
 
@@ -390,6 +398,9 @@ class TaskRunner {
 
     const res = await this._checkout.pollQueue();
 
+    if (res.nextState === States.SwapProxies) {
+      this.shouldBanProxy = res.shouldBan; // Set a flag to ban the proxy if necessary
+    }
     if (res.nextState) {
       this._emitTaskEvent({
         message: res.message,
@@ -399,9 +410,7 @@ class TaskRunner {
 
     // poll queue map should be used to determine where to go next
     const { message, nextState } = StateMap[this._prevState](this._checkoutType);
-    this._emitTaskEvent({
-      message,
-    });
+    this._emitTaskEvent({ message });
     return nextState;
   }
 
@@ -412,23 +421,21 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._monitor.run();
-    if (res.errors) {
-      this._logger.verbose('Monitor Handler completed with errors: %j', res.errors);
+    const { errors, message, nextState, shouldBan } = await this._monitor.run();
+    if (errors) {
+      this._logger.verbose('Monitor Handler completed with errors: %j', errors);
       this._emitTaskEvent({
         message: 'Error monitoring product...',
-        errors: res.errors,
+        errors,
       });
       await this._waitForErrorDelay();
     }
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    if (res.nextState === States.SwapProxies) {
-      this.shouldBanProxy = res.shouldBan; // Set a flag to ban the proxy if necessary
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
     // Monitor will be in charge of choosing the next state
-    return res.nextState;
+    return nextState;
   }
 
   async _handleAddToCart() {
@@ -438,12 +445,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.addToCart();
+    const { message, shouldBan, nextState } = await this._checkout.addToCart();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
   }
 
   async _handleShipping() {
@@ -453,12 +461,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.shippingRates();
+    const { message, shouldBan, nextState } = await this._checkout.shippingRates();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
   }
 
   async _handleRequestCaptcha() {
@@ -525,12 +534,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.postPayment();
+    const { message, shouldBan, nextState } = await this._checkout.postPayment();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
   }
 
   async _handleCompletePayment() {
@@ -540,12 +550,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.completePayment();
+    const { message, shouldBan, nextState } = await this._checkout.completePayment();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
   }
 
   async _handlePaymentProcess() {
@@ -555,18 +566,20 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.paymentProcessing();
+    const { message, shouldBan, nextState } = await this._checkout.paymentProcessing();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    return res.nextState;
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
   }
 
   async _handleSwapProxies() {
     try {
       this._logger.verbose('Waiting for new proxy...');
       const proxy = await this.swapProxies();
+      this._logger.verbose('nebulakey %j', proxy);
       // Proxy is fine, update the references
       if (proxy) {
         this.proxy = proxy;
