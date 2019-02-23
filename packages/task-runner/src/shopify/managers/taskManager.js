@@ -637,6 +637,7 @@ class TaskManager {
       this._discord,
       this._slack,
     );
+    runner.site = task.site.url;
     this._runners[runnerId] = runner;
 
     this._logger.verbose('Wiring up TaskRunner Events ...');

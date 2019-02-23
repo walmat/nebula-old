@@ -166,7 +166,7 @@ class SplitContextTaskManager extends TaskManager {
 
   async _start([runnerId, task, openProxy]) {
     this._logger.verbose('Spawning Child Context for runner: %s', runnerId);
-    const childContext = new this._ContextCtor(runnerId, task.id, openProxy);
+    const childContext = new this._ContextCtor(runnerId, task, openProxy);
     this._runners[runnerId] = childContext;
 
     // Perform child context setup
