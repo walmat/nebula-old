@@ -99,7 +99,7 @@ class Monitor {
       return option.toUpperCase();
     });
 
-    this._context.logger.verbose('MONITOR: variants by size: %j', variantsBySize);
+    // this._context.logger.verbose('MONITOR: variants by size: %j', variantsBySize);
 
     // Get the groups in the same order as the sizes
     const mappedVariants = sizes.map(size => {
@@ -117,7 +117,7 @@ class Monitor {
       return variantsBySize[variant];
     });
 
-    this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
+    // this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
     // Flatten the groups to a one-level array and remove null elements
     const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
     // only pick certain properties of the variants to print
