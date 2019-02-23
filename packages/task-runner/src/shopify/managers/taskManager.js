@@ -177,13 +177,14 @@ class TaskManager {
     this._logger.verbose('Reserving proxy for runner %s ...', runnerId);
     let proxy = null;
     for (const val of this._proxies.values()) {
-      if (!val.assignedRunner && !val.banned) {
-        // todo - remove it, push it to end
+      if (!val.assignedRunner && !val.banList[site]) {
         proxy = val;
         break;
       }
     }
     if (proxy) {
+      this._proxies.delete(proxy.id);
+      this._proxies.set(proxy.id, proxy);
       proxy.assignedRunner = runnerId;
       this._logger.verbose('Returning proxy: %s', proxy.id);
       return proxy;
