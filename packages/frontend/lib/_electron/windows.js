@@ -136,19 +136,20 @@ urls.set('about', aboutUrl);
  *
  * @return {BrowserWindow} Captcha Window
  */
-const createCaptchaWindow = (opts = {}) => {
-  const { backgroundColor } = opts;
-  return _createWindow({
+const createCaptchaWindow = (options = {}, webPreferences = {}) =>
+  _createWindow({
+    // assign default background color first, so it can be overwritten by parameter options
+    backgroundColor: '#f4f4f4',
+    ...options,
     width: 400,
     height: 650,
-    backgroundColor: backgroundColor || '#f4f4f4',
     transparent: true,
     webPreferences: {
       ..._defaultWebPreferences,
+      ...webPreferences,
       preload: Path.join(__dirname, '../common/bridge/captchaPreload.js'),
     },
   });
-};
 
 let captchaUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
 if (nebulaEnv.isDevelopment()) {
@@ -161,13 +162,15 @@ urls.set('captcha', captchaUrl);
  *
  * @return {BrowserWindow} YouTube Window
  */
-const createYouTubeWindow = () =>
+const createYouTubeWindow = (options = {}, webPreferences = {}) =>
   _createWindow({
+    ...options,
     width: 450,
     height: 475,
     frame: true,
     webPreferences: {
       ..._defaultWebPreferences,
+      ...webPreferences,
       preload: Path.join(__dirname, '../common/bridge/youtubePreload.js'),
     },
   });

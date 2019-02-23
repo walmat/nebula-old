@@ -1,4 +1,3 @@
-
 /**
  * IPC keys.
  * @type {Object}

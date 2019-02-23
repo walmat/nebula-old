@@ -5,14 +5,7 @@ const log = require('electron-log');
 
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
-const {
-  createAboutWindow,
-  createAuthWindow,
-  createCaptchaWindow,
-  createMainWindow,
-  createYouTubeWindow,
-  urls,
-} = require('./windows');
+const { createAboutWindow, createAuthWindow, createMainWindow, urls } = require('./windows');
 
 const CaptchaWindowManager = require('./captchaWindowManager');
 
@@ -100,9 +93,9 @@ class WindowManager {
     this._auth = null;
 
     /**
-     * Captcha Windows
+     * Separate manager to handle captcha windows
      */
-    this._captchas = new Map();
+    this._captchaWindowManager = new CaptchaWindowManager(context);
 
     /**
      * IPC Function Definitions
@@ -111,11 +104,8 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
-    context.ipc.on(
-      IPCKeys.RequestCloseAllCaptchaWindows,
-      this._onRequestCloseAllCaptchaWindows.bind(this),
-    );
-    context.ipc.on(IPCKeys.ChangeTheme, this.onRequestChangeTheme.bind(this));
+    // TODO: Add this back in #350 (https://github.com/walmat/nebula/issues/350)
+    // context.ipc.on(IPCKeys.ChangeTheme, this.onRequestChangeTheme.bind(this));
   }
 
   /**
@@ -145,7 +135,7 @@ class WindowManager {
    * @param {String} tag String matching window to be created
    * @return {BrowserWindow} Created window
    */
-  async createNewWindow(tag, opts) {
+  async createNewWindow(tag) {
     let w; // window reference
     const session = await this._context._authManager.getSession();
     if (session || ['auth', 'about'].includes(tag)) {
@@ -154,7 +144,7 @@ class WindowManager {
           if (this._aboutDialog) {
             return this._aboutDialog;
           }
-          w = await createAboutWindow();
+          w = createAboutWindow();
           this._aboutDialog = w;
           break;
         }
@@ -162,7 +152,7 @@ class WindowManager {
           if (this._auth) {
             return this._auth;
           }
-          w = await createAuthWindow();
+          w = createAuthWindow();
           this._auth = w;
           break;
         }
@@ -170,48 +160,19 @@ class WindowManager {
           if (this._main) {
             return this._main;
           }
-          w = await createMainWindow();
+          w = createMainWindow();
           this._main = w;
           this._context.taskLauncher.start();
           break;
         }
-        case 'captcha': {
-          if (this._captchas.size < 5) {
-            if (!this._context.captchaServerManager.isRunning) {
-              console.log('[DEBUG]: Starting captcha server...');
-              this._context.captchaServerManager.start();
-            }
-            w = await createCaptchaWindow(opts);
-            this._captchas.set(w.id, new CaptchaWindowManager(this._context, w));
-            w.webContents.session.setProxy(
-              {
-                proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
-                proxyBypassRules: '.google.com,.gstatic.com',
-              },
-              () => {
-                w.loadURL('http://checkout.shopify.com');
-              },
-            );
-          }
-          break;
+        default: {
+          // throw error if unsupported tag was passed
+          throw new Error('Window Tag is Unsupported!');
         }
-        case 'youtube': {
-          w = await createYouTubeWindow();
-          break;
-        }
-        default:
-          break;
       }
 
-      if (tag !== 'captcha') {
-        w.loadURL(urls.get(tag));
-      }
-
-      // Make sure window was created before adding event listeners
-      if (w) {
-        this.addWindowEventListeners(w);
-      }
-
+      w.loadURL(urls.get(tag));
+      this.addWindowEventListeners(w);
       return w;
     }
     return this.transitionToDeauthedState();
@@ -253,45 +214,26 @@ class WindowManager {
    * @param {BrowserWindow} win reference to the window being closed
    */
   handleClose(win) {
+    // Store the winId in the upper scope so we don't throw an exception when
+    // Trying to access win (which could already be destroyed)
+    const winId = win.id;
     return () => {
       if (nebulaEnv.isDevelopment()) {
-        console.log(`Window was closed, id = ${win.id}`);
+        console.log(`Window was closed, id = ${winId}`);
       }
-      this._windows.delete(win.id);
-      this._notifyUpdateWindowIDs(win.id);
+      this._windows.delete(winId);
+      this._notifyUpdateWindowIDs(winId);
 
-      if (this._aboutDialog && win.id === this._aboutDialog.id) {
+      if (this._aboutDialog && winId === this._aboutDialog.id) {
         this._aboutDialog = null;
-      } else if (this._main && win.id === this._main.id) {
+      } else if (this._main && winId === this._main.id) {
         this._main = null;
-      } else if (this._auth && win.id === this._auth.id) {
+        // Always close captcha windows when the main window closes
+        this._captchaWindowManager.closeAllCaptchaWindows();
+      } else if (this._auth && winId === this._auth.id) {
         this._auth = null;
-      } else if (this._captchas.size > 0) {
-        this._captchas.forEach(captchaWindowManager => {
-          if (win.id === captchaWindowManager._captchaWindow.id) {
-            // deregister the interval from the captcha window
-            WindowManager.handleCloseCaptcha(this._captchas.get(win.id));
-            this._captchas.delete(win.id);
-          } else if (
-            captchaWindowManager._youtubeWindow &&
-            win.id === captchaWindowManager._youtubeWindow.id
-          ) {
-            captchaWindowManager._youtubeWindow = null;
-          }
-        });
-        if (this._captchas.size === 0) {
-          // Close the server
-          console.log('[DEBUG]: Stopping captcha server...');
-          this._context.captchaServerManager.stop();
-        }
       }
     };
-  }
-
-  static handleCloseCaptcha(win) {
-    win._tokens = [];
-    clearInterval(win._checkTokens);
-    win._checkTokens = null;
   }
 
   /**
@@ -361,10 +303,20 @@ class WindowManager {
    * @param {IPCEvent} ev Event data.
    */
   _onRequestCreateNewWindow(ev, tag, opts) {
-    const createdWindow = this.createNewWindow(tag, opts);
-    ev.sender.send(IPCKeys.FinishCreateNewWindow);
-
-    this._notifyUpdateWindowIDs(createdWindow.id);
+    if (tag === 'captcha') {
+      // Use captcha window manager to spawn captcha window
+      this._captchaWindowManager.spawnCaptchaWindow(opts);
+      ev.sender.send(IPCKeys.FinishCreateNewWindow);
+    } else {
+      try {
+        const createdWindow = this.createNewWindow(tag);
+        ev.sender.send(IPCKeys.FinishCreateNewWindow);
+        this._notifyUpdateWindowIDs(createdWindow.id);
+      } catch (err) {
+        console.log('[ERROR]: %s', err.message);
+        ev.sender.send(IPCKeys.FinishCreateNewWindow);
+      }
+    }
   }
 
   /**
@@ -398,94 +350,53 @@ class WindowManager {
    * @param {IPCEvent} ev Event data.
    * @param {Number} id corresponding window id
    */
-  _onRequestWindowClose(ev, id) {
+  _onRequestWindowClose(_, id) {
     if (this._main && this._main.id === id) {
       // close all windows
+      this._captchaWindowManager.closeAllCaptchaWindows();
       this._windows.forEach(w => {
         w.close();
       });
       this._context.taskLauncher.stop();
     } else if (this._auth && this._auth.id === id) {
+      this._captchaWindowManager.closeAllCaptchaWindows();
       this._windows.forEach(w => {
         w.close();
-      });
-    } else if (this._captchas.size > 0) {
-      this._captchas.forEach(w => {
-        if (id === w._captchaWindow.id) {
-          if (w._youtubeWindow) {
-            w._youtubeWindow.close();
-          }
-          w._captchaWindow.close();
-        }
-      });
-    } else if (this._aboutDialog && this._aboutDialog.id === id) {
-      this._windows.forEach(w => {
-        if (w.id === id) {
-          w.close();
-        }
-      });
-    }
-  }
-
-  /**
-   * Request to close all open captcha windows
-   * @param {EventEmitter} ev - close event
-   * BUG: closes one at a time..
-   */
-  _onRequestCloseAllCaptchaWindows() {
-    if (this._captchas.size > 0) {
-      this._captchas.forEach(captchaWindowManager => {
-        captchaWindowManager._captchaWindow.close();
-        if (captchaWindowManager._youtubeWindow) {
-          captchaWindowManager._youtubeWindow.close();
-        }
       });
     }
   }
 
   /**
    * Start Harvesting Captchas for a specific task
-   * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
-   * // https://github.com/walmat/nebula/issues/97
+   *
+   * Forward call to Captcha Window Manager
    */
-  async onRequestStartHarvestingCaptcha(runnerId, siteKey) {
-    let open = false;
-    if (this._captchas.size === 0) {
-      open = true;
-      // TODO: This should encorporate the themes in #350 (https://github.com/walmat/nebula/issues/350)
-      await this.createNewWindow('captcha');
-    }
-    this._captchas.forEach(captchaWindowManager => {
-      captchaWindowManager.startHarvestingCaptcha(runnerId, siteKey, open);
-    });
+  startHarvestingCaptcha(runnerId, siteKey) {
+    this._captchaWindowManager.startHarvesting(runnerId, siteKey);
   }
 
   /**
    * Stop Harvesting Captchas for a specific task
-   * // TODO This should be moved to CaptchaWindowManager when issue #97 gets tackled
-   * // https://github.com/walmat/nebula/issues/97
+   *
+   * Forward call to Captcha Window Manager
    */
-  onRequestStopHarvestingCaptcha(runnerId, siteKey) {
-    if (this._captchas.size > 0) {
-      this._captchas.forEach(captchaWindowManager => {
-        captchaWindowManager.stopHarvestingCaptcha(runnerId, siteKey);
-      });
-    }
+  stopHarvestingCaptcha(runnerId, siteKey) {
+    this._captchaWindowManager.stopHarvesting(runnerId, siteKey);
   }
 
-  onRequestChangeTheme(_, opts) {
-    const { backgroundColor } = opts;
-
-    this._captchas.forEach((__, windowId) => {
-      const win = this._windows.get(windowId);
-      // #350 (https://github.com/walmat/nebula/issues/350)
-      /**
-       * I've tried:
-       * 1. win.setBackgroundColor(backgroundColor);
-       * 2. win.webContents.browserWindowOptions.backgroundColor = backgroundColor;
-       */
-    });
-  }
+  // // TODO: Add this back in #350 (https://github.com/walmat/nebula/issues/350)
+  // onRequestChangeTheme(_, opts) {
+  //   const { backgroundColor } = opts;
+  //   // TODO: Use captcha window manager in this case...
+  //   this._captchas.forEach((__, windowId) => {
+  //     const win = this._windows.get(windowId);
+  //     /**
+  //      * I've tried:
+  //      * 1. win.setBackgroundColor(backgroundColor);
+  //      * 2. win.webContents.browserWindowOptions.backgroundColor = backgroundColor;
+  //      */
+  //   });
+  // }
 }
 
 module.exports = WindowManager;

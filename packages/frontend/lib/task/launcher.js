@@ -270,7 +270,10 @@ class TaskLauncher {
     runnerId,
     siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
   ) {
-    await this._context.windowManager.onRequestStartHarvestingCaptcha(runnerId, siteKey);
+    // If this is the first harvest event, start harvesting
+    if (this._captchaSemaphore === 0) {
+      await this._context.windowManager.startHarvestingCaptcha(runnerId, siteKey);
+    }
     this._captchaSemaphore += 1;
   }
 
@@ -279,7 +282,7 @@ class TaskLauncher {
       // Captcha Harvest Requesters will drop to 0
       // Drop the semaphore and stop harvesting
       this._captchaSemaphore -= 1;
-      this._context.windowManager.onRequestStopHarvestingCaptcha(runnerId, siteKey);
+      this._context.windowManager.stopHarvestingCaptcha(runnerId, siteKey);
     } else if (this._captchaSemaphore > 0) {
       // There are still Captcha Harvest Requesters
       // Drop the semaphore, but continue harvesting
