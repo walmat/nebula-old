@@ -22,7 +22,7 @@ class XmlParser extends Parser {
     let responseJson;
     try {
       this._logger.silly(
-        '%s: Making request for %s/sitemap_products_1.xml ...',
+        '%s: Making request for %s/sitemap_products_1.xml?from=1&to=299999999999999999 ...',
         this._name,
         this._task.site.url,
       );
@@ -51,7 +51,7 @@ class XmlParser extends Parser {
       url: item.loc[0],
       updated_at: item.lastmod[0],
       title: item['image:image'][0]['image:title'][0],
-      handle: '-', // put an empty placeholder since we only have the title provided
+      handle: item.loc[0].substring(item.loc[0].lastIndexOf('/')),
     }));
     this._logger.silly('%s: Translated Structure, attempting to match', this._name);
     const matchedProduct = super.match(products);
