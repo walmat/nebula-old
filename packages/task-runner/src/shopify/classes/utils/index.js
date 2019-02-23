@@ -23,6 +23,7 @@ const stateForError = (err, currentState) => {
     if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
       return {
         message: 'Swapping proxy',
+        shouldBan: false,
         nextState: States.SwapProxies,
       };
     }

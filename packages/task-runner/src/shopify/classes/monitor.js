@@ -147,8 +147,8 @@ class Monitor {
       if (checkStatus) {
         this._logger.info('Proxy was Banned, swapping proxies...');
         return {
-          message: 'Soft ban detected, attempting to swap proxies',
-          shouldBan: true,
+          message: 'Swapping proxy',
+          shouldBan: false,
           nextState: States.SwapProxies,
         };
       }
