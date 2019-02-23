@@ -103,6 +103,7 @@ class TaskManager {
       id: proxyId,
       hash: proxyHash,
       proxy,
+      banList: {},
     });
     this._logger.verbose('Proxy Added with id %s', proxyId);
   }
@@ -168,7 +169,7 @@ class TaskManager {
    * @param {String} waitForOpenProxy whether or not this method should wait for an open proxy
    * @param {Number} waitLimit the recursive call limit on proxy reservations
    */
-  async reserveProxy(runnerId, waitForOpenProxy = false, waitLimit = 5) {
+  async reserveProxy(runnerId, site, waitForOpenProxy = false, waitLimit = 5) {
     if (!waitLimit || Number.isNaN(waitLimit) || waitLimit < 0) {
       // Force wait limit to be 0 if we have an invalid parameter value passed in
       waitLimit = 0;
@@ -193,7 +194,10 @@ class TaskManager {
     }
     this._logger.verbose('All proxies are reserved, waiting for open proxy...');
     return new Promise(resolve => {
-      setTimeout(() => resolve(this.reserveProxy(runnerId, waitForOpenProxy, waitLimit - 1)), 1000); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
+      setTimeout(
+        () => resolve(this.reserveProxy(runnerId, site, waitForOpenProxy, waitLimit - 1)),
+        1000,
+      ); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
     });
   }
 
@@ -258,7 +262,7 @@ class TaskManager {
     }
 
     // Attempt to reserve a proxy first before releasing the old one
-    const newProxy = await this.reserveProxy(runnerId);
+    const newProxy = await this.reserveProxy(runnerId, site);
     if (!newProxy) {
       this._logger.verbose('No new proxy available, skipping release/ban');
       return null;
@@ -426,12 +430,12 @@ class TaskManager {
     }
   }
 
-  async setup() {
+  async setup(site) {
     let runnerId;
     do {
       runnerId = shortid.generate();
     } while (this._runners[runnerId]);
-    const openProxy = await this.reserveProxy(runnerId);
+    const openProxy = await this.reserveProxy(runnerId, site);
     return {
       runnerId,
       openProxy,
@@ -466,7 +470,7 @@ class TaskManager {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
-    const { runnerId, openProxy } = await this.setup();
+    const { runnerId, openProxy } = await this.setup(task.site);
     this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
     this._start([runnerId, task, openProxy]).then(() => {
