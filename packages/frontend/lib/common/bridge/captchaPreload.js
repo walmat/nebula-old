@@ -15,6 +15,14 @@ const _launchYoutube = () => {
 };
 
 /**
+ * Gets the current window position
+ */
+const _getPosition = () => {
+  const win = remote.getCurrentWindow();
+  return win.getPosition();
+};
+
+/**
  * Sends the end session trigger to windowManager.js
  */
 const _endCaptchaSession = () => {
@@ -71,6 +79,7 @@ process.once('loaded', () => {
         register: _registerForStopHarvestCaptcha,
         deregister: _deregisterForStopHarvestCaptcha,
       },
+      getPosition: _getPosition,
     },
     endCaptchaSession: _endCaptchaSession,
   };
