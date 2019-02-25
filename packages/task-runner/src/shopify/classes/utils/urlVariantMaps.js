@@ -68,6 +68,7 @@ const urlToOptionIndex = {
   'https://www.ronindivision.com': 1,
   'https://shop.ronniefieg.com': 1,
   'https://saintalfred.com': 1,
+  'https://www.serenawilliams.com': 1,
   'https://shoegallerymiami.com': 1,
   'https://sneakerpolitics.com': 1,
   'https://sneakerworldshop.com': 1,
