@@ -6,8 +6,9 @@ import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
 import addTestId from '../utils/addTestId';
+import renderSVGIcon from '../utils/renderSVGIcon';
 
-import info from '../_assets/info.svg';
+import { ReactComponent as CVVInfoIcon } from '../_assets/info.svg';
 
 import './profiles.css';
 
@@ -78,11 +79,10 @@ export class PaymentFieldsPrimitive extends Component {
                   />
                 </div>
                 <div className="col col--no-gutter">
-                  <img
-                    src={info}
-                    alt="payment info"
-                    className="profiles-payment__input-group--payment-info-btn"
-                  />
+                  {renderSVGIcon(CVVInfoIcon, {
+                    alt: 'payment info',
+                    className: 'profiles-payment__input-group--payment-info-btn',
+                  })}
                 </div>
               </div>
             </div>

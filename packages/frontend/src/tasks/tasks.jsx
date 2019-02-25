@@ -5,18 +5,19 @@ import PropTypes from 'prop-types';
 import ViewTask from './viewTask';
 import LogTask from './logTask';
 import CreateTask from './createTask';
-
-import startAll from '../_assets/start-all.svg';
-import stopAll from '../_assets/stop-all.svg';
-import destroyAll from '../_assets/destroy-all.svg';
-
-import '../app.css';
-import './tasks.css';
 import { taskActions } from '../state/actions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 import addTestId from '../utils/addTestId';
+import renderSVGIcon from '../utils/renderSVGIcon';
+
+import { ReactComponent as StartAllIcon } from '../_assets/start-all.svg';
+import { ReactComponent as StopAllIcon } from '../_assets/stop-all.svg';
+import { ReactComponent as DestroyAllIcon } from '../_assets/destroy-all.svg';
+
+import '../app.css';
+import './tasks.css';
 
 export class TasksPrimitive extends Component {
   startAllTasks() {
@@ -154,7 +155,7 @@ export class TasksPrimitive extends Component {
                     }}
                     data-testid={addTestId('Tasks.bulkActionButton.start')}
                   >
-                    <img src={startAll} alt="start all tasks" draggable="false" />
+                    {renderSVGIcon(StartAllIcon, { alt: 'start all' })}
                   </div>
                 </div>
                 <div className="row">
@@ -168,7 +169,7 @@ export class TasksPrimitive extends Component {
                     }}
                     data-testid={addTestId('Tasks.bulkActionButton.stop')}
                   >
-                    <img src={stopAll} alt="stop all tasks" draggable="false" />
+                    {renderSVGIcon(StopAllIcon, { alt: 'stop all' })}
                   </div>
                 </div>
                 <div className="row">
@@ -182,7 +183,7 @@ export class TasksPrimitive extends Component {
                     }}
                     data-testid={addTestId('Tasks.bulkActionButton.destroy')}
                   >
-                    <img src={destroyAll} alt="destroy all tasks" draggable="false" />
+                    {renderSVGIcon(DestroyAllIcon, { alt: 'destroy all' })}
                   </div>
                 </div>
               </div>

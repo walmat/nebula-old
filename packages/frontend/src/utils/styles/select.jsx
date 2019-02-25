@@ -2,9 +2,10 @@
 import { components } from 'react-select';
 import React from 'react';
 import PropTypes from 'prop-types';
-import DDD from '../../_assets/dropdown-down.svg';
-import DDU from '../../_assets/dropdown-up.svg';
+import { ReactComponent as DropDownClosed } from '../../_assets/dropdown-down.svg';
+import { ReactComponent as DropDownOpened } from '../../_assets/dropdown-up.svg';
 import { THEMES, mapThemeToColor } from '../../constants/themes';
+import renderSVGIcon from '../renderSVGIcon';
 
 export const DropdownIndicator = props => {
   const {
@@ -12,7 +13,15 @@ export const DropdownIndicator = props => {
   } = props;
   return (
     <components.DropdownIndicator {...props}>
-      <img src={menuIsOpen ? DDU : DDD} style={{ marginRight: '-5px', cursor: 'pointer' }} alt="" />
+      {menuIsOpen
+        ? renderSVGIcon(DropDownOpened, {
+            alt: '',
+            style: { marginRight: '-5px', cursor: 'pointer' },
+          })
+        : renderSVGIcon(DropDownClosed, {
+            alt: '',
+            style: { marginRight: '-5px', cursor: 'pointer' },
+          })}
     </components.DropdownIndicator>
   );
 };

@@ -9,12 +9,12 @@ import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import addTestId from '../utils/addTestId';
-
-import copy from '../_assets/copy.svg';
-import start from '../_assets/run.svg';
-import stop from '../_assets/stop.svg';
-import destroy from '../_assets/destroy.svg';
-import edit from '../_assets/edit_icon.svg';
+import renderSVGIcon from '../utils/renderSVGIcon';
+import { ReactComponent as EditIcon } from '../_assets/edit.svg';
+import { ReactComponent as CopyIcon } from '../_assets/copy.svg';
+import { ReactComponent as StartIcon } from '../_assets/start.svg';
+import { ReactComponent as StopIcon } from '../_assets/stop.svg';
+import { ReactComponent as DestroyIcon } from '../_assets/destroy.svg';
 import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 
@@ -97,7 +97,7 @@ export class TaskRowPrimitive extends Component {
         onClick={onClick}
         data-testid={addTestId(`TaskRow.button.${tag}`)}
       >
-        <img src={src} alt={desc} draggable="false" className={className} />
+        {renderSVGIcon(src, { alt: desc, className })}
       </div>
     );
   }
@@ -287,7 +287,7 @@ export class TaskRowPrimitive extends Component {
 
   renderTableRowCopyActionButton() {
     const { task, onCopyTask } = this.props;
-    return this.renderTableRowActionButton('copy', 'Copy Task', copy, '', () => {
+    return this.renderTableRowActionButton('copy', 'Copy Task', CopyIcon, '', () => {
       onCopyTask(task);
     });
   }
@@ -297,7 +297,7 @@ export class TaskRowPrimitive extends Component {
     return this.renderTableRowActionButton(
       'start',
       'Start Task',
-      start,
+      StartIcon,
       task.status === 'running' ? 'active' : '',
       () => {
         onStartTask(task, proxies);
@@ -310,7 +310,7 @@ export class TaskRowPrimitive extends Component {
     return this.renderTableRowActionButton(
       'stop',
       'Stop Task',
-      stop,
+      StopIcon,
       task.status === 'stopped' ? 'active' : '',
       () => {
         onStopTask(task);
@@ -320,16 +320,22 @@ export class TaskRowPrimitive extends Component {
 
   renderTableRowDestroyActionButton() {
     const { task, onDestroyTask } = this.props;
-    return this.renderTableRowActionButton('destroy', 'Destroy Task', destroy, '', () => {
+    return this.renderTableRowActionButton('destroy', 'Destroy Task', DestroyIcon, '', () => {
       onDestroyTask(task);
     });
   }
 
   renderTableRowEditButton() {
     const { isEditing } = this.props;
-    return this.renderTableRowButton('edit', 'Edit Task', edit, isEditing ? 'active' : '', () => {
-      this.selectTask();
-    });
+    return this.renderTableRowButton(
+      'edit',
+      'Edit Task',
+      EditIcon,
+      isEditing ? 'active' : '',
+      () => {
+        this.selectTask();
+      },
+    );
   }
 
   renderTableRow() {
