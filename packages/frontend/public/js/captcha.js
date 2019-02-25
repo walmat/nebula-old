@@ -2,6 +2,128 @@ let _siteKey = '';
 let _runnerId = '';
 let _started = false;
 let _initialized = false;
+let _iframe = null;
+const _defaultEvtOptions = {
+  altKey: false,
+  bubbles: true,
+  button: 0,
+  cancelable: true,
+  clientX: 0,
+  clientY: 0,
+  ctrlKey: false,
+  detail: 0,
+  metaKey: false,
+  relatedTarget: null,
+  screenX: 0,
+  screenY: 0,
+  shiftKey: false,
+  type: null,
+  view: window,
+};
+
+function evtOptionsToArgs(options) {
+  return [
+    'type',
+    'bubbles',
+    'cancelable',
+    'view',
+    'detail',
+    'screenX',
+    'screenY',
+    'clientX',
+    'clientY',
+    'ctrlKey',
+    'altKey',
+    'shiftKey',
+    'metaKey',
+    'button',
+    'relatedTarget',
+  ].map(key => options[key] || _defaultEvtOptions[key]);
+}
+
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+async function waitForLoad() {
+  if (_iframe) {
+    return;
+  }
+  let iframe = document.querySelector('iframe[role=presentation]');
+  while (!iframe) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise(resolve => setTimeout(resolve, 50));
+    iframe = document.querySelector('iframe[role=presentation]');
+  }
+  _iframe = iframe;
+}
+
+function simulateEvent(target, evt, destPt, sourcePt, options) {
+  const opts = {
+    type: evt,
+    ...options, // Use given options to override any default options
+  };
+  const event = target.ownerDocument.createEvent('MouseEvents');
+  event.initMouseEvent(...evtOptionsToArgs(opts));
+  target.dispatchEvent(event);
+}
+
+function simulateClick(sourcePt) {
+  if (!_iframe) {
+    // iframe isn't loaded yet, so we can't simulate click...
+    return;
+  }
+  const content = _iframe.contentDocument || _iframe.contentWindow.document;
+
+  // Create helper functions
+  const randPoint = ({ width, height }) => ({
+    x: rand(0, width),
+    y: rand(0, height),
+  });
+  const getByClassName = className => content.getElementsByClassName(className)[0];
+  const getRect = el => el.getBoundingClientRect();
+
+  // Get elements and generate points
+  const [anchor, check] = ['rc-anchor rc-anchor-normal', 'recaptcha-checkbox-checkmark'].map(
+    className => {
+      const el = getByClassName(className);
+      const pt = randPoint(getRect(el));
+      return { el, pt };
+    },
+  );
+
+  // Simulate Events
+  simulateEvent(anchor.el, 'mousemove', anchor.pt, sourcePt);
+  ['mousedown', 'mouseup', 'click'].forEach(evt => {
+    simulateEvent(check.el, evt, check.pt, sourcePt);
+  });
+}
+
+async function autoClick() {
+  // Wait for iframe load
+  await waitForLoad();
+
+  // Wait for iframe content load
+  await new Promise(resolve => setTimeout(resolve, 150));
+
+  // Get position and simulate click
+  const [x, y] = window.Bridge.Captcha.getPosition();
+  const sourcePt = {
+    x: x + rand(200, 300),
+    y: y + rand(300, 430),
+  };
+  simulateClick(sourcePt);
+}
+
+function resetChallenge(shouldAutoClick = false) {
+  if (window.grecaptcha) {
+    window.grecaptcha.reset();
+  }
+  _iframe = null;
+  if (shouldAutoClick) {
+    autoClick();
+  }
+}
 
 // This function is given to the recaptcha element, but it is set
 // as an attribute and not referenced. eslint can't detect this and
@@ -9,10 +131,12 @@ let _initialized = false;
 //
 // For more info, see https://developers.google.com/recaptcha/docs/display#config
 // eslint-disable-next-line no-unused-vars
-function submitCaptcha() {
+async function submitCaptcha() {
   const token = document.getElementById('g-recaptcha-response').value;
   window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
-  window.grecaptcha.reset();
+  await new Promise(resolve => setTimeout(resolve, 500)); // wait a little bit before resetting
+
+  resetChallenge(true);
 }
 
 function _registerStartHandler(ev, runnerId, siteKey) {
@@ -43,11 +167,11 @@ function _registerStartHandler(ev, runnerId, siteKey) {
     form.appendChild(div);
     form.appendChild(script);
     _initialized = true;
+    _iframe = null;
   }
 
-  if (window.grecaptcha) {
-    window.grecaptcha.reset();
-  }
+  // If recaptcha has been previously loaded, reset it
+  resetChallenge(true);
 }
 
 function _registerStopHandler() {
@@ -55,9 +179,7 @@ function _registerStopHandler() {
   // Hide the form and reset it for when we start again
   const form = document.getElementById('captchaForm');
   form.setAttribute('style', 'display: none;');
-  if (window.grecaptcha) {
-    window.grecaptcha.reset();
-  }
+  resetChallenge();
 }
 
 function _onLoad() {
