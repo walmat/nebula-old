@@ -84,7 +84,6 @@ export class LocationFieldsPrimitive extends Component {
 
   renderBillingMatchesShipping() {
     const { id, onClickBillingMatchesShipping, onKeyPress, currentProfile } = this.props;
-    const { billingMatchesShipping } = currentProfile;
     if (id === 'shipping') {
       return (
         <div className="row">
@@ -94,7 +93,7 @@ export class LocationFieldsPrimitive extends Component {
             onKeyPress={onKeyPress}
             onClick={onClickBillingMatchesShipping}
           >
-            {billingMatchesShipping
+            {currentProfile.billingMatchesShipping
               ? renderSVGIcon(BillingMatchesShippingIcon, {
                   title: 'Billing Matches Shipping',
                   alt: 'Billing Matches Shipping',
