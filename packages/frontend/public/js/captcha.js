@@ -3,6 +3,43 @@ let _runnerId = '';
 let _started = false;
 let _initialized = false;
 let _iframe = null;
+const _defaultEvtOptions = {
+  altKey: false,
+  bubbles: true,
+  button: 0,
+  cancelable: true,
+  clientX: 0,
+  clientY: 0,
+  ctrlKey: false,
+  detail: 0,
+  metaKey: false,
+  relatedTarget: null,
+  screenX: 0,
+  screenY: 0,
+  shiftKey: false,
+  type: null,
+  view: window,
+};
+
+function evtOptionsToArgs(options) {
+  return [
+    'type',
+    'bubbles',
+    'cancelable',
+    'view',
+    'detail',
+    'screenX',
+    'screenY',
+    'clientX',
+    'clientY',
+    'ctrlKey',
+    'altKey',
+    'shiftKey',
+    'metaKey',
+    'button',
+    'relatedTarget',
+  ].map(key => options[key] || _defaultEvtOptions[key]);
+}
 
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
@@ -22,43 +59,12 @@ async function waitForLoad() {
 }
 
 function simulateEvent(target, evt, destPt, sourcePt, options) {
-  const event = target.ownerDocument.createEvent('MouseEvents');
   const opts = {
-    altKey: false,
-    button: 0,
-    canBubble: true,
-    cancelable: true,
-    clientX: destPt.x,
-    clientY: destPt.y,
-    ctrlKey: false,
-    detail: 0,
-    metaKey: false,
-    relatedTarget: null,
-    screenX: sourcePt.x,
-    screenY: sourcePt.y,
-    shiftKey: false,
     type: evt,
-    view: window,
     ...options, // Use given options to override any default options
   };
-
-  event.initMouseEvent(
-    opts.type,
-    opts.canBubble,
-    opts.cancelable,
-    opts.view,
-    opts.detail,
-    opts.screenX,
-    opts.screenY,
-    opts.clientX,
-    opts.clientY,
-    opts.ctrlKey,
-    opts.altKey,
-    opts.shiftKey,
-    opts.metaKey,
-    opts.button,
-    opts.relatedTarget,
-  );
+  const event = target.ownerDocument.createEvent('MouseEvents');
+  event.initMouseEvent(...evtOptionsToArgs(opts));
   target.dispatchEvent(event);
 }
 
@@ -77,18 +83,19 @@ function simulateClick(sourcePt) {
   const getByClassName = className => content.getElementsByClassName(className)[0];
   const getRect = el => el.getBoundingClientRect();
 
-  // Get elements
+  // Get elements and generate points
   const [anchor, check] = ['rc-anchor rc-anchor-normal', 'recaptcha-checkbox-checkmark'].map(
-    getByClassName,
+    className => {
+      const el = getByClassName(className);
+      const pt = randPoint(getRect(el));
+      return { el, pt };
+    },
   );
 
-  // Generate points
-  const [anchorPt, checkPt] = [anchor, check].map(el => randPoint(getRect(el)));
-
   // Simulate Events
-  simulateEvent(anchor, 'mousemove', anchorPt, sourcePt);
+  simulateEvent(anchor.el, 'mousemove', anchor.pt, sourcePt);
   ['mousedown', 'mouseup', 'click'].forEach(evt => {
-    simulateEvent(check, evt, checkPt, sourcePt);
+    simulateEvent(check.el, evt, check.pt, sourcePt);
   });
 }
 
@@ -108,6 +115,16 @@ async function autoClick() {
   simulateClick(sourcePt);
 }
 
+function resetChallenge(shouldAutoClick = false) {
+  if (window.grecaptcha) {
+    window.grecaptcha.reset();
+  }
+  _iframe = null;
+  if (shouldAutoClick) {
+    autoClick();
+  }
+}
+
 // This function is given to the recaptcha element, but it is set
 // as an attribute and not referenced. eslint can't detect this and
 // throws and error, but this function is used.
@@ -119,9 +136,7 @@ async function submitCaptcha() {
   window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
   await new Promise(resolve => setTimeout(resolve, 500)); // wait a little bit before resetting
 
-  window.grecaptcha.reset();
-  _iframe = null;
-  autoClick();
+  resetChallenge(true);
 }
 
 function _registerStartHandler(ev, runnerId, siteKey) {
@@ -156,11 +171,7 @@ function _registerStartHandler(ev, runnerId, siteKey) {
   }
 
   // If recaptcha has been previously loaded, reset it
-  if (window.grecaptcha) {
-    window.grecaptcha.reset();
-    _iframe = null;
-  }
-  autoClick();
+  resetChallenge(true);
 }
 
 function _registerStopHandler() {
@@ -168,10 +179,7 @@ function _registerStopHandler() {
   // Hide the form and reset it for when we start again
   const form = document.getElementById('captchaForm');
   form.setAttribute('style', 'display: none;');
-  if (window.grecaptcha) {
-    window.grecaptcha.reset();
-  }
-  _iframe = null;
+  resetChallenge();
 }
 
 function _onLoad() {
