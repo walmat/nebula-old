@@ -105,7 +105,7 @@ class TaskRunner {
     this._handleAbort = this._handleAbort.bind(this);
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
-    this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks);
+    this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
   }
 
   _waitForErrorDelay() {

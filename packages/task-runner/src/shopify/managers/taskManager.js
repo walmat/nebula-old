@@ -45,6 +45,8 @@ class TaskManager {
       name: 'TaskManager',
       filename: 'manager.log',
     });
+
+    this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }
 
   // MARK: Event Related Methods
@@ -611,7 +613,7 @@ class TaskManager {
     // Attach Manager Handlers to Runner Events
     // TODO: Respect the scope of the _events variable (issue #137)
     // Register for status updates
-    runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates, this);
+    runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
     runner._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy, this);
