@@ -1,4 +1,4 @@
-const EventEmitter = require('events');
+const EventEmitter = require('eventemitter3');
 const request = require('request-promise');
 
 const Timer = require('./classes/timer');
@@ -101,14 +101,11 @@ class TaskRunner {
      * Events will provide the task id, a message, and a message group
      */
     this._events = new EventEmitter();
-    this._events.setMaxListeners(100);
 
     this._handleAbort = this._handleAbort.bind(this);
-    this._handleHarvest = this._handleHarvest.bind(this);
-    this._handleDelay = this._handleDelay.bind(this);
 
-    this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay);
-    this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks);
+    this._events.once(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
+    this._events.once(TaskManagerEvents.UpdateHook, this._handleUpdateHooks);
   }
 
   _waitForErrorDelay() {
@@ -161,7 +158,7 @@ class TaskRunner {
   getCaptcha() {
     if (!this._captchaQueue) {
       this._captchaQueue = new AsyncQueue();
-      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest);
+      this._events.once(TaskManagerEvents.Harvest, this._handleHarvest, this);
       this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
     }
     // return the captcha request
@@ -173,7 +170,7 @@ class TaskRunner {
       this._captchaQueue.destroy();
       this._captchaQueue = null;
       this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
-      this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest);
+      this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
     }
   }
 
@@ -200,23 +197,8 @@ class TaskRunner {
         this._events.on(Events.TaskStatus, callback);
         break;
       }
-      case Events.QueueBypassStatus: {
-        this._events.on(Events.QueueBypassStatus, callback);
-        break;
-      }
-      case Events.MonitorStatus: {
-        this._events.on(Events.MonitorStatus, callback);
-        break;
-      }
-      case Events.CheckoutStatus: {
-        this._events.on(Events.CheckoutStatus, callback);
-        break;
-      }
       case Events.All: {
         this._events.on(Events.TaskStatus, callback);
-        this._events.on(Events.QueueBypassStatus, callback);
-        this._events.on(Events.MonitorStatus, callback);
-        this._events.on(Events.CheckoutStatus, callback);
         break;
       }
       default:
@@ -230,23 +212,8 @@ class TaskRunner {
         this._events.removeListener(Events.TaskStatus, callback);
         break;
       }
-      case Events.QueueBypassStatus: {
-        this._events.removeListener(Events.QueueBypassStatus, callback);
-        break;
-      }
-      case Events.MonitorStatus: {
-        this._events.removeListener(Events.MonitorStatus, callback);
-        break;
-      }
-      case Events.CheckoutStatus: {
-        this._events.removeListener(Events.CheckoutStatus, callback);
-        break;
-      }
       case Events.All: {
         this._events.removeListener(Events.TaskStatus, callback);
-        this._events.removeListener(Events.QueueBypassStatus, callback);
-        this._events.removeListener(Events.MonitorStatus, callback);
-        this._events.removeListener(Events.CheckoutStatus, callback);
         break;
       }
       default: {
@@ -259,10 +226,7 @@ class TaskRunner {
   _emitEvent(event, payload) {
     switch (event) {
       // Emit supported events on their specific channel
-      case Events.TaskStatus:
-      case Events.QueueBypassStatus:
-      case Events.MonitorStatus:
-      case Events.CheckoutStatus: {
+      case Events.TaskStatus: {
         this._events.emit(event, this._context.id, payload, event);
         break;
       }
@@ -277,18 +241,6 @@ class TaskRunner {
 
   _emitTaskEvent(payload) {
     this._emitEvent(Events.TaskStatus, payload);
-  }
-
-  _emitQueueBypassEvent(payload) {
-    this._emitEvent(Events.QueueBypassStatus, payload);
-  }
-
-  _emitMonitorEvent(payload) {
-    this._emitEvent(Events.MonitorStatus, payload);
-  }
-
-  _emitCheckoutEvent(payload) {
-    this._emitEvent(Events.CheckoutStatus, payload);
   }
 
   // MARK: State Machine Step Logic
@@ -579,7 +531,7 @@ class TaskRunner {
     try {
       this._logger.verbose('Waiting for new proxy...');
       const proxy = await this.swapProxies();
-      this._logger.verbose('nebulakey %j', proxy);
+
       // Proxy is fine, update the references
       if (proxy) {
         this.proxy = proxy;
