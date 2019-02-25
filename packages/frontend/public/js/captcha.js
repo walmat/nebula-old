@@ -104,7 +104,7 @@ async function autoClick() {
   await waitForLoad();
 
   // Wait for iframe content load
-  await new Promise(resolve => setTimeout(resolve, 150));
+  await new Promise(resolve => setTimeout(resolve, rand(400, 450)));
 
   // Get position and simulate click
   const [x, y] = window.Bridge.Captcha.getPosition();
