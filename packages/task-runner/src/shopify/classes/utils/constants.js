@@ -65,6 +65,7 @@ const TaskRunnerCheckoutTypes = {
  */
 const ParserErrorCodes = {
   ProductNotFound: 'PRODUCT_MISSING',
+  ProductNotLive: 'PRODUCT_NOT_LIVE',
 };
 
 /**

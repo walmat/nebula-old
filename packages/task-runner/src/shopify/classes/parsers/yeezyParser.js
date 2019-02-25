@@ -15,12 +15,12 @@ class YeezyParser extends SpecialParser {
     // Look for all `.js-product-json`'s
     const products = [];
 
-    const validateArray = arr => {
+    const validateArray = (arr = [], errorCode = ErrorCodes.ProductNotFound) => {
       if (arr.length === 0) {
         // If no products are found, throw an error, but specify a special status to stop the task
         // TODO: Maybe replace with a custom error object?
         const error = new Error('No Items Found');
-        error.status = ErrorCodes.ProductNotFound;
+        error.status = errorCode;
         throw error;
       }
     };
@@ -63,12 +63,24 @@ class YeezyParser extends SpecialParser {
       products.length,
     );
 
-    const validatedProducts = products.filter(
+    // check to see if product is live yet
+    const liveAvailableProducts = products.filter(
+      ({ type }) => type.toUpperCase().indexOf('PLACEHOLDER') === -1,
+    );
+    validateArray(liveAvailableProducts, ErrorCodes.ProductNotLive);
+
+    this._logger.silly(
+      '%s: Found %d live products, filtering...',
+      this._name,
+      liveAvailableProducts.length,
+    );
+
+    const validatedProducts = liveAvailableProducts.filter(
       ({ id, title, handle, variants }) => id && variants && (title || handle),
     );
 
     validateArray(validatedProducts);
-    this._logger.silly('%s: Found %d products!', this._name, validatedProducts.length);
+    this._logger.silly('%s: Found %d valid products!', this._name, validatedProducts.length);
 
     return validatedProducts;
   }
