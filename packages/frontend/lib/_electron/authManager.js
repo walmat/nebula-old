@@ -23,9 +23,9 @@ class AuthManager {
      */
     this._store = new Store();
 
-    context.ipc.once(IPCKeys.AuthRequestActivate, this._onAuthRequestActivate.bind(this));
-    context.ipc.once(IPCKeys.AuthRequestDeactivate, this._onAuthRequestDeactivate.bind(this));
-    context.ipc.once(IPCKeys.AuthRequestStatus, this._onAuthRequestStatus.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestActivate, this._onAuthRequestActivate.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestDeactivate, this._onAuthRequestDeactivate.bind(this));
+    context.ipc.on(IPCKeys.AuthRequestStatus, this._onAuthRequestStatus.bind(this));
   }
 
   /**

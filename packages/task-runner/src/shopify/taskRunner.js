@@ -104,8 +104,8 @@ class TaskRunner {
 
     this._handleAbort = this._handleAbort.bind(this);
 
-    this._events.once(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
-    this._events.once(TaskManagerEvents.UpdateHook, this._handleUpdateHooks);
+    this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
+    this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks);
   }
 
   _waitForErrorDelay() {
@@ -158,7 +158,7 @@ class TaskRunner {
   getCaptcha() {
     if (!this._captchaQueue) {
       this._captchaQueue = new AsyncQueue();
-      this._events.once(TaskManagerEvents.Harvest, this._handleHarvest, this);
+      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
       this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
     }
     // return the captcha request
@@ -197,10 +197,6 @@ class TaskRunner {
         this._events.on(Events.TaskStatus, callback);
         break;
       }
-      case Events.All: {
-        this._events.on(Events.TaskStatus, callback);
-        break;
-      }
       default:
         break;
     }
@@ -209,10 +205,6 @@ class TaskRunner {
   deregisterForEvent(event, callback) {
     switch (event) {
       case Events.TaskStatus: {
-        this._events.removeListener(Events.TaskStatus, callback);
-        break;
-      }
-      case Events.All: {
         this._events.removeListener(Events.TaskStatus, callback);
         break;
       }
