@@ -9,7 +9,7 @@ import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import addTestId from '../utils/addTestId';
-import renderSVGIcon from '../utils/renderSVGIcon';
+import renderSVGIcon from '../utils/renderSvgIcon';
 import { ReactComponent as EditIcon } from '../_assets/edit.svg';
 import { ReactComponent as CopyIcon } from '../_assets/copy.svg';
 import { ReactComponent as StartIcon } from '../_assets/start.svg';

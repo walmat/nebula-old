@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { ReactComponent as DropDownClosed } from '../../_assets/dropdown-down.svg';
 import { ReactComponent as DropDownOpened } from '../../_assets/dropdown-up.svg';
 import { THEMES, mapThemeToColor } from '../../constants/themes';
-import renderSVGIcon from '../renderSVGIcon';
+import { renderSvgIcon } from '../index';
 
 export const DropdownIndicator = props => {
   const {
@@ -14,11 +14,11 @@ export const DropdownIndicator = props => {
   return (
     <components.DropdownIndicator {...props}>
       {menuIsOpen
-        ? renderSVGIcon(DropDownOpened, {
+        ? renderSvgIcon(DropDownOpened, {
             alt: '',
             style: { marginRight: '-5px', cursor: 'pointer' },
           })
-        : renderSVGIcon(DropDownClosed, {
+        : renderSvgIcon(DropDownClosed, {
             alt: '',
             style: { marginRight: '-5px', cursor: 'pointer' },
           })}

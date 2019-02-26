@@ -9,8 +9,7 @@ import { ReactComponent as ConnectIcon } from '../_assets/connect.svg';
 
 import defns from '../utils/definitions/serverDefinitions';
 import { serverActions } from '../state/actions/server/serverActions';
-import addTestId from '../utils/addTestId';
-import renderSVGIcon from '../utils/renderSVGIcon';
+import { addTestId, renderSvgIcon } from '../utils';
 
 export class ServerRowPrimitive extends Component {
   renderTableRowActionButton(tag, desc, src, className, onClick) {
@@ -32,7 +31,7 @@ export class ServerRowPrimitive extends Component {
         onClick={onClick}
         data-testid={addTestId(`ServerRow.tableRowButton.${tag}`)}
       >
-        {renderSVGIcon(src, { alt: desc, className })}
+        {renderSvgIcon(src, { alt: desc, className })}
       </div>
     );
   }

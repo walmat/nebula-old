@@ -10,7 +10,7 @@ import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 import addTestId from '../utils/addTestId';
-import renderSVGIcon from '../utils/renderSVGIcon';
+import renderSVGIcon from '../utils/renderSvgIcon';
 
 import { ReactComponent as StartAllIcon } from '../_assets/start-all.svg';
 import { ReactComponent as StopAllIcon } from '../_assets/stop-all.svg';

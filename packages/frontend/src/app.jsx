@@ -10,8 +10,7 @@ import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
 import { THEMES, mapThemeToColor, mapToNextTheme } from './constants/themes';
 
-import renderSVGIcon from './utils/renderSVGIcon';
-import addTestId from './utils/addTestId';
+import { addTestId, renderSvgIcon } from './utils';
 
 /* SVGS */
 import { ReactComponent as CloseIcon } from './_assets/close.svg';
@@ -111,7 +110,7 @@ export class App extends PureComponent {
                 draggable="false"
                 data-testid={addTestId('App.button.deactivate')}
               >
-                {renderSVGIcon(DeactivateIcon, {
+                {renderSvgIcon(DeactivateIcon, {
                   alt: 'deactivate',
                   style: { marginTop: '6px', marginLeft: '6px' },
                 })}
@@ -126,7 +125,7 @@ export class App extends PureComponent {
                 draggable="false"
                 data-testid={addTestId('App.button.close')}
               >
-                {renderSVGIcon(CloseIcon, {
+                {renderSvgIcon(CloseIcon, {
                   alt: 'close',
                   style: { marginTop: '6px', marginLeft: '6px' },
                 })}
@@ -141,11 +140,11 @@ export class App extends PureComponent {
                 draggable="false"
               >
                 {theme === THEMES.LIGHT
-                  ? renderSVGIcon(NightModeIcon, {
+                  ? renderSvgIcon(NightModeIcon, {
                       alt: 'theme',
                       style: { marginTop: '5px', marginLeft: '5px' },
                     })
-                  : renderSVGIcon(LightModeIcon, {
+                  : renderSvgIcon(LightModeIcon, {
                       alt: 'theme',
                       style: { marginTop: '6px', marginLeft: '4px' },
                     })}

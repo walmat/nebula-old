@@ -1,6 +1,6 @@
 import React from 'react';
 
-const renderSVGIcon = (Icon, props) => {
+const renderSvgIcon = (Icon, props) => {
   const base = {
     draggable: false,
     ...props,
@@ -8,4 +8,4 @@ const renderSVGIcon = (Icon, props) => {
   return <Icon {...base} />;
 };
 
-export default renderSVGIcon;
+export default renderSvgIcon;

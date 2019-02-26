@@ -516,16 +516,16 @@
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:first-child {
   margin-left: -10px;
-  margin-top: 2.5px;
+  margin-top: 5.5px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(2) {
-  margin-top: 3px;
+  margin-top: 7.2px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(3) {
-  margin-top: 3.5px;
+  margin-top: 7px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:nth-child(4) {
-  margin-top: 3.35px;
+  margin-top: 6.5px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button {
   padding-bottom: 3px;

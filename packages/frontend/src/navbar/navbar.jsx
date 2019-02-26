@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { navbarActions, ROUTES } from '../state/actions';
 
-import renderSVGIcon from '../utils/renderSVGIcon';
+import { renderSvgIcon } from '../utils';
 import logoAnimation from './nebula.json';
 import Bodymovin from './bodymovin';
 // import server from '../_assets/server.svg'; // TODO - when server page is finished
@@ -72,7 +72,7 @@ export class NavbarPrimitive extends PureComponent {
                             onRouteTasks(history);
                           }}
                         >
-                          {renderSVGIcon(TasksIcon, {
+                          {renderSvgIcon(TasksIcon, {
                             alt: 'tasks',
                             className: 'navbar__icons--tasks',
                           })}
@@ -95,7 +95,7 @@ export class NavbarPrimitive extends PureComponent {
                             onRouteProfiles(history);
                           }}
                         >
-                          {renderSVGIcon(ProfilesIcon, {
+                          {renderSvgIcon(ProfilesIcon, {
                             alt: 'profiles',
                             className: 'navbar__icons--profiles',
                           })}
@@ -120,7 +120,7 @@ export class NavbarPrimitive extends PureComponent {
                           //   onRouteServer(history);
                           // }}
                         >
-                          {renderSVGIcon(ServersIcon, {
+                          {renderSvgIcon(ServersIcon, {
                             alt: 'servers',
                             className: 'navbar__icons--servers',
                           })}
@@ -143,7 +143,7 @@ export class NavbarPrimitive extends PureComponent {
                             onRouteSettings(history);
                           }}
                         >
-                          {renderSVGIcon(SettingsIcon, {
+                          {renderSvgIcon(SettingsIcon, {
                             alt: 'settings',
                             className: 'navbar__icons--settings',
                           })}

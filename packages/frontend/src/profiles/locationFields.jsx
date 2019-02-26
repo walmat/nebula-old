@@ -12,8 +12,7 @@ import {
 } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
-import addTestId from '../utils/addTestId';
-import renderSVGIcon from '../utils/renderSVGIcon';
+import { addTestId, renderSvgIcon } from '../utils';
 
 import { ReactComponent as BillingMatchesShippingIcon } from '../_assets/Check_icons-01.svg';
 import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../_assets/Check_icons-02.svg';
@@ -94,12 +93,12 @@ export class LocationFieldsPrimitive extends Component {
             onClick={onClickBillingMatchesShipping}
           >
             {currentProfile.billingMatchesShipping
-              ? renderSVGIcon(BillingMatchesShippingIcon, {
+              ? renderSvgIcon(BillingMatchesShippingIcon, {
                   title: 'Billing Matches Shipping',
                   alt: 'Billing Matches Shipping',
                   className: 'profiles__fields--matches',
                 })
-              : renderSVGIcon(BillingDoesNotMatchShippingIcon, {
+              : renderSvgIcon(BillingDoesNotMatchShippingIcon, {
                   title: "Billing Doesn't Match Shipping",
                   alt: "Billing Doesn't Match Shipping",
                   className: 'profiles__fields--matches',
