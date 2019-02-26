@@ -2,14 +2,14 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import stop from '../_assets/stop.svg';
-import start from '../_assets/run.svg';
-import destroy from '../_assets/destroy.svg';
-import conn from '../_assets/connect.svg';
+import { ReactComponent as StartIcon } from '../_assets/start.svg';
+import { ReactComponent as StopIcon } from '../_assets/stop.svg';
+import { ReactComponent as DestroyIcon } from '../_assets/destroy.svg';
+import { ReactComponent as ConnectIcon } from '../_assets/connect.svg';
 
 import defns from '../utils/definitions/serverDefinitions';
 import { serverActions } from '../state/actions/server/serverActions';
-import addTestId from '../utils/addTestId';
+import { addTestId, renderSvgIcon } from '../utils';
 
 export class ServerRowPrimitive extends Component {
   renderTableRowActionButton(tag, desc, src, className, onClick) {
@@ -31,7 +31,7 @@ export class ServerRowPrimitive extends Component {
         onClick={onClick}
         data-testid={addTestId(`ServerRow.tableRowButton.${tag}`)}
       >
-        <img src={src} alt={desc} draggable="false" className={className} />
+        {renderSvgIcon(src, { alt: desc, className })}
       </div>
     );
   }
@@ -41,7 +41,7 @@ export class ServerRowPrimitive extends Component {
     return this.renderTableRowActionButton(
       'connect',
       'Connect Server',
-      conn,
+      ConnectIcon,
       server.status === 'connected' ? 'active' : '',
       () => {
         onConnectServer(server, serverInfo.credentials);
@@ -54,7 +54,7 @@ export class ServerRowPrimitive extends Component {
     return this.renderTableRowActionButton(
       'start',
       'Start Server',
-      start,
+      StartIcon,
       server.status === 'running' ? 'active' : '',
       () => {
         onStartServer(server, serverInfo.credentials);
@@ -67,7 +67,7 @@ export class ServerRowPrimitive extends Component {
     return this.renderTableRowActionButton(
       'stop',
       'Stop Server',
-      stop,
+      StopIcon,
       server.status === 'stopped' ? 'active' : '',
       () => {
         onStopServer(server, serverInfo.credentials);
@@ -77,7 +77,7 @@ export class ServerRowPrimitive extends Component {
 
   renderTableRowDestroyActionButton() {
     const { server, serverInfo, onDestroyServer } = this.props;
-    return this.renderTableRowActionButton('destroy', 'Destroy Server', destroy, '', () => {
+    return this.renderTableRowActionButton('destroy', 'Destroy Server', DestroyIcon, '', () => {
       onDestroyServer(server, serverInfo.credentials);
     });
   }

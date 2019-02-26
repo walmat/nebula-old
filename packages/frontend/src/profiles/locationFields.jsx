@@ -10,14 +10,14 @@ import {
   mapProfileFieldToKey,
   PROFILE_FIELDS,
 } from '../state/actions';
-import './profiles.css';
 import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
-import addTestId from '../utils/addTestId';
+import { addTestId, renderSvgIcon } from '../utils';
 
-// images
-import checkboxChecked from '../_assets/Check_icons-01.svg';
-import checkboxUnchecked from '../_assets/Check_icons-02.svg';
+import { ReactComponent as BillingMatchesShippingIcon } from '../_assets/Check_icons-01.svg';
+import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../_assets/Check_icons-02.svg';
+
+import './profiles.css';
 
 export class LocationFieldsPrimitive extends Component {
   static buildCountryOptions() {
@@ -92,22 +92,17 @@ export class LocationFieldsPrimitive extends Component {
             onKeyPress={onKeyPress}
             onClick={onClickBillingMatchesShipping}
           >
-            <img
-              src={currentProfile.billingMatchesShipping ? checkboxChecked : checkboxUnchecked}
-              title={
-                currentProfile.billingMatchesShipping
-                  ? 'Billing Matches Shipping'
-                  : "Billing Doesn't Match Shipping"
-              }
-              alt={
-                currentProfile.billingMatchesShipping
-                  ? 'Billing Matches Shipping'
-                  : "Billing Doesn't Match Shipping"
-              }
-              className="profiles__fields--matches"
-              draggable="false"
-              data-testid={addTestId(`LocationFieldsPrimitive.${id}-billingMatchesShipping`)}
-            />
+            {currentProfile.billingMatchesShipping
+              ? renderSvgIcon(BillingMatchesShippingIcon, {
+                  title: 'Billing Matches Shipping',
+                  alt: 'Billing Matches Shipping',
+                  className: 'profiles__fields--matches',
+                })
+              : renderSvgIcon(BillingDoesNotMatchShippingIcon, {
+                  title: "Billing Doesn't Match Shipping",
+                  alt: "Billing Doesn't Match Shipping",
+                  className: 'profiles__fields--matches',
+                })}
           </div>
         </div>
       );
