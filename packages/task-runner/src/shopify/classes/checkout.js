@@ -185,6 +185,68 @@ class Checkout {
     }
   }
 
+  async parseAccessToken() {
+    const { site } = this._context.task;
+    const { url } = site;
+
+    this._logger.verbose('API CHECKOUT: Parsing access token');
+    try {
+      const res = await this._request({
+        uri: url,
+        method: 'GET',
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: false,
+        resolveWithFullResponse: true,
+        simple: false,
+        json: false,
+        headers: {
+          'User-Agent': userAgent,
+        },
+      });
+
+      const { statusCode, body, headers } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.location;
+      if (redirectUrl) {
+        // TODO - do more checks to see if we can parse the access token on other pages (aka account, login, etc.)
+        return { message: 'Failed: parsing checkout token', nextState: States.Stopped };
+      }
+
+      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+      const scriptTags = $('script#shopify-features');
+      if (!scriptTags.length) {
+        return { message: 'Invalid Shopify Site', nextState: States.Stopped };
+      }
+
+      if (scriptTags.length > 1) {
+        // TODO - maybe try to parse if more than one tag element matches?
+        return { message: 'Invalid Shopify Site', nextState: States.Stopped };
+      }
+
+      let jsonScriptElement;
+      try {
+        jsonScriptElement = JSON.parse(scriptTags.html());
+      } catch (err) {
+        return { message: 'Invalid Shopify Site', nextState: States.Stopped };
+      }
+
+      const { accessToken } = jsonScriptElement;
+      if (accessToken) {
+        this._context.task.site.apiKey = accessToken;
+        return { message: 'Creating checkout', nextState: States.CreateCheckout };
+      }
+      return { message: 'Invalid Shopify Site', nextState: States.Stopped };
+    } catch (err) {
+      this._logger.debug('API CHECKOUT: Request error parsing access token: %j', err);
+      return { message: 'Failed: Parsing access token', nextState: States.Stopped };
+    }
+  }
+
   async createCheckout() {
     const { site, monitorDelay } = this._context.task;
     const { url, localCheckout = false } = site;
