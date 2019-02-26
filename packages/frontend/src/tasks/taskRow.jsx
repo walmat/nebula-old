@@ -8,8 +8,7 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 import pDefns from '../utils/definitions/profileDefinitions';
-import addTestId from '../utils/addTestId';
-import renderSVGIcon from '../utils/renderSvgIcon';
+import { addTestId, renderSvgIcon } from '../utils';
 import { ReactComponent as EditIcon } from '../_assets/edit.svg';
 import { ReactComponent as CopyIcon } from '../_assets/copy.svg';
 import { ReactComponent as StartIcon } from '../_assets/start.svg';
@@ -97,7 +96,7 @@ export class TaskRowPrimitive extends Component {
         onClick={onClick}
         data-testid={addTestId(`TaskRow.button.${tag}`)}
       >
-        {renderSVGIcon(src, { alt: desc, className })}
+        {renderSvgIcon(src, { alt: desc, className })}
       </div>
     );
   }

@@ -9,8 +9,7 @@ import { taskActions } from '../state/actions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
-import addTestId from '../utils/addTestId';
-import renderSVGIcon from '../utils/renderSvgIcon';
+import { addTestId, renderSvgIcon } from '../utils';
 
 import { ReactComponent as StartAllIcon } from '../_assets/start-all.svg';
 import { ReactComponent as StopAllIcon } from '../_assets/stop-all.svg';
@@ -155,7 +154,7 @@ export class TasksPrimitive extends Component {
                     }}
                     data-testid={addTestId('Tasks.bulkActionButton.start')}
                   >
-                    {renderSVGIcon(StartAllIcon, { alt: 'start all' })}
+                    {renderSvgIcon(StartAllIcon, { alt: 'start all' })}
                   </div>
                 </div>
                 <div className="row">
@@ -169,7 +168,7 @@ export class TasksPrimitive extends Component {
                     }}
                     data-testid={addTestId('Tasks.bulkActionButton.stop')}
                   >
-                    {renderSVGIcon(StopAllIcon, { alt: 'stop all' })}
+                    {renderSvgIcon(StopAllIcon, { alt: 'stop all' })}
                   </div>
                 </div>
                 <div className="row">
@@ -183,7 +182,7 @@ export class TasksPrimitive extends Component {
                     }}
                     data-testid={addTestId('Tasks.bulkActionButton.destroy')}
                   >
-                    {renderSVGIcon(DestroyAllIcon, { alt: 'destroy all' })}
+                    {renderSvgIcon(DestroyAllIcon, { alt: 'destroy all' })}
                   </div>
                 </div>
               </div>
