@@ -110,7 +110,7 @@ async function simulateClick(sourcePt) {
   await waitFor(rand(20, 50));
   await Promise.all(
     ['mousedown', 'mouseup', 'click'].map(async (evt, idx) => {
-      await waitFor(idx * rand(20, 50));
+      await waitFor(idx * rand(30, 50));
       simulateEvent(check.el, evt, check.pt, sourcePt);
     }),
   );
@@ -148,7 +148,7 @@ async function submitCaptcha() {
 }
 
 async function onLoad() {
-  if (_started) {
+  if (_started && !_initialized) {
     window.grecaptcha.render('captchaContainer', {
       size: 'normal',
       sitekey: _siteKey,
