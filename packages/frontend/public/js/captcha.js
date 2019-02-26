@@ -125,21 +125,28 @@ function resetChallenge(shouldAutoClick = false) {
   }
 }
 
-// This function is given to the recaptcha element, but it is set
-// as an attribute and not referenced. eslint can't detect this and
-// throws and error, but this function is used.
-//
-// For more info, see https://developers.google.com/recaptcha/docs/display#config
-// eslint-disable-next-line no-unused-vars
 async function submitCaptcha() {
   const token = document.getElementById('g-recaptcha-response').value;
   window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
-  await new Promise(resolve => setTimeout(resolve, 500)); // wait a little bit before resetting
+  await new Promise(resolve => setTimeout(resolve, rand(500, 1000))); // wait a little bit before resetting
 
   resetChallenge(true);
 }
 
-function _registerStartHandler(ev, runnerId, siteKey) {
+async function onLoad() {
+  if (_started) {
+    window.grecaptcha.render('captchaContainer', {
+      size: 'normal',
+      sitekey: _siteKey,
+      theme: 'light',
+      callback: submitCaptcha,
+    });
+    _initialized = true;
+    _iframe = null;
+  }
+}
+
+async function _registerStartHandler(_, runnerId, siteKey) {
   if (_started) {
     return;
   }
@@ -152,22 +159,8 @@ function _registerStartHandler(ev, runnerId, siteKey) {
   const form = document.getElementById('captchaForm');
   form.setAttribute('style', '');
 
-  // Initialize the captcha page
   if (!_initialized) {
-    const script = document.createElement('script');
-    script.setAttribute('type', 'text/javascript');
-    script.setAttribute('src', 'https://www.google.com/recaptcha/api.js');
-    const div = document.createElement('div');
-    div.setAttribute('data-sitekey', `${siteKey}`);
-    div.setAttribute('data-callback', 'submitCaptcha');
-    div.setAttribute('class', 'g-recaptcha');
-    while (form.lastChild) {
-      form.removeChild(form.lastChild);
-    }
-    form.appendChild(div);
-    form.appendChild(script);
-    _initialized = true;
-    _iframe = null;
+    await onLoad(); // initialize
   }
 
   // If recaptcha has been previously loaded, reset it
