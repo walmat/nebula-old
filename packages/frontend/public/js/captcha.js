@@ -2,6 +2,7 @@ let _siteKey = '';
 let _runnerId = '';
 let _started = false;
 let _initialized = false;
+let _waitingForLoad = false;
 let _iframe = null;
 const _defaultEvtOptions = {
   altKey: false,
@@ -45,16 +46,28 @@ function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+function waitFor(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function waitForLoad() {
-  if (_iframe) {
+  if (_iframe || _waitingForLoad) {
     return;
   }
+  _waitingForLoad = true; // Set waiting flag so we don't unnecessary poll multiple times
+  await waitFor(150); // Wait a base amount of time before polling for iframe
   let iframe = document.querySelector('iframe[role=presentation]');
   while (!iframe) {
     // eslint-disable-next-line no-await-in-loop
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await waitFor(25); // Poll every 25 ms for iframe
     iframe = document.querySelector('iframe[role=presentation]');
   }
+  const content = iframe.contentDocument || iframe.contentWindow.document;
+  while (!content.getElementsByClassName('recaptcha-checkbox-checkmark').length) {
+    // eslint-disable-next-line no-await-in-loop
+    await waitFor(25);
+  }
+  _waitingForLoad = false;
   _iframe = iframe;
 }
 
@@ -68,7 +81,7 @@ function simulateEvent(target, evt, destPt, sourcePt, options) {
   target.dispatchEvent(event);
 }
 
-function simulateClick(sourcePt) {
+async function simulateClick(sourcePt) {
   if (!_iframe) {
     // iframe isn't loaded yet, so we can't simulate click...
     return;
@@ -94,17 +107,18 @@ function simulateClick(sourcePt) {
 
   // Simulate Events
   simulateEvent(anchor.el, 'mousemove', anchor.pt, sourcePt);
-  ['mousedown', 'mouseup', 'click'].forEach(evt => {
-    simulateEvent(check.el, evt, check.pt, sourcePt);
-  });
+  await waitFor(rand(20, 50));
+  await Promise.all(
+    ['mousedown', 'mouseup', 'click'].map(async (evt, idx) => {
+      await waitFor(idx * rand(20, 50));
+      simulateEvent(check.el, evt, check.pt, sourcePt);
+    }),
+  );
 }
 
 async function autoClick() {
   // Wait for iframe load
   await waitForLoad();
-
-  // Wait for iframe content load
-  await new Promise(resolve => setTimeout(resolve, rand(400, 450)));
 
   // Get position and simulate click
   const [x, y] = window.Bridge.Captcha.getPosition();
@@ -112,7 +126,7 @@ async function autoClick() {
     x: x + rand(200, 300),
     y: y + rand(300, 430),
   };
-  simulateClick(sourcePt);
+  await simulateClick(sourcePt);
 }
 
 function resetChallenge(shouldAutoClick = false) {
@@ -128,7 +142,7 @@ function resetChallenge(shouldAutoClick = false) {
 async function submitCaptcha() {
   const token = document.getElementById('g-recaptcha-response').value;
   window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
-  await new Promise(resolve => setTimeout(resolve, rand(500, 1000))); // wait a little bit before resetting
+  await waitFor(rand(500, 1000)); // wait a little bit before resetting
 
   resetChallenge(true);
 }
