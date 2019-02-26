@@ -10,13 +10,15 @@ import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
 import { THEMES, mapThemeToColor, mapToNextTheme } from './constants/themes';
 
-import addTestId from './utils/addTestId';
+import { addTestId, renderSvgIcon } from './utils';
 
-import closeImg from './_assets/close.svg';
-import deactivateImg from './_assets/logout.svg';
-import night from './_assets/moon.svg';
-import day from './_assets/sun.svg';
+/* SVGS */
+import { ReactComponent as CloseIcon } from './_assets/close.svg';
+import { ReactComponent as DeactivateIcon } from './_assets/logout.svg';
+import { ReactComponent as NightModeIcon } from './_assets/moon.svg';
+import { ReactComponent as LightModeIcon } from './_assets/sun.svg';
 
+/* CSS */
 import './app.css';
 
 export class App extends PureComponent {
@@ -108,7 +110,10 @@ export class App extends PureComponent {
                 draggable="false"
                 data-testid={addTestId('App.button.deactivate')}
               >
-                <img src={deactivateImg} draggable="false" alt="close" />
+                {renderSvgIcon(DeactivateIcon, {
+                  alt: 'deactivate',
+                  style: { marginTop: '6px', marginLeft: '6px' },
+                })}
               </div>
               <div
                 className="close-area-2"
@@ -120,7 +125,10 @@ export class App extends PureComponent {
                 draggable="false"
                 data-testid={addTestId('App.button.close')}
               >
-                <img src={closeImg} draggable="false" alt="close" />
+                {renderSvgIcon(CloseIcon, {
+                  alt: 'close',
+                  style: { marginTop: '6px', marginLeft: '6px' },
+                })}
               </div>
               <div
                 className="theme-icon"
@@ -131,7 +139,15 @@ export class App extends PureComponent {
                 onClick={() => this.setTheme(store)}
                 draggable="false"
               >
-                <img src={theme === THEMES.LIGHT ? night : day} draggable="false" alt="theme" />
+                {theme === THEMES.LIGHT
+                  ? renderSvgIcon(NightModeIcon, {
+                      alt: 'theme',
+                      style: { marginTop: '5px', marginLeft: '5px' },
+                    })
+                  : renderSvgIcon(LightModeIcon, {
+                      alt: 'theme',
+                      style: { marginTop: '6px', marginLeft: '4px' },
+                    })}
               </div>
             </div>
             <Navbar />

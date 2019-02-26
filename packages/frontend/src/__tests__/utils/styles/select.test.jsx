@@ -25,12 +25,12 @@ describe('Custom Select', () => {
       );
       expect(wrapper.find(components.DropdownIndicator)).toHaveLength(1);
       let indicator = wrapper.find(components.DropdownIndicator);
-      expect(indicator.find('img')).toHaveLength(1);
+      expect(indicator.find('svg')).toHaveLength(1);
       wrapper.setProps({
         menuIsOpen: true,
       });
       indicator = wrapper.find(components.DropdownIndicator);
-      expect(indicator.find('img')).toHaveLength(1);
+      expect(indicator.find('svg')).toHaveLength(1);
     });
   });
 

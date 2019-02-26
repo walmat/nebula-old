@@ -2,16 +2,16 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import tasks from '../_assets/tasks.svg';
-import profiles from '../_assets/profiles.svg';
-// import server from '../_assets/server.svg';
-import serverDisabled from '../_assets/server-disabled.svg';
-import settings from '../_assets/settings.svg';
-import logoAnimation from './nebula.json';
-import Bodymovin from './bodymovin';
-
 import { navbarActions, ROUTES } from '../state/actions';
 
+import { renderSvgIcon } from '../utils';
+import logoAnimation from './nebula.json';
+import Bodymovin from './bodymovin';
+// import server from '../_assets/server.svg'; // TODO - when server page is finished
+import { ReactComponent as TasksIcon } from '../_assets/tasks.svg';
+import { ReactComponent as ProfilesIcon } from '../_assets/profiles.svg';
+import { ReactComponent as ServersIcon } from '../_assets/server-disabled.svg';
+import { ReactComponent as SettingsIcon } from '../_assets/settings.svg';
 import './navbar.css';
 
 const bodymovinOptions = {
@@ -40,7 +40,7 @@ export class NavbarPrimitive extends PureComponent {
       onKeyPress,
       onRouteTasks,
       onRouteProfiles,
-      // onRouteServer,
+      // onRouteServer, // TODO - when server page is finished
       onRouteSettings,
     } = this.props;
     const { name, version } = NavbarPrimitive._getAppData();
@@ -72,12 +72,10 @@ export class NavbarPrimitive extends PureComponent {
                             onRouteTasks(history);
                           }}
                         >
-                          <img
-                            src={tasks}
-                            className="navbar__icons--tasks"
-                            alt="tasks"
-                            draggable="false"
-                          />
+                          {renderSvgIcon(TasksIcon, {
+                            alt: 'tasks',
+                            className: 'navbar__icons--tasks',
+                          })}
                         </div>
                       </div>
                     </div>
@@ -97,12 +95,10 @@ export class NavbarPrimitive extends PureComponent {
                             onRouteProfiles(history);
                           }}
                         >
-                          <img
-                            src={profiles}
-                            className="navbar__icons--profiles"
-                            alt="profiles"
-                            draggable="false"
-                          />
+                          {renderSvgIcon(ProfilesIcon, {
+                            alt: 'profiles',
+                            className: 'navbar__icons--profiles',
+                          })}
                         </div>
                       </div>
                     </div>
@@ -124,12 +120,10 @@ export class NavbarPrimitive extends PureComponent {
                           //   onRouteServer(history);
                           // }}
                         >
-                          <img
-                            src={serverDisabled}
-                            className="navbar__icons--servers"
-                            alt="server"
-                            draggable="false"
-                          />
+                          {renderSvgIcon(ServersIcon, {
+                            alt: 'servers',
+                            className: 'navbar__icons--servers',
+                          })}
                         </div>
                       </div>
                     </div>
@@ -149,12 +143,10 @@ export class NavbarPrimitive extends PureComponent {
                             onRouteSettings(history);
                           }}
                         >
-                          <img
-                            src={settings}
-                            className="navbar__icons--settings"
-                            alt="settings"
-                            draggable="false"
-                          />
+                          {renderSvgIcon(SettingsIcon, {
+                            alt: 'settings',
+                            className: 'navbar__icons--settings',
+                          })}
                         </div>
                       </div>
                     </div>

@@ -8,10 +8,11 @@ import LocationFields from './locationFields';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
-import './profiles.css';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
+
+import './profiles.css';
 
 export class ProfilesPrimitive extends Component {
   constructor(props) {
