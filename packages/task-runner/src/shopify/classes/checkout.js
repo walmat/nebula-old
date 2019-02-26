@@ -186,7 +186,7 @@ class Checkout {
   }
 
   async parseAccessToken() {
-    const { site } = this._context.task;
+    const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
     this._logger.verbose('API CHECKOUT: Parsing access token');
@@ -197,6 +197,7 @@ class Checkout {
         proxy: formatProxy(this._context.proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
+        followRedirect: false,
         resolveWithFullResponse: true,
         simple: false,
         json: false,
@@ -212,13 +213,23 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
+      this._logger.verbose('CHECKOUT: Parse access token redirect url: %s', redirectUrl);
       if (redirectUrl) {
+        if (redirectUrl.indexOf('password') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Password page', nextState: States.ParseAccessToken };
+        }
         // TODO - do more checks to see if we can parse the access token on other pages (aka account, login, etc.)
         return { message: 'Failed: parsing checkout token', nextState: States.Stopped };
       }
 
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
       const scriptTags = $('script#shopify-features');
+      this._logger.silly(
+        'CHECKOUT: Parsing %d script tags: %j',
+        scriptTags.length,
+        scriptTags.html(),
+      );
       if (!scriptTags.length) {
         return { message: 'Invalid Shopify Site', nextState: States.Stopped };
       }
@@ -236,6 +247,7 @@ class Checkout {
       }
 
       const { accessToken } = jsonScriptElement;
+      this._logger.verbose('CHECKOUT: Parsed access token: %s', accessToken);
       if (accessToken) {
         this._context.task.site.apiKey = accessToken;
         return { message: 'Creating checkout', nextState: States.CreateCheckout };

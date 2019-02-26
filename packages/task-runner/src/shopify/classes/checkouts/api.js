@@ -29,6 +29,7 @@ const Checkout = require('../checkout');
 class APICheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
+    const { site } = this._context.task;
 
     try {
       const res = await this._request({
@@ -61,6 +62,9 @@ class APICheckout extends Checkout {
         const { id } = body;
         this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
+        if (!site.apiKey) {
+          return { message: 'Parsing Access Token', nextState: States.ParseAccessToken };
+        }
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
       return { message: 'Failed: Creating payment token', nextState: States.Errored };
@@ -340,7 +344,7 @@ class APICheckout extends Checkout {
             return { message: 'Country not supported', nextState: States.Errored };
           }
         }
-        await waitForDelay(monitorDelay);
+        await waitForDelay(500);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
