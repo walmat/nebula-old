@@ -5,7 +5,7 @@ const renderSvgIcon = (Icon, props = {}) => {
     draggable: false,
     ...props,
   };
-  if (!React.isValidElement(Icon)) {
+  if (!React.isValidElement(<Icon />) || Icon.constructor === String) {
     throw new Error(
       `Icon must be a valid React Component!\n\nMake sure you've imported the icon properly:\nimport { MySvg as ReactComponent } from './path/to/my/svg';`,
     );

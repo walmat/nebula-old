@@ -1,40 +1,36 @@
 /* global describe it test expect beforeEach */
-import React from 'react';
+import { shallow } from 'enzyme';
+
 import renderSvgIcon from '../../utils/renderSvgIcon';
 import { ReactComponent as TestIcon } from '../../_assets/close.svg';
 import copy from '../../_assets/copy.svg';
 
-describe('test rendering SVG icons', () => {
-  describe('when svg is invalid', () => {
-    test('with base props', () => {
-      const expected = renderSvgIcon(copy);
-      expect(expected).toEqual(
-        new Error(
-          `Icon must be a valid React Component!\n\nMake sure you've imported the icon properly:\nimport { MySvg as ReactComponent } from './path/to/my/svg';`,
-        ),
-      );
+describe('renderSvgIcon', () => {
+  describe('throws when svg is invalid', () => {
+    test('with no custom props', () => {
+      expect(() => {
+        renderSvgIcon(copy);
+      }).toThrow();
     });
 
     test('with custom props', () => {
-      const expected = renderSvgIcon(copy, { draggable: true, className: 'test' });
-      expect(expected).toEqual(
-        new Error(
-          `Icon must be a valid React Component!\n\nMake sure you've imported the icon properly:\nimport { MySvg as ReactComponent } from './path/to/my/svg';`,
-        ),
-      );
+      expect(() => {
+        renderSvgIcon(copy, { draggable: true, className: 'test' });
+      }).toThrow();
     });
   });
 
-  describe('when svg is valid', () => {
-    test('with base props', () => {
-      const expected = renderSvgIcon(TestIcon);
-      expect(expected).toEqual(<TestIcon draggable={false} />);
-      expect(expected.props).toEqual({ draggable: false });
+  describe('returns when svg is valid', () => {
+    test('with no custom props', () => {
+      renderSvgIcon(TestIcon);
+      const wrapper = shallow(renderSvgIcon(TestIcon));
+      expect(wrapper.prop('draggable')).toBeFalsy();
     });
 
     test('with custom props', () => {
-      const expected = renderSvgIcon(TestIcon, { draggable: true, className: 'test' });
-      expect(expected).toEqual(<TestIcon draggable className="test" />);
+      const wrapper = shallow(renderSvgIcon(TestIcon, { draggable: true, className: 'test' }));
+      expect(wrapper.prop('draggable')).toBeTruthy();
+      expect(wrapper.prop('className')).toBe('test');
     });
   });
 });
