@@ -51,14 +51,10 @@ export class SettingsPrimitive extends Component {
     };
   }
 
-  renderDelays(label, value, placeholder, className, field) {
+  renderDelays(colStyling, label, value, placeholder, className, field) {
     const { errors } = this.props;
     return (
-      <div
-        className={`col ${
-          className === 'error' ? 'col--end col--no-gutter-right' : 'col--no-gutter'
-        }`}
-      >
+      <div className={`col ${colStyling}`}>
         <p className="settings__label">{label}</p>
         <NumberFormat
           value={value}
@@ -95,6 +91,7 @@ export class SettingsPrimitive extends Component {
                   <div className="col">
                     <div className="row row--gutter">
                       {this.renderDelays(
+                        'col--no-gutter',
                         'Monitor Delay',
                         monitorDelay,
                         '3500',
@@ -102,6 +99,7 @@ export class SettingsPrimitive extends Component {
                         SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
                       )}
                       {this.renderDelays(
+                        'col--end col--no-gutter-right',
                         'Error Delay',
                         errorDelay,
                         '3500',
