@@ -131,7 +131,8 @@ export class ProxyListPrimitive extends Component {
       .join('');
   }
 
-  renderProxyInputDiv(className) {
+  renderProxyInputDiv() {
+    const { className } = this.props;
     return React.createElement('div', {
       ref: this.domNode,
       className,
@@ -145,7 +146,6 @@ export class ProxyListPrimitive extends Component {
   }
 
   render() {
-    const { className } = this.props;
     return (
       <div>
         <div className="row row--start">
@@ -159,7 +159,7 @@ export class ProxyListPrimitive extends Component {
               <div className="row row--start row--gutter">
                 <div className="col proxy-list__input-group">
                   <div className="row row--gutter">
-                    <div className="col col--no-gutter">{this.renderProxyInputDiv(className)}</div>
+                    <div className="col col--no-gutter">{this.renderProxyInputDiv()}</div>
                   </div>
                 </div>
               </div>

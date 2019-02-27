@@ -179,11 +179,11 @@ DefaultsPrimitive.defaultProps = {
   onKeyPress: () => {},
 };
 
-export const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   profiles: state.profiles,
   settings: state.settings,
   errors: state.settings.errors,
-  theme: ownProps.theme,
+  theme: state.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

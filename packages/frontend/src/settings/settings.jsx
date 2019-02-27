@@ -5,7 +5,6 @@ import NumberFormat from 'react-number-format';
 import ProxyList from './proxyList';
 import Webhooks from './webhooks';
 import Defaults from './defaults';
-import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
@@ -86,7 +85,7 @@ export class SettingsPrimitive extends Component {
               </div>
               <div className="col col--start settings__extras">
                 <Webhooks />
-                <Defaults theme={theme} />
+                <Defaults />
                 <div className="row row--start row-gutter">
                   <div className="col">
                     <div className="row row--gutter">
@@ -140,14 +139,12 @@ export class SettingsPrimitive extends Component {
 
 SettingsPrimitive.propTypes = {
   onSettingsChange: PropTypes.func.isRequired,
-  profiles: pDefns.profileList.isRequired,
   settings: sDefns.settings.isRequired,
   theme: PropTypes.string.isRequired,
   errors: sDefns.settingsErrors.isRequired,
 };
 
 export const mapStateToProps = state => ({
-  profiles: state.profiles,
   settings: state.settings,
   theme: state.theme,
   errors: state.settings.errors,
