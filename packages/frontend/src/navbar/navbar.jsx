@@ -33,10 +33,10 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
-  _renderNavbarIconRow({ index, iconName, className, onClick, Icon }) {
+  _renderNavbarIconRow({ iconName, className, onClick, Icon }) {
     const { onKeyPress } = this.props;
     return (
-      <div key={iconName} className={`row row--expand navbar__row-item--${index}`}>
+      <div key={iconName} className="row row--expand">
         <div className="col">
           <div className="row row--start row--gutter">
             <div className={`navbar__icon--${iconName}`}>
@@ -82,21 +82,18 @@ export class NavbarPrimitive extends PureComponent {
 
     this.routes = [
       {
-        index: 'second',
         Icon: TasksIcon,
         className: navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null,
         iconName: 'tasks',
         onClick: () => onRouteTasks(history),
       },
       {
-        index: '',
         Icon: ProfilesIcon,
         className: navbar.location === ROUTES.PROFILES ? 'active' : null,
         iconName: 'profiles',
         onClick: () => onRouteProfiles(history),
       },
       {
-        index: '',
         Icon: ServersIcon,
         className: navbar.location === ROUTES.SERVER ? 'active' : null,
         iconName: 'servers',
@@ -104,7 +101,6 @@ export class NavbarPrimitive extends PureComponent {
         // onClick: () => onRouteServer(history), // TODO - move this back in once servers page is done
       },
       {
-        index: 'last',
         Icon: SettingsIcon,
         className: navbar.location === ROUTES.SETTINGS ? 'active' : null,
         iconName: 'settings',
@@ -117,11 +113,13 @@ export class NavbarPrimitive extends PureComponent {
         <div className="row">
           <div className="col col--gutter">
             <div className="row row--expand">
-              <div className="col col--start col--expand">
-                <div className="row row--start row--gutter navbar__row-item--first">
+              <div className="col col--start col--expand navbar__logo">
+                <div className="row row--start row--gutter">
                   <Bodymovin options={bodymovinOptions} />
                 </div>
-                <div className="col col--expand col--no-gutter">{this.renderNavbarIconRows()}</div>
+                <div className="col col--expand col--no-gutter navbar__icons">
+                  {this.renderNavbarIconRows()}
+                </div>
                 <div className="row">
                   <div className="col col--no-gutter">
                     <div className="row row--start">

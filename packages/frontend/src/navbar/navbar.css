@@ -28,13 +28,11 @@
   border-width: 1px;
   border-color: #3c3d42;
 }
-.navbar__row-item--first {
+.navbar__logo {
   margin-top: 15px !important;
 }
-.navbar__row-item--second {
+.navbar__icons {
   margin-top: 55px !important;
-}
-.navbar__row-item--last {
   margin-bottom: 75px !important;
 }
 .navbar__icon--tasks {
