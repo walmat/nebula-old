@@ -33,6 +33,35 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
+  static renderNavbarIcon(title, onKeyPress, className, onClick, Icon) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        title={title}
+        onKeyPress={onKeyPress}
+        className={className}
+        onClick={onClick}
+      >
+        {renderSvgIcon(Icon, { alt: title, className })}
+      </div>
+    );
+  }
+
+  static renderNavbarIconRow(index, name, onKeyPress, className, onClick, icon) {
+    return (
+      <div className={`row row--expand navbar__row-item--${index}`}>
+        <div className="col">
+          <div className="row row--start row--gutter">
+            <div className={`navbar__icons--${name}`}>
+              {NavbarPrimitive.renderNavbarIcon(name, onKeyPress, className, onClick, icon)}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   render() {
     const {
       history,
@@ -54,104 +83,38 @@ export class NavbarPrimitive extends PureComponent {
                 <div className="row row--start row--gutter navbar__row-item--first">
                   <Bodymovin options={bodymovinOptions} />
                 </div>
-                <div className="row row--expand navbar__row-item--second">
-                  <div className="col">
-                    <div className="row row--start row--gutter">
-                      <div className="navbar__icons--tasks">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          title="TASKS"
-                          onKeyPress={onKeyPress}
-                          className={
-                            navbar.location === '/' || navbar.location === ROUTES.TASKS
-                              ? 'active'
-                              : null
-                          }
-                          onClick={() => {
-                            onRouteTasks(history);
-                          }}
-                        >
-                          {renderSvgIcon(TasksIcon, {
-                            alt: 'tasks',
-                            className: 'navbar__icons--tasks',
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="row row--gutter row--expand">
-                  <div className="col col--no-gutter">
-                    <div className="row">
-                      <div className="navbar__icons--profils">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          title="PROFILES"
-                          onKeyPress={onKeyPress}
-                          className={navbar.location === ROUTES.PROFILES ? 'active' : null}
-                          onClick={() => {
-                            onRouteProfiles(history);
-                          }}
-                        >
-                          {renderSvgIcon(ProfilesIcon, {
-                            alt: 'profiles',
-                            className: 'navbar__icons--profiles',
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="row row--gutter row--expand">
-                  <div className="col col--no-gutter">
-                    <div className="row">
-                      <div className="navbar__icons--servers">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          title="SERVERS"
-                          // title="DISABLED"
-                          onKeyPress={onKeyPress}
-                          className="disabled"
-                          // className={navbar.location === ROUTES.SERVER ? 'active' : null}
-                          // onClick={() => {
-                          //   onRouteServer(history);
-                          // }}
-                        >
-                          {renderSvgIcon(ServersIcon, {
-                            alt: 'servers',
-                            className: 'navbar__icons--servers',
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="row row--gutter row--expand navbar__row-item--last">
-                  <div className="col col--no-gutter">
-                    <div className="row">
-                      <div className="navbar__icons--settings">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          title="SETTINGS"
-                          onKeyPress={onKeyPress}
-                          className={navbar.location === ROUTES.SETTINGS ? 'active' : null}
-                          onClick={() => {
-                            onRouteSettings(history);
-                          }}
-                        >
-                          {renderSvgIcon(SettingsIcon, {
-                            alt: 'settings',
-                            className: 'navbar__icons--settings',
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {NavbarPrimitive.renderNavbarIconRow(
+                  'second',
+                  'tasks',
+                  onKeyPress,
+                  navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null,
+                  () => onRouteTasks(history),
+                  TasksIcon,
+                )}
+                {NavbarPrimitive.renderNavbarIconRow(
+                  '',
+                  'profiles',
+                  onKeyPress,
+                  navbar.location === ROUTES.PROFILES ? 'active' : null,
+                  () => onRouteProfiles(history),
+                  ProfilesIcon,
+                )}
+                {NavbarPrimitive.renderNavbarIconRow(
+                  '',
+                  'servers',
+                  onKeyPress,
+                  navbar.location === ROUTES.SERVER ? 'active' : null,
+                  () => {},
+                  ServersIcon,
+                )}
+                {NavbarPrimitive.renderNavbarIconRow(
+                  'last',
+                  'settings',
+                  onKeyPress,
+                  navbar.location === ROUTES.SETTINGS ? 'active' : null,
+                  () => onRouteSettings(history),
+                  SettingsIcon,
+                )}
                 <div className="row">
                   <div className="col col--no-gutter">
                     <div className="row row--start">
@@ -183,7 +146,7 @@ NavbarPrimitive.propTypes = {
   navbar: PropTypes.objectOf(PropTypes.any).isRequired,
   onRouteTasks: PropTypes.func.isRequired,
   onRouteProfiles: PropTypes.func.isRequired,
-  // onRouteServer: PropTypes.func.isRequired,
+  // onRouteServer: PropTypes.func.isRequired, // TODO - when server page is finished
   onRouteSettings: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
