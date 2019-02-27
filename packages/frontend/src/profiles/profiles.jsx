@@ -15,29 +15,7 @@ import './profiles.css';
 export class ProfilesPrimitive extends Component {
   constructor(props) {
     super(props);
-    this.onProfileChange = this.onProfileChange.bind(this);
     this.saveProfile = this.saveProfile.bind(this);
-    this.deleteProfile = this.deleteProfile.bind(this);
-    this.loadProfile = this.loadProfile.bind(this);
-    this.buildProfileOptions = this.buildProfileOptions.bind(this);
-  }
-
-  onProfileChange(event) {
-    const id = event.value;
-    const { profiles, onSelectProfile } = this.props;
-    const selectedProfile = profiles.find(p => p.id === id);
-
-    onSelectProfile(selectedProfile);
-  }
-
-  /**
-   * Delete the profile from the database
-   */
-  deleteProfile(e) {
-    const { onDestroyProfile, selectedProfile } = this.props;
-
-    e.preventDefault();
-    onDestroyProfile(selectedProfile);
   }
 
   /**
@@ -75,23 +53,6 @@ export class ProfilesPrimitive extends Component {
       // No edit id tag exists, add this as a new profile.
       onAddNewProfile(currentProfile);
     }
-  }
-
-  /**
-   * load the profile
-   */
-  loadProfile() {
-    const { onLoadProfile, selectedProfile } = this.props;
-    onLoadProfile(selectedProfile);
-  }
-
-  buildProfileOptions() {
-    const { profiles } = this.props;
-    const opts = [];
-    profiles.forEach(profile => {
-      opts.push({ value: profile.id, label: profile.profileName });
-    });
-    return opts;
   }
 
   render() {
@@ -164,12 +125,8 @@ export class ProfilesPrimitive extends Component {
 ProfilesPrimitive.propTypes = {
   profiles: defns.profileList.isRequired,
   currentProfile: defns.profile.isRequired,
-  selectedProfile: defns.profile.isRequired,
   onProfileNameChange: PropTypes.func.isRequired,
   onAddNewProfile: PropTypes.func.isRequired,
-  onLoadProfile: PropTypes.func.isRequired,
-  onDestroyProfile: PropTypes.func.isRequired,
-  onSelectProfile: PropTypes.func.isRequired,
   onUpdateProfile: PropTypes.func.isRequired,
 };
 
@@ -188,15 +145,6 @@ export const mapDispatchToProps = dispatch => ({
   },
   onAddNewProfile: newProfile => {
     dispatch(profileActions.add(newProfile));
-  },
-  onLoadProfile: profile => {
-    dispatch(profileActions.load(profile));
-  },
-  onDestroyProfile: profile => {
-    dispatch(profileActions.remove(profile.id));
-  },
-  onSelectProfile: profile => {
-    dispatch(profileActions.select(profile));
   },
   onUpdateProfile: profile => {
     dispatch(profileActions.update(profile.editId, profile));
