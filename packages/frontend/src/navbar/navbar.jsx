@@ -78,34 +78,30 @@ export class NavbarPrimitive extends PureComponent {
                 <div className="row row--start row--gutter navbar__row-item--first">
                   <Bodymovin options={bodymovinOptions} />
                 </div>
-                {NavbarPrimitive.renderNavbarIconRow(
+                {this.renderNavbarIconRow(
                   'second',
                   'tasks',
-                  onKeyPress,
                   navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null,
                   () => onRouteTasks(history),
                   TasksIcon,
                 )}
-                {NavbarPrimitive.renderNavbarIconRow(
+                {this.renderNavbarIconRow(
                   '',
                   'profiles',
-                  onKeyPress,
                   navbar.location === ROUTES.PROFILES ? 'active' : null,
                   () => onRouteProfiles(history),
                   ProfilesIcon,
                 )}
-                {NavbarPrimitive.renderNavbarIconRow(
+                {this.renderNavbarIconRow(
                   '',
                   'servers',
-                  onKeyPress,
                   navbar.location === ROUTES.SERVER ? 'active' : null,
                   () => {},
                   ServersIcon,
                 )}
-                {NavbarPrimitive.renderNavbarIconRow(
+                {this.renderNavbarIconRow(
                   'last',
                   'settings',
-                  onKeyPress,
                   navbar.location === ROUTES.SETTINGS ? 'active' : null,
                   () => onRouteSettings(history),
                   SettingsIcon,
