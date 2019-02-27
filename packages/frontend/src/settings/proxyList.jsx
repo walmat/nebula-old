@@ -131,10 +131,7 @@ export class ProxyListPrimitive extends Component {
       .join('');
   }
 
-  render() {
-    const { className } = this.props;
-    // Create a div with the innerHtml set dangerously
-    // This is to allow styling, while still allowing content to be editable
+  renderProxyInputDiv(className) {
     return React.createElement('div', {
       ref: this.domNode,
       className,
@@ -145,6 +142,32 @@ export class ProxyListPrimitive extends Component {
       dangerouslySetInnerHTML: { __html: this.renderProxies() },
       contentEditable: true,
     });
+  }
+
+  render() {
+    const { className } = this.props;
+    return (
+      <div>
+        <div className="row row--start">
+          <div className="col col--no-gutter-left">
+            <p className="body-text section-header proxy-list__section-header">Proxy List</p>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col col--no-gutter-left col--expand">
+            <div className="proxy-list col col--start col--no-gutter">
+              <div className="row row--start row--gutter">
+                <div className="col proxy-list__input-group">
+                  <div className="row row--gutter">
+                    <div className="col col--no-gutter">{this.renderProxyInputDiv(className)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 }
 
