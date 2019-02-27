@@ -42,25 +42,13 @@ export class SettingsPrimitive extends Component {
   }
 
   createOnChangeHandler(field) {
-    const { profiles, onSettingsChange } = this.props;
-    switch (field) {
-      case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
-        return event => {
-          const change = profiles.find(p => p.id === event.value);
-          onSettingsChange({ field, value: change });
-        };
-      case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES:
-        return event => {
-          onSettingsChange({ field, value: event.map(s => s.value) });
-        };
-      default:
-        return event => {
-          onSettingsChange({
-            field,
-            value: event.target.value,
-          });
-        };
-    }
+    const { onSettingsChange } = this.props;
+    return event => {
+      onSettingsChange({
+        field,
+        value: event.target.value,
+      });
+    };
   }
 
   renderDelays(label, value, placeholder, className, field) {

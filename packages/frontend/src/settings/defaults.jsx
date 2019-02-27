@@ -10,6 +10,20 @@ import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
 
 export class DefaultsPrimitive extends Component {
+  static renderDefaultButton(className, onClick, onKeyPress, label) {
+    return (
+      <button
+        type="button"
+        className={`settings-defaults__input-group--${className}`}
+        tabIndex={0}
+        onKeyPress={onKeyPress}
+        onClick={onClick}
+      >
+        {label}
+      </button>
+    );
+  }
+
   static buildSizeOptions() {
     return getAllSizes();
   }
@@ -45,8 +59,37 @@ export class DefaultsPrimitive extends Component {
     }
   }
 
+  renderDefaultSelect(
+    colStyling,
+    label,
+    placeholder,
+    components,
+    className,
+    field,
+    value,
+    options,
+  ) {
+    const { errors, theme } = this.props;
+    return (
+      <div className={`col ${colStyling}`}>
+        <p className="settings-defaults__input-group--label">{label}</p>
+        <Select
+          required
+          placeholder={placeholder}
+          components={components}
+          className={`settings-defaults__input-group--${className}`}
+          classNamePrefix="select"
+          styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
+          onChange={this.createOnChangeHandler(field)}
+          value={value}
+          options={options}
+        />
+      </div>
+    );
+  }
+
   render() {
-    const { settings, errors, theme, onKeyPress, onSaveDefaults, onClearDefaults } = this.props;
+    const { settings, onKeyPress, onSaveDefaults, onClearDefaults } = this.props;
     const defaultSizes = settings.defaults.sizes.map(s => ({ value: s, label: `${s}` }));
     let defaultProfileValue = null;
     if (settings.defaults.profile.id !== null) {
@@ -71,77 +114,43 @@ export class DefaultsPrimitive extends Component {
                 <div className="row row--start row-gutter">
                   <div className="col settings-defaults__input-group">
                     <div className="row row--gutter">
-                      <div className="col col--no-gutter-right">
-                        <p className="settings-defaults__input-group--label">Profile</p>
-                        <Select
-                          required
-                          placeholder="Choose Profile"
-                          components={{ DropdownIndicator }}
-                          className="settings-defaults__input-group--select__profile"
-                          classNamePrefix="select"
-                          styles={colourStyles(
-                            theme,
-                            buildStyle(
-                              false,
-                              errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]],
-                            ),
-                          )}
-                          onChange={this.createOnChangeHandler(
-                            SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
-                          )}
-                          value={defaultProfileValue}
-                          options={this.buildProfileOptions()}
-                        />
-                      </div>
-                      <div className="col col--end col--gutter-left">
-                        <p className="settings-defaults__input-group--label">Sizes</p>
-                        <Select
-                          required
-                          isMulti
-                          isClearable={false}
-                          placeholder="Choose Sizes"
-                          components={{ DropdownIndicator }}
-                          className="settings-defaults__input-group--select__sizes"
-                          classNamePrefix="select"
-                          styles={colourStyles(
-                            theme,
-                            buildStyle(
-                              false,
-                              errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]],
-                            ),
-                          )}
-                          onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_DEFAULT_SIZES)}
-                          value={defaultSizes}
-                          options={DefaultsPrimitive.buildSizeOptions()}
-                        />
-                      </div>
+                      {this.renderDefaultSelect(
+                        'col--no-gutter-right',
+                        'Profile',
+                        'Choose Profile',
+                        { DropdownIndicator },
+                        'select__profile',
+                        SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
+                        defaultProfileValue,
+                        this.buildProfileOptions(),
+                      )}
+                      {this.renderDefaultSelect(
+                        'col--end col--gutter-left',
+                        'Sizes',
+                        'Choose Sizes',
+                        { DropdownIndicator },
+                        'select__sizes',
+                        SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
+                        defaultSizes,
+                        DefaultsPrimitive.buildSizeOptions(),
+                      )}
                     </div>
                     <div className="row row--gutter row--end">
                       <div className="col col--no-gutter-right">
-                        <button
-                          type="button"
-                          className="settings-defaults__input-group--save"
-                          tabIndex={0}
-                          onKeyPress={onKeyPress}
-                          onClick={() => {
-                            onSaveDefaults(settings.defaults);
-                          }}
-                        >
-                          Save
-                        </button>
+                        {DefaultsPrimitive.renderDefaultButton(
+                          'save',
+                          () => onSaveDefaults(settings.defaults),
+                          onKeyPress,
+                          'Save',
+                        )}
                       </div>
                       <div className="col col--end col--gutter-left">
-                        <button
-                          type="button"
-                          className="settings-defaults__input-group--clear"
-                          tabIndex={0}
-                          onKeyPress={onKeyPress}
-                          onClick={() => {
-                            onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS);
-                          }}
-                        >
-                          Clear
-                        </button>
+                        {DefaultsPrimitive.renderDefaultButton(
+                          'clear',
+                          () => onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS),
+                          onKeyPress,
+                          'Clear',
+                        )}
                       </div>
                     </div>
                   </div>
