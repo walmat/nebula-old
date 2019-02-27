@@ -19,7 +19,7 @@ export class SettingsPrimitive extends Component {
     if (window.Bridge) {
       window.Bridge.launchCaptchaHarvester({ backgroundColor: mapThemeToColor[theme] });
     } else {
-      // TODO - error handling
+      // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
       console.error('Unable to launch harvester!');
     }
   }
