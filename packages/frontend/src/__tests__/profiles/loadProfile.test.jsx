@@ -2,8 +2,8 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { LoadProfilePrimitive, mapStateToProps, mapDispatchToProps } from '../../profiles/loadProfile';
-import { PROFILE_FIELDS, profileActions } from '../../state/actions';
+import { LoadProfilePrimitive, mapDispatchToProps } from '../../profiles/loadProfile';
+import { profileActions } from '../../state/actions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
 import { initialState } from '../../state/reducers';
 
