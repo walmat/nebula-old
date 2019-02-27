@@ -1,16 +1,14 @@
 import React, { Component } from 'react';
-import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import PaymentFields from './paymentFields';
 import LocationFields from './locationFields';
+import LoadProfile from './loadProfile';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
-import { buildStyle } from '../utils/styles';
 
 import './profiles.css';
 
@@ -97,15 +95,7 @@ export class ProfilesPrimitive extends Component {
   }
 
   render() {
-    const { currentProfile, selectedProfile, onProfileNameChange, theme } = this.props;
-    let selectProfileValue = null;
-    if (selectedProfile.id !== null) {
-      selectProfileValue = {
-        value: selectedProfile.id,
-        label: selectedProfile.profileName,
-      };
-    }
-
+    const { currentProfile, onProfileNameChange } = this.props;
     return (
       <form>
         <div className="container profiles">
@@ -116,115 +106,33 @@ export class ProfilesPrimitive extends Component {
                   <h1 className="text-header profiles__title">Profiles</h1>
                 </div>
               </div>
-              <div className="row row--expand row--no-gutter-left">
-                <div className="col">
-                  <div className="row row--start">
-                    <div className="col col--no-gutter-left">
-                      <p className="body-text section-header profiles-load__section-header">
-                        Load Profile
-                      </p>
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col col--no-gutter-left">
-                      <div className="profiles-load col col--start col--no-gutter">
-                        <div className="row row--start row--gutter">
-                          <div className="col profiles-load__input-group">
-                            <div className="row row--gutter">
-                              <div className="col col--no-gutter">
-                                <p className="profiles-load__label">Profile Name</p>
-                                <Select
-                                  required
-                                  placeholder="Load Profile"
-                                  components={{ DropdownIndicator }}
-                                  className="profiles-load__input-group--select"
-                                  classNamePrefix="select"
-                                  styles={colourStyles(theme, buildStyle(false, true))}
-                                  onChange={this.onProfileChange}
-                                  value={selectProfileValue}
-                                  options={this.buildProfileOptions()}
-                                />
-                              </div>
-                            </div>
-                            <div className="row row--gutter row--end row--expand">
-                              <button
-                                type="button"
-                                className="profiles-load__input-group--delete"
-                                onClick={this.deleteProfile}
-                              >
-                                Delete
-                              </button>
-                              <button
-                                type="button"
-                                className="profiles-load__input-group--load"
-                                onClick={this.loadProfile}
-                              >
-                                Load
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <LoadProfile />
             </div>
           </div>
           <div className="row row--start profiles--input-fields">
-            <div className="col col--start">
-              <div className="row row--start">
-                <p className="body-text section-header profiles-location__section-header">
-                  Shipping
-                </p>
-              </div>
-              <div className="row">
-                <div className="col col--no-gutter col--start profiles-shipping-container">
-                  <LocationFields
-                    id="shipping"
-                    className="profiles__fields--shipping"
-                    profileToEdit={currentProfile}
-                    fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
-                    disabled={false}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="col">
-              <div className="row row--start">
-                <p className="body-text section-header profiles-location__section-header">
-                  Billing
-                </p>
-              </div>
-              <div className="row">
-                <div className="col col--no-gutter col--start profiles-billing-container">
-                  <LocationFields
-                    id="billing"
-                    className="profiles__fields--billing"
-                    profileToEdit={currentProfile}
-                    fieldToEdit={
-                      currentProfile.billingMatchesShipping
-                        ? PROFILE_FIELDS.EDIT_SHIPPING
-                        : PROFILE_FIELDS.EDIT_BILLING
-                    }
-                    disabled={currentProfile.billingMatchesShipping}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="col">
-              <div className="row row--start">
-                <p className="body-text section-header profiles-payment__section-header">Payment</p>
-              </div>
-              <div className="row row--start row--expand">
-                <div className="col col--no-gutter col--start profiles-payment-container">
-                  <PaymentFields
-                    className="profiles__fields--payment"
-                    profileToEdit={currentProfile}
-                  />
-                </div>
-              </div>
-            </div>
+            <LocationFields
+              colStyle="col--start"
+              header="Shipping"
+              id="shipping"
+              className="profiles__fields--shipping"
+              profileToEdit={currentProfile}
+              fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
+              disabled={false}
+            />
+            <LocationFields
+              colStyle=""
+              header="Billing"
+              id="billing"
+              className="profiles__fields--billing"
+              profileToEdit={currentProfile}
+              fieldToEdit={
+                currentProfile.billingMatchesShipping
+                  ? PROFILE_FIELDS.EDIT_SHIPPING
+                  : PROFILE_FIELDS.EDIT_BILLING
+              }
+              disabled={currentProfile.billingMatchesShipping}
+            />
+            <PaymentFields className="profiles__fields--payment" profileToEdit={currentProfile} />
           </div>
           <div className="row row--expand row--end row--gutter">
             <div className="col col--start col--no-gutter-left">
@@ -263,14 +171,12 @@ ProfilesPrimitive.propTypes = {
   onDestroyProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
   onUpdateProfile: PropTypes.func.isRequired,
-  theme: PropTypes.string.isRequired,
 };
 
 export const mapStateToProps = state => ({
   profiles: state.profiles,
   currentProfile: state.currentProfile,
   selectedProfile: state.selectedProfile,
-  theme: state.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({
