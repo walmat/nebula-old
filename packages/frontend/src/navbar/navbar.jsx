@@ -33,22 +33,22 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
-  renderNavbarIconRow(index, name, className, onClick, icon) {
+  _renderNavbarIconRow({ index, iconName, className, onClick, Icon }) {
     const { onKeyPress } = this.props;
     return (
-      <div className={`row row--expand navbar__row-item--${index}`}>
+      <div key={iconName} className={`row row--expand navbar__row-item--${index}`}>
         <div className="col">
           <div className="row row--start row--gutter">
-            <div className={`navbar__icon--${name}`}>
+            <div className={`navbar__icon--${iconName}`}>
               <div
                 role="button"
                 tabIndex={0}
-                title={name}
+                title={iconName}
                 onKeyPress={onKeyPress}
                 className={className}
                 onClick={onClick}
               >
-                {renderSvgIcon(icon, { alt: name, className: `navbar__icon--${name}` })}
+                {renderSvgIcon(Icon, { alt: iconName })}
               </div>
             </div>
           </div>
@@ -57,17 +57,60 @@ export class NavbarPrimitive extends PureComponent {
     );
   }
 
+  renderNavbarIconRow(route, otherParams = {}) {
+    const renderParams = {
+      ...route,
+      ...otherParams,
+    };
+    return this._renderNavbarIconRow({ ...renderParams });
+  }
+
+  renderNavbarIconRows() {
+    return this.routes.map(route => this.renderNavbarIconRow(route));
+  }
+
   render() {
+    const { name, version } = NavbarPrimitive._getAppData();
     const {
-      history,
       navbar,
-      onKeyPress,
+      history,
       onRouteTasks,
       onRouteProfiles,
-      // onRouteServer, // TODO - when server page is finished
+      // onRouteServer, // TODO - move this back in once servers page is done
       onRouteSettings,
     } = this.props;
-    const { name, version } = NavbarPrimitive._getAppData();
+
+    this.routes = [
+      {
+        index: 'second',
+        Icon: TasksIcon,
+        className: navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null,
+        iconName: 'tasks',
+        onClick: () => onRouteTasks(history),
+      },
+      {
+        index: '',
+        Icon: ProfilesIcon,
+        className: navbar.location === ROUTES.PROFILES ? 'active' : null,
+        iconName: 'profiles',
+        onClick: () => onRouteProfiles(history),
+      },
+      {
+        index: '',
+        Icon: ServersIcon,
+        className: navbar.location === ROUTES.SERVER ? 'active' : null,
+        iconName: 'servers',
+        onClick: () => {},
+        // onClick: () => onRouteServer(history), // TODO - move this back in once servers page is done
+      },
+      {
+        index: 'last',
+        Icon: SettingsIcon,
+        className: navbar.location === ROUTES.SETTINGS ? 'active' : null,
+        iconName: 'settings',
+        onClick: () => onRouteSettings(history),
+      },
+    ];
 
     return (
       <div className="container navbar">
@@ -78,34 +121,7 @@ export class NavbarPrimitive extends PureComponent {
                 <div className="row row--start row--gutter navbar__row-item--first">
                   <Bodymovin options={bodymovinOptions} />
                 </div>
-                {this.renderNavbarIconRow(
-                  'second',
-                  'tasks',
-                  navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null,
-                  () => onRouteTasks(history),
-                  TasksIcon,
-                )}
-                {this.renderNavbarIconRow(
-                  '',
-                  'profiles',
-                  navbar.location === ROUTES.PROFILES ? 'active' : null,
-                  () => onRouteProfiles(history),
-                  ProfilesIcon,
-                )}
-                {this.renderNavbarIconRow(
-                  '',
-                  'servers',
-                  navbar.location === ROUTES.SERVER ? 'active' : null,
-                  () => {},
-                  ServersIcon,
-                )}
-                {this.renderNavbarIconRow(
-                  'last',
-                  'settings',
-                  navbar.location === ROUTES.SETTINGS ? 'active' : null,
-                  () => onRouteSettings(history),
-                  SettingsIcon,
-                )}
+                <div className="col col--expand col--no-gutter">{this.renderNavbarIconRows()}</div>
                 <div className="row">
                   <div className="col col--no-gutter">
                     <div className="row row--start">

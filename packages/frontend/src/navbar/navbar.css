@@ -1,7 +1,7 @@
 /*
  * Implementation of themes
  */
-.navbar__icons--settings, .navbar__icons--servers, .navbar__icons--profiles, .navbar__icons--tasks {
+.navbar__icon--settings, .navbar__icon--servers, .navbar__icon--profiles, .navbar__icon--tasks {
   cursor: pointer;
 }
 .active {
@@ -37,20 +37,20 @@
 .navbar__row-item--last {
   margin-bottom: 75px !important;
 }
-.navbar__icons--tasks {
-  margin-left: 5px;
+.navbar__icon--tasks {
+  margin-left: 13px;
   width: 61px;
   height: 49px;
 }
-.navbar__icons--profiles {
+.navbar__icon--profiles {
   width: 44px;
   height: 43px;
 }
-.navbar__icons--servers {
+.navbar__icon--servers {
   width: 42px;
   height: 46px;
 }
-.navbar__icons--settings {
+.navbar__icon--settings {
   width: 40px;
   height: 60px;
 }
