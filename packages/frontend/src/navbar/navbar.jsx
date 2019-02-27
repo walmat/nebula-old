@@ -33,28 +33,23 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
-  static renderNavbarIcon(title, onKeyPress, className, onClick, icon) {
-    return (
-      <div
-        role="button"
-        tabIndex={0}
-        title={title}
-        onKeyPress={onKeyPress}
-        className={className}
-        onClick={onClick}
-      >
-        {renderSvgIcon(icon, { alt: title, className: `navbar__icons--${title}` })}
-      </div>
-    );
-  }
-
-  static renderNavbarIconRow(index, name, onKeyPress, className, onClick, icon) {
+  renderNavbarIconRow(index, name, className, onClick, icon) {
+    const { onKeyPress } = this.props;
     return (
       <div className={`row row--expand navbar__row-item--${index}`}>
         <div className="col">
           <div className="row row--start row--gutter">
-            <div className={`navbar__icons--${name}`}>
-              {NavbarPrimitive.renderNavbarIcon(name, onKeyPress, className, onClick, icon)}
+            <div className={`navbar__icon--${name}`}>
+              <div
+                role="button"
+                tabIndex={0}
+                title={name}
+                onKeyPress={onKeyPress}
+                className={className}
+                onClick={onClick}
+              >
+                {renderSvgIcon(icon, { alt: name, className: `navbar__icon--${name}` })}
+              </div>
             </div>
           </div>
         </div>
