@@ -6,6 +6,7 @@ import { SettingsPrimitive, mapStateToProps, mapDispatchToProps } from '../../se
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
 import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
+import { initialState } from '../../state/reducers';
 import getAllSizes from '../../constants/getAllSizes';
 
 describe('<Settings />', () => {
@@ -21,9 +22,7 @@ describe('<Settings />', () => {
         profiles={renderProps.profiles}
         settings={renderProps.settings}
         onSettingsChange={renderProps.onSettingsChange}
-        onSaveDefaults={renderProps.onSaveDefaults}
-        onClearDefaults={renderProps.onClearDefaults}
-        onKeyPress={renderProps.onKeyPress}
+        theme={renderProps.theme}
         errors={renderProps.settings.errors}
       />,
     );
@@ -42,9 +41,10 @@ describe('<Settings />', () => {
       errors: {
         ...initialSettingsStates.settingsErrors,
       },
+      theme: {
+        ...initialState.theme,
+      },
       onSettingsChange: () => {},
-      onSaveDefaults: () => {},
-      onClearDefaults: () => {},
     };
   });
 
