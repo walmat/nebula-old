@@ -100,7 +100,7 @@ describe('<Navbar />', () => {
       const wrapper = renderWrapperWithLocation('/');
       const div = wrapper.find('.active');
       expect(div).toHaveLength(1);
-      expect(div.prop('title')).toBe('TASKS');
+      expect(div.prop('title')).toBe('tasks');
       expect(div.prop('onKeyPress')()).toBeUndefined();
     });
 
@@ -108,28 +108,28 @@ describe('<Navbar />', () => {
       const wrapper = renderWrapperWithLocation(ROUTES.TASKS);
       const div = wrapper.find('.active');
       expect(div).toHaveLength(1);
-      expect(div.prop('title')).toBe('TASKS');
+      expect(div.prop('title')).toBe('tasks');
     });
 
     test('when profiles route is used', () => {
       const wrapper = renderWrapperWithLocation(ROUTES.PROFILES);
       const div = wrapper.find('.active');
       expect(div).toHaveLength(1);
-      expect(div.prop('title')).toBe('PROFILES');
+      expect(div.prop('title')).toBe('profiles');
     });
 
-    // test('when server route is used', () => {
-    //   const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
-    //   const div = wrapper.find('.active');
-    //   expect(div).toHaveLength(1);
-    //   expect(div.prop('title')).toBe('SERVERS');
-    // });
+    test.skip('when server route is used', () => {
+      const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
+      const div = wrapper.find('.active');
+      expect(div).toHaveLength(1);
+      expect(div.prop('title')).toBe('servers');
+    });
 
     test('when settings route is used', () => {
       const wrapper = renderWrapperWithLocation(ROUTES.SETTINGS);
       const div = wrapper.find('.active');
       expect(div).toHaveLength(1);
-      expect(div.prop('title')).toBe('SETTINGS');
+      expect(div.prop('title')).toBe('settings');
     });
   });
 

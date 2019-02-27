@@ -33,7 +33,7 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
-  static renderNavbarIcon(title, onKeyPress, className, onClick, Icon) {
+  static renderNavbarIcon(title, onKeyPress, className, onClick, icon) {
     return (
       <div
         role="button"
@@ -43,7 +43,7 @@ export class NavbarPrimitive extends PureComponent {
         className={className}
         onClick={onClick}
       >
-        {renderSvgIcon(Icon, { alt: title, className })}
+        {renderSvgIcon(icon, { alt: title, className: `navbar__icons--${title}` })}
       </div>
     );
   }
