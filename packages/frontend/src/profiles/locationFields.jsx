@@ -111,9 +111,9 @@ export class LocationFieldsPrimitive extends Component {
   }
 
   render() {
-    const { id, header, colStyle, value, errors, disabled, theme } = this.props;
+    const { id, header, className, value, errors, disabled, theme } = this.props;
     return (
-      <div className={`col ${colStyle}`}>
+      <div className={`col ${className}`}>
         <div className="row row--start">
           <p className="body-text section-header profiles-location__section-header">{header}</p>
         </div>
@@ -268,7 +268,7 @@ LocationFieldsPrimitive.propTypes = {
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
   header: PropTypes.string.isRequired,
-  colStyle: PropTypes.string.isRequired,
+  className: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
   value: defns.locationState.isRequired,
@@ -283,7 +283,7 @@ LocationFieldsPrimitive.defaultProps = {
 export const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
   header: ownProps.header,
-  colStyle: ownProps.colStyle,
+  className: ownProps.className,
   theme: state.theme,
   disabled: ownProps.disabled,
   currentProfile: state.currentProfile,

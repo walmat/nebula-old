@@ -72,19 +72,17 @@ export class ProfilesPrimitive extends Component {
           </div>
           <div className="row row--start profiles--input-fields">
             <LocationFields
-              colStyle="col--start"
+              className="col--start"
               header="Shipping"
               id="shipping"
-              className="profiles__fields--shipping"
               profileToEdit={currentProfile}
               fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
               disabled={false}
             />
             <LocationFields
-              colStyle=""
+              className=""
               header="Billing"
               id="billing"
-              className="profiles__fields--billing"
               profileToEdit={currentProfile}
               fieldToEdit={
                 currentProfile.billingMatchesShipping
