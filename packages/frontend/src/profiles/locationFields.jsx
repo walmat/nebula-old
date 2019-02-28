@@ -113,7 +113,7 @@ export class LocationFieldsPrimitive extends Component {
   render() {
     const { id, header, className, value, errors, disabled, theme } = this.props;
     return (
-      <div className={`col ${className}`}>
+      <div className={className}>
         <div className="row row--start">
           <p className="body-text section-header profiles-location__section-header">{header}</p>
         </div>
