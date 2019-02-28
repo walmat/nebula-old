@@ -10,20 +10,6 @@ import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
 
 export class DefaultsPrimitive extends Component {
-  static renderDefaultButton(className, onClick, onKeyPress, label) {
-    return (
-      <button
-        type="button"
-        className={`settings-defaults__input-group--${className}`}
-        tabIndex={0}
-        onKeyPress={onKeyPress}
-        onClick={onClick}
-      >
-        {label}
-      </button>
-    );
-  }
-
   static buildSizeOptions() {
     return getAllSizes();
   }
@@ -59,16 +45,22 @@ export class DefaultsPrimitive extends Component {
     }
   }
 
-  renderDefaultSelect(
-    colStyling,
-    label,
-    placeholder,
-    components,
-    className,
-    field,
-    value,
-    options,
-  ) {
+  renderDefaultButton(className, onClick, label) {
+    const { onKeyPress } = this.props;
+    return (
+      <button
+        type="button"
+        className={`settings-defaults__input-group--${className}`}
+        tabIndex={0}
+        onKeyPress={onKeyPress}
+        onClick={onClick}
+      >
+        {label}
+      </button>
+    );
+  }
+
+  renderDefaultSelect(colStyling, label, placeholder, className, field, value, options) {
     const { errors, theme } = this.props;
     return (
       <div className={`col ${colStyling}`}>
@@ -76,7 +68,9 @@ export class DefaultsPrimitive extends Component {
         <Select
           required
           placeholder={placeholder}
-          components={components}
+          components={{ DropdownIndicator }}
+          isMulti={field === SETTINGS_FIELDS.EDIT_DEFAULT_SIZES}
+          isClearable={false}
           className={`settings-defaults__input-group--${className}`}
           classNamePrefix="select"
           styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
@@ -89,7 +83,7 @@ export class DefaultsPrimitive extends Component {
   }
 
   render() {
-    const { settings, onKeyPress, onSaveDefaults, onClearDefaults } = this.props;
+    const { settings, onSaveDefaults, onClearDefaults } = this.props;
     const defaultSizes = settings.defaults.sizes.map(s => ({ value: s, label: `${s}` }));
     let defaultProfileValue = null;
     if (settings.defaults.profile.id !== null) {
@@ -118,7 +112,6 @@ export class DefaultsPrimitive extends Component {
                         'col--no-gutter-right',
                         'Profile',
                         'Choose Profile',
-                        { DropdownIndicator },
                         'select__profile',
                         SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
                         defaultProfileValue,
@@ -128,7 +121,6 @@ export class DefaultsPrimitive extends Component {
                         'col--end col--gutter-left',
                         'Sizes',
                         'Choose Sizes',
-                        { DropdownIndicator },
                         'select__sizes',
                         SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
                         defaultSizes,
@@ -137,18 +129,16 @@ export class DefaultsPrimitive extends Component {
                     </div>
                     <div className="row row--gutter row--end">
                       <div className="col col--no-gutter-right">
-                        {DefaultsPrimitive.renderDefaultButton(
+                        {this.renderDefaultButton(
                           'save',
                           () => onSaveDefaults(settings.defaults),
-                          onKeyPress,
                           'Save',
                         )}
                       </div>
                       <div className="col col--end col--gutter-left">
-                        {DefaultsPrimitive.renderDefaultButton(
+                        {this.renderDefaultButton(
                           'clear',
                           () => onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS),
-                          onKeyPress,
                           'Clear',
                         )}
                       </div>

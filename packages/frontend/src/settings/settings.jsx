@@ -50,7 +50,7 @@ export class SettingsPrimitive extends Component {
     };
   }
 
-  renderDelays(colStyling, label, value, placeholder, className, field) {
+  renderDelay(colStyling, label, value, placeholder, className, field) {
     const { errors } = this.props;
     return (
       <div className={`col ${colStyling}`}>
@@ -81,7 +81,7 @@ export class SettingsPrimitive extends Component {
             </div>
             <div className="row">
               <div className="col">
-                <ProxyList className="proxy-list__input-group--text" />
+                <ProxyList />
               </div>
               <div className="col col--start settings__extras">
                 <Webhooks />
@@ -89,7 +89,7 @@ export class SettingsPrimitive extends Component {
                 <div className="row row--start row-gutter">
                   <div className="col">
                     <div className="row row--gutter">
-                      {this.renderDelays(
+                      {this.renderDelay(
                         'col--no-gutter',
                         'Monitor Delay',
                         monitorDelay,
@@ -97,7 +97,7 @@ export class SettingsPrimitive extends Component {
                         'monitor',
                         SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
                       )}
-                      {this.renderDelays(
+                      {this.renderDelay(
                         'col--end col--no-gutter-right',
                         'Error Delay',
                         errorDelay,
@@ -112,18 +112,22 @@ export class SettingsPrimitive extends Component {
                   <div className="col">
                     <div className="row row--gutter">
                       <div className="col col--no-gutter">
-                        {SettingsPrimitive.renderCaptchaButton(
-                          'open-captcha',
-                          () => SettingsPrimitive.openHarvesterWindow(theme),
-                          'Captcha Window',
-                        )}
+                        <button
+                          type="button"
+                          className="settings__button--open-captcha"
+                          onClick={() => SettingsPrimitive.openHarvesterWindow(theme)}
+                        >
+                          Captcha Window
+                        </button>
                       </div>
                       <div className="col col--end col--no-gutter-right">
-                        {SettingsPrimitive.renderCaptchaButton(
-                          'close-captcha',
-                          SettingsPrimitive.closeAllCaptchaWindows,
-                          'Close All Windows',
-                        )}
+                        <button
+                          type="button"
+                          className="settings__button--close-captcha"
+                          onClick={SettingsPrimitive.closeAllCaptchaWindows}
+                        >
+                          Close All Windows
+                        </button>
                       </div>
                     </div>
                   </div>
