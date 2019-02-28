@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { navbarActions, ROUTES } from '../state/actions';
+import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../state/actions';
 
 import { renderSvgIcon } from '../utils';
 import logoAnimation from './nebula.json';
@@ -33,8 +33,7 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
-  _renderNavbarIconRow({ iconName, className, onClick, Icon }) {
-    const { onKeyPress } = this.props;
+  static _renderNavbarIconRow({ Icon, iconName, className, onClick, onKeyPress }) {
     return (
       <div key={iconName} className="row row--expand">
         <div className="col">
@@ -57,57 +56,58 @@ export class NavbarPrimitive extends PureComponent {
     );
   }
 
-  renderNavbarIconRow(route, otherParams = {}) {
-    const renderParams = {
-      ...route,
-      ...otherParams,
+  constructor(props) {
+    super(props);
+    const classNameCalc = (...supportedRoutes) => route =>
+      supportedRoutes.includes(route) ? 'active' : null;
+    this.defaultIconProps = {
+      [NAVBAR_ACTIONS.ROUTE_TASKS]: {
+        Icon: TasksIcon,
+        iconName: 'tasks',
+        classNameGenerator: classNameCalc(ROUTES.TASKS, '/'),
+      },
+      [NAVBAR_ACTIONS.ROUTE_PROFILES]: {
+        Icon: ProfilesIcon,
+        iconName: 'profiles',
+        classNameGenerator: classNameCalc(ROUTES.PROFILES),
+      },
+      [NAVBAR_ACTIONS.ROUTE_SERVER]: {
+        Icon: ServersIcon,
+        iconName: 'servers',
+        classNameGenerator: classNameCalc(ROUTES.SERVER),
+      },
+      [NAVBAR_ACTIONS.ROUTE_SETTINGS]: {
+        Icon: SettingsIcon,
+        iconName: 'settings',
+        classNameGenerator: classNameCalc(ROUTES.SETTINGS),
+      },
     };
-    return this._renderNavbarIconRow({ ...renderParams });
+  }
+
+  renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
+    const { onKeyPress, onRoute, navbar, history } = this.props;
+    const className = classNameGenerator(navbar.location);
+    const props = {
+      Icon,
+      iconName,
+      onKeyPress,
+      className,
+      onClick: () => onRoute(route, history),
+    };
+    return NavbarPrimitive._renderNavbarIconRow(props);
   }
 
   renderNavbarIconRows() {
-    return this.routes.map(route => this.renderNavbarIconRow(route));
+    return [
+      NAVBAR_ACTIONS.ROUTE_TASKS,
+      NAVBAR_ACTIONS.ROUTE_PROFILES,
+      NAVBAR_ACTIONS.ROUTE_SERVER,
+      NAVBAR_ACTIONS.ROUTE_SETTINGS,
+    ].map(route => this.renderNavbarIconRow(route, this.defaultIconProps[route]));
   }
 
   render() {
     const { name, version } = NavbarPrimitive._getAppData();
-    const {
-      navbar,
-      history,
-      onRouteTasks,
-      onRouteProfiles,
-      // onRouteServer, // TODO - move this back in once servers page is done
-      onRouteSettings,
-    } = this.props;
-
-    this.routes = [
-      {
-        Icon: TasksIcon,
-        className: navbar.location === '/' || navbar.location === ROUTES.TASKS ? 'active' : null,
-        iconName: 'tasks',
-        onClick: () => onRouteTasks(history),
-      },
-      {
-        Icon: ProfilesIcon,
-        className: navbar.location === ROUTES.PROFILES ? 'active' : null,
-        iconName: 'profiles',
-        onClick: () => onRouteProfiles(history),
-      },
-      {
-        Icon: ServersIcon,
-        className: navbar.location === ROUTES.SERVER ? 'active' : null,
-        iconName: 'servers',
-        onClick: () => {},
-        // onClick: () => onRouteServer(history), // TODO - move this back in once servers page is done
-      },
-      {
-        Icon: SettingsIcon,
-        className: navbar.location === ROUTES.SETTINGS ? 'active' : null,
-        iconName: 'settings',
-        onClick: () => onRouteSettings(history),
-      },
-    ];
-
     return (
       <div className="container navbar">
         <div className="row">
@@ -149,10 +149,7 @@ export class NavbarPrimitive extends PureComponent {
 NavbarPrimitive.propTypes = {
   history: PropTypes.objectOf(PropTypes.any).isRequired,
   navbar: PropTypes.objectOf(PropTypes.any).isRequired,
-  onRouteTasks: PropTypes.func.isRequired,
-  onRouteProfiles: PropTypes.func.isRequired,
-  // onRouteServer: PropTypes.func.isRequired, // TODO - when server page is finished
-  onRouteSettings: PropTypes.func.isRequired,
+  onRoute: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
 
@@ -166,10 +163,7 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onRouteTasks: history => dispatch(navbarActions.routeTasks(history)),
-  onRouteProfiles: history => dispatch(navbarActions.routeProfiles(history)),
-  onRouteServer: history => dispatch(navbarActions.routeServer(history)),
-  onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
+  onRoute: (route, history) => dispatch(navbarActions.route(route, history)),
 });
 
 export default connect(

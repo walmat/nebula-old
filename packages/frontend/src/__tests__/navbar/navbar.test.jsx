@@ -7,7 +7,7 @@ import configureStore from 'redux-mock-store';
 import { NavbarPrimitive, mapStateToProps, mapDispatchToProps } from '../../navbar/navbar';
 import Bodymovin from '../../navbar/bodymovin';
 import { initialNavbarState } from '../../state/reducers/navbar/navbarReducer';
-import { ROUTES } from '../../state/actions';
+import { ROUTES, NAVBAR_ACTIONS } from '../../state/actions';
 
 describe('<Navbar />', () => {
   let Bridge;
@@ -24,10 +24,7 @@ describe('<Navbar />', () => {
       <NavbarPrimitive
         history={renderProps.history}
         navbar={renderProps.navbar}
-        onRouteTasks={renderProps.onRouteTasks}
-        onRouteProfiles={renderProps.onRouteProfiles}
-        // onRouteServer={renderProps.onRouteServer}
-        onRouteSettings={renderProps.onRouteSettings}
+        onRoute={renderProps.onRoute}
         onKeyPress={renderProps.onKeyPress}
       />,
     );
@@ -40,10 +37,7 @@ describe('<Navbar />', () => {
     props = {
       history,
       navbar: { ...initialNavbarState },
-      onRouteTasks: jest.fn(),
-      onRouteProfiles: jest.fn(),
-      // onRouteServer: jest.fn(),
-      onRouteSettings: jest.fn(),
+      onRoute: jest.fn(),
       onKeyPress: jest.fn(),
     };
   });
@@ -75,19 +69,9 @@ describe('<Navbar />', () => {
   });
 
   it('should render with required props', () => {
-    const onRouteTasks = jest.fn();
-    const onRouteProfiles = jest.fn();
-    // const onRouteServer = jest.fn();
-    const onRouteSettings = jest.fn();
+    const onRoute = jest.fn();
     const wrapper = shallow(
-      <NavbarPrimitive
-        history={history}
-        navbar={{ ...initialNavbarState }}
-        onRouteTasks={onRouteTasks}
-        onRouteProfiles={onRouteProfiles}
-        // onRouteServer={onRouteServer}
-        onRouteSettings={onRouteSettings}
-      />,
+      <NavbarPrimitive history={history} navbar={{ ...initialNavbarState }} onRoute={onRoute} />,
     );
     expect(wrapper.find(NavbarPrimitive)).toBeDefined();
     expect(wrapper.find(Bodymovin)).toBeDefined();
@@ -141,7 +125,7 @@ describe('<Navbar />', () => {
       const onClickHandler = div.prop('onClick');
       expect(onClickHandler).toBeDefined();
       div.simulate('click');
-      expect(props.onRouteTasks).toHaveBeenCalledWith(props.history);
+      expect(props.onRoute).toHaveBeenCalledWith(NAVBAR_ACTIONS.ROUTE_TASKS, props.history);
     });
 
     test('profiles', () => {
@@ -151,18 +135,18 @@ describe('<Navbar />', () => {
       const onClickHandler = div.prop('onClick');
       expect(onClickHandler).toBeDefined();
       div.simulate('click');
-      expect(props.onRouteProfiles).toHaveBeenCalledWith(props.history);
+      expect(props.onRoute).toHaveBeenCalledWith(NAVBAR_ACTIONS.ROUTE_PROFILES, props.history);
     });
 
-    // test('server', () => {
-    //   const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
-    //   const div = wrapper.find('.active');
-    //   expect(div).toHaveLength(1);
-    //   const onClickHandler = div.prop('onClick');
-    //   expect(onClickHandler).toBeDefined();
-    //   div.simulate('click');
-    //   expect(props.onRouteServer).toHaveBeenCalledWith(props.history);
-    // });
+    test('server', () => {
+      const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
+      const div = wrapper.find('.active');
+      expect(div).toHaveLength(1);
+      const onClickHandler = div.prop('onClick');
+      expect(onClickHandler).toBeDefined();
+      div.simulate('click');
+      expect(props.onRoute).toHaveBeenCalledWith(NAVBAR_ACTIONS.ROUTE_SERVER, props.history);
+    });
 
     test('settings', () => {
       const wrapper = renderWrapperWithLocation(ROUTES.SETTINGS);
@@ -171,7 +155,7 @@ describe('<Navbar />', () => {
       const onClickHandler = div.prop('onClick');
       expect(onClickHandler).toBeDefined();
       div.simulate('click');
-      expect(props.onRouteSettings).toHaveBeenCalledWith(props.history);
+      expect(props.onRoute).toHaveBeenCalledWith(NAVBAR_ACTIONS.ROUTE_SETTINGS, props.history);
     });
   });
 
@@ -196,15 +180,15 @@ describe('<Navbar />', () => {
       expect(props.onKeyPress).toHaveBeenCalled();
     });
 
-    // test('for server', () => {
-    //   const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
-    //   const div = wrapper.find('.active');
-    //   expect(div).toHaveLength(1);
-    //   const onKeyPressHandler = div.prop('onKeyPress');
-    //   expect(onKeyPressHandler).toBeDefined();
-    //   div.simulate('keyPress');
-    //   expect(props.onKeyPress).toHaveBeenCalled();
-    // });
+    test('for server', () => {
+      const wrapper = renderWrapperWithLocation(ROUTES.SERVER);
+      const div = wrapper.find('.active');
+      expect(div).toHaveLength(1);
+      const onKeyPressHandler = div.prop('onKeyPress');
+      expect(onKeyPressHandler).toBeDefined();
+      div.simulate('keyPress');
+      expect(props.onKeyPress).toHaveBeenCalled();
+    });
 
     test('for settings', () => {
       const wrapper = renderWrapperWithLocation(ROUTES.SETTINGS);
@@ -236,14 +220,11 @@ describe('<Navbar />', () => {
       dispatch: jest.fn(),
     };
     const actual = mapDispatchToProps(store.dispatch);
-    expect(actual.onRouteTasks).toBeDefined();
-    expect(actual.onRouteProfiles).toBeDefined();
-    expect(actual.onRouteServer).toBeDefined();
-    expect(actual.onRouteSettings).toBeDefined();
-    actual.onRouteTasks(history);
-    actual.onRouteProfiles(history);
-    actual.onRouteServer(history);
-    actual.onRouteSettings(history);
+    expect(actual.onRoute).toBeDefined();
+    actual.onRoute(NAVBAR_ACTIONS.ROUTE_TASKS, history);
+    actual.onRoute(NAVBAR_ACTIONS.ROUTE_PROFILES, history);
+    actual.onRoute(NAVBAR_ACTIONS.ROUTE_SERVER, history);
+    actual.onRoute(NAVBAR_ACTIONS.ROUTE_SETTINGS, history);
     expect(store.dispatch).toHaveBeenCalledTimes(4);
   });
 });
