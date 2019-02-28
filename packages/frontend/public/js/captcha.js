@@ -147,6 +147,10 @@ async function submitCaptcha() {
   resetChallenge(true);
 }
 
+// This function is used, but it is specified in the
+// script tag's src attribute. eslint is unable to detect
+// this, so it throws an error.
+// eslint-disable-next-line no-unused-vars
 async function onLoad() {
   if (_started && !_initialized) {
     window.grecaptcha.render('captchaContainer', {
@@ -174,7 +178,20 @@ async function _registerStartHandler(_, runnerId, siteKey) {
   form.setAttribute('style', '');
 
   if (!_initialized) {
-    await onLoad(); // initialize
+    const script = document.createElement('script');
+    script.setAttribute('type', 'text/javascript');
+    script.setAttribute(
+      'src',
+      'https://www.google.com/recaptcha/api.js?onload=onLoad&render=explicit',
+    );
+    const container = document.createElement('div');
+    container.setAttribute('id', 'captchaContainer');
+    container.setAttribute('class', 'g-recaptcha');
+    while (form.lastChild) {
+      form.removeChild(form.lastChild);
+    }
+    form.appendChild(container);
+    form.appendChild(script);
   }
 
   // If recaptcha has been previously loaded, reset it
