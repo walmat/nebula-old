@@ -145,7 +145,9 @@ describe('<Navbar />', () => {
       const onClickHandler = div.prop('onClick');
       expect(onClickHandler).toBeDefined();
       div.simulate('click');
-      expect(props.onRoute).toHaveBeenCalledWith(NAVBAR_ACTIONS.ROUTE_SERVER, props.history);
+      expect(props.onRoute).not.toHaveBeenCalledWith(NAVBAR_ACTIONS.ROUTE_SERVER, props.history);
+      // TODO - revert this once server page is live
+      // expect(props.onRoute).toHaveBeenCalledWith(NAVBAR_ACTIONS.ROUTE_SERVER, props.history);
     });
 
     test('settings', () => {
