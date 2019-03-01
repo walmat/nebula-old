@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
-import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS, SETTINGS_ACTIONS } from '../state/actions';
+import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
