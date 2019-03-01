@@ -27,17 +27,27 @@ export class SettingsPrimitive extends Component {
     if (window.Bridge) {
       window.Bridge.closeAllCaptchaWindows();
     } else {
-      // TODO - error handling
+      // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
       console.error('Unable to close all windows');
     }
   }
 
-  static renderCaptchaButton(className, onClick, label) {
-    return (
-      <button type="button" className={`settings__button--${className}`} onClick={onClick}>
-        {label}
-      </button>
-    );
+  constructor(props) {
+    super(props);
+    this.settingsDelays = {
+      [SETTINGS_FIELDS.EDIT_MONITOR_DELAY]: {
+        colStyling: 'col col--no-gutter',
+        label: 'Monitor Delay',
+        placeholder: '3500',
+        className: 'monitor',
+      },
+      [SETTINGS_FIELDS.EDIT_ERROR_DELAY]: {
+        colStyling: 'col col--end col--no-gutter-right',
+        label: 'Error Delay',
+        placeholder: '3500',
+        className: 'error',
+      },
+    };
   }
 
   createOnChangeHandler(field) {
@@ -50,8 +60,9 @@ export class SettingsPrimitive extends Component {
     };
   }
 
-  renderDelay(colStyling, label, value, placeholder, className, field) {
+  renderDelay(field, value) {
     const { errors } = this.props;
+    const { colStyling, className, label, placeholder } = this.settingsDelays[field];
     return (
       <div className={`col ${colStyling}`}>
         <p className="settings__label">{label}</p>
@@ -89,22 +100,8 @@ export class SettingsPrimitive extends Component {
                 <div className="row row--start row-gutter">
                   <div className="col">
                     <div className="row row--gutter">
-                      {this.renderDelay(
-                        'col--no-gutter',
-                        'Monitor Delay',
-                        monitorDelay,
-                        '3500',
-                        'monitor',
-                        SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
-                      )}
-                      {this.renderDelay(
-                        'col--end col--no-gutter-right',
-                        'Error Delay',
-                        errorDelay,
-                        '3500',
-                        'error',
-                        SETTINGS_FIELDS.EDIT_ERROR_DELAY,
-                      )}
+                      {this.renderDelay(SETTINGS_FIELDS.EDIT_MONITOR_DELAY, monitorDelay)}
+                      {this.renderDelay(SETTINGS_FIELDS.EDIT_ERROR_DELAY, errorDelay)}
                     </div>
                   </div>
                 </div>

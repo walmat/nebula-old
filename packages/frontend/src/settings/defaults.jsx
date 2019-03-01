@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
-import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
+import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS, SETTINGS_ACTIONS } from '../state/actions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
@@ -12,6 +12,34 @@ import getAllSizes from '../constants/getAllSizes';
 export class DefaultsPrimitive extends Component {
   static buildSizeOptions() {
     return getAllSizes();
+  }
+
+  constructor(props) {
+    super(props);
+    this.defaultsSelects = {
+      [SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]: {
+        label: 'Sizes',
+        placeholder: 'Choose Sizes',
+        className: 'select__sizes',
+        colStyling: 'col col--end col--gutter-left',
+      },
+      [SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]: {
+        label: 'Profile',
+        placeholder: 'Choose Profile',
+        className: 'select__profile',
+        colStyling: 'col col--no-gutter-right',
+      },
+    };
+    this.defaultsButtons = {
+      [SETTINGS_FIELDS.CLEAR_DEFAULTS]: {
+        label: 'Clear',
+        className: 'clear',
+      },
+      [SETTINGS_FIELDS.SAVE_DEFAULTS]: {
+        label: 'Save',
+        className: 'save',
+      },
+    };
   }
 
   buildProfileOptions() {
@@ -45,8 +73,11 @@ export class DefaultsPrimitive extends Component {
     }
   }
 
-  renderDefaultButton(className, onClick, label) {
-    const { onKeyPress } = this.props;
+  renderDefaultsButton(field, value) {
+    const { onKeyPress, onClearDefaults, onSaveDefaults } = this.props;
+    const { className, label } = this.defaultsButtons[field];
+    const onClick = () =>
+      field === SETTINGS_FIELDS.SAVE_DEFAULTS ? onSaveDefaults(value) : onClearDefaults(field);
     return (
       <button
         type="button"
@@ -60,10 +91,11 @@ export class DefaultsPrimitive extends Component {
     );
   }
 
-  renderDefaultSelect(colStyling, label, placeholder, className, field, value, options) {
+  renderDefaultsSelect(field, value, options) {
     const { errors, theme } = this.props;
+    const { label, placeholder, className, colStyling } = this.defaultsSelects[field];
     return (
-      <div className={`col ${colStyling}`}>
+      <div className={colStyling}>
         <p className="settings-defaults__input-group--label">{label}</p>
         <Select
           required
@@ -83,7 +115,7 @@ export class DefaultsPrimitive extends Component {
   }
 
   render() {
-    const { settings, onSaveDefaults, onClearDefaults } = this.props;
+    const { settings } = this.props;
     const defaultSizes = settings.defaults.sizes.map(s => ({ value: s, label: `${s}` }));
     let defaultProfileValue = null;
     if (settings.defaults.profile.id !== null) {
@@ -108,20 +140,12 @@ export class DefaultsPrimitive extends Component {
                 <div className="row row--start row-gutter">
                   <div className="col settings-defaults__input-group">
                     <div className="row row--gutter">
-                      {this.renderDefaultSelect(
-                        'col--no-gutter-right',
-                        'Profile',
-                        'Choose Profile',
-                        'select__profile',
+                      {this.renderDefaultsSelect(
                         SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
                         defaultProfileValue,
                         this.buildProfileOptions(),
                       )}
-                      {this.renderDefaultSelect(
-                        'col--end col--gutter-left',
-                        'Sizes',
-                        'Choose Sizes',
-                        'select__sizes',
+                      {this.renderDefaultsSelect(
                         SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
                         defaultSizes,
                         DefaultsPrimitive.buildSizeOptions(),
@@ -129,18 +153,13 @@ export class DefaultsPrimitive extends Component {
                     </div>
                     <div className="row row--gutter row--end">
                       <div className="col col--no-gutter-right">
-                        {this.renderDefaultButton(
-                          'save',
-                          () => onSaveDefaults(settings.defaults),
-                          'Save',
+                        {this.renderDefaultsButton(
+                          SETTINGS_FIELDS.SAVE_DEFAULTS,
+                          settings.defaults,
                         )}
                       </div>
                       <div className="col col--end col--gutter-left">
-                        {this.renderDefaultButton(
-                          'clear',
-                          () => onClearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS),
-                          'Clear',
-                        )}
+                        {this.renderDefaultsButton(SETTINGS_FIELDS.CLEAR_DEFAULTS)}
                       </div>
                     </div>
                   </div>
