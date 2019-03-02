@@ -90,6 +90,7 @@ export function proxyListReducer(state = initialServerStates.serverInfo.proxies,
   switch (action.type) {
     case SERVER_ACTIONS.DESTROY_PROXIES: {
       console.log(action, nextState);
+      // TODO - filter serverInfo.proxies and remove the `action.instances`
       break;
     }
     default: {
