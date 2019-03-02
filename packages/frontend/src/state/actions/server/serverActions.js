@@ -6,6 +6,10 @@ import regexes from '../../../utils/validation';
 const sleep = delay => new Promise(resolve => setTimeout(resolve, delay));
 const rand = (min, max) => Math.random() * (max - min) + min;
 
+const sleep = delay => new Promise(resolve => setTimeout(resolve, delay));
+
+const rand = (min, max) => Math.random() * (max - min) + min;
+
 // Top level Actions
 export const SERVER_ACTIONS = {
   EDIT: 'EDIT_SERVER_OPTIONS',
