@@ -52,6 +52,7 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
   } else if (action.type === SERVER_ACTIONS.ERROR) {
     console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
+    console.log(action, nextState);
     if (!action || !action.proxyInfo) {
       return nextState;
     }
@@ -60,9 +61,16 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
       return nextState;
     }
     nextState.proxies.push({ region, proxies });
-  } else if (action.type === SERVER_ACTIONS.DESTROY_ALL) {
-    // todo
-    // nextState = nextState.filter(s => s.id !== action);
+  } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
+    console.log(action);
+    const proxyGroups = nextState.proxies.map(p => p.proxies);
+    console.log(proxyGroups);
+    nextState.proxies = nextState.proxies.filter(p => {
+      return proxyGroups.some(i => {
+        console.log(i, p);
+        return i.id !== p.proxies.id;
+      });
+    });
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     nextState.credentials.accessToken = action.token;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
@@ -83,20 +91,6 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
   }
 
   return nextState;
-}
-
-export function proxyListReducer(state = initialServerStates.serverInfo.proxies, action) {
-  let nextState = JSON.parse(JSON.stringify(state));
-  switch (action.type) {
-    case SERVER_ACTIONS.DESTROY_PROXIES: {
-      console.log(action, nextState);
-      // TODO - filter serverInfo.proxies and remove the `action.instances`
-      break;
-    }
-    default: {
-      break;
-    }
-  }
 }
 
 export function serverListReducer(state = initialServerStates.serverList, action) {
@@ -124,13 +118,17 @@ export function serverListReducer(state = initialServerStates.serverList, action
       break;
     }
     case SERVER_ACTIONS.DESTROY: {
-      nextState = nextState.filter(
-        s => s.id !== action.serverPath.TerminatingInstances[0].InstanceId,
-      );
+      if (!action || !action.instance) {
+        break;
+      }
+      nextState = nextState.filter(s => action.instance.some(i => i.id !== s.id));
       break;
     }
     case SERVER_ACTIONS.DESTROY_ALL: {
-      nextState = [];
+      if (!action || !action.instances) {
+        break;
+      }
+      nextState = nextState.filter(i => action.instances.some(instance => instance.id !== i.id));
       break;
     }
     default: {

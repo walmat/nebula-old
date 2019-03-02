@@ -23,6 +23,35 @@ export const SERVER_ACTIONS = {
   LOGOUT_AWS: 'LOGOUT_AWS',
 };
 
+const _buildDestroyServerPromises = (servers, awsCredentials) =>
+  servers.map(server => {
+    AWS.config = new AWS.Config({
+      accessKeyId: awsCredentials.AWSAccessKey,
+      secretAccessKey: awsCredentials.AWSSecretKey,
+      region: server.location.value,
+    });
+    const ec2 = new AWS.EC2();
+
+    return ec2.terminateInstances({ InstanceIds: [server.id] }).promise();
+  });
+
+const _buildDestroyProxiesPromises = (options, proxyList, awsCredentials) =>
+  proxyList.map(proxies => {
+    console.log('SERVER: proxy object: %j', proxies);
+    if (!options || proxies.region === options.location.value) {
+      AWS.config = new AWS.Config({
+        accessKeyId: awsCredentials.AWSAccessKey,
+        secretAccessKey: awsCredentials.AWSSecretKey,
+        region: proxies.region,
+      });
+      const ec2 = new AWS.EC2();
+      const InstanceIds = proxies.proxies.map(p => p.id);
+      console.log('SERVER: proxy instanceIds: %j', InstanceIds);
+      return ec2.terminateInstances({ InstanceIds }).promise();
+    }
+    return new Promise((resolve, reject) => reject(new Error('No Proxies For Region')));
+  });
+
 // Private API Requests
 /**
  * see:
@@ -91,64 +120,128 @@ const _connectServerRequest = async (serverOptions, awsCredentials) =>
   });
 
 const _destroyServerRequest = async (serverOptions, awsCredentials) =>
-  new Promise((resolve, reject) => {
+  new Promise(async (resolve, reject) => {
     AWS.config = new AWS.Config({
       accessKeyId: awsCredentials.AWSAccessKey,
       secretAccessKey: awsCredentials.AWSSecretKey,
       region: serverOptions.location.value,
     });
     const ec2 = new AWS.EC2();
-    const params = {
-      InstanceIds: [serverOptions.id],
-    };
+    try {
+      const res = await ec2
+        .terminateInstances({
+          InstanceIds: [serverOptions.id],
+        })
+        .promise();
 
-    const terminateInstances = ec2.terminateInstances(params).promise();
+      if (!res.TerminatingInstances.length) {
+        reject(new Error('No Instances Terminated!'));
+      }
 
-    /**
-      data.Code : data.Name
-      ( The low byte represents the state.
-      The high byte is used for internal purposes and should be ignored )
-      0 : pending
-      16 : running
-      32 : shutting-down
-      48 : terminated
-      64 : stopping
-      80 : stopped
-    */
-    terminateInstances
-      .then(data => {
-        resolve(data); // do a window.Bridge fn in preload.js
-      })
-      .catch(error => {
-        reject(new Error(error));
-      });
+      const InstanceIds = res.TerminatingInstances.map(i => i.InstanceId);
+
+      const instances = await ec2.describeInstances({ InstanceIds }).promise();
+
+      if (!instances.Reservations.length) {
+        reject(new Error('No Instances Found!'));
+      }
+
+      const server = instances.Reservations[0].Instances.map(i => ({
+        id: i.InstanceId,
+        ip: i.PublicIpAddress,
+      }));
+
+      resolve(server);
+    } catch (err) {
+      reject(new Error(err));
+    }
   });
 
-const _destroyAllServerRequest = async (servers, awsCredentials) =>
-  new Promise(async (resolve, reject) => {
-    const promises = await servers.forEach(server => {
-      AWS.config = new AWS.Config({
-        accessKeyId: awsCredentials.AWSAccessKey,
-        secretAccessKey: awsCredentials.AWSSecretKey,
-        region: server.location.value,
-      });
-      const ec2 = new AWS.EC2();
-
-      const params = {
-        InstanceIds: [server.id],
-      };
-
-      ec2
-        .terminateInstances(params)
-        .promise()
-        .then(data => {
-          resolve(data);
-        })
-        .catch(error => {
-          reject(new Error(error));
-        });
+const _destroyAllServerRequest = async (servers, awsCredentials) => {
+  const promises = _buildDestroyServerPromises(servers, awsCredentials);
+  return new Promise(async (resolve, reject) => {
+    if (!promises.length) {
+      reject(new Error('No Instances Running!'));
+    }
+    Promise.all(promises).then(data => {
+      const instances = data.map(i => ({ id: i.TerminatingInstances[0].InstanceId }));
+      resolve(instances);
     });
-    resolve(promises);
+  });
+};
+
+const _startServerRequest = async (serverOptions, awsCredentials) =>
+  new Promise(async (resolve, reject) => {
+    AWS.config = new AWS.Config({
+      accessKeyId: awsCredentials.AWSAccessKey,
+      secretAccessKey: awsCredentials.AWSSecretKey,
+      region: serverOptions.location.value,
+    });
+    const ec2 = new AWS.EC2();
+
+    try {
+      const res = await ec2
+        .startInstances({
+          InstanceIds: [serverOptions.id],
+        })
+        .promise();
+      if (!res.StartingInstances.length) {
+        reject(new Error('No Instances Started!'));
+      }
+      const InstanceIds = res.StartingInstances.map(i => i.InstanceId);
+
+      const instances = await ec2.describeInstances({ InstanceIds }).promise();
+      if (!instances.Reservations.length) {
+        reject(new Error('No Instances Found!'));
+      }
+
+      const server = instances.Reservations[0].Instances.map(i => ({
+        id: i.InstanceId,
+        ip: i.PublicIpAddress,
+      }));
+
+      resolve({ server });
+    } catch (err) {
+      reject(new Error(err));
+    }
+  });
+
+const _stopServerRequest = async (serverOptions, awsCredentials) =>
+  new Promise(async (resolve, reject) => {
+    AWS.config = new AWS.Config({
+      accessKeyId: awsCredentials.AWSAccessKey,
+      secretAccessKey: awsCredentials.AWSSecretKey,
+      region: serverOptions.location.value,
+    });
+    const ec2 = new AWS.EC2();
+
+    try {
+      const res = await ec2
+        .stopInstances({
+          InstanceIds: [serverOptions.id],
+        })
+        .promise();
+
+      if (!res.StoppingInstances.length) {
+        reject(new Error('No Instances Stopped!'));
+      }
+
+      const InstanceIds = res.StoppingInstances.map(i => i.InstanceId);
+
+      const instances = await ec2.describeInstances({ InstanceIds }).promise();
+      if (!instances.Reservations.length) {
+        reject(new Error('No Instances Found!'));
+      }
+
+      const servers = instances.Reservations[0].Instances.map(i => ({
+        id: i.InstanceId,
+        ip: i.PublicIpAddress,
+      }));
+
+      resolve({ servers });
+    } catch (err) {
+      reject(new Error(err));
+    }
   });
 
 const _generateProxiesRequest = async (proxyOptions, awsCredentials) =>
@@ -207,105 +300,25 @@ const _generateProxiesRequest = async (proxyOptions, awsCredentials) =>
     }
   });
 
-const _startServerRequest = async (serverOptions, awsCredentials) =>
-  new Promise((resolve, reject) => {
-    AWS.config = new AWS.Config({
-      accessKeyId: awsCredentials.AWSAccessKey,
-      secretAccessKey: awsCredentials.AWSSecretKey,
-      region: serverOptions.location.value,
-    });
-    const ec2 = new AWS.EC2();
-    const params = {
-      InstanceIds: [serverOptions.id],
-    };
-    const startInstances = ec2.startInstances(params).promise();
-
-    /**
-      data.Code : data.Name
-      ( The low byte represents the state.
-      The high byte is used for internal purposes and should be ignored )
-      0 : pending
-      16 : running
-      32 : shutting-down
-      48 : terminated
-      64 : stopping
-      80 : stopped
-    */
-    startInstances
-      .then(data => {
-        resolve(data); // do a window.Bridge fn in preload.js
-      })
-      .catch(error => {
-        reject(new Error(error));
-      });
+const _destroyProxiesRequest = async (options, proxyList, awsCredentials) => {
+  const promises = _buildDestroyProxiesPromises(options, proxyList, awsCredentials);
+  return new Promise(async (resolve, reject) => {
+    if (!promises.length) {
+      reject(new Error('No Proxy Instances Running!'));
+    }
+    Promise.all(promises).then(
+      data => {
+        console.log(data);
+        const instances = data.map(i => ({ id: i.TerminatingInstances[0].InstanceId }));
+        console.log(instances);
+        resolve(instances);
+      },
+      err => {
+        reject(err);
+      },
+    );
   });
-
-const _stopServerRequest = async (serverOptions, awsCredentials) =>
-  new Promise((resolve, reject) => {
-    AWS.config = new AWS.Config({
-      accessKeyId: awsCredentials.AWSAccessKey,
-      secretAccessKey: awsCredentials.AWSSecretKey,
-      region: serverOptions.location.value,
-    });
-    const ec2 = new AWS.EC2();
-    const params = {
-      InstanceIds: [serverOptions.id],
-    };
-    const stopInstances = ec2.stopInstances(params).promise();
-
-    /**
-      data.Code : data.Name
-      ( The low byte represents the state.
-      The high byte is used for internal purposes and should be ignored )
-      0 : pending
-      16 : running
-      32 : shutting-down
-      48 : terminated
-      64 : stopping
-      80 : stopped
-    */
-    stopInstances
-      .then(data => {
-        resolve(data); // do a window.Bridge fn in preload.js
-      })
-      .catch(error => {
-        reject(new Error(error));
-      });
-  });
-
-const _destroyProxiesRequest = async (options, proxyList, awsCredentials) =>
-  new Promise(async (resolve, reject) => {
-    const instances = proxyList.forEach(async proxies => {
-      console.log('SERVER: proxy object: %j', proxies);
-      if (!options || proxies.region === options.location.value) {
-        AWS.config = new AWS.Config({
-          accessKeyId: awsCredentials.AWSAccessKey,
-          secretAccessKey: awsCredentials.AWSSecretKey,
-          region: proxies.region,
-        });
-        const ec2 = new AWS.EC2();
-        const InstanceIds = proxies.proxies.map(p => p.id);
-        console.log('SERVER: proxy instanceIds: %j', InstanceIds);
-
-        try {
-          const res = await ec2.terminateInstances({ InstanceIds }).promise();
-
-          if (!res.TerminatingInstances.length) {
-            // exit early...
-            resolve(new Error('No Instances Terminated!'));
-          }
-
-          const terminatedInstances = await res.TerminatingInstances.map(t => t.InstanceId);
-          console.log('SERVER: terminated instances: %j', terminatedInstances);
-
-          return { instances: terminatedInstances };
-        } catch (err) {
-          reject(new Error(err));
-        }
-      }
-    });
-    resolve(instances);
-  });
+};
 
 const _validateAwsRequest = async awsCredentials =>
   // TODO: Replace this with an actual API call
@@ -323,13 +336,13 @@ const _validateAwsRequest = async awsCredentials =>
 
 // Private Actions
 const _createServer = makeActionCreator(SERVER_ACTIONS.CREATE, 'serverInfo');
+const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'serverInfo', 'credentials');
 const _startServer = makeActionCreator(SERVER_ACTIONS.START, 'serverPath');
 const _stopServer = makeActionCreator(SERVER_ACTIONS.STOP, 'serverPath');
-const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'serverPath');
-const _destroyAllServers = makeActionCreator(SERVER_ACTIONS.DESTROY_ALL, 'credentials');
+const _destroyServer = makeActionCreator(SERVER_ACTIONS.DESTROY, 'instance');
+const _destroyAllServers = makeActionCreator(SERVER_ACTIONS.DESTROY_ALL, 'instances');
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxyInfo');
-const _connectServer = makeActionCreator(SERVER_ACTIONS.CONNECT, 'serverInfo', 'credentials');
-const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'proxies');
+const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'instances');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS);
 

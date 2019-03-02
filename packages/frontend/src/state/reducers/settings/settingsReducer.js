@@ -177,13 +177,14 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     ) {
       return Object.assign({}, state, change);
     }
-    console.log(action.proxyInfo);
     const proxies = action.proxyInfo.proxies.map(i => i.ip);
-    console.log(proxies);
+    console.log(state.proxies, proxies);
     change = {
       proxies,
     };
     console.log(change);
+  } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
+    console.log(action, state);
   }
   return Object.assign({}, state, change);
 }
