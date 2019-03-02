@@ -117,7 +117,11 @@ export class CreateProxiesPrimitive extends Component {
               onKeyPress={onKeyPress}
               onClick={() => {
                 if (loggedInAws) {
-                  onDestroyProxies();
+                  onDestroyProxies(
+                    serverInfo.proxyOptions,
+                    serverInfo.proxies,
+                    serverInfo.credentials,
+                  );
                 }
               }}
               data-testid={addTestId('CreateProxies.destroyProxiesButton')}
@@ -136,7 +140,7 @@ export class CreateProxiesPrimitive extends Component {
               onKeyPress={onKeyPress}
               onClick={() => {
                 if (loggedInAws) {
-                  onGenerateProxies(serverInfo.proxyOptions);
+                  onGenerateProxies(serverInfo.proxyOptions, serverInfo.credentials);
                 }
               }}
               data-testid={addTestId('CreateProxies.generateProxiesButton')}
@@ -174,11 +178,11 @@ export const mapDispatchToProps = dispatch => ({
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
-  onGenerateProxies: options => {
-    dispatch(serverActions.generateProxies(options));
+  onGenerateProxies: (options, credentials) => {
+    dispatch(serverActions.generateProxies(options, credentials));
   },
-  onDestroyProxies: () => {
-    dispatch(serverActions.destroyProxies());
+  onDestroyProxies: (options, proxies, credentials) => {
+    dispatch(serverActions.destroyProxies(options, proxies, credentials));
   },
 });
 

@@ -54,7 +54,7 @@ export class NavbarPrimitive extends PureComponent {
                 title={iconName}
                 onKeyPress={onKeyPress}
                 className={className}
-                onClick={iconName === 'servers' ? () => {} : onClick} // TODO - undo this once server functionality is complete #290  (maybe #45?)
+                onClick={onClick}
               >
                 {renderSvgIcon(Icon, { alt: iconName })}
               </div>

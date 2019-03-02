@@ -17,10 +17,11 @@ export class AWSCredentialsPrimitive extends Component {
     e.preventDefault();
     const message =
       'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies/servers.';
-    const { onLogoutAws, serverInfo } = this.props;
+    const { onLogoutAws, serverInfo, servers } = this.props;
+    const { proxies, credentials } = serverInfo;
     window.Bridge.confirmDialog(message).then(logout => {
       if (logout) {
-        onLogoutAws(serverInfo.coreServer.path);
+        onLogoutAws(servers, proxies, credentials);
       }
     });
   }
@@ -48,8 +49,9 @@ export class AWSCredentialsPrimitive extends Component {
                 <p className="server-credentials__label">AWS Access Key</p>
                 <input
                   className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
-                  type="text"
+                  type="password"
                   placeholder="IAM User Access"
+                  disabled={loggedInAws}
                   style={buildStyle(
                     false,
                     errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]],
@@ -71,6 +73,7 @@ export class AWSCredentialsPrimitive extends Component {
                 className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                 type="password"
                 placeholder="IAM User Secret"
+                disabled={loggedInAws}
                 style={buildStyle(
                   false,
                   errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]],
@@ -103,6 +106,7 @@ export class AWSCredentialsPrimitive extends Component {
 }
 
 AWSCredentialsPrimitive.propTypes = {
+  servers: defns.serverList.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
   serverInfo: defns.serverInfo.isRequired,
   onValidateAws: PropTypes.func.isRequired,
@@ -119,6 +123,7 @@ AWSCredentialsPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   serverInfo: state.serverInfo,
+  servers: state.servers,
 });
 
 export const mapDispatchToProps = dispatch => ({
@@ -128,8 +133,8 @@ export const mapDispatchToProps = dispatch => ({
   onValidateAws: credentials => {
     dispatch(serverActions.validateAws(credentials));
   },
-  onLogoutAws: path => {
-    dispatch(serverActions.logoutAws(path));
+  onLogoutAws: (servers, proxies, credentials) => {
+    dispatch(serverActions.logoutAws(servers, proxies, credentials));
   },
 });
 

@@ -1,5 +1,6 @@
 import {
   SETTINGS_ACTIONS,
+  SERVER_ACTIONS,
   PROFILE_ACTIONS,
   mapSettingsFieldToKey,
   SETTINGS_FIELDS,
@@ -168,6 +169,21 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
   } else if (action.type === SETTINGS_ACTIONS.ERROR) {
     // TODO: Handle error
     console.error(`Error trying to perform: ${action.action}! ${action.error}`);
+  } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
+    if (
+      !action ||
+      !action.proxyInfo ||
+      (!action.proxyInfo.proxies || !action.proxyInfo.proxies.length)
+    ) {
+      return Object.assign({}, state, change);
+    }
+    console.log(action.proxyInfo);
+    const proxies = action.proxyInfo.proxies.map(i => i.ip);
+    console.log(proxies);
+    change = {
+      proxies,
+    };
+    console.log(change);
   }
   return Object.assign({}, state, change);
 }

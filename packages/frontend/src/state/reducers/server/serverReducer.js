@@ -52,9 +52,14 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
   } else if (action.type === SERVER_ACTIONS.ERROR) {
     console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
-    nextState.proxies = action.proxies;
-  } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
-    nextState.proxies = initialServerStates.serverInfo.proxies;
+    if (!action || !action.proxyInfo) {
+      return nextState;
+    }
+    const { region, proxies } = action.proxyInfo;
+    if (!region || !proxies) {
+      return nextState;
+    }
+    nextState.proxies.push({ region, proxies });
   } else if (action.type === SERVER_ACTIONS.DESTROY_ALL) {
     // todo
     // nextState = nextState.filter(s => s.id !== action);
@@ -80,6 +85,19 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
   return nextState;
 }
 
+export function proxyListReducer(state = initialServerStates.serverInfo.proxies, action) {
+  let nextState = JSON.parse(JSON.stringify(state));
+  switch (action.type) {
+    case SERVER_ACTIONS.DESTROY_PROXIES: {
+      console.log(action, nextState);
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+}
+
 export function serverListReducer(state = initialServerStates.serverList, action) {
   let nextState = JSON.parse(JSON.stringify(state));
 
@@ -92,7 +110,6 @@ export function serverListReducer(state = initialServerStates.serverList, action
       break;
     }
     case SERVER_ACTIONS.CREATE: {
-      // perform a deep copy of given profile
       const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
       const newServer = {
         id: action.serverInfo.path,
