@@ -138,8 +138,6 @@ async function autoClick() {
     x: x + rand(100, 300),
     y: y + rand(100, 550),
   };
-  console.log(x, y);
-  console.log(sourcePt);
   await simulateClick(sourcePt);
 }
 
@@ -194,13 +192,14 @@ async function _registerStartHandler(_, runnerId, siteKey) {
   if (!_initialized) {
     const script = document.createElement('script');
     script.setAttribute('type', 'text/javascript');
-    script.setAttribute(
-      'src',
-      'https://www.google.com/recaptcha/api.js?onload=onLoad&render=explicit',
-    );
+    script.setAttribute('src', 'https://www.google.com/recaptcha/api.js');
     const container = document.createElement('div');
     container.setAttribute('id', 'captchaContainer');
     container.setAttribute('class', 'g-recaptcha');
+    container.setAttribute('data-sitekey', `${siteKey}`);
+    container.setAttribute('data-theme', 'light');
+    container.setAttribute('data-size', 'normal');
+    container.setAttribute('data-callback', 'submitCaptcha');
     while (form.lastChild) {
       form.removeChild(form.lastChild);
     }
