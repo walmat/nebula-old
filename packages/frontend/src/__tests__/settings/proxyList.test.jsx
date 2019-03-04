@@ -92,13 +92,19 @@ describe('<ProxyList />', () => {
       ],
       errors: [1],
     };
+    const initialInnerHtml =
+      '<div>test</div><div class="invalidProxy">testinvalid</div><div>testvalid</div><div>divtestsanitize</div>';
     const expectedInnerHtml =
       '<div>test</div><div>testinvalid</div><div>testvalid</div><div>divtestsanitize</div>';
     const wrapper = renderShallowWithProps(customProps);
-    const proxyInputDiv = getByTestId(wrapper, 'ProxyListPrimitive.proxyInputDiv');
+    let proxyInputDiv = getByTestId(wrapper, 'ProxyListPrimitive.proxyInputDiv');
+    expect(proxyInputDiv.prop('dangerouslySetInnerHTML')).toEqual({
+      __html: initialInnerHtml,
+    });
     wrapper.setState({
       editing: true,
     });
+    proxyInputDiv = getByTestId(wrapper, 'ProxyListPrimitive.proxyInputDiv');
     expect(wrapper.state('proxies')).toEqual(customProps.proxies);
     expect(wrapper.state('editing')).toBeTruthy();
     expect(proxyInputDiv.prop('dangerouslySetInnerHTML')).toEqual({
