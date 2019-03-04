@@ -5,6 +5,7 @@ import sanitizeHtml from 'sanitize-html';
 
 import { SETTINGS_FIELDS, settingsActions } from '../state/actions';
 import defns from '../utils/definitions/settingsDefinitions';
+import { addTestId } from '../utils';
 
 export class ProxyListPrimitive extends Component {
   static sanitize(dirty) {
@@ -131,11 +132,10 @@ export class ProxyListPrimitive extends Component {
       .join('');
   }
 
-  render() {
+  renderProxyInputDiv() {
     const { className } = this.props;
-    // Create a div with the innerHtml set dangerously
-    // This is to allow styling, while still allowing content to be editable
     return React.createElement('div', {
+      'data-testid': addTestId('ProxyListPrimitive.proxyInputDiv'),
       ref: this.domNode,
       className,
       onInput: this.handleUpdate,
@@ -145,6 +145,31 @@ export class ProxyListPrimitive extends Component {
       dangerouslySetInnerHTML: { __html: this.renderProxies() },
       contentEditable: true,
     });
+  }
+
+  render() {
+    return (
+      <div>
+        <div className="row row--start">
+          <div className="col col--no-gutter-left">
+            <p className="body-text section-header proxy-list__section-header">Proxy List</p>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col col--no-gutter-left col--expand">
+            <div className="proxy-list col col--start col--no-gutter">
+              <div className="row row--start row--gutter">
+                <div className="col proxy-list__input-group">
+                  <div className="row row--gutter">
+                    <div className="col col--no-gutter">{this.renderProxyInputDiv()}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 }
 
