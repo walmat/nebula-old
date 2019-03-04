@@ -3,9 +3,9 @@
   <head>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;"/>
     <title>Harvester</title>
+    <link rel="stylesheet" type="text/css" href="./css/captcha.css">
     <script src="./js/disableEval.js"></script>
     <script src="./js/captcha.js"></script>
-    <link rel="stylesheet" type="text/css" href="./css/captcha.css">
   </head>
   <body>
     <div id="titlebar"></div>
@@ -20,7 +20,7 @@
       </div>
     </div>
     <div id="captcha">
-      <form id="captchaForm" action="/submit" method="post"></form>
+      <form id="captchaForm" action="/submit" method="post" style="display: none;"></form>
     </div>
     <div class="footer">
       <button id="launch-youtube">Account</button>

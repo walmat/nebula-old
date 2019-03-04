@@ -110,7 +110,7 @@ class CaptchaWindowManager {
    *
    * If no captcha windows are present, one is created
    */
-  startHarvesting(runnerId, siteKey) {
+  async startHarvesting(runnerId, siteKey) {
     this._harvestStatus = {
       state: HARVEST_STATE.ACTIVE,
       runnerId,
@@ -119,9 +119,12 @@ class CaptchaWindowManager {
     if (this._captchaWindows.length === 0) {
       this.spawnCaptchaWindow();
     } else {
-      this._captchaWindows.forEach(win => {
-        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
-      });
+      await Promise.all(
+        this._captchaWindows.map(async (win, idx) => {
+          await new Promise(resolve => setTimeout(resolve, idx * 250));
+          win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+        }),
+      );
     }
   }
 
