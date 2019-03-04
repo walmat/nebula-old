@@ -62,15 +62,8 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
     }
     nextState.proxies.push({ region, proxies });
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
-    console.log(action);
     const proxyGroups = nextState.proxies.map(p => p.proxies);
-    console.log(proxyGroups);
-    nextState.proxies = nextState.proxies.filter(p => {
-      return proxyGroups.some(i => {
-        console.log(i, p);
-        return i.id !== p.proxies.id;
-      });
-    });
+    nextState.proxies = nextState.proxies.filter(p => proxyGroups.some(i => i.id !== p.proxies.id));
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     nextState.credentials.accessToken = action.token;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {

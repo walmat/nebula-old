@@ -1,10 +1,9 @@
+import AWS from 'aws-sdk';
+
 import makeActionCreator from '../actionCreator';
 import regexes from '../../../utils/validation';
 
-const AWS = require('aws-sdk');
-
 const sleep = delay => new Promise(resolve => setTimeout(resolve, delay));
-
 const rand = (min, max) => Math.random() * (max - min) + min;
 
 // Top level Actions
@@ -269,9 +268,14 @@ const _generateProxiesRequest = async (proxyOptions, awsCredentials) =>
         .runInstances({
           ImageId: 'ami-04169656fea786776', // linux 16.04 LTS (we need to create a mapping of this, cause it changes based on region)
           InstanceType: 't2.micro',
+          CreditSpecification: { CpuCredits: 'Unlimited' },
+          T2T3Unlmited: true,
           KeyName: 'nebula',
           MinCount: proxyOptions.numProxies,
           MaxCount: proxyOptions.numProxies,
+          // base64 encoded `bash_script.txt`
+          UserData:
+            'IyEvYmluL2Jhc2gNCg0KYXB0LWdldCB1cGRhdGUNCg0Kc2xlZXAgMTUNCg0KY2xlYXINCg0KYXB0LWdldCBpbnN0YWxsIHNxdWlkIC15DQphcHQtZ2V0IGluc3RhbGwgYXBhY2hlMi11dGlscyAteQ0KDQpybSAtcmYgL2V0Yy9zcXVpZC9zcXVpZC5jb25mDQoNCnRvdWNoIC9ldGMvc3F1aWQvc3F1aWQuY29uZg0KDQplY2hvIC1lICINCmZvcndhcmRlZF9mb3Igb2ZmDQp2aXNpYmxlX2hvc3RuYW1lIHNxdWlkLnNlcnZlci5jb21tbQ0KDQphdXRoX3BhcmFtIGJhc2ljIHByb2dyYW0gL3Vzci9saWIvc3F1aWQzL2Jhc2ljX25jc2FfYXV0aCAvZXRjL3NxdWlkL3NxdWlkX3Bhc3N3ZA0KYXV0aF9wYXJhbSBiYXNpYyByZWFsbSBwcm94eQ0KYWNsIGF1dGhlbnRpY2F0ZWQgcHJveHlfYXV0aCBSRVFVSVJFRA0KaHR0cF9hY2Nlc3MgYWxsb3cgYXV0aGVudGljYXRlZA0KDQpodHRwX3BvcnQgODANCg0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIEFsbG93IGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIEF1dGhvcml6YXRpb24gYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgV1dXLUF1dGhlbnRpY2F0ZSBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBQcm94eS1BdXRob3JpemF0aW9uIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIFByb3h5LUF1dGhlbnRpY2F0ZSBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBDYWNoZS1Db250cm9sIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIENvbnRlbnQtRW5jb2RpbmcgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQ29udGVudC1MZW5ndGggYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQ29udGVudC1UeXBlIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIERhdGUgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgRXhwaXJlcyBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBIb3N0IGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIElmLU1vZGlmaWVkLVNpbmNlIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIExhc3QtTW9kaWZpZWQgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgTG9jYXRpb24gYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgUHJhZ21hIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIEFjY2VwdCBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBBY2NlcHQtQ2hhcnNldCBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBBY2NlcHQtRW5jb2RpbmcgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQWNjZXB0LUxhbmd1YWdlIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIENvbnRlbnQtTGFuZ3VhZ2UgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgTWltZS1WZXJzaW9uIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIFJldHJ5LUFmdGVyIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIFRpdGxlIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIENvbm5lY3Rpb24gYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgUHJveHktQ29ubmVjdGlvbiBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBVc2VyLUFnZW50IGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIENvb2tpZSBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBBbGwgZGVueSBhbGwiID4+IC9ldGMvc3F1aWQvc3F1aWQuY29uZgoNCmh0cGFzc3dkIC1iIC1jIC9ldGMvc3F1aWQvc3F1aWRfcGFzc3dkIHRlc3QgdGVzdCAKDQpzZXJ2aWNlIHNxdWlkIHJlc3RhcnQNCg0KY2xlYXI=',
         })
         .promise();
       if (!instances.Instances.length) {
@@ -291,7 +295,7 @@ const _generateProxiesRequest = async (proxyOptions, awsCredentials) =>
       console.log('SERVER: proxy instances: %j', proxyInstances);
       const proxies = await proxyInstances.Reservations[0].Instances.map(i => ({
         id: i.InstanceId,
-        ip: `${i.PublicIpAddress}:8080:${proxyOptions.username}:${proxyOptions.password}`,
+        ip: `${i.PublicIpAddress}:80:${proxyOptions.username}:${proxyOptions.password}`,
       }));
       console.log('SERVER: proxies: %j', proxies);
       resolve({ region: proxyOptions.location.value, proxies });
