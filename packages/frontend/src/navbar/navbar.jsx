@@ -113,8 +113,8 @@ export class NavbarPrimitive extends PureComponent {
         <div className="row">
           <div className="col col--gutter">
             <div className="row row--expand">
-              <div className="col col--start col--expand navbar__logo">
-                <div className="row row--start row--gutter">
+              <div className="col col--start col--expand">
+                <div className="row row--start row--gutter navbar__logo">
                   <Bodymovin options={bodymovinOptions} />
                 </div>
                 <div className="col col--expand col--no-gutter navbar__icons">
