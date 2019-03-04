@@ -38,7 +38,7 @@ describe('<ProxyList />', () => {
 
   it('should render with required props', () => {
     const wrapper = renderShallowWithProps();
-    const proxyList = wrapper.find('.proxy-list__input-group--text');
+    const proxyList = wrapper.find('[testId="ProxyList"]');
     expect(proxyList.prop('className')).toBe('proxy-list__input-group--text');
     expect(proxyList.prop('onInput')).toBeDefined();
     expect(proxyList.prop('onFocus')).toBeDefined();
@@ -55,7 +55,8 @@ describe('<ProxyList />', () => {
 
   it.skip('should render with given class name', () => {
     const wrapper = renderShallowWithProps({ className: 'proxy-list__input-group--text' });
-    expect(wrapper.prop('className')).toBe('proxy-list__input-group--text');
+    const proxyList = wrapper.find('[testid="ProxyList"]');
+    expect(proxyList.prop('className')).toBe('proxy-list__input-group--text');
   });
 
   it('should render proxies when not editing', () => {
@@ -72,7 +73,7 @@ describe('<ProxyList />', () => {
       '<div>test</div><div class="invalidProxy">testinvalid</div>' +
       '<div>testvalid</div><div>divtestsanitize</div>';
     const wrapper = renderShallowWithProps(customProps);
-    const proxyList = wrapper.find('.proxy-list__input-group--text');
+    const proxyList = wrapper.find('[testid="ProxyList"]');
     expect(wrapper.state('proxies')).toEqual(customProps.proxies);
     expect(wrapper.state('editing')).toBeFalsy();
     expect(proxyList.prop('dangerouslySetInnerHTML')).toEqual({
@@ -93,7 +94,7 @@ describe('<ProxyList />', () => {
     const expectedInnerHtml =
       '<div>test</div><div>testinvalid</div><div>testvalid</div><div>divtestsanitize</div>';
     const wrapper = renderShallowWithProps(customProps);
-    const proxyList = wrapper.find('.proxy-list__input-group--text');
+    const proxyList = wrapper.find('[testId="ProxyList"]');
     wrapper.setState({
       editing: true,
     });
@@ -106,31 +107,36 @@ describe('<ProxyList />', () => {
 
   it('should handle input', () => {
     const wrapper = renderMountWithProps();
+    const proxyList = wrapper.find('[testid="ProxyList"]');
+
     expect(wrapper.state('reduxUpdate')).toBeFalsy();
     expect(wrapper.state('proxies')).toEqual([]);
 
-    const component = wrapper.instance();
+    const component = proxyList.instance();
     component.domNode.current.innerText =
       '<div>testing</div> \n and this \n\n \n<script>nothing</script> \n';
-    wrapper.simulate('input');
+    proxyList.simulate('input');
     expect(wrapper.state('reduxUpdate')).toBeTruthy();
     expect(wrapper.state('proxies')).toEqual(['testing', 'and this']);
   });
 
   it('should not respond to input when dom node is not defined', () => {
     const wrapper = renderShallowWithProps();
+    const proxyList = wrapper.find('[testid="ProxyList"]');
+
     expect(wrapper.state('reduxUpdate')).toBeFalsy();
     expect(wrapper.state('proxies')).toEqual([]);
 
-    wrapper.simulate('input');
+    proxyList.simulate('input');
     expect(wrapper.state('reduxUpdate')).toBeFalsy();
     expect(wrapper.state('proxies')).toEqual([]);
   });
 
   it('should handle focus', () => {
     const wrapper = renderShallowWithProps();
+    const proxyList = wrapper.find('[testid="ProxyList"]');
     expect(wrapper.state('editing')).toBeFalsy();
-    wrapper.simulate('focus');
+    proxyList.simulate('focus');
     expect(wrapper.state('editing')).toBeTruthy();
   });
 
@@ -140,6 +146,8 @@ describe('<ProxyList />', () => {
         onUpdateProxies: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
+      const proxyList = wrapper.find('[testid="ProxyList"]');
+
       wrapper.setState({
         editing: true,
         proxies: ['test '],
@@ -147,7 +155,7 @@ describe('<ProxyList />', () => {
       expect(wrapper.state('editing')).toBeTruthy();
       expect(wrapper.state('reduxUpdate')).toBeFalsy();
 
-      wrapper.simulate('blur');
+      proxyList.simulate('blur');
       expect(wrapper.state('editing')).toBeFalsy();
       expect(wrapper.state('reduxUpdate')).toBeFalsy();
       expect(customProps.onUpdateProxies).not.toHaveBeenCalled();
@@ -158,6 +166,8 @@ describe('<ProxyList />', () => {
         onUpdateProxies: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
+      const proxyList = wrapper.find('[testid="ProxyList"]');
+
       wrapper.setState({
         editing: true,
         reduxUpdate: true,
@@ -166,7 +176,7 @@ describe('<ProxyList />', () => {
       expect(wrapper.state('editing')).toBeTruthy();
       expect(wrapper.state('reduxUpdate')).toBeTruthy();
 
-      wrapper.simulate('blur');
+      proxyList.simulate('blur');
       expect(wrapper.state('editing')).toBeFalsy();
       expect(wrapper.state('reduxUpdate')).toBeFalsy();
       expect(customProps.onUpdateProxies).toHaveBeenCalledTimes(1);
@@ -177,13 +187,13 @@ describe('<ProxyList />', () => {
   describe('should handle paste', () => {
     const performComponentSetup = () => {
       const wrapper = renderMountWithProps();
-      const proxyList = wrapper.find('.proxy-list__input-group--text');
-      const domNodeRef = wrapper.instance().domNode;
+      const proxyList = wrapper.find('[testid="ProxyList"]');
+      const domNodeRef = proxyList.instance().domNode;
       expect(wrapper.state('reduxUpdate')).toBeFalsy();
       expect(wrapper.state('editing')).toBeFalsy();
       expect(wrapper.state('proxies')).toEqual([]);
 
-      wrapper.simulate('focus');
+      proxyList.simulate('focus');
       expect(wrapper.state('reduxUpdate')).toBeFalsy();
       expect(wrapper.state('editing')).toBeTruthy();
       expect(wrapper.state('proxies')).toEqual([]);
@@ -218,6 +228,7 @@ describe('<ProxyList />', () => {
         },
       };
       const { wrapper, domNodeRef } = performComponentSetup(ev);
+      const proxyList = wrapper.find('[testid="ProxyList"]');
 
       // setup expected document implementation
       const execCommandHandler = jest.fn((name, ui, arg) => {
@@ -226,7 +237,7 @@ describe('<ProxyList />', () => {
       });
       performWindowDocumentSetup('insertText', execCommandHandler);
 
-      wrapper.simulate('paste', ev);
+      proxyList.simulate('paste', ev);
       expect(ev.preventDefault).toHaveBeenCalled();
       expect(ev.stopPropagation).toHaveBeenCalled();
       expect(ev.clipboardData.getData).toHaveBeenCalledWith('text');
@@ -248,6 +259,7 @@ describe('<ProxyList />', () => {
         stopPropagation: jest.fn(),
       };
       const { wrapper, domNodeRef } = performComponentSetup(ev);
+      const proxyList = wrapper.find('[testid="ProxyList"]');
 
       // setup expected document implementation
       const execCommandHandler = jest.fn((name, ui, arg) => {
@@ -263,7 +275,7 @@ describe('<ProxyList />', () => {
         }),
       });
 
-      wrapper.simulate('paste', ev);
+      proxyList.simulate('paste', ev);
       expect(ev.preventDefault).toHaveBeenCalled();
       expect(ev.stopPropagation).toHaveBeenCalled();
       expect(global.window.clipboardData.getData).toHaveBeenCalledWith('text');
@@ -293,6 +305,7 @@ describe('<ProxyList />', () => {
         },
       };
       const { wrapper, domNodeRef } = performComponentSetup(ev);
+      const proxyList = wrapper.find('[testId="ProxyList"]');
 
       // setup expected document implementation
       const execCommandHandler = jest.fn((name, ui, arg) => {
@@ -301,7 +314,7 @@ describe('<ProxyList />', () => {
       });
       performWindowDocumentSetup('paste', execCommandHandler);
 
-      wrapper.simulate('paste', ev);
+      proxyList.simulate('paste', ev);
       expect(ev.preventDefault).toHaveBeenCalled();
       expect(ev.stopPropagation).toHaveBeenCalled();
       expect(ev.clipboardData.getData).toHaveBeenCalledWith('text');

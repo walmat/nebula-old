@@ -5,6 +5,7 @@ import sanitizeHtml from 'sanitize-html';
 
 import { SETTINGS_FIELDS, settingsActions } from '../state/actions';
 import defns from '../utils/definitions/settingsDefinitions';
+import { addTestId } from '../utils';
 
 export class ProxyListPrimitive extends Component {
   static sanitize(dirty) {
@@ -134,6 +135,7 @@ export class ProxyListPrimitive extends Component {
   renderProxyInputDiv() {
     const { className } = this.props;
     return React.createElement('div', {
+      testid: addTestId('ProxyList'),
       ref: this.domNode,
       className,
       onInput: this.handleUpdate,

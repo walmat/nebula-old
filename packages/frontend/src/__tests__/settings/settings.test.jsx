@@ -44,8 +44,8 @@ describe('<Settings />', () => {
     const wrapper = renderShallowWithProps();
     expect(wrapper.find('.settings__button--open-captcha')).toHaveLength(1);
     expect(wrapper.find('.settings__button--close-captcha')).toHaveLength(1);
-    expect(wrapper.find('.settings__input-group--delays__monitor')).toHaveLength(1);
-    expect(wrapper.find('.settings__input-group--delays__error')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--monitor-delay')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--error-delay')).toHaveLength(1);
   });
 
   it('renders with non-default props', () => {
@@ -57,8 +57,8 @@ describe('<Settings />', () => {
     const wrapper = renderShallowWithProps(customProps);
     expect(wrapper.find('.settings__button--open-captcha')).toHaveLength(1);
     expect(wrapper.find('.settings__button--close-captcha')).toHaveLength(1);
-    expect(wrapper.find('.settings__input-group--delays__monitor')).toHaveLength(1);
-    expect(wrapper.find('.settings__input-group--delays__error')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--monitor-delay')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--error-delay')).toHaveLength(1);
   });
 
   describe('calls correct handler when editing', () => {
@@ -67,7 +67,7 @@ describe('<Settings />', () => {
         onSettingsChange: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const errorInput = wrapper.find('.settings__input-group--delays__error');
+      const errorInput = wrapper.find('.settings__input-group--error-delay');
       expect(errorInput.prop('value')).toBe(1500);
       expect(errorInput.prop('onChange')).toBeDefined();
 
@@ -83,7 +83,7 @@ describe('<Settings />', () => {
         onSettingsChange: jest.fn(),
       };
       const wrapper = renderShallowWithProps(customProps);
-      const monitorInput = wrapper.find('.settings__input-group--delays__monitor');
+      const monitorInput = wrapper.find('.settings__input-group--monitor-delay');
       expect(monitorInput.prop('value')).toBe(1500);
       expect(monitorInput.prop('onChange')).toBeDefined();
 

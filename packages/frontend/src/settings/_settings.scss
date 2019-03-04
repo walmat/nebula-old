@@ -126,16 +126,15 @@
       }
     }
 
-    &--delays {
-      &__monitor {
-        @extend %input-base;
-        width: 205px;
-      }
-      &__error {
-        @extend %input-base;
-        width: 205px;
-      }
+    &--monitor-delay {
+      @extend %input-base;
+      width: 205px;
     }
+    &--error-delay {
+      @extend %input-base;
+      width: 205px;
+    }
+
     &--button {
       @extend %button-base;
       @include themify($themes) {

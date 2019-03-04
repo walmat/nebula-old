@@ -36,16 +36,16 @@ export class SettingsPrimitive extends Component {
     super(props);
     this.settingsDelays = {
       [SETTINGS_FIELDS.EDIT_MONITOR_DELAY]: {
-        colStyling: 'col col--no-gutter',
+        className: 'col col--no-gutter',
         label: 'Monitor Delay',
         placeholder: '3500',
-        className: 'monitor',
+        delayType: 'monitor',
       },
       [SETTINGS_FIELDS.EDIT_ERROR_DELAY]: {
-        colStyling: 'col col--end col--no-gutter-right',
+        className: 'col col--end col--no-gutter-right',
         label: 'Error Delay',
         placeholder: '3500',
-        className: 'error',
+        delayType: 'error',
       },
     };
   }
@@ -62,14 +62,14 @@ export class SettingsPrimitive extends Component {
 
   renderDelay(field, value) {
     const { errors } = this.props;
-    const { colStyling, className, label, placeholder } = this.settingsDelays[field];
+    const { className, delayType, label, placeholder } = this.settingsDelays[field];
     return (
-      <div className={`col ${colStyling}`}>
+      <div className={className}>
         <p className="settings__label">{label}</p>
         <NumberFormat
           value={value}
           placeholder={placeholder}
-          className={`settings__input-group--delays__${className}`}
+          className={`settings__input-group--${delayType}-delay`}
           style={buildStyle(false, errors[mapSettingsFieldToKey[field]])}
           onChange={this.createOnChangeHandler(field)}
           required

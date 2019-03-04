@@ -35,7 +35,7 @@
     "prod": "cross-env NODE_ENV=production electron .",
     "compile-sass": "./tool/compile_css.sh",
     "start": "yarn run prod",
-    "test": "react-app-rewired test --env=jsdom"
+    "test": "react-app-rewired test --env=jsdom --verbose=false"
   },
   "dependencies": {
     "@nebula/task-runner": "^0.1.0",
