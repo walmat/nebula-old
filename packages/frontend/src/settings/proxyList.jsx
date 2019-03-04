@@ -135,7 +135,7 @@ export class ProxyListPrimitive extends Component {
   renderProxyInputDiv() {
     const { className } = this.props;
     return React.createElement('div', {
-      testid: addTestId('ProxyList'),
+      'data-testid': addTestId('ProxyListPrimitive.proxyInputDiv'),
       ref: this.domNode,
       className,
       onInput: this.handleUpdate,
