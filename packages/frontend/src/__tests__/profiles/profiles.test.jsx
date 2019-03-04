@@ -20,13 +20,9 @@ describe('<Profiles />', () => {
       <ProfilesPrimitive
         profiles={renderProps.profiles}
         currentProfile={renderProps.currentProfile}
-        selectedProfile={renderProps.selectedProfile}
         onClickBillingMatchesShipping={renderProps.onClickBillingMatchesShipping}
         onProfileNameChange={renderProps.onProfileNameChange}
         onAddNewProfile={renderProps.onAddNewProfile}
-        onLoadProfile={renderProps.onLoadProfile}
-        onDestroyProfile={renderProps.onDestroyProfile}
-        onSelectProfile={renderProps.onSelectProfile}
         onUpdateProfile={renderProps.onUpdateProfile}
         onKeyPress={renderProps.onKeyPress}
       />,
@@ -37,13 +33,9 @@ describe('<Profiles />', () => {
     defaultProps = {
       profiles: initialProfileStates.list,
       currentProfile: initialProfileStates.profile,
-      selectedProfile: initialProfileStates.profile,
       onClickBillingMatchesShipping: () => {},
       onProfileNameChange: () => {},
       onAddNewProfile: () => {},
-      onLoadProfile: () => {},
-      onDestroyProfile: () => {},
-      onSelectProfile: () => {},
       onUpdateProfile: () => {},
     };
   });
@@ -52,45 +44,13 @@ describe('<Profiles />', () => {
     const wrapper = renderShallowWithProps();
     expect(wrapper).toBeDefined();
     expect(wrapper.find('.container')).toHaveLength(1);
-    expect(wrapper.find('.profiles-load__input-group--select')).toHaveLength(1);
-    expect(wrapper.find('.profiles-load__input-group--load')).toHaveLength(1);
-    // expect(wrapper.find('#billing-match-shipping')).toHaveLength(1);
     expect(wrapper.find(LocationFields)).toHaveLength(2);
     expect(wrapper.find(PaymentFields)).toHaveLength(1);
     expect(wrapper.find('.profiles__fields--name')).toHaveLength(1);
     expect(wrapper.find('.profiles__fields--save')).toHaveLength(1);
-    expect(wrapper.find('.profiles-load__input-group--delete')).toHaveLength(1);
-    // wrapper
-    //   .find('#billing-match-shipping')
-    //   .parent()
-    //   .simulate('keyPress');
   });
 
   describe('should render correct values for', () => {
-    test('profile selection list', () => {
-      const customProps = {
-        profiles: [1, 2, 3].map(id => ({
-          ...initialProfileStates.profile,
-          id,
-          profileName: `profile${id}`,
-        })),
-        selectedProfile: {
-          ...initialProfileStates,
-          id: 1,
-          profileName: 'profile1',
-        },
-      };
-      const expectedOptions = customProps.profiles.map(p => ({
-        value: p.id,
-        label: p.profileName,
-      }));
-      const expectedSelectedOption = { value: 1, label: 'profile1' };
-      const wrapper = renderShallowWithProps(customProps);
-      const profileSelector = wrapper.find('.profiles-load__input-group--select');
-      expect(profileSelector.prop('value')).toEqual(expectedSelectedOption);
-      expect(profileSelector.prop('options')).toEqual(expectedOptions);
-    });
-
     test('shipping location fields', () => {
       const customProps = {
         currentProfile: {
@@ -190,46 +150,6 @@ describe('<Profiles />', () => {
   });
 
   describe('should call correct event handler when', () => {
-    test('selecting a different profile', () => {
-      const customProps = {
-        profiles: [1, 2, 3].map(id => ({
-          ...initialProfileStates.profile,
-          id,
-          profileName: `profile${id}`,
-        })),
-        selectedProfile: {
-          ...initialProfileStates,
-          id: 1,
-          profileName: 'profile1',
-        },
-        onSelectProfile: jest.fn(),
-      };
-      const wrapper = renderShallowWithProps(customProps);
-      const profileSelector = wrapper.find('.profiles-load__input-group--select');
-      profileSelector.simulate('change', { value: 2 });
-      expect(customProps.onSelectProfile).toHaveBeenCalledWith(customProps.profiles[1]);
-    });
-
-    test('loading the selected profile', () => {
-      const customProps = {
-        profiles: [1, 2, 3].map(id => ({
-          ...initialProfileStates.profile,
-          id,
-          profileName: `profile${id}`,
-        })),
-        selectedProfile: {
-          ...initialProfileStates,
-          id: 1,
-          profileName: 'profile1',
-        },
-        onLoadProfile: jest.fn(),
-      };
-      const wrapper = renderShallowWithProps(customProps);
-      const profileLoader = wrapper.find('.profiles-load__input-group--load');
-      profileLoader.simulate('click');
-      expect(customProps.onLoadProfile).toHaveBeenCalledWith(customProps.selectedProfile);
-    });
-
     test.skip('clicking the billing matches shipping box', () => {
       const customProps = {
         currentProfile: {
@@ -338,23 +258,6 @@ describe('<Profiles />', () => {
       expect(event.preventDefault).toHaveBeenCalled();
       expect(customProps.onUpdateProfile).toHaveBeenCalledWith(customProps.currentProfile);
     });
-
-    test('deleting a profile', () => {
-      const customProps = {
-        selectedProfile: {
-          ...initialProfileStates,
-          id: 1,
-          profileName: 'profile1',
-        },
-        onDestroyProfile: jest.fn(),
-      };
-      const wrapper = renderShallowWithProps(customProps);
-      const profileDeleter = wrapper.find('.profiles-load__input-group--delete');
-      const event = { preventDefault: jest.fn() };
-      profileDeleter.simulate('click', event);
-      expect(event.preventDefault).toHaveBeenCalled();
-      expect(customProps.onDestroyProfile).toHaveBeenCalledWith(customProps.selectedProfile);
-    });
   });
 
   test.skip('responds to a key press event', () => {
@@ -406,21 +309,15 @@ describe('<Profiles />', () => {
       profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''),
       profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, 'test'),
       profileActions.add(tempProfile),
-      profileActions.load(tempProfile),
-      profileActions.remove(1),
-      profileActions.select(tempProfile),
       profileActions.update(1, tempProfile),
     ];
     const actual = mapDispatchToProps(dispatch);
     actual.onClickBillingMatchesShipping();
     actual.onProfileNameChange({ target: { value: 'test' } });
     actual.onAddNewProfile(tempProfile);
-    actual.onLoadProfile(tempProfile);
-    actual.onDestroyProfile(tempProfile);
-    actual.onSelectProfile(tempProfile);
     actual.onUpdateProfile(tempProfile);
 
-    expect(dispatch).toHaveBeenCalledTimes(7);
+    expect(dispatch).toHaveBeenCalledTimes(4);
     expectedActions.forEach((action, n) => {
       expect(dispatch).toHaveBeenNthCalledWith(
         n + 1,

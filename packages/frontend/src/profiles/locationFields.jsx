@@ -111,137 +111,148 @@ export class LocationFieldsPrimitive extends Component {
   }
 
   render() {
-    const { id, value, errors, disabled, theme } = this.props;
+    const { id, header, className, value, errors, disabled, theme } = this.props;
     return (
-      <div className="profiles-location col col--start col--no-gutter">
-        <div className="row row--start row--no-gutter-left row--gutter-right">
-          <div className="col profiles-location__input-group">
-            <div className="row row--gutter">
-              <input
-                className={`${id}-profiles-location__input-group--first-name`}
-                required
-                placeholder="First Name"
-                onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)}
-                value={value.firstName}
-                style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
-                disabled={disabled}
-                data-testid={addTestId(`LocationFieldsPrimitive.${id}-firstName`)}
-              />
-            </div>
-            <div className="row row--gutter">
-              <input
-                className={`${id}-profiles-location__input-group--last-name`}
-                required
-                placeholder="Last Name"
-                onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)}
-                value={value.lastName}
-                style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
-                disabled={disabled}
-                data-testid={addTestId(`LocationFieldsPrimitive.${id}-lastName`)}
-              />
-            </div>
-            <div className="row row--gutter">
-              <input
-                className={`${id}-profiles-location__input-group--address-one`}
-                required
-                placeholder="Address Line 1"
-                onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)}
-                value={value.address}
-                style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
-                disabled={disabled}
-                data-testid={addTestId(`LocationFieldsPrimitive.${id}-address`)}
-              />
-            </div>
-            <div className="row row--gutter">
-              <input
-                className={`${id}-profiles-location__input-group--address-two`}
-                placeholder="Address Line 2"
-                onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)}
-                value={value.apt}
-                style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
-                disabled={disabled}
-                data-testid={addTestId(`LocationFieldsPrimitive.${id}-apt`)}
-              />
-            </div>
-            <div className="row row--start row--gutter">
-              <div className="col col--no-gutter">
-                <input
-                  className={`${id}-profiles-location__input-group--city`}
-                  required
-                  placeholder="City"
-                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)}
-                  value={value.city}
-                  style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
-                  disabled={disabled}
-                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-city`)}
-                />
-              </div>
-              <div className="col col--no-gutter">
-                <Select
-                  required
-                  placeholder="Province"
-                  components={{ DropdownIndicator }}
-                  className={`${id}-profiles-location__input-group--province`}
-                  classNamePrefix="select"
-                  options={LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined}
-                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
-                  value={value.province}
-                  styles={colourStyles(
-                    theme,
-                    buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]),
-                  )}
-                  isDisabled={this.isProvinceFieldDisabled()}
-                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-province`)}
-                />
-              </div>
-            </div>
-            <div className="row row--start row--gutter">
-              <div className="col col--no-gutter">
-                <input
-                  className={`${id}-profiles-location__input-group--zip-code`}
-                  required
-                  placeholder="Zip Code"
-                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
-                  value={value.zipCode}
-                  style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
-                  disabled={disabled}
-                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-zipCode`)}
-                />
-              </div>
-              <div className="col col--no-gutter">
-                <Select
-                  required
-                  placeholder="Country"
-                  components={{ DropdownIndicator }}
-                  className={`${id}-profiles-location__input-group--country`}
-                  classNamePrefix="select"
-                  options={LocationFieldsPrimitive.buildCountryOptions()}
-                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
-                  value={value.country}
-                  styles={colourStyles(
-                    theme,
-                    buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]),
-                  )}
-                  isDisabled={disabled}
-                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-country`)}
-                />
-              </div>
-            </div>
-            <div className="row row--start row--gutter">
-              <div className="col col--no-gutter">
-                <input
-                  className={`${id}-profiles-location__input-group--phone`}
-                  required
-                  placeholder="Phone"
-                  onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
-                  value={value.phone}
-                  style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
-                  disabled={disabled}
-                  data-testid={addTestId(`LocationFieldsPrimitive.${id}-phone`)}
-                />
-              </div>
-              <div className="col col--gutter col--expand">
-                {this.renderBillingMatchesShipping()}
+      <div className={className}>
+        <div className="row row--start">
+          <p className="body-text section-header profiles-location__section-header">{header}</p>
+        </div>
+        <div className="row">
+          <div className="col col--no-gutter col--start profiles-shipping-container">
+            <div className="profiles-location col col--start col--no-gutter">
+              <div className="row row--start row--no-gutter-left row--gutter-right">
+                <div className="col profiles-location__input-group">
+                  <div className="row row--gutter">
+                    <input
+                      className={`${id}-profiles-location__input-group--first-name`}
+                      required
+                      placeholder="First Name"
+                      onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)}
+                      value={value.firstName}
+                      style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
+                      disabled={disabled}
+                      data-testid={addTestId(`LocationFieldsPrimitive.${id}-firstName`)}
+                    />
+                  </div>
+                  <div className="row row--gutter">
+                    <input
+                      className={`${id}-profiles-location__input-group--last-name`}
+                      required
+                      placeholder="Last Name"
+                      onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)}
+                      value={value.lastName}
+                      style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
+                      disabled={disabled}
+                      data-testid={addTestId(`LocationFieldsPrimitive.${id}-lastName`)}
+                    />
+                  </div>
+                  <div className="row row--gutter">
+                    <input
+                      className={`${id}-profiles-location__input-group--address-one`}
+                      required
+                      placeholder="Address Line 1"
+                      onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)}
+                      value={value.address}
+                      style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
+                      disabled={disabled}
+                      data-testid={addTestId(`LocationFieldsPrimitive.${id}-address`)}
+                    />
+                  </div>
+                  <div className="row row--gutter">
+                    <input
+                      className={`${id}-profiles-location__input-group--address-two`}
+                      placeholder="Address Line 2"
+                      onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)}
+                      value={value.apt}
+                      style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
+                      disabled={disabled}
+                      data-testid={addTestId(`LocationFieldsPrimitive.${id}-apt`)}
+                    />
+                  </div>
+                  <div className="row row--start row--gutter">
+                    <div className="col col--no-gutter">
+                      <input
+                        className={`${id}-profiles-location__input-group--city`}
+                        required
+                        placeholder="City"
+                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)}
+                        value={value.city}
+                        style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
+                        disabled={disabled}
+                        data-testid={addTestId(`LocationFieldsPrimitive.${id}-city`)}
+                      />
+                    </div>
+                    <div className="col col--no-gutter">
+                      <Select
+                        required
+                        placeholder="Province"
+                        components={{ DropdownIndicator }}
+                        className={`${id}-profiles-location__input-group--province`}
+                        classNamePrefix="select"
+                        options={
+                          LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined
+                        }
+                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
+                        value={value.province}
+                        styles={colourStyles(
+                          theme,
+                          buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]),
+                        )}
+                        isDisabled={this.isProvinceFieldDisabled()}
+                        data-testid={addTestId(`LocationFieldsPrimitive.${id}-province`)}
+                      />
+                    </div>
+                  </div>
+                  <div className="row row--start row--gutter">
+                    <div className="col col--no-gutter">
+                      <input
+                        className={`${id}-profiles-location__input-group--zip-code`}
+                        required
+                        placeholder="Zip Code"
+                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
+                        value={value.zipCode}
+                        style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
+                        disabled={disabled}
+                        data-testid={addTestId(`LocationFieldsPrimitive.${id}-zipCode`)}
+                      />
+                    </div>
+                    <div className="col col--no-gutter">
+                      <Select
+                        required
+                        placeholder="Country"
+                        components={{ DropdownIndicator }}
+                        className={`${id}-profiles-location__input-group--country`}
+                        classNamePrefix="select"
+                        options={LocationFieldsPrimitive.buildCountryOptions()}
+                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
+                        value={value.country}
+                        styles={colourStyles(
+                          theme,
+                          buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]),
+                        )}
+                        isDisabled={disabled}
+                        data-testid={addTestId(`LocationFieldsPrimitive.${id}-country`)}
+                      />
+                    </div>
+                  </div>
+                  <div className="row row--start row--gutter">
+                    <div className="col col--no-gutter">
+                      <input
+                        className={`${id}-profiles-location__input-group--phone`}
+                        required
+                        placeholder="Phone"
+                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
+                        value={value.phone}
+                        style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
+                        disabled={disabled}
+                        data-testid={addTestId(`LocationFieldsPrimitive.${id}-phone`)}
+                      />
+                    </div>
+                    <div className="col col--gutter col--expand">
+                      {this.renderBillingMatchesShipping()}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -256,6 +267,8 @@ LocationFieldsPrimitive.propTypes = {
   errors: defns.locationStateErrors.isRequired,
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
+  header: PropTypes.string.isRequired,
+  className: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
   value: defns.locationState.isRequired,
@@ -269,6 +282,8 @@ LocationFieldsPrimitive.defaultProps = {
 
 export const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
+  header: ownProps.header,
+  className: ownProps.className,
   theme: state.theme,
   disabled: ownProps.disabled,
   currentProfile: state.currentProfile,
