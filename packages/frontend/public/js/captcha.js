@@ -75,6 +75,10 @@ async function waitForLoad() {
 function simulateEvent(target, evt, destPt, sourcePt, options) {
   const opts = {
     type: evt,
+    clientX: destPt.x,
+    clientY: destPt.y,
+    screenX: sourcePt.x,
+    screenY: sourcePt.y,
     ...options, // Use given options to override any default options
   };
   const event = target.ownerDocument.createEvent('MouseEvents');
@@ -98,17 +102,24 @@ async function simulateClick(sourcePt) {
   const getRect = el => el.getBoundingClientRect();
 
   // Get elements and generate points
-  const [anchor, check] = ['rc-anchor rc-anchor-normal', 'recaptcha-checkbox-checkmark'].map(
-    className => {
-      const el = getByClassName(className);
-      const pt = randPoint(getRect(el));
-      return { el, pt };
-    },
-  );
-
+  const [check, ...anchors] = [
+    'recaptcha-checkbox-checkmark',
+    'rc-anchor rc-anchor-normal',
+    'rc-anchor-center-container',
+    'rc-anchor-center-item',
+    'recaptcha-checkbox',
+  ].map(className => {
+    const el = getByClassName(className);
+    const pt = randPoint(getRect(el));
+    return { el, pt };
+  });
   // Simulate Events
-  simulateEvent(anchor.el, 'mousemove', anchor.pt, sourcePt);
-  await waitFor(rand(20, 50));
+  await Promise.all(
+    anchors.map(async ({ el, pt }, idx) => {
+      simulateEvent(el, 'mousemove', pt, sourcePt);
+      await waitFor(idx * rand(20, 50));
+    }),
+  );
   await Promise.all(
     ['mousedown', 'mouseup', 'click'].map(async (evt, idx) => {
       await waitFor(idx * rand(30, 50));
@@ -124,9 +135,11 @@ async function autoClick() {
   // Get position and simulate click
   const [x, y] = window.Bridge.Captcha.getPosition();
   const sourcePt = {
-    x: x + rand(200, 300),
-    y: y + rand(300, 430),
+    x: x + rand(100, 300),
+    y: y + rand(100, 550),
   };
+  console.log(x, y);
+  console.log(sourcePt);
   await simulateClick(sourcePt);
 }
 
