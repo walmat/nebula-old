@@ -99,7 +99,6 @@ describe('<ProxyList />', () => {
     wrapper.setState({
       editing: true,
     });
-    proxyInputDiv.simulate('focus');
     expect(wrapper.state('proxies')).toEqual(customProps.proxies);
     expect(wrapper.state('editing')).toBeTruthy();
     expect(proxyInputDiv.prop('dangerouslySetInnerHTML')).toEqual({
