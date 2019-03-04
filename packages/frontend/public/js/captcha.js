@@ -62,10 +62,11 @@ async function waitForLoad() {
     await waitFor(25); // Poll every 25 ms for iframe
     iframe = document.querySelector('iframe[role=presentation]');
   }
-  const content = iframe.contentDocument || iframe.contentWindow.document;
+  let content = iframe.contentDocument || iframe.contentWindow.document;
   while (!content.getElementsByClassName('recaptcha-checkbox-checkmark').length) {
     // eslint-disable-next-line no-await-in-loop
     await waitFor(25);
+    content = iframe.contentDocument || iframe.contentWindow.document;
   }
   _waitingForLoad = false;
   _iframe = iframe;
