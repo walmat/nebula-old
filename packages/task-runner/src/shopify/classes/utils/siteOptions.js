@@ -499,7 +499,7 @@ const sites = [
   },
   {
     name: 'Social Status PGH',
-    url: 'https://socialstatuspgh.com',
+    url: 'https://www.socialstatuspgh.com',
     apiKey: 'a62a7cdb1689c171a551ac61e92dc08a',
     auth: false,
     supported: true,
