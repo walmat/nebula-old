@@ -46,7 +46,7 @@
 /*
  * Implementation of themes
  */
-.settings__input-group--delays__error, .settings__input-group--delays__monitor, .settings__input-group--webhook__slack, .settings__input-group--webhook__discord {
+.settings__input-group--error-delay, .settings__input-group--monitor-delay, .settings__input-group--webhook__slack, .settings__input-group--webhook__discord {
   height: 29px;
   border-width: 1px;
   border-style: solid;
@@ -219,10 +219,10 @@
 .settings__input-group--webhook__slack {
   width: 344px;
 }
-.settings__input-group--delays__monitor {
+.settings__input-group--monitor-delay {
   width: 205px;
 }
-.settings__input-group--delays__error {
+.settings__input-group--error-delay {
   width: 205px;
 }
 .theme-light .settings__input-group--button {

@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-return-assign */
-const EventEmitter = require('events');
+const EventEmitter = require('eventemitter3');
 const hash = require('object-hash');
 const shortid = require('shortid');
 
@@ -20,7 +20,6 @@ class TaskManager {
   constructor(loggerPath) {
     // Event Emitter for this manager
     this._events = new EventEmitter();
-    this._events.setMaxListeners(100);
 
     // Logger file path
     this._loggerPath = loggerPath;
@@ -48,9 +47,6 @@ class TaskManager {
     });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
-    this.handleStartHarvest = this.handleStartHarvest.bind(this);
-    this.handleStopHarvest = this.handleStopHarvest.bind(this);
-    this.handleSwapProxy = this.handleSwapProxy.bind(this);
   }
 
   // MARK: Event Related Methods
@@ -609,7 +605,7 @@ class TaskManager {
         }
         // Store handler for cleanup
         handlers[event] = handler;
-        this._events.on(event, handler);
+        this._events.on(event, handler, this);
       },
     );
     this._handlers[runner.id] = handlers;
@@ -618,9 +614,9 @@ class TaskManager {
     // TODO: Respect the scope of the _events variable (issue #137)
     // Register for status updates
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-    runner._events.on(Events.StartHarvest, this.handleStartHarvest);
-    runner._events.on(Events.StopHarvest, this.handleStopHarvest);
-    runner._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy);
+    runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
+    runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
+    runner._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy, this);
   }
 
   _cleanup(runner) {

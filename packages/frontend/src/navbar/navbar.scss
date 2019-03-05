@@ -3,12 +3,12 @@
 %icons-base {
   cursor: pointer;
   &--active {
-    opacity: 0.5;
+    opacity: 0.8333;
   }
 }
 
 .active {
-  opacity: 0.5;
+  opacity: 0.8333;
 }
 
 .navbar {
@@ -27,22 +27,19 @@
     display: block;
   }
 
-  &__row-item {
-    &--first {
-      margin-top: 15px !important;
-    }
-    &--second {
-      margin-top: 55px !important;
-    }
-    &--last {
-      margin-bottom: 75px !important;
-    }
+  &__logo {
+    margin-top: 15px !important;
   }
 
   &__icons {
+    margin-top: 55px !important;
+    margin-bottom: 75px !important;
+  }
+
+  &__icon {
     &--tasks {
       @extend %icons-base;
-      margin-left: 5px;
+      margin-left: 13px;
       width: 61px;
       height: 49px;
     }

@@ -2,16 +2,16 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import tasks from '../_assets/tasks.svg';
-import profiles from '../_assets/profiles.svg';
-// import server from '../_assets/server.svg';
-import serverDisabled from '../_assets/server-disabled.svg';
-import settings from '../_assets/settings.svg';
+import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../state/actions';
+
+import { renderSvgIcon } from '../utils';
 import logoAnimation from './nebula.json';
 import Bodymovin from './bodymovin';
-
-import { navbarActions, ROUTES } from '../state/actions';
-
+// import server from '../_assets/server.svg'; // TODO - when server page is finished
+import { ReactComponent as TasksIcon } from '../_assets/tasks.svg';
+import { ReactComponent as ProfilesIcon } from '../_assets/profiles.svg';
+import { ReactComponent as ServersIcon } from '../_assets/server-disabled.svg';
+import { ReactComponent as SettingsIcon } from '../_assets/settings.svg';
 import './navbar.css';
 
 const bodymovinOptions = {
@@ -33,132 +33,92 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
-  render() {
-    const {
-      history,
-      navbar,
-      onKeyPress,
-      onRouteTasks,
-      onRouteProfiles,
-      // onRouteServer,
-      onRouteSettings,
-    } = this.props;
-    const { name, version } = NavbarPrimitive._getAppData();
+  static _renderNavbarIconRow({ Icon, iconName, className, onClick, onKeyPress }) {
+    return (
+      <div key={iconName} className="row row--expand">
+        <div className="col">
+          <div className="row row--start row--gutter">
+            <div className={`navbar__icon--${iconName}`}>
+              <div
+                role="button"
+                tabIndex={0}
+                title={iconName}
+                onKeyPress={onKeyPress}
+                className={className}
+                onClick={iconName === 'servers' ? () => {} : onClick} // TODO - undo this once server functionality is complete #290  (maybe #45?)
+              >
+                {renderSvgIcon(Icon, { alt: iconName })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  constructor(props) {
+    super(props);
+    const classNameCalc = (...supportedRoutes) => route =>
+      supportedRoutes.includes(route) ? 'active' : null;
+    this.defaultIconProps = {
+      [NAVBAR_ACTIONS.ROUTE_TASKS]: {
+        Icon: TasksIcon,
+        iconName: 'tasks',
+        classNameGenerator: classNameCalc(ROUTES.TASKS, '/'),
+      },
+      [NAVBAR_ACTIONS.ROUTE_PROFILES]: {
+        Icon: ProfilesIcon,
+        iconName: 'profiles',
+        classNameGenerator: classNameCalc(ROUTES.PROFILES),
+      },
+      [NAVBAR_ACTIONS.ROUTE_SERVER]: {
+        Icon: ServersIcon,
+        iconName: 'servers',
+        classNameGenerator: classNameCalc(ROUTES.SERVER),
+      },
+      [NAVBAR_ACTIONS.ROUTE_SETTINGS]: {
+        Icon: SettingsIcon,
+        iconName: 'settings',
+        classNameGenerator: classNameCalc(ROUTES.SETTINGS),
+      },
+    };
+  }
+
+  renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
+    const { onKeyPress, onRoute, navbar, history } = this.props;
+    const className = classNameGenerator(navbar.location);
+    const props = {
+      Icon,
+      iconName,
+      onKeyPress,
+      className,
+      onClick: () => onRoute(route, history),
+    };
+    return NavbarPrimitive._renderNavbarIconRow(props);
+  }
+
+  renderNavbarIconRows() {
+    return [
+      NAVBAR_ACTIONS.ROUTE_TASKS,
+      NAVBAR_ACTIONS.ROUTE_PROFILES,
+      NAVBAR_ACTIONS.ROUTE_SERVER,
+      NAVBAR_ACTIONS.ROUTE_SETTINGS,
+    ].map(route => this.renderNavbarIconRow(route, this.defaultIconProps[route]));
+  }
+
+  render() {
+    const { name, version } = NavbarPrimitive._getAppData();
     return (
       <div className="container navbar">
         <div className="row">
           <div className="col col--gutter">
             <div className="row row--expand">
               <div className="col col--start col--expand">
-                <div className="row row--start row--gutter navbar__row-item--first">
+                <div className="row row--start row--gutter navbar__logo">
                   <Bodymovin options={bodymovinOptions} />
                 </div>
-                <div className="row row--expand navbar__row-item--second">
-                  <div className="col">
-                    <div className="row row--start row--gutter">
-                      <div className="navbar__icons--tasks">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          title="TASKS"
-                          onKeyPress={onKeyPress}
-                          className={
-                            navbar.location === '/' || navbar.location === ROUTES.TASKS
-                              ? 'active'
-                              : null
-                          }
-                          onClick={() => {
-                            onRouteTasks(history);
-                          }}
-                        >
-                          <img
-                            src={tasks}
-                            className="navbar__icons--tasks"
-                            alt="tasks"
-                            draggable="false"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="row row--gutter row--expand">
-                  <div className="col col--no-gutter">
-                    <div className="row">
-                      <div className="navbar__icons--profils">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          title="PROFILES"
-                          onKeyPress={onKeyPress}
-                          className={navbar.location === ROUTES.PROFILES ? 'active' : null}
-                          onClick={() => {
-                            onRouteProfiles(history);
-                          }}
-                        >
-                          <img
-                            src={profiles}
-                            className="navbar__icons--profiles"
-                            alt="profiles"
-                            draggable="false"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="row row--gutter row--expand">
-                  <div className="col col--no-gutter">
-                    <div className="row">
-                      <div className="navbar__icons--servers">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          title="SERVERS"
-                          // title="DISABLED"
-                          onKeyPress={onKeyPress}
-                          className="disabled"
-                          // className={navbar.location === ROUTES.SERVER ? 'active' : null}
-                          // onClick={() => {
-                          //   onRouteServer(history);
-                          // }}
-                        >
-                          <img
-                            src={serverDisabled}
-                            className="navbar__icons--servers"
-                            alt="server"
-                            draggable="false"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="row row--gutter row--expand navbar__row-item--last">
-                  <div className="col col--no-gutter">
-                    <div className="row">
-                      <div className="navbar__icons--settings">
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          title="SETTINGS"
-                          onKeyPress={onKeyPress}
-                          className={navbar.location === ROUTES.SETTINGS ? 'active' : null}
-                          onClick={() => {
-                            onRouteSettings(history);
-                          }}
-                        >
-                          <img
-                            src={settings}
-                            className="navbar__icons--settings"
-                            alt="settings"
-                            draggable="false"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="col col--expand col--no-gutter navbar__icons">
+                  {this.renderNavbarIconRows()}
                 </div>
                 <div className="row">
                   <div className="col col--no-gutter">
@@ -189,10 +149,7 @@ export class NavbarPrimitive extends PureComponent {
 NavbarPrimitive.propTypes = {
   history: PropTypes.objectOf(PropTypes.any).isRequired,
   navbar: PropTypes.objectOf(PropTypes.any).isRequired,
-  onRouteTasks: PropTypes.func.isRequired,
-  onRouteProfiles: PropTypes.func.isRequired,
-  // onRouteServer: PropTypes.func.isRequired,
-  onRouteSettings: PropTypes.func.isRequired,
+  onRoute: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
 
@@ -206,10 +163,7 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onRouteTasks: history => dispatch(navbarActions.routeTasks(history)),
-  onRouteProfiles: history => dispatch(navbarActions.routeProfiles(history)),
-  onRouteServer: history => dispatch(navbarActions.routeServer(history)),
-  onRouteSettings: history => dispatch(navbarActions.routeSettings(history)),
+  onRoute: (route, history) => dispatch(navbarActions.route(route, history)),
 });
 
 export default connect(

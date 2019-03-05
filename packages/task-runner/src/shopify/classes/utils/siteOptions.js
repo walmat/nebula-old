@@ -463,6 +463,13 @@ const sites = [
     supported: true,
   },
   {
+    label: 'Senera Williams',
+    value: 'https://www.serenawilliams.com',
+    apiKey: '27a25c367f6d5ae709433e0cb07fff6c',
+    auth: false,
+    supported: true,
+  },
+  {
     name: 'Shoe Gallery Miami',
     url: 'https://shoegallerymiami.com',
     apiKey: '4b29eb8c96c04b163ae2fac313043717',
