@@ -157,14 +157,14 @@ class Checkout {
 
   async createCheckout() {
     const { site, monitorDelay } = this._context.task;
-    const { url } = site;
+    const { url, localCheckout = false } = site;
 
     this._logger.verbose('CHECKOUT: Creating checkout');
     try {
       const res = await this._request({
         uri: `${url}/checkout`,
         method: 'POST',
-        proxy: formatProxy(this._context.proxy),
+        proxy: localCheckout ? undefined : formatProxy(this._context.proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -343,7 +343,7 @@ class Checkout {
       timers: { checkout: checkoutTimer },
     } = this._context;
     const { site, monitorDelay } = this._context.task;
-    const { url, apiKey } = site;
+    const { url, apiKey, localCheckout = false } = site;
     const { id } = this.chosenShippingMethod;
 
     this._logger.verbose('CHECKOUT: Posting payment');
@@ -351,7 +351,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: formatProxy(this._context.proxy),
+        proxy: localCheckout ? undefined : formatProxy(this._context.proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -436,14 +436,14 @@ class Checkout {
       timers: { checkout: checkoutTimer },
     } = this._context;
     const { site, monitorDelay } = this._context.task;
-    const { url, apiKey } = site;
+    const { url, apiKey, localCheckout = false } = site;
 
     this._logger.verbose('CHECKOUT: Completing payment');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: formatProxy(this._context.proxy),
+        proxy: localCheckout ? undefined : formatProxy(this._context.proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,

@@ -31,6 +31,8 @@ export class TaskRowPrimitive extends Component {
                 url: site.value,
                 name: site.label,
                 apiKey: site.apiKey,
+                localCheckout: event.localCheckout || false,
+                special: site.special || false,
                 auth: site.auth,
               },
             });
