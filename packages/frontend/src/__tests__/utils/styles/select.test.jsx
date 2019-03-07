@@ -66,7 +66,7 @@ describe('Custom Select', () => {
         expect(actualStyle).toEqual({
           border: '1px solid',
           'border-color': '#46ADB4',
-          backgroundColor: '#393c3f',
+          backgroundColor: '#313236',
           height: '29px',
           minHeight: '29px',
           borderRadius: '3px',
