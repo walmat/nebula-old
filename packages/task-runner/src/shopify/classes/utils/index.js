@@ -39,7 +39,7 @@ const stateForError = (err, currentState) => {
       switch (match[1]) {
         // connection reset
         case 'ECONNRESET': {
-          return { message: 'Swapping proxy', nextState: States.SwapProxies };
+          return { message: 'Swapping proxy', shouldBan: true, nextState: States.SwapProxies };
         }
         // request timeout or socket freeze timeout
         case 'ETIMEDOUT':
@@ -94,10 +94,25 @@ const getHeaders = site => {
  */
 const formatProxy = input => {
   // safeguard for if it's already formatted or in a format we can't handle
-  if (!input || input.startsWith('http') || input === 'localhost') {
+  if (!input) {
     return input;
   }
+
+  if (input.startsWith('127') || input.indexOf('localhost') > -1) {
+    return null;
+  }
+
   const data = input.split(':');
+  if (input.startsWith('http')) {
+    if (data.length === 3) {
+      return `${data[0]}:${data[1]}:${data[2]}`;
+    }
+
+    if (data.length === 5) {
+      return `${data[0]}://${data[3]}:${data[4]}@${data[1].slice(2)}:${data[2]}`;
+    }
+  }
+
   if (data.length === 2) {
     return `http://${data[0]}:${data[1]}`;
   }

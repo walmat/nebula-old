@@ -30,6 +30,8 @@ class APICheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
 
+    this._logger.verbose('API CHECKOUT: PROXY FORMAT IS: %s', formatProxy(this._context.proxy));
+
     this._logger.verbose('API CHECKOUT: Creating Payment Token');
     try {
       const res = await this._request({
