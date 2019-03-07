@@ -380,7 +380,7 @@ class CaptchaWindowManager {
     win.focus();
   }
 
-  _onRequestSaveCaptchProxy(_, winId, proxy) {
+  _onRequestSaveCaptchaProxy(_, winId, proxy) {
     const win = this._captchaWindows.find(w => w.id === winId);
     CaptchaWindowManager.setProxy(win, { proxyRules: CaptchaWindowManager.formatProxy(proxy) });
   }

@@ -9,7 +9,7 @@ nebulaEnv.setUpEnvironment();
 
 const _saveProxyForCaptchaWindow = proxy => {
   const { id } = remote.getCurrentWindow();
-  util.sendEvent(IPCKeys.RequestSaveCaptchProxy, id, proxy);
+  util.sendEvent(IPCKeys.RequestSaveCaptchaProxy, id, proxy);
 };
 
 /**
