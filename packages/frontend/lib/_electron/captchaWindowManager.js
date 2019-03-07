@@ -260,9 +260,6 @@ class CaptchaWindowManager {
   spawnYoutubeWindow(parentId, parentSession) {
     // Use parent session to link the two windows together
     const win = createYouTubeWindow(null, { session: parentSession });
-    // win.webContents.session.resolveProxy('https://google.com', x => {
-    //   console.log(x);
-    // });
     const winId = win.id;
     this._youtubeWindows[parentId] = win;
     win.on('ready-to-show', () => {
