@@ -219,6 +219,11 @@ function _registerStopHandler() {
   resetChallenge();
 }
 
+function _onSaveProxy() {
+  const proxy = document.getElementById('captcha-proxy').value;
+  window.Bridge.saveProxyForCaptchaWindow(proxy);
+}
+
 function _onLoad() {
   window.Bridge.Captcha.start.register(_registerStartHandler);
   window.Bridge.Captcha.stop.register(_registerStopHandler);
@@ -226,6 +231,7 @@ function _onLoad() {
   document.getElementById('close-btn').onclick = window.Bridge.close;
   document.getElementById('launch-youtube').onclick = window.Bridge.launchYoutube;
   document.getElementById('end-session').onclick = window.Bridge.endCaptchaSession;
+  document.getElementById('save-captcha-proxy').onclick = _onSaveProxy;
 }
 
 function _onClose() {

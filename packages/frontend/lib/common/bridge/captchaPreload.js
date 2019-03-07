@@ -7,6 +7,11 @@ const { base, util } = require('./index');
 
 nebulaEnv.setUpEnvironment();
 
+const _saveProxyForCaptchaWindow = proxy => {
+  const { id } = remote.getCurrentWindow();
+  util.sendEvent(IPCKeys.RequestSaveCaptchProxy, id, proxy);
+};
+
 /**
  * Sends the launch youtube window trigger to windowManager.js
  */
@@ -70,6 +75,7 @@ process.once('loaded', () => {
     launchYoutube: _launchYoutube,
     refreshCaptchaWindow: _refreshCaptchaWindow,
     harvestCaptchaToken: _harvestCaptchaToken,
+    saveProxyForCaptchaWindow: _saveProxyForCaptchaWindow,
     Captcha: {
       start: {
         register: _registerForStartHarvestCaptcha,

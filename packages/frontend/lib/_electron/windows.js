@@ -36,12 +36,12 @@ const _createWindow = options => {
     // The majority of styling is currently inlne, so we have to allow this!
     // TODO: move away from inline styles!
     let cspHeaders = [
-      "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
+      "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
     ];
     if (nebulaEnv.isDevelopment()) {
       // If in dev mode, allow inline scripts to run (for developer tool extensions)
       cspHeaders = [
-        "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
+        "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
       ];
     }
     callback({
@@ -52,39 +52,39 @@ const _createWindow = options => {
     });
   });
 
-  // Setup Explicit Window Permissions
-  win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
-    if (nebulaEnv.isDevelopment()) {
-      console.log(`[DEBUG]: Requesting Permission: ${permission}`);
-    }
-    switch (permission) {
-      case 'clipboardRead':
-      case 'clipboardWrite':
-      case 'contextMenus':
-      case 'cookies':
-      case 'history':
-      case 'idle':
-      case 'proxy':
-      case 'sessions':
-      case 'webRequest': {
-        callback(true);
-        break;
-      }
-      case 'certificateProvider':
-      case 'debugger':
-      case 'displaySource': {
-        if (nebulaEnv.isDevelopment()) {
-          callback(true);
-        } else {
-          callback(false);
-        }
-        break;
-      }
-      default: {
-        callback(false);
-      }
-    }
-  });
+  //   // Setup Explicit Window Permissions
+  //   win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+  //     if (nebulaEnv.isDevelopment()) {
+  //       console.log(`[DEBUG]: Requesting Permission: ${permission}`);
+  //     }
+  //     switch (permission) {
+  //       case 'clipboardRead':
+  //       case 'clipboardWrite':
+  //       case 'contextMenus':
+  //       case 'cookies':
+  //       case 'history':
+  //       case 'idle':
+  //       case 'proxy':
+  //       case 'sessions':
+  //       case 'webRequest': {
+  //         callback(true);
+  //         break;
+  //       }
+  //       case 'certificateProvider':
+  //       case 'debugger':
+  //       case 'displaySource': {
+  //         if (nebulaEnv.isDevelopment()) {
+  //           callback(true);
+  //         } else {
+  //           callback(false);
+  //         }
+  //         break;
+  //       }
+  //       default: {
+  //         callback(false);
+  //       }
+  //     }
+  //   });
 
   return win;
 };
@@ -144,10 +144,12 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
     width: 400,
     height: 650,
     transparent: true,
+    acceptFirstMouse: true,
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,
       webSecurity: false,
+      defaultFontFamily: 'sansSerif',
       preload: Path.join(__dirname, '../common/bridge/captchaPreload.js'),
     },
   });
@@ -166,9 +168,10 @@ urls.set('captcha', captchaUrl);
 const createYouTubeWindow = (options = {}, webPreferences = {}) =>
   _createWindow({
     ...options,
-    width: 450,
-    height: 475,
+    width: 650,
+    height: 615,
     frame: true,
+    resizable: true,
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,

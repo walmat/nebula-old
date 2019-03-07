@@ -33,6 +33,7 @@ const IPCKeys = {
   RequestGetAppVersion: 'RequestGetAppVersion',
   RequestStartHarvestCaptcha: 'RequestStartHarvestCaptcha',
   RequestStopHarvestCaptcha: 'RequestStopHarvestCaptcha',
+  RequestSaveCaptchProxy: 'RequestSaveCaptchProxy',
 
   StartHarvestCaptcha: 'StartHarvestCaptcha',
   StopHarvestCaptcha: 'StopHarvestCaptcha',
