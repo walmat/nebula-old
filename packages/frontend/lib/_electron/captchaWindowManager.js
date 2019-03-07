@@ -108,7 +108,7 @@ class CaptchaWindowManager {
     return null;
   }
 
-  static setProxy(win, { proxyRules, proxyBypassRules = {} }) {
+  static setProxy(win, { proxyRules, proxyBypassRules = '' }) {
     if (win) {
       win.webContents.session.setProxy(
         {
@@ -380,7 +380,6 @@ class CaptchaWindowManager {
     win.focus();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   _onRequestSaveCaptchProxy(_, winId, proxy) {
     const win = this._captchaWindows.find(w => w.id === winId);
     CaptchaWindowManager.setProxy(win, { proxyRules: CaptchaWindowManager.formatProxy(proxy) });

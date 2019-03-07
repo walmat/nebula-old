@@ -52,39 +52,39 @@ const _createWindow = options => {
     });
   });
 
-  //   // Setup Explicit Window Permissions
-  //   win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
-  //     if (nebulaEnv.isDevelopment()) {
-  //       console.log(`[DEBUG]: Requesting Permission: ${permission}`);
-  //     }
-  //     switch (permission) {
-  //       case 'clipboardRead':
-  //       case 'clipboardWrite':
-  //       case 'contextMenus':
-  //       case 'cookies':
-  //       case 'history':
-  //       case 'idle':
-  //       case 'proxy':
-  //       case 'sessions':
-  //       case 'webRequest': {
-  //         callback(true);
-  //         break;
-  //       }
-  //       case 'certificateProvider':
-  //       case 'debugger':
-  //       case 'displaySource': {
-  //         if (nebulaEnv.isDevelopment()) {
-  //           callback(true);
-  //         } else {
-  //           callback(false);
-  //         }
-  //         break;
-  //       }
-  //       default: {
-  //         callback(false);
-  //       }
-  //     }
-  //   });
+  // Setup Explicit Window Permissions
+  win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (nebulaEnv.isDevelopment()) {
+      console.log(`[DEBUG]: Requesting Permission: ${permission}`);
+    }
+    switch (permission) {
+      case 'clipboardRead':
+      case 'clipboardWrite':
+      case 'contextMenus':
+      case 'cookies':
+      case 'history':
+      case 'idle':
+      case 'proxy':
+      case 'sessions':
+      case 'webRequest': {
+        callback(true);
+        break;
+      }
+      case 'certificateProvider':
+      case 'debugger':
+      case 'displaySource': {
+        if (nebulaEnv.isDevelopment()) {
+          callback(true);
+        } else {
+          callback(false);
+        }
+        break;
+      }
+      default: {
+        callback(false);
+      }
+    }
+  });
 
   return win;
 };
