@@ -71,8 +71,8 @@ class CaptchaWindowManager {
     context.ipc.on(IPCKeys.RequestLaunchYoutube, this.validateSender(this._onRequestLaunchYoutube));
     context.ipc.on(IPCKeys.RequestEndSession, this.validateSender(this._onRequestEndSession));
     context.ipc.on(
-      IPCKeys.RequestSaveCaptchProxy,
-      this.validateSender(this._onRequestSaveCaptchProxy),
+      IPCKeys.RequestSaveCaptchaProxy,
+      this.validateSender(this._onRequestSaveCaptchaProxy),
     );
     context.ipc.on(IPCKeys.HarvestCaptcha, this.validateSender(this._onHarvestToken));
     context.ipc.on(IPCKeys.RequestRefresh, this.validateSender(ev => ev.sender.reload()));
