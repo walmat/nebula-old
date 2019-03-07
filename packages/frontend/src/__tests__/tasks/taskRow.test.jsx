@@ -931,6 +931,8 @@ describe('<TaskRow />', () => {
         value: {
           url: 'https://kith.com',
           name: 'Kith',
+          localCheckout: false,
+          special: false,
           apiKey: '08430b96c47dd2ac8e17e305db3b71e8',
           auth: false,
         },
