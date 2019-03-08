@@ -290,6 +290,8 @@ class FrontendCheckout extends Checkout {
           patchCheckoutForm(profile, shipping, billing, payment, this.captchaToken),
         ),
       });
+      // Reset captcha token so we don't use it again
+      this.captchaToken = null;
 
       const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
