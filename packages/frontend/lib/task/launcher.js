@@ -16,6 +16,7 @@ class TaskLauncher {
     this._context = context;
     this._launcherWindow = null;
     this._eventListeners = [];
+    this._captchaRequesters = {};
     this._captchaSemaphore = 0;
 
     this._taskEventHandler = this._taskEventHandler.bind(this);
@@ -270,24 +271,28 @@ class TaskLauncher {
     runnerId,
     siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
   ) {
-    // If this is the first harvest event, start harvesting
-    if (this._captchaSemaphore === 0) {
-      console.log('Sending start...');
-      await this._context.windowManager.startHarvestingCaptcha(runnerId, siteKey);
+    // Bump the semaphore only if we don't already have it tracked
+    if (!this._captchaRequesters[runnerId]) {
+      this._captchaRequesters[runnerId] = 1;
+      this._captchaSemaphore += 1;
+
+      // If this is the first harvest event, start harvesting
+      if (this._captchaSemaphore === 1) {
+        await this._context.windowManager.startHarvestingCaptcha(runnerId, siteKey);
+      }
     }
-    this._captchaSemaphore += 1;
   }
 
   _stopHarvestEventHandler(_, runnerId, siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
-    if (this._captchaSemaphore === 1) {
-      // Captcha Harvest Requesters will drop to 0
-      // Drop the semaphore and stop harvesting
+    // Decrement the semaphore only if we had previously started harvesting for this runner
+    if (this._captchaRequesters[runnerId]) {
+      delete this._captchaRequesters[runnerId];
       this._captchaSemaphore -= 1;
+    }
+
+    // If we drop back down to 0 requesters, stop the harvesting.
+    if (this._captchaSemaphore === 0) {
       this._context.windowManager.stopHarvestingCaptcha(runnerId, siteKey);
-    } else if (this._captchaSemaphore > 0) {
-      // There are still Captcha Harvest Requesters
-      // Drop the semaphore, but continue harvesting
-      this._captchaSemaphore -= 1;
     }
   }
 }
