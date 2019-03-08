@@ -79,6 +79,7 @@ class TaskRunner {
       slack: this._slack,
       logger: this._logger,
       aborted: false,
+      harvesting: false,
     };
 
     /**
@@ -94,6 +95,7 @@ class TaskRunner {
       ...this._context,
       getCaptcha: this.getCaptcha.bind(this),
       stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
+      suspendHarvestCaptcha: this.suspendHarvestCaptcha.bind(this),
     });
 
     /**
@@ -121,7 +123,7 @@ class TaskRunner {
   }
 
   _handleHarvest(id, token) {
-    if (id === this._context.id) {
+    if (id === this._context.id && this._captchaQueue) {
       this._captchaQueue.insert(token);
     }
   }
@@ -157,21 +159,35 @@ class TaskRunner {
   }
 
   getCaptcha() {
-    if (!this._captchaQueue) {
-      this._captchaQueue = new AsyncQueue();
-      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
+    if (!this._context.harvesting) {
+      if (!this._captchaQueue) {
+        this._captchaQueue = new AsyncQueue();
+        this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
+      }
+      this._logger.debug('[DEBUG]: Starting harvest...');
       this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
+      this._context.harvesting = true;
     }
     // return the captcha request
     return this._captchaQueue.next();
   }
 
+  suspendHarvestCaptcha() {
+    if (this._context.harvesting) {
+      this._logger.debug('[DEBUG]: Suspending harvest...');
+      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._content.harvesting = false;
+    }
+  }
+
   stopHarvestCaptcha() {
-    if (this._captchaQueue) {
+    if (this._context.harvesting) {
       this._captchaQueue.destroy();
       this._captchaQueue = null;
+      this._logger.debug('[DEBUG]: Stopping harvest...');
       this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
+      this._context.harvesting = false;
     }
   }
 
@@ -466,6 +482,8 @@ class TaskRunner {
         // token was returned, store it and remove the request
         ({ value: this._checkout.captchaToken } = this._checkout.captchaTokenRequest);
         this._checkout.captchaTokenRequest = null;
+        // We have the token, so suspend harvesting for now
+        this.suspendHarvestCaptcha();
 
         if (this._prevState === States.PostPayment) {
           return States.CompletePayment;
