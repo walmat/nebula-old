@@ -36,12 +36,12 @@ const _createWindow = options => {
     // The majority of styling is currently inlne, so we have to allow this!
     // TODO: move away from inline styles!
     let cspHeaders = [
-      "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
+      "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
     ];
     if (nebulaEnv.isDevelopment()) {
       // If in dev mode, allow inline scripts to run (for developer tool extensions)
       cspHeaders = [
-        "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
+        "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
       ];
     }
     callback({
@@ -178,13 +178,19 @@ const createYouTubeWindow = (options = {}, webPreferences = {}) =>
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,
+      webSecurity: false,
+      allowRunningInsecureContent: true,
+      webgl: true,
+      webaudio: true,
+      plugins: true,
+      defaultFontFamily: 'sansSerif',
       preload: Path.join(__dirname, '../common/bridge/youtubePreload.js'),
     },
   });
 
 const youtubeUrl =
-  'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
-urls.set('youtube', youtubeUrl);
+  'https://accounts.google.com/ServiceLogin?service=mail&passive=true&rm=false&continue=https://mail.google.com/mail/&ss=1&scc=1&ltmpl=default&ltmplcache=2&emr=1&osid=1';
+urls.set('gmail', youtubeUrl);
 
 /**
  * Creates an Main Window

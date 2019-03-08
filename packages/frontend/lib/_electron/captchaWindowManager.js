@@ -201,7 +201,7 @@ class CaptchaWindowManager {
     const session = Session.fromPartition(shortid.generate());
     const win = createCaptchaWindow(options, { session });
     win.webContents.session.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
       '*/*',
     );
     const winId = win.id;
@@ -292,7 +292,7 @@ class CaptchaWindowManager {
 
       handleClose();
     });
-    win.loadURL(urls.get('youtube'));
+    win.loadURL(urls.get('gmail'));
 
     return win;
   }
