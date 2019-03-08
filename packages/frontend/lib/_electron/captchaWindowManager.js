@@ -15,6 +15,8 @@ const HARVEST_STATE = {
   ACTIVE: 'active',
 };
 
+const MAX_HARVEST_CAPTCHA_COUNT = 5;
+
 class CaptchaWindowManager {
   /**
    * Check if given token is valid
@@ -48,6 +50,13 @@ class CaptchaWindowManager {
      * Map of harvested tokens based on sitekey
      */
     this._tokens = {};
+
+    /**
+     * Count to limit the number of concurrent tokens
+     * captured at one time. This prevents one-clicks from
+     * going away
+     */
+    this._tokenCount = 0;
 
     /**
      * Id for check token interval
@@ -317,7 +326,13 @@ class CaptchaWindowManager {
     // Iterate through all sitekey token lists
     Object.keys(this._tokens).forEach(siteKey => {
       // Filter out invalid tokens
-      this._tokens[siteKey] = this._tokens[siteKey].filter(CaptchaWindowManager.isTokenValid);
+      this._tokens[siteKey] = this._tokens[siteKey].filter(token => {
+        if (CaptchaWindowManager.isTokenValid(token)) {
+          return true;
+        }
+        this._tokenCount -= 1;
+        return false;
+      });
       tokensTotal += this._tokens[siteKey].length;
     });
 
@@ -349,14 +364,18 @@ class CaptchaWindowManager {
    * Start the check token interval if it hasn't started already. This will
    * periodically check and remove expired tokens
    */
-  _onHarvestToken(_, __, token, siteKey = 'unattached', host = 'http://checkout.shopify.com') {
-    // TEMPORARY
-    // this.stopHarvesting();
-
+  _onHarvestToken(
+    _,
+    runnerId,
+    token,
+    siteKey = 'unattached',
+    host = 'http://checkout.shopify.com',
+  ) {
     if (!this._tokens[siteKey]) {
       // Create token array if it hasn't been created for this sitekey
       this._tokens[siteKey] = [];
     }
+    this._tokenCount += 1;
     // Store the new token
     this._tokens[siteKey].push({
       token,
@@ -367,6 +386,10 @@ class CaptchaWindowManager {
     // Start the check token interval if it hasn't been started
     if (this._checkTokenIntervalId === null) {
       this._checkTokenIntervalId = setInterval(this._checkTokens.bind(this), 1000);
+    }
+
+    if (this._tokenCount >= MAX_HARVEST_CAPTCHA_COUNT) {
+      this.stopHarvesting(runnerId, siteKey);
     }
   }
 

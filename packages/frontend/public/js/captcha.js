@@ -158,10 +158,9 @@ function resetChallenge(shouldAutoClick = false) {
   _resetting = false;
 }
 
-// This function is used, but it is passed to the captcha
-// element via an attribute. eslint can't detect this and
-// throws a lint erroneously
-//
+// This function is used, but it is specified in the
+// script tag's src attribute. eslint is unable to detect
+// this, so it throws an error.
 // eslint-disable-next-line no-unused-vars
 async function submitCaptcha() {
   const captchaResponse = document.getElementById('g-recaptcha-response');
