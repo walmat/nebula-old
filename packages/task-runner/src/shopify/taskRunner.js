@@ -13,6 +13,7 @@ const {
   HookTypes,
   StateMap,
   CheckoutRefresh,
+  HarvestStates,
 } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
@@ -79,7 +80,7 @@ class TaskRunner {
       slack: this._slack,
       logger: this._logger,
       aborted: false,
-      harvesting: false,
+      harvestState: HarvestStates.idle,
     };
 
     /**
@@ -159,35 +160,42 @@ class TaskRunner {
   }
 
   getCaptcha() {
-    if (!this._context.harvesting) {
-      if (!this._captchaQueue) {
-        this._captchaQueue = new AsyncQueue();
-        this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
-      }
+    if (this._context.harvestState === HarvestStates.idle) {
+      this._captchaQueue = new AsyncQueue();
+      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
+      this._context.harvestState = HarvestStates.start;
+    }
+
+    if (this._context.harvestState === HarvestStates.suspend) {
+      this._context.harvestState = HarvestStates.start;
+    }
+
+    if (this._context.harvestState === HarvestStates.start) {
       this._logger.debug('[DEBUG]: Starting harvest...');
       this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
-      this._context.harvesting = true;
     }
+
     // return the captcha request
     return this._captchaQueue.next();
   }
 
   suspendHarvestCaptcha() {
-    if (this._context.harvesting) {
+    if (this._context.harvestState === HarvestStates.start) {
       this._logger.debug('[DEBUG]: Suspending harvest...');
       this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
-      this._content.harvesting = false;
+      this._context.harvestState = HarvestStates.suspend;
     }
   }
 
   stopHarvestCaptcha() {
-    if (this._context.harvesting) {
+    const { harvestState } = this._context;
+    if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
       this._captchaQueue.destroy();
       this._captchaQueue = null;
       this._logger.debug('[DEBUG]: Stopping harvest...');
       this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
-      this._context.harvesting = false;
+      this._context.harvestState = HarvestStates.stop;
     }
   }
 

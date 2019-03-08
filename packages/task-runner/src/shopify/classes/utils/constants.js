@@ -59,6 +59,13 @@ const TaskRunnerCheckoutTypes = {
   api: 'API',
 };
 
+const TaskRunnerHarvestStates = {
+  idle: 'IDLE',
+  start: 'START',
+  suspend: 'SUSPEND',
+  stop: 'STOP',
+};
+
 /**
  * Parser Error Codes
  */
@@ -115,6 +122,7 @@ module.exports = {
     CheckoutRefresh: CheckoutRefreshTimeout,
     DelayTypes: TaskRunnerDelayTypes,
     HookTypes: TaskRunnerHookTypes,
+    HarvestStates: TaskRunnerHarvestStates,
   },
   ErrorCodes: {
     Parser: ParserErrorCodes,
