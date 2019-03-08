@@ -198,7 +198,8 @@ class CaptchaWindowManager {
       this._context.captchaServerManager.start();
     }
     // Create window with randomly generated session partition
-    const session = Session.fromPartition(shortid.generate());
+    // const session = Session.fromPartition(shortid.generate());
+    const session = Session.defaultSession;
     const win = createCaptchaWindow(options, { session });
     win.webContents.session.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',

@@ -228,6 +228,11 @@ function _onLoad() {
   window.Bridge.Captcha.start.register(_registerStartHandler);
   window.Bridge.Captcha.stop.register(_registerStopHandler);
 
+  // trick to make it seem like the document is always in focus
+  Object.defineProperty(document, 'hidden', {
+    value: false,
+  });
+
   document.getElementById('close-btn').onclick = window.Bridge.close;
   document.getElementById('launch-youtube').onclick = window.Bridge.launchYoutube;
   document.getElementById('end-session').onclick = window.Bridge.endCaptchaSession;

@@ -8,12 +8,12 @@ const _defaultWebPreferences = {
   nodeIntegration: false,
   webSecurity: true,
   allowRunningInsecureContent: false,
-  experimentalCanvasFeatures: false,
+  experimentalCanvasFeatures: true,
   experimentalFeatures: false,
   blinkFeatures: '',
 };
 
-const _createWindow = options => {
+const _createWindow = (type, options) => {
   // Create options
   const browserWindowOptions = {
     center: true,
@@ -48,6 +48,18 @@ const _createWindow = options => {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': cspHeaders,
+      },
+    });
+  });
+
+  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+    callback({
+      requestHeaders: {
+        ...details.requestHeaders,
+        DNT: 1,
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) @nebula/orion/1.0.0-beta.6.1 Chrome/66.0.3359.181 Electron/3.1.4 Safari/537.36',
+        'Content-Language': 'en-US,en;q=0.9',
       },
     });
   });
@@ -101,7 +113,7 @@ const urls = new Map();
  * @return {BrowserWindow} Auth Window
  */
 const createAuthWindow = () =>
-  _createWindow({
+  _createWindow('auth', {
     width: 300,
     height: 215,
     webPreferences: {
@@ -119,7 +131,7 @@ urls.set('auth', authUrl);
  * @return {BrowserWindow} About Window
  */
 const createAboutWindow = () =>
-  _createWindow({
+  _createWindow('about', {
     width: 300,
     height: 215,
     webPreferences: {
@@ -137,7 +149,7 @@ urls.set('about', aboutUrl);
  * @return {BrowserWindow} Captcha Window
  */
 const createCaptchaWindow = (options = {}, webPreferences = {}) =>
-  _createWindow({
+  _createWindow('captcha', {
     // assign default background color first, so it can be overwritten by parameter options
     backgroundColor: '#f4f4f4',
     ...options,
@@ -169,7 +181,7 @@ urls.set('captcha', captchaUrl);
  * @return {BrowserWindow} YouTube Window
  */
 const createYouTubeWindow = (options = {}, webPreferences = {}) =>
-  _createWindow({
+  _createWindow('gmail', {
     ...options,
     width: 650,
     height: 615,
@@ -188,8 +200,9 @@ const createYouTubeWindow = (options = {}, webPreferences = {}) =>
     },
   });
 
-const youtubeUrl =
-  'https://accounts.google.com/ServiceLogin?service=mail&passive=true&rm=false&continue=https://mail.google.com/mail/&ss=1&scc=1&ltmpl=default&ltmplcache=2&emr=1&osid=1';
+// const youtubeUrl =
+//   'https://accounts.google.com/ServiceLogin?service=mail&passive=true&rm=false&continue=https://mail.google.com/mail/&ss=1&scc=1&ltmpl=default&ltmplcache=2&emr=1&osid=1';
+const youtubeUrl = 'https://amiunique.org/fp';
 urls.set('gmail', youtubeUrl);
 
 /**
@@ -198,7 +211,7 @@ urls.set('gmail', youtubeUrl);
  * @return {BrowserWindow} Main Window
  */
 const createMainWindow = () =>
-  _createWindow({
+  _createWindow('main', {
     width: 1000,
     height: 715,
     webPreferences: {
