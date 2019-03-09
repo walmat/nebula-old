@@ -70,6 +70,10 @@ class CaptchaWindowManager {
     // Attach IPC handlers
     context.ipc.on(IPCKeys.RequestLaunchYoutube, this.validateSender(this._onRequestLaunchYoutube));
     context.ipc.on(IPCKeys.RequestEndSession, this.validateSender(this._onRequestEndSession));
+    context.ipc.on(
+      IPCKeys.RequestSaveCaptchaProxy,
+      this.validateSender(this._onRequestSaveCaptchaProxy),
+    );
     context.ipc.on(IPCKeys.HarvestCaptcha, this.validateSender(this._onHarvestToken));
     context.ipc.on(IPCKeys.RequestRefresh, this.validateSender(ev => ev.sender.reload()));
     context.ipc.on(IPCKeys.RequestCloseAllCaptchaWindows, () => {
@@ -82,6 +86,42 @@ class CaptchaWindowManager {
         this._captchaWindows.find(win => win.webContents.id === ev.sender.id).close();
       }),
     );
+  }
+
+  /**
+   * Formats the proxy correctly to be used in a request
+   * @param {*} input - IP:PORT:USER:PASS || IP:PORT
+   * @returns - http://USER:PASS@IP:PORT || http://IP:PORT
+   */
+  static formatProxy(input) {
+    // safeguard for if it's already formatted or in a format we can't handle
+    if (!input || input.startsWith('http') || input === 'localhost') {
+      return input;
+    }
+    const data = input.split(':');
+    if (data.length === 2) {
+      return `http://${data[0]}:${data[1]}`;
+    }
+    if (data.length === 4) {
+      return `http://${data[2]}:${data[3]}@${data[0]}:${data[1]}`;
+    }
+    return null;
+  }
+
+  static setProxy(win, { proxyRules, proxyBypassRules = '' }) {
+    if (win) {
+      win.webContents.session.setProxy(
+        {
+          proxyRules,
+          proxyBypassRules,
+        },
+        () => {
+          win.webContents.session.resolveProxy('https://google.com', x => {
+            console.log('[DEBUG]: Session proxy set to: %j', x);
+          });
+        },
+      );
+    }
   }
 
   /**
@@ -158,20 +198,21 @@ class CaptchaWindowManager {
       this._context.captchaServerManager.start();
     }
     // Create window with randomly generated session partition
-    const session = Session.fromPartition(shortid.generate());
+    // const session = Session.fromPartition(shortid.generate());
+    const session = Session.defaultSession;
     const win = createCaptchaWindow(options, { session });
+    win.webContents.session.setUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
+      '*/*',
+    );
     const winId = win.id;
     const webContentsId = win.webContents.id;
     this._captchaWindows.push(win);
-    win.webContents.session.setProxy(
-      {
-        proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
-        proxyBypassRules: '.google.com,.gstatic.com',
-      },
-      () => {
-        win.loadURL('http://checkout.shopify.com');
-      },
-    );
+    CaptchaWindowManager.setProxy(win, {
+      proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
+      proxyBypassRules: '.google.com,.gstatic.com',
+    });
+    win.loadURL('http://checkout.shopify.com');
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`[DEBUG]: Window was opened, id = ${winId}`);
@@ -182,12 +223,7 @@ class CaptchaWindowManager {
     });
 
     win.webContents.once('did-finish-load', () => {
-      win.webContents.session.setProxy(
-        {
-          proxyRules: '',
-        },
-        () => {},
-      );
+      CaptchaWindowManager.setProxy(win, '');
       // If we are actively harvesting, start harvesting on the new window as well
       const { state, runnerId, siteKey } = this._harvestStatus;
       if (state === HARVEST_STATE.ACTIVE) {
@@ -257,7 +293,7 @@ class CaptchaWindowManager {
 
       handleClose();
     });
-    win.loadURL(urls.get('youtube'));
+    win.loadURL(urls.get('gmail'));
 
     return win;
   }
@@ -313,7 +349,10 @@ class CaptchaWindowManager {
    * Start the check token interval if it hasn't started already. This will
    * periodically check and remove expired tokens
    */
-  _onHarvestToken(_, __, token, siteKey = 'unattached', host) {
+  _onHarvestToken(_, __, token, siteKey = 'unattached', host = 'http://checkout.shopify.com') {
+    // TEMPORARY
+    // this.stopHarvesting();
+
     if (!this._tokens[siteKey]) {
       // Create token array if it hasn't been created for this sitekey
       this._tokens[siteKey] = [];
@@ -347,6 +386,11 @@ class CaptchaWindowManager {
     }
     // Focus the window
     win.focus();
+  }
+
+  _onRequestSaveCaptchaProxy(_, winId, proxy) {
+    const win = this._captchaWindows.find(w => w.id === winId);
+    CaptchaWindowManager.setProxy(win, { proxyRules: CaptchaWindowManager.formatProxy(proxy) });
   }
 }
 

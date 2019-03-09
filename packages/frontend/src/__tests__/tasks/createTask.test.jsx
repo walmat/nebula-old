@@ -153,6 +153,7 @@ describe('<CreateTask />', () => {
           name: 'test',
           apiKey: 'test',
           url: 'testUrl',
+          localCheckout: false,
           special: false,
           auth: true,
         },

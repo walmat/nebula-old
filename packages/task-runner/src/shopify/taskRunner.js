@@ -12,6 +12,7 @@ const {
   DelayTypes,
   HookTypes,
   StateMap,
+  CheckoutRefresh,
 } = require('./classes/utils/constants').TaskRunner;
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
@@ -57,7 +58,7 @@ class TaskRunner {
     this._captchaQueue = null;
     this._timers = {
       checkout: new Timer(),
-      // monitor: new Timer(), // TODO: https://github.com/walmat/nebula/issues/354
+      monitor: new Timer(),
     };
     this._discord = new Discord(task.discord);
     this._slack = new Slack(task.slack);
@@ -316,6 +317,25 @@ class TaskRunner {
     return nextState;
   }
 
+  async _handlePingCheckout() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { shouldBan, nextState } = await this._checkout.pingCheckout();
+
+    this._emitTaskEvent({ message: 'Monitoring for product' });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    if (nextState) {
+      return nextState;
+    }
+    return this._prevState;
+  }
+
   async _handlePatchCheckout() {
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
@@ -363,6 +383,11 @@ class TaskRunner {
     if (this._context.aborted) {
       this._logger.info('Abort Detected, Stopping...');
       return States.Aborted;
+    }
+
+    if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
+      this._emitTaskEvent({ message: 'Pinging checkout' });
+      return States.PingCheckout;
     }
 
     const { errors, message, nextState, shouldBan } = await this._monitor.run();
@@ -591,6 +616,7 @@ class TaskRunner {
       [States.PaymentToken]: this._handlePaymentToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
       [States.GetCheckout]: this._handleGetCheckout,
+      [States.PingCheckout]: this._handlePingCheckout,
       [States.PollQueue]: this._handlePollQueue,
       [States.PatchCheckout]: this._handlePatchCheckout,
       [States.Monitor]: this._handleMonitor,

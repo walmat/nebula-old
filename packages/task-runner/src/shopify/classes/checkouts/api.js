@@ -10,7 +10,7 @@ const {
 } = require('../utils');
 const { patchCheckoutForm } = require('../utils/forms');
 const { buildPaymentForm, patchToCart } = require('../utils/forms');
-const { States } = require('../utils/constants').TaskRunner;
+const { States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
 const Checkout = require('../checkout');
 
 /**
@@ -29,6 +29,8 @@ const Checkout = require('../checkout');
 class APICheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
+
+    this._logger.verbose('API CHECKOUT: PROXY FORMAT IS: %s', formatProxy(this._context.proxy));
 
     this._logger.verbose('API CHECKOUT: Creating Payment Token');
     try {
@@ -219,11 +221,16 @@ class APICheckout extends Checkout {
         const error = res.body.errors.line_items[0];
         this._logger.debug('Error adding to cart: %j', error);
         if (error.quantity) {
+          if (timers.monitor.getRunTime() > CheckoutRefresh) {
+            return { message: 'Pinging checkout', nextState: States.PingCheckout };
+          }
           await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState: States.AddToCart };
         }
         if (error.variant_id && error.variant_id[0]) {
-          // if we've been monitoring for more than ~7 minutes, let's refresh the checkout session
+          if (timers.monitor.getRunTime() > CheckoutRefresh) {
+            return { message: 'Pinging checkout', nextState: States.PingCheckout };
+          }
           await waitForDelay(monitorDelay);
           return { message: 'Monitoring for product', nextState: States.AddToCart };
         }

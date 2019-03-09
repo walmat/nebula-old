@@ -272,6 +272,7 @@ class TaskLauncher {
   ) {
     // If this is the first harvest event, start harvesting
     if (this._captchaSemaphore === 0) {
+      console.log('Sending start...');
       await this._context.windowManager.startHarvestingCaptcha(runnerId, siteKey);
     }
     this._captchaSemaphore += 1;

@@ -157,14 +157,14 @@ class Checkout {
 
   async createCheckout() {
     const { site, monitorDelay } = this._context.task;
-    const { url } = site;
+    const { url, localCheckout = false } = site;
 
     this._logger.verbose('CHECKOUT: Creating checkout');
     try {
       const res = await this._request({
         uri: `${url}/checkout`,
         method: 'POST',
-        proxy: formatProxy(this._context.proxy),
+        proxy: localCheckout ? undefined : formatProxy(this._context.proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -209,6 +209,7 @@ class Checkout {
         }
 
         if (this._context.task.username && this._context.task.password) {
+          this._context.timers.monitor.start();
           return { message: 'Logging in', nextState: States.Login };
         }
         return { message: 'Account required', nextState: States.Stopped };
@@ -235,6 +236,7 @@ class Checkout {
       if (redirectUrl.indexOf('checkouts') > -1) {
         [, , , this.storeId] = redirectUrl.split('/');
         [, , , , , this.checkoutToken] = redirectUrl.split('/');
+        this._context.timers.monitor.start();
         return { message: 'Submitting information', nextState: States.PatchCheckout };
       }
 
@@ -309,6 +311,7 @@ class Checkout {
         if (redirectUrl) {
           [, , , this.storeId] = redirectUrl.split('/');
           [, , , , , this.checkoutToken] = redirectUrl.split('/');
+          this._context.timers.monitor.start();
           // next state handled by poll queue map
           return { queue: 'done' };
         }
@@ -320,6 +323,7 @@ class Checkout {
         if (redirectUrl) {
           [, , , this.storeId] = redirectUrl.split('/');
           [, , , , , this.checkoutToken] = redirectUrl.split('/');
+          this._context.timers.monitor.start();
           // next state handled by poll queue map
           return { queue: 'done' };
         }
@@ -338,12 +342,83 @@ class Checkout {
     }
   }
 
+  async pingCheckout() {
+    const {
+      timers: { monitor: monitorTimer },
+    } = this._context;
+    const { site } = this._context.task;
+    const { url, apiKey } = site;
+
+    // reset monitor timer in all cases
+    monitorTimer.stop();
+    monitorTimer.reset();
+
+    this._logger.verbose('CHECKOUT: Pinging checkout');
+    try {
+      const res = await this._request({
+        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+        method: 'GET',
+        proxy: formatProxy(this._context.proxy),
+        rejectUnauthorized: false,
+        followAllRedirects: false,
+        resolveWithFullResponse: true,
+        simple: false,
+        gzip: true,
+        headers: {
+          ...getHeaders(site),
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
+          Connection: 'Keep-Alive',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+        },
+      });
+
+      const { statusCode, headers } = res;
+      const checkStatus = stateForStatusCode(statusCode);
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      if (statusCode === 500 || statusCode === 503) {
+        return { message: 'Pinging checkout', nextState: States.PingCheckout };
+      }
+
+      const redirectUrl = headers.location;
+      this._logger.verbose('CHECKOUT: Pinging checkout redirect url: %s', redirectUrl);
+
+      // check if redirected
+      if (redirectUrl) {
+        // processing
+        if (redirectUrl.indexOf('password') > -1) {
+          return { message: 'Password page', nextState: States.CreateCheckout };
+        }
+      }
+
+      // start the monitor timer again...
+      monitorTimer.start();
+      return { message: 'Monitoring for product' };
+    } catch (err) {
+      this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
+
+      const nextState = stateForError(err, {
+        message: 'Pinging checkout',
+        nextState: States.PingCheckout,
+      });
+      return (
+        nextState || { message: 'Failed: Refreshing checkout session', nextState: States.Stopped }
+      );
+    }
+  }
+
   async postPayment() {
     const {
       timers: { checkout: checkoutTimer },
     } = this._context;
     const { site, monitorDelay } = this._context.task;
-    const { url, apiKey } = site;
+    const { url, apiKey, localCheckout = false } = site;
     const { id } = this.chosenShippingMethod;
 
     this._logger.verbose('CHECKOUT: Posting payment');
@@ -351,7 +426,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: formatProxy(this._context.proxy),
+        proxy: localCheckout ? undefined : formatProxy(this._context.proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -436,14 +511,14 @@ class Checkout {
       timers: { checkout: checkoutTimer },
     } = this._context;
     const { site, monitorDelay } = this._context.task;
-    const { url, apiKey } = site;
+    const { url, apiKey, localCheckout = false } = site;
 
     this._logger.verbose('CHECKOUT: Completing payment');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: formatProxy(this._context.proxy),
+        proxy: localCheckout ? undefined : formatProxy(this._context.proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,

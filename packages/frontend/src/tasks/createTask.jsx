@@ -61,6 +61,7 @@ export class CreateTaskPrimitive extends Component {
             name: event.label,
             url: event.value,
             apiKey: event.apiKey,
+            localCheckout: event.localCheckout || false,
             special: event.special || false,
             auth: event.auth,
           };

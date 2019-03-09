@@ -7,7 +7,9 @@ function validateProxies(proxies) {
   proxies.forEach((proxy, idx) => {
     const matchDefault = regexes.settingsProxyDefault.test(proxy);
     const matchUserPass = regexes.settingsProxyUserPass.test(proxy);
-    if (!matchDefault && !matchUserPass) {
+    const matchSubnet = regexes.settingsProxySubnet.test(proxy);
+    const matchSubnetUserPass = regexes.settingsProxySubnetUserPass.test(proxy);
+    if (!matchDefault && !matchUserPass && !matchSubnet && !matchSubnetUserPass) {
       errorMap.push(idx);
     }
   });
