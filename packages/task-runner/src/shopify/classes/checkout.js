@@ -209,6 +209,7 @@ class Checkout {
         }
 
         if (this._context.task.username && this._context.task.password) {
+          this._context.timers.monitor.start();
           return { message: 'Logging in', nextState: States.Login };
         }
         return { message: 'Account required', nextState: States.Stopped };
@@ -310,6 +311,7 @@ class Checkout {
         if (redirectUrl) {
           [, , , this.storeId] = redirectUrl.split('/');
           [, , , , , this.checkoutToken] = redirectUrl.split('/');
+          this._context.timers.monitor.start();
           // next state handled by poll queue map
           return { queue: 'done' };
         }
@@ -321,6 +323,7 @@ class Checkout {
         if (redirectUrl) {
           [, , , this.storeId] = redirectUrl.split('/');
           [, , , , , this.checkoutToken] = redirectUrl.split('/');
+          this._context.timers.monitor.start();
           // next state handled by poll queue map
           return { queue: 'done' };
         }
