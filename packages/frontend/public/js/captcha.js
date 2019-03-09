@@ -1,6 +1,7 @@
 let _siteKey = '';
 let _runnerId = '';
 let _started = false;
+let _resetting = false;
 let _initialized = false;
 let _waitingForLoad = false;
 let _iframe = null;
@@ -142,37 +143,36 @@ async function autoClick() {
 }
 
 function resetChallenge(shouldAutoClick = false) {
+  // Guard against too many reset calls
+  if (_resetting) {
+    return;
+  }
+  _resetting = true;
+  _iframe = null;
   if (window.grecaptcha) {
     window.grecaptcha.reset();
   }
-  _iframe = null;
-  if (shouldAutoClick) {
+  if (_started && shouldAutoClick) {
     autoClick();
   }
+  _resetting = false;
 }
 
-async function submitCaptcha() {
-  const token = document.getElementById('g-recaptcha-response').value;
-  window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
-  await waitFor(rand(500, 1000)); // wait a little bit before resetting
-
-  resetChallenge(true);
-}
-
-// This function is used, but it is specified in the
-// script tag's src attribute. eslint is unable to detect
-// this, so it throws an error.
+// This function is used, but it is passed to the captcha
+// element via an attribute. eslint can't detect this and
+// throws a lint erroneously
+//
 // eslint-disable-next-line no-unused-vars
-async function onLoad() {
-  if (_started && !_initialized) {
-    window.grecaptcha.render('captchaContainer', {
-      size: 'normal',
-      sitekey: _siteKey,
-      theme: 'light',
-      callback: submitCaptcha,
-    });
-    _initialized = true;
-    _iframe = null;
+async function submitCaptcha() {
+  const captchaResponse = document.getElementById('g-recaptcha-response');
+  // Only capture/send token if we can get it
+  if (captchaResponse) {
+    const token = captchaResponse.value;
+    window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
+    await waitFor(rand(500, 1000)); // wait a little bit before resetting
+  }
+  if (_started) {
+    resetChallenge(true);
   }
 }
 
@@ -205,6 +205,7 @@ async function _registerStartHandler(_, runnerId, siteKey) {
     }
     form.appendChild(container);
     form.appendChild(script);
+    _initialized = true;
   }
 
   // If recaptcha has been previously loaded, reset it
@@ -215,17 +216,29 @@ function _registerStopHandler() {
   _started = false;
   // Hide the form and reset it for when we start again
   const form = document.getElementById('captchaForm');
-  form.setAttribute('style', 'display: none;');
+
   resetChallenge();
+  form.setAttribute('style', 'display: none;');
+}
+
+function _onSaveProxy() {
+  const proxy = document.getElementById('captcha-proxy').value;
+  window.Bridge.saveProxyForCaptchaWindow(proxy);
 }
 
 function _onLoad() {
   window.Bridge.Captcha.start.register(_registerStartHandler);
   window.Bridge.Captcha.stop.register(_registerStopHandler);
 
+  // trick to make it seem like the document is always in focus
+  Object.defineProperty(document, 'hidden', {
+    value: false,
+  });
+
   document.getElementById('close-btn').onclick = window.Bridge.close;
   document.getElementById('launch-youtube').onclick = window.Bridge.launchYoutube;
   document.getElementById('end-session').onclick = window.Bridge.endCaptchaSession;
+  document.getElementById('save-captcha-proxy').onclick = _onSaveProxy;
 }
 
 function _onClose() {

@@ -8,12 +8,12 @@ const _defaultWebPreferences = {
   nodeIntegration: false,
   webSecurity: true,
   allowRunningInsecureContent: false,
-  experimentalCanvasFeatures: false,
+  experimentalCanvasFeatures: true,
   experimentalFeatures: false,
   blinkFeatures: '',
 };
 
-const _createWindow = options => {
+const _createWindow = (type, options) => {
   // Create options
   const browserWindowOptions = {
     center: true,
@@ -36,18 +36,30 @@ const _createWindow = options => {
     // The majority of styling is currently inlne, so we have to allow this!
     // TODO: move away from inline styles!
     let cspHeaders = [
-      "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
+      "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
     ];
     if (nebulaEnv.isDevelopment()) {
       // If in dev mode, allow inline scripts to run (for developer tool extensions)
       cspHeaders = [
-        "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
+        "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
       ];
     }
     callback({
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': cspHeaders,
+      },
+    });
+  });
+
+  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+    callback({
+      requestHeaders: {
+        ...details.requestHeaders,
+        DNT: 1,
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) @nebula/orion/1.0.0-beta.6.1 Chrome/66.0.3359.181 Electron/3.1.4 Safari/537.36',
+        'Content-Language': 'en-US,en;q=0.9',
       },
     });
   });
@@ -101,7 +113,7 @@ const urls = new Map();
  * @return {BrowserWindow} Auth Window
  */
 const createAuthWindow = () =>
-  _createWindow({
+  _createWindow('auth', {
     width: 300,
     height: 215,
     webPreferences: {
@@ -119,7 +131,7 @@ urls.set('auth', authUrl);
  * @return {BrowserWindow} About Window
  */
 const createAboutWindow = () =>
-  _createWindow({
+  _createWindow('about', {
     width: 300,
     height: 215,
     webPreferences: {
@@ -137,17 +149,22 @@ urls.set('about', aboutUrl);
  * @return {BrowserWindow} Captcha Window
  */
 const createCaptchaWindow = (options = {}, webPreferences = {}) =>
-  _createWindow({
+  _createWindow('captcha', {
     // assign default background color first, so it can be overwritten by parameter options
     backgroundColor: '#f4f4f4',
     ...options,
     width: 400,
     height: 650,
     transparent: true,
+    acceptFirstMouse: true,
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,
       webSecurity: false,
+      webgl: true,
+      webaudio: true,
+      plugins: true,
+      defaultFontFamily: 'sansSerif',
       preload: Path.join(__dirname, '../common/bridge/captchaPreload.js'),
     },
   });
@@ -164,21 +181,28 @@ urls.set('captcha', captchaUrl);
  * @return {BrowserWindow} YouTube Window
  */
 const createYouTubeWindow = (options = {}, webPreferences = {}) =>
-  _createWindow({
+  _createWindow('gmail', {
     ...options,
-    width: 450,
-    height: 475,
+    width: 650,
+    height: 615,
     frame: true,
+    resizable: true,
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,
+      webSecurity: false,
+      allowRunningInsecureContent: true,
+      webgl: true,
+      webaudio: true,
+      plugins: true,
+      defaultFontFamily: 'sansSerif',
       preload: Path.join(__dirname, '../common/bridge/youtubePreload.js'),
     },
   });
 
 const youtubeUrl =
-  'https://accounts.google.com/signin/v2/identifier?hl=en&service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Ffeature%3Dsign_in_button%26hl%3Den%26app%3Ddesktop%26next%3D%252F%26action_handle_signin%3Dtrue&passive=true&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin';
-urls.set('youtube', youtubeUrl);
+  'https://accounts.google.com/ServiceLogin?service=mail&passive=true&rm=false&continue=https://mail.google.com/mail/&ss=1&scc=1&ltmpl=default&ltmplcache=2&emr=1&osid=1';
+urls.set('gmail', youtubeUrl);
 
 /**
  * Creates an Main Window
@@ -186,7 +210,7 @@ urls.set('youtube', youtubeUrl);
  * @return {BrowserWindow} Main Window
  */
 const createMainWindow = () =>
-  _createWindow({
+  _createWindow('main', {
     width: 1000,
     height: 715,
     webPreferences: {
