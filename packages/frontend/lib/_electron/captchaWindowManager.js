@@ -350,6 +350,9 @@ class CaptchaWindowManager {
    * periodically check and remove expired tokens
    */
   _onHarvestToken(_, __, token, siteKey = 'unattached', host = 'http://checkout.shopify.com') {
+    // TEMPORARY
+    // this.stopHarvesting();
+
     if (!this._tokens[siteKey]) {
       // Create token array if it hasn't been created for this sitekey
       this._tokens[siteKey] = [];

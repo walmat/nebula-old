@@ -1,6 +1,7 @@
 let _siteKey = '';
 let _runnerId = '';
 let _started = false;
+let _resetting = false;
 let _initialized = false;
 let _waitingForLoad = false;
 let _iframe = null;
@@ -142,41 +143,54 @@ async function autoClick() {
 }
 
 function resetChallenge(shouldAutoClick = false) {
+  console.log('Resetting...');
+  // Guard against too many reset calls
+  if (_resetting) {
+    return;
+  }
+  _resetting = true;
+  _iframe = null;
+  console.log('Attempting to reset captcha...');
   if (window.grecaptcha) {
     window.grecaptcha.reset();
   }
-  _iframe = null;
-  if (shouldAutoClick) {
-    autoClick();
+  if (_started) {
+
+    if (shouldAutoClick) {
+      autoClick();
+    }
   }
+  _resetting = false;
+  console.log('finished reset...');
 }
 
-async function submitCaptcha() {
-  const token = document.getElementById('g-recaptcha-response').value;
-  window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
-  await waitFor(rand(500, 1000)); // wait a little bit before resetting
-
-  resetChallenge(true);
-}
-
-// This function is used, but it is specified in the
-// script tag's src attribute. eslint is unable to detect
-// this, so it throws an error.
+// This function is used, but it is passed to the captcha
+// element via an attribute. eslint can't detect this and
+// throws a lint erroneously
+//
 // eslint-disable-next-line no-unused-vars
-async function onLoad() {
-  if (_started && !_initialized) {
-    window.grecaptcha.render('captchaContainer', {
-      size: 'normal',
-      sitekey: _siteKey,
-      theme: 'light',
-      callback: submitCaptcha,
-    });
-    _initialized = true;
-    _iframe = null;
+async function submitCaptcha() {
+  console.log('Submitting captcha');
+  const captchaResponse = document.getElementById('g-recaptcha-response');
+  // Only capture/send token if we can get it
+  if (captchaResponse) {
+    const token = captchaResponse.value;
+    console.log('Sending token...');
+    window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
+    console.log('Waiting...');
+    await waitFor(rand(500, 1000)); // wait a little bit before resetting
   }
+  console.log('checking to reset...');
+  if (_started) {
+    console.log('reset calling...');
+    resetChallenge(true);
+  }
+  console.log('finished submit captcha...');
 }
 
 async function _registerStartHandler(_, runnerId, siteKey) {
+  console.log('start handler...');
+  console.log(_started);
   if (_started) {
     return;
   }
@@ -209,14 +223,20 @@ async function _registerStartHandler(_, runnerId, siteKey) {
 
   // If recaptcha has been previously loaded, reset it
   resetChallenge(true);
+  console.log('finished start handler...');
 }
 
 function _registerStopHandler() {
+  console.log('handling stop');
   _started = false;
   // Hide the form and reset it for when we start again
   const form = document.getElementById('captchaForm');
-  form.setAttribute('style', 'display: none;');
+  console.log(form);
+  console.log(document);
+
   resetChallenge();
+  form.setAttribute('style', 'display: none;');
+  console.log('finished stop handler...');
 }
 
 function _onSaveProxy() {
