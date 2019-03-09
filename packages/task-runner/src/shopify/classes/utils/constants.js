@@ -27,6 +27,7 @@ const TaskRunnerStates = {
   PaymentToken: 'PAYMENT_TOKEN',
   CreateCheckout: 'CREATE_CHECKOUT',
   GetCheckout: 'GET_CHECKOUT',
+  PingCheckout: 'PING_CHECKOUT',
   PollQueue: 'POLL_QUEUE',
   PatchCheckout: 'PATCH_CHECKOUT',
   Monitor: 'MONITOR',
@@ -100,6 +101,8 @@ const PollQueueStateToNextState = {
   }),
 };
 
+const CheckoutRefreshTimeout = 420000;
+
 module.exports = {
   TaskManager: {
     Events: TaskManagerEvents,
@@ -109,6 +112,7 @@ module.exports = {
     States: TaskRunnerStates,
     StateMap: PollQueueStateToNextState,
     CheckoutTypes: TaskRunnerCheckoutTypes,
+    CheckoutRefresh: CheckoutRefreshTimeout,
     DelayTypes: TaskRunnerDelayTypes,
     HookTypes: TaskRunnerHookTypes,
   },
