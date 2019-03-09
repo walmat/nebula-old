@@ -200,9 +200,8 @@ const createYouTubeWindow = (options = {}, webPreferences = {}) =>
     },
   });
 
-// const youtubeUrl =
-//   'https://accounts.google.com/ServiceLogin?service=mail&passive=true&rm=false&continue=https://mail.google.com/mail/&ss=1&scc=1&ltmpl=default&ltmplcache=2&emr=1&osid=1';
-const youtubeUrl = 'https://amiunique.org/fp';
+const youtubeUrl =
+  'https://accounts.google.com/ServiceLogin?service=mail&passive=true&rm=false&continue=https://mail.google.com/mail/&ss=1&scc=1&ltmpl=default&ltmplcache=2&emr=1&osid=1';
 urls.set('gmail', youtubeUrl);
 
 /**
