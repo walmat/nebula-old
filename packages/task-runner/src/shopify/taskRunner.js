@@ -33,7 +33,7 @@ class TaskRunner {
 
     this._jar = request.jar();
     this._request = request.defaults({
-      timeout: 12500,
+      timeout: 20000,
       jar: this._jar,
     });
 
