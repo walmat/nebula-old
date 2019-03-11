@@ -6,6 +6,18 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
+        break;
+      }
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE: {
+        break;
+      }
+      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE: {
+        break;
+      }
+      case SETTINGS_FIELDS.EDIT_SHIPPING_NAME: {
+        break;
+      }
       case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES: {
         let useKey = 'useProfile';
