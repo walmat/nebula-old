@@ -16,24 +16,24 @@ export class ShippingManagerPrimitive extends Component {
       [SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE]: {
         label: 'Profile',
         placeholder: 'Choose Profile',
-        className: 'select__profile',
+        className: 'profile',
         colStyling: 'col col--no-gutter-right',
       },
       [SETTINGS_FIELDS.EDIT_SHIPPING_SITE]: {
         label: 'Site',
         placeholder: 'Choose Site',
-        className: 'select__site',
-        colStyling: 'col col--no-gutter-right',
+        className: 'site',
+        colStyling: 'col col--gutter-left',
       },
     };
-    this.defaultsButtons = {
-      [SETTINGS_FIELDS.CLEAR_DEFAULTS]: {
+    this.buttons = {
+      [SETTINGS_FIELDS.CLEAR_SHIPPING_FIELDS]: {
         label: 'Clear',
         className: 'clear',
       },
-      [SETTINGS_FIELDS.SAVE_DEFAULTS]: {
-        label: 'Save',
-        className: 'save',
+      [SETTINGS_FIELDS.FETCH_SHIPPING_METHODS]: {
+        label: 'Fetch Shipping',
+        className: 'fetch',
       },
     };
   }
@@ -77,11 +77,13 @@ export class ShippingManagerPrimitive extends Component {
     }
   }
 
-  renderDefaultsButton(field, value) {
-    const { onKeyPress, onClearDefaults, onSaveDefaults } = this.props;
-    const { className, label } = this.defaultsButtons[field];
+  renderButton(field, value) {
+    const { onKeyPress, onClearShippingFields, onFetchShippingMethods } = this.props;
+    const { className, label } = this.buttons[field];
     const onClick = () =>
-      field === SETTINGS_FIELDS.SAVE_DEFAULTS ? onSaveDefaults(value) : onClearDefaults(field);
+      field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS
+        ? onFetchShippingMethods(value)
+        : onClearShippingFields(field);
     return (
       <button
         type="button"
@@ -105,7 +107,7 @@ export class ShippingManagerPrimitive extends Component {
           required
           placeholder={placeholder}
           components={{ DropdownIndicator }}
-          isMulti={field === SETTINGS_FIELDS.EDIT_DEFAULT_SIZES}
+          isMulti={false}
           isClearable={false}
           className={`settings--shipping-manager__input-group--${className}`}
           classNamePrefix="select"
@@ -119,10 +121,9 @@ export class ShippingManagerPrimitive extends Component {
   }
 
   render() {
-    const { settings } = this.props;
-    console.log(settings);
+    const { settings, errors } = this.props;
     let shippingProfileValue = null;
-    if (settings.defaults.profile.id !== null) {
+    if (settings.shipping.profile.id !== null) {
       shippingProfileValue = {
         value: settings.shipping.profile.id,
         label: settings.shipping.profile.profileName,
@@ -151,6 +152,45 @@ export class ShippingManagerPrimitive extends Component {
                 <div className="row row--start row-gutter">
                   <div className="col settings--shipping-manager__input-group">
                     <div className="row row--gutter">
+                      <div className="col col--no-gutter-right">
+                        <p className="settings--shipping-manager__input-group--label">Product</p>
+                        <input
+                          className="settings--shipping-manager__input-group--product"
+                          type="text"
+                          placeholder="Variant, Keywords, Link"
+                          onChange={this.createOnChangeHandler(
+                            SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+                          )}
+                          value={settings.shipping.product.raw}
+                          style={buildStyle(
+                            false,
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]],
+                          )}
+                          required
+                        />
+                      </div>
+                      <div className="col col--gutter-left">
+                        <p className="settings--shipping-manager__input-group--label">
+                          Shipping Rate
+                        </p>
+                        <input
+                          className="settings--shipping-manager__input-group--product"
+                          type="text"
+                          placeholder=""
+                          disabled
+                          onChange={this.createOnChangeHandler(
+                            SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+                          )}
+                          value={settings.shipping.rate}
+                          style={buildStyle(
+                            false,
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]],
+                          )}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="row row--gutter">
                       {this.renderSelect(
                         SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE,
                         shippingProfileValue,
@@ -164,13 +204,13 @@ export class ShippingManagerPrimitive extends Component {
                     </div>
                     <div className="row row--gutter row--end">
                       <div className="col col--no-gutter-right">
-                        {this.renderDefaultsButton(
-                          SETTINGS_FIELDS.SAVE_DEFAULTS,
-                          settings.defaults,
+                        {this.renderButton(
+                          SETTINGS_FIELDS.FETCH_SHIPPING_METHODS,
+                          settings.shipping,
                         )}
                       </div>
                       <div className="col col--end col--gutter-left">
-                        {this.renderDefaultsButton(SETTINGS_FIELDS.CLEAR_DEFAULTS)}
+                        {this.renderButton(SETTINGS_FIELDS.CLEAR_SHIPPING_FIELDS)}
                       </div>
                     </div>
                   </div>
@@ -186,8 +226,8 @@ export class ShippingManagerPrimitive extends Component {
 
 ShippingManagerPrimitive.propTypes = {
   onSettingsChange: PropTypes.func.isRequired,
-  onSaveDefaults: PropTypes.func.isRequired,
-  onClearDefaults: PropTypes.func.isRequired,
+  onFetchShippingMethods: PropTypes.func.isRequired,
+  onClearShippingFields: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   settings: sDefns.settings.isRequired,
   onKeyPress: PropTypes.func,
@@ -210,11 +250,11 @@ export const mapDispatchToProps = dispatch => ({
   onSettingsChange: changes => {
     dispatch(settingsActions.edit(changes.field, changes.value));
   },
-  onSaveDefaults: defaults => {
-    dispatch(settingsActions.save(defaults));
+  onFetchShippingMethods: shipping => {
+    dispatch(settingsActions.fetch(shipping));
   },
-  onClearDefaults: changes => {
-    dispatch(settingsActions.clear(changes));
+  onClearShippingFields: changes => {
+    dispatch(settingsActions.clearShipping(changes));
   },
 });
 

@@ -6,7 +6,7 @@
 
     &__input-group {
       width: 422px;
-      height: 266px;
+      height: 166px;
       @include themify($themes) {
         border-color: themed('tableBorderColor');
       }
@@ -15,17 +15,25 @@
       padding-bottom: 3px;
       border-radius: 3px;
 
-      &--select {
-        &__profile {
-          @include settings-font();
-          width: 170px;
-          border-radius: 3px;
-        }
-        &__sizes {
-          @include settings-font();
-          width: 170px;
-          border-radius: 3px;
-        }
+      &--product {
+        @include settings-font();
+        border-width: 1px;
+        border-style: solid;
+        height: 29px;
+        padding-bottom: 3px;
+        border-radius: 3px;
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--profile {
+        @include settings-font();
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--site {
+        @include settings-font();
+        width: 170px;
+        border-radius: 3px;
       }
 
       &--label {

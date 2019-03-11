@@ -4,20 +4,26 @@ import makeActionCreator from '../actionCreator';
 export const SETTINGS_ACTIONS = {
   EDIT: 'EDIT_SETTINGS',
   SAVE: 'SAVE_DEFAULTS',
-  CLEAR: 'CLEAR_DEFAULTS',
+  CLEAR_DEFAULTS: 'CLEAR_DEFAULTS',
+  CLEAR_SHIPPING: 'CLEAR_SHIPPING',
   TEST: 'TEST_WEBHOOK',
+  FETCH_SHIPPING: 'FETCH_SHIPPING',
 };
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
-const clearDefaults = makeActionCreator(SETTINGS_ACTIONS.CLEAR);
+const clearDefaults = makeActionCreator(SETTINGS_ACTIONS.CLEAR_DEFAULTS);
+const fetchShipping = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'shipping');
+const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 
 export const settingsActions = {
   edit: editSettings,
   save: saveDefaults,
-  clear: clearDefaults,
+  clearDefaults,
+  clearShipping,
   test: testWebhook,
+  fetch: fetchShipping,
 };
 
 // Field Edits
@@ -31,6 +37,8 @@ export const SETTINGS_FIELDS = {
   EDIT_DEFAULT_SIZES: 'EDIT_DEFAULT_SIZES',
   SAVE_DEFAULTS: 'SAVE_DEFAULTS',
   CLEAR_DEFAULTS: 'CLEAR_DEFAULTS',
+  FETCH_SHIPPING_METHODS: 'FETCH_SHIPPING_METHODS',
+  CLEAR_SHIPPING_FIELDS: 'CLEAR_SHIPPING_FIELDS',
   EDIT_SHIPPING_PRODUCT: 'EDIT_SHIPPING_PRODUCT',
   EDIT_SHIPPING_PROFILE: 'EDIT_SHIPPING_PROFILE',
   EDIT_SHIPPING_SITE: 'EDIT_SHIPPING_SITE',
@@ -50,5 +58,4 @@ export const mapSettingsFieldToKey = {
   [SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE]: 'profile',
   [SETTINGS_FIELDS.EDIT_SHIPPING_SITE]: 'site',
   [SETTINGS_FIELDS.EDIT_SHIPPING_NAME]: 'name',
-
 };
