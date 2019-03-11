@@ -19,16 +19,6 @@ const HARVEST_STATE = {
 const MAX_HARVEST_CAPTCHA_COUNT = 5;
 
 class CaptchaWindowManager {
-  /**
-   * Check if given token is valid
-   *
-   * Tokens are invalid if they have exceeded their lifespan
-   * of 110 seconds. Use moment to check the timestamp
-   */
-  static isTokenValid({ timestamp }) {
-    return moment().diff(moment(timestamp), 'seconds') <= 110;
-  }
-
   constructor(context) {
     /**
      * Application Context
