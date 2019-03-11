@@ -40,7 +40,6 @@ class TaskLauncher {
       IPCKeys.RequestAddProxies,
       IPCKeys.RequestRemoveProxies,
       IPCKeys.RequestChangeDelay,
-      IPCKeys.HarvestCaptcha,
       IPCKeys.RequestWebhookUpdate,
       IPCKeys.RequestWebhookTest,
     ].forEach(key => {
@@ -273,7 +272,7 @@ class TaskLauncher {
   ) {
     // Bump the semaphore only if we don't already have it tracked
     if (!this._captchaRequesters[runnerId]) {
-      this._captchaRequesters[runnerId] = 1;
+      this._captchaRequesters[runnerId] = [];
       this._captchaSemaphore += 1;
 
       // If this is the first harvest event, start harvesting
@@ -281,11 +280,33 @@ class TaskLauncher {
         await this._context.windowManager.startHarvestingCaptcha(runnerId, siteKey);
       }
     }
+
+    const forwardToken = token => {
+      console.log('Sending token %s', token);
+      this._sendToLauncher(IPCKeys.HarvestCaptcha, runnerId, token, siteKey);
+    };
+
+    const request = this._context.windowManager.getNextCaptcha();
+    if (request.value) {
+      console.log('Sending Token immediately...');
+      // Received a token from the backlog -- send it immediately
+      forwardToken(request.value.token);
+    } else {
+      // Track request so we can handle it
+      request.promise.then(
+        ({ token }) => {
+          forwardToken(token);
+        },
+        () => {}, // Add empty reject handler in case this gets canceled...
+      );
+      this._captchaRequesters[runnerId].push(request);
+    }
   }
 
   _stopHarvestEventHandler(_, runnerId, siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
     // Decrement the semaphore only if we had previously started harvesting for this runner
     if (this._captchaRequesters[runnerId]) {
+      this._captchaRequesters[runnerId].forEach(request => request.cancel());
       delete this._captchaRequesters[runnerId];
       this._captchaSemaphore -= 1;
     }

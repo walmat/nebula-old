@@ -384,6 +384,15 @@ class WindowManager {
     this._captchaWindowManager.stopHarvesting(runnerId, siteKey);
   }
 
+  /**
+   * Get Next Captcha
+   *
+   * Forward call to Captcha Window Manager
+   */
+  getNextCaptcha() {
+    return this._captchaWindowManager.getNextCaptcha();
+  }
+
   // // TODO: Add this back in #350 (https://github.com/walmat/nebula/issues/350)
   // onRequestChangeTheme(_, opts) {
   //   const { backgroundColor } = opts;

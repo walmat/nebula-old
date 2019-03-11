@@ -213,6 +213,15 @@ class CaptchaWindowManager {
   }
 
   /**
+   * Get Captcha
+   *
+   * Return the next valid, available captcha from the queue
+   */
+  getNextCaptcha() {
+    return this._tokenQueue.next();
+  }
+
+  /**
    * Create a captcha window and show it
    */
   spawnCaptchaWindow(options = {}) {
