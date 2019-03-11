@@ -6,16 +6,17 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
-      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
-        break;
-      }
-      case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE: {
-        break;
-      }
-      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE: {
-        break;
-      }
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE:
       case SETTINGS_FIELDS.EDIT_SHIPPING_NAME: {
+        change = {
+          shipping: {
+            ...state.shipping,
+            [mapSettingsFieldToKey[action.field]]: action.value,
+          },
+          errors: Object.assign({}, state.errors, action.errors),
+        };
         break;
       }
       case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
@@ -121,9 +122,14 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       },
       errors: Object.assign({}, state.errors, action.errors),
     };
-  } else if (action.type === SETTINGS_ACTIONS.CLEAR) {
+  } else if (action.type === SETTINGS_ACTIONS.CLEAR_DEFAULTS) {
     change = {
       defaults: initialSettingsStates.defaults,
+      errors: Object.assign({}, state.errors, action.errors),
+    };
+  } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
+    change = {
+      shipping: initialSettingsStates.shipping,
       errors: Object.assign({}, state.errors, action.errors),
     };
   } else if (action.type === SETTINGS_ACTIONS.TEST) {

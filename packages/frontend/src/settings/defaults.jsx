@@ -203,7 +203,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(settingsActions.save(defaults));
   },
   onClearDefaults: changes => {
-    dispatch(settingsActions.clear(changes));
+    dispatch(settingsActions.clearDefaults(changes));
   },
 });
 

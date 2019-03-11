@@ -33,6 +33,7 @@ class Checkout {
     };
 
     this.captchaToken = '';
+    this.needsCaptcha = false;
     this.captchaTokenRequest = null;
   }
 
@@ -489,7 +490,7 @@ class Checkout {
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
       const recaptcha = $('.g-recaptcha');
       this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
-      if (recaptcha.length > 0 || url.indexOf('socialstatus') > -1) {
+      if (recaptcha.length > 0 || url.indexOf('socialstatus') > -1 || this.needsCaptcha) {
         this._context.task.checkoutSpeed = checkoutTimer.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
@@ -612,7 +613,7 @@ class Checkout {
     const { profileName } = profile;
     const { url, apiKey, name } = site;
 
-    if (checkoutTimer.getRunTime() > 10000) {
+    if (checkoutTimer.getRunTime() > 20000) {
       return { message: 'Processing timed out, check email', nextState: States.Stopped };
     }
 

@@ -247,8 +247,7 @@ class FrontendCheckout extends Checkout {
       const recaptcha = $('.g-recaptcha');
       this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
       if (recaptcha.length > 0) {
-        this._context.task.checkoutSpeed = timers.checkout.getRunTime();
-        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
+        this.needsCaptcha = true;
       }
 
       return { message: 'Submitting information', nextState: States.PatchCheckout };

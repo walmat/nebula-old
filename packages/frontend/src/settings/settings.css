@@ -45,7 +45,7 @@
 }
 .settings--shipping-manager__input-group {
   width: 422px;
-  height: 266px;
+  height: 166px;
   border-width: 1px;
   border-style: solid;
   padding-bottom: 3px;
@@ -57,30 +57,48 @@
 .theme-dark .settings--shipping-manager__input-group {
   border-color: #f0405e;
 }
-.settings--shipping-manager__input-group--select__profile {
+.settings--shipping-manager__input-group--product {
   font-family: AvenirNext-Medium;
   font-size: 9px;
   letter-spacing: 0;
+  border-width: 1px;
+  border-style: solid;
+  height: 29px;
+  padding-bottom: 3px;
+  border-radius: 3px;
   width: 170px;
   border-radius: 3px;
 }
-.theme-light .settings--shipping-manager__input-group--select__profile {
+.theme-light .settings--shipping-manager__input-group--product {
   color: #161318;
 }
-.theme-dark .settings--shipping-manager__input-group--select__profile {
+.theme-dark .settings--shipping-manager__input-group--product {
   color: #efefef;
 }
-.settings--shipping-manager__input-group--select__sizes {
+.settings--shipping-manager__input-group--profile {
   font-family: AvenirNext-Medium;
   font-size: 9px;
   letter-spacing: 0;
   width: 170px;
   border-radius: 3px;
 }
-.theme-light .settings--shipping-manager__input-group--select__sizes {
+.theme-light .settings--shipping-manager__input-group--profile {
   color: #161318;
 }
-.theme-dark .settings--shipping-manager__input-group--select__sizes {
+.theme-dark .settings--shipping-manager__input-group--profile {
+  color: #efefef;
+}
+.settings--shipping-manager__input-group--site {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  letter-spacing: 0;
+  width: 170px;
+  border-radius: 3px;
+}
+.theme-light .settings--shipping-manager__input-group--site {
+  color: #161318;
+}
+.theme-dark .settings--shipping-manager__input-group--site {
   color: #efefef;
 }
 .settings--shipping-manager__input-group--label {
