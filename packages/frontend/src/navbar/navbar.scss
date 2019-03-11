@@ -1,3 +1,4 @@
+@import './mixins';
 @import '../themes';
 
 %icons-base {
@@ -5,6 +6,16 @@
   &--active {
     opacity: 0.8333;
   }
+}
+
+%button-base {
+  @include navbar-font();
+  font-size: 12px;
+  width: 65px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
 }
 
 .active {
@@ -32,8 +43,8 @@
   }
 
   &__icons {
-    margin-top: 55px !important;
-    margin-bottom: 75px !important;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
   }
 
   &__icon {
@@ -55,12 +66,38 @@
     }
     &--settings {
       @extend %icons-base;
+      margin-left: -2px;
       width: 40px;
       height: 60px;
     }
   }
 
+  &__button {
+    &--open-captcha {
+      @extend %button-base;
+      @include themify($themes) {
+        background: themed('buttonColorPrimary');
+        color: themed('buttonPrimaryText');
+      }
+      margin-top: 19px;
+      width: 75px;
+    }
+    &--close-captcha {
+      @extend %button-base;
+      @include themify($themes) {
+        background: themed('buttonColorSecondary');
+        color: themed('buttonPrimaryText');
+      }
+      margin-top: 19px;
+      width: 75px;
+    }
+  }
+
   &__text {
+    &--gap {
+      margin-top: 15px !important;
+    }
+
     &--app-name {
       text-transform: capitalize;
       text-align: center;

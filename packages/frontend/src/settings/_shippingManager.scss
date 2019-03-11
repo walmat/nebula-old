@@ -1,0 +1,60 @@
+.settings {
+  &--shipping-manager {
+    &__section-header {
+      margin-top: 15px;
+    }
+
+    &__input-group {
+      width: 422px;
+      height: 266px;
+      @include themify($themes) {
+        border-color: themed('tableBorderColor');
+      }
+      border-width: 1px;
+      border-style: solid;
+      padding-bottom: 3px;
+      border-radius: 3px;
+
+      &--select {
+        &__profile {
+          @include settings-font();
+          width: 170px;
+          border-radius: 3px;
+        }
+        &__sizes {
+          @include settings-font();
+          width: 170px;
+          border-radius: 3px;
+        }
+      }
+
+      &--label {
+        @include settings-font();
+        @include themify($themes) {
+          color: themed('tableHeaderColor');
+        }
+        margin: 0;
+        margin-bottom: 2px;
+      }
+
+      &--save {
+        @extend %button-base;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+        }
+        width: 83px;
+      }
+
+      &--clear {
+        @extend %button-base;
+        @include themify($themes) {
+          background: themed('buttonColorSecondary');
+          color: themed('buttonPrimaryText');
+        }
+        width: 83px;
+        margin-right: 7.5px;
+      }
+    }
+  }
+}
