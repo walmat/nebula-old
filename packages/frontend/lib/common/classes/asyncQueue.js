@@ -37,6 +37,7 @@ class AsyncQueue {
       const resolution = this._waitQueue.pop();
       resolution.request.status = 'fulfilled';
       resolution.request.value = datum;
+      resolution.request.cancel = () => {};
       resolution.resolve(datum);
     } else {
       // Add data to the backlog
@@ -50,7 +51,7 @@ class AsyncQueue {
     // initialize request
     const nextRequest = {
       status: 'pending', // status of the request
-      cancel: null, // function to cancel the request with a given reason
+      cancel: () => {}, // function to cancel the request with a given reason
       promise: null, // the async promise that is waiting for the next value
       reason: '', // the reason for cancelling the request
       value: null, // the resolved value
