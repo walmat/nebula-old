@@ -1,17 +1,18 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { session: Session } = require('electron');
 const moment = require('moment');
-const shortid = require('shortid');
 
 const { createCaptchaWindow, createYouTubeWindow, urls } = require('./windows');
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
+const AsyncQueue = require('../common/classes/asyncQueue');
 
 nebulaEnv.setUpEnvironment();
 
 // TODO: Should we move this to the constants file?
 const HARVEST_STATE = {
   IDLE: 'idle',
+  SUSPEND: 'suspend',
   ACTIVE: 'active',
 };
 
@@ -47,16 +48,9 @@ class CaptchaWindowManager {
     this._youtubeWindows = {};
 
     /**
-     * Map of harvested tokens based on sitekey
+     * Async Queue to maange tokens
      */
-    this._tokens = {};
-
-    /**
-     * Count to limit the number of concurrent tokens
-     * captured at one time. This prevents one-clicks from
-     * going away
-     */
-    this._tokenCount = 0;
+    this._tokenQueue = new AsyncQueue();
 
     /**
      * Id for check token interval
@@ -75,6 +69,13 @@ class CaptchaWindowManager {
     };
 
     this.validateSender = this.validateSender.bind(this);
+
+    this._tokenQueue.addExpirationFilter(
+      ({ timestamp }) => moment().diff(moment(timestamp), 'seconds') <= 110,
+      1000,
+      this._handleTokenExpirationUpdate,
+      this,
+    );
 
     // Attach IPC handlers
     context.ipc.on(IPCKeys.RequestLaunchYoutube, this.validateSender(this._onRequestLaunchYoutube));
@@ -175,6 +176,23 @@ class CaptchaWindowManager {
         }),
       );
     }
+  }
+
+  /**
+   * Stop Harvesting
+   *
+   * Tell all captcha windows to stop harvesting and set the
+   * harvest state to 'idle'
+   */
+  suspendHarvesting(runnerId, siteKey) {
+    this._harvestStatus = {
+      state: HARVEST_STATE.SUSPEND,
+      runnerId,
+      siteKey,
+    };
+    this._captchaWindows.forEach(win => {
+      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
+    });
   }
 
   /**
@@ -321,28 +339,6 @@ class CaptchaWindowManager {
     });
   }
 
-  _checkTokens() {
-    let tokensTotal = 0;
-    // Iterate through all sitekey token lists
-    Object.keys(this._tokens).forEach(siteKey => {
-      // Filter out invalid tokens
-      this._tokens[siteKey] = this._tokens[siteKey].filter(token => {
-        if (CaptchaWindowManager.isTokenValid(token)) {
-          return true;
-        }
-        this._tokenCount -= 1;
-        return false;
-      });
-      tokensTotal += this._tokens[siteKey].length;
-    });
-
-    // Clear the interval if there are no more tokens
-    if (this._checkTokenIntervalId && tokensTotal === 0) {
-      clearInterval(this._checkTokenIntervalId);
-      this._checkTokenIntervalId = null;
-    }
-  }
-
   /**
    * Clears the storage data and cache for the session
    */
@@ -354,6 +350,19 @@ class CaptchaWindowManager {
     const win = this._youtubeWindows[ev.sender.id];
     if (win) {
       win.close();
+    }
+  }
+
+  /**
+   * Handle Expiration check updates
+   *
+   * Resume harvesting if it was previously suspended
+   * _and_ the number of tokens in the backlog is 0.
+   */
+  _handleTokenExpirationUpdate() {
+    const { state, runnerId, siteKey } = this._harvestStatus;
+    if (this._tokenQueue.backlogLength === 0 && state === HARVEST_STATE.SUSPEND) {
+      this.startHarvesting(runnerId, siteKey);
     }
   }
 
@@ -371,25 +380,16 @@ class CaptchaWindowManager {
     siteKey = 'unattached',
     host = 'http://checkout.shopify.com',
   ) {
-    if (!this._tokens[siteKey]) {
-      // Create token array if it hasn't been created for this sitekey
-      this._tokens[siteKey] = [];
-    }
-    this._tokenCount += 1;
     // Store the new token
-    this._tokens[siteKey].push({
+    this._tokenQueue.insert({
       token,
       siteKey,
       host,
       timestamp: moment(),
     });
-    // Start the check token interval if it hasn't been started
-    if (this._checkTokenIntervalId === null) {
-      this._checkTokenIntervalId = setInterval(this._checkTokens.bind(this), 1000);
-    }
 
-    if (this._tokenCount >= MAX_HARVEST_CAPTCHA_COUNT) {
-      this.stopHarvesting(runnerId, siteKey);
+    if (this._tokenQueue.backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
+      this.suspendHarvesting(runnerId, siteKey);
     }
   }
 
