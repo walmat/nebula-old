@@ -78,7 +78,7 @@ class AsyncQueue {
         this._waitQueue = this._waitQueue.filter(r => r.request !== nextRequest);
         reject(reason);
       };
-      this._waitQueue.push({ resolve, reject, request: nextRequest });
+      this._waitQueue.unshift({ resolve, reject, request: nextRequest });
     });
 
     return nextRequest;
