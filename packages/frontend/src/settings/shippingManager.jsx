@@ -32,7 +32,7 @@ export class ShippingManagerPrimitive extends Component {
         className: 'clear',
       },
       [SETTINGS_FIELDS.FETCH_SHIPPING_METHODS]: {
-        label: 'Fetch Shipping',
+        label: 'Fetch Rates',
         className: 'fetch',
       },
     };
@@ -136,6 +136,10 @@ export class ShippingManagerPrimitive extends Component {
         label: settings.shipping.site.name,
       };
     }
+    let accountFieldsDisabled = true;
+    if (settings.shipping.site !== null) {
+      accountFieldsDisabled = !settings.shipping.site.auth;
+    }
     return (
       <div>
         <div className="row row--gutter">
@@ -170,21 +174,18 @@ export class ShippingManagerPrimitive extends Component {
                         />
                       </div>
                       <div className="col col--gutter-left">
-                        <p className="settings--shipping-manager__input-group--label">
-                          Shipping Rate
-                        </p>
+                        <p className="settings--shipping-manager__input-group--label">Rate Name</p>
                         <input
-                          className="settings--shipping-manager__input-group--product"
+                          className="settings--shipping-manager__input-group--name"
                           type="text"
-                          placeholder=""
-                          disabled
+                          placeholder="Free Shipping"
                           onChange={this.createOnChangeHandler(
-                            SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+                            SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME,
                           )}
-                          value={settings.shipping.rate}
+                          value={settings.shipping.name}
                           style={buildStyle(
                             false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]],
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME]],
                           )}
                           required
                         />
@@ -201,6 +202,44 @@ export class ShippingManagerPrimitive extends Component {
                         shippingSiteValue,
                         getAllSupportedSitesSorted(),
                       )}
+                    </div>
+                    <div className="row row--gutter">
+                      <div className="col col--no-gutter-right">
+                        <p className="settings--shipping-manager__input-group--label">Username</p>
+                        <input
+                          className="settings--shipping-manager__input-group--username"
+                          type="text"
+                          placeholder="johndoe@example.com"
+                          onChange={this.createOnChangeHandler(
+                            SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME,
+                          )}
+                          value={settings.shipping.username}
+                          style={buildStyle(
+                            false,
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME]],
+                          )}
+                          required={!accountFieldsDisabled}
+                          disabled={accountFieldsDisabled}
+                        />
+                      </div>
+                      <div className="col col--gutter-right">
+                        <p className="settings--shipping-manager__input-group--label">Password</p>
+                        <input
+                          className="settings--shipping-manager__input-group--password"
+                          type="text"
+                          placeholder="***********"
+                          onChange={this.createOnChangeHandler(
+                            SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
+                          )}
+                          value={settings.shipping.password}
+                          style={buildStyle(
+                            false,
+                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD]],
+                          )}
+                          required={!accountFieldsDisabled}
+                          disabled={accountFieldsDisabled}
+                        />
+                      </div>
                     </div>
                     <div className="row row--gutter row--end">
                       <div className="col col--no-gutter-right">

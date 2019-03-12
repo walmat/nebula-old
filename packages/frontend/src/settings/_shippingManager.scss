@@ -1,3 +1,13 @@
+%button-base {
+  @include settings-font();
+  font-size: 12px;
+  width: 65px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+}
+
 .settings {
   &--shipping-manager {
     &__section-header {
@@ -6,7 +16,7 @@
 
     &__input-group {
       width: 422px;
-      height: 166px;
+      height: 228px;
       @include themify($themes) {
         border-color: themed('tableBorderColor');
       }
@@ -20,7 +30,15 @@
         border-width: 1px;
         border-style: solid;
         height: 29px;
-        padding-bottom: 3px;
+        border-radius: 3px;
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--name {
+        @include settings-font();
+        border-width: 1px;
+        border-style: solid;
+        height: 29px;
         border-radius: 3px;
         width: 170px;
         border-radius: 3px;
@@ -35,6 +53,24 @@
         width: 170px;
         border-radius: 3px;
       }
+      &--username {
+        @include settings-font();
+        border-width: 1px;
+        border-style: solid;
+        height: 29px;
+        border-radius: 3px;
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--password {
+        @include settings-font();
+        border-width: 1px;
+        border-style: solid;
+        height: 29px;
+        border-radius: 3px;
+        width: 170px;
+        border-radius: 3px;
+      }
 
       &--label {
         @include settings-font();
@@ -45,22 +81,22 @@
         margin-bottom: 2px;
       }
 
-      &--save {
+      &--fetch {
         @extend %button-base;
         @include themify($themes) {
-          background: themed('buttonColorPrimary');
-          color: themed('buttonPrimaryText');
+          background: themed('buttonColorPrimary') !important;
+          color: themed('buttonPrimaryText') !important;
         }
-        width: 83px;
+        width: 83px !important;
       }
 
       &--clear {
         @extend %button-base;
         @include themify($themes) {
-          background: themed('buttonColorSecondary');
-          color: themed('buttonPrimaryText');
+          background: themed('buttonColorSecondary') !important;
+          color: themed('buttonPrimaryText') !important;
         }
-        width: 83px;
+        width: 83px !important;
         margin-right: 7.5px;
       }
     }

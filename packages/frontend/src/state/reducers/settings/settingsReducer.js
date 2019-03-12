@@ -1,15 +1,52 @@
+import { parseURL } from 'whatwg-url';
 import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../actions';
-
+import getAllSites from '../../../constants/getAllSites';
 import { initialSettingsStates } from '../../../utils/definitions/settingsDefinitions';
 
 export default function settingsReducer(state = initialSettingsStates.settings, action) {
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
-      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
+        change.shipping = {
+          ...initialSettingsStates.shipping,
+          product: {
+            ...initialSettingsStates.shipping.product,
+            raw: action.value || '',
+          },
+          errors: Object.assign({}, state.errors, action.errors),
+        };
+        if (!action.value || !action.value.startsWith('http')) {
+          break;
+        }
+        const URL = parseURL(action.value);
+        if (!URL || !URL.host) {
+          break;
+        }
+        const newSite = getAllSites().find(s => URL.host.includes(s.value.split('/')[2]));
+        if (!newSite || newSite.label === state.shipping.site.name) {
+          break;
+        }
+        change.shipping = {
+          ...change,
+          site: {
+            url: newSite.value,
+            name: newSite.label,
+            apiKey: newSite.apiKey,
+            special: newSite.special || false,
+            auth: newSite.auth,
+          },
+          username: null,
+          password: null,
+          errors: Object.assign({}, state.errors, action.errors),
+        };
+        break;
+      }
       case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD:
       case SETTINGS_FIELDS.EDIT_SHIPPING_SITE:
-      case SETTINGS_FIELDS.EDIT_SHIPPING_NAME: {
+      case SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME: {
         change = {
           shipping: {
             ...state.shipping,
@@ -127,6 +164,8 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       defaults: initialSettingsStates.defaults,
       errors: Object.assign({}, state.errors, action.errors),
     };
+  } else if (action.type === SETTINGS_ACTIONS.FETCH_SHIPPING) {
+    console.log(action);
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
     change = {
       shipping: initialSettingsStates.shipping,
