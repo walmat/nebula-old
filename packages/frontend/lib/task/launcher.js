@@ -57,15 +57,22 @@ class TaskLauncher {
       context.ipc.on('debug', (ev, type, ...params) => {
         switch (type) {
           case 'testStartHarvest': {
-            this._startHarvestEventHandler(params[0] || 'testid1', params[1]);
+            this._startHarvestEventHandler(ev, params[0] || 'testid1', params[1]);
             break;
           }
           case 'testStopHarvest': {
-            this._stopHarvestEventHandler(params[0] || 'testid1', params[1]);
+            this._stopHarvestEventHandler(ev, params[0] || 'testid1', params[1]);
             break;
           }
           case 'viewHarvestedFrontendTokens': {
             ev.sender.send('debug', type, this._debugHarvestedTokens);
+            break;
+          }
+          case 'viewRunnerRequests': {
+            const requests = Object.keys(this._captchaRequesters).map(
+              runner => `${runner}: ${this._captchaRequesters[runner].length} requests`,
+            );
+            ev.sender.send('debug', type, requests);
             break;
           }
           default:

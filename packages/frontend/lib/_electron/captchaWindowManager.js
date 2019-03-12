@@ -86,6 +86,30 @@ class CaptchaWindowManager {
         this._captchaWindows.find(win => win.webContents.id === ev.sender.id).close();
       }),
     );
+
+    if (nebulaEnv.isDevelopment()) {
+      context.ipc.on('debug', (ev, type) => {
+        switch (type) {
+          case 'viewCwmQueueStats': {
+            ev.sender.send(
+              'debug',
+              type,
+              `Queue Line Length: ${this._tokenQueue.lineLength}, Backlog Length: ${
+                this._tokenQueue.backlogLength
+              }`,
+            );
+            break;
+          }
+          case 'viewCwmHarvestState': {
+            ev.sender.send('debug', type, `State: ${this._harvestStatus.state}`);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    }
   }
 
   /**
@@ -361,6 +385,7 @@ class CaptchaWindowManager {
   _handleTokenExpirationUpdate() {
     const { state, runnerId, siteKey } = this._harvestStatus;
     if (this._tokenQueue.backlogLength === 0 && state === HARVEST_STATE.SUSPEND) {
+      console.log('[DEBUG]: Resuming harvesters...');
       this.startHarvesting(runnerId, siteKey);
     }
   }
@@ -388,6 +413,7 @@ class CaptchaWindowManager {
     });
 
     if (this._tokenQueue.backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
+      console.log('[DEBUG]: Token Queue is greater than max, suspending...');
       this.suspendHarvesting(runnerId, siteKey);
     }
   }
