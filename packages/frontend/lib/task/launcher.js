@@ -288,21 +288,15 @@ class TaskLauncher {
       }
     }
 
-    const forwardToken = token => {
-      console.log('Sending token %s', token);
-      this._sendToLauncher(IPCKeys.HarvestCaptcha, runnerId, token, siteKey);
-    };
-
     const request = this._context.windowManager.getNextCaptcha();
     if (request.value) {
-      console.log('Sending Token immediately...');
       // Received a token from the backlog -- send it immediately
-      forwardToken(request.value.token);
+      this._sendToLauncher(IPCKeys.HarvestCaptcha, runnerId, request.value.token, siteKey);
     } else {
       // Track request so we can handle it
       request.promise.then(
         ({ token }) => {
-          forwardToken(token);
+          this._sendToLauncher(IPCKeys.HarvestCaptcha, runnerId, token, siteKey);
         },
         () => {}, // Add empty reject handler in case this gets canceled...
       );
@@ -313,13 +307,22 @@ class TaskLauncher {
   _stopHarvestEventHandler(_, runnerId, siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
     // Decrement the semaphore only if we had previously started harvesting for this runner
     if (this._captchaRequesters[runnerId]) {
-      this._captchaRequesters[runnerId].forEach(request => request.cancel());
+      let cancelCount = 0;
+      this._captchaRequesters[runnerId].forEach(({ status, cancel }) => {
+        // only cancel unfulfilled requests
+        if (status !== 'fulfilled') {
+          cancel();
+          cancelCount += 1;
+        }
+      });
+      console.log('[DEBUG]: Cancelled %d pending requests for runner %s', cancelCount, runnerId);
       delete this._captchaRequesters[runnerId];
       this._captchaSemaphore -= 1;
     }
 
     // If we drop back down to 0 requesters, stop the harvesting.
     if (this._captchaSemaphore === 0) {
+      console.log('[DEBUG]: No more tokens requested, stopping the harvester');
       this._context.windowManager.stopHarvestingCaptcha(runnerId, siteKey);
     }
   }
