@@ -16,11 +16,13 @@ import { initialTaskStates } from '../utils/definitions/taskDefinitions';
 import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
 import { initialServerStates } from '../utils/definitions/serverDefinitions';
 import { THEMES } from '../constants/themes';
+import migrator from './migrators';
 
 /**
  * Application State
  */
 export const initialState = {
+  version: '0.1.0',
   profiles: initialProfileStates.list,
   selectedProfile: initialProfileStates.profile,
   currentProfile: initialProfileStates.profile,
@@ -45,6 +47,7 @@ const topLevelReducer = (state = initialState, action) => {
     return { ...initialState };
   }
 
+  // Check for set theme and adjust it here
   if (action.type === GLOBAL_ACTIONS.SET_THEME) {
     if (action.theme) {
       const { theme } = action;
@@ -55,7 +58,12 @@ const topLevelReducer = (state = initialState, action) => {
     }
   }
 
-  // If not a reset, handle the action with sub reducers
+  // Check for migration and perform it
+  if (action.type === GLOBAL_ACTIONS.MIGRATE_STATE) {
+    return migrator(state);
+  }
+
+  // If not a global action, handle the action with sub reducers
   const changes = {
     tasks: taskListReducer(state.tasks, action),
     newTask: newTaskReducer(state.newTask, action, state.settings.defaults),
