@@ -1,6 +1,6 @@
 // import _ from 'lodash';
 import makeActionCreator from '../actionCreator';
-import regexes from '../../../utils/validation';
+import parseProductType from '../../../utils/parseProductType';
 
 // Top level Actions
 export const TASK_ACTIONS = {
@@ -16,64 +16,10 @@ export const TASK_ACTIONS = {
   ERROR: 'TASK_HANDLE_ERROR',
 };
 
-// Utility
-const _parseTaskProduct = product => {
-  const kws = product.raw.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
-
-  const validKeywords = kws.every(kw => regexes.keywordRegex.test(kw));
-
-  // TEMPORARY! - for testing with the mock server:
-  // const localhostUrlRegex = /https?:\/\/localhost:\d{2,5}/;
-  // if (localhostUrlRegex.test(product.raw)) {
-  //   return {
-  //     ...product,
-  //     url: product.raw,
-  //   };
-  // }
-  // END TEMPORARY
-
-  if (regexes.urlRegex.test(product.raw)) {
-    // test a url match
-    return {
-      ...product,
-      url: product.raw,
-    };
-  }
-
-  if (regexes.variantRegex.test(product.raw)) {
-    // test variant match
-    return {
-      ...product,
-      variant: product.raw,
-    };
-  }
-
-  if (validKeywords) {
-    // test keyword match
-    const posKeywords = [];
-    const negKeywords = [];
-    kws.forEach(kw => {
-      if (kw.startsWith('+')) {
-        // positive keywords
-        posKeywords.push(kw.slice(1, kw.length));
-      } else {
-        // negative keywords
-        negKeywords.push(kw.slice(1, kw.length));
-      }
-    });
-    return {
-      ...product,
-      pos_keywords: posKeywords,
-      neg_keywords: negKeywords,
-    };
-  }
-  return null;
-};
-
 // Private API Requests
 const _addTaskRequest = async task => {
   const copy = JSON.parse(JSON.stringify(task));
-  const parsedProduct = _parseTaskProduct(copy.product);
+  const parsedProduct = parseProductType(copy.product);
 
   if (parsedProduct) {
     copy.product = parsedProduct;
@@ -104,7 +50,7 @@ const _updateTaskRequest = async (id, task) => {
   }
 
   // After updating the base, reparse the products to make sure the correct type is filled out
-  const parsedProduct = _parseTaskProduct({
+  const parsedProduct = parseProductType({
     ...copy.product,
     variant: null,
     url: null,
