@@ -7,13 +7,10 @@ import v0_0_0_migrator from './v0.0.0/migrator';
 import v0_1_0_migrator from './v0.1.0/migrator';
 /* eslint-enable camelcase */
 
-const migrators = {
+const trackedMigrators = {
   '0.0.0': v0_0_0_migrator,
   '0.1.0': v0_1_0_migrator,
 };
-// Sort versions by semver so we can access migrators sequentially
-// ASSUME: there are no equal semvers in the migrator map
-const trackedVersions = Object.keys(migrators).sort((a, b) => (semver.gt(a, b) ? 1 : -1));
 
 /**
  * Top Level Migrator
@@ -24,14 +21,17 @@ const trackedVersions = Object.keys(migrators).sort((a, b) => (semver.gt(a, b) ?
  * receive all migration changes
  *
  * @param {*} state given state to migrate
- * @param {*} versions a list of valid semver versions (sorted) to use when
- *                     generating migrations. NOTE: this is exposed for
- *                     testing purposes and should not be used in production
- *                     the default valud includes all tracked versions for use
- *                     in production.
+ * @param {*} migrators a map of migrators keyed by valid semver versions.
+ *                      NOTE: this is exposed for
+ *                      testing purposes and should not be used in production
+ *                      the default valud includes all tracked versions for use
+ *                      in production.
  * @return a state valid with the latest tracked version
  */
-const topLevelMigrator = (state, versions = trackedVersions) => {
+const topLevelMigrator = (state, migrators = trackedMigrators) => {
+  // Sort versions by semver so we can access migrators sequentially
+  // ASSUME: there are no equal semvers in the migrators map
+  const versions = Object.keys(migrators).sort((a, b) => (semver.gt(a, b) ? 1 : -1));
   // Assign a starting version
   let startVersion = '0.0.0';
   if (state && state.version) {
