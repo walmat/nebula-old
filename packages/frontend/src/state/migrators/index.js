@@ -36,6 +36,13 @@ const topLevelMigrator = (state, migrators = trackedMigrators) => {
   let startVersion = '0.0.0';
   if (state && state.version) {
     startVersion = state.version;
+  } else if (!state) {
+    // If no state is given use the latest version's migrator to create an initial state tree.
+    // This shortciruits the process of creating a redundant chain when the last migrator
+    // is all we need.
+    startVersion = versions[versions.length - 1];
+    // Call the migrator with no state so we get the initial values
+    return migrators[startVersion]();
   }
 
   // Make sure version exists in our tracked versions before performing migration
