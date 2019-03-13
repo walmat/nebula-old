@@ -203,6 +203,12 @@ export const PAYMENT_FIELDS = {
   CVV: 'cvv',
 };
 
+export const RATES_FIELDS = {
+  SITE: 'site',
+  NAME: 'name',
+  RATE: 'rate',
+};
+
 export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_SHIPPING]: 'shipping',
   [PROFILE_FIELDS.EDIT_BILLING]: 'billing',
@@ -229,4 +235,10 @@ export const mapPaymentFieldToKey = {
   [PAYMENT_FIELDS.CARD_NUMBER]: 'cardNumber',
   [PAYMENT_FIELDS.EXP]: 'exp',
   [PAYMENT_FIELDS.CVV]: 'cvv',
+};
+
+export const mapRateFieldToKey = {
+  [RATES_FIELDS.SITE]: 'site',
+  [RATES_FIELDS.NAME]: 'name',
+  [RATES_FIELDS.RATE]: 'rate',
 };

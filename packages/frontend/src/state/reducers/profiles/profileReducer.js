@@ -88,8 +88,6 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       // If selecting a profile, we should return the profile that is given
       const loadedProfile = Object.assign({}, action.profile);
       loadedProfile.editId = loadedProfile.id;
-      loadedProfile.id = null;
-
       return loadedProfile;
     }
     case PROFILE_ACTIONS.REMOVE: {
