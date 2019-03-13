@@ -83,6 +83,8 @@ class Checkout {
         Referer: `${url}/account/login`,
       };
     }
+    // Reset captcha token so we don't reuse it
+    this.captchaToken = null;
 
     this._logger.verbose('CHECKOUT: Logging in');
     try {
@@ -539,6 +541,8 @@ class Checkout {
           'g-recaptcha-response': this.captchaToken,
         }),
       });
+      // Reset captcha token so we don't use it twice
+      this.captchaToken = null;
 
       const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);

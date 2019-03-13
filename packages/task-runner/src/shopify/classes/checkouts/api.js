@@ -101,8 +101,12 @@ class APICheckout extends Checkout {
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Upgrade-Insecure-Requests': '1',
         },
-        body: JSON.stringify(patchCheckoutForm(profile, shipping, billing, payment)),
+        body: JSON.stringify(
+          patchCheckoutForm(profile, shipping, billing, payment, this.captchaToken),
+        ),
       });
+      // Reset captcha token so we don't use it again
+      this.captchaToken = null;
 
       const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);

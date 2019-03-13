@@ -1,31 +1,24 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { session: Session } = require('electron');
 const moment = require('moment');
-const shortid = require('shortid');
 
 const { createCaptchaWindow, createYouTubeWindow, urls } = require('./windows');
 const nebulaEnv = require('./env');
 const IPCKeys = require('../common/constants');
+const AsyncQueue = require('../common/classes/asyncQueue');
 
 nebulaEnv.setUpEnvironment();
 
 // TODO: Should we move this to the constants file?
 const HARVEST_STATE = {
   IDLE: 'idle',
+  SUSPEND: 'suspend',
   ACTIVE: 'active',
 };
 
-class CaptchaWindowManager {
-  /**
-   * Check if given token is valid
-   *
-   * Tokens are invalid if they have exceeded their lifespan
-   * of 110 seconds. Use moment to check the timestamp
-   */
-  static isTokenValid({ timestamp }) {
-    return moment().diff(moment(timestamp), 'seconds') <= 110;
-  }
+const MAX_HARVEST_CAPTCHA_COUNT = 5;
 
+class CaptchaWindowManager {
   constructor(context) {
     /**
      * Application Context
@@ -45,9 +38,9 @@ class CaptchaWindowManager {
     this._youtubeWindows = {};
 
     /**
-     * Map of harvested tokens based on sitekey
+     * Async Queue to maange tokens
      */
-    this._tokens = {};
+    this._tokenQueue = new AsyncQueue();
 
     /**
      * Id for check token interval
@@ -66,6 +59,13 @@ class CaptchaWindowManager {
     };
 
     this.validateSender = this.validateSender.bind(this);
+
+    this._tokenQueue.addExpirationFilter(
+      ({ timestamp }) => moment().diff(moment(timestamp), 'seconds') <= 110,
+      1000,
+      this._handleTokenExpirationUpdate,
+      this,
+    );
 
     // Attach IPC handlers
     context.ipc.on(IPCKeys.RequestLaunchYoutube, this.validateSender(this._onRequestLaunchYoutube));
@@ -86,6 +86,30 @@ class CaptchaWindowManager {
         this._captchaWindows.find(win => win.webContents.id === ev.sender.id).close();
       }),
     );
+
+    if (nebulaEnv.isDevelopment()) {
+      context.ipc.on('debug', (ev, type) => {
+        switch (type) {
+          case 'viewCwmQueueStats': {
+            ev.sender.send(
+              'debug',
+              type,
+              `Queue Line Length: ${this._tokenQueue.lineLength}, Backlog Length: ${
+                this._tokenQueue.backlogLength
+              }`,
+            );
+            break;
+          }
+          case 'viewCwmHarvestState': {
+            ev.sender.send('debug', type, `State: ${this._harvestStatus.state}`);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    }
   }
 
   /**
@@ -174,6 +198,23 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
+  suspendHarvesting(runnerId, siteKey) {
+    this._harvestStatus = {
+      state: HARVEST_STATE.SUSPEND,
+      runnerId,
+      siteKey,
+    };
+    this._captchaWindows.forEach(win => {
+      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
+    });
+  }
+
+  /**
+   * Stop Harvesting
+   *
+   * Tell all captcha windows to stop harvesting and set the
+   * harvest state to 'idle'
+   */
   stopHarvesting(runnerId, siteKey) {
     this._harvestStatus = {
       state: HARVEST_STATE.IDLE,
@@ -183,6 +224,15 @@ class CaptchaWindowManager {
     this._captchaWindows.forEach(win => {
       win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
     });
+  }
+
+  /**
+   * Get Captcha
+   *
+   * Return the next valid, available captcha from the queue
+   */
+  getNextCaptcha() {
+    return this._tokenQueue.next();
   }
 
   /**
@@ -312,22 +362,6 @@ class CaptchaWindowManager {
     });
   }
 
-  _checkTokens() {
-    let tokensTotal = 0;
-    // Iterate through all sitekey token lists
-    Object.keys(this._tokens).forEach(siteKey => {
-      // Filter out invalid tokens
-      this._tokens[siteKey] = this._tokens[siteKey].filter(CaptchaWindowManager.isTokenValid);
-      tokensTotal += this._tokens[siteKey].length;
-    });
-
-    // Clear the interval if there are no more tokens
-    if (this._checkTokenIntervalId && tokensTotal === 0) {
-      clearInterval(this._checkTokenIntervalId);
-      this._checkTokenIntervalId = null;
-    }
-  }
-
   /**
    * Clears the storage data and cache for the session
    */
@@ -343,30 +377,44 @@ class CaptchaWindowManager {
   }
 
   /**
+   * Handle Expiration check updates
+   *
+   * Resume harvesting if it was previously suspended
+   * _and_ the number of tokens in the backlog is 0.
+   */
+  _handleTokenExpirationUpdate() {
+    const { state, runnerId, siteKey } = this._harvestStatus;
+    if (this._tokenQueue.backlogLength === 0 && state === HARVEST_STATE.SUSPEND) {
+      console.log('[DEBUG]: Resuming harvesters...');
+      this.startHarvesting(runnerId, siteKey);
+    }
+  }
+
+  /**
    * Harvest Token
    *
    * Harvest the token and store it with other tokens sharing the same site key.
    * Start the check token interval if it hasn't started already. This will
    * periodically check and remove expired tokens
    */
-  _onHarvestToken(_, __, token, siteKey = 'unattached', host = 'http://checkout.shopify.com') {
-    // TEMPORARY
-    // this.stopHarvesting();
-
-    if (!this._tokens[siteKey]) {
-      // Create token array if it hasn't been created for this sitekey
-      this._tokens[siteKey] = [];
-    }
+  _onHarvestToken(
+    _,
+    runnerId,
+    token,
+    siteKey = 'unattached',
+    host = 'http://checkout.shopify.com',
+  ) {
     // Store the new token
-    this._tokens[siteKey].push({
+    this._tokenQueue.insert({
       token,
       siteKey,
       host,
       timestamp: moment(),
     });
-    // Start the check token interval if it hasn't been started
-    if (this._checkTokenIntervalId === null) {
-      this._checkTokenIntervalId = setInterval(this._checkTokens.bind(this), 1000);
+
+    if (this._tokenQueue.backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
+      console.log('[DEBUG]: Token Queue is greater than max, suspending...');
+      this.suspendHarvesting(runnerId, siteKey);
     }
   }
 

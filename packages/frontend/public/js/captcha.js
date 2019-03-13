@@ -3,6 +3,7 @@ let _runnerId = '';
 let _started = false;
 let _resetting = false;
 let _initialized = false;
+let _submitting = false;
 let _waitingForLoad = false;
 let _iframe = null;
 const _defaultEvtOptions = {
@@ -142,7 +143,7 @@ async function autoClick() {
   await simulateClick(sourcePt);
 }
 
-function resetChallenge(shouldAutoClick = false) {
+function resetChallenge() {
   // Guard against too many reset calls
   if (_resetting) {
     return;
@@ -152,18 +153,21 @@ function resetChallenge(shouldAutoClick = false) {
   if (window.grecaptcha) {
     window.grecaptcha.reset();
   }
-  if (_started && shouldAutoClick) {
+  if (_started) {
     autoClick();
+  } else {
+    const form = document.getElementById('captchaForm');
+    form.setAttribute('style', 'display: none;');
   }
   _resetting = false;
 }
 
-// This function is used, but it is passed to the captcha
-// element via an attribute. eslint can't detect this and
-// throws a lint erroneously
-//
+// This function is used, but it is specified in the
+// script tag's src attribute. eslint is unable to detect
+// this, so it throws an error.
 // eslint-disable-next-line no-unused-vars
 async function submitCaptcha() {
+  _submitting = true;
   const captchaResponse = document.getElementById('g-recaptcha-response');
   // Only capture/send token if we can get it
   if (captchaResponse) {
@@ -171,9 +175,8 @@ async function submitCaptcha() {
     window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
     await waitFor(rand(500, 1000)); // wait a little bit before resetting
   }
-  if (_started) {
-    resetChallenge(true);
-  }
+  resetChallenge();
+  _submitting = false;
 }
 
 async function _registerStartHandler(_, runnerId, siteKey) {
@@ -209,16 +212,15 @@ async function _registerStartHandler(_, runnerId, siteKey) {
   }
 
   // If recaptcha has been previously loaded, reset it
-  resetChallenge(true);
+  resetChallenge();
 }
 
 function _registerStopHandler() {
   _started = false;
-  // Hide the form and reset it for when we start again
-  const form = document.getElementById('captchaForm');
 
-  resetChallenge();
-  form.setAttribute('style', 'display: none;');
+  if (!_submitting) {
+    resetChallenge();
+  }
 }
 
 function _onSaveProxy() {
