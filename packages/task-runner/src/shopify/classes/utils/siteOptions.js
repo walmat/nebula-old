@@ -519,7 +519,7 @@ const sites = [
     supported: true,
   },
   {
-    name: 'Stone Island',
+    name: 'Stone Island (UK)',
     url: 'https://www.stoneisland.co.uk',
     apiKey: 'aa1ba753ddfb01280ad3bcdc72f34206',
     auth: false,
@@ -584,6 +584,22 @@ const sites = [
   {
     name: 'Yeezy Supply',
     url: 'https://yeezysupply.com',
+    apiKey: 'afa13d942580749aa2985b086cc0bdcb',
+    special: true,
+    auth: false,
+    supported: true,
+  },
+  {
+    name: 'Yeezy Supply (Asia)',
+    url: 'https://yeezysupply.com',
+    apiKey: 'afa13d942580749aa2985b086cc0bdcb',
+    special: true,
+    auth: false,
+    supported: true,
+  },
+  {
+    name: 'Yeezy Supply (Europe)',
+    url: 'https://europe.yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     special: true,
     auth: false,

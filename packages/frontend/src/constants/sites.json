@@ -519,7 +519,7 @@
     "supported": true
   },
   {
-    "label": "Stone Island",
+    "label": "Stone Island (UK)",
     "value": "https://www.stoneisland.co.uk",
     "apiKey": "aa1ba753ddfb01280ad3bcdc72f34206",
     "auth": false,
@@ -585,6 +585,20 @@
   {
     "label": "Yeezy Supply",
     "value": "https://yeezysupply.com",
+    "apiKey": "afa13d942580749aa2985b086cc0bdcb",
+    "auth": false,
+    "supported": true
+  },
+  {
+    "label": "Yeezy Supply (Asia)",
+    "value": "https://asia.yeezysupply.com",
+    "apiKey": "afa13d942580749aa2985b086cc0bdcb",
+    "auth": false,
+    "supported": true
+  },
+  {
+    "label": "Yeezy Supply (Europe)",
+    "value": "https://europe.yeezysupply.com",
     "apiKey": "afa13d942580749aa2985b086cc0bdcb",
     "auth": false,
     "supported": true

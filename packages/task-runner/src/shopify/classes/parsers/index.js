@@ -28,7 +28,9 @@ function getSpecialParser(site) {
     }
     case 'Yeezy Supply':
     case 'Yeezy Supply 350':
-    case 'Yeezy Supply 700': {
+    case 'Yeezy Supply 700':
+    case 'Yeezy Supply (Asia)':
+    case 'Yeezy Supply (Europe)': {
       return (...params) => new YeezyParser(...params);
     }
     default: {
