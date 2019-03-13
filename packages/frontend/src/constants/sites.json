@@ -590,6 +590,20 @@
     "supported": true
   },
   {
+    "label": "Yeezy Supply (Asia)",
+    "value": "https://asia.yeezysupply.com",
+    "apiKey": "afa13d942580749aa2985b086cc0bdcb",
+    "auth": false,
+    "supported": true
+  },
+  {
+    "label": "Yeezy Supply (Europe)",
+    "value": "https://europe.yeezysupply.com",
+    "apiKey": "afa13d942580749aa2985b086cc0bdcb",
+    "auth": false,
+    "supported": true
+  },
+  {
     "label": "Yeezy Supply 350",
     "value": "https://350.yeezysupply.com",
     "apiKey": "afa13d942580749aa2985b086cc0bdcb",

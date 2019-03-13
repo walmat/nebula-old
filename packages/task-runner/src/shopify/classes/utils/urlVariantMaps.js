@@ -86,6 +86,8 @@ const urlToOptionIndex = {
   'https://worldofhombre.com': 1,
   'https://www.xhibition.co': 1,
   'https://yeezysupply.com': 1,
+  'https://asia.yeezysupply.com': 1,
+  'https://europe.yeezysupply.com': 1,
   'https://350.yeezysupply.com': 1,
   'https://700.yeezysupply.com': 1,
   'https://shop.justintimberlake.com': 1,
