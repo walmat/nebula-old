@@ -131,7 +131,6 @@ ProfilesPrimitive.propTypes = {
 export const mapStateToProps = state => ({
   profiles: state.profiles,
   currentProfile: state.currentProfile,
-  selectedProfile: state.selectedProfile,
 });
 
 export const mapDispatchToProps = dispatch => ({

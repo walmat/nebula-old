@@ -6,6 +6,7 @@ import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
 import { addTestId, renderSvgIcon } from '../utils';
+import ShippingRateFields from './shippingRates';
 
 import { ReactComponent as CVVInfoIcon } from '../_assets/info.svg';
 
@@ -25,7 +26,7 @@ export class PaymentFieldsPrimitive extends Component {
   }
 
   render() {
-    const { errors, value } = this.props;
+    const { errors, currentProfile, value } = this.props;
     return (
       <div className="col">
         <div className="row row--start">
@@ -93,6 +94,7 @@ export class PaymentFieldsPrimitive extends Component {
                 </div>
               </div>
             </div>
+            {currentProfile.id ? <ShippingRateFields profileToEdit={currentProfile} /> : null}
           </div>
         </div>
       </div>
@@ -102,12 +104,14 @@ export class PaymentFieldsPrimitive extends Component {
 
 PaymentFieldsPrimitive.propTypes = {
   errors: defns.paymentStateErrors.isRequired,
+  currentProfile: defns.profile.isRequired,
   onChange: PropTypes.func.isRequired,
   value: defns.paymentState.isRequired,
 };
 
 export const mapStateToProps = (state, ownProps) => ({
   errors: ownProps.profileToEdit.payment.errors,
+  currentProfile: ownProps.profileToEdit,
   value: ownProps.profileToEdit.payment,
 });
 

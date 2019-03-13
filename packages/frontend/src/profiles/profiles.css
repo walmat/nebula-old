@@ -264,6 +264,7 @@
 }
 .profiles .profiles-payment__input-group {
   border-radius: 3px;
+  margin-bottom: 28px;
 }
 .profiles .profiles-payment__input-group--email {
   width: 249px;
