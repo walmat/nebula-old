@@ -175,7 +175,7 @@
 /*
  * Implementation of themes
  */
-.profiles .profiles__fields--save, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .shipping-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--phone, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--first-name {
+.profiles .profiles__fields--save, .profiles-rates__input-group--rate, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .shipping-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--phone, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--first-name {
   border: 1px solid;
   margin: 9px 0;
   margin-right: 15px;
@@ -251,7 +251,7 @@
   width: 147px;
 }
 
-.profiles .profiles__fields--save, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone {
+.profiles .profiles__fields--save, .profiles-rates__input-group--rate, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone {
   border: 1px solid;
   margin: 9px 0;
   margin-right: 15px;
@@ -279,7 +279,35 @@
   width: 78px;
 }
 
-.profiles .profiles__fields--save, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone, .profiles .profiles-payment__input-group--email, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--cvv {
+.profiles .profiles__fields--save, .profiles-rates__input-group--rate, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone, .profiles .profiles-payment__input-group--email, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--cvv {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
+}
+
+.profiles-rates__section-header {
+  max-height: 32px;
+  margin: 6px 0;
+}
+.profiles-rates__input-group {
+  border-radius: 3px;
+  margin-bottom: 28px;
+}
+.profiles-rates__input-group--rate {
+  margin-top: 17px !important;
+  width: 249px;
+}
+.profiles-rates__input-group--site {
+  width: 117px;
+  height: 29px;
+}
+.profiles-rates__input-group--name {
+  width: 117px;
+  height: 29px;
+}
+
+.profiles .profiles__fields--save, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone, .profiles .profiles-payment__input-group--email, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--cvv, .profiles-rates__input-group--rate {
   border: 1px solid;
   margin: 9px 0;
   margin-right: 15px;

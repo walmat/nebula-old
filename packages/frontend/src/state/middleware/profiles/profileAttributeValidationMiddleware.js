@@ -8,7 +8,7 @@ import profileAttributeValidatorMap from '../../../utils/validation/profileAttri
 
 const profileAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing a profile
-  if (action.type !== PROFILE_ACTIONS.EDIT) {
+  if (action.type !== PROFILE_ACTIONS.EDIT || action.field === PROFILE_FIELDS.EDIT_RATES) {
     return next(action);
   }
 

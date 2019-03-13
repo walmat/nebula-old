@@ -5,36 +5,30 @@
   height: 29px;
 }
 
-.profiles {
-  .profiles-rates {
-    &__section-header {
-      max-height: 32px;
-      margin: 6px 0;
+.profiles-rates {
+  &__section-header {
+    max-height: 32px;
+    margin: 6px 0;
+  }
+
+  &__input-group {
+    border-radius: 3px;
+    margin-bottom: 28px;
+
+    &--rate {
+      @extend %input_field;
+      margin-top: 17px !important;
+      width: 249px;
     }
 
-    &__input-group {
-      border-radius: 3px;
-      margin-bottom: 28px;
+    &--site {
+      width: 117px;
+      height: 29px;
+    }
 
-      &--email {
-        @extend %input_field;
-        width: 249px;
-      }
-
-      &--card-number {
-        @extend %input_field;
-        width: 249px;
-      }
-
-      &--expiration {
-        @extend %input_field;
-        width: 155px;
-      }
-
-      &--cvv {
-        @extend %input_field;
-        width: 78px;
-      }
+    &--name {
+      width: 117px;
+      height: 29px;
     }
   }
 }
