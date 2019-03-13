@@ -16,7 +16,7 @@ import { initialTaskStates } from '../utils/definitions/taskDefinitions';
 import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
 import { initialServerStates } from '../utils/definitions/serverDefinitions';
 import { THEMES } from '../constants/themes';
-import migrator from './migrators';
+import topLevelMigrator from './migrators';
 
 /**
  * Application State
@@ -60,7 +60,7 @@ const topLevelReducer = (state = initialState, action) => {
 
   // Check for migration and perform it
   if (action.type === GLOBAL_ACTIONS.MIGRATE_STATE) {
-    return migrator(state);
+    return topLevelMigrator(state);
   }
 
   // If not a global action, handle the action with sub reducers
