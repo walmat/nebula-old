@@ -104,6 +104,10 @@ class WindowManager {
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
+    context.ipc.on(
+      IPCKeys.RequestCheckForUpdates,
+      WindowManager._onRequestCheckForUpdates.bind(this),
+    );
     // TODO: Add this back in #350 (https://github.com/walmat/nebula/issues/350)
     // context.ipc.on(IPCKeys.ChangeTheme, this.onRequestChangeTheme.bind(this));
   }
@@ -295,6 +299,11 @@ class WindowManager {
 
       w.webContents.send(IPCKeys.UpdateWindowIDs, windowIDs);
     });
+  }
+
+  static _onRequestCheckForUpdates() {
+    log.info('Starting update check...');
+    autoUpdater.checkForUpdatesAndNotify();
   }
 
   /**

@@ -33,6 +33,13 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
+  static _checkForUpdates() {
+    if (window.Bridge) {
+      return window.Bridge.checkForUpdates();
+    }
+    return new Error('window.Bridge is not available');
+  }
+
   static _renderNavbarIconRow({ Icon, iconName, className, onClick, onKeyPress }) {
     return (
       <div key={iconName} className="row row--expand">
@@ -128,8 +135,17 @@ export class NavbarPrimitive extends PureComponent {
                       </div>
                     </div>
                     <div className="row row--end">
-                      <div>
-                        <p className="navbar__text--app-version">{version}</p>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          NavbarPrimitive._checkForUpdates();
+                        }}
+                        onKeyPress={() => {}}
+                      >
+                        <p className="navbar__text--app-version" title="Check for updates">
+                          {version}
+                        </p>
                       </div>
                     </div>
                   </div>

@@ -7,6 +7,10 @@ const { base, util } = require('./index');
 
 nebulaEnv.setUpEnvironment();
 
+const _checkForUpdates = () => {
+  util.sendEvent(IPCKeys.RequestCheckForUpdates);
+};
+
 /**
  * Sends the deactivate trigger to authManager.js
  */
@@ -106,6 +110,7 @@ process.once('loaded', () => {
   window.Bridge = window.Bridge || {
     ...base,
     /* PRIVATE EVENTS */
+    checkForUpdates: _checkForUpdates,
     launchCaptchaHarvester: _launchCaptchaHarvester,
     setTheme: _setTheme,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
