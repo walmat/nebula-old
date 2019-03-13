@@ -179,6 +179,7 @@ export const PROFILE_FIELDS = {
   EDIT_SHIPPING: 'EDIT_SHIPPING',
   EDIT_BILLING: 'EDIT_BILLING',
   EDIT_PAYMENT: 'EDIT_PAYMENT',
+  EDIT_RATES: 'EDIT_RATES',
   EDIT_BILLING_MATCHES_SHIPPING: 'EDIT_BILLING_MATCHES_SHIPPING',
   TOGGLE_BILLING_MATCHES_SHIPPING: 'TOGGLE_BILLING_MATCHES_SHIPPING',
   EDIT_NAME: 'EDIT_NAME',
@@ -204,15 +205,16 @@ export const PAYMENT_FIELDS = {
 };
 
 export const RATES_FIELDS = {
-  SITE: 'site',
-  NAME: 'name',
-  RATE: 'rate',
+  SITE: 'selectedSite',
+  NAME: 'selectedName',
+  RATE: 'selectedRate',
 };
 
 export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_SHIPPING]: 'shipping',
   [PROFILE_FIELDS.EDIT_BILLING]: 'billing',
   [PROFILE_FIELDS.EDIT_PAYMENT]: 'payment',
+  [PROFILE_FIELDS.EDIT_RATES]: 'rates',
   [PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.EDIT_NAME]: 'profileName',
@@ -238,7 +240,7 @@ export const mapPaymentFieldToKey = {
 };
 
 export const mapRateFieldToKey = {
-  [RATES_FIELDS.SITE]: 'site',
-  [RATES_FIELDS.NAME]: 'name',
-  [RATES_FIELDS.RATE]: 'rate',
+  [RATES_FIELDS.SITE]: 'selectedSite',
+  [RATES_FIELDS.NAME]: 'selectedName',
+  [RATES_FIELDS.RATE]: 'selectedRate',
 };

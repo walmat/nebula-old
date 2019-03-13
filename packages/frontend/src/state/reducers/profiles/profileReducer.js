@@ -2,6 +2,7 @@ import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../act
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
 import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
+import ratesReducer from './ratesReducer';
 
 export function profileReducer(state = initialProfileStates.profile, action) {
   let change = {};
@@ -32,6 +33,15 @@ export function profileReducer(state = initialProfileStates.profile, action) {
       case PROFILE_FIELDS.EDIT_PAYMENT:
         change = {
           payment: paymentReducer(state.payment, {
+            type: action.subField,
+            value: action.value,
+            errors: action.errors,
+          }),
+        };
+        break;
+      case PROFILE_FIELDS.EDIT_RATES:
+        change = {
+          rates: ratesReducer(state.rates, {
             type: action.subField,
             value: action.value,
             errors: action.errors,

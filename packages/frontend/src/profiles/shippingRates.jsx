@@ -3,12 +3,10 @@ import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { RATES_FIELDS, profileActions, mapRateFieldToKey } from '../state/actions';
-import { addTestId } from '../utils';
 
 import './profiles.css';
 
@@ -18,13 +16,13 @@ export class ShippingRatesPrimitive extends Component {
     this.selects = {
       [RATES_FIELDS.SITE]: {
         placeholder: 'Choose Site',
-        className: '',
-        colStyling: '',
+        className: 'site',
+        colStyling: 'col col--no-gutter-left',
       },
       [RATES_FIELDS.NAME]: {
         placeholder: 'Choose Rate',
-        className: '',
-        colStyling: '',
+        className: 'name',
+        colStyling: 'col col--no-gutter',
       },
     };
   }
@@ -32,12 +30,12 @@ export class ShippingRatesPrimitive extends Component {
   createOnChangeHandler(field) {
     const { onChange } = this.props;
     return event => {
-      onChange({ field, value: event.target.value });
+      onChange({ field, value: event });
     };
   }
 
   renderSelect(field, value, options) {
-    const { errors, theme } = this.props;
+    const { theme } = this.props;
     const { placeholder, className, colStyling } = this.selects[field];
     return (
       <div className={colStyling}>
@@ -49,7 +47,7 @@ export class ShippingRatesPrimitive extends Component {
           isClearable={false}
           className={`profiles-rates__input-group--${className}`}
           classNamePrefix="select"
-          styles={colourStyles(theme, buildStyle(false, errors[mapRateFieldToKey[field]]))}
+          styles={colourStyles(theme)}
           onChange={this.createOnChangeHandler(field)}
           value={value}
           options={options}
@@ -59,23 +57,25 @@ export class ShippingRatesPrimitive extends Component {
   }
 
   renderRateFields() {
-    const { value, errors, profile } = this.props;
-    const siteOptions = value.map(r => ({ value: r.site.url, label: r.site.name }));
+    const { value, errors, selectedProfile } = this.props;
+    console.log(selectedProfile);
+    const { selectedRate, selectedSite } = selectedProfile;
+    const siteOptions = selectedProfile.rates.map(r => ({ value: r.site.url, label: r.site.name }));
     let nameOptions = [];
-    if (profile.selectedSite) {
-      const rates = value.find(v => v.site.url === profile.selectedSite.url);
-      console.log(rates);
+    console.log(value);
+    if (selectedSite) {
+      const rates = value.find(v => v.site.url === selectedProfile.selectedSite.url);
       nameOptions = rates.map(r => ({ value: r.rates.rate, label: r.rates.name }));
     }
     return (
       <div className="col profiles-rates__input-group">
-        <div className="row row--gutter">
-          {this.renderSelect(RATES_FIELDS.SITE, profile.selectedSite, siteOptions)}
-          {this.renderSelect(RATES_FIELDS.NAME, profile.selectedRate, nameOptions)}
+        <div className="row row--gutter row--start">
+          {this.renderSelect(RATES_FIELDS.SITE, selectedSite, siteOptions)}
+          {this.renderSelect(RATES_FIELDS.NAME, selectedRate, nameOptions)}
         </div>
         <div className="row row--gutter">
           <input
-            className="profiles-rates--rate"
+            className="profiles-rates__input-group--rate"
             required
             disabled
             value={value.rate}
@@ -114,20 +114,24 @@ export class ShippingRatesPrimitive extends Component {
 
 ShippingRatesPrimitive.propTypes = {
   errors: defns.paymentStateErrors.isRequired,
-  profile: defns.profile.isRequired,
   theme: PropTypes.string.isRequired,
+  selectedProfile: defns.profile.isRequired,
   onChange: PropTypes.func.isRequired,
   value: defns.rates.isRequired,
 };
 
 export const mapStateToProps = (state, ownProps) => ({
   errors: ownProps.profileToEdit.payment.errors,
-  profile: ownProps.profileToEdit,
   theme: state.theme,
+  selectedProfile: state.selectedProfile,
   value: ownProps.profileToEdit.rates,
 });
 
-export const mapDispatchToProps = dispatch => ({});
+export const mapDispatchToProps = (dispatch, ownProps) => ({
+  onChange: (changes, section) => {
+    dispatch(profileActions.edit(ownProps.profileToEdit.id, section, changes.value, changes.field));
+  },
+});
 
 export default connect(
   mapStateToProps,
