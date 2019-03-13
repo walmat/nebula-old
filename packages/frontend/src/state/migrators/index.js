@@ -24,7 +24,7 @@ const trackedMigrators = {
  * @param {*} migrators a map of migrators keyed by valid semver versions.
  *                      NOTE: this is exposed for
  *                      testing purposes and should not be used in production
- *                      the default valud includes all tracked versions for use
+ *                      the default value includes all tracked versions for use
  *                      in production.
  * @return a state valid with the latest tracked version
  */
