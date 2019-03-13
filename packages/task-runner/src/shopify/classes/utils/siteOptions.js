@@ -519,7 +519,7 @@ const sites = [
     supported: true,
   },
   {
-    name: 'Stone Island',
+    name: 'Stone Island (UK)',
     url: 'https://www.stoneisland.co.uk',
     apiKey: 'aa1ba753ddfb01280ad3bcdc72f34206',
     auth: false,
