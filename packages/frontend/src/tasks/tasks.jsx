@@ -270,7 +270,6 @@ export const mapStateToProps = state => ({
   errorDelay: state.settings.errorDelay,
   tasks: state.tasks,
   proxies: state.settings.proxies,
-  errors: state.settings.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({
