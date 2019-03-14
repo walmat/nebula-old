@@ -2,7 +2,7 @@
 import configureMockStore from 'redux-mock-store';
 
 import * as actions from '../../../state/actions';
-import { initialState } from '../../../state/reducers';
+import { initialState } from '../../../state/migrators';
 
 const { settingsActions, SETTINGS_ACTIONS } = actions;
 const _createMockStore = configureMockStore();

@@ -4,8 +4,8 @@ import { shallow } from 'enzyme';
 
 import { TaskRowPrimitive, mapStateToProps, mapDispatchToProps } from '../../tasks/taskRow';
 import { TASK_FIELDS, taskActions } from '../../state/actions';
-import { initialTaskStates } from '../../utils/definitions/taskDefinitions';
-import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
+import initialTaskStates from '../../state/initial/tasks';
+import initialProfileStates from '../../state/initial/profiles';
 import getAllSites from '../../constants/getAllSites';
 import getAllSizes from '../../constants/getAllSizes';
 

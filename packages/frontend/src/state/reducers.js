@@ -8,34 +8,9 @@ import { currentProfileReducer, selectedProfileReducer } from './reducers/profil
 import profileListReducer from './reducers/profiles/profileListReducer';
 import { serverReducer, serverListReducer } from './reducers/server/serverReducer';
 import settingsReducer from './reducers/settings/settingsReducer';
-import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
+import navbarReducer from './reducers/navbar/navbarReducer';
 import { GLOBAL_ACTIONS } from './actions';
-import serverListOptions from '../utils/servers';
-import { initialProfileStates } from '../utils/definitions/profileDefinitions';
-import { initialTaskStates } from '../utils/definitions/taskDefinitions';
-import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
-import { initialServerStates } from '../utils/definitions/serverDefinitions';
-import { THEMES } from '../constants/themes';
-import topLevelMigrator from './migrators';
-
-/**
- * Application State
- */
-export const initialState = {
-  version: '0.1.0',
-  profiles: initialProfileStates.list,
-  selectedProfile: initialProfileStates.profile,
-  currentProfile: initialProfileStates.profile,
-  tasks: initialTaskStates.list,
-  newTask: initialTaskStates.task,
-  navbar: initialNavbarState,
-  selectedTask: initialTaskStates.task,
-  settings: initialSettingsStates.settings,
-  serverInfo: initialServerStates.serverInfo,
-  servers: initialServerStates.serverList,
-  serverListOptions,
-  theme: THEMES.LIGHT,
-};
+import topLevelMigrator, { initialState } from './migrators';
 
 const topLevelReducer = (state = initialState, action) => {
   // Return State if a null/undefined action is given

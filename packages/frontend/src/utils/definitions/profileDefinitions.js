@@ -1,18 +1,9 @@
-import locationState, { initialLocationState } from './profiles/locationState';
-import locationStateErrors, { initialLocationErrorState } from './profiles/locationStateErrors';
-import paymentState, { initialPaymentState } from './profiles/paymentState';
-import paymentStateErrors, { initialPaymentErrorState } from './profiles/paymentStateErrors';
-import profile, { initialProfileState } from './profiles/profile';
-import profileList, { initialProfileListState } from './profiles/profileList';
-
-export const initialProfileStates = {
-  location: initialLocationState,
-  locationErrors: initialLocationErrorState,
-  payment: initialPaymentState,
-  paymentErrors: initialPaymentErrorState,
-  profile: initialProfileState,
-  list: initialProfileListState,
-};
+import locationState from './profiles/locationState';
+import locationStateErrors from './profiles/locationStateErrors';
+import paymentState from './profiles/paymentState';
+import paymentStateErrors from './profiles/paymentStateErrors';
+import profile from './profiles/profile';
+import profileList from './profiles/profileList';
 
 export default {
   locationState,

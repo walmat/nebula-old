@@ -4,8 +4,8 @@ import { shallow } from 'enzyme';
 
 import { LoadProfilePrimitive, mapDispatchToProps } from '../../profiles/loadProfile';
 import { profileActions } from '../../state/actions';
-import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
-import { initialState } from '../../state/reducers';
+import initialProfileStates from '../../state/initial/profiles';
+import { initialState } from '../../state/migrators';
 
 describe('<LoadProfile />', () => {
   let defaultProps;

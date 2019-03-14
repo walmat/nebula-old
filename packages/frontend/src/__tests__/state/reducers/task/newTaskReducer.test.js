@@ -1,6 +1,6 @@
 /* global describe expect it test jest */
 import { newTaskReducer } from '../../../../state/reducers/tasks/taskReducer';
-import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
+import initialTaskStates from '../../../../state/initial/tasks';
 import {
   TASK_ACTIONS,
   TASK_FIELDS,

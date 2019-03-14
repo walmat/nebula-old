@@ -1,14 +1,6 @@
 import PropTypes from 'prop-types';
 
-import paymentStateErrors, { initialPaymentErrorState } from './paymentStateErrors';
-
-export const initialPaymentState = {
-  email: '',
-  cardNumber: '',
-  exp: '',
-  cvv: '',
-  errors: initialPaymentErrorState,
-};
+import paymentStateErrors from './paymentStateErrors';
 
 const paymentState = PropTypes.shape({
   email: PropTypes.string,

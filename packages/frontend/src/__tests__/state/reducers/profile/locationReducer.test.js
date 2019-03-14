@@ -1,7 +1,7 @@
 /* global describe it expect test */
 import locationReducer from '../../../../state/reducers/profiles/locationReducer';
 import { LOCATION_FIELDS } from '../../../../state/actions';
-import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../../../state/initial/profiles';
 
 describe('location reducer', () => {
   it('should return initial state', () => {

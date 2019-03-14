@@ -1,6 +1,7 @@
 /* global describe it expect beforeEach */
 import { globalActions, GLOBAL_ACTIONS } from '../../state/actions';
-import topLevelReducer, { initialState } from '../../state/reducers';
+import topLevelReducer from '../../state/reducers';
+import { initialState } from '../../state/migrators';
 import { THEMES } from '../../constants/themes';
 
 describe('top level reducer', () => {

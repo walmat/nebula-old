@@ -1,30 +1,10 @@
 import PropTypes from 'prop-types';
 
-import taskEdit, { initialTaskEditState } from './taskEdit';
-import taskErrors, { initialTaskErrorState } from './taskErrors';
-import taskProduct, { initialTaskProductState } from './taskProduct';
-import taskSite, { initialTaskSiteState } from './taskSite';
-import { initialSettingsState } from '../settings/settings';
-import pDefns, { initialProfileStates } from '../profileDefinitions';
-
-export const initialTaskState = {
-  id: '',
-  index: 0,
-  product: initialTaskProductState,
-  site: initialTaskSiteState,
-  profile: initialProfileStates.profile,
-  sizes: [],
-  username: '',
-  password: '',
-  status: 'idle',
-  output: '',
-  errorDelay: initialSettingsState.errorDelay,
-  monitorDelay: initialSettingsState.monitorDelay,
-  discord: initialSettingsState.discord,
-  slack: initialSettingsState.slack,
-  errors: initialTaskErrorState,
-  edits: initialTaskEditState,
-};
+import taskEdit from './taskEdit';
+import taskErrors from './taskErrors';
+import taskProduct from './taskProduct';
+import taskSite from './taskSite';
+import pDefns from '../profileDefinitions';
 
 const task = PropTypes.shape({
   id: PropTypes.string,

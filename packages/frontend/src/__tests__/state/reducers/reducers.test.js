@@ -1,5 +1,6 @@
 /* global describe it test expect jest */
-import topLevelReducer, { initialState } from '../../../state/reducers';
+import topLevelReducer from '../../../state/reducers';
+import { initialState } from '../../../state/migrators';
 
 describe('top level reducer', () => {
   it('should return the initial state', () => {

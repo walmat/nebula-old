@@ -1,6 +1,6 @@
 /* global describe it expect test */
 import { profileReducer } from '../../../../state/reducers/profiles/profileReducer';
-import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../../../state/initial/profiles';
 import {
   mapProfileFieldToKey,
   mapLocationFieldToKey,

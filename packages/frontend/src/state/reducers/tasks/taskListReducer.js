@@ -8,7 +8,7 @@ import {
   mapSettingsFieldToKey,
 } from '../../actions';
 import { taskReducer } from './taskReducer';
-import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
+import initialTaskStates from '../../initial/tasks';
 import { SETTINGS_ACTIONS } from '../../actions/settings/settingsActions';
 
 let _num = 1;

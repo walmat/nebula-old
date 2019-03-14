@@ -12,6 +12,14 @@ const trackedMigrators = {
   '0.1.0': v0_1_0_migrator,
 };
 
+const getInitialState = () => {
+  const versions = Object.keys(trackedMigrators).sort((a, b) => (semver.gt(a, b) ? 1 : -1));
+  const latest = versions[versions.length - 1];
+  return trackedMigrators[latest]();
+};
+
+export const initialState = getInitialState();
+
 /**
  * Top Level Migrator
  *

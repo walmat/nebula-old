@@ -1,5 +1,6 @@
 /* global describe it expect */
-import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
+import tDefns from '../../../../utils/definitions/taskDefinitions';
+import initialTaskStates from '../../../../state/initial/tasks';
 import { setupConsoleErrorSpy, testArray } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskList definitions', () => {

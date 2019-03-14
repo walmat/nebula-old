@@ -6,7 +6,7 @@ import { TasksPrimitive, mapStateToProps, mapDispatchToProps } from '../../tasks
 import CreateTask from '../../tasks/createTask';
 import ViewTask from '../../tasks/viewTask';
 import LogTask from '../../tasks/logTask';
-import { initialTaskStates } from '../../utils/definitions/taskDefinitions';
+import initialTaskStates from '../../state/initial/tasks';
 
 import getByTestId from '../../__testUtils__/getByTestId';
 
