@@ -1,6 +1,9 @@
 /*
  * Implementation of themes
  */
+/*
+ * Implementation of themes
+ */
 .navbar__icon--settings, .navbar__icon--servers, .navbar__icon--profiles, .navbar__icon--tasks {
   cursor: pointer;
 }

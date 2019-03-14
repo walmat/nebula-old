@@ -23,12 +23,12 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         if (!URL || !URL.host) {
           break;
         }
-        const newSite = getAllSites().find(s => URL.host.includes(s.value.split('/')[2]));
+        const newSite = getAllSites().find(s => URL.host === parseURL(s.value).host);
         if (!newSite || newSite.label === state.shipping.site.name) {
           break;
         }
         change.shipping = {
-          ...change,
+          ...change.shipping,
           site: {
             url: newSite.value,
             name: newSite.label,
@@ -165,7 +165,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       errors: Object.assign({}, state.errors, action.errors),
     };
   } else if (action.type === SETTINGS_ACTIONS.FETCH_SHIPPING) {
-    console.log(action);
+    // TODO - setup reducer here
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
     change = {
       shipping: initialSettingsStates.shipping,

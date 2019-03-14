@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import PaymentFields from './paymentFields';
+import ShippingRateFields from './shippingRates';
 import LocationFields from './locationFields';
 import LoadProfile from './loadProfile';
 import validationStatus from '../utils/validationStatus';
@@ -56,7 +57,8 @@ export class ProfilesPrimitive extends Component {
   }
 
   render() {
-    const { currentProfile, onProfileNameChange } = this.props;
+    const { currentProfile, onProfileNameChange, profiles } = this.props;
+    const profileExists = profiles.find(p => p.profileName === currentProfile.profileName);
     return (
       <form>
         <div className="container profiles">
@@ -91,7 +93,17 @@ export class ProfilesPrimitive extends Component {
               }
               disabled={currentProfile.billingMatchesShipping}
             />
-            <PaymentFields className="profiles__fields--payment" profileToEdit={currentProfile} />
+            <div className="col col--start">
+              <div className="row row--start">
+                <PaymentFields
+                  className="profiles__fields--payment"
+                  profileToEdit={currentProfile}
+                />
+              </div>
+              <div className="row row--start">
+                {profileExists ? <ShippingRateFields profileToEdit={currentProfile} /> : null}
+              </div>
+            </div>
           </div>
           <div className="row row--expand row--end row--gutter">
             <div className="col col--start col--no-gutter-left">
