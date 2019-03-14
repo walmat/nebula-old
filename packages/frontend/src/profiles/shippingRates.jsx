@@ -9,6 +9,7 @@ import defns from '../utils/definitions/profileDefinitions';
 import { RATES_FIELDS, profileActions, mapRateFieldToKey } from '../state/actions';
 
 import './profiles.css';
+import { PROFILE_FIELDS } from '../state/actions/profiles/profileActions';
 
 export class ShippingRatesPrimitive extends Component {
   constructor(props) {
@@ -29,9 +30,18 @@ export class ShippingRatesPrimitive extends Component {
 
   createOnChangeHandler(field) {
     const { onChange } = this.props;
-    return event => {
-      onChange({ field, value: event });
-    };
+    switch (field) {
+      case RATES_FIELDS.SITE: {
+        return event => {
+          onChange({ field, value: event }, PROFILE_FIELDS.EDIT_SELECTED_SITE);
+        };
+      }
+      default: {
+        return event => {
+          onChange({ field, value: event }, PROFILE_FIELDS.EDIT_RATES);
+        };
+      }
+    }
   }
 
   renderSelect(field, value, options) {
@@ -58,25 +68,24 @@ export class ShippingRatesPrimitive extends Component {
 
   renderRateFields() {
     const { value, errors } = this.props;
-    const { selectedRate, selectedSite } = value;
-    const siteOptions = value.map(r => ({ value: r.site.url, label: r.site.name }));
+    const siteOptions = value.rates.map(r => ({ value: r.site.url, label: r.site.name }));
     let nameOptions = [];
-    // if (selectedRate) {
-    //   const rates = value.find(v => v.site.url === selectedSite.url);
-    //   nameOptions = rates.map(r => ({ value: r.rates.rate, label: r.rates.name }));
-    // }
+    if (value.selectedSite) {
+      const rates = value.find(v => v.site.url === value.selectedSite.url);
+      nameOptions = rates.map(r => ({ value: r.rates.rate, label: r.rates.name }));
+    }
     return (
       <div className="col profiles-rates__input-group">
         <div className="row row--gutter row--start">
-          {this.renderSelect(RATES_FIELDS.SITE, selectedSite, siteOptions)}
-          {this.renderSelect(RATES_FIELDS.NAME, selectedRate, nameOptions)}
+          {this.renderSelect(RATES_FIELDS.SITE, value.selectedSite, siteOptions)}
+          {this.renderSelect(RATES_FIELDS.NAME, value.selectedRate, nameOptions)}
         </div>
         <div className="row row--gutter">
           <input
             className="profiles-rates__input-group--rate"
             required
             disabled
-            value={value.rate}
+            value={value.selectedRate}
             style={validationStatus(errors[mapRateFieldToKey[RATES_FIELDS.RATE]])}
             placeholder=""
           />
@@ -95,7 +104,7 @@ export class ShippingRatesPrimitive extends Component {
         <div className="row row--start row--expand">
           <div className="profiles-rates col col--start col--no-gutter">
             <div className="row row--start row--no-gutter-left row--gutter-right">
-              {value.length ? (
+              {value.rates.length ? (
                 this.renderRateFields()
               ) : (
                 <div className="col profiles-rates__input-group">
@@ -114,13 +123,13 @@ ShippingRatesPrimitive.propTypes = {
   errors: defns.paymentStateErrors.isRequired,
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
-  value: defns.rates.isRequired,
+  value: defns.profile.isRequired,
 };
 
 export const mapStateToProps = (state, ownProps) => ({
   errors: ownProps.profileToEdit.payment.errors,
   theme: state.theme,
-  value: ownProps.profileToEdit.rates,
+  value: ownProps.profileToEdit,
 });
 
 export const mapDispatchToProps = (dispatch, ownProps) => ({

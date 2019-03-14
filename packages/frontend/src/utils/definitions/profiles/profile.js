@@ -15,6 +15,7 @@ export const initialProfileState = {
   billing: initialLocationState,
   payment: initialPaymentState,
   rates: initialShippingRatesState,
+  selectedSite: null,
 };
 
 const profile = PropTypes.shape({
@@ -28,6 +29,10 @@ const profile = PropTypes.shape({
   billing: locationState,
   payment: paymentState,
   rates: shippingRates,
+  selectedSite: PropTypes.shape({
+    name: PropTypes.string,
+    url: PropTypes.string,
+  }),
 });
 
 export default profile;
