@@ -6,12 +6,7 @@ import NumberFormat from 'react-number-format';
 import ViewTask from './viewTask';
 import LogTask from './logTask';
 import CreateTask from './createTask';
-import {
-  taskActions,
-  SETTINGS_FIELDS,
-  settingsActions,
-  mapSettingsFieldToKey,
-} from '../state/actions';
+import { taskActions, SETTINGS_FIELDS, settingsActions } from '../state/actions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
@@ -70,7 +65,6 @@ export class TasksPrimitive extends Component {
   }
 
   renderDelay(field, value) {
-    const { errors } = this.props;
     const { className, delayType, label, placeholder } = this.delays[field];
     return (
       <div className={className}>
@@ -79,7 +73,7 @@ export class TasksPrimitive extends Component {
           value={value}
           placeholder={placeholder}
           className={`bulk-action-sidebar__${delayType}-delay`}
-          style={buildStyle(false, errors[mapSettingsFieldToKey[field]])}
+          style={buildStyle(false)}
           onChange={this.createOnChangeHandler(field)}
           required
         />
@@ -264,7 +258,6 @@ TasksPrimitive.propTypes = {
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
-  errors: sDefns.settingsErrors.isRequired,
 };
 
 TasksPrimitive.defaultProps = {
