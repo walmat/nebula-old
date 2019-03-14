@@ -56,6 +56,7 @@ const topLevelReducer = (state = initialState, action) => {
         theme,
       };
     }
+    return { ...state };
   }
 
   // Check for migration and perform it
