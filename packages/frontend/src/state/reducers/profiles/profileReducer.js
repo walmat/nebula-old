@@ -6,6 +6,7 @@ import ratesReducer from './ratesReducer';
 
 export function profileReducer(state = initialProfileStates.profile, action) {
   let change = {};
+  console.log(action);
   if (action.type === PROFILE_ACTIONS.EDIT) {
     // If we can't map the field to a profile key, don't change anything
     if (!mapProfileFieldToKey[action.field]) {
@@ -63,6 +64,7 @@ export function profileReducer(state = initialProfileStates.profile, action) {
         break;
     }
   }
+  console.log(change);
   return Object.assign({}, state, change);
 }
 
