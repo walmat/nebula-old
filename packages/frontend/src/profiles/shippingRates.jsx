@@ -57,16 +57,14 @@ export class ShippingRatesPrimitive extends Component {
   }
 
   renderRateFields() {
-    const { value, errors, selectedProfile } = this.props;
-    console.log(selectedProfile);
-    const { selectedRate, selectedSite } = selectedProfile;
-    const siteOptions = selectedProfile.rates.map(r => ({ value: r.site.url, label: r.site.name }));
+    const { value, errors } = this.props;
+    const { selectedRate, selectedSite } = value;
+    const siteOptions = value.map(r => ({ value: r.site.url, label: r.site.name }));
     let nameOptions = [];
-    console.log(value);
-    if (selectedSite) {
-      const rates = value.find(v => v.site.url === selectedProfile.selectedSite.url);
-      nameOptions = rates.map(r => ({ value: r.rates.rate, label: r.rates.name }));
-    }
+    // if (selectedRate) {
+    //   const rates = value.find(v => v.site.url === selectedSite.url);
+    //   nameOptions = rates.map(r => ({ value: r.rates.rate, label: r.rates.name }));
+    // }
     return (
       <div className="col profiles-rates__input-group">
         <div className="row row--gutter row--start">
@@ -115,7 +113,6 @@ export class ShippingRatesPrimitive extends Component {
 ShippingRatesPrimitive.propTypes = {
   errors: defns.paymentStateErrors.isRequired,
   theme: PropTypes.string.isRequired,
-  selectedProfile: defns.profile.isRequired,
   onChange: PropTypes.func.isRequired,
   value: defns.rates.isRequired,
 };
@@ -123,7 +120,6 @@ ShippingRatesPrimitive.propTypes = {
 export const mapStateToProps = (state, ownProps) => ({
   errors: ownProps.profileToEdit.payment.errors,
   theme: state.theme,
-  selectedProfile: state.selectedProfile,
   value: ownProps.profileToEdit.rates,
 });
 
