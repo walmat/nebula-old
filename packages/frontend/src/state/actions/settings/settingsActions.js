@@ -10,12 +10,30 @@ export const SETTINGS_ACTIONS = {
   FETCH_SHIPPING: 'FETCH_SHIPPING',
 };
 
+const _fetchShippingRequest = async (product, profile, site) => {
+  /**
+   * TODO:
+   * 1. login if needed
+   * 2. create checkout
+   * 3. submit customer info
+   * 4. ATC
+   * 5. fetch shipping rates
+   */
+};
+
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
 const clearDefaults = makeActionCreator(SETTINGS_ACTIONS.CLEAR_DEFAULTS);
-const fetchShipping = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'shipping');
+const _fetchShipping = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'shipping');
 const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
+const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
+
+const fetchShipping = (product, profile, site) => dispatch =>
+  _fetchShippingRequest(product, profile, site).then(
+    rates => dispatch(_fetchShipping(rates)),
+    error => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, error)),
+  );
 
 export const settingsActions = {
   edit: editSettings,
