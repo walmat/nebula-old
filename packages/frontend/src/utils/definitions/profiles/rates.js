@@ -5,14 +5,16 @@ const rate = PropTypes.shape({
   rate: PropTypes.string,
 });
 
-const rateList = PropTypes.arrayOf({
-  site: PropTypes.shape({
-    name: PropTypes.string,
-    url: PropTypes.string,
+const rateList = PropTypes.arrayOf(
+  PropTypes.shape({
+    site: PropTypes.shape({
+      name: PropTypes.string,
+      url: PropTypes.string,
+    }),
+    rates: PropTypes.arrayOf(rate),
+    selectedRate: rate,
   }),
-  rates: PropTypes.arrayOf(rate),
-  selectedRate: rate,
-});
+);
 
 // export const initialShippingRatesState = [];
 

@@ -17,13 +17,13 @@ export class ShippingRatesPrimitive extends Component {
     this.selects = {
       [RATES_FIELDS.SITE]: {
         placeholder: 'Choose Site',
-        className: 'site',
-        colStyling: 'col col--no-gutter-left',
+        type: 'site',
+        className: 'col col--no-gutter-left',
       },
       [RATES_FIELDS.NAME]: {
         placeholder: 'Choose Rate',
-        className: 'name',
-        colStyling: 'col col--no-gutter',
+        type: 'name',
+        className: 'col col--no-gutter',
       },
     };
   }
@@ -46,16 +46,16 @@ export class ShippingRatesPrimitive extends Component {
 
   renderSelect(field, value, options) {
     const { theme } = this.props;
-    const { placeholder, className, colStyling } = this.selects[field];
+    const { placeholder, type, className } = this.selects[field];
     return (
-      <div className={colStyling}>
+      <div className={className}>
         <Select
           required
           placeholder={placeholder}
           components={{ DropdownIndicator }}
           isMulti={false}
           isClearable={false}
-          className={`profiles-rates__input-group--${className}`}
+          className={`profiles-rates__input-group--${type}`}
           classNamePrefix="select"
           styles={colourStyles(theme)}
           onChange={this.createOnChangeHandler(field)}
@@ -71,8 +71,8 @@ export class ShippingRatesPrimitive extends Component {
     const siteOptions = value.rates.map(r => ({ value: r.site.url, label: r.site.name }));
     let nameOptions = [];
     if (value.selectedSite) {
-      const rates = value.find(v => v.site.url === value.selectedSite.url);
-      nameOptions = rates.map(r => ({ value: r.rates.rate, label: r.rates.name }));
+      const rates = value.rates.find(v => v.site.url === value.selectedSite.value);
+      nameOptions = rates.rates.map(r => ({ value: r.rate, label: r.name }));
     }
     return (
       <div className="col profiles-rates__input-group">
@@ -97,7 +97,7 @@ export class ShippingRatesPrimitive extends Component {
   render() {
     const { value } = this.props;
     return (
-      <div className="col">
+      <div className="col col--expand">
         <div className="row row--start">
           <p className="body-text section-header profiles-rates__section-header">Shipping Rates</p>
         </div>
@@ -108,7 +108,9 @@ export class ShippingRatesPrimitive extends Component {
                 this.renderRateFields()
               ) : (
                 <div className="col profiles-rates__input-group">
-                  <div>No shipping rates</div>
+                  <div>
+                    <p>No shipping rates found</p>
+                  </div>
                 </div>
               )}
             </div>

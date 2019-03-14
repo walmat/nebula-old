@@ -16,24 +16,24 @@ export class ShippingManagerPrimitive extends Component {
       [SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE]: {
         label: 'Profile',
         placeholder: 'Choose Profile',
-        className: 'profile',
-        colStyling: 'col col--no-gutter-right',
+        type: 'profile',
+        className: 'col col--no-gutter-right',
       },
       [SETTINGS_FIELDS.EDIT_SHIPPING_SITE]: {
         label: 'Site',
         placeholder: 'Choose Site',
-        className: 'site',
-        colStyling: 'col col--gutter-left',
+        type: 'site',
+        className: 'col col--gutter-left',
       },
     };
     this.buttons = {
       [SETTINGS_FIELDS.CLEAR_SHIPPING_FIELDS]: {
         label: 'Clear',
-        className: 'clear',
+        type: 'clear',
       },
       [SETTINGS_FIELDS.FETCH_SHIPPING_METHODS]: {
         label: 'Fetch Rates',
-        className: 'fetch',
+        type: 'fetch',
       },
     };
   }
@@ -79,7 +79,7 @@ export class ShippingManagerPrimitive extends Component {
 
   renderButton(field, value) {
     const { onKeyPress, onClearShippingFields, onFetchShippingMethods } = this.props;
-    const { className, label } = this.buttons[field];
+    const { type, label } = this.buttons[field];
     const onClick = () =>
       field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS
         ? onFetchShippingMethods(value)
@@ -87,7 +87,7 @@ export class ShippingManagerPrimitive extends Component {
     return (
       <button
         type="button"
-        className={`settings--shipping-manager__input-group--${className}`}
+        className={`settings--shipping-manager__input-group--${type}`}
         tabIndex={0}
         onKeyPress={onKeyPress}
         onClick={onClick}
@@ -99,9 +99,9 @@ export class ShippingManagerPrimitive extends Component {
 
   renderSelect(field, value, options) {
     const { errors, theme } = this.props;
-    const { label, placeholder, className, colStyling } = this.selects[field];
+    const { label, placeholder, className, type } = this.selects[field];
     return (
-      <div className={colStyling}>
+      <div className={className}>
         <p className="settings--shipping-manager__input-group--label">{label}</p>
         <Select
           required
@@ -109,7 +109,7 @@ export class ShippingManagerPrimitive extends Component {
           components={{ DropdownIndicator }}
           isMulti={false}
           isClearable={false}
-          className={`settings--shipping-manager__input-group--${className}`}
+          className={`settings--shipping-manager__input-group--${type}`}
           classNamePrefix="select"
           styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
           onChange={this.createOnChangeHandler(field)}
@@ -121,24 +121,25 @@ export class ShippingManagerPrimitive extends Component {
   }
 
   render() {
-    const { settings, errors } = this.props;
+    const { shipping, errors } = this.props;
+    const { profile, site, product, name, username, password } = shipping;
     let shippingProfileValue = null;
-    if (settings.shipping.profile.id !== null) {
+    if (profile.id !== null) {
       shippingProfileValue = {
-        value: settings.shipping.profile.id,
-        label: settings.shipping.profile.profileName,
+        value: profile.id,
+        label: profile.profileName,
       };
     }
     let shippingSiteValue = null;
-    if (settings.shipping.site && settings.shipping.site.name !== null) {
+    if (site && site.name !== null) {
       shippingSiteValue = {
-        value: settings.shipping.site.url,
-        label: settings.shipping.site.name,
+        value: site.url,
+        label: site.name,
       };
     }
     let accountFieldsDisabled = true;
-    if (settings.shipping.site !== null) {
-      accountFieldsDisabled = !settings.shipping.site.auth;
+    if (site !== null) {
+      accountFieldsDisabled = !site.auth;
     }
     return (
       <div>
@@ -147,7 +148,7 @@ export class ShippingManagerPrimitive extends Component {
             <div className="row row--start">
               <div className="col col--no-gutter-left">
                 <p className="body-text section-header settings--shipping-manager__section-header">
-                  Shipping Rates
+                  Shipping Manager
                 </p>
               </div>
             </div>
@@ -165,7 +166,7 @@ export class ShippingManagerPrimitive extends Component {
                           onChange={this.createOnChangeHandler(
                             SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
                           )}
-                          value={settings.shipping.product.raw}
+                          value={product.raw}
                           style={buildStyle(
                             false,
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]],
@@ -182,7 +183,7 @@ export class ShippingManagerPrimitive extends Component {
                           onChange={this.createOnChangeHandler(
                             SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME,
                           )}
-                          value={settings.shipping.name}
+                          value={name}
                           style={buildStyle(
                             false,
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME]],
@@ -213,7 +214,7 @@ export class ShippingManagerPrimitive extends Component {
                           onChange={this.createOnChangeHandler(
                             SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME,
                           )}
-                          value={settings.shipping.username}
+                          value={username}
                           style={buildStyle(
                             false,
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME]],
@@ -231,7 +232,7 @@ export class ShippingManagerPrimitive extends Component {
                           onChange={this.createOnChangeHandler(
                             SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
                           )}
-                          value={settings.shipping.password}
+                          value={password}
                           style={buildStyle(
                             false,
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD]],
@@ -243,10 +244,7 @@ export class ShippingManagerPrimitive extends Component {
                     </div>
                     <div className="row row--gutter row--end">
                       <div className="col col--no-gutter-right">
-                        {this.renderButton(
-                          SETTINGS_FIELDS.FETCH_SHIPPING_METHODS,
-                          settings.shipping,
-                        )}
+                        {this.renderButton(SETTINGS_FIELDS.FETCH_SHIPPING_METHODS, shipping)}
                       </div>
                       <div className="col col--end col--gutter-left">
                         {this.renderButton(SETTINGS_FIELDS.CLEAR_SHIPPING_FIELDS)}
@@ -268,7 +266,7 @@ ShippingManagerPrimitive.propTypes = {
   onFetchShippingMethods: PropTypes.func.isRequired,
   onClearShippingFields: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
-  settings: sDefns.settings.isRequired,
+  shipping: sDefns.shipping.isRequired,
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
   errors: sDefns.settingsErrors.isRequired,
@@ -280,7 +278,7 @@ ShippingManagerPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   profiles: state.profiles,
-  settings: state.settings,
+  shipping: state.settings.shipping,
   errors: state.settings.errors,
   theme: state.theme,
 });

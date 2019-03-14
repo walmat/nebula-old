@@ -264,7 +264,7 @@
 }
 .profiles .profiles-payment__input-group {
   border-radius: 3px;
-  margin-bottom: 28px;
+  margin-bottom: 12px;
 }
 .profiles .profiles-payment__input-group--email {
   width: 249px;
@@ -288,7 +288,7 @@
 
 .profiles-rates__section-header {
   max-height: 32px;
-  margin: 6px 0;
+  margin: 14px 0 !important;
 }
 .profiles-rates__input-group {
   border-radius: 3px;

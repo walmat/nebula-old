@@ -88,8 +88,7 @@ export class TasksPrimitive extends Component {
   }
 
   render() {
-    const { newTask, settings, onKeyPress } = this.props;
-    const { errorDelay, monitorDelay } = settings;
+    const { newTask, errorDelay, monitorDelay, onKeyPress } = this.props;
     return (
       <div className="container tasks">
         <div className="row">
@@ -256,7 +255,8 @@ export class TasksPrimitive extends Component {
 
 TasksPrimitive.propTypes = {
   newTask: tDefns.task.isRequired,
-  settings: sDefns.settings.isRequired,
+  monitorDelay: PropTypes.number.isRequired,
+  errorDelay: PropTypes.number.isRequired,
   tasks: tDefns.taskList.isRequired,
   proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
   onSettingsChange: PropTypes.func.isRequired,
@@ -273,7 +273,8 @@ TasksPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   newTask: state.newTask,
-  settings: state.settings,
+  monitorDelay: state.settings.monitorDelay,
+  errorDelay: state.settings.errorDelay,
   tasks: state.tasks,
   proxies: state.settings.proxies,
   errors: state.settings.errors,
