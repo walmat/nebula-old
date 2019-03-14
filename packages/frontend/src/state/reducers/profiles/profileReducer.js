@@ -61,7 +61,6 @@ export function profileReducer(state = initialProfileStates.profile, action) {
             action.value || initialProfileStates.profile[mapProfileFieldToKey[action.field]],
           errors: Object.assign({}, state.errors, action.errors),
         };
-        console.log(change);
         break;
     }
   }
