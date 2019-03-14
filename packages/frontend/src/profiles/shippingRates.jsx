@@ -20,7 +20,7 @@ export class ShippingRatesPrimitive extends Component {
         type: 'site',
         className: 'col col--no-gutter-left',
       },
-      [RATES_FIELDS.NAME]: {
+      [RATES_FIELDS.RATE]: {
         placeholder: 'Choose Rate',
         type: 'name',
         className: 'col col--no-gutter',
@@ -29,7 +29,7 @@ export class ShippingRatesPrimitive extends Component {
   }
 
   createOnChangeHandler(field) {
-    const { onChange } = this.props;
+    const { onChange, value } = this.props;
     switch (field) {
       case RATES_FIELDS.SITE: {
         return event => {
@@ -38,7 +38,10 @@ export class ShippingRatesPrimitive extends Component {
       }
       default: {
         return event => {
-          onChange({ field, value: event }, PROFILE_FIELDS.EDIT_RATES);
+          onChange(
+            { field, value: { site: value.selectedSite, rate: event } },
+            PROFILE_FIELDS.EDIT_RATES,
+          );
         };
       }
     }
@@ -70,22 +73,28 @@ export class ShippingRatesPrimitive extends Component {
     const { value, errors } = this.props;
     const siteOptions = value.rates.map(r => ({ value: r.site.url, label: r.site.name }));
     let nameOptions = [];
+    let siteObject = [];
+    let rateValue = '';
+
     if (value.selectedSite) {
-      const rates = value.rates.find(v => v.site.url === value.selectedSite.value);
-      nameOptions = rates.rates.map(r => ({ value: r.rate, label: r.name }));
+      siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
+      if (siteObject && siteObject.selectedRate) {
+        rateValue = siteObject.selectedRate.value;
+      }
+      nameOptions = siteObject.rates.map(r => ({ value: r.rate, label: r.name }));
     }
     return (
       <div className="col profiles-rates__input-group">
         <div className="row row--gutter row--start">
           {this.renderSelect(RATES_FIELDS.SITE, value.selectedSite, siteOptions)}
-          {this.renderSelect(RATES_FIELDS.NAME, value.selectedRate, nameOptions)}
+          {this.renderSelect(RATES_FIELDS.RATE, siteObject.selectedRate, nameOptions)}
         </div>
         <div className="row row--gutter">
           <input
             className="profiles-rates__input-group--rate"
             required
             disabled
-            value={value.selectedRate}
+            value={rateValue}
             style={validationStatus(errors[mapRateFieldToKey[RATES_FIELDS.RATE]])}
             placeholder=""
           />
