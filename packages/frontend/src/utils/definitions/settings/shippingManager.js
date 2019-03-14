@@ -19,6 +19,8 @@ export const initialShippingManagerState = {
     neg_keywords: null,
     url: null,
   },
+  username: null,
+  password: null,
 };
 
 const shippingManager = PropTypes.shape({
@@ -38,6 +40,8 @@ const shippingManager = PropTypes.shape({
     neg_keywords: PropTypes.arrayOf(PropTypes.string),
     url: PropTypes.string,
   }),
+  username: PropTypes.string,
+  password: PropTypes.string,
 });
 
 export default shippingManager;

@@ -5,12 +5,13 @@ const rate = PropTypes.shape({
   rate: PropTypes.string,
 });
 
-const rateList = PropTypes.shape({
-  site: {
+const rateList = PropTypes.arrayOf({
+  site: PropTypes.shape({
     name: PropTypes.string,
     url: PropTypes.string,
-  },
+  }),
   rates: PropTypes.arrayOf(rate),
+  selectedRate: rate,
 });
 
 // export const initialShippingRatesState = [];
@@ -28,6 +29,7 @@ export const initialShippingRatesState = [
         rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
       },
     ],
+    selectedRate: null,
   },
   {
     site: {
@@ -40,6 +42,7 @@ export const initialShippingRatesState = [
         rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
       },
     ],
+    selectedRate: null,
   },
 ];
 
