@@ -64,7 +64,6 @@ export function profileReducer(state = initialProfileStates.profile, action) {
         break;
     }
   }
-  console.log(change);
   return Object.assign({}, state, change);
 }
 
