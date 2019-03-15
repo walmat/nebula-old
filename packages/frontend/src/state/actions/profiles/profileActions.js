@@ -4,6 +4,7 @@ import makeActionCreator from '../actionCreator';
 export const PROFILE_ACTIONS = {
   ADD: 'ADD_PROFILE',
   REMOVE: 'REMOVE_PROFILE',
+  DELETE_RATE: 'DELETE_RATE',
   EDIT: 'EDIT_PROFILE',
   ERROR: 'PROFILE_HANDLE_ERROR',
   SELECT: 'SELECT_PROFILE',
@@ -144,6 +145,7 @@ const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'valu
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
 const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
+const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'id', 'site', 'rate');
 
 // Public Thunks
 const addProfile = profile => dispatch =>
@@ -172,6 +174,7 @@ export const profileActions = {
   load: loadProfile,
   update: updateProfile,
   error: handleError,
+  deleteRate,
 };
 
 // Field Edits

@@ -114,6 +114,25 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       }
       break;
     }
+    case PROFILE_ACTIONS.DELETE_RATE: {
+      // if no profile id, site, or rate, exit early...
+      if (!action.id || !action.site || !action.rate) {
+        break;
+      }
+      // copy state
+      const nextState = JSON.parse(JSON.stringify(state));
+
+      // get site object that corresponds to action's site
+      const siteObj = nextState.rates.find(r => r.site.url === action.site.value);
+      // find index of that site
+      const idx = nextState.rates.indexOf(siteObj);
+      console.log(idx);
+      // filter the rates to remove the rate that is passed through
+      siteObj.rates = siteObj.rates.filter(r => r.rate !== action.rate.value);
+      nextState.rates[idx] = siteObj.rates;
+      console.log(siteObj, nextState);
+      return nextState;
+    }
     default:
       break;
   }
