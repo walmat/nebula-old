@@ -1,6 +1,8 @@
 const fs = require('fs');
 const winston = require('winston');
 const path = require('path');
+// Require DRF to add it to the list of transports
+require('winston-daily-rotate-file');
 
 // TODO: Generalize Env Code and Include it in this project
 // For now we will assume that the nebula env gets loaded before
@@ -51,17 +53,35 @@ function _setLevels(levels, name) {
   }
 }
 
-function _createLogger({ dir, name, filename }) {
+function _createLogger({ dir, name, prefix }) {
   // Check if the logs directory exists and create it if needed
   const dirname = path.join(dir, 'Nebula Orion');
   if (!fs.existsSync(dirname)) {
     fs.mkdirSync(dirname, { recursive: true });
   }
+  const auditFile = path.join(dirname, 'audit.json');
+  const maxSize = name === 'TaskManager' ? '250m' : '50m';
 
   // Define the transports to use for this logger
   const transports = [
-    new winston.transports.File({ name: 'specific', filename: path.join(dirname, filename) }),
-    new winston.transports.File({ name: 'combined', filename: path.join(dirname, 'combined.log') }),
+    new winston.transports.DailyRotateFile({
+      name: 'specific',
+      datePattern: 'WW-YYYY',
+      dirname,
+      filename: `${prefix}-%DATE%.log`,
+      maxSize,
+      maxFiles: '7d',
+      auditFile,
+    }),
+    new winston.transports.DailyRotateFile({
+      name: 'combined',
+      datePattern: 'WW-YYYY',
+      dirname,
+      filename: 'combined-%DATE%.log',
+      maxSize: '500m',
+      maxFiles: '7d',
+      auditFile,
+    }),
   ];
   if (_isDevelopment || process.env.NEBULA_ENABLE_CONSOLE) {
     // Add console transport only when in dev mode or if we define the enable flag
