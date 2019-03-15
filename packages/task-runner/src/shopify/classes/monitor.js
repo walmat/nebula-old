@@ -1,17 +1,9 @@
-const _ = require('underscore');
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
-const {
-  formatProxy,
-  userAgent,
-  rfrl,
-  capitalizeFirstLetter,
-  waitForDelay,
-  getRandomIntInclusive,
-} = require('./utils');
+const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
-const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
+const { generateVariants } = require('./utils/generateVariants');
 
 class Monitor {
   constructor(context) {
@@ -83,51 +75,6 @@ class Monitor {
     return rfrl(parsers, 'parseAll');
   }
 
-  _generateValidVariants(product) {
-    const { sizes, site } = this._context.task;
-    // Group variants by their size
-    const variantsBySize = _.groupBy(product.variants, variant => {
-      // Use the variant option or the title segment
-      const option =
-        variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
-      // TEMPORARY: Sometimes the option1 value contains /'s to separate regional sizes.
-      //   Until this case gets fully solved in issue #239
-      if (option.indexOf('/') > 0) {
-        const newOption = urlToTitleSegment[site.url](variant.title);
-        return newOption;
-      }
-      return option.toUpperCase();
-    });
-
-    // Get the groups in the same order as the sizes
-    const mappedVariants = sizes.map(size => {
-      if (size === 'Random') {
-        const val = getRandomIntInclusive(0, Object.keys(variantsBySize).length - 1);
-        const variant = variantsBySize[Object.keys(variantsBySize)[val]];
-        return variant;
-      }
-      const variant = Object.keys(variantsBySize).find(
-        s => s.toUpperCase().indexOf(size.toUpperCase()) > -1,
-      );
-      return variantsBySize[variant];
-    });
-
-    // this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
-    // Flatten the groups to a one-level array and remove null elements
-    const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
-    // only pick certain properties of the variants to print
-    this._context.logger.verbose(
-      'MONITOR: valid variants: %j',
-      validVariants.map(v =>
-        _.pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
-      ),
-    );
-    if (validVariants.length > 0) {
-      return validVariants.map(v => `${v.id}`);
-    }
-    return null;
-  }
-
   async _monitorKeywords() {
     let parsed;
     try {
@@ -154,7 +101,8 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
-    const variants = this._generateValidVariants(parsed);
+    const { sizes, site, product } = this._context.task;
+    const variants = generateVariants(parsed, sizes, site, this._logger);
     if (!variants) {
       return {
         message: `Unable to match variants`,
@@ -163,11 +111,11 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
-    this._context.task.product.url = `${this._context.task.site.url}/products/${parsed.handle}`;
+    this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
-      message: `Found product: ${this._context.task.product.name}`,
+      message: `Found product: ${product.name}`,
       nextState: States.AddToCart,
     };
   }
@@ -201,7 +149,8 @@ class Monitor {
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',
         fullProductInfo.title,
       );
-      const variants = this._generateValidVariants(fullProductInfo);
+      const { sizes, site } = this._context.task;
+      const variants = generateVariants(fullProductInfo, sizes, site, this._logger);
       if (!variants) {
         return {
           message: `Unable to match variants`,
@@ -231,7 +180,7 @@ class Monitor {
 
   async _monitorSpecial() {
     const { task, request, proxy, logger } = this._context;
-    const { product, site } = task;
+    const { product, site, sizes } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
     const parser = ParserCreator(request, task, proxy, logger);
@@ -253,7 +202,7 @@ class Monitor {
     if (product.variant) {
       variants = [product.variant];
     } else {
-      variants = this._generateValidVariants(parsed);
+      variants = generateVariants(parsed, site, sizes, this._logger);
     }
     if (!variants) {
       return {
