@@ -115,8 +115,8 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       break;
     }
     case PROFILE_ACTIONS.DELETE_RATE: {
-      // if no profile id, site, or rate, exit early...
-      if (!action.id || !action.site || !action.rate) {
+      // if no site, or rate, exit early...
+      if (!action.site || !action.rate) {
         break;
       }
       // copy state

@@ -145,7 +145,7 @@ const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'valu
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
 const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
-const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'id', 'site', 'rate');
+const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'site', 'rate');
 
 // Public Thunks
 const addProfile = profile => dispatch =>

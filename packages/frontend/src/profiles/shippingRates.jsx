@@ -181,7 +181,7 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(profileActions.edit(ownProps.profileToEdit.id, section, changes.value, changes.field));
   },
   onDeleteShippingRate: (site, rate) => {
-    dispatch(profileActions.deleteRate(ownProps.profileToEdit.editId, site, rate));
+    dispatch(profileActions.deleteRate(site, rate));
   },
 });
 
