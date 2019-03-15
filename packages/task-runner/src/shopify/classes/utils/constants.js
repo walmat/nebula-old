@@ -75,6 +75,7 @@ const ErrorCodes = {
   ProductNotLive: 'PRODUCT_NOT_LIVE',
   VariantsNotAvailable: 'VARIANTS_NOT_AVAILABLE',
   VariantsNotMatched: 'VARIANTS_NOT_MATCHED',
+  RestockingNotSupported: 'RESTOCK_NOT_SUPPORTED',
 };
 
 /**
