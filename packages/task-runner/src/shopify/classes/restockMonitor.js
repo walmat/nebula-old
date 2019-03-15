@@ -4,7 +4,7 @@ const {
 } = require('./utils/constants');
 const { capitalizeFirstLetter } = require('./utils');
 const { Parser } = require('./parsers');
-const { Monitor } = require('./monitor');
+const Monitor = require('./monitor');
 
 class RestockMonitor extends Monitor {
   async _delay(status) {

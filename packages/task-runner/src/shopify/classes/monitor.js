@@ -3,7 +3,7 @@ const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = re
 const { States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
-const { generateVariants } = require('./utils/generateVariants');
+const generateVariants = require('./utils/generateVariants');
 
 class Monitor {
   constructor(context) {
