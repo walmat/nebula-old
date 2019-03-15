@@ -49,6 +49,23 @@ class Monitor {
     return { message: `Monitoring for product...`, nextState: States.Monitor };
   }
 
+  async _handleParsingErrors(errors) {
+    // consolidate statuses
+    const statuses = errors.map(error => error.status);
+    // Check for bans
+    let checkStatus = statuses.find(s => s === 403 || s === 429 || s === 430);
+    if (checkStatus) {
+      this._logger.info('Proxy was Banned, swapping proxies...');
+      return {
+        message: 'Swapping proxy',
+        shouldBan: checkStatus === 403,
+        nextState: States.SwapProxies,
+      };
+    }
+    checkStatus = statuses.find(s => s === ErrorCodes.ProductNotFound || s >= 400);
+    return this._delay(checkStatus || 404);
+  }
+
   _parseAll() {
     // Create the parsers and start the async run methods
     const parsers = [
@@ -110,22 +127,8 @@ class Monitor {
       parsed = await this._parseAll();
     } catch (errors) {
       this._logger.debug('MONITOR: All request errored out! %j', errors);
-      // consolidate statuses
-      const statuses = errors.map(error => error.status);
-      // Check for bans
-      let checkStatus = statuses.find(s => s === 403 || s === 429 || s === 430);
-      if (checkStatus) {
-        this._logger.info('Proxy was Banned, swapping proxies...');
-        return {
-          message: 'Swapping proxy',
-          shouldBan: checkStatus === 403,
-          nextState: States.SwapProxies,
-        };
-      }
-      checkStatus = statuses.find(s => s === ErrorCodes.ProductNotFound || s >= 400);
-      if (checkStatus) {
-        return this._delay(checkStatus);
-      }
+      // handle parsing errors
+      return this._handleParsingErrors(errors);
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
@@ -170,7 +173,15 @@ class Monitor {
         url,
         response.statusCode,
       );
-      const fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
+      let fullProductInfo;
+      try {
+        // Try getting full product info
+        fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
+      } catch (errors) {
+        this._logger.debug('MONITOR: All request errored out! %j', errors);
+        // handle parsing errors
+        return this._handleParsingErrors(errors);
+      }
       // Generate Variants
       this._logger.verbose(
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',

@@ -39,21 +39,8 @@ class RestockMonitor extends Monitor {
     } catch (errors) {
       this._logger.verbose('RESTOCK MONITOR: Getting full product info failed!');
       this._logger.debug('RESTOCK MONITOR: All requests errored out! %j', errors);
-
-      const statuses = errors.map(error => error.status);
-      let checkStatus = statuses.find(s => s === 403 || s === 429 || s === 430);
-      if (checkStatus) {
-        this._logger.info('Proxy was Banned, swapping proxies...');
-        return {
-          message: 'Swapping proxy',
-          shouldBan: checkStatus === 403,
-          nextState: States.SwapProxies,
-        };
-      }
-      checkStatus = statuses.find(s => s === ErrorCodes.ProductNotFound || s >= 400);
-      if (checkStatus) {
-        return this._delay(checkStatus);
-      }
+      // handle parsing errors
+      return this._handleParsingErrors(errors);
     }
 
     // Generate Variants
