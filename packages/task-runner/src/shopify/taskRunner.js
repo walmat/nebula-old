@@ -43,7 +43,7 @@ class TaskRunner {
     this._logger = createLogger({
       dir: loggerPath,
       name: `TaskRunner-${id}`,
-      filename: `runner-${id}.log`,
+      prefix: `runner-${id}`,
     });
 
     /**

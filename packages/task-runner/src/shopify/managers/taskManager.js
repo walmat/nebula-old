@@ -43,7 +43,7 @@ class TaskManager {
     this._logger = createLogger({
       dir: this._loggerPath,
       name: 'TaskManager',
-      filename: 'manager.log',
+      prefix: 'manager',
     });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);

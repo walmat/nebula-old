@@ -80,7 +80,7 @@ class Monitor {
       ),
     ].map(p => p.run());
     // Return the winner of the race
-    return rfrl(parsers, 'parseAll', this._context.logger);
+    return rfrl(parsers, 'parseAll');
   }
 
   _generateValidVariants(product) {
