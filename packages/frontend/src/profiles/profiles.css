@@ -279,6 +279,12 @@
   width: 78px;
 }
 
+/*
+ * Implementation of themes
+ */
+/*
+ * Implementation of themes
+ */
 .profiles .profiles__fields--save, .profiles-rates__input-group--rate, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone, .profiles .profiles-payment__input-group--email, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--cvv {
   border: 1px solid;
   margin: 9px 0;
@@ -293,6 +299,56 @@
 .profiles-rates__input-group {
   border-radius: 3px;
   margin-bottom: 28px;
+}
+.profiles-rates__input-group--delete {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  letter-spacing: 0;
+  border-radius: 3px;
+  border: none;
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.theme-light .profiles-rates__input-group--delete {
+  color: #161318;
+}
+.theme-dark .profiles-rates__input-group--delete {
+  color: #efefef;
+}
+.theme-light .profiles-rates__input-group--delete {
+  background: #f0405e;
+  color: #f4f4f4;
+}
+.theme-dark .profiles-rates__input-group--delete {
+  background: #f0405e;
+  color: #f4f4f4;
+}
+.profiles-rates__input-group--clear {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  letter-spacing: 0;
+  border-radius: 3px;
+  border: none;
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.theme-light .profiles-rates__input-group--clear {
+  color: #161318;
+}
+.theme-dark .profiles-rates__input-group--clear {
+  color: #efefef;
+}
+.theme-light .profiles-rates__input-group--clear {
+  background: #46adb4;
+  color: #f4f4f4;
+}
+.theme-dark .profiles-rates__input-group--clear {
+  background: #46adb4;
+  color: #f4f4f4;
 }
 .profiles-rates__input-group--rate {
   margin-top: 17px !important;
@@ -317,6 +373,9 @@
 .profiles--input-fields {
   margin-top: 22px !important;
 }
+.profiles--save-row {
+  margin-top: 28px !important;
+}
 .profiles .profiles__fields--matches {
   margin-top: 0.5px;
   height: 21px;
@@ -331,11 +390,8 @@
   height: 29px;
   border: 1px solid;
   border-radius: 3px;
-  margin-left: -25px;
-  margin-top: -18px;
 }
 .profiles .profiles__fields--save {
-  margin-top: 15px;
   background: #f0405e;
   color: #efefef;
   font-size: 12px;

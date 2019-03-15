@@ -12,6 +12,18 @@ import './profiles.css';
 import { PROFILE_FIELDS } from '../state/actions/profiles/profileActions';
 
 export class ShippingRatesPrimitive extends Component {
+  static renderButton(className, onClick, label) {
+    return (
+      <button
+        type="button"
+        className={`profiles-rates__input-group--${className}`}
+        onClick={onClick}
+      >
+        {label}
+      </button>
+    );
+  }
+
   constructor(props) {
     super(props);
     this.selects = {
@@ -26,6 +38,28 @@ export class ShippingRatesPrimitive extends Component {
         className: 'col col--no-gutter',
       },
     };
+  }
+
+  deleteShippingRate() {
+    const { onDeleteShippingRate, value } = this.props;
+    let siteObject = [];
+    if (value.selectedSite) {
+      siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
+      if (siteObject && siteObject.selectedRate) {
+        onDeleteShippingRate(value.selectedSite, siteObject.selectedRate);
+      }
+    }
+  }
+
+  clearShippingRate() {
+    const { onClearShippingRate, value } = this.props;
+    let siteObject = [];
+    if (value.selectedSite) {
+      siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
+      if (siteObject && siteObject.selectedRate) {
+        onClearShippingRate(value.selectedSite, siteObject.selectedRate);
+      }
+    }
   }
 
   createOnChangeHandler(field) {
@@ -99,6 +133,14 @@ export class ShippingRatesPrimitive extends Component {
             placeholder=""
           />
         </div>
+        <div className="row row--gutter row--end">
+          <div className="col col--end col--no-gutter-left">
+            {ShippingRatesPrimitive.renderButton('delete', this.deleteShippingRate, 'Delete')}
+          </div>
+          <div className="col col--end col--no-gutter-left">
+            {ShippingRatesPrimitive.renderButton('clear', this.clearShippingRate, 'Clear')}
+          </div>
+        </div>
       </div>
     );
   }
@@ -135,6 +177,8 @@ ShippingRatesPrimitive.propTypes = {
   errors: defns.paymentStateErrors.isRequired,
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
+  onDeleteShippingRate: PropTypes.func.isRequired,
+  onClearShippingRate: PropTypes.func.isRequired,
   value: defns.profile.isRequired,
 };
 
@@ -147,6 +191,12 @@ export const mapStateToProps = (state, ownProps) => ({
 export const mapDispatchToProps = (dispatch, ownProps) => ({
   onChange: (changes, section) => {
     dispatch(profileActions.edit(ownProps.profileToEdit.id, section, changes.value, changes.field));
+  },
+  onDeleteShippingRate: (site, rate) => {
+    dispatch(profileActions.deleteRate(ownProps.profileToEdit.id, site, rate));
+  },
+  onClearShippingRate: (site, rate) => {
+    dispatch(profileActions.clearRate(ownProps.profileToEdit.id, site, rate));
   },
 });
 

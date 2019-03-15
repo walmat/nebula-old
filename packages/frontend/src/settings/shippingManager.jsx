@@ -124,7 +124,7 @@ export class ShippingManagerPrimitive extends Component {
     const { shipping, errors } = this.props;
     const { profile, site, product, name, username, password } = shipping;
     let shippingProfileValue = null;
-    if (profile.id !== null) {
+    if (profile && profile.id !== null) {
       shippingProfileValue = {
         value: profile.id,
         label: profile.profileName,
