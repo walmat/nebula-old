@@ -106,7 +106,7 @@ class Monitor {
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
         return {
-          message: 'Running for Restocks',
+          message: 'Running for restocks',
           // nextState: States.Restocking,
           nextState: States.Errored, // TODO: Temporarily error out until we implement restocking
         };
