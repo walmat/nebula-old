@@ -106,8 +106,8 @@ export class ProfilesPrimitive extends Component {
               <div className="row row--start">{shippingRateFields}</div>
             </div>
           </div>
-          <div className="row row--expand row--end row--gutter">
-            <div className="col col--start col--no-gutter-left">
+          <div className="row row--expand row--end row--gutter profiles--save-row">
+            <div className="col col--no-gutter-left">
               <div className="row row--extend row--end row--gutter">
                 <input
                   className="profiles__fields--name"
@@ -120,6 +120,8 @@ export class ProfilesPrimitive extends Component {
                   placeholder="Profile Name"
                 />
               </div>
+            </div>
+            <div className="col col--end col--gutter">
               <div className="row row--extend row--end row--no-gutter">
                 <button type="button" className="profiles__fields--save" onClick={this.saveProfile}>
                   Save
