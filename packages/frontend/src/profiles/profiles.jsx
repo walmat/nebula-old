@@ -57,9 +57,8 @@ export class ProfilesPrimitive extends Component {
   }
 
   render() {
-    const { currentProfile, onProfileNameChange, profiles } = this.props;
-    const profileExists = profiles.find(p => p.profileName === currentProfile.profileName);
-    const shippingRateFields = profileExists ? (
+    const { currentProfile, onProfileNameChange } = this.props;
+    const shippingRateFields = currentProfile.editId ? (
       <ShippingRateFields profileToEdit={currentProfile} />
     ) : null;
     return (

@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 
-const rate = PropTypes.shape({
+export const rate = PropTypes.shape({
   name: PropTypes.string,
   rate: PropTypes.string,
 });
 
-const rateList = PropTypes.arrayOf(
+export const rateList = PropTypes.arrayOf(
   PropTypes.shape({
     site: PropTypes.shape({
       name: PropTypes.string,
