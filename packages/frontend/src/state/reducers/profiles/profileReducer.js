@@ -1,7 +1,7 @@
 import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../actions';
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
-import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../initial/profiles';
 
 export function profileReducer(state = initialProfileStates.profile, action) {
   let change = {};

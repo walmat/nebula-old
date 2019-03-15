@@ -1,24 +1,12 @@
-import task, { initialTaskState } from './tasks/task';
-import taskEdit, { initialTaskEditState } from './tasks/taskEdit';
-import taskEditErrors, { initialTaskEditErrorState } from './tasks/taskEditErrors';
-import taskErrors, { initialTaskErrorState } from './tasks/taskErrors';
-import taskLog, { initialTaskLogState } from './tasks/taskLog';
-import taskList, { initialTaskListState } from './tasks/taskList';
-import taskProduct, { initialTaskProductState } from './tasks/taskProduct';
-import taskProductErrors, { initialTaskProductErrorState } from './tasks/taskProductErrors';
-import taskSite, { initialTaskSiteState } from './tasks/taskSite';
-
-export const initialTaskStates = {
-  task: initialTaskState,
-  list: initialTaskListState,
-  log: initialTaskLogState,
-  errors: initialTaskErrorState,
-  edit: initialTaskEditState,
-  editErrors: initialTaskEditErrorState,
-  product: initialTaskProductState,
-  productErrors: initialTaskProductErrorState,
-  site: initialTaskSiteState,
-};
+import task from './tasks/task';
+import taskEdit from './tasks/taskEdit';
+import taskEditErrors from './tasks/taskEditErrors';
+import taskErrors from './tasks/taskErrors';
+import taskLog from './tasks/taskLog';
+import taskList from './tasks/taskList';
+import taskProduct from './tasks/taskProduct';
+import taskProductErrors from './tasks/taskProductErrors';
+import taskSite from './tasks/taskSite';
 
 export default {
   task,

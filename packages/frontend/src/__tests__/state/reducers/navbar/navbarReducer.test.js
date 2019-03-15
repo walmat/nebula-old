@@ -1,6 +1,9 @@
 /* global describe it expect */
 import { NAVBAR_ACTIONS, ROUTES } from '../../../../state/actions';
-import { navbarReducer, initialNavbarState } from '../../../../state/reducers/navbar/navbarReducer';
+import navbarReducer from '../../../../state/reducers/navbar/navbarReducer';
+import { initialState } from '../../../../state/migrators';
+
+const initialNavbarState = initialState.navbar;
 
 describe('navbar reducer', () => {
   it('should return an initial state', () => {

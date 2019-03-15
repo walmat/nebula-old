@@ -2,7 +2,7 @@ import uuidv4 from 'uuid/v4';
 
 import { PROFILE_ACTIONS } from '../../actions';
 import { profileReducer } from './profileReducer';
-import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../initial/profiles';
 
 export default function profileListReducer(state = initialProfileStates.list, action) {
   // perform deep copy of given state

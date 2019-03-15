@@ -7,7 +7,7 @@ import {
   LOCATION_FIELDS,
   mapProfileFieldToKey,
 } from '../../../../state/actions';
-import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../../../state/initial/profiles';
 
 describe('profile attribute validation middleware', () => {
   const create = () => {

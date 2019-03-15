@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 import { ServerRowPrimitive, mapStateToProps, mapDispatchToProps } from '../../server/serverRow';
-import { initialServerStates } from '../../utils/definitions/serverDefinitions';
+import initialServerStates from '../../state/initial/servers';
 import getByTestId from '../../__testUtils__/getByTestId';
 
 describe('<ServerRow />', () => {

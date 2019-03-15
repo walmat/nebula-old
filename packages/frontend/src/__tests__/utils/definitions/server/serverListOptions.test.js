@@ -1,5 +1,6 @@
 /* global describe */
-import sDefns, { initialServerStates } from '../../../../utils/definitions/serverDefinitions';
+import sDefns from '../../../../utils/definitions/serverDefinitions';
+import initialServerStates from '../../../../state/initial/servers';
 import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('serverListOptions definitions', () => {

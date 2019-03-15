@@ -13,11 +13,13 @@ import * as navbar from './actions/navbar/navbarActions';
 export const GLOBAL_ACTIONS = {
   RESET: '@@RESET',
   SET_THEME: '@@SET_THEME',
+  MIGRATE_STATE: '@@MIGRATE_STATE',
 };
 
 export const globalActions = {
   reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
   setTheme: makeActionCreator(GLOBAL_ACTIONS.SET_THEME, 'theme'),
+  migrateState: makeActionCreator(GLOBAL_ACTIONS.MIGRATE_STATE),
 };
 
 // Reimports

@@ -1,13 +1,12 @@
 import { parseURL } from 'whatwg-url';
 import { PROFILE_ACTIONS, TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
-import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
+import initialTaskStates from '../../initial/tasks';
 import getAllSites from '../../../constants/getAllSites';
 import {
   SETTINGS_ACTIONS,
   SETTINGS_FIELDS,
   mapSettingsFieldToKey,
 } from '../../actions/settings/settingsActions';
-// import { initialTaskEditState } from '../../../utils/definitions/tasks/taskEdit';
 
 export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};

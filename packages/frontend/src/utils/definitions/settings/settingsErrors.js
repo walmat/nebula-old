@@ -1,14 +1,7 @@
 import PropTypes from 'prop-types';
 
-import defaultsErrors, { initialDefaultsErrorState } from './defaultsErrors';
-import proxyErrors, { initialProxyErrorState } from './proxyErrors';
-
-export const initialSettingsErrorState = {
-  proxies: initialProxyErrorState,
-  defaults: initialDefaultsErrorState,
-  discord: null,
-  slack: null,
-};
+import defaultsErrors from './defaultsErrors';
+import proxyErrors from './proxyErrors';
 
 const settingsErrors = PropTypes.shape({
   proxies: proxyErrors,

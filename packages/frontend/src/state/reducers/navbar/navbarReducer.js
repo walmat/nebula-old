@@ -1,10 +1,9 @@
 import { mapActionsToRoutes } from '../../actions';
+import { initialState } from '../../migrators';
 
-export const initialNavbarState = {
-  location: '/tasks',
-};
+const initialNavbarState = initialState.navbar;
 
-export function navbarReducer(state = initialNavbarState, action) {
+export default function navbarReducer(state = initialNavbarState, action) {
   const change = {
     location: mapActionsToRoutes[action.type] || state.location,
   };

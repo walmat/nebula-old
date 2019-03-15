@@ -1,7 +1,7 @@
 /* global describe it expect */
 import paymentReducer from '../../../../state/reducers/profiles/paymentReducer';
 import { PAYMENT_FIELDS } from '../../../../state/actions';
-import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../../../state/initial/profiles';
 
 describe('payment reducer', () => {
   it('should return initial state', () => {
