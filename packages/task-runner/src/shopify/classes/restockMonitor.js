@@ -11,7 +11,7 @@ class RestockMonitor extends Monitor {
     // call super method to handle delay call
     await super._delay(status);
     // Return custom message so we come back to the restock monitor
-    return { message: 'Running for restocks', nextState: States.Errored }; // TODO: Change this to restocking when it gets added
+    return { message: 'Running for restocks', nextState: States.Restocking };
   }
 
   async run() {
