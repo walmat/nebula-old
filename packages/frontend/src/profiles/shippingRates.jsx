@@ -71,7 +71,7 @@ export class ShippingRatesPrimitive extends Component {
 
   renderRateFields() {
     const { value, errors } = this.props;
-    const siteOptions = value.rates.map(r => ({ value: r.site.url, label: r.site.name }));
+    const siteOptions = value.rates.map(({ site: { url, name } }) => ({ value: url, label: name }));
     let nameOptions = [];
     let siteObject = [];
     let rateValue = '';
@@ -81,7 +81,7 @@ export class ShippingRatesPrimitive extends Component {
       if (siteObject && siteObject.selectedRate) {
         rateValue = siteObject.selectedRate.value;
       }
-      nameOptions = siteObject.rates.map(r => ({ value: r.rate, label: r.name }));
+      nameOptions = siteObject.rates.map(({ rate, name }) => ({ value: rate, label: name }));
     }
     return (
       <div className="col profiles-rates__input-group">
