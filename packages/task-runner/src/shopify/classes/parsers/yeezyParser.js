@@ -1,5 +1,5 @@
 const SpecialParser = require('./specialParser');
-const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
+const { ErrorCodes } = require('../utils/constants');
 
 class YeezyParser extends SpecialParser {
   constructor(request, task, proxy, logger) {

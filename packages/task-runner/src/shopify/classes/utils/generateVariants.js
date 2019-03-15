@@ -2,9 +2,7 @@ const _ = require('underscore');
 
 const { getRandomIntInclusive } = require('./index');
 const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
-const {
-  ErrorCodes: { Variant: ErrorCodes },
-} = require('./constants');
+const { ErrorCodes } = require('./constants');
 
 function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   // Filter out unavailable variants first

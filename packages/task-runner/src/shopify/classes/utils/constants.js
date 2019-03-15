@@ -68,17 +68,11 @@ const TaskRunnerHarvestStates = {
 };
 
 /**
- * Parser Error Codes
+ * Error Codes
  */
-const ParserErrorCodes = {
+const ErrorCodes = {
   ProductNotFound: 'PRODUCT_MISSING',
   ProductNotLive: 'PRODUCT_NOT_LIVE',
-};
-
-/**
- * Variant Error Codes
- */
-const VariantErrorCodes = {
   VariantsNotAvailable: 'VARIANTS_NOT_AVAILABLE',
   VariantsNotMatched: 'VARIANTS_NOT_MATCHED',
 };
@@ -133,8 +127,5 @@ module.exports = {
     HookTypes: TaskRunnerHookTypes,
     HarvestStates: TaskRunnerHarvestStates,
   },
-  ErrorCodes: {
-    Parser: ParserErrorCodes,
-    Variant: VariantErrorCodes,
-  },
+  ErrorCodes,
 };

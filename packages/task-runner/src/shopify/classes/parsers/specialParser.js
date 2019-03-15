@@ -2,7 +2,7 @@
 const cheerio = require('cheerio');
 const Parser = require('./parser');
 const { ParseType } = require('../utils/parse');
-const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
+const { ErrorCodes } = require('../utils/constants');
 const { formatProxy, userAgent } = require('../utils');
 
 class SpecialParser extends Parser {

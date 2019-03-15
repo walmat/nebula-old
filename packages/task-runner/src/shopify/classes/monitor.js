@@ -81,13 +81,13 @@ class Monitor {
     try {
       variants = generateVariants(product, sizes, site, this._logger);
     } catch (err) {
-      if (err.code === ErrorCodes.Variant.VariantsNotMatched) {
+      if (err.code === ErrorCodes.VariantsNotMatched) {
         return {
           message: 'Unable to match variants',
           nextState: States.Stopped,
         };
       }
-      if (err.code === ErrorCodes.Variant.VariantsNotAvailable) {
+      if (err.code === ErrorCodes.VariantsNotAvailable) {
         return {
           message: 'Running for Restocks',
           // nextState: States.Restocking,
@@ -122,7 +122,7 @@ class Monitor {
           nextState: States.SwapProxies,
         };
       }
-      checkStatus = statuses.find(s => s === ErrorCodes.Parser.ProductNotFound || s >= 400);
+      checkStatus = statuses.find(s => s === ErrorCodes.ProductNotFound || s >= 400);
       if (checkStatus) {
         return this._delay(checkStatus);
       }
@@ -216,7 +216,7 @@ class Monitor {
     } catch (error) {
       this._logger.debug('MONITOR: Error with special parsing!', error);
       // Check for a product not found error
-      if (error.status === ErrorCodes.Parser.ProductNotFound) {
+      if (error.status === ErrorCodes.ProductNotFound) {
         return { message: 'Error: Product Not Found!', nextState: States.Errored };
       }
       return this._delay(error.status);
