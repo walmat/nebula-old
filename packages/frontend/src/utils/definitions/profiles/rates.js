@@ -40,8 +40,8 @@ export const initialShippingRatesState = [
     },
     rates: [
       {
-        name: '5-7 Business Days',
-        rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+        name: 'Small Goods Shipping',
+        rate: 'shopify-Small%20Goods%20Shipping-7.00',
       },
     ],
     selectedRate: null,
