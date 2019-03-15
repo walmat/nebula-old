@@ -2,12 +2,17 @@ const _ = require('underscore');
 
 const { getRandomIntInclusive } = require('./index');
 const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
+const {
+  ErrorCodes: { Variant: ErrorCodes },
+} = require('./constants');
 
 function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   // Filter out unavailable variants first
   const availableVariants = product.variants.filter(v => v.available);
   if (!availableVariants.length) {
-    return null;
+    const err = new Error('No variants available');
+    err.code = ErrorCodes.VariantsNotAvailable;
+    throw err;
   }
 
   // Group variants by their size
@@ -50,7 +55,9 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   if (validVariants.length > 0) {
     return validVariants.map(v => `${v.id}`);
   }
-  return null;
+  const err = new Error('No variants matched');
+  err.code = ErrorCodes.VariantsNotMatched;
+  throw err;
 }
 
 module.exports = generateVariants;

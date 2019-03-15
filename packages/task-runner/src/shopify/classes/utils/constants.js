@@ -31,6 +31,7 @@ const TaskRunnerStates = {
   PollQueue: 'POLL_QUEUE',
   PatchCheckout: 'PATCH_CHECKOUT',
   Monitor: 'MONITOR',
+  Restocking: 'RESTOCKING',
   AddToCart: 'ADD_TO_CART',
   ShippingRates: 'SHIPPING_RATES',
   RequestCaptcha: 'REQUEST_CAPTCHA',
@@ -72,6 +73,14 @@ const TaskRunnerHarvestStates = {
 const ParserErrorCodes = {
   ProductNotFound: 'PRODUCT_MISSING',
   ProductNotLive: 'PRODUCT_NOT_LIVE',
+};
+
+/**
+ * Variant Error Codes
+ */
+const VariantErrorCodes = {
+  VariantsNotAvailable: 'VARIANTS_NOT_AVAILABLE',
+  VariantsNotMatched: 'VARIANTS_NOT_MATCHED',
 };
 
 /**
@@ -126,5 +135,6 @@ module.exports = {
   },
   ErrorCodes: {
     Parser: ParserErrorCodes,
+    Variant: VariantErrorCodes,
   },
 };

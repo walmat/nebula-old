@@ -75,6 +75,34 @@ class Monitor {
     return rfrl(parsers, 'parseAll');
   }
 
+  _generateVariants(product) {
+    const { sizes, site } = this._context.task;
+    let variants;
+    try {
+      variants = generateVariants(product, sizes, site, this._logger);
+    } catch (err) {
+      if (err.code === ErrorCodes.Variant.VariantsNotMatched) {
+        return {
+          message: 'Unable to match variants',
+          nextState: States.Stopped,
+        };
+      }
+      if (err.code === ErrorCodes.Variant.VariantsNotAvailable) {
+        return {
+          message: 'Running for Restocks',
+          // nextState: States.Restocking,
+          nextState: States.Errored, // TODO: Temporarily error out until we implement restocking
+        };
+      }
+      this._logger.debug('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
+      return {
+        message: 'Task has errored out!',
+        nextState: States.Errored,
+      };
+    }
+    return variants;
+  }
+
   async _monitorKeywords() {
     let parsed;
     try {
@@ -101,13 +129,11 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
-    const { sizes, site, product } = this._context.task;
-    const variants = generateVariants(parsed, sizes, site, this._logger);
-    if (!variants) {
-      return {
-        message: `Unable to match variants`,
-        nextState: States.Stopped,
-      };
+    const { site, product } = this._context.task;
+    const variants = this._generateVariants(product);
+    // check for next state (means we hit an error when generating variants)
+    if (variants.nextState) {
+      return variants;
     }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
@@ -149,13 +175,10 @@ class Monitor {
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',
         fullProductInfo.title,
       );
-      const { sizes, site } = this._context.task;
-      const variants = generateVariants(fullProductInfo, sizes, site, this._logger);
-      if (!variants) {
-        return {
-          message: `Unable to match variants`,
-          nextState: States.Stopped,
-        };
+      const variants = this._generateVariants(fullProductInfo);
+      // check for next state (means we hit an error when generating variants)
+      if (variants.nextState) {
+        return variants;
       }
       this._logger.verbose('MONITOR: Variants Generated, updating context...');
       this._context.task.product.variants = variants;
@@ -180,7 +203,7 @@ class Monitor {
 
   async _monitorSpecial() {
     const { task, request, proxy, logger } = this._context;
-    const { product, site, sizes } = task;
+    const { product, site } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
     const parser = ParserCreator(request, task, proxy, logger);
@@ -202,13 +225,11 @@ class Monitor {
     if (product.variant) {
       variants = [product.variant];
     } else {
-      variants = generateVariants(parsed, site, sizes, this._logger);
-    }
-    if (!variants) {
-      return {
-        message: `Unable to match variants`,
-        nextState: States.Stopped,
-      };
+      variants = this._generateVariants(parsed);
+      // check for next state (means we hit an error when generating variants)
+      if (variants.nextState) {
+        return variants;
+      }
     }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
