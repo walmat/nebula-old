@@ -3,7 +3,7 @@ import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 
 import * as actions from '../../../state/actions';
-import initialTaskStates from '../../../state/initial/tasks';
+import { initialTaskStates } from '../../../utils/definitions/taskDefinitions';
 
 const { taskActions, TASK_ACTIONS } = actions;
 const initialTaskState = initialTaskStates.task;

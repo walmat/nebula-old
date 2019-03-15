@@ -1,6 +1,19 @@
 import PropTypes from 'prop-types';
 
-import locationStateErrors from './locationStateErrors';
+import locationStateErrors, { initialLocationErrorState } from './locationStateErrors';
+
+export const initialLocationState = {
+  firstName: '',
+  lastName: '',
+  address: '',
+  apt: '',
+  city: '',
+  country: null,
+  province: null,
+  zipCode: '',
+  phone: '',
+  errors: initialLocationErrorState,
+};
 
 const locationState = PropTypes.shape({
   firstName: PropTypes.string,

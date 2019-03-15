@@ -8,7 +8,7 @@ import {
   mapDispatchToProps,
 } from '../../profiles/locationFields';
 import { PROFILE_FIELDS, LOCATION_FIELDS, profileActions } from '../../state/actions';
-import initialProfileStates from '../../state/initial/profiles';
+import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
 
 describe('<LocationFields />', () => {
   it('should render with required props', () => {

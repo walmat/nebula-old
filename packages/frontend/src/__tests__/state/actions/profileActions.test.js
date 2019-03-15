@@ -3,9 +3,7 @@ import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 
 import * as actions from '../../../state/actions';
-import initialProfileStates from '../../../state/initial/profiles';
-
-const initialProfileState = initialProfileStates.profile;
+import { initialProfileState } from '../../../utils/definitions/profiles/profile';
 
 const { profileActions, PROFILE_ACTIONS } = actions;
 const _createMockStore = configureMockStore([thunk]);

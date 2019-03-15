@@ -1,6 +1,5 @@
 /* global describe it expect */
-import sDefns from '../../../../utils/definitions/settingsDefinitions';
-import initialSettingsStates from '../../../../state/initial/settings';
+import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
 import { setupConsoleErrorSpy, testArray } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('proxyErrors definitions', () => {

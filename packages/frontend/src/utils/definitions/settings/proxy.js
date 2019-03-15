@@ -1,5 +1,12 @@
 import PropTypes from 'prop-types';
 
+export const initialProxyState = {
+  ip: '0.0.0.0',
+  port: 8080,
+  username: null,
+  password: null,
+};
+
 const proxy = PropTypes.oneOfType([
   PropTypes.string,
   PropTypes.shape({

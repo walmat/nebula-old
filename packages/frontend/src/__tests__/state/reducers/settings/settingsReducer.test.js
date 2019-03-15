@@ -1,7 +1,7 @@
 /* global describe it test expect beforeAll */
 import settingsReducer from '../../../../state/reducers/settings/settingsReducer';
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS } from '../../../../state/actions';
-import initialSettingsStates from '../../../../state/initial/settings';
+import { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
 
 describe('settings reducer', () => {
   it('should return initial state', () => {

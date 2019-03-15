@@ -1,7 +1,7 @@
 /* global describe it test expect jest */
 import { serverListReducer } from '../../../../state/reducers/server/serverReducer';
 import { SERVER_ACTIONS } from '../../../../state/actions';
-import initialServerStates from '../../../../state/initial/servers';
+import { initialServerStates } from '../../../../utils/definitions/serverDefinitions';
 
 describe('server list reducer', () => {
   it('should return initial state', () => {

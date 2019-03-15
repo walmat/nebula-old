@@ -1,7 +1,7 @@
 /* global describe expect it test jest beforeEach */
 import taskAttributeValidationMiddleware from '../../../../state/middleware/tasks/tasksAttributeValidationMiddleware';
 import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../../../state/actions';
-import initialTaskStates from '../../../../state/initial/tasks';
+import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 
 describe('task attribute validation middleware', () => {
   const create = () => {

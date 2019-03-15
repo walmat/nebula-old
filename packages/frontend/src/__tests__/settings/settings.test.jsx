@@ -4,8 +4,8 @@ import { shallow } from 'enzyme';
 
 import { SettingsPrimitive, mapStateToProps, mapDispatchToProps } from '../../settings/settings';
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
-import initialSettingsStates from '../../state/initial/settings';
-import { initialState } from '../../state/migrators';
+import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
+import { initialState } from '../../state/reducers';
 
 describe('<Settings />', () => {
   let defaultProps;

@@ -1,5 +1,5 @@
 import { mapLocationFieldToKey, LOCATION_FIELDS } from '../../actions';
-import initialProfileStates from '../../initial/profiles';
+import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
 
 const locationReducer = (state = initialProfileStates.location, action) => {
   let change = {};

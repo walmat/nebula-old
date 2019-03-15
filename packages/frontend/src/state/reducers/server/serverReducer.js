@@ -1,5 +1,5 @@
 import { SERVER_FIELDS, SERVER_ACTIONS, mapServerFieldToKey, subMapToKey } from '../../actions';
-import initialServerStates from '../../initial/servers';
+import { initialServerStates } from '../../../utils/definitions/serverDefinitions';
 
 export function serverReducer(state = initialServerStates.serverInfo, action) {
   // initialize change object

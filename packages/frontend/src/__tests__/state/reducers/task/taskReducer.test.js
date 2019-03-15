@@ -1,6 +1,6 @@
 /* global describe expect it test jest */
 import { taskReducer } from '../../../../state/reducers/tasks/taskReducer';
-import initialTaskStates from '../../../../state/initial/tasks';
+import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../../../state/actions';
 
 describe('task reducer', () => {
