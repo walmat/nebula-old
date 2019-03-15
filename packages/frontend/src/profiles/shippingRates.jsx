@@ -71,7 +71,7 @@ export class ShippingRatesPrimitive extends Component {
 
   renderRateFields() {
     const { value, errors } = this.props;
-    const siteOptions = value.rates.map(r => ({ value: r.site.url, label: r.site.name }));
+    const siteOptions = value.rates.map(({ site: { url, name } }) => ({ value: url, label: name }));
     let nameOptions = [];
     let siteObject = [];
     let rateValue = '';
