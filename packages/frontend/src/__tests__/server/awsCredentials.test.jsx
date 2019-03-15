@@ -8,7 +8,7 @@ import {
   mapDispatchToProps,
 } from '../../server/awsCredentials';
 import { SERVER_FIELDS, serverActions } from '../../state/actions';
-import { initialServerStates } from '../../utils/definitions/serverDefinitions';
+import initialServerStates from '../../state/initial/servers';
 import getByTestId from '../../__testUtils__/getByTestId';
 
 describe('<AWSCredentials />', () => {

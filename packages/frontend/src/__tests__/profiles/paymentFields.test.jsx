@@ -8,7 +8,7 @@ import {
   mapDispatchToProps,
 } from '../../profiles/paymentFields';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../../state/actions';
-import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../state/initial/profiles';
 
 describe('<PaymentFields />', () => {
   it('should render with required props', () => {

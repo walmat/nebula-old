@@ -4,7 +4,7 @@ import thunk from 'redux-thunk';
 import createMemoryHistory from 'history/createMemoryHistory';
 
 import * as actions from '../../../state/actions';
-import { initialState } from '../../../state/reducers';
+import { initialState } from '../../../state/migrators';
 
 const { navbarActions, NAVBAR_ACTIONS, ROUTES } = actions;
 const _createMockStore = configureMockStore([thunk]);

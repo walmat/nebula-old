@@ -4,9 +4,9 @@ import { shallow } from 'enzyme';
 
 import { DefaultsPrimitive, mapStateToProps, mapDispatchToProps } from '../../settings/defaults';
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
-import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
-import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
-import { initialState } from '../../state/reducers';
+import initialSettingsStates from '../../state/initial/settings';
+import initialProfileStates from '../../state/initial/profiles';
+import { initialState } from '../../state/migrators';
 import getAllSizes from '../../constants/getAllSizes';
 
 describe('<Defaults />', () => {

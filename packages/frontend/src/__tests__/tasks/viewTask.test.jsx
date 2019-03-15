@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 import { ViewTaskPrimitive, mapStateToProps } from '../../tasks/viewTask';
 import TaskRow from '../../tasks/taskRow';
-import { initialTaskStates } from '../../utils/definitions/taskDefinitions';
+import initialTaskStates from '../../state/initial/tasks';
 
 describe('<ViewTask />', () => {
   it('should render correctly with default props', () => {

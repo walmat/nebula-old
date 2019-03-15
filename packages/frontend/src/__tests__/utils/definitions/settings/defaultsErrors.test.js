@@ -1,5 +1,6 @@
 /* global describe */
-import sDefns, { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
+import sDefns from '../../../../utils/definitions/settingsDefinitions';
+import initialSettingsStates from '../../../../state/initial/settings';
 import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('defaultsErrors definitions', () => {
