@@ -6,10 +6,9 @@ import PropTypes from 'prop-types';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
-import { RATES_FIELDS, profileActions, mapRateFieldToKey } from '../state/actions';
+import { RATES_FIELDS, profileActions, mapRateFieldToKey, PROFILE_FIELDS } from '../state/actions';
 
 import './profiles.css';
-import { PROFILE_FIELDS } from '../state/actions/profiles/profileActions';
 
 export class ShippingRatesPrimitive extends Component {
   static renderButton(className, onClick, label) {
@@ -38,6 +37,8 @@ export class ShippingRatesPrimitive extends Component {
         className: 'col col--no-gutter',
       },
     };
+
+    this.deleteShippingRate = this.deleteShippingRate.bind(this);
   }
 
   deleteShippingRate() {
@@ -47,17 +48,6 @@ export class ShippingRatesPrimitive extends Component {
       siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
       if (siteObject && siteObject.selectedRate) {
         onDeleteShippingRate(value.selectedSite, siteObject.selectedRate);
-      }
-    }
-  }
-
-  clearShippingRate() {
-    const { onClearShippingRate, value } = this.props;
-    let siteObject = [];
-    if (value.selectedSite) {
-      siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
-      if (siteObject && siteObject.selectedRate) {
-        onClearShippingRate(value.selectedSite, siteObject.selectedRate);
       }
     }
   }
@@ -137,9 +127,6 @@ export class ShippingRatesPrimitive extends Component {
           <div className="col col--end col--no-gutter-left">
             {ShippingRatesPrimitive.renderButton('delete', this.deleteShippingRate, 'Delete')}
           </div>
-          <div className="col col--end col--no-gutter-left">
-            {ShippingRatesPrimitive.renderButton('clear', this.clearShippingRate, 'Clear')}
-          </div>
         </div>
       </div>
     );
@@ -178,7 +165,6 @@ ShippingRatesPrimitive.propTypes = {
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   onDeleteShippingRate: PropTypes.func.isRequired,
-  onClearShippingRate: PropTypes.func.isRequired,
   value: defns.profile.isRequired,
 };
 
@@ -193,10 +179,7 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(profileActions.edit(ownProps.profileToEdit.id, section, changes.value, changes.field));
   },
   onDeleteShippingRate: (site, rate) => {
-    dispatch(profileActions.deleteRate(ownProps.profileToEdit.id, site, rate));
-  },
-  onClearShippingRate: (site, rate) => {
-    dispatch(profileActions.clearRate(ownProps.profileToEdit.id, site, rate));
+    dispatch(profileActions.deleteRate(ownProps.profileToEdit.editId, site, rate));
   },
 });
 
