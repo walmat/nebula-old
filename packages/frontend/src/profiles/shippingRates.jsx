@@ -81,7 +81,7 @@ export class ShippingRatesPrimitive extends Component {
       if (siteObject && siteObject.selectedRate) {
         rateValue = siteObject.selectedRate.value;
       }
-      nameOptions = siteObject.rates.map(r => ({ value: r.rate, label: r.name }));
+      nameOptions = siteObject.rates.map(({ rate, name }) => ({ value: rate, label: name }));
     }
     return (
       <div className="col profiles-rates__input-group">
