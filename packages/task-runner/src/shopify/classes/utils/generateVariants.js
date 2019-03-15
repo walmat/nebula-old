@@ -4,8 +4,14 @@ const { getRandomIntInclusive } = require('./index');
 const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
 
 function generateVariants(product, sizes, site, logger = { log: () => {} }) {
+  // Filter out unavailable variants first
+  const availableVariants = product.variants.filter(v => v.available);
+  if (!availableVariants.length) {
+    return null;
+  }
+
   // Group variants by their size
-  const variantsBySize = _.groupBy(product.variants, variant => {
+  const variantsBySize = _.groupBy(availableVariants, variant => {
     // Use the variant option or the title segment
     const option =
       variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
@@ -22,8 +28,8 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   const mappedVariants = sizes.map(size => {
     if (size === 'Random') {
       const val = getRandomIntInclusive(0, Object.keys(variantsBySize).length - 1);
-      const variant = variantsBySize[Object.keys(variantsBySize)[val]];
-      return variant;
+      const variants = variantsBySize[Object.keys(variantsBySize)[val]];
+      return variants;
     }
     const variant = Object.keys(variantsBySize).find(
       s => s.toUpperCase().indexOf(size.toUpperCase()) > -1,
