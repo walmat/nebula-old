@@ -59,7 +59,7 @@ class RestockMonitor extends Monitor {
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
     return {
-      message: `Found product: ${this._context.task.product.name}`,
+      message: `Product restocked: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
     };
   }
