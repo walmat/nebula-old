@@ -8,9 +8,32 @@ import { currentProfileReducer, selectedProfileReducer } from './reducers/profil
 import profileListReducer from './reducers/profiles/profileListReducer';
 import { serverReducer, serverListReducer } from './reducers/server/serverReducer';
 import settingsReducer from './reducers/settings/settingsReducer';
-import navbarReducer from './reducers/navbar/navbarReducer';
+import { navbarReducer, initialNavbarState } from './reducers/navbar/navbarReducer';
 import { GLOBAL_ACTIONS } from './actions';
-import topLevelMigrator, { initialState } from './migrators';
+import serverListOptions from '../utils/servers';
+import { initialProfileStates } from '../utils/definitions/profileDefinitions';
+import { initialTaskStates } from '../utils/definitions/taskDefinitions';
+import { initialSettingsStates } from '../utils/definitions/settingsDefinitions';
+import { initialServerStates } from '../utils/definitions/serverDefinitions';
+import { THEMES } from '../constants/themes';
+
+/**
+ * Application State
+ */
+export const initialState = {
+  profiles: initialProfileStates.list,
+  selectedProfile: initialProfileStates.profile,
+  currentProfile: initialProfileStates.profile,
+  tasks: initialTaskStates.list,
+  newTask: initialTaskStates.task,
+  navbar: initialNavbarState,
+  selectedTask: initialTaskStates.task,
+  settings: initialSettingsStates.settings,
+  serverInfo: initialServerStates.serverInfo,
+  servers: initialServerStates.serverList,
+  serverListOptions,
+  theme: THEMES.LIGHT,
+};
 
 const topLevelReducer = (state = initialState, action) => {
   // Return State if a null/undefined action is given
@@ -22,7 +45,6 @@ const topLevelReducer = (state = initialState, action) => {
     return { ...initialState };
   }
 
-  // Check for set theme and adjust it here
   if (action.type === GLOBAL_ACTIONS.SET_THEME) {
     if (action.theme) {
       const { theme } = action;
@@ -31,15 +53,9 @@ const topLevelReducer = (state = initialState, action) => {
         theme,
       };
     }
-    return { ...state };
   }
 
-  // Check for migration and perform it
-  if (action.type === GLOBAL_ACTIONS.MIGRATE_STATE) {
-    return topLevelMigrator(state);
-  }
-
-  // If not a global action, handle the action with sub reducers
+  // If not a reset, handle the action with sub reducers
   const changes = {
     tasks: taskListReducer(state.tasks, action),
     newTask: newTaskReducer(state.newTask, action, state.settings.defaults),

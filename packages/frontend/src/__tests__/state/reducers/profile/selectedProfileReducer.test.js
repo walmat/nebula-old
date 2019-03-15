@@ -1,6 +1,6 @@
 /* global describe it expect test */
 import { selectedProfileReducer } from '../../../../state/reducers/profiles/profileReducer';
-import initialProfileStates from '../../../../state/initial/profiles';
+import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
 import { PROFILE_ACTIONS } from '../../../../state/actions';
 
 describe('selected profile reducer', () => {

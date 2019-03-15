@@ -1,8 +1,7 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 import persistState from 'redux-localstorage';
-import topLevelReducer from './reducers';
-import { initialState } from './migrators';
+import topLevelReducer, { initialState } from './reducers';
 import profileAttributeValidationMiddleware from './middleware/profiles/profileAttributeValidationMiddleware';
 import profileFormValidationMiddleware from './middleware/profiles/profileFormValidationMiddleware';
 import settingsAttributeValidationMiddleware from './middleware/settings/settingsAttributeValidationMiddleware';

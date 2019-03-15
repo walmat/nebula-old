@@ -8,7 +8,7 @@ import {
   mapDispatchToProps,
 } from '../../server/createServer';
 import { SERVER_FIELDS, serverActions } from '../../state/actions';
-import initialServerStates from '../../state/initial/servers';
+import { initialServerStates } from '../../utils/definitions/serverDefinitions';
 import getByTestId from '../../__testUtils__/getByTestId';
 import serverListOptions from '../../utils/servers';
 

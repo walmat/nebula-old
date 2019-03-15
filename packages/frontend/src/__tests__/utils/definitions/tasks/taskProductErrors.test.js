@@ -1,6 +1,5 @@
 /* global describe */
-import tDefns from '../../../../utils/definitions/taskDefinitions';
-import initialTaskStates from '../../../../state/initial/tasks';
+import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
 import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskProductError definitions', () => {

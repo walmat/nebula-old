@@ -1,5 +1,12 @@
 import PropTypes from 'prop-types';
 
+export const initialAwsCredentialsState = {
+  AWSAccessKey: '',
+  AWSSecretKey: '',
+  accessToken: null,
+  errors: {}, // TODO: Replace this with initialAwsCredentialsErrorState (when it gets defined)
+};
+
 const awsCredentials = PropTypes.shape({
   AWSAccessKey: PropTypes.string,
   AWSSecretKey: PropTypes.string,

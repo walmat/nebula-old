@@ -1,5 +1,13 @@
 import PropTypes from 'prop-types';
 
+export const initialProxyOptionsState = {
+  numProxies: 0,
+  location: null,
+  username: '',
+  password: '',
+  errors: {}, // TODO: Replace with initialProxyOptionsErrorState (when it gets defined)
+};
+
 const proxyOptions = PropTypes.shape({
   numProxies: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   location: PropTypes.shape({

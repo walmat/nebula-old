@@ -4,7 +4,7 @@ import { shallow, mount } from 'enzyme';
 
 import { ProxyListPrimitive, mapStateToProps, mapDispatchToProps } from '../../settings/proxyList';
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
-import initialSettingsStates from '../../state/initial/settings';
+import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
 import getByTestId from '../../__testUtils__/getByTestId';
 
 describe('<ProxyList />', () => {

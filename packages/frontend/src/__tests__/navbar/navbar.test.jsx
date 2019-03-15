@@ -6,10 +6,8 @@ import configureStore from 'redux-mock-store';
 
 import { NavbarPrimitive, mapStateToProps, mapDispatchToProps } from '../../navbar/navbar';
 import Bodymovin from '../../navbar/bodymovin';
-import { initialState } from '../../state/migrators';
+import { initialNavbarState } from '../../state/reducers/navbar/navbarReducer';
 import { ROUTES, NAVBAR_ACTIONS } from '../../state/actions';
-
-const initialNavbarState = initialState.navbar;
 
 describe('<Navbar />', () => {
   let Bridge;
@@ -206,21 +204,21 @@ describe('<Navbar />', () => {
   });
 
   test('map state to props returns the correct structure', () => {
-    const start = {
+    const initialState = {
       navbar: { ...initialNavbarState },
     };
     const mockStore = configureStore();
-    const store = mockStore(start);
+    const store = mockStore(initialState);
     const actual = mapStateToProps(store.getState());
     expect(actual.navbar).toEqual(initialNavbarState);
   });
 
   test('map dispatch to props returns the correct structure', () => {
-    const start = {
+    const initialState = {
       navbar: { ...initialNavbarState },
     };
     const store = {
-      getState: jest.fn(() => start),
+      getState: jest.fn(() => initialState),
       dispatch: jest.fn(),
     };
     const actual = mapDispatchToProps(store.dispatch);
