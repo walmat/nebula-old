@@ -129,6 +129,7 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
+    this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     const { site, product } = this._context.task;
     const variants = this._generateVariants(product);
     // check for next state (means we hit an error when generating variants)
@@ -175,6 +176,7 @@ class Monitor {
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',
         fullProductInfo.title,
       );
+      this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
       const variants = this._generateVariants(fullProductInfo);
       // check for next state (means we hit an error when generating variants)
       if (variants.nextState) {
@@ -221,6 +223,7 @@ class Monitor {
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
+    this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     let variants;
     if (product.variant) {
       variants = [product.variant];

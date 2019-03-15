@@ -22,7 +22,8 @@ class SpecialParser extends Parser {
     this._logger.silly('%s: Starting run...', this._name);
 
     // If parse type is url, use the product's url, otherwise use the site url
-    let initialUrl = this._task.site.url;
+    const { url: siteUrl } = this._task.site;
+    let initialUrl = siteUrl;
     if (this._type === ParseType.Url) {
       initialUrl = this._task.product.url;
     }
@@ -79,7 +80,7 @@ class SpecialParser extends Parser {
       if (this.initialPageContainsProducts) {
         // Attempt to parse the initial page for product data
         try {
-          products = await this.parseInitialPageForProducts(response);
+          products = await this.parseInitialPageForProducts.call(this, response);
         } catch (error) {
           this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
@@ -91,7 +92,7 @@ class SpecialParser extends Parser {
         // Generate Product Pages to Visit
         let productsToVisit;
         try {
-          productsToVisit = await this.parseInitialPageForUrls(response);
+          productsToVisit = await this.parseInitialPageForUrls.call(this, response);
         } catch (error) {
           this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
@@ -110,7 +111,11 @@ class SpecialParser extends Parser {
           productsToVisit.map(async url => {
             try {
               const $ = await this.getProductInfoPage(url);
-              return await this.parseProductInfoPageForProduct.call(this, $);
+              const productInfo = await this.parseProductInfoPageForProduct.call(this, $);
+              return {
+                url, // Attach product url for restocking purposes
+                ...productInfo,
+              };
             } catch (err) {
               this._logger.debug(
                 '%s: ERROR parsing product info page',
@@ -144,7 +149,7 @@ class SpecialParser extends Parser {
 
       // Attempt to parse the response as a product page and get the product info
       try {
-        matchedProduct = this.parseProductInfoPageForProduct(response);
+        matchedProduct = await this.parseProductInfoPageForProduct.call(this, response);
       } catch (error) {
         this._logger.debug('%s: ERROR getting product!', this._name, error);
         // TODO: Maybe replace with a custom error object?
@@ -162,7 +167,11 @@ class SpecialParser extends Parser {
       throw rethrow;
     }
     this._logger.silly('%s: Product Found!', this._name);
-    return matchedProduct;
+    return {
+      // Backup method to add product url for restocking purposes
+      url: `${siteUrl}/products/${matchedProduct.handle}`,
+      ...matchedProduct,
+    };
   }
 
   /**

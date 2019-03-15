@@ -14,16 +14,13 @@ class JsonParser extends Parser {
 
   async run() {
     this._logger.silly('%s: Starting run...', this._name);
+    const { url } = this._task.site;
     let products;
     try {
-      this._logger.silly(
-        '%s: Making request for %s/products.json ...',
-        this._name,
-        this._task.site.url,
-      );
+      this._logger.silly('%s: Making request for %s/products.json ...', this._name, url);
       const response = await this._request({
         method: 'GET',
-        uri: `${this._task.site.url}/products.json`,
+        uri: `${url}/products.json`,
         proxy: formatProxy(this._proxy) || undefined,
         rejectUnauthorized: false,
         json: false,
@@ -53,7 +50,11 @@ class JsonParser extends Parser {
       throw new Error('unable to match the product');
     }
     this._logger.silly('%s: Product Found!', this._name);
-    return matchedProduct;
+    return {
+      // insert generated product url (for restocking purposes)
+      url: `${url}/products/${matchedProduct.handle}`,
+      ...matchedProduct,
+    };
   }
 }
 
