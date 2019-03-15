@@ -173,7 +173,7 @@ class TaskManager {
     this._logger.verbose(
       'Reserving proxy for runner %s ... Looking through %d proxies',
       runnerId,
-      this._proxies.size(),
+      this._proxies.size,
     );
     let proxy = null;
     for (const val of this._proxies.values()) {
