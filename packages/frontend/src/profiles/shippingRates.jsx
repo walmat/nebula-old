@@ -99,13 +99,15 @@ export class ShippingRatesPrimitive extends Component {
     let nameOptions = [];
     let siteObject = [];
     let rateValue = '';
-
     if (value.selectedSite) {
       siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
       if (siteObject && siteObject.selectedRate) {
         rateValue = siteObject.selectedRate.value;
       }
       nameOptions = siteObject.rates.map(({ rate, name }) => ({ value: rate, label: name }));
+    } else {
+      // reset selectedRate if there's no selected site
+      siteObject.selectedRate = null;
     }
     return (
       <div className="col profiles-rates__input-group">

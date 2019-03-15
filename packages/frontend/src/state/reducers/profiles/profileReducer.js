@@ -124,13 +124,27 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
 
       // get site object that corresponds to action's site
       const siteObj = nextState.rates.find(r => r.site.url === action.site.value);
-      // find index of that site
-      const idx = nextState.rates.indexOf(siteObj);
-      console.log(idx);
-      // filter the rates to remove the rate that is passed through
+
+      // reset the selectedRate if it's the same one being passed through,
+      // this `should` always be true
+      if (siteObj && siteObj.selectedRate && siteObj.selectedRate.value === action.rate.value) {
+        siteObj.selectedRate = null;
+      }
+      // remove the passed in rate field from the rates array
       siteObj.rates = siteObj.rates.filter(r => r.rate !== action.rate.value);
-      nextState.rates[idx] = siteObj.rates;
-      console.log(siteObj, nextState);
+
+      // check to see if the rates array is empty,
+      // if so, remove the site obj itself from the
+      if (siteObj.rates.length === 0) {
+        // delete the site entry entirely if it's the last entry
+        const idx = nextState.rates.indexOf(siteObj);
+        const found = nextState.rates[idx];
+        if (found) {
+          nextState.rates.splice(idx, 1);
+        }
+        // reset selected site to avoid renderer bugs
+        nextState.selectedSite = null;
+      }
       return nextState;
     }
     default:
