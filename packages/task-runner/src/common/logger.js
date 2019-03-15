@@ -54,12 +54,32 @@ function _setLevels(levels, name) {
 }
 
 function _createLogger({ dir, name, prefix }) {
-  // Check if the logs directory exists and create it if needed
   const dirname = path.join(dir, 'Nebula Orion');
+  const auditFile = path.join(dirname, 'audit.json');
+  // Check if the logs directory exists and create it if needed
   if (!fs.existsSync(dirname)) {
     fs.mkdirSync(dirname, { recursive: true });
+  } else if (!fs.existsSync(auditFile)) {
+    // Logs directory exists but audit file doesn't exist, we weren't using DRF previously so we need to
+    // remove all existing log files in this directory
+    try {
+      const recursiveRemove = dirPath => {
+        const files = fs.readdirSync(dirPath);
+        files.forEach(f => {
+          const fPath = path.join(dirPath, f);
+          if (fs.statSync(fPath).isFile()) {
+            fs.unlinkSync(fPath);
+          } else {
+            recursiveRemove(fPath);
+          }
+        });
+      };
+      recursiveRemove(dirname);
+    } catch (_) {
+      // Fail silently...
+    }
   }
-  const auditFile = path.join(dirname, 'audit.json');
+
   const maxSize = name === 'TaskManager' ? '250m' : '50m';
 
   // Define the transports to use for this logger
