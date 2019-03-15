@@ -59,6 +59,9 @@ export class ProfilesPrimitive extends Component {
   render() {
     const { currentProfile, onProfileNameChange, profiles } = this.props;
     const profileExists = profiles.find(p => p.profileName === currentProfile.profileName);
+    const shippingRateFields = profileExists ? (
+      <ShippingRateFields profileToEdit={currentProfile} />
+    ) : null;
     return (
       <form>
         <div className="container profiles">
@@ -100,9 +103,7 @@ export class ProfilesPrimitive extends Component {
                   profileToEdit={currentProfile}
                 />
               </div>
-              <div className="row row--start">
-                {profileExists ? <ShippingRateFields profileToEdit={currentProfile} /> : null}
-              </div>
+              <div className="row row--start">{shippingRateFields}</div>
             </div>
           </div>
           <div className="row row--expand row--end row--gutter">
