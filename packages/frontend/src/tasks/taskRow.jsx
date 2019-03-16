@@ -197,14 +197,13 @@ export class TaskRowPrimitive extends Component {
               />
             </div>
             <div className="col edit-field">
-              <p className="edit-field__label">Sizes</p>
+              <p className="edit-field__label">Size</p>
               <Select
                 required
-                isMulti
                 isClearable={false}
                 classNamePrefix="select"
                 className="edit-field__select"
-                placeholder="Choose Sizes"
+                placeholder="Choose Size"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
                   theme,

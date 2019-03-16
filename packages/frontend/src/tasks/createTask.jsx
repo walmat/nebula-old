@@ -173,12 +173,11 @@ export class CreateTaskPrimitive extends Component {
               />
             </div>
             <div className="col col--no-gutter tasks-create__input-group--site">
-              <p className="tasks-create__label">Sizes</p>
+              <p className="tasks-create__label">Size</p>
               <Select
                 required
-                isMulti
                 isClearable={false}
-                placeholder="Choose Sizes"
+                placeholder="Choose Size"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
                   theme,
