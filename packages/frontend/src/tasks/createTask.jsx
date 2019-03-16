@@ -34,9 +34,9 @@ export class CreateTaskPrimitive extends Component {
     const { task, onAddNewTask } = this.props;
     e.preventDefault();
     const fsrMap = {
+      FSR: "Men's",
       'CL FSR': 'Clothing',
-      'US FSR': "US Men's",
-      'UK FSR': "UK Men's",
+      // 'UK FSR': "UK Men's",
       'EU FSR': "EU Men's",
     };
     const fsrSize = task.sizes.find(s => fsrMap[s]);
