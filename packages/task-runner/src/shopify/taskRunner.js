@@ -637,27 +637,34 @@ class TaskRunner {
 
   // MARK: State Machine Run Loop
 
+  async runSingleLoop() {
+    let nextState = this._state;
+    if (this._context.aborted) {
+      nextState = States.Aborted;
+    }
+    try {
+      nextState = await this._handleStepLogic(this._state);
+    } catch (e) {
+      this._logger.debug('Run loop errored out! %s', e);
+      nextState = States.Errored;
+    }
+    this._logger.verbose('Run Loop finished, state transitioned to: %s', nextState);
+
+    if (this._state !== nextState) {
+      this._prevState = this._state;
+      this._state = nextState;
+    }
+
+    return false;
+  }
+
   async start() {
     this._prevState = States.Started;
     this._state = States.Started;
-    while (this._state !== States.Stopped) {
-      let nextState = this._state;
-      if (this._context.aborted) {
-        nextState = States.Aborted;
-      }
-      try {
-        // eslint-disable-next-line no-await-in-loop
-        nextState = await this._handleStepLogic(this._state);
-      } catch (e) {
-        this._logger.debug('Run loop errored out! %s', e);
-        nextState = States.Errored;
-      }
-      this._logger.verbose('Run Loop finished, state transitioned to: %s', nextState);
-
-      if (this._state !== nextState) {
-        this._prevState = this._state;
-        this._state = nextState;
-      }
+    let shouldStop = false;
+    while (this._state !== States.Stopped && !shouldStop) {
+      // eslint-disable-next-line no-await-in-loop
+      shouldStop = await this.runSingleLoop;
     }
 
     this._cleanup();
