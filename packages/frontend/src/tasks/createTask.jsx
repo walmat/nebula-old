@@ -76,8 +76,14 @@ export class CreateTaskPrimitive extends Component {
         };
       case TASK_FIELDS.EDIT_SIZES:
         return event => {
-          const values = event.map(s => s.value);
-          onFieldChange({ field, value: values });
+          if (Array.isArray(event)) {
+            onFieldChange({ field, value: event.map(s => s.value) });
+          } else {
+            // Hot fix for single size changes -- dispatch two events to mock a
+            // multi select remove and then add.
+            onFieldChange({ field, value: [] });
+            onFieldChange({ field, value: [event.value] });
+          }
         };
       case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:

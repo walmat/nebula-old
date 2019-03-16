@@ -50,8 +50,14 @@ export class TaskRowPrimitive extends Component {
       }
       case TASK_FIELDS.EDIT_SIZES: {
         return event => {
-          const values = event.map(s => s.value);
-          onEditTask(task, { field, value: values });
+          if (Array.isArray(event)) {
+            onEditTask(task, { field, value: event.map(s => s.value) });
+          } else {
+            // Hot fix for single size changes -- dispatch two events to mock a
+            // multi select remove and then add.
+            onEditTask(task, { field, value: [] });
+            onEditTask(task, { field, value: [event.value] });
+          }
         };
       }
       default: {
