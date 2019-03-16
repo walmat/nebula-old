@@ -51,9 +51,9 @@ class JsonParser extends Parser {
     }
     this._logger.silly('%s: Product Found!', this._name);
     return {
+      ...matchedProduct,
       // insert generated product url (for restocking purposes)
       url: `${url}/products/${matchedProduct.handle}`,
-      ...matchedProduct,
     };
   }
 }

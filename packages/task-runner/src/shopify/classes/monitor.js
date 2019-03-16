@@ -144,7 +144,7 @@ class Monitor {
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
-      message: `Found product: ${parsed.name}`,
+      message: `Found product: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
     };
   }

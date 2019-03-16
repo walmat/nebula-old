@@ -45,7 +45,7 @@ class RestockMonitor extends Monitor {
 
     // Generate Variants
     this._logger.verbose(
-      'MONITOR: Retrieve Full Product %s, Generating Variants List...',
+      'RESTOCK MONITOR: Retrieve Full Product %s, Generating Variants List...',
       fullProductInfo.title,
     );
     const variants = this._generateVariants(fullProductInfo);
@@ -53,10 +53,10 @@ class RestockMonitor extends Monitor {
     if (variants.nextState) {
       return variants;
     }
-    this._logger.verbose('MONITOR: Variants Generated, updating context...');
+    this._logger.verbose('RESTOCK MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
     // Everything is setup -- kick it to checkout
-    this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
+    this._logger.verbose('RESTOCK MONITOR: Status is OK, proceeding to checkout');
     this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
     return {
       message: `Product restocked: ${this._context.task.product.name}`,

@@ -39,7 +39,7 @@ class Parser {
         genRequestPromise(`${productUrl}.js`).then(
           res =>
             // {productUrl}.js contains the format we need -- just return it
-            JSON.parse(res).product,
+            JSON.parse(res),
           error => {
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
