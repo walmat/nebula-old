@@ -14,9 +14,7 @@ export const SETTINGS_ACTIONS = {
 
 const _fetchShippingRequest = async shipping => {
   const copy = JSON.parse(JSON.stringify(shipping));
-  console.log(copy);
   const parsedProduct = parseProductType(copy.product);
-  console.log(parsedProduct);
 
   if (parsedProduct) {
     copy.product = parsedProduct;
@@ -28,7 +26,7 @@ const _fetchShippingRequest = async shipping => {
 const _fetchShippingRates = async shipping =>
   // TODO - window.Bridge to start the shipping rate finding...
   new Promise((resolve, reject) => {
-    if (shipping) resolve(shipping);
+    if (shipping) resolve({ shipping });
     reject(new Error('No Shipping Rates Found'));
   });
 
@@ -42,21 +40,17 @@ const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_
 const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
 
 const fetchShipping = shipping => async dispatch => {
-  console.log(shipping);
   const res = await _fetchShippingRequest(shipping);
-  console.log(res);
 
   if (res && res.error) {
     return dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, res.error));
   }
 
-  if (res && res.shipping) {
-    const rates = await _fetchShippingRates(res.shipping);
-    if (!rates || rates.error) {
-      dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, rates.error));
-    }
-    dispatch(_fetchShipping(rates));
+  const rates = await _fetchShippingRates(res.shipping);
+  if (!rates || rates.error) {
+    return dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, rates.error));
   }
+  return dispatch(_fetchShipping(rates));
 };
 
 export const settingsActions = {

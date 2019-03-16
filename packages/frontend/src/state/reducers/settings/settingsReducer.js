@@ -12,6 +12,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
           ...change,
           shipping: {
             ...initialSettingsStates.shipping,
+            ...state.shipping,
             product: {
               ...initialSettingsStates.shipping.product,
               raw: action.value || '',
@@ -172,10 +173,12 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     };
   } else if (action.type === SETTINGS_ACTIONS.FETCH_SHIPPING) {
     // TODO - setup reducer here
+    console.log(action);
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
+    console.log(state.errors);
     change = {
       shipping: initialSettingsStates.shipping,
-      errors: Object.assign({}, state.errors, action.errors),
+      errors: Object.assign({}, state.errors, initialSettingsStates.shippingErrors),
     };
   } else if (action.type === SETTINGS_ACTIONS.TEST) {
     if (window.Bridge) {

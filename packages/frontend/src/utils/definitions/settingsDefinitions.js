@@ -1,6 +1,7 @@
 import defaults from './settings/defaults';
 import defaultsErrors from './settings/defaultsErrors';
 import shippingManager from './settings/shippingManager';
+import shippingManagerErrors from './settings/shippingManagerErrors';
 import proxy from './settings/proxy';
 import proxyErrors from './settings/proxyErrors';
 import settings from './settings/settings';
@@ -10,6 +11,7 @@ export default {
   defaults,
   defaultsErrors,
   shipping: shippingManager,
+  shippingErrors: shippingManagerErrors,
   settings,
   settingsErrors,
   proxy,

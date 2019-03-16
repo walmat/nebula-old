@@ -1,12 +1,9 @@
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
-import settingsAttributeValidatorMap from '../../../utils/validation/settingsAttributeValidators';
+import proxyAttributeValidatorMap from '../../../utils/validation/proxyAttributeValidators';
 
-const settingsAttributeValidationMiddleware = store => next => action => {
+const proxyAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing settings
-  if (
-    action.type !== SETTINGS_ACTIONS.EDIT ||
-    (action.field !== SETTINGS_FIELDS.EDIT_DISCORD && action.field !== SETTINGS_FIELDS.EDIT_SLACK)
-  ) {
+  if (action.type !== SETTINGS_ACTIONS.EDIT || action.field !== SETTINGS_FIELDS.EDIT_PROXIES) {
     return next(action);
   }
 
@@ -18,11 +15,13 @@ const settingsAttributeValidationMiddleware = store => next => action => {
   // Copy over the settings errors map
   newAction.errors = Object.assign({}, state.settings.errors);
   // Validate the field in question
-  const error = settingsAttributeValidatorMap[newAction.field](newAction.value);
-  newAction.errors[mapSettingsFieldToKey[newAction.field]] = !error;
-
+  const error = proxyAttributeValidatorMap[newAction.field](newAction.value);
+  newAction.errors[mapSettingsFieldToKey[newAction.field]] = error;
+  if (!error.length) {
+    delete newAction.errors[mapSettingsFieldToKey[newAction.field]];
+  }
   // Continue on to next middleware/reducer with errors map filled in
   return next(newAction);
 };
 
-export default settingsAttributeValidationMiddleware;
+export default proxyAttributeValidationMiddleware;
