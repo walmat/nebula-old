@@ -18,7 +18,6 @@ function validateProxies(proxies) {
 }
 
 function validateProduct(product) {
-  console.log(product);
   if (!product) {
     return false;
   }
