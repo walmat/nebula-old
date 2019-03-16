@@ -178,7 +178,6 @@ class FrontendCheckout extends Checkout {
   }
 
   async getCheckout() {
-    const { timers } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
