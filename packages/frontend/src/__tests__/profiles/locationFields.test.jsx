@@ -251,7 +251,7 @@ describe('<LocationFields />', () => {
       testOnChange('province', event, {
         field: LOCATION_FIELDS.PROVINCE,
         value: {
-          country: null,
+          country: initialProfileStates.location.country,
           province: event,
         },
       });
