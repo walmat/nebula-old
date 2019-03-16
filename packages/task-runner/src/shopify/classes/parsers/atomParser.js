@@ -82,6 +82,7 @@ class AtomParser extends Parser {
       return {
         ...matchedProduct,
         ...fullProductInfo,
+        url: matchedProduct.url, // Use known good product url
       };
     } catch (errors) {
       this._logger.silly("%s: Couldn't Find Variant Info", this._name, errors);

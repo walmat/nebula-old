@@ -229,7 +229,7 @@ class APICheckout extends Checkout {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }
           await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.AddToCart };
+          return { message: 'Running for restocks', nextState: States.Restocking };
         }
         if (error.variant_id && error.variant_id[0]) {
           if (timers.monitor.getRunTime() > CheckoutRefresh) {
