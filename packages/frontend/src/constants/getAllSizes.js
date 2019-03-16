@@ -17,7 +17,7 @@ const sizes = [
     ],
   },
   {
-    label: "Men's",
+    label: "US/UK Men's",
     options: [
       { value: 'FSR', label: 'Full Size Run' },
       { value: '4', label: '4.0' },
