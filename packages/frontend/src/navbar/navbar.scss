@@ -18,6 +18,10 @@
   border-radius: 3px;
 }
 
+.react-bodymovin-container > svg {
+  cursor: default !important;
+}
+
 .active {
   opacity: 0.8333;
 }
@@ -63,6 +67,10 @@
       @extend %icons-base;
       width: 42px;
       height: 46px;
+      // temporary while servers page is disabled
+      & > div > svg {
+        cursor: not-allowed !important;
+      }
     }
     &--settings {
       @extend %icons-base;
@@ -108,6 +116,7 @@
     }
     &--app-version {
       text-align: center;
+      cursor: pointer;
       opacity: 0.75;
       color: #f0405e !important;
     }
