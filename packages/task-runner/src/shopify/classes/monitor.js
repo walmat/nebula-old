@@ -111,9 +111,17 @@ class Monitor {
         const variant = variantsBySize[Object.keys(variantsBySize)[val]];
         return variant;
       }
-      const variant = Object.keys(variantsBySize).find(
-        s => s.toUpperCase().indexOf(size.toUpperCase()) > -1,
-      );
+
+      // Determine if we are checking for shoe sizes or not
+      let sizeMatcher;
+      if (/[0-9]+/.test(size)) {
+        // We are matching a shoe size
+        sizeMatcher = s => new RegExp(`${size}`, 'i').test(s);
+      } else {
+        // We are matching a garment size
+        sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
+      }
+      const variant = Object.keys(variantsBySize).find(sizeMatcher);
       return variantsBySize[variant];
     });
 
