@@ -24,6 +24,7 @@ const newInitialProfile = {
 
 const newState = {
   ...prevState,
+  version: '0.1.1',
   currentProfile: newInitialProfile,
   selectedProfile: newInitialProfile,
   newTask: {

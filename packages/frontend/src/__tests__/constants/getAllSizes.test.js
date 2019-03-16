@@ -1,5 +1,9 @@
 /* global describe it expect beforeEach */
-import getAllSizes, { getSize, getCategory } from '../../constants/getAllSizes';
+import getAllSizes, {
+  getSize,
+  getCategory,
+  buildSizesForCategory,
+} from '../../constants/getAllSizes';
 
 describe('getAllSizes', () => {
   let expectedSizes;
@@ -159,6 +163,15 @@ describe('getAllSizes', () => {
 
   it('should return correct category', () => {
     expectedSizes.forEach(category => expect(getCategory(category.label)).toEqual(category));
+  });
+
+  it('should lookup correct size categories', () => {
+    expectedSizes.forEach(category => {
+      const expectedSizeGroups = category.options.filter(
+        ({ label }) => label !== 'Random' && label !== 'Full Size Run',
+      );
+      expect(buildSizesForCategory(category.label)).toEqual(expectedSizeGroups);
+    });
   });
 
   it('should lookup the correct sizes', () => {

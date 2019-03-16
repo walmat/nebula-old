@@ -26,6 +26,17 @@ const updateProfile = ({ billing, shipping, ...rest }) => ({
   shipping: addDefaultCountry(shipping),
 });
 
+// Helper method to call on tasks instead of needing to go multiple
+// levels deeper and use addDefaultCountry
+const updateTask = ({ profile, edits, ...rest }) => ({
+  ...rest,
+  profile: updateProfile(profile),
+  edits: {
+    ...edits,
+    profile: edits.profile ? updateProfile(edits.profile) : edits.profile,
+  },
+});
+
 /**
  * v0.1.1 Migrator
  *
@@ -47,7 +58,9 @@ export default (state = initialState) => {
   // 2. Current Profile
   // 3. SelectedProfile
   // 4. Any profiles in the task list (in the task, or the task edits)
-  // 5. Any profiles in the settings defaults and deaults edits
+  // 5. Selected Task
+  // 6. New Task
+  // 7. Any profiles in the settings defaults and deaults edits
 
   // update version only if incoming state is less than 0.1.1
   const newVersion = semver.gt(state.version, '0.1.1') ? state.version : '0.1.1';
@@ -57,14 +70,9 @@ export default (state = initialState) => {
     profiles: state.profiles.map(updateProfile),
     currentProfile: updateProfile(state.currentProfile),
     selectedProfile: updateProfile(state.selectedProfile),
-    tasks: state.tasks.map(({ profile, edits, ...rest }) => ({
-      ...rest,
-      profile: updateProfile(profile),
-      edits: {
-        ...edits,
-        profile: updateProfile(edits.profile),
-      },
-    })),
+    tasks: state.tasks.map(updateTask),
+    newTask: updateTask(state.newTask),
+    selectedTask: updateTask(state.selectedTask),
     settings: {
       ...state.settings,
       defaults: {
