@@ -44,6 +44,14 @@ function validateProduct(product) {
   return false; // default to not valid
 }
 
+function validateDiscordWebhook(input) {
+  return input && regexes.discordWebhook.test(input);
+}
+
+function validateSlackWebhook(input) {
+  return input && regexes.slackWebhook.test(input);
+}
+
 function validateProfile(profile) {
   return profile && profile.id;
 }
@@ -64,6 +72,8 @@ const settingsAttributeValidatorMap = {
   [SETTINGS_FIELDS.EDIT_SHIPPING_SITE]: validateSite,
   [SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME]: validateInput,
   [SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD]: validateInput,
+  [SETTINGS_FIELDS.EDIT_DISCORD]: validateDiscordWebhook,
+  [SETTINGS_FIELDS.EDIT_SLACK]: validateSlackWebhook,
 };
 
 export default settingsAttributeValidatorMap;
