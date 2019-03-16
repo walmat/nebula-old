@@ -1,4 +1,5 @@
 import makeActionCreator from '../actionCreator';
+import parseProductType from '../../../utils/parseProductType';
 
 // Top level Actions
 export const SETTINGS_ACTIONS = {
@@ -8,20 +9,30 @@ export const SETTINGS_ACTIONS = {
   CLEAR_SHIPPING: 'CLEAR_SHIPPING',
   TEST: 'TEST_WEBHOOK',
   FETCH_SHIPPING: 'FETCH_SHIPPING',
+  ERROR: 'SETTINGS_HANDLE_ERROR',
 };
 
-const _fetchShippingRequest = async (product, profile, site) => {
-  /**
-   * TODO:
-   * 1. login if needed
-   * 2. create checkout
-   * 3. submit customer info
-   * 4. ATC
-   * 5. fetch shipping rates
-   */
+const _fetchShippingRequest = async shipping => {
+  const copy = JSON.parse(JSON.stringify(shipping));
+  console.log(copy);
+  const parsedProduct = parseProductType(copy.product);
+  console.log(parsedProduct);
+
+  if (parsedProduct) {
+    copy.product = parsedProduct;
+    return { shipping: copy };
+  }
+  return { error: new Error('Invalid Shipping Structure') };
 };
 
-const _fetchShipping = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'shipping');
+const _fetchShippingRates = async shipping =>
+  // TODO - window.Bridge to start the shipping rate finding...
+  new Promise((resolve, reject) => {
+    if (shipping) resolve(shipping);
+    reject(new Error('No Shipping Rates Found'));
+  });
+
+const _fetchShipping = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
@@ -30,11 +41,23 @@ const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
 
-const fetchShipping = (product, profile, site) => dispatch =>
-  _fetchShippingRequest(product, profile, site).then(
-    rates => dispatch(_fetchShipping(rates)),
-    error => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, error)),
-  );
+const fetchShipping = shipping => async dispatch => {
+  console.log(shipping);
+  const res = await _fetchShippingRequest(shipping);
+  console.log(res);
+
+  if (res && res.error) {
+    return dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, res.error));
+  }
+
+  if (res && res.shipping) {
+    const rates = await _fetchShippingRates(res.shipping);
+    if (!rates || rates.error) {
+      dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, rates.error));
+    }
+    dispatch(_fetchShipping(rates));
+  }
+};
 
 export const settingsActions = {
   edit: editSettings,
@@ -43,6 +66,7 @@ export const settingsActions = {
   clearShipping,
   test: testWebhook,
   fetch: fetchShipping,
+  error: handleError,
 };
 
 // Field Edits

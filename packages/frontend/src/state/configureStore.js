@@ -7,6 +7,7 @@ import profileFormValidationMiddleware from './middleware/profiles/profileFormVa
 import settingsAttributeValidationMiddleware from './middleware/settings/settingsAttributeValidationMiddleware';
 import tasksFormValidationMiddleware from './middleware/tasks/tasksFormValidationMiddleware';
 import tasksAttributeValidationMiddleware from './middleware/tasks/tasksAttributeValidationMiddleware';
+import settingsFormValidationMiddleware from './middleware/settings/settingsFormValidationMiddleware';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -21,6 +22,7 @@ export default function configureStore() {
         tasksAttributeValidationMiddleware,
         tasksFormValidationMiddleware,
         settingsAttributeValidationMiddleware,
+        settingsFormValidationMiddleware,
         thunk,
       ),
       persistState(),
