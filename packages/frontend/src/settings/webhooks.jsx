@@ -54,8 +54,7 @@ export class WebhooksPrimitive extends Component {
   }
 
   render() {
-    const { settings, onTestDiscord, onTestSlack, onKeyPress } = this.props;
-    const { discord, slack } = settings;
+    const { discord, slack, onTestDiscord, onTestSlack, onKeyPress } = this.props;
     return (
       <div>
         <div className="row row--start row-gutter">
@@ -93,7 +92,8 @@ WebhooksPrimitive.propTypes = {
   onSettingsChange: PropTypes.func.isRequired,
   onTestDiscord: PropTypes.func.isRequired,
   onTestSlack: PropTypes.func.isRequired,
-  settings: sDefns.settings.isRequired,
+  discord: PropTypes.string.isRequired,
+  slack: PropTypes.string.isRequired,
   onKeyPress: PropTypes.func,
   errors: sDefns.settingsErrors.isRequired,
 };
@@ -103,7 +103,8 @@ WebhooksPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  settings: state.settings,
+  discord: state.settings.discord,
+  slack: state.settings.slack,
   errors: state.settings.errors,
 });
 

@@ -19,8 +19,8 @@ export const initialShippingManagerState = {
     neg_keywords: null,
     url: null,
   },
-  username: null,
-  password: null,
+  username: '',
+  password: '',
 };
 
 const shippingManager = PropTypes.shape({

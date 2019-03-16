@@ -115,13 +115,13 @@ export class DefaultsPrimitive extends Component {
   }
 
   render() {
-    const { settings } = this.props;
-    const defaultSizes = settings.defaults.sizes.map(s => ({ value: s, label: `${s}` }));
+    const { defaults } = this.props;
+    const defaultSizes = defaults.sizes.map(s => ({ value: s, label: `${s}` }));
     let defaultProfileValue = null;
-    if (settings.defaults.profile.id !== null) {
+    if (defaults.profile.id !== null) {
       defaultProfileValue = {
-        value: settings.defaults.profile.id,
-        label: settings.defaults.profile.profileName,
+        value: defaults.profile.id,
+        label: defaults.profile.profileName,
       };
     }
     return (
@@ -153,10 +153,7 @@ export class DefaultsPrimitive extends Component {
                     </div>
                     <div className="row row--gutter row--end">
                       <div className="col col--no-gutter-right">
-                        {this.renderDefaultsButton(
-                          SETTINGS_FIELDS.SAVE_DEFAULTS,
-                          settings.defaults,
-                        )}
+                        {this.renderDefaultsButton(SETTINGS_FIELDS.SAVE_DEFAULTS, defaults)}
                       </div>
                       <div className="col col--end col--gutter-left">
                         {this.renderDefaultsButton(SETTINGS_FIELDS.CLEAR_DEFAULTS)}
@@ -178,7 +175,7 @@ DefaultsPrimitive.propTypes = {
   onSaveDefaults: PropTypes.func.isRequired,
   onClearDefaults: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
-  settings: sDefns.settings.isRequired,
+  defaults: sDefns.defaults.isRequired,
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
   errors: sDefns.settingsErrors.isRequired,
@@ -190,7 +187,7 @@ DefaultsPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   profiles: state.profiles,
-  settings: state.settings,
+  defaults: state.settings.defaults,
   errors: state.settings.errors,
   theme: state.theme,
 });
