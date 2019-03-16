@@ -44,6 +44,14 @@ const TaskRunnerStates = {
   Stopped: 'STOPPED',
 };
 
+// Runner Type will be used on frontend, so changing
+// these values may break certain things on the
+// Frontend!
+const TaskRunnerTypes = {
+  Normal: 'normal',
+  ShippingRate: 'srr',
+};
+
 const TaskRunnerDelayTypes = {
   error: 'errorDelay',
   monitor: 'monitorDelay',
@@ -108,6 +116,7 @@ module.exports = {
     Events: TaskManagerEvents,
   },
   TaskRunner: {
+    Types: TaskRunnerTypes,
     Events: TaskRunnerEvents,
     States: TaskRunnerStates,
     StateMap: PollQueueStateToNextState,

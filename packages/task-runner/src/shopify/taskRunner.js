@@ -7,6 +7,7 @@ const Discord = require('./classes/hooks/discord');
 const Slack = require('./classes/hooks/slack');
 const AsyncQueue = require('../common/asyncQueue');
 const {
+  Types,
   States,
   Events,
   DelayTypes,
@@ -25,6 +26,7 @@ class TaskRunner {
   }
 
   constructor(id, task, proxy, loggerPath) {
+    this._type = Types.Normal;
     // Add Ids to object
     this.taskId = task.id;
     this.id = id;
@@ -233,7 +235,7 @@ class TaskRunner {
   }
 
   _emitTaskEvent(payload) {
-    this._emitEvent(Events.TaskStatus, payload);
+    this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
   }
 
   // MARK: State Machine Step Logic
@@ -598,6 +600,7 @@ class TaskRunner {
     return () => {
       this._emitTaskEvent({
         message: this._context.status || `Task has ${status}`,
+        done: true,
       });
       return States.Stopped;
     };

@@ -1,9 +1,12 @@
 const TaskRunner = require('./taskRunner');
-const { States, CheckoutTypes } = require('./classes/utils/constants').TaskRunner;
+const { Types, States, CheckoutTypes } = require('./classes/utils/constants').TaskRunner;
 
 class ShippingRatesRunner extends TaskRunner {
   constructor(...params) {
     super(...params);
+
+    // Specify the Runner Type
+    this._type = Types.ShippingRate;
 
     if (this._checkoutType === CheckoutTypes.fe) {
       this._logger.error(
@@ -11,13 +14,6 @@ class ShippingRatesRunner extends TaskRunner {
       );
       throw new Error('Running for Shipping Rates is not Supported with FE Sites!');
     }
-  }
-
-  _emitTaskEvent(payload) {
-    super._emitTaskEvent({
-      ...payload,
-      srr: true, // attach special "shipping rates runner" tag to the payload
-    });
   }
 
   async runSingleLoop() {
