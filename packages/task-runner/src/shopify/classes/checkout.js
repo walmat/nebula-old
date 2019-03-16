@@ -32,6 +32,7 @@ class Checkout {
       total: 0,
     };
 
+    this.selectedShippingRate = null;
     this.captchaToken = '';
     this.needsCaptcha = false;
     this.captchaTokenRequest = null;
