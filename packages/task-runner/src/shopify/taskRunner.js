@@ -466,6 +466,9 @@ class TaskRunner {
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
+    if (nextState === States.Restocking) {
+      await waitForDelay(this._context.task.monitorDelay);
+    }
     // Restock Monitor will be in charge of choosing the next state
     return nextState;
   }
