@@ -339,6 +339,8 @@ class APICheckout extends Checkout {
         });
 
         const cheapest = _.min(this.shippingMethods, rate => rate.price);
+        // Store cheapest shipping rate
+        this.selectedShippingRate = cheapest;
         const { id, title } = cheapest;
         this.chosenShippingMethod = { id, name: title };
         this._logger.silly('API CHECKOUT: Using shipping method: %s', title);
