@@ -3,18 +3,14 @@ const request = require('request-promise');
 
 const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
+const RestockMonitor = require('./classes/restockMonitor');
 const Discord = require('./classes/hooks/discord');
 const Slack = require('./classes/hooks/slack');
 const AsyncQueue = require('../common/asyncQueue');
 const {
-  States,
-  Events,
-  DelayTypes,
-  HookTypes,
-  StateMap,
-  CheckoutRefresh,
-  HarvestStates,
-} = require('./classes/utils/constants').TaskRunner;
+  ErrorCodes,
+  TaskRunner: { States, Events, DelayTypes, HookTypes, StateMap, CheckoutRefresh, HarvestStates },
+} = require('./classes/utils/constants');
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
@@ -33,7 +29,7 @@ class TaskRunner {
 
     this._jar = request.jar();
     this._request = request.defaults({
-      timeout: 12500,
+      timeout: 20000,
       jar: this._jar,
     });
 
@@ -87,6 +83,11 @@ class TaskRunner {
      * Create a new monitor object to be used for the task
      */
     this._monitor = new Monitor(this._context);
+
+    /**
+     * Create a new restock monitor object to be used for task product restocking
+     */
+    this._restockMonitor = new RestockMonitor(this._context);
 
     /**
      * Create a new checkout object to be used for this task
@@ -431,6 +432,47 @@ class TaskRunner {
     return nextState;
   }
 
+  async _handleRestocking() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
+      this._emitTaskEvent({ message: 'Pinging checkout' });
+      return States.PingCheckout;
+    }
+
+    let res;
+    try {
+      res = await this._restockMonitor.run();
+    } catch (err) {
+      if (err.code === ErrorCodes.RestockingNotSupported) {
+        // If restock monitoring is not supported, go straight to ATC
+        return States.AddToCart;
+      }
+    }
+    const { errors, message, nextState, shouldBan } = res;
+    if (errors) {
+      this._logger.verbose('Restock Monitor Handler completed with errors: %j', errors);
+      this._emitTaskEvent({
+        message: 'Error running for restocks...',
+        errors,
+      });
+      await this._waitForErrorDelay();
+    }
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    if (nextState === States.Restocking) {
+      await waitForDelay(this._context.task.monitorDelay);
+    }
+    // Restock Monitor will be in charge of choosing the next state
+    return nextState;
+  }
+
   async _handleAddToCart() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -646,6 +688,7 @@ class TaskRunner {
       [States.PollQueue]: this._handlePollQueue,
       [States.PatchCheckout]: this._handlePatchCheckout,
       [States.Monitor]: this._handleMonitor,
+      [States.Restocking]: this._handleRestocking,
       [States.AddToCart]: this._handleAddToCart,
       [States.ShippingRates]: this._handleShipping,
       [States.RequestCaptcha]: this._handleRequestCaptcha,

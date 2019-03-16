@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
-const ErrorCodes = require('../utils/constants').ErrorCodes.Parser;
+const { ErrorCodes } = require('../utils/constants');
 
 class Parser {
   /**
@@ -10,7 +10,7 @@ class Parser {
    * This method takes a given single product url and attempts to
    * get the full info for the product, filling in the gaps missed
    * by xml or atom parsing. This method sends out two requests,
-   * one for the `.json` file and one for the `.oembed` file. The
+   * one for the `.js` file and one for the `.oembed` file. The
    * first request to complete returns the full product info. If
    * both requests error out, a list of errors is returned.
    *
@@ -19,7 +19,7 @@ class Parser {
   static getFullProductInfo(productUrl, request, logger) {
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Parser: Getting Full Product Info...');
-    _logger.log('silly', 'Parser: Requesting %s.(json|oembed) in a race', productUrl);
+    _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', productUrl);
     const genRequestPromise = uri =>
       request({
         method: 'GET',
@@ -36,10 +36,10 @@ class Parser {
 
     return rfrl(
       [
-        genRequestPromise(`${productUrl}.json`).then(
+        genRequestPromise(`${productUrl}.js`).then(
           res =>
-            // product.json contains the format we need -- just return it
-            JSON.parse(res).product,
+            // {productUrl}.js contains the format we need -- just return it
+            JSON.parse(res),
           error => {
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
@@ -49,7 +49,7 @@ class Parser {
         ),
         genRequestPromise(`${productUrl}.oembed`).then(
           res => {
-            // product.oembed requires a little transformation before returning:
+            // {productUrl}.oembed requires a little transformation before returning:
             const json = JSON.parse(res);
 
             return {
@@ -60,6 +60,7 @@ class Parser {
                 title: offer.title,
                 id: offer.offer_id,
                 price: `${offer.price}`,
+                available: offer.in_stock || false,
               })),
             };
           },

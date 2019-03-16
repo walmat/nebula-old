@@ -219,7 +219,7 @@ class Checkout {
 
       if (redirectUrl.indexOf('stock_problems') > -1) {
         await waitForDelay(monitorDelay);
-        return { message: 'Running for restocks', nextState: States.CreateCheckout };
+        return { message: 'Running for restocks', nextState: States.Restocking };
       }
 
       // password page
@@ -481,7 +481,7 @@ class Checkout {
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.PostPayment };
+          return { message: 'Running for restocks', nextState: States.Restocking };
         }
       }
 
@@ -570,7 +570,7 @@ class Checkout {
         if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
           // TODO - fix restock mode loopback check
-          return { message: 'Running for restocks', nextState: States.CompletePayment };
+          return { message: 'Running for restocks', nextState: States.Restocking };
         }
 
         // login needed
