@@ -34,9 +34,9 @@ export class CreateTaskPrimitive extends Component {
     const { task, onAddNewTask } = this.props;
     e.preventDefault();
     const fsrMap = {
+      FSR: "Men's",
       'CL FSR': 'Clothing',
-      'US FSR': "US Men's",
-      'UK FSR': "UK Men's",
+      // 'UK FSR': "UK Men's",
       'EU FSR': "EU Men's",
     };
     const fsrSize = task.sizes.find(s => fsrMap[s]);
@@ -76,8 +76,14 @@ export class CreateTaskPrimitive extends Component {
         };
       case TASK_FIELDS.EDIT_SIZES:
         return event => {
-          const values = event.map(s => s.value);
-          onFieldChange({ field, value: values });
+          if (Array.isArray(event)) {
+            onFieldChange({ field, value: event.map(s => s.value) });
+          } else {
+            // Hot fix for single size changes -- dispatch two events to mock a
+            // multi select remove and then add.
+            onFieldChange({ field, value: [] });
+            onFieldChange({ field, value: [event.value] });
+          }
         };
       case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
@@ -173,12 +179,11 @@ export class CreateTaskPrimitive extends Component {
               />
             </div>
             <div className="col col--no-gutter tasks-create__input-group--site">
-              <p className="tasks-create__label">Sizes</p>
+              <p className="tasks-create__label">Size</p>
               <Select
                 required
-                isMulti
                 isClearable={false}
-                placeholder="Choose Sizes"
+                placeholder="Choose Size"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
                   theme,

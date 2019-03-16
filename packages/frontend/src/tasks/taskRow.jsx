@@ -50,8 +50,14 @@ export class TaskRowPrimitive extends Component {
       }
       case TASK_FIELDS.EDIT_SIZES: {
         return event => {
-          const values = event.map(s => s.value);
-          onEditTask(task, { field, value: values });
+          if (Array.isArray(event)) {
+            onEditTask(task, { field, value: event.map(s => s.value) });
+          } else {
+            // Hot fix for single size changes -- dispatch two events to mock a
+            // multi select remove and then add.
+            onEditTask(task, { field, value: [] });
+            onEditTask(task, { field, value: [event.value] });
+          }
         };
       }
       default: {
@@ -197,14 +203,13 @@ export class TaskRowPrimitive extends Component {
               />
             </div>
             <div className="col edit-field">
-              <p className="edit-field__label">Sizes</p>
+              <p className="edit-field__label">Size</p>
               <Select
                 required
-                isMulti
                 isClearable={false}
                 classNamePrefix="select"
                 className="edit-field__select"
-                placeholder="Choose Sizes"
+                placeholder="Choose Size"
                 components={{ DropdownIndicator }}
                 styles={colourStyles(
                   theme,
