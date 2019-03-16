@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 import locationState from './locationState';
 import paymentState from './paymentState';
-import shippingRates from './rates';
+import rates from './rates';
 
 const profile = PropTypes.shape({
   id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
@@ -14,7 +14,7 @@ const profile = PropTypes.shape({
   shipping: locationState,
   billing: locationState,
   payment: paymentState,
-  rates: shippingRates,
+  rates,
   selectedSite: PropTypes.shape({
     name: PropTypes.string,
     url: PropTypes.string,
