@@ -1,4 +1,4 @@
-import { SETTINGS_ACTIONS, mapSettingsFieldToKey } from '../../actions';
+import { SETTINGS_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
 import settingsAttributeValidatorMap from '../../../utils/validation/settingsAttributeValidators';
 
 const settingsAttributeValidationMiddleware = store => next => action => {
@@ -16,7 +16,7 @@ const settingsAttributeValidationMiddleware = store => next => action => {
   newAction.errors = Object.assign({}, state.settings.errors);
   // Validate the field in question
   const error = settingsAttributeValidatorMap[newAction.field](newAction.value);
-  if (newAction.field === 'EDIT_PROXIES') {
+  if (newAction.field === SETTINGS_FIELDS.EDIT_PROXIES) {
     // TODO - remove this later when validation is finalized
     newAction.errors[mapSettingsFieldToKey[newAction.field]] = error;
     if (!error.length) {
@@ -25,9 +25,6 @@ const settingsAttributeValidationMiddleware = store => next => action => {
   } else {
     newAction.errors[mapSettingsFieldToKey[newAction.field]] = !error;
   }
-
-  console.log(error);
-  console.log(newAction.errors[mapSettingsFieldToKey[newAction.field]]);
 
   // Continue on to next middleware/reducer with errors map filled in
   return next(newAction);

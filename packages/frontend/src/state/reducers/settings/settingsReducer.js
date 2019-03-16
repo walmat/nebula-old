@@ -8,11 +8,14 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
       case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
-        change.shipping = {
-          ...initialSettingsStates.shipping,
-          product: {
-            ...initialSettingsStates.shipping.product,
-            raw: action.value || '',
+        change = {
+          ...change,
+          shipping: {
+            ...initialSettingsStates.shipping,
+            product: {
+              ...initialSettingsStates.shipping.product,
+              raw: action.value || '',
+            },
           },
           errors: Object.assign({}, state.errors, action.errors),
         };
@@ -27,17 +30,20 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         if (!newSite || newSite.label === state.shipping.site.name) {
           break;
         }
-        change.shipping = {
-          ...change.shipping,
-          site: {
-            url: newSite.value,
-            name: newSite.label,
-            apiKey: newSite.apiKey,
-            special: newSite.special || false,
-            auth: newSite.auth,
+        change = {
+          ...change,
+          shipping: {
+            ...change.shipping,
+            site: {
+              url: newSite.value,
+              name: newSite.label,
+              apiKey: newSite.apiKey,
+              special: newSite.special || false,
+              auth: newSite.auth,
+            },
+            username: null,
+            password: null,
           },
-          username: null,
-          password: null,
           errors: Object.assign({}, state.errors, action.errors),
         };
         break;
