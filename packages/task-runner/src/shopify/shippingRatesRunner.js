@@ -6,7 +6,7 @@ class ShippingRatesRunner extends TaskRunner {
     super(...params);
 
     // Specify the Runner Type
-    this._type = Types.ShippingRate;
+    this._type = Types.ShippingRates;
 
     if (this._checkoutType === CheckoutTypes.fe) {
       this._logger.error(
