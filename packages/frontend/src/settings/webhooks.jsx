@@ -6,7 +6,7 @@ import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../stat
 import sDefns from '../utils/definitions/settingsDefinitions';
 
 export class WebhooksPrimitive extends Component {
-  static renderWebhookButton({ onClick, onKeyPress }) {
+  static renderWebhookButton(onClick, onKeyPress) {
     return (
       <div className="col col--end col--no-gutter-right">
         <button
@@ -22,6 +22,22 @@ export class WebhooksPrimitive extends Component {
     );
   }
 
+  constructor(props) {
+    super(props);
+    this.inputs = {
+      [SETTINGS_FIELDS.EDIT_DISCORD]: {
+        placeholder: 'https://discordapp.com/api/webhooks/...',
+        label: 'Discord URL',
+        type: 'discord',
+      },
+      [SETTINGS_FIELDS.EDIT_SLACK]: {
+        placeholder: 'https://hooks.slack.com/services/...',
+        label: 'Slack URL',
+        type: 'slack',
+      },
+    };
+  }
+
   createOnChangeHandler(field) {
     const { onSettingsChange } = this.props;
     return event => {
@@ -32,56 +48,39 @@ export class WebhooksPrimitive extends Component {
     };
   }
 
-  renderWebhookCol(label, className, placeholder, field, value, button) {
-    const { errors } = this.props;
+  renderWebhookInput(field, value) {
+    const { errors, onTestDiscord, onTestSlack, onKeyPress } = this.props;
+    const { placeholder, label, type } = this.inputs[field];
+    const onClick = () =>
+      field === SETTINGS_FIELDS.EDIT_DISCORD ? onTestDiscord(value) : onTestSlack(value);
     return (
       <div className="col">
         <div className="row row--gutter">
           <div className="col col--no-gutter">
             <p className="settings__label">{label}</p>
             <input
-              className={`settings__input-group--webhook__${className}`}
+              className={`settings__input-group--webhook__${type}`}
               placeholder={placeholder}
               onChange={this.createOnChangeHandler(field)}
               style={buildStyle(false, errors[mapSettingsFieldToKey[field]])}
               value={value}
             />
           </div>
-          {WebhooksPrimitive.renderWebhookButton(button)}
+          {WebhooksPrimitive.renderWebhookButton(onClick, onKeyPress)}
         </div>
       </div>
     );
   }
 
   render() {
-    const { discord, slack, onTestDiscord, onTestSlack, onKeyPress } = this.props;
+    const { discord, slack } = this.props;
     return (
       <div>
         <div className="row row--start row-gutter">
-          {this.renderWebhookCol(
-            'Discord URL',
-            'discord',
-            'https://discordapp.com/api/webhooks/...',
-            SETTINGS_FIELDS.EDIT_DISCORD,
-            discord,
-            {
-              onClick: () => onTestDiscord(discord),
-              onKeyPress,
-            },
-          )}
+          {this.renderWebhookInput(SETTINGS_FIELDS.EDIT_DISCORD, discord)}
         </div>
         <div className="row row--start row-gutter">
-          {this.renderWebhookCol(
-            'Slack URL',
-            'slack',
-            'https://hooks.slack.com/services/...',
-            SETTINGS_FIELDS.EDIT_SLACK,
-            slack,
-            {
-              onClick: () => onTestSlack(slack),
-              onKeyPress,
-            },
-          )}
+          {this.renderWebhookInput(SETTINGS_FIELDS.EDIT_SLACK, slack)}
         </div>
       </div>
     );

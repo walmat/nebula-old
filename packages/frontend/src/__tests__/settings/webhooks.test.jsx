@@ -19,7 +19,8 @@ describe('<Webhooks />', () => {
         onSettingsChange={renderProps.onSettingsChange}
         onTestDiscord={renderProps.onTestDiscord}
         onTestSlack={renderProps.onTestSlack}
-        settings={renderProps.settings}
+        discord={renderProps.discord}
+        slack={renderProps.slack}
         onKeyPress={renderProps.onKeyPress}
         errors={renderProps.errors}
       />,
@@ -28,9 +29,8 @@ describe('<Webhooks />', () => {
 
   beforeEach(() => {
     defaultProps = {
-      settings: {
-        ...initialSettingsStates.settings,
-      },
+      discord: initialSettingsStates.settings.discord,
+      slack: initialSettingsStates.settings.slack,
       errors: {
         ...initialSettingsStates.settingsErrors.defaults,
       },
@@ -49,13 +49,11 @@ describe('<Webhooks />', () => {
 
   it('renders with non-default props', () => {
     const customProps = {
-      settings: {
-        ...initialSettingsStates.settings,
-        discord: 'discordTest',
-        slack: 'slackTest',
-      },
+      discord: 'discordTest',
+      slack: 'slackTest',
     };
     const wrapper = renderShallowWithProps(customProps);
+    console.log(wrapper);
     expect(wrapper.find('.settings__input-group--webhook__discord')).toHaveLength(1);
     expect(wrapper.find('.settings__input-group--webhook__slack')).toHaveLength(1);
     expect(wrapper.find('.settings__input-group--webhook__discord').prop('value')).toBe(
@@ -103,14 +101,15 @@ describe('<Webhooks />', () => {
       settings: {
         ...initialSettingsStates.settings,
       },
+      discord: initialSettingsStates.settings.discord,
+      slack: initialSettingsStates.settings.slack,
       extra: 'fields',
       that: "aren't included",
     };
     const expected = {
-      profiles: state.profiles,
-      settings: state.settings,
+      discord: state.discord,
+      slack: state.slack,
       errors: state.settings.errors,
-      theme: state.theme,
     };
     expect(mapStateToProps(state)).toEqual(expected);
   });

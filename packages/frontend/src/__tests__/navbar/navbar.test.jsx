@@ -12,7 +12,6 @@ import { ROUTES, NAVBAR_ACTIONS } from '../../state/actions';
 const initialNavbarState = initialState.navbar;
 
 describe('<Navbar />', () => {
-  let Bridge;
   let history;
   let props;
 
@@ -26,6 +25,7 @@ describe('<Navbar />', () => {
       <NavbarPrimitive
         history={renderProps.history}
         navbar={renderProps.navbar}
+        theme={renderProps.theme}
         onRoute={renderProps.onRoute}
         onKeyPress={renderProps.onKeyPress}
       />,
@@ -39,6 +39,7 @@ describe('<Navbar />', () => {
     props = {
       history,
       navbar: { ...initialNavbarState },
+      theme: initialState.theme,
       onRoute: jest.fn(),
       onKeyPress: jest.fn(),
     };
@@ -48,37 +49,89 @@ describe('<Navbar />', () => {
     delete global.window.Bridge;
   });
 
-  describe('should render name and version correctly', () => {
-    test('when window Bridge is defined', () => {
+  describe('when window Bridge is defined', () => {
+    let Bridge;
+    let wrapper;
+
+    beforeEach(() => {
       Bridge = {
+        closeAllCaptchaWindows: jest.fn(),
+        launchCaptchaHarvester: jest.fn(),
         getAppData: jest.fn(() => ({ name: 'Nebula Orion', version: '1.0.0' })),
       };
       global.window.Bridge = Bridge;
-      const wrapper = renderShallowWithProps();
+      wrapper = renderShallowWithProps();
+    });
+
+    afterEach(() => {
+      delete global.window.Bridge;
+    });
+
+    test('should render name and version properly', () => {
       expect(Bridge.getAppData).toHaveBeenCalled();
       const appName = wrapper.find('.navbar__text--app-name').text();
       const version = wrapper.find('.navbar__text--app-version').text();
       expect(appName).toEqual('Nebula Orion');
       expect(version).toEqual('1.0.0');
     });
-    test('when window Bridge is undefined', () => {
-      const wrapper = renderShallowWithProps();
+
+    test('launch captcha button calls correct function', () => {
+      const button = wrapper.find('.navbar__button--open-captcha');
+      button.simulate('click');
+      expect(Bridge.launchCaptchaHarvester).toHaveBeenCalled();
+    });
+
+    test('close all harvester button calls correct function', () => {
+      const button = wrapper.find('.navbar__button--close-captcha');
+      button.simulate('click');
+      expect(Bridge.closeAllCaptchaWindows).toHaveBeenCalled();
+    });
+  });
+
+  describe('when window.Bridge is undefined', () => {
+    let consoleSpy;
+    let wrapper;
+
+    beforeEach(() => {
+      wrapper = renderShallowWithProps();
+      consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      delete global.window.Bridge;
+      consoleSpy.mockRestore();
+    });
+
+    test('should render name and version properly', () => {
       const appName = wrapper.find('.navbar__text--app-name').text();
       const version = wrapper.find('.navbar__text--app-version').text();
       expect(appName).toEqual('Nebula Orion');
       expect(version).toEqual('');
+    });
+
+    test('launch harvester button displays error', () => {
+      const button = wrapper.find('.navbar__button--open-captcha');
+      button.simulate('click');
+      expect(consoleSpy).toHaveBeenCalled();
     });
   });
 
   it('should render with required props', () => {
     const onRoute = jest.fn();
     const wrapper = shallow(
-      <NavbarPrimitive history={history} navbar={{ ...initialNavbarState }} onRoute={onRoute} />,
+      <NavbarPrimitive
+        history={history}
+        navbar={{ ...initialNavbarState }}
+        theme={initialState.theme}
+        onRoute={onRoute}
+      />,
     );
     expect(wrapper.find(NavbarPrimitive)).toBeDefined();
     expect(wrapper.find(Bodymovin)).toBeDefined();
     expect(wrapper.find('.active')).toBeDefined();
     expect(wrapper.find('.active').prop('onKeyPress')()).toBeUndefined();
+    expect(wrapper.find('.navbar__button--open-captcha')).toHaveLength(1);
+    expect(wrapper.find('.navbar__button--close-captcha')).toHaveLength(1);
   });
 
   describe('should render with only one active icon', () => {

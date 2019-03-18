@@ -229,14 +229,20 @@ describe('settings reducer', () => {
         ...initialSettingsStates.settings,
         defaults: {
           ...initialSettingsStates.defaults,
-          profile: { profileName: 'test' },
+          profile: {
+            ...initialSettingsStates.defaults.profile,
+            profileName: 'test',
+          },
           useProfile: true,
         },
       };
       const actual = settingsReducer(undefined, {
         type: SETTINGS_ACTIONS.EDIT,
         field: SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
-        value: { profileName: 'test' },
+        value: {
+          ...initialSettingsStates.defaults.profile,
+          profileName: 'test',
+        },
       });
       expect(actual).toEqual(expected);
     });
@@ -288,7 +294,7 @@ describe('settings reducer', () => {
       },
     };
     const expected = initialSettingsStates.settings;
-    const actual = settingsReducer(start, { type: SETTINGS_ACTIONS.CLEAR });
+    const actual = settingsReducer(start, { type: SETTINGS_ACTIONS.CLEAR_DEFAULTS });
     expect(actual).toEqual(expected);
     expect(actual).not.toEqual(start);
   });

@@ -1,9 +1,9 @@
 /* global describe expect it test jest */
-import settingsAttributeValidationMiddleware from '../../../../state/middleware/settings/settingsAttributeValidationMiddleware';
+import proxyAttributeValidationMiddleware from '../../../../state/middleware/settings/proxyAttributeValidationMiddleware';
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS } from '../../../../state/actions';
 import initialSettingsStates from '../../../../state/initial/settings';
 
-describe('settings attribute validatation middleware', () => {
+describe('proxy attribute validatation middleware', () => {
   const create = () => {
     const store = {
       getState: jest.fn(() => {}),
@@ -11,7 +11,7 @@ describe('settings attribute validatation middleware', () => {
     };
     const next = jest.fn();
 
-    const invoke = action => settingsAttributeValidationMiddleware(store)(next)(action);
+    const invoke = action => proxyAttributeValidationMiddleware(store)(next)(action);
 
     return { store, next, invoke };
   };
