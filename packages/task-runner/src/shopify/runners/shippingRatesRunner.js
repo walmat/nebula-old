@@ -1,5 +1,5 @@
 const TaskRunner = require('./taskRunner');
-const { Types, States, CheckoutTypes } = require('./classes/utils/constants').TaskRunner;
+const { Types, States, CheckoutTypes } = require('../classes/utils/constants').TaskRunner;
 
 class ShippingRatesRunner extends TaskRunner {
   constructor(...params) {

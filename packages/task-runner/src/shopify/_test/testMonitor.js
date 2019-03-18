@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const Monitor = require('../classes/monitor');
-const { States } = require('../taskRunner');
+const { States } = require('../runners/taskRunner');
 
 const tasks = [
   {
