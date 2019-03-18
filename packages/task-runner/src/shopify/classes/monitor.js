@@ -163,7 +163,7 @@ class Monitor {
     if (!variants) {
       return {
         message: `Unable to match variants`,
-        nextState: States.Stopped,
+        nextState: States.Errored,
       };
     }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
@@ -210,7 +210,7 @@ class Monitor {
       if (!variants) {
         return {
           message: `Unable to match variants`,
-          nextState: States.Stopped,
+          nextState: States.Errored,
         };
       }
       this._logger.verbose('MONITOR: Variants Generated, updating context...');
@@ -263,7 +263,7 @@ class Monitor {
     if (!variants) {
       return {
         message: `Unable to generate variants`,
-        nextState: States.Stopped,
+        nextState: States.Errored,
       };
     }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');

@@ -66,7 +66,7 @@ class APICheckout extends Checkout {
         this.paymentToken = id;
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
-      return { message: 'Failed: Creating payment token', nextState: States.Stopped };
+      return { message: 'Failed: Creating payment token', nextState: States.Errored };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error creating payment token: %j', err);
 
@@ -74,7 +74,7 @@ class APICheckout extends Checkout {
         message: 'Starting task setup',
         nextState: States.PaymentToken,
       });
-      return nextState || { message: 'Failed: Creating payment token', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Creating payment token', nextState: States.Errored };
     }
   }
 
@@ -121,7 +121,7 @@ class APICheckout extends Checkout {
         if (statusCode === 200) {
           return { message: 'Monitoring for product', nextState: States.Monitor };
         }
-        return { message: 'Failed: Patching checkout', nextState: States.Stopped };
+        return { message: 'Failed: Patching checkout', nextState: States.Errored };
       }
 
       // login needed
@@ -129,7 +129,7 @@ class APICheckout extends Checkout {
         if (this._context.task.username && this._context.task.password) {
           return { message: 'Logging in', nextState: States.Login };
         }
-        return { message: 'Account required', nextState: States.Stopped };
+        return { message: 'Account required', nextState: States.Errored };
       }
 
       // password page
@@ -144,7 +144,7 @@ class APICheckout extends Checkout {
       }
 
       // not sure where we are, stop...
-      return { message: 'Failed: Submitting information', nextState: States.Stopped };
+      return { message: 'Failed: Submitting information', nextState: States.Errored };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error creating checkout: %j', err);
 
@@ -152,7 +152,7 @@ class APICheckout extends Checkout {
         message: 'Submitting information',
         nextState: States.PatchCheckout,
       });
-      return nextState || { message: 'Failed: Submitting information', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Submitting information', nextState: States.Errored };
     }
   }
 
@@ -201,7 +201,7 @@ class APICheckout extends Checkout {
           if (this._context.task.username && this._context.task.password) {
             return { message: 'Logging in', nextState: States.Login };
           }
-          return { message: 'Account required', nextState: States.Stopped };
+          return { message: 'Account required', nextState: States.Errored };
         }
 
         // password page
@@ -234,7 +234,7 @@ class APICheckout extends Checkout {
           await waitForDelay(monitorDelay);
           return { message: 'Monitoring for product', nextState: States.AddToCart };
         }
-        return { message: 'Failed: Add to cart', nextState: States.Stopped };
+        return { message: 'Failed: Add to cart', nextState: States.Errored };
       }
 
       if (body.checkout && body.checkout.line_items.length > 0) {
@@ -257,7 +257,7 @@ class APICheckout extends Checkout {
         ).toFixed(2);
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
-      return { message: 'Failed: Add to cart', nextState: States.Stopped };
+      return { message: 'Failed: Add to cart', nextState: States.Errored };
     } catch (err) {
       this._logger.debug('API CHECKOUT: Request error adding to cart %j', err);
 
@@ -265,7 +265,7 @@ class APICheckout extends Checkout {
         message: 'Adding to cart',
         nextState: States.AddToCart,
       });
-      return nextState || { message: 'Failed: Add to cart', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Add to cart', nextState: States.Errored };
     }
   }
 
@@ -305,7 +305,7 @@ class APICheckout extends Checkout {
 
       // extra check for country not supported
       if (statusCode === 422) {
-        return { message: 'Country not supported', nextState: States.Stopped };
+        return { message: 'Country not supported', nextState: States.Errored };
       }
 
       if (body && body.errors) {
@@ -321,7 +321,7 @@ class APICheckout extends Checkout {
 
           if (errorMessage.indexOf("can't be blank") > -1) {
             this._logger.verbose('API CHECKOUT: Country not supported');
-            return { message: 'Country not supported', nextState: States.Stopped };
+            return { message: 'Country not supported', nextState: States.Errored };
           }
         }
         await waitForDelay(monitorDelay);
@@ -356,7 +356,7 @@ class APICheckout extends Checkout {
         message: 'Fetching shipping rates',
         nextState: States.ShippingRates,
       });
-      return nextState || { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Fetching shipping rates', nextState: States.Errored };
     }
   }
 }
