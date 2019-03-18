@@ -50,7 +50,7 @@ const TaskRunnerStates = {
 // Frontend!
 const TaskRunnerTypes = {
   Normal: 'normal',
-  ShippingRate: 'srr',
+  ShippingRates: 'srr',
 };
 
 const TaskRunnerDelayTypes = {
