@@ -1,11 +1,11 @@
 const EventEmitter = require('eventemitter3');
 const request = require('request-promise');
 
-const Timer = require('./classes/timer');
-const Monitor = require('./classes/monitor');
-const Discord = require('./classes/hooks/discord');
-const Slack = require('./classes/hooks/slack');
-const AsyncQueue = require('../common/asyncQueue');
+const Timer = require('../classes/timer');
+const Monitor = require('../classes/monitor');
+const Discord = require('../classes/hooks/discord');
+const Slack = require('../classes/hooks/slack');
+const AsyncQueue = require('../../common/asyncQueue');
 const {
   Types,
   States,
@@ -14,11 +14,11 @@ const {
   HookTypes,
   StateMap,
   CheckoutRefresh,
-} = require('./classes/utils/constants').TaskRunner;
-const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
-const { createLogger } = require('../common/logger');
-const { waitForDelay } = require('./classes/utils');
-const { getCheckoutMethod } = require('./classes/checkouts');
+} = require('../classes/utils/constants').TaskRunner;
+const TaskManagerEvents = require('../classes/utils/constants').TaskManager.Events;
+const { createLogger } = require('../../common/logger');
+const { waitForDelay } = require('../classes/utils');
+const { getCheckoutMethod } = require('../classes/checkouts');
 
 class TaskRunner {
   get state() {

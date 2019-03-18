@@ -1,6 +1,6 @@
 const constants = require('../classes/utils/constants');
-const TaskRunner = require('../taskRunner');
-const ShippingRatesRunner = require('../shippingRatesRunner');
+const TaskRunner = require('../runners/taskRunner');
+const ShippingRatesRunner = require('../runners/shippingRatesRunner');
 
 const TaskManagerEvents = constants.TaskManager.Events;
 const TaskRunnerEvents = constants.TaskRunner.Events;

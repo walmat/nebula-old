@@ -5,8 +5,8 @@ const EventEmitter = require('eventemitter3');
 const hash = require('object-hash');
 const shortid = require('shortid');
 
-const TaskRunner = require('../taskRunner');
-const ShippingRatesRunner = require('../shippingRatesRunner');
+const TaskRunner = require('../runners/taskRunner');
+const ShippingRatesRunner = require('../runners/shippingRatesRunner');
 const { Events } = require('../classes/utils/constants').TaskManager;
 const { HookTypes, Types: RunnerTypes } = require('../classes/utils/constants').TaskRunner;
 const Discord = require('../classes/hooks/discord');
