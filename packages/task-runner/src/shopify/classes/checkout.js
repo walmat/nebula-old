@@ -132,7 +132,7 @@ class Checkout {
         // still at login page
         if (redirectUrl.indexOf('login') > -1) {
           this._logger.verbose('CHECKOUT: Invalid login credentials');
-          return { message: 'Invalid login credentials', nextState: States.Stopped };
+          return { message: 'Invalid login credentials', nextState: States.Errored };
         }
 
         // since we're here, we can assume `account/login` === false
@@ -146,7 +146,7 @@ class Checkout {
         }
       }
 
-      return { message: 'Failed: Logging in', nextState: States.Stopped };
+      return { message: 'Failed: Logging in', nextState: States.Errored };
     } catch (err) {
       this._logger.debug('ACCOUNT: Error logging in: %j', err);
 
@@ -155,7 +155,7 @@ class Checkout {
         nextState: States.Login,
       });
 
-      return nextState || { message: 'Failed: Logging in', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Logging in', nextState: States.Errored };
     }
   }
 
@@ -199,7 +199,7 @@ class Checkout {
       const [redirectUrl, qs] = headers.location.split('?');
       this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
-        return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+        return { message: 'Failed: Creating checkout', nextState: States.Errored };
       }
 
       // account (e.g. – https://www.hanon-shop.com/account/login?checkout_url=https%3A%2F%2Fwww.hanon-shop.com%2F20316995%2Fcheckouts%2Fb92b2aa215abfde741a8cf0e99eeee01)
@@ -216,7 +216,7 @@ class Checkout {
           this._context.timers.monitor.start();
           return { message: 'Logging in', nextState: States.Login };
         }
-        return { message: 'Account required', nextState: States.Stopped };
+        return { message: 'Account required', nextState: States.Errored };
       }
 
       if (redirectUrl.indexOf('stock_problems') > -1) {
@@ -245,7 +245,7 @@ class Checkout {
       }
 
       // not sure where we are, stop...
-      return { message: 'Failed: Creating checkout', nextState: States.Stopped };
+      return { message: 'Failed: Creating checkout', nextState: States.Errored };
     } catch (err) {
       this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
 
@@ -253,7 +253,7 @@ class Checkout {
         message: 'Creating checkout',
         nextState: States.CreateCheckout,
       });
-      return nextState || { message: 'Failed: Creating checkout', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Creating checkout', nextState: States.Errored };
     }
   }
 
@@ -297,7 +297,7 @@ class Checkout {
 
       // check server error
       if (statusCode === 400) {
-        return { message: 'Failed: Invalid queue', nextState: States.Stopped };
+        return { message: 'Failed: Invalid queue', nextState: States.Errored };
       }
 
       // check server error
@@ -342,7 +342,7 @@ class Checkout {
         message: 'Waiting in queue',
         nextState: States.PollQueue,
       });
-      return nextState || { message: 'Failed: Polling queue', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Polling queue', nextState: States.Errored };
     }
   }
 
@@ -412,7 +412,7 @@ class Checkout {
         nextState: States.PingCheckout,
       });
       return (
-        nextState || { message: 'Failed: Refreshing checkout session', nextState: States.Stopped }
+        nextState || { message: 'Failed: Refreshing checkout session', nextState: States.Errored }
       );
     }
   }
@@ -506,7 +506,7 @@ class Checkout {
         message: 'Posting payment',
         nextState: States.PostPayment,
       });
-      return nextState || { message: 'Failed: Posting payment', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Posting payment', nextState: States.Errored };
     }
   }
 
@@ -580,7 +580,7 @@ class Checkout {
           if (this._context.task.username && this._context.task.password) {
             return { message: 'Logging in', nextState: States.Login };
           }
-          return { message: 'Account required', nextState: States.Stopped };
+          return { message: 'Account required', nextState: States.Errored };
         }
 
         // password page
@@ -599,7 +599,7 @@ class Checkout {
         message: 'Processing payment',
         nextState: States.CompletePayment,
       });
-      return nextState || { message: 'Failed: Posting payment review', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Posting payment review', nextState: States.Errored };
     }
   }
 
@@ -615,7 +615,7 @@ class Checkout {
     const { url, apiKey, name } = site;
 
     if (checkoutTimer.getRunTime() > 20000) {
-      return { message: 'Processing timed out, check email', nextState: States.Stopped };
+      return { message: 'Processing timed out, check email', nextState: States.Finished };
     }
 
     this._logger.verbose('CHECKOUT: Processing payment');
@@ -685,7 +685,7 @@ class Checkout {
           } catch (err) {
             this._logger.debug('CHECKOUT: Request error sending webhook: %s', err);
           }
-          return { message: 'Payment successful', nextState: States.Stopped };
+          return { message: 'Payment successful', nextState: States.Finished };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
@@ -693,11 +693,11 @@ class Checkout {
         if (paymentProcessingErrorMessage !== null) {
           // out of stock during payment processing
           if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
-            return { message: 'Payment failed (OOS)', nextState: States.Stopped };
+            return { message: 'Payment failed (OOS)', nextState: States.Finished };
           }
 
           // generic payment processing failure
-          return { message: 'Payment failed', nextState: States.Stopped };
+          return { message: 'Payment failed', nextState: States.Errored };
         }
       }
       this._logger.verbose('CHECKOUT: Processing payment');
@@ -710,7 +710,7 @@ class Checkout {
         message: 'Processing payment',
         nextState: States.PaymentProcess,
       });
-      return nextState || { message: 'Failed: Processing payment', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Processing payment', nextState: States.Errored };
     }
   }
 }
