@@ -735,7 +735,7 @@ class TaskRunner {
     let shouldStop = false;
     while (this._state !== States.Stopped && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
-      shouldStop = await this.runSingleLoop;
+      shouldStop = await this.runSingleLoop();
     }
 
     this._cleanup();
