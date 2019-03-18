@@ -6,8 +6,9 @@ const hash = require('object-hash');
 const shortid = require('shortid');
 
 const TaskRunner = require('../taskRunner');
+const ShippingRatesRunner = require('../shippingRatesRunner');
 const { Events } = require('../classes/utils/constants').TaskManager;
-const { HookTypes } = require('../classes/utils/constants').TaskRunner;
+const { HookTypes, Types: RunnerTypes } = require('../classes/utils/constants').TaskRunner;
 const Discord = require('../classes/hooks/discord');
 const Slack = require('../classes/hooks/slack');
 const { createLogger } = require('../../common/logger');
@@ -459,8 +460,10 @@ class TaskManager {
    *
    * If the given task has already started, this method does nothing.
    * @param {Task} task
+   * @param {object} options Options to customize the runner:
+   *   - type - The runner type to start
    */
-  async start(task) {
+  async start(task, { type = RunnerTypes.Normal }) {
     this._logger.info('Starting task %s', task.id);
 
     const alreadyStarted = Object.values(this._runners).find(r => r.taskId === task.id);
@@ -471,7 +474,7 @@ class TaskManager {
     const { runnerId, openProxy } = await this.setup(task.site);
     this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
-    this._start([runnerId, task, openProxy]).then(() => {
+    this._start([runnerId, task, openProxy, type]).then(() => {
       this.cleanup(runnerId);
     });
   }
@@ -484,9 +487,11 @@ class TaskManager {
    * tasks in the given list.
    *
    * @param {List<Task>} tasks list of tasks to start
+   * @param {object} options Options to customize the runner:
+   *   - type - The runner type to start
    */
-  startAll(tasks) {
-    [...tasks].forEach(t => this.start(t));
+  startAll(tasks, options) {
+    [...tasks].forEach(t => this.start(t, options));
   }
 
   /**
@@ -635,15 +640,17 @@ class TaskManager {
     );
   }
 
-  async _start([runnerId, task, openProxy]) {
-    const runner = new TaskRunner(
-      runnerId,
-      task,
-      openProxy,
-      this._loggerPath,
-      this._discord,
-      this._slack,
-    );
+  async _start([runnerId, task, openProxy, type]) {
+    let runner;
+    if (type === RunnerTypes.Normal) {
+      runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
+    } else if (type === RunnerTypes.ShippingRates) {
+      runner = new ShippingRatesRunner(runnerId, task, openProxy, this._loggerPath);
+    }
+    // Return early if invalid type was passed in
+    if (!runner) {
+      return;
+    }
     runner.site = task.site.url;
     this._runners[runnerId] = runner;
 
