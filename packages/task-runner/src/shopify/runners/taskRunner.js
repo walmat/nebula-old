@@ -259,6 +259,9 @@ class TaskRunner {
   }
 
   _emitTaskEvent(payload) {
+    if (payload.message) {
+      this._context.status = payload.message;
+    }
     this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
   }
 
@@ -553,14 +556,18 @@ class TaskRunner {
           this._checkout.captchaTokenRequest.status,
         );
         // TODO: should we emit a status update here?
-        return States.Stopped;
+        // clear out the status so we get a generic "errored out task event"
+        this._context.status = null;
+        return States.Errored;
       }
       default: {
         this._logger.verbose(
           'Unknown Harvest Captcha status! %s, stopping...',
           this._checkout.captchaTokenRequest.status,
         );
-        return States.Stopped;
+        // clear out the status so we get a generic "errored out task event"
+        this._context.status = null;
+        return States.Errored;
       }
     }
   }
