@@ -166,7 +166,7 @@ class SplitContextTaskManager extends TaskManager {
     });
   }
 
-  async _start([runnerId, task, openProxy]) {
+  async _start([runnerId, task, openProxy, type]) {
     this._logger.verbose('Spawning Child Context for runner: %s', runnerId);
     const childContext = new this._ContextCtor(runnerId, task, openProxy);
     this._runners[runnerId] = childContext;
@@ -180,7 +180,7 @@ class SplitContextTaskManager extends TaskManager {
       childContext.send({
         target: childContext.target,
         event: '__start',
-        args: [runnerId, task, openProxy, this._loggerPath],
+        args: [type, runnerId, task, openProxy, this._loggerPath],
       });
       await new Promise((resolve, reject) => {
         // create handler reference so we can clean it up later

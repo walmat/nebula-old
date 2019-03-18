@@ -1,8 +1,10 @@
 const constants = require('../classes/utils/constants');
 const TaskRunner = require('../taskRunner');
+const ShippingRatesRunner = require('../shippingRatesRunner');
 
 const TaskManagerEvents = constants.TaskManager.Events;
 const TaskRunnerEvents = constants.TaskRunner.Events;
+const RunnerTypes = constants.TaskRunner.Types;
 
 /**
  * This class is the base for all split-context runners
@@ -138,7 +140,17 @@ class TaskRunnerContextTransformer {
    * @param {array} args - arguments needed to create a TaskRunner instance
    */
   async _start(args) {
-    const runner = new TaskRunner(...args);
+    const [type, ...params] = args;
+    let runner;
+    if (type === RunnerTypes.Normal) {
+      runner = new TaskRunner(...params);
+    } else if (type === RunnerTypes.ShippingRates) {
+      runner = new ShippingRatesRunner(...params);
+    }
+    if (!runner) {
+      // Return early if we couldn't create the runner;
+      return;
+    }
     this._wireEvents(runner);
     await runner.start();
     runner._events.removeAllListeners();
