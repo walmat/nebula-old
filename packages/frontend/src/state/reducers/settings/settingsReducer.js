@@ -196,6 +196,9 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     if (window.Bridge) {
       window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
     }
+  } else if (action.type === SETTINGS_ACTIONS.ERROR) {
+    // TODO: Handle error
+    console.error(`Error trying to perform: ${action.action}! ${action.error}`);
   }
   return Object.assign({}, state, change);
 }

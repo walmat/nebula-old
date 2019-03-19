@@ -20,18 +20,8 @@ const _fetchShippingRequest = async shipping => {
     copy.product = parsedProduct;
     return { shipping: copy };
   }
-  const error = new Error('Invalid Shipping Structure');
-  error.status = 400;
-  return { error };
+  throw new Error('Invalid Shipping Structure');
 };
-
-const _fetchShippingRates = async shipping =>
-  new Promise((resolve, reject) => {
-    if (window.Bridge) {
-      window.Bridge.
-    }
-    reject(new Error('No Shipping Rates Found'));
-  });
 
 const _fetchShipping = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
 
@@ -42,19 +32,11 @@ const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
 
-const fetchShipping = shipping => async dispatch => {
-  const res = await _fetchShippingRequest(shipping);
-
-  if (res && res.error) {
-    return dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, res.error));
-  }
-
-  const rates = await _fetchShippingRates(res.shipping);
-  if (!rates || rates.error) {
-    return dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, rates.error));
-  }
-  return dispatch(_fetchShipping(rates));
-};
+const fetchShipping = shipping => dispatch =>
+  _fetchShippingRequest(shipping).then(
+    res => dispatch(_fetchShipping(res)),
+    error => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, error)),
+  );
 
 export const settingsActions = {
   edit: editSettings,

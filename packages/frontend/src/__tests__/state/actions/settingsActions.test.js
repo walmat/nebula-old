@@ -1,12 +1,14 @@
 /* global describe it expect beforeEach */
 import configureMockStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
 
 import * as actions from '../../../state/actions';
 import { initialState } from '../../../state/migrators';
 import initialProfileStates from '../../../state/initial/profiles';
+import initialSettingsStates from '../../../state/initial/settings';
 
 const { settingsActions, SETTINGS_ACTIONS } = actions;
-const _createMockStore = configureMockStore();
+const _createMockStore = configureMockStore([thunk]);
 
 describe('settings actions', () => {
   let mockStore;
@@ -27,6 +29,69 @@ describe('settings actions', () => {
 
   beforeEach(() => {
     mockStore = _createMockStore(initialState);
+  });
+
+  describe('fetch shipping', () => {
+    it('should dispatch a successful action when shipping is valid', async () => {
+      const action = settingsActions.fetch({
+        ...initialSettingsStates.shipping,
+        name: 'test',
+        product: { ...initialSettingsStates.shipping.product, raw: '+test' },
+        profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
+        site: {
+          name: 'Nebula Bots',
+          url: 'https://nebulabots.com',
+          apiKey: '6526a5b5393b6316a64853cfe091841c',
+          auth: false,
+          supported: true,
+        },
+        username: '',
+        password: '',
+      });
+      const expectedActions = [
+        {
+          type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+          response: {
+            shipping: {
+              ...initialSettingsStates.shipping,
+              product: {
+                ...initialSettingsStates.shipping.product,
+                raw: '+test',
+                pos_keywords: ['test'],
+                neg_keywords: [],
+              },
+              name: 'test',
+              profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
+              site: {
+                ...initialSettingsStates.shipping.site,
+                name: 'Nebula Bots',
+                url: 'https://nebulabots.com',
+                apiKey: '6526a5b5393b6316a64853cfe091841c',
+                auth: false,
+                supported: true,
+              },
+              username: '',
+              password: '',
+            },
+          },
+        },
+      ];
+      await asyncSettingsTests(action, expectedActions);
+    });
+
+    it('should dispatch an error action when shipping in invalid', async () => {
+      const action = settingsActions.fetch({
+        ...initialSettingsStates.shipping,
+      });
+      const expectedActions = [
+        {
+          type: SETTINGS_ACTIONS.ERROR,
+          action: SETTINGS_ACTIONS.FETCH_SHIPPING,
+          error: expect.any(Error),
+        },
+      ];
+      await asyncSettingsTests(action, expectedActions);
+    });
   });
 
   it('should create an action to edit settings', () => {
@@ -52,48 +117,5 @@ describe('settings actions', () => {
     const action = settingsActions.clearDefaults();
     const expectedActions = [{ type: SETTINGS_ACTIONS.CLEAR_DEFAULTS }];
     settingsTests(action, expectedActions);
-  });
-
-  test('should create an action to fetch shipping', async () => {
-    const action = settingsActions.fetch();
-    const expectedActions = [{ type: SETTINGS_ACTIONS.FETCH_SHIPPING }];
-    await asyncSettingsTests(action, expectedActions);
-  });
-
-  test('should not return error object when shipping object is present', async () => {
-    const action = settingsActions.fetch({
-      name: 'test',
-      product: '+test',
-      profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
-      site: {
-        label: 'Nebula Bots',
-        value: 'https://nebulabots.com',
-        apiKey: '6526a5b5393b6316a64853cfe091841c',
-        auth: false,
-        supported: true,
-      },
-      username: '',
-      password: '',
-    });
-    const expectedActions = [
-      {
-        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
-        shipping: {
-          name: 'test',
-          product: '+test',
-          profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
-          site: {
-            label: 'Nebula Bots',
-            value: 'https://nebulabots.com',
-            apiKey: '6526a5b5393b6316a64853cfe091841c',
-            auth: false,
-            supported: true,
-          },
-          username: '',
-          password: '',
-        },
-      },
-    ];
-    await asyncSettingsTests(action, expectedActions);
   });
 });
