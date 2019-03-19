@@ -111,7 +111,10 @@ export class ShippingManagerPrimitive extends Component {
           isClearable={false}
           className={`settings--shipping-manager__input-group--${type}`}
           classNamePrefix="select"
-          styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
+          styles={colourStyles(
+            theme,
+            buildStyle(false, errors.shipping[mapSettingsFieldToKey[field]]),
+          )}
           onChange={this.createOnChangeHandler(field)}
           value={value}
           options={options}
@@ -169,7 +172,9 @@ export class ShippingManagerPrimitive extends Component {
                           value={product.raw}
                           style={buildStyle(
                             false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]],
+                            errors.shipping[
+                              mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]
+                            ],
                           )}
                           required
                         />
@@ -186,7 +191,9 @@ export class ShippingManagerPrimitive extends Component {
                           value={name}
                           style={buildStyle(
                             false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME]],
+                            errors.shipping[
+                              mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME]
+                            ],
                           )}
                           required
                         />
@@ -217,7 +224,9 @@ export class ShippingManagerPrimitive extends Component {
                           value={username}
                           style={buildStyle(
                             false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME]],
+                            errors.shipping[
+                              mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME]
+                            ],
                           )}
                           required={!accountFieldsDisabled}
                           disabled={accountFieldsDisabled}
@@ -235,7 +244,9 @@ export class ShippingManagerPrimitive extends Component {
                           value={password}
                           style={buildStyle(
                             false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD]],
+                            errors.shipping[
+                              mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD]
+                            ],
                           )}
                           required={!accountFieldsDisabled}
                           disabled={accountFieldsDisabled}

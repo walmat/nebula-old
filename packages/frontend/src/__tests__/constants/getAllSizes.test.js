@@ -181,4 +181,14 @@ describe('getAllSizes', () => {
       });
     });
   });
+
+  test('should build the correct sizes for each category', () => {
+    const category = "US Men's";
+
+    const expected = expectedSizes[2].options.filter(
+      s => s.label !== 'Random' && s.label !== 'Full Size Run',
+    );
+    const actual = buildSizesForCategory(category);
+    expect(actual).toEqual(expected);
+  });
 });

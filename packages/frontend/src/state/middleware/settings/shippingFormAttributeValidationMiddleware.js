@@ -24,7 +24,7 @@ const settingsAttributeValidationMiddleware = store => next => action => {
   newAction.errors = Object.assign({}, state.settings.errors);
   // Validate the field in question
   const error = shippingFormAttributeValidatorMap[newAction.field](newAction.value);
-  newAction.errors[mapSettingsFieldToKey[newAction.field]] = !error;
+  newAction.errors.shipping[mapSettingsFieldToKey[newAction.field]] = !error;
 
   // Continue on to next middleware/reducer with errors map filled in
   return next(newAction);

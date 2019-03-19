@@ -2,16 +2,12 @@ import PropTypes from 'prop-types';
 
 import defaultsErrors from './defaultsErrors';
 import proxyErrors from './proxyErrors';
+import shippingManagerErrors from './shippingManagerErrors';
 
 const settingsErrors = PropTypes.shape({
   proxies: proxyErrors,
   defaults: defaultsErrors,
-  product: PropTypes.bool,
-  name: PropTypes.bool,
-  profile: PropTypes.bool,
-  site: PropTypes.bool,
-  username: PropTypes.bool,
-  password: PropTypes.bool,
+  shipping: shippingManagerErrors,
   discord: PropTypes.bool,
   slack: PropTypes.bool,
 });

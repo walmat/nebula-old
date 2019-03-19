@@ -172,10 +172,16 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       errors: Object.assign({}, state.errors, action.errors),
     };
   } else if (action.type === SETTINGS_ACTIONS.FETCH_SHIPPING) {
-    // TODO - setup reducer here
+    if (
+      !action ||
+      (action && action.errors) ||
+      (action && action.response && !action.response.shipping)
+    ) {
+      return Object.assign({}, state, change);
+    }
     console.log(action);
+    // TODO - setup reducer here
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
-    console.log(state.errors);
     change = {
       shipping: initialSettingsStates.shipping,
       errors: Object.assign({}, state.errors, initialSettingsStates.shippingErrors),
