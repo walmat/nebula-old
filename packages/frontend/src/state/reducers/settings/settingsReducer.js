@@ -182,9 +182,15 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     console.log(action);
     // TODO - setup reducer here
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
+    // no matter what, reset back to init state here
     change = {
       shipping: initialSettingsStates.shipping,
-      errors: Object.assign({}, state.errors, initialSettingsStates.shippingErrors),
+      errors: {
+        ...state.errors,
+        shipping: {
+          ...initialSettingsStates.shippingErrors,
+        },
+      },
     };
   } else if (action.type === SETTINGS_ACTIONS.TEST) {
     if (window.Bridge) {

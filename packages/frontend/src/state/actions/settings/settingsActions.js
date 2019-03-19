@@ -20,13 +20,16 @@ const _fetchShippingRequest = async shipping => {
     copy.product = parsedProduct;
     return { shipping: copy };
   }
-  return { error: new Error('Invalid Shipping Structure') };
+  const error = new Error('Invalid Shipping Structure');
+  error.status = 400;
+  return { error };
 };
 
 const _fetchShippingRates = async shipping =>
-  // TODO - window.Bridge to start the shipping rate finding...
   new Promise((resolve, reject) => {
-    if (shipping) resolve({ shipping });
+    if (window.Bridge) {
+      window.Bridge.
+    }
     reject(new Error('No Shipping Rates Found'));
   });
 
