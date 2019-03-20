@@ -37,9 +37,6 @@ const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
 
-// ....
-
-// Action thunk definition
 const fetchShipping = task => dispatch =>
   // Optional: dispatch an action to set the shipping rates status to "Pending"
   // TODO
