@@ -1,20 +1,29 @@
 const EventEmitter = require('eventemitter3');
 const request = require('request-promise');
 
-const Timer = require('./classes/timer');
-const Monitor = require('./classes/monitor');
-const RestockMonitor = require('./classes/restockMonitor');
-const Discord = require('./classes/hooks/discord');
-const Slack = require('./classes/hooks/slack');
-const AsyncQueue = require('../common/asyncQueue');
+const Timer = require('../classes/timer');
+const Monitor = require('../classes/monitor');
+const RestockMonitor = require('../classes/restockMonitor');
+const Discord = require('../classes/hooks/discord');
+const Slack = require('../classes/hooks/slack');
+const AsyncQueue = require('../../common/asyncQueue');
 const {
   ErrorCodes,
-  TaskRunner: { States, Events, DelayTypes, HookTypes, StateMap, CheckoutRefresh, HarvestStates },
-} = require('./classes/utils/constants');
-const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
-const { createLogger } = require('../common/logger');
-const { waitForDelay } = require('./classes/utils');
-const { getCheckoutMethod } = require('./classes/checkouts');
+  TaskRunner: {
+    States,
+    Events,
+    Types,
+    DelayTypes,
+    HookTypes,
+    StateMap,
+    CheckoutRefresh,
+    HarvestStates,
+  },
+} = require('../classes/utils/constants');
+const TaskManagerEvents = require('../classes/utils/constants').TaskManager.Events;
+const { createLogger } = require('../../common/logger');
+const { waitForDelay } = require('../classes/utils');
+const { getCheckoutMethod } = require('../classes/checkouts');
 
 class TaskRunner {
   get state() {

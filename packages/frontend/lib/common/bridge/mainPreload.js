@@ -86,7 +86,7 @@ const _startShippingRatesRunner = task =>
       }
     };
     _registerForTaskEvents(srrMessageHandler);
-    _startTasks(task, { type: TaskRunnerTypes.ShippingRates });
+    _startTasks({ ...task, sizes: ['Random'] }, { type: TaskRunnerTypes.ShippingRates });
   });
 
 /**
