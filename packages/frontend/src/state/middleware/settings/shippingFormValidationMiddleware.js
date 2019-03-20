@@ -22,6 +22,7 @@ const shippingFormValidationMiddleware = store => next => action => {
 
   const response = newAction.response.shipping;
   newAction.errors = {};
+  const { errors } = action.response;
 
   Object.entries(shippingFormAttributeValidatorMap).forEach(pair => {
     const field = pair[0];
@@ -33,11 +34,9 @@ const shippingFormValidationMiddleware = store => next => action => {
       (field === SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME ||
         field === SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD)
     ) {
-      newAction.errors[mapSettingsFieldToKey[field]] = false;
+      errors[mapSettingsFieldToKey[field]] = false;
     } else {
-      newAction.errors[mapSettingsFieldToKey[field]] = !validator(
-        response[mapSettingsFieldToKey[field]],
-      );
+      errors[mapSettingsFieldToKey[field]] = !validator(response[mapSettingsFieldToKey[field]]);
     }
 
     combinedErrors = combinedErrors || newAction.errors[mapSettingsFieldToKey[field]];
@@ -45,6 +44,8 @@ const shippingFormValidationMiddleware = store => next => action => {
 
   if (combinedErrors === false) {
     delete newAction.errors;
+  } else {
+    newAction.errors = errors;
   }
 
   return next(newAction);

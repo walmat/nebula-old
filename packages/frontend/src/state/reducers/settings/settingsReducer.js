@@ -132,7 +132,8 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     if (
       !action ||
       (action && action.errors) ||
-      (action && action.response && !action.response.shipping)
+      (action && action.response && !action.response.rates) ||
+      (action && action.response && !action.response.selectedRate)
     ) {
       return Object.assign({}, state, change);
     }

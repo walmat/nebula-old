@@ -12,6 +12,7 @@ const _createMockStore = configureMockStore([thunk]);
 
 describe('settings actions', () => {
   let mockStore;
+  let Bridge;
 
   const settingsTests = (action, expectedActions) => {
     mockStore.dispatch(action);
@@ -29,6 +30,9 @@ describe('settings actions', () => {
 
   beforeEach(() => {
     mockStore = _createMockStore(initialState);
+    Bridge = {
+      startShippingRatesRunner: () => {},
+    };
   });
 
   describe('fetch shipping', () => {
@@ -82,6 +86,9 @@ describe('settings actions', () => {
     it('should dispatch an error action when shipping in invalid', async () => {
       const action = settingsActions.fetch({
         ...initialSettingsStates.shipping,
+        product: {
+          raw: 'wrong keywords format',
+        },
       });
       const expectedActions = [
         {

@@ -28,6 +28,17 @@ const _fetchShippingRequest = async task => {
   return window.Bridge.startShippingRatesRunner(copy);
 };
 
+// const _validateShippingForm = async task => {
+//   const copy = JSON.parse(JSON.stringify(task));
+//   const parsedProduct = parseProductType(copy.product);
+
+//   if (!parsedProduct) {
+//     throw new Error('Unable to parse product information!');
+//   }
+//   copy.product = parsedProduct;
+//   return { response: copy };
+// };
+
 const _saveShippingRates = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
@@ -37,10 +48,12 @@ const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
 
-const fetchShipping = task => dispatch =>
-  // Optional: dispatch an action to set the shipping rates status to "Pending"
-  // TODO
-  // dispatch(shippingRatesPending());
+const fetchShipping = task => dispatch => {
+  // TODO (Optional): dispatch an action to set the shipping rates status to "Pending"
+
+  // TODO: Validate form before doing anything else
+  // dispatch(_validateShippingForm(task));
+
   // Perform the request and handle the response
   _fetchShippingRequest(task)
     .then(({ shippingRates, selectedRate }) => {
@@ -48,7 +61,7 @@ const fetchShipping = task => dispatch =>
     })
     // Handle errors
     .catch(err => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, err)));
-
+}
 export const settingsActions = {
   edit: editSettings,
   save: saveDefaults,
