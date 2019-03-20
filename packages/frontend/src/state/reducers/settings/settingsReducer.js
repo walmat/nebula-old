@@ -1,68 +1,21 @@
-import { parseURL } from 'whatwg-url';
 import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../actions';
 import initialSettingsStates from '../../initial/settings';
-import getAllSites from '../../../constants/getAllSites';
+import shippingReducer from './shippingReducer';
 
 export default function settingsReducer(state = initialSettingsStates.settings, action) {
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
-      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
-        change = {
-          ...change,
-          shipping: {
-            ...initialSettingsStates.shipping,
-            ...state.shipping,
-            product: {
-              ...initialSettingsStates.shipping.product,
-              raw: action.value || '',
-            },
-          },
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-        if (!action.value || !action.value.startsWith('http')) {
-          break;
-        }
-        const URL = parseURL(action.value);
-        if (!URL || !URL.host) {
-          break;
-        }
-        const newSite = getAllSites().find(s => URL.host === parseURL(s.value).host);
-        if (!newSite || newSite.label === state.shipping.site.name) {
-          break;
-        }
-        change = {
-          ...change,
-          shipping: {
-            ...change.shipping,
-            site: {
-              url: newSite.value,
-              name: newSite.label,
-              apiKey: newSite.apiKey,
-              special: newSite.special || false,
-              auth: newSite.auth,
-            },
-            username: null,
-            password: null,
-          },
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-        break;
-      }
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME:
       case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE:
       case SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME:
       case SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD:
-      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE:
-      case SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME: {
         change = {
-          shipping: {
-            ...state.shipping,
-            [mapSettingsFieldToKey[action.field]]: action.value,
-          },
-          errors: Object.assign({}, state.errors, action.errors),
+          shipping: shippingReducer(state.shipping, action),
         };
         break;
-      }
       case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES: {
         let useKey = 'useProfile';
@@ -171,6 +124,10 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       defaults: initialSettingsStates.defaults,
       errors: Object.assign({}, state.errors, action.errors),
     };
+  } else if (action.type === SETTINGS_ACTIONS.TEST) {
+    if (window.Bridge) {
+      window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
+    }
   } else if (action.type === SETTINGS_ACTIONS.FETCH_SHIPPING) {
     if (
       !action ||
@@ -182,20 +139,10 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     console.log(action);
     // TODO - setup reducer here
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
-    // no matter what, reset back to init state here
-    change = {
-      shipping: initialSettingsStates.shipping,
-      errors: {
-        ...state.errors,
-        shipping: {
-          ...initialSettingsStates.shippingErrors,
-        },
-      },
+    change.shipping = {
+      ...initialSettingsStates.shipping,
+      errors: Object.assign({}, state.shipping.errors, initialSettingsStates.shippingErrors),
     };
-  } else if (action.type === SETTINGS_ACTIONS.TEST) {
-    if (window.Bridge) {
-      window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
-    }
   } else if (action.type === SETTINGS_ACTIONS.ERROR) {
     // TODO: Handle error
     console.error(`Error trying to perform: ${action.action}! ${action.error}`);

@@ -1,8 +1,8 @@
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
 import shippingFormAttributeValidatorMap from '../../../utils/validation/shippingFormAttributeValidators';
 
-const settingsAttributeValidationMiddleware = store => next => action => {
-  // Only activate this middleware when the action is editing settings
+const shippingFormAttributeValidationMiddleware = store => next => action => {
+  // Only activate this middleware when the action is editing shipping
   if (
     action.type !== SETTINGS_ACTIONS.EDIT ||
     (action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT &&
@@ -21,13 +21,13 @@ const settingsAttributeValidationMiddleware = store => next => action => {
   const state = store.getState();
 
   // Copy over the settings errors map
-  newAction.errors = Object.assign({}, state.settings.errors);
+  newAction.errors = Object.assign({}, state.settings.shipping.errors);
   // Validate the field in question
   const error = shippingFormAttributeValidatorMap[newAction.field](newAction.value);
-  newAction.errors.shipping[mapSettingsFieldToKey[newAction.field]] = !error;
+  newAction.errors[mapSettingsFieldToKey[newAction.field]] = !error;
 
   // Continue on to next middleware/reducer with errors map filled in
   return next(newAction);
 };
 
-export default settingsAttributeValidationMiddleware;
+export default shippingFormAttributeValidationMiddleware;

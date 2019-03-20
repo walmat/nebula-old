@@ -6,7 +6,7 @@ import {
 } from '../../actions';
 import shippingFormAttributeValidatorMap from '../../../utils/validation/shippingFormAttributeValidators';
 
-const settingsFormValidationMiddleware = store => next => action => {
+const shippingFormValidationMiddleware = store => next => action => {
   if (!action.type || action.type !== SETTINGS_ACTIONS.FETCH_SHIPPING) {
     return next(action);
   }
@@ -50,4 +50,4 @@ const settingsFormValidationMiddleware = store => next => action => {
   return next(newAction);
 };
 
-export default settingsFormValidationMiddleware;
+export default shippingFormValidationMiddleware;

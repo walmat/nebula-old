@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 
 import pDefns, { initialProfileStates } from '../profileDefinitions';
+import shippingManagerErrors, { initialShippingManagerErrorState } from './shippingManagerErrors';
 
 export const initialShippingManagerState = {
   name: '',
@@ -21,6 +22,7 @@ export const initialShippingManagerState = {
   },
   username: '',
   password: '',
+  errors: initialShippingManagerErrorState,
 };
 
 const shippingManager = PropTypes.shape({
@@ -42,6 +44,7 @@ const shippingManager = PropTypes.shape({
   }),
   username: PropTypes.string,
   password: PropTypes.string,
+  errors: shippingManagerErrors,
 });
 
 export default shippingManager;

@@ -269,7 +269,7 @@ ShippingManagerPrimitive.propTypes = {
   shipping: sDefns.shipping.isRequired,
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
-  errors: sDefns.settingsErrors.isRequired,
+  errors: sDefns.shippingErrors.isRequired,
 };
 
 ShippingManagerPrimitive.defaultProps = {
@@ -279,7 +279,7 @@ ShippingManagerPrimitive.defaultProps = {
 export const mapStateToProps = state => ({
   profiles: state.profiles,
   shipping: state.settings.shipping,
-  errors: state.settings.errors.shipping,
+  errors: state.settings.shipping.errors,
   theme: state.theme,
 });
 
