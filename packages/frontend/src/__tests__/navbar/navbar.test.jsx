@@ -114,6 +114,12 @@ describe('<Navbar />', () => {
       button.simulate('click');
       expect(consoleSpy).toHaveBeenCalled();
     });
+
+    test('close harvester button displays error', () => {
+      const button = wrapper.find('.navbar__button--close-captcha');
+      button.simulate('click');
+      expect(consoleSpy).toHaveBeenCalled();
+    });
   });
 
   it('should render with required props', () => {

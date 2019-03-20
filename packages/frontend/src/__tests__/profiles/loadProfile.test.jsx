@@ -2,7 +2,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { LoadProfilePrimitive, mapDispatchToProps } from '../../profiles/loadProfile';
+import {
+  LoadProfilePrimitive,
+  mapStateToProps,
+  mapDispatchToProps,
+} from '../../profiles/loadProfile';
 import { profileActions } from '../../state/actions';
 import initialProfileStates from '../../state/initial/profiles';
 import { initialState } from '../../state/migrators';
@@ -127,6 +131,26 @@ describe('<LoadProfile />', () => {
       expect(event.preventDefault).toHaveBeenCalled();
       expect(customProps.onDestroyProfile).toHaveBeenCalledWith(customProps.selectedProfile);
     });
+  });
+
+  test('map state to props returns correct structure', () => {
+    const state = {
+      profiles: [1, 2, 3].map(id => ({
+        ...initialProfileStates.profile,
+        id,
+        profileName: `profile${id}`,
+      })),
+      selectedProfile: {
+        ...initialProfileStates,
+        id: 1,
+        profileName: 'profile1',
+      },
+      theme: initialState.theme,
+    };
+    const actual = mapStateToProps();
+    expect(actual.profiles).toEqual(state.profiles);
+    expect(actual.theme).toEqual(state.theme);
+    expect(actual.selectedProfile).toEqual(state.selectedProfile);
   });
 
   test('map dispatch to props returns correct structure', () => {
