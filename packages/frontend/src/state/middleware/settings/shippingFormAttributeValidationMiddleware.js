@@ -6,7 +6,6 @@ const shippingFormAttributeValidationMiddleware = store => next => action => {
   if (
     action.type !== SETTINGS_ACTIONS.EDIT ||
     (action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT &&
-      action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME &&
       action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE &&
       action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_SITE &&
       action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME &&
