@@ -3,6 +3,20 @@ import semver from 'semver';
 import initialState from './state';
 
 const defaultCountry = { value: 'US', label: 'United States' };
+const initialShippingRatesState = [];
+
+const initialShippingManagerState = {
+  ...initialState.settings.shipping,
+};
+
+const initialShippingManagerErrorState = {
+  profile: null,
+  name: null,
+  site: null,
+  product: null,
+  username: null,
+  password: null,
+};
 
 // Take an existing location and update it to add the
 // Default country if the country wasn't previously filled out
@@ -24,6 +38,7 @@ const updateProfile = ({ billing, shipping, ...rest }) => ({
   ...rest,
   billing: addDefaultCountry(billing),
   shipping: addDefaultCountry(shipping),
+  rates: initialShippingRatesState,
 });
 
 // Helper method to call on tasks instead of needing to go multiple
@@ -82,6 +97,11 @@ export default (state = initialState) => {
           ...state.settings.defaults.edits,
           profile: updateProfile(state.settings.defaults.edits.profile),
         },
+      },
+      shipping: initialShippingManagerState,
+      errors: {
+        ...state.settings.errors,
+        shipping: initialShippingManagerErrorState,
       },
     },
   };

@@ -15,11 +15,45 @@ const remapLocation = existing => ({
 });
 
 const newInitialLocation = remapLocation(prevState.currentProfile.billing);
+const initialShippingRatesState = [];
 
 const newInitialProfile = {
   ...prevState.currentProfile,
   billing: newInitialLocation,
   shipping: newInitialLocation,
+  rates: initialShippingRatesState,
+  selectedSite: null,
+};
+
+const initialShippingManagerErrorState = {
+  profile: null,
+  name: null,
+  site: null,
+  product: null,
+  username: null,
+  password: null,
+};
+
+const initialShippingManagerState = {
+  name: '',
+  profile: newInitialProfile,
+  site: {
+    name: null,
+    url: null,
+    supported: null,
+    apiKey: null,
+    auth: null,
+  },
+  product: {
+    raw: '',
+    variant: null,
+    pos_keywords: null,
+    neg_keywords: null,
+    url: null,
+  },
+  username: '',
+  password: '',
+  errors: initialShippingManagerErrorState,
 };
 
 const newState = {
@@ -45,6 +79,7 @@ const newState = {
         profile: newInitialProfile,
       },
     },
+    shipping: initialShippingManagerState,
   },
 };
 

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 
-import pDefns, { initialProfileStates } from '../profileDefinitions';
+import pDefns from '../profileDefinitions';
+import initialProfileStates from '../../../state/initial/profiles';
 import shippingManagerErrors, { initialShippingManagerErrorState } from './shippingManagerErrors';
 
 export const initialShippingManagerState = {

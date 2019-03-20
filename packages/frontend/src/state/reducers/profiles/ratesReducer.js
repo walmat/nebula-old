@@ -1,4 +1,4 @@
-import { initialProfileStates } from '../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../initial/profiles';
 import { mapRateFieldToKey, RATES_FIELDS } from '../../actions';
 
 const ratesReducer = (state = initialProfileStates.rates, action) => {
