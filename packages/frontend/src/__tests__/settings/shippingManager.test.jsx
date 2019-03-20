@@ -13,7 +13,7 @@ import { initialSettingsStates } from '../../utils/definitions/settingsDefinitio
 import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
 import getAllSupportedSitesSorted from '../../constants/getAllSites';
 
-describe('<ShippingManagerPrimitive />', () => {
+describe('<ShippingManager />', () => {
   let defaultProps;
 
   const getWrapper = (method, customProps) => {

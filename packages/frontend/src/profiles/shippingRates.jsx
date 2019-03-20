@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
-import { RATES_FIELDS, profileActions, mapRateFieldToKey, PROFILE_FIELDS } from '../state/actions';
+import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../state/actions';
 
 import './profiles.css';
 
@@ -94,7 +94,7 @@ export class ShippingRatesPrimitive extends Component {
   }
 
   renderRateFields() {
-    const { value, errors } = this.props;
+    const { value } = this.props;
     const siteOptions = value.rates.map(({ site: { url, name } }) => ({ value: url, label: name }));
     let nameOptions = [];
     let siteObject = [];
@@ -121,7 +121,7 @@ export class ShippingRatesPrimitive extends Component {
             required
             disabled
             value={rateValue}
-            style={validationStatus(errors[mapRateFieldToKey[RATES_FIELDS.RATE]])}
+            style={validationStatus(false)}
             placeholder=""
           />
         </div>
@@ -163,7 +163,6 @@ export class ShippingRatesPrimitive extends Component {
 }
 
 ShippingRatesPrimitive.propTypes = {
-  errors: defns.paymentStateErrors.isRequired,
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   onDeleteShippingRate: PropTypes.func.isRequired,
@@ -171,7 +170,6 @@ ShippingRatesPrimitive.propTypes = {
 };
 
 export const mapStateToProps = (state, ownProps) => ({
-  errors: ownProps.profileToEdit.payment.errors,
   theme: state.theme,
   value: ownProps.profileToEdit,
 });

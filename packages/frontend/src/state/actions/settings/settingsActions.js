@@ -12,18 +12,23 @@ export const SETTINGS_ACTIONS = {
   ERROR: 'SETTINGS_HANDLE_ERROR',
 };
 
-const _fetchShippingRequest = async shipping => {
-  const copy = JSON.parse(JSON.stringify(shipping));
+// Async handler to start the shipping rates runner
+const _fetchShippingRequest = async task => {
+  const copy = JSON.parse(JSON.stringify(task));
   const parsedProduct = parseProductType(copy.product);
 
-  if (parsedProduct) {
-    copy.product = parsedProduct;
-    return { shipping: copy };
+  if (!parsedProduct) {
+    throw new Error('Unable to parse product information!');
   }
-  throw new Error('Invalid Shipping Structure');
+
+  if (!window.Bridge) {
+    throw new Error('Bridge has not been injected!');
+  }
+  copy.product = parsedProduct;
+  return window.Bridge.startShippingRatesRunner(copy);
 };
 
-const _fetchShipping = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
+const _saveShippingRates = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
@@ -32,11 +37,20 @@ const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
 
-const fetchShipping = shipping => dispatch =>
-  _fetchShippingRequest(shipping).then(
-    res => dispatch(_fetchShipping(res)),
-    error => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, error)),
-  );
+// ....
+
+// Action thunk definition
+const fetchShipping = task => dispatch =>
+  // Optional: dispatch an action to set the shipping rates status to "Pending"
+  // TODO
+  // dispatch(shippingRatesPending());
+  // Perform the request and handle the response
+  _fetchShippingRequest(task)
+    .then(({ shippingRates, selectedRate }) => {
+      dispatch(_saveShippingRates({ rates: shippingRates, selectedRate }));
+    })
+    // Handle errors
+    .catch(err => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, err)));
 
 export const settingsActions = {
   edit: editSettings,

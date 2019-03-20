@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
+const { TaskRunnerTypes } = require('@nebula/task-runner').shopify;
 
 const IPCKeys = require('../constants');
 const nebulaEnv = require('../../_electron/env');
@@ -58,9 +59,35 @@ const _deregisterForTaskEvents = handler => {
 /**
  * Sends task(s) that should be started to launcher.js
  */
-const _startTasks = tasks => {
-  util.sendEvent(IPCKeys.RequestStartTasks, tasks);
+const _startTasks = (tasks, options) => {
+  util.sendEvent(IPCKeys.RequestStartTasks, tasks, options);
 };
+
+const _startShippingRatesRunner = task =>
+  new Promise((resolve, reject) => {
+    const response = {};
+    const srrMessageHandler = (_, id, type, payload) => {
+      // Only respond to specific id and type
+      if (id === task.id && type === TaskRunnerTypes.ShippingRates) {
+        // Runner type is exposed from the task-runner package
+        response.shippingRates = payload.rates || response.shippingRates; // update rates if it exists
+        response.selectedRate = payload.selected || response.selectedRate; // update selected if it exists
+        if (payload.done) {
+          // SRR is done
+          _deregisterForTaskEvents(srrMessageHandler);
+          if (!response.shippingRates || !response.selectedRate) {
+            // Reject since we don't have the required data
+            reject(new Error('Data was not provided!'));
+          } else {
+            // Resolve since we have the required data
+            resolve(response);
+          }
+        }
+      }
+    };
+    _registerForTaskEvents(srrMessageHandler);
+    _startTasks(task, { type: TaskRunnerTypes.ShippingRates });
+  });
 
 /**
  * Sends task(s) that should be stopped to launcher.js
@@ -108,6 +135,7 @@ process.once('loaded', () => {
     /* PRIVATE EVENTS */
     launchCaptchaHarvester: _launchCaptchaHarvester,
     setTheme: _setTheme,
+    startShippingRatesRunner: _startShippingRatesRunner,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,
