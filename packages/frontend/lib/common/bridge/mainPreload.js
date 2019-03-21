@@ -66,7 +66,8 @@ const _startTasks = (tasks, options) => {
 const _startShippingRatesRunner = task =>
   new Promise((resolve, reject) => {
     const response = {};
-    const srrMessageHandler = (_, id, type, payload) => {
+    const srrMessageHandler = (_, id, payload) => {
+      console.log(_, id, payload);
       // Only respond to specific id and type
       if (id === task.id && type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
