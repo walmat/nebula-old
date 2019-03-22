@@ -8,20 +8,20 @@ import {
   mapDispatchToProps,
 } from '../../settings/shippingManager';
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
-import { initialState } from '../../state/reducers';
-import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
-import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
+import { initialState } from '../../state/migrators';
+import initialSettingsStates from '../../state/initial/settings';
+import initialProfileStates from '../../state/initial/profiles';
 import getAllSupportedSitesSorted from '../../constants/getAllSites';
 
 describe('<ShippingManager />', () => {
   let defaultProps;
 
-  const getWrapper = (method, customProps) => {
+  const getWrapper = customProps => {
     const renderProps = {
       ...defaultProps,
       ...customProps,
     };
-    return method(
+    return shallow(
       <ShippingManagerPrimitive
         theme={renderProps.theme}
         profiles={renderProps.profiles}
@@ -35,7 +35,7 @@ describe('<ShippingManager />', () => {
     );
   };
 
-  const renderShallowWithProps = customProps => getWrapper(shallow, customProps);
+  const renderShallowWithProps = customProps => getWrapper(customProps);
 
   beforeEach(() => {
     defaultProps = {
@@ -45,8 +45,8 @@ describe('<ShippingManager />', () => {
         { ...initialProfileStates.profile, id: 2, profileName: 'profile2' },
         { ...initialProfileStates.profile, id: 3, profileName: 'profile3' },
       ],
-      shipping: initialSettingsStates.shipping,
-      errors: initialSettingsStates.settingsErrors.shipping,
+      shipping: initialSettingsStates.settings.shipping,
+      errors: initialSettingsStates.shippingErrors,
       onSettingsChange: () => {},
       onFetchShippingMethods: () => {},
       onClearShippingFields: () => {},
@@ -67,6 +67,7 @@ describe('<ShippingManager />', () => {
   it('renders with non-default props', () => {
     const customProps = {
       shipping: {
+        ...initialSettingsStates.shipping,
         profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
         name: 'test',
       },
@@ -98,7 +99,7 @@ describe('<ShippingManager />', () => {
       expect(productSelector.prop('value')).toEqual('');
       expect(productSelector.prop('onChange')).toBeDefined();
 
-      productSelector.simulate('change', { value: '+test' });
+      productSelector.simulate('change', { target: { value: '+test' } });
       expect(customProps.onSettingsChange).toHaveBeenCalledWith({
         field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
         value: '+test',
@@ -114,7 +115,7 @@ describe('<ShippingManager />', () => {
       expect(nameSelector.prop('value')).toEqual('');
       expect(nameSelector.prop('onChange')).toBeDefined();
 
-      nameSelector.simulate('change', { value: 'test' });
+      nameSelector.simulate('change', { target: { value: 'test' } });
       expect(customProps.onSettingsChange).toHaveBeenCalledWith({
         field: SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME,
         value: 'test',
@@ -160,14 +161,12 @@ describe('<ShippingManager />', () => {
       expect(siteSelector.prop('options')).toEqual(getAllSupportedSitesSorted());
 
       siteSelector.simulate('change', {
-        value: {
-          name: 'Nebula Bots',
-          url: 'https://nebulabots.com',
-          apiKey: '6526a5b5393b6316a64853cfe091841c',
-          localCheckout: false,
-          special: false,
-          auth: false,
-        },
+        label: 'Nebula Bots',
+        value: 'https://nebulabots.com',
+        apiKey: '6526a5b5393b6316a64853cfe091841c',
+        localCheckout: false,
+        special: false,
+        auth: false,
       });
 
       expect(customProps.onSettingsChange).toHaveBeenCalledWith({
@@ -192,7 +191,7 @@ describe('<ShippingManager />', () => {
       expect(usernameSelector.prop('value')).toEqual('');
       expect(usernameSelector.prop('onChange')).toBeDefined();
 
-      usernameSelector.simulate('change', { value: 'test' });
+      usernameSelector.simulate('change', { target: { value: 'test' } });
       expect(customProps.onSettingsChange).toHaveBeenCalledWith({
         field: SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME,
         value: 'test',
@@ -208,7 +207,7 @@ describe('<ShippingManager />', () => {
       expect(passwordSelector.prop('value')).toEqual('');
       expect(passwordSelector.prop('onChange')).toBeDefined();
 
-      passwordSelector.simulate('change', { value: 'test' });
+      passwordSelector.simulate('change', { target: { value: 'test' } });
       expect(customProps.onSettingsChange).toHaveBeenCalledWith({
         field: SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
         value: 'test',
@@ -243,6 +242,9 @@ describe('<ShippingManager />', () => {
           },
           username: '',
           password: '',
+          errors: {
+            ...initialSettingsStates.shippingErrors,
+          },
         },
         errors: {
           ...initialSettingsStates.settingsErrors,
@@ -267,7 +269,10 @@ describe('<ShippingManager />', () => {
     const dispatch = jest.fn();
     const expectedAction = settingsActions.edit(SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT, '+data');
     const actual = mapDispatchToProps(dispatch);
-    actual.onSettingsChange(SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT, '+data');
+    actual.onSettingsChange({
+      field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+      value: '+data',
+    });
     expect(dispatch).toHaveBeenCalledWith(expectedAction);
   });
 });

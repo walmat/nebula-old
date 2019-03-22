@@ -182,8 +182,8 @@ describe('getAllSizes', () => {
     });
   });
 
-  test('should build the correct sizes for each category', () => {
-    const category = "US Men's";
+  test('should build the correct sizes for a category', () => {
+    const category = "US/UK Men's";
 
     const expected = expectedSizes[2].options.filter(
       s => s.label !== 'Random' && s.label !== 'Full Size Run',

@@ -115,6 +115,10 @@
       "!src/tasks/old/*.{js,jsx}",
       "!src/server/old/*.{js,jsx}"
     ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      ".eslintrc.js"
+    ],
     "testPathIgnorePatterns": [
       "/node_modules/",
       ".eslintrc.js"

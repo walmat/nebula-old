@@ -14,6 +14,9 @@ const ratesReducer = (state = initialProfileStates.rates, action) => {
         break;
       }
       change = nextState.find(s => s.site.url === action.value.site.value);
+      if (!change) {
+        break;
+      }
       change.selectedRate = action.value.rate;
       break;
     default: {

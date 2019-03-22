@@ -12,7 +12,10 @@ const _createMockStore = configureMockStore([thunk]);
 
 describe('settings actions', () => {
   let mockStore;
-  let Bridge;
+
+  beforeEach(() => {
+    mockStore = _createMockStore(initialState);
+  });
 
   const settingsTests = (action, expectedActions) => {
     mockStore.dispatch(action);
@@ -28,77 +31,113 @@ describe('settings actions', () => {
     expect(actualActions).toEqual(expectedActions);
   };
 
-  beforeEach(() => {
-    mockStore = _createMockStore(initialState);
-    Bridge = {
-      startShippingRatesRunner: () => {},
-    };
-  });
-
   describe('fetch shipping', () => {
-    it('should dispatch a successful action when shipping is valid', async () => {
-      const action = settingsActions.fetch({
-        ...initialSettingsStates.shipping,
-        name: 'test',
-        product: { ...initialSettingsStates.shipping.product, raw: '+test' },
-        profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
-        site: {
-          name: 'Nebula Bots',
-          url: 'https://nebulabots.com',
-          apiKey: '6526a5b5393b6316a64853cfe091841c',
-          auth: false,
-          supported: true,
-        },
-        username: '',
-        password: '',
-      });
-      const expectedActions = [
-        {
-          type: SETTINGS_ACTIONS.FETCH_SHIPPING,
-          response: {
-            shipping: {
-              ...initialSettingsStates.shipping,
-              product: {
-                ...initialSettingsStates.shipping.product,
-                raw: '+test',
-                pos_keywords: ['test'],
-                neg_keywords: [],
-              },
-              name: 'test',
-              profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
-              site: {
-                ...initialSettingsStates.shipping.site,
-                name: 'Nebula Bots',
-                url: 'https://nebulabots.com',
-                apiKey: '6526a5b5393b6316a64853cfe091841c',
-                auth: false,
-                supported: true,
-              },
-              username: '',
-              password: '',
+    describe('when window.Bridge is defined', () => {
+      it('should dispatch a successful action when shipping form is valid', async () => {
+        const Bridge = {
+          startShippingRatesRunner: jest.fn(() => ({
+            shippingRates: [],
+            selectedRate: 'test',
+          })),
+        };
+        global.window.Bridge = Bridge;
+        const action = settingsActions.fetch({
+          ...initialSettingsStates.shipping,
+          name: 'test',
+          product: { ...initialSettingsStates.shipping.product, raw: '+test' },
+          profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
+          site: {
+            name: 'Nebula Bots',
+            url: 'https://nebulabots.com',
+            apiKey: '6526a5b5393b6316a64853cfe091841c',
+            auth: false,
+            supported: true,
+          },
+          username: '',
+          password: '',
+        });
+        const expectedActions = [
+          {
+            type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+            response: {
+              rates: [],
+              selectedRate: 'test',
             },
           },
-        },
-      ];
-      await asyncSettingsTests(action, expectedActions);
+        ];
+        await asyncSettingsTests(action, expectedActions);
+        delete global.window.Bridge;
+      });
+
+      it('should dispatch a error action when shipping form is invalid', async () => {
+        const Bridge = {
+          startShippingRatesRunner: jest.fn(() => ({
+            shippingRates: [],
+            selectedRate: 'test',
+          })),
+        };
+        global.window.Bridge = Bridge;
+        const action = settingsActions.fetch({
+          ...initialSettingsStates.shipping,
+        });
+        const expectedActions = [
+          {
+            type: SETTINGS_ACTIONS.ERROR,
+            action: SETTINGS_ACTIONS.FETCH_SHIPPING,
+            error: expect.any(Error),
+          },
+        ];
+        await asyncSettingsTests(action, expectedActions);
+        delete global.window.Bridge;
+      });
     });
 
-    it('should dispatch an error action when shipping in invalid', async () => {
-      const action = settingsActions.fetch({
-        ...initialSettingsStates.shipping,
-        product: {
-          raw: 'wrong keywords format',
-        },
+    describe('when window.Bridge is undefined', () => {
+      it('should dispatch an error action when shipping form is valid', async () => {
+        const action = settingsActions.fetch({
+          ...initialSettingsStates.shipping,
+          name: 'test',
+          product: { ...initialSettingsStates.shipping.product, raw: '+test' },
+          profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
+          site: {
+            name: 'Nebula Bots',
+            url: 'https://nebulabots.com',
+            apiKey: '6526a5b5393b6316a64853cfe091841c',
+            auth: false,
+            supported: true,
+          },
+          username: '',
+          password: '',
+        });
+        const expectedActions = [
+          {
+            type: SETTINGS_ACTIONS.ERROR,
+            action: SETTINGS_ACTIONS.FETCH_SHIPPING,
+            error: expect.any(Error),
+          },
+        ];
+        await asyncSettingsTests(action, expectedActions);
       });
-      const expectedActions = [
-        {
-          type: SETTINGS_ACTIONS.ERROR,
-          action: SETTINGS_ACTIONS.FETCH_SHIPPING,
-          error: expect.any(Error),
-        },
-      ];
-      await asyncSettingsTests(action, expectedActions);
+
+      it('should dispatch an error action when shipping in invalid', async () => {
+        const action = settingsActions.fetch({
+          ...initialSettingsStates.shipping,
+          product: {
+            raw: 'wrong keywords format',
+          },
+        });
+        const expectedActions = [
+          {
+            type: SETTINGS_ACTIONS.ERROR,
+            action: SETTINGS_ACTIONS.FETCH_SHIPPING,
+            error: expect.any(Error),
+          },
+        ];
+        await asyncSettingsTests(action, expectedActions);
+      });
     });
+
+
   });
 
   it('should create an action to edit settings', () => {

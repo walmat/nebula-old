@@ -1,8 +1,8 @@
 /* global describe expect it test jest */
 import shippingFormAttributeValidationMiddleware from '../../../../state/middleware/settings/shippingFormAttributeValidationMiddleware';
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS } from '../../../../state/actions';
-import { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
-import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
+import initialSettingsStates from '../../../../state/initial/settings';
+import initialProfileStates from '../../../../state/initial/profiles';
 
 describe('settings attribute validatation middleware', () => {
   const create = () => {
@@ -135,7 +135,7 @@ describe('settings attribute validatation middleware', () => {
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
-        ...initialSettingsStates.settingsErrors,
+        ...initialSettingsStates.shippingErrors,
         product: false,
       };
       const action = {
@@ -164,7 +164,7 @@ describe('settings attribute validatation middleware', () => {
       const expectedAction = {
         ...action,
         errors: {
-          ...initialSettingsStates.settingsErrors,
+          ...initialSettingsStates.shippingErrors,
           product: true,
         },
       };
@@ -181,7 +181,7 @@ describe('settings attribute validatation middleware', () => {
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
-        ...initialSettingsStates.settingsErrors,
+        ...initialSettingsStates.shippingErrors,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
@@ -209,7 +209,7 @@ describe('settings attribute validatation middleware', () => {
       const expectedAction = {
         ...action,
         errors: {
-          ...initialSettingsStates.settingsErrors,
+          ...initialSettingsStates.shippingErrors,
           name: true,
         },
       };
@@ -226,7 +226,7 @@ describe('settings attribute validatation middleware', () => {
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
-        ...initialSettingsStates.settingsErrors,
+        ...initialSettingsStates.shippingErrors,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
@@ -254,7 +254,7 @@ describe('settings attribute validatation middleware', () => {
       const expectedAction = {
         ...action,
         errors: {
-          ...initialSettingsStates.settingsErrors,
+          ...initialSettingsStates.shippingErrors,
           profile: true,
         },
       };
@@ -271,7 +271,7 @@ describe('settings attribute validatation middleware', () => {
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
-        ...initialSettingsStates.settingsErrors,
+        ...initialSettingsStates.shippingErrors,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
@@ -305,7 +305,7 @@ describe('settings attribute validatation middleware', () => {
       const expectedAction = {
         ...action,
         errors: {
-          ...initialSettingsStates.settingsErrors,
+          ...initialSettingsStates.shippingErrors,
           site: true,
         },
       };
@@ -322,7 +322,7 @@ describe('settings attribute validatation middleware', () => {
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
-        ...initialSettingsStates.settingsErrors,
+        ...initialSettingsStates.shippingErrors,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
@@ -350,7 +350,7 @@ describe('settings attribute validatation middleware', () => {
       const expectedAction = {
         ...action,
         errors: {
-          ...initialSettingsStates.settingsErrors,
+          ...initialSettingsStates.shippingErrors,
           site: true,
         },
       };
@@ -367,7 +367,7 @@ describe('settings attribute validatation middleware', () => {
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
-        ...initialSettingsStates.settingsErrors,
+        ...initialSettingsStates.shippingErrors,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
@@ -395,7 +395,7 @@ describe('settings attribute validatation middleware', () => {
       const expectedAction = {
         ...action,
         errors: {
-          ...initialSettingsStates.settingsErrors,
+          ...initialSettingsStates.shippingErrors,
           password: true,
         },
       };

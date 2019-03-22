@@ -1,7 +1,7 @@
 /* global describe expect it test jest */
 import settingsAttributeValidationMiddleware from '../../../../state/middleware/settings/settingsAttributeValidationMiddleware';
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS } from '../../../../state/actions';
-import { initialSettingsStates } from '../../../../utils/definitions/settingsDefinitions';
+import initialSettingsStates from '../../../../state/initial/settings';
 
 describe('settings attribute validatation middleware', () => {
   const create = () => {

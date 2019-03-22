@@ -8,8 +8,8 @@ import {
   mapDispatchToProps,
 } from '../../profiles/shippingRates';
 import { profileActions, PROFILE_FIELDS } from '../../state/actions';
-import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
-import { initialState } from '../../state/reducers';
+import initialProfileStates from '../../state/initial/profiles';
+import { initialState } from '../../state/migrators';
 import { RATES_FIELDS } from '../../state/actions/profiles/profileActions';
 
 describe('<ShippingRates />', () => {

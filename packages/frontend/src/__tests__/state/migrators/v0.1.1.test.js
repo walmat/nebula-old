@@ -19,6 +19,8 @@ describe('v0.1.1 migrator', () => {
     ...rest,
     billing: addCountry(billing, def),
     shipping: addCountry(shipping, def),
+    rates: [],
+    selectedSite: null,
   });
 
   const updateTask = ({ profile, edits, ...rest }, def) => ({
@@ -92,6 +94,23 @@ describe('v0.1.1 migrator', () => {
           edits: {
             ...initialState.settings.defaults.edits,
             profile: updateProfile(initialState.settings.defaults.edits.profile, false),
+          },
+        },
+        shipping: {
+          ...initialState.settings.shipping,
+          errors: {
+            ...initialState.settings.shipping.errors,
+          },
+        },
+        errors: {
+          ...initialState.settings.errors,
+          shipping: {
+            name: null,
+            password: null,
+            product: null,
+            profile: null,
+            site: null,
+            username: null,
           },
         },
       },

@@ -39,6 +39,7 @@ const updateProfile = ({ billing, shipping, ...rest }) => ({
   billing: addDefaultCountry(billing),
   shipping: addDefaultCountry(shipping),
   rates: initialShippingRatesState,
+  selectedSite: null,
 });
 
 // Helper method to call on tasks instead of needing to go multiple

@@ -6,6 +6,7 @@ const shippingFormAttributeValidationMiddleware = store => next => action => {
   if (
     action.type !== SETTINGS_ACTIONS.EDIT ||
     (action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT &&
+      action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME &&
       action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE &&
       action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_SITE &&
       action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME &&
@@ -20,7 +21,7 @@ const shippingFormAttributeValidationMiddleware = store => next => action => {
   const state = store.getState();
 
   // Copy over the settings errors map
-  newAction.errors = Object.assign({}, state.settings.shipping.errors);
+  newAction.errors = Object.assign({}, state.settings.errors.shipping);
   // Validate the field in question
   const error = shippingFormAttributeValidatorMap[newAction.field](newAction.value);
   newAction.errors[mapSettingsFieldToKey[newAction.field]] = !error;

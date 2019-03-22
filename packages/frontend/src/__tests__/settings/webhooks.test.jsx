@@ -53,7 +53,6 @@ describe('<Webhooks />', () => {
       slack: 'slackTest',
     };
     const wrapper = renderShallowWithProps(customProps);
-    console.log(wrapper);
     expect(wrapper.find('.settings__input-group--webhook__discord')).toHaveLength(1);
     expect(wrapper.find('.settings__input-group--webhook__slack')).toHaveLength(1);
     expect(wrapper.find('.settings__input-group--webhook__discord').prop('value')).toBe(

@@ -138,7 +138,7 @@ export class ShippingManagerPrimitive extends Component {
       };
     }
     let accountFieldsDisabled = true;
-    if (site !== null) {
+    if (site) {
       accountFieldsDisabled = !site.auth;
     }
     return (
@@ -279,7 +279,7 @@ ShippingManagerPrimitive.defaultProps = {
 export const mapStateToProps = state => ({
   profiles: state.profiles,
   shipping: state.settings.shipping,
-  errors: state.settings.shipping.errors,
+  errors: state.settings.errors.shipping,
   theme: state.theme,
 });
 

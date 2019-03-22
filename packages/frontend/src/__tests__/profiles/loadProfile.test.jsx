@@ -58,7 +58,7 @@ describe('<LoadProfile />', () => {
         profileName: `profile${id}`,
       })),
       selectedProfile: {
-        ...initialProfileStates,
+        ...initialProfileStates.profile,
         id: 1,
         profileName: 'profile1',
       },
@@ -83,7 +83,7 @@ describe('<LoadProfile />', () => {
           profileName: `profile${id}`,
         })),
         selectedProfile: {
-          ...initialProfileStates,
+          ...initialProfileStates.profile,
           id: 1,
           profileName: 'profile1',
         },
@@ -103,7 +103,7 @@ describe('<LoadProfile />', () => {
           profileName: `profile${id}`,
         })),
         selectedProfile: {
-          ...initialProfileStates,
+          ...initialProfileStates.profile,
           id: 1,
           profileName: 'profile1',
         },
@@ -118,7 +118,7 @@ describe('<LoadProfile />', () => {
     test('deleting a profile', () => {
       const customProps = {
         selectedProfile: {
-          ...initialProfileStates,
+          ...initialProfileStates.profile,
           id: 1,
           profileName: 'profile1',
         },
@@ -141,13 +141,13 @@ describe('<LoadProfile />', () => {
         profileName: `profile${id}`,
       })),
       selectedProfile: {
-        ...initialProfileStates,
+        ...initialProfileStates.profile,
         id: 1,
         profileName: 'profile1',
       },
       theme: initialState.theme,
     };
-    const actual = mapStateToProps();
+    const actual = mapStateToProps(state);
     expect(actual.profiles).toEqual(state.profiles);
     expect(actual.theme).toEqual(state.theme);
     expect(actual.selectedProfile).toEqual(state.selectedProfile);
