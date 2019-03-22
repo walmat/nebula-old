@@ -32,6 +32,7 @@ describe('Top Level App', () => {
       expect(wrapper.find('#container-wrapper')).toHaveLength(1);
       expect(getByTestId(wrapper, 'App.button.close')).toHaveLength(1);
       expect(getByTestId(wrapper, 'App.button.deactivate')).toHaveLength(1);
+      expect(getByTestId(wrapper, 'App.button.theme')).toHaveLength(1);
       getByTestId(wrapper, 'App.button.deactivate').simulate('keyPress');
       expect(wrapper.instance().props.store.getState).toHaveBeenCalled();
       wrapper.unmount();

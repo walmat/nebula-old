@@ -138,6 +138,7 @@ export class App extends PureComponent {
                 onKeyPress={onKeyPress}
                 onClick={() => this.setTheme(store)}
                 draggable="false"
+                data-testid={addTestId('App.button.theme')}
               >
                 {theme === THEMES.LIGHT
                   ? renderSvgIcon(NightModeIcon, {

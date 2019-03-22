@@ -100,10 +100,6 @@ export default (state = initialState) => {
         },
       },
       shipping: initialShippingManagerState,
-      errors: {
-        ...state.settings.errors,
-        shipping: initialShippingManagerErrorState,
-      },
     },
   };
 };

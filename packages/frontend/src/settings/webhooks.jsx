@@ -6,12 +6,12 @@ import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../stat
 import sDefns from '../utils/definitions/settingsDefinitions';
 
 export class WebhooksPrimitive extends Component {
-  static renderWebhookButton(onClick, onKeyPress) {
+  static renderWebhookButton(type, onClick, onKeyPress) {
     return (
       <div className="col col--end col--no-gutter-right">
         <button
           type="button"
-          className="settings__input-group--button"
+          className={`settings__input-group--button-${type}`}
           onKeyPress={onKeyPress}
           tabIndex={0}
           onClick={onClick}
@@ -66,7 +66,7 @@ export class WebhooksPrimitive extends Component {
               value={value}
             />
           </div>
-          {WebhooksPrimitive.renderWebhookButton(onClick, onKeyPress)}
+          {WebhooksPrimitive.renderWebhookButton(type, onClick, onKeyPress)}
         </div>
       </div>
     );

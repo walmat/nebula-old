@@ -46,7 +46,7 @@ describe('<ShippingManager />', () => {
         { ...initialProfileStates.profile, id: 3, profileName: 'profile3' },
       ],
       shipping: initialSettingsStates.settings.shipping,
-      errors: initialSettingsStates.shippingErrors,
+      errors: initialSettingsStates.settings.shipping.errors,
       onSettingsChange: () => {},
       onFetchShippingMethods: () => {},
       onClearShippingFields: () => {},
@@ -259,7 +259,7 @@ describe('<ShippingManager />', () => {
     const expected = {
       profiles: state.profiles,
       shipping: state.settings.shipping,
-      errors: state.settings.errors.shipping,
+      errors: state.settings.shipping.errors,
       theme: state.theme,
     };
     expect(mapStateToProps(state)).toEqual(expected);

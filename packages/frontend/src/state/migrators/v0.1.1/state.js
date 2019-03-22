@@ -15,16 +15,18 @@ const remapLocation = existing => ({
 });
 
 const newInitialLocation = remapLocation(prevState.currentProfile.billing);
+// add in the initial state for shipping rates
 const initialShippingRatesState = [];
 
 const newInitialProfile = {
   ...prevState.currentProfile,
   billing: newInitialLocation,
   shipping: newInitialLocation,
-  rates: initialShippingRatesState,
-  selectedSite: null,
+  rates: initialShippingRatesState, // add in rates state
+  selectedSite: null, // also, set the selected site to null
 };
 
+// initial state for errors (shipping manager)
 const initialShippingManagerErrorState = {
   profile: null,
   name: null,
@@ -34,6 +36,7 @@ const initialShippingManagerErrorState = {
   password: null,
 };
 
+// initial shipping manager state definition
 const initialShippingManagerState = {
   name: '',
   profile: newInitialProfile,

@@ -70,7 +70,29 @@ describe('v0.1.1 migrator', () => {
     };
     const expected = {
       ...initialState,
-      profiles: [initialState.currentProfile],
+      profiles: [
+        {
+          ...initialState.currentProfile,
+          rates: [],
+          selectedSite: null,
+        },
+      ],
+      currentProfile: {
+        ...initialState.currentProfile,
+        rates: [],
+        selectedSite: null,
+      },
+      selectedProfile: {
+        ...initialState.selectedProfile,
+        rates: [],
+        selectedSite: null,
+      },
+      settings: {
+        ...initialState.settings,
+        errors: {
+          ...initialState.settings.errors,
+        },
+      },
       tasks: [updateTask(editedTask, true)],
     };
     const migrated = migrator(start);

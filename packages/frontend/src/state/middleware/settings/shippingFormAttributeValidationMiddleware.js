@@ -21,7 +21,7 @@ const shippingFormAttributeValidationMiddleware = store => next => action => {
   const state = store.getState();
 
   // Copy over the settings errors map
-  newAction.errors = Object.assign({}, state.settings.errors.shipping);
+  newAction.errors = Object.assign({}, state.settings.shipping.errors);
   // Validate the field in question
   const error = shippingFormAttributeValidatorMap[newAction.field](newAction.value);
   newAction.errors[mapSettingsFieldToKey[newAction.field]] = !error;

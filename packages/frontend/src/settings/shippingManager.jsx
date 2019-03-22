@@ -279,7 +279,7 @@ ShippingManagerPrimitive.defaultProps = {
 export const mapStateToProps = state => ({
   profiles: state.profiles,
   shipping: state.settings.shipping,
-  errors: state.settings.errors.shipping,
+  errors: state.settings.shipping.errors,
   theme: state.theme,
 });
 
