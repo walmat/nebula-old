@@ -9,7 +9,6 @@ import {
   LOCATION_FIELDS,
   PAYMENT_FIELDS,
   PROFILE_FIELDS,
-  RATES_FIELDS,
 } from '../../../../state/actions';
 
 describe('profile reducer', () => {

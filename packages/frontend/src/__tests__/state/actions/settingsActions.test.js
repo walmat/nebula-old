@@ -136,8 +136,6 @@ describe('settings actions', () => {
         await asyncSettingsTests(action, expectedActions);
       });
     });
-
-
   });
 
   it('should create an action to edit settings', () => {
