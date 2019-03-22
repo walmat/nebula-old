@@ -117,7 +117,10 @@
   /* make scrollbar transparent */
 }
 
-svg, button, img, a {
+svg,
+button,
+img,
+a {
   cursor: pointer !important;
 }
 

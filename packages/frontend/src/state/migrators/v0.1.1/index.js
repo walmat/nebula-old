@@ -9,15 +9,6 @@ const initialShippingManagerState = {
   ...initialState.settings.shipping,
 };
 
-const initialShippingManagerErrorState = {
-  profile: null,
-  name: null,
-  site: null,
-  product: null,
-  username: null,
-  password: null,
-};
-
 // Take an existing location and update it to add the
 // Default country if the country wasn't previously filled out
 const addDefaultCountry = location => ({

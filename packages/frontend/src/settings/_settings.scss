@@ -137,10 +137,20 @@
     }
 
     &--button {
-      @extend %button-base;
-      @include themify($themes) {
-        background: themed('buttonColorPrimary');
-        color: themed('buttonPrimaryText');
+      &-slack {
+        @extend %button-base;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+        }
+      }
+
+      &-discord {
+        @extend %button-base;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+        }
       }
     }
   }

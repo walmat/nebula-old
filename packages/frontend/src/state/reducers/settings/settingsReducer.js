@@ -142,7 +142,11 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
     change.shipping = {
       ...initialSettingsStates.shipping,
-      errors: Object.assign({}, state.shipping.errors, initialSettingsStates.shippingErrors),
+      errors: Object.assign(
+        {},
+        state.shipping.errors,
+        initialSettingsStates.settings.shipping.errors,
+      ),
     };
   } else if (action.type === SETTINGS_ACTIONS.ERROR) {
     // TODO: Handle error
