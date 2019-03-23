@@ -82,7 +82,6 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         break;
       }
       case SETTINGS_FIELDS.EDIT_DISCORD: {
-        // TODO - check for valid `action.value` once validation middleware is setup
         if (window.Bridge) {
           window.Bridge.updateHook(action.value, 'discord');
         }
@@ -93,7 +92,6 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         break;
       }
       case SETTINGS_FIELDS.EDIT_SLACK: {
-        // TODO - check for valid `a`ction.value` once validation middleware is setup
         if (window.Bridge) {
           window.Bridge.updateHook(action.value, 'slack');
         }

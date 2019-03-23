@@ -38,6 +38,54 @@ describe('Top Level App', () => {
       wrapper.unmount();
     });
 
+    describe('Theme Button', () => {
+      let Bridge;
+
+      afterEach(() => {
+        if (Bridge && window.Bridge) {
+          delete window.Bridge;
+        }
+      });
+
+      it('should render with correct props', () => {
+        const wrapper = appProvider();
+        const closeButton = getByTestId(wrapper, 'App.button.theme');
+        expect(closeButton.prop('className')).toBe('theme-icon');
+        expect(closeButton.prop('role')).toBe('button');
+        expect(closeButton.prop('title')).toBe('theme');
+        expect(closeButton.prop('onKeyPress')).toBeDefined();
+        expect(closeButton.prop('onClick')).toBeDefined();
+      });
+
+      it.skip("should not call window bridge method if it isn't defined", () => {
+        const onKeyPress = jest.fn();
+        const wrapper = appProvider({ onKeyPress });
+        const closeButton = getByTestId(wrapper, 'App.button.theme');
+        closeButton.simulate('click');
+        expect(ev.preventDefault).toHaveBeenCalled();
+        closeButton.simulate('keyPress');
+        expect(onKeyPress).toHaveBeenCalled();
+      });
+
+      it.skip('should call window bridge method if it is defined', () => {
+        const wrapper = appProvider();
+        const closeButton = getByTestId(wrapper, 'App.button.close');
+        const ev = {
+          preventDefault: jest.fn(),
+        };
+        Bridge = {
+          close: jest.fn(),
+          registerForTaskEvents: jest.fn(),
+          deregisterForTaskEvents: jest.fn(),
+        };
+        window.Bridge = Bridge;
+        closeButton.simulate('click', ev);
+        expect(ev.preventDefault).toHaveBeenCalled();
+        expect(Bridge.close).toHaveBeenCalled();
+        delete window.Bridge;
+      });
+    });
+
     describe('Deactivate Button', () => {
       let Bridge;
 

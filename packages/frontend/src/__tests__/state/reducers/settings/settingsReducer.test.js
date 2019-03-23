@@ -172,54 +172,386 @@ describe('settings reducer', () => {
       });
     });
 
-    test('discord settings action', () => {
+    describe('discord settings action', () => {
+      test('should save field edit', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          discord: 'discord_test',
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_DISCORD,
+          value: 'discord_test',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('should update webhook when window.Bridge is defined', () => {
+        const Bridge = {
+          updateHook: jest.fn(),
+        };
+        global.window.Bridge = Bridge;
+        const expected = {
+          ...initialSettingsStates.settings,
+          discord: 'test',
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_DISCORD,
+          value: 'test',
+        });
+        expect(actual).toEqual(expected);
+        expect(Bridge.updateHook).toHaveBeenCalled();
+        delete global.window.Bridge;
+      });
+
+      test('should not update webhook when window.Bridge is undefined', () => {
+        const Bridge = {
+          updateHook: jest.fn(),
+        };
+        const expected = {
+          ...initialSettingsStates.settings,
+          discord: 'test',
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_DISCORD,
+          value: 'test',
+        });
+        expect(actual).toEqual(expected);
+        expect(Bridge.updateHook).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('slack settings action', () => {
+      test('should save field edit', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          slack: 'slack',
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_SLACK,
+          value: 'slack',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('should update webhook when window.Bridge is defined', () => {
+        const Bridge = {
+          updateHook: jest.fn(),
+        };
+        global.window.Bridge = Bridge;
+        const expected = {
+          ...initialSettingsStates.settings,
+          slack: 'test',
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_SLACK,
+          value: 'test',
+        });
+        expect(actual).toEqual(expected);
+        expect(Bridge.updateHook).toHaveBeenCalled();
+        delete global.window.Bridge;
+      });
+
+      test('should not update webhook when window.Bridge is undefined', () => {
+        const Bridge = {
+          updateHook: jest.fn(),
+        };
+        const expected = {
+          ...initialSettingsStates.settings,
+          slack: 'test',
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_SLACK,
+          value: 'test',
+        });
+        expect(actual).toEqual(expected);
+        expect(Bridge.updateHook).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('monitor delay action', () => {
+      test('when value is numerical non-null', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          monitorDelay: 1500,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: '1500',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('when value is empty', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          monitorDelay: 0,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: '',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('when value is null', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          monitorDelay: 0,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: null,
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('when value is non-numerical', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          monitorDelay: 1500,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: 'test',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('when window.Bridge is defined', () => {
+        const Bridge = {
+          changeDelay: jest.fn(),
+        };
+        global.window.Bridge = Bridge;
+        const expected = {
+          ...initialSettingsStates.settings,
+          monitorDelay: 2500,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: 2500,
+        });
+        expect(actual).toEqual(expected);
+        expect(Bridge.changeDelay).toHaveBeenCalled();
+        delete global.window.Bridge;
+      });
+
+      test('when window.Bridge is undefined', () => {
+        const Bridge = {
+          changeDelay: jest.fn(),
+        };
+        const expected = {
+          ...initialSettingsStates.settings,
+          monitorDelay: 2500,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: 2500,
+        });
+        expect(actual).toEqual(expected);
+        expect(Bridge.changeDelay).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('error delay action', () => {
+      test('when value is numerical non-null', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          errorDelay: 1500,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: '1500',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('when value is empty', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          errorDelay: 0,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: '',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('when value is null', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          errorDelay: 0,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: null,
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('when value is non-numerical', () => {
+        const expected = {
+          ...initialSettingsStates.settings,
+          errorDelay: 1500,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: 'test',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('when window.Bridge is defined', () => {
+        const Bridge = {
+          changeDelay: jest.fn(),
+        };
+        global.window.Bridge = Bridge;
+        const expected = {
+          ...initialSettingsStates.settings,
+          errorDelay: 2500,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: 2500,
+        });
+        expect(actual).toEqual(expected);
+        expect(Bridge.changeDelay).toHaveBeenCalled();
+        delete global.window.Bridge;
+      });
+
+      test('when window.Bridge is undefined', () => {
+        const Bridge = {
+          changeDelay: jest.fn(),
+        };
+        const expected = {
+          ...initialSettingsStates.settings,
+          errorDelay: 2500,
+        };
+        const actual = settingsReducer(undefined, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: 2500,
+        });
+        expect(actual).toEqual(expected);
+        expect(Bridge.changeDelay).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('should respond to test webhook action', () => {
+      describe('discord', () => {
+        test('when window.Bridge is defined', () => {
+          const Bridge = {
+            sendWebhookTestMessage: jest.fn(),
+          };
+          global.window.Bridge = Bridge;
+          settingsReducer(undefined, {
+            type: SETTINGS_ACTIONS.TEST,
+            hook: 'test',
+            test_hook_type: 'discord',
+          });
+          expect(Bridge.sendWebhookTestMessage).toHaveBeenCalled();
+          delete global.window.Bridge;
+        });
+
+        test('when window.Bridge is undefined', () => {
+          const Bridge = {
+            sendWebhookTestMessage: jest.fn(),
+          };
+          settingsReducer(undefined, {
+            type: SETTINGS_ACTIONS.TEST,
+            hook: 'test',
+            test_hook_type: 'discord',
+          });
+          expect(Bridge.sendWebhookTestMessage).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('slack', () => {
+        test('when window.Bridge is defined', () => {
+          const Bridge = {
+            sendWebhookTestMessage: jest.fn(),
+          };
+          global.window.Bridge = Bridge;
+          settingsReducer(undefined, {
+            type: SETTINGS_ACTIONS.TEST,
+            hook: 'test',
+            test_hook_type: 'slack',
+          });
+          expect(Bridge.sendWebhookTestMessage).toHaveBeenCalled();
+          delete global.window.Bridge;
+        });
+
+        test('when window.Bridge is undefined', () => {
+          const Bridge = {
+            sendWebhookTestMessage: jest.fn(),
+          };
+          settingsReducer(undefined, {
+            type: SETTINGS_ACTIONS.TEST,
+            hook: 'test',
+            test_hook_type: 'slack',
+          });
+          expect(Bridge.sendWebhookTestMessage).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    test('should handle clear shipping action', () => {
+      const start = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          profile: {
+            ...initialSettingsStates.shipping.profile,
+            profileName: 'test',
+          },
+        },
+      };
       const expected = {
         ...initialSettingsStates.settings,
-        discord: 'discord_test',
+        shipping: {
+          ...initialSettingsStates.shipping,
+          profile: {
+            ...initialSettingsStates.shipping.profile,
+          },
+        },
       };
-      const actual = settingsReducer(undefined, {
-        type: SETTINGS_ACTIONS.EDIT,
-        field: SETTINGS_FIELDS.EDIT_DISCORD,
-        value: 'discord_test',
+      const actual = settingsReducer(start, {
+        type: SETTINGS_ACTIONS.CLEAR_SHIPPING,
       });
       expect(actual).toEqual(expected);
     });
 
-    test('slack settings action', () => {
+    test('should handle error action', () => {
       const expected = {
         ...initialSettingsStates.settings,
-        slack: 'slack',
+        shipping: {
+          ...initialSettingsStates.shipping,
+          profile: {
+            ...initialSettingsStates.shipping.profile,
+          },
+        },
       };
       const actual = settingsReducer(undefined, {
-        type: SETTINGS_ACTIONS.EDIT,
-        field: SETTINGS_FIELDS.EDIT_SLACK,
-        value: 'slack',
-      });
-      expect(actual).toEqual(expected);
-    });
-
-    test('monitor delay action', () => {
-      const expected = {
-        ...initialSettingsStates.settings,
-        monitorDelay: 1500,
-      };
-      const actual = settingsReducer(undefined, {
-        type: SETTINGS_ACTIONS.EDIT,
-        field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
-        value: '1500',
-      });
-      expect(actual).toEqual(expected);
-    });
-
-    test('error delay action', () => {
-      const expected = {
-        ...initialSettingsStates.settings,
-        errorDelay: 1500,
-      };
-      const actual = settingsReducer(undefined, {
-        type: SETTINGS_ACTIONS.EDIT,
-        field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
-        value: '1500',
+        type: SETTINGS_ACTIONS.ERROR,
+        action: 'test',
+        error: 'test',
       });
       expect(actual).toEqual(expected);
     });
@@ -263,6 +595,127 @@ describe('settings reducer', () => {
       });
       expect(actual).toEqual(expected);
     });
+
+    test('shipping product', () => {
+      const expected = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          product: {
+            ...initialSettingsStates.shipping.product,
+            raw: '+test',
+          },
+        },
+      };
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+        value: '+test',
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('shipping rate name', () => {
+      const expected = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          name: 'test',
+        },
+      };
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME,
+        value: 'test',
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('shipping profile', () => {
+      const expected = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          profile: {
+            ...initialSettingsStates.shipping.profile,
+            id: 1,
+            profileName: 'test',
+          },
+        },
+      };
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE,
+        value: {
+          ...initialSettingsStates.shipping.profile,
+          id: 1,
+          profileName: 'test',
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('shipping site', () => {
+      const expected = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          site: {
+            name: 'Nebula Bots',
+            url: 'https://nebulabots.com',
+            apiKey: '6526a5b5393b6316a64853cfe091841c',
+            localCheckout: false,
+            special: false,
+            auth: false,
+          },
+        },
+      };
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_SITE,
+        value: {
+          name: 'Nebula Bots',
+          url: 'https://nebulabots.com',
+          apiKey: '6526a5b5393b6316a64853cfe091841c',
+          auth: false,
+          localCheckout: false,
+          special: false,
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('shipping username', () => {
+      const expected = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          username: 'test',
+        },
+      };
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME,
+        value: 'test',
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('shipping password', () => {
+      const expected = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          password: 'test',
+        },
+      };
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
+        value: 'test',
+      });
+      expect(actual).toEqual(expected);
+    });
   });
 
   it('should handle save defaults action', () => {
@@ -297,6 +750,61 @@ describe('settings reducer', () => {
     const actual = settingsReducer(start, { type: SETTINGS_ACTIONS.CLEAR_DEFAULTS });
     expect(actual).toEqual(expected);
     expect(actual).not.toEqual(start);
+  });
+
+  describe('should handle fetch shipping action', () => {
+    test('when action has errors', () => {
+      const expected = initialSettingsStates.settings;
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {},
+        errors: {},
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when action has no errors but no response', () => {
+      const expected = initialSettingsStates.settings;
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when action has no errors, response, rates, but no selectedRate', () => {
+      const expected = initialSettingsStates.settings;
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          rates: [],
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when action has no errors, response, selectedRate, but no rates (somehow?)', () => {
+      const expected = initialSettingsStates.settings;
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          selectedRate: [],
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when action has no errors, response, selectedRate, and rates', () => {
+      // TODO: once we implement shipping rates reducer chain logic..
+      const expected = initialSettingsStates.settings;
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          rates: [],
+          selectedRate: {},
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
   });
 
   describe('should add errors to state from', () => {

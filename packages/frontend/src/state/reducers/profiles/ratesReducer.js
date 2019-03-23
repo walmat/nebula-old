@@ -9,7 +9,7 @@ const ratesReducer = (state = initialProfileStates.rates, action) => {
   }
   switch (action.type) {
     case RATES_FIELDS.RATE: {
-      if (!action.value.site || !action.value.rate) {
+      if (!action.value || !action.value.site || !action.value.rate) {
         break;
       }
       const rateObjectForSite = nextState.find(s => s.site.url === action.value.site.value);
@@ -20,11 +20,8 @@ const ratesReducer = (state = initialProfileStates.rates, action) => {
       nextState[idx].selectedRate = action.value.rate;
       break;
     }
-    default: {
-      nextState[[mapRateFieldToKey[action.type]]] =
-        action.value || initialProfileStates.rates[mapRateFieldToKey[action.type]];
+    default:
       break;
-    }
   }
   return nextState;
 };

@@ -308,6 +308,222 @@ describe('current profile reducer', () => {
     });
   });
 
+  describe('should handle delete rate action', () => {
+    test('when site and rate are not given', () => {
+      const initial = {
+        ...initialProfileStates.profile,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            ],
+            selectedRate: null,
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const actual = currentProfileReducer(initial, {
+        type: PROFILE_ACTIONS.DELETE_RATE,
+      });
+      expect(actual).toEqual(initial);
+    });
+
+    test('when selectedRate is provided rate', () => {
+      const initial = {
+        ...initialProfileStates.profile,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+              {
+                name: '6-10 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(6-10%20business%20days)-5.00',
+              },
+            ],
+            selectedRate: {
+              name: '5-7 Business Days',
+              rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+            },
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const expected = {
+        ...initialProfileStates.profile,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '6-10 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(6-10%20business%20days)-5.00',
+              },
+            ],
+            selectedRate: null,
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const actual = currentProfileReducer(initial, {
+        type: PROFILE_ACTIONS.DELETE_RATE,
+        site: {
+          label: 'Kith',
+          value: 'https://kith.com',
+        },
+        rate: {
+          label: '5-7 Business Days',
+          value: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when rate is last rate in list', () => {
+      const initial = {
+        ...initialProfileStates.profile,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            ],
+            selectedRate: {
+              name: '5-7 Business Days',
+              rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+            },
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const expected = {
+        ...initialProfileStates.profile,
+        selectedSite: null,
+        rates: [
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const actual = currentProfileReducer(initial, {
+        type: PROFILE_ACTIONS.DELETE_RATE,
+        site: {
+          label: 'Kith',
+          value: 'https://kith.com',
+        },
+        rate: {
+          label: '5-7 Business Days',
+          value: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+    // test('when rate is not last rate in list', () => {
+
+    // });
+  });
+
   describe('should not respond to', () => {
     const _testNoopResponse = type => {
       const actual = currentProfileReducer(initialProfileStates.profile, {

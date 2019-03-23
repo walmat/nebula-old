@@ -125,11 +125,8 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       // get site object that corresponds to action's site
       const siteObj = nextState.rates.find(r => r.site.url === action.site.value);
 
-      // reset the selectedRate if it's the same one being passed through,
-      // this `should` always be true
-      if (siteObj && siteObj.selectedRate && siteObj.selectedRate.value === action.rate.value) {
-        siteObj.selectedRate = null;
-      }
+      // reset the selectedRate
+      siteObj.selectedRate = null;
       // remove the passed in rate field from the rates array
       siteObj.rates = siteObj.rates.filter(r => r.rate !== action.rate.value);
 
