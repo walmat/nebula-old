@@ -1,6 +1,6 @@
 /* global describe it expect test jest */
 import profileListReducer from '../../../../state/reducers/profiles/profileListReducer';
-import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../../../state/initial/profiles';
 import { PROFILE_ACTIONS, PROFILE_FIELDS } from '../../../../state/actions';
 
 describe('profile list reducer', () => {

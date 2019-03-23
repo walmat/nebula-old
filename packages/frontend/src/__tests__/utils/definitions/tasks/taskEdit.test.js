@@ -1,5 +1,6 @@
 /* global describe */
-import tDefns, { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
+import tDefns from '../../../../utils/definitions/taskDefinitions';
+import initialTaskStates from '../../../../state/initial/tasks';
 import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('taskEdit definitions', () => {

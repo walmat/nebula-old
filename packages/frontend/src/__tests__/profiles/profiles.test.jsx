@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 import { ProfilesPrimitive, mapStateToProps, mapDispatchToProps } from '../../profiles/profiles';
 import { PROFILE_FIELDS, profileActions } from '../../state/actions';
-import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../state/initial/profiles';
 import LocationFields from '../../profiles/locationFields';
 import PaymentFields from '../../profiles/paymentFields';
 

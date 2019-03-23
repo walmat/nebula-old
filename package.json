@@ -36,6 +36,9 @@
     "prettier-eslint": "^8.8.2",
     "yarn": "^1.12.3"
   },
+  "resolutions": {
+    "write-file-atomic": "2.3.0"
+  },
   "husky": {
     "hooks": {
       "pre-push": "yarn ci",

@@ -101,8 +101,12 @@ class APICheckout extends Checkout {
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
           'Upgrade-Insecure-Requests': '1',
         },
-        body: JSON.stringify(patchCheckoutForm(profile, shipping, billing, payment)),
+        body: JSON.stringify(
+          patchCheckoutForm(profile, shipping, billing, payment, this.captchaToken),
+        ),
       });
+      // Reset captcha token so we don't use it again
+      this.captchaToken = null;
 
       const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);
@@ -225,7 +229,7 @@ class APICheckout extends Checkout {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }
           await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.AddToCart };
+          return { message: 'Running for restocks', nextState: States.Restocking };
         }
         if (error.variant_id && error.variant_id[0]) {
           if (timers.monitor.getRunTime() > CheckoutRefresh) {

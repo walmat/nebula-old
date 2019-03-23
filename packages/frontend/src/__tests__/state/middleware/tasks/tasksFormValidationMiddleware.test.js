@@ -2,8 +2,8 @@
 /* global describe expect it test jest beforeEach */
 import tasksFormValidationMiddleware from '../../../../state/middleware/tasks/tasksFormValidationMiddleware';
 import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../../../state/actions';
-import { initialTaskStates } from '../../../../utils/definitions/taskDefinitions';
-import { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
+import initialTaskStates from '../../../../state/initial/tasks';
+import initialProfileStates from '../../../../state/initial/profiles';
 
 describe('task form validation middleware', () => {
   const create = () => {

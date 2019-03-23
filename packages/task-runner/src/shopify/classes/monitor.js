@@ -1,17 +1,9 @@
-const _ = require('underscore');
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
-const {
-  formatProxy,
-  userAgent,
-  rfrl,
-  capitalizeFirstLetter,
-  waitForDelay,
-  getRandomIntInclusive,
-} = require('./utils');
+const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
 const { States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
-const { urlToTitleSegment, urlToVariantOption } = require('./utils/urlVariantMaps');
+const generateVariants = require('./utils/generateVariants');
 
 class Monitor {
   constructor(context) {
@@ -57,6 +49,23 @@ class Monitor {
     return { message: `Monitoring for product...`, nextState: States.Monitor };
   }
 
+  async _handleParsingErrors(errors) {
+    // consolidate statuses
+    const statuses = errors.map(error => error.status);
+    // Check for bans
+    let checkStatus = statuses.find(s => s === 403 || s === 429 || s === 430);
+    if (checkStatus) {
+      this._logger.info('Proxy was Banned, swapping proxies...');
+      return {
+        message: 'Swapping proxy',
+        shouldBan: checkStatus === 403,
+        nextState: States.SwapProxies,
+      };
+    }
+    checkStatus = statuses.find(s => s === ErrorCodes.ProductNotFound || s >= 400);
+    return this._delay(checkStatus || 404);
+  }
+
   _parseAll() {
     // Create the parsers and start the async run methods
     const parsers = [
@@ -80,57 +89,34 @@ class Monitor {
       ),
     ].map(p => p.run());
     // Return the winner of the race
-    return rfrl(parsers, 'parseAll', this._context.logger);
+    return rfrl(parsers, 'parseAll');
   }
 
-  _generateValidVariants(product) {
+  _generateVariants(product) {
     const { sizes, site } = this._context.task;
-    // Group variants by their size
-    const variantsBySize = _.groupBy(product.variants, variant => {
-      // Use the variant option or the title segment
-      const option =
-        variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
-      // TEMPORARY: Sometimes the option1 value contains /'s to separate regional sizes.
-      //   Until this case gets fully solved in issue #239
-      if (option.indexOf('/') > 0) {
-        const newOption = urlToTitleSegment[site.url](variant.title);
-        return newOption;
+    let variants;
+    try {
+      variants = generateVariants(product, sizes, site, this._logger);
+    } catch (err) {
+      if (err.code === ErrorCodes.VariantsNotMatched) {
+        return {
+          message: 'Unable to match variants',
+          nextState: States.Stopped,
+        };
       }
-      return option.toUpperCase();
-    });
-
-    // this._context.logger.verbose('MONITOR: variants by size: %j', variantsBySize);
-
-    // Get the groups in the same order as the sizes
-    const mappedVariants = sizes.map(size => {
-      // if we're choosing a random size ..generate a random size for now for each respective category
-      // TODO - implement a "stock checker" to choose the one with the most stock
-      // (this will give our users a better chance of at least getting one)
-      if (size === 'Random') {
-        const val = getRandomIntInclusive(0, Object.keys(variantsBySize).length - 1);
-        const variant = variantsBySize[Object.keys(variantsBySize)[val]];
-        return variant;
+      if (err.code === ErrorCodes.VariantsNotAvailable) {
+        return {
+          message: 'Running for restocks',
+          nextState: States.Restocking,
+        };
       }
-      const variant = Object.keys(variantsBySize).find(
-        s => s.toUpperCase().indexOf(size.toUpperCase()) > -1,
-      );
-      return variantsBySize[variant];
-    });
-
-    // this._context.logger.verbose('MONITOR: mapped variants: %j', mappedVariants);
-    // Flatten the groups to a one-level array and remove null elements
-    const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
-    // only pick certain properties of the variants to print
-    this._context.logger.verbose(
-      'MONITOR: valid variants: %j',
-      validVariants.map(v =>
-        _.pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
-      ),
-    );
-    if (validVariants.length > 0) {
-      return validVariants.map(v => `${v.id}`);
+      this._logger.debug('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
+      return {
+        message: 'Task has errored out!',
+        nextState: States.Errored,
+      };
     }
-    return null;
+    return variants;
   }
 
   async _monitorKeywords() {
@@ -140,35 +126,21 @@ class Monitor {
       parsed = await this._parseAll();
     } catch (errors) {
       this._logger.debug('MONITOR: All request errored out! %j', errors);
-      // consolidate statuses
-      const statuses = errors.map(error => error.status);
-      // Check for bans
-      let checkStatus = statuses.find(s => s === 403 || s === 429 || s === 430);
-      if (checkStatus) {
-        this._logger.info('Proxy was Banned, swapping proxies...');
-        return {
-          message: 'Swapping proxy',
-          shouldBan: true,
-          nextState: States.SwapProxies,
-        };
-      }
-      checkStatus = statuses.find(s => s === ErrorCodes.Parser.ProductNotFound || s >= 400);
-      if (checkStatus) {
-        return this._delay(checkStatus);
-      }
+      // handle parsing errors
+      return this._handleParsingErrors(errors);
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
-    const variants = this._generateValidVariants(parsed);
-    if (!variants) {
-      return {
-        message: `Unable to match variants`,
-        nextState: States.Stopped,
-      };
+    this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
+    const { site } = this._context.task;
+    const variants = this._generateVariants(parsed);
+    // check for next state (means we hit an error when generating variants)
+    if (variants.nextState) {
+      return variants;
     }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
-    this._context.task.product.url = `${this._context.task.site.url}/products/${parsed.handle}`;
+    this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
     return {
@@ -200,18 +172,25 @@ class Monitor {
         url,
         response.statusCode,
       );
-      const fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
+      let fullProductInfo;
+      try {
+        // Try getting full product info
+        fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
+      } catch (errors) {
+        this._logger.debug('MONITOR: All request errored out! %j', errors);
+        // handle parsing errors
+        return this._handleParsingErrors(errors);
+      }
       // Generate Variants
       this._logger.verbose(
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',
         fullProductInfo.title,
       );
-      const variants = this._generateValidVariants(fullProductInfo);
-      if (!variants) {
-        return {
-          message: `Unable to match variants`,
-          nextState: States.Stopped,
-        };
+      this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
+      const variants = this._generateVariants(fullProductInfo);
+      // check for next state (means we hit an error when generating variants)
+      if (variants.nextState) {
+        return variants;
       }
       this._logger.verbose('MONITOR: Variants Generated, updating context...');
       this._context.task.product.variants = variants;
@@ -247,24 +226,23 @@ class Monitor {
     } catch (error) {
       this._logger.debug('MONITOR: Error with special parsing!', error);
       // Check for a product not found error
-      if (error.status === ErrorCodes.Parser.ProductNotFound) {
+      if (error.status === ErrorCodes.ProductNotFound) {
         return { message: 'Error: Product Not Found!', nextState: States.Errored };
       }
       return this._delay(error.status);
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.verbose('MONITOR: Generating variant lists now...');
+    this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     let variants;
     if (product.variant) {
       variants = [product.variant];
     } else {
-      variants = this._generateValidVariants(parsed);
-    }
-    if (!variants) {
-      return {
-        message: `Unable to generate variants`,
-        nextState: States.Stopped,
-      };
+      variants = this._generateVariants(parsed);
+      // check for next state (means we hit an error when generating variants)
+      if (variants.nextState) {
+        return variants;
+      }
     }
     this._logger.verbose('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;

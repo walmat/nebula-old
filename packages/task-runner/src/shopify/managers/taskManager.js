@@ -43,7 +43,7 @@ class TaskManager {
     this._logger = createLogger({
       dir: this._loggerPath,
       name: 'TaskManager',
-      filename: 'manager.log',
+      prefix: 'manager',
     });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
@@ -170,7 +170,11 @@ class TaskManager {
       // Force wait limit to be 0 if we have an invalid parameter value passed in
       waitLimit = 0;
     }
-    this._logger.verbose('Reserving proxy for runner %s ...', runnerId);
+    this._logger.verbose(
+      'Reserving proxy for runner %s ... Looking through %d proxies',
+      runnerId,
+      this._proxies.size,
+    );
     let proxy = null;
     for (const val of this._proxies.values()) {
       if (!val.assignedRunner && !val.banList[site]) {

@@ -119,7 +119,7 @@ class FrontendCheckout extends Checkout {
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.AddToCart };
+          return { message: 'Running for restocks', nextState: States.Restocking };
         }
 
         // account
@@ -152,7 +152,7 @@ class FrontendCheckout extends Checkout {
 
       if (body && body.status === 404) {
         await waitForDelay(monitorDelay);
-        return { message: 'Running for restocks', nextState: States.AddToCart };
+        return { message: 'Running for restocks', nextState: States.Restocking };
       }
 
       return { message: 'Creating checkout', nextState: States.CreateCheckout };
@@ -228,7 +228,7 @@ class FrontendCheckout extends Checkout {
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.GetCheckout };
+          return { message: 'Running for restocks', nextState: States.Restocking };
         }
 
         // password page
@@ -290,6 +290,8 @@ class FrontendCheckout extends Checkout {
           patchCheckoutForm(profile, shipping, billing, payment, this.captchaToken),
         ),
       });
+      // Reset captcha token so we don't use it again
+      this.captchaToken = null;
 
       const { statusCode, headers } = res;
       const checkStatus = stateForStatusCode(statusCode);

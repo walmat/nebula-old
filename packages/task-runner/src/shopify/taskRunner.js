@@ -3,17 +3,14 @@ const request = require('request-promise');
 
 const Timer = require('./classes/timer');
 const Monitor = require('./classes/monitor');
+const RestockMonitor = require('./classes/restockMonitor');
 const Discord = require('./classes/hooks/discord');
 const Slack = require('./classes/hooks/slack');
 const AsyncQueue = require('../common/asyncQueue');
 const {
-  States,
-  Events,
-  DelayTypes,
-  HookTypes,
-  StateMap,
-  CheckoutRefresh,
-} = require('./classes/utils/constants').TaskRunner;
+  ErrorCodes,
+  TaskRunner: { States, Events, DelayTypes, HookTypes, StateMap, CheckoutRefresh, HarvestStates },
+} = require('./classes/utils/constants');
 const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../common/logger');
 const { waitForDelay } = require('./classes/utils');
@@ -32,7 +29,7 @@ class TaskRunner {
 
     this._jar = request.jar();
     this._request = request.defaults({
-      timeout: 12500,
+      timeout: 20000,
       jar: this._jar,
     });
 
@@ -42,7 +39,7 @@ class TaskRunner {
     this._logger = createLogger({
       dir: loggerPath,
       name: `TaskRunner-${id}`,
-      filename: `runner-${id}.log`,
+      prefix: `runner-${id}`,
     });
 
     /**
@@ -79,12 +76,18 @@ class TaskRunner {
       slack: this._slack,
       logger: this._logger,
       aborted: false,
+      harvestState: HarvestStates.idle,
     };
 
     /**
      * Create a new monitor object to be used for the task
      */
     this._monitor = new Monitor(this._context);
+
+    /**
+     * Create a new restock monitor object to be used for task product restocking
+     */
+    this._restockMonitor = new RestockMonitor(this._context);
 
     /**
      * Create a new checkout object to be used for this task
@@ -94,6 +97,7 @@ class TaskRunner {
       ...this._context,
       getCaptcha: this.getCaptcha.bind(this),
       stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
+      suspendHarvestCaptcha: this.suspendHarvestCaptcha.bind(this),
     });
 
     /**
@@ -121,7 +125,7 @@ class TaskRunner {
   }
 
   _handleHarvest(id, token) {
-    if (id === this._context.id) {
+    if (id === this._context.id && this._captchaQueue) {
       this._captchaQueue.insert(token);
     }
   }
@@ -157,21 +161,42 @@ class TaskRunner {
   }
 
   getCaptcha() {
-    if (!this._captchaQueue) {
+    if (this._context.harvestState === HarvestStates.idle) {
       this._captchaQueue = new AsyncQueue();
       this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
+      this._context.harvestState = HarvestStates.start;
+    }
+
+    if (this._context.harvestState === HarvestStates.suspend) {
+      this._context.harvestState = HarvestStates.start;
+    }
+
+    if (this._context.harvestState === HarvestStates.start) {
+      this._logger.debug('[DEBUG]: Starting harvest...');
       this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
     }
+
     // return the captcha request
     return this._captchaQueue.next();
   }
 
+  suspendHarvestCaptcha() {
+    if (this._context.harvestState === HarvestStates.start) {
+      this._logger.debug('[DEBUG]: Suspending harvest...');
+      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._context.harvestState = HarvestStates.suspend;
+    }
+  }
+
   stopHarvestCaptcha() {
-    if (this._captchaQueue) {
+    const { harvestState } = this._context;
+    if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
       this._captchaQueue.destroy();
       this._captchaQueue = null;
+      this._logger.debug('[DEBUG]: Stopping harvest...');
       this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
+      this._context.harvestState = HarvestStates.stop;
     }
   }
 
@@ -407,6 +432,47 @@ class TaskRunner {
     return nextState;
   }
 
+  async _handleRestocking() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.info('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
+      this._emitTaskEvent({ message: 'Pinging checkout' });
+      return States.PingCheckout;
+    }
+
+    let res;
+    try {
+      res = await this._restockMonitor.run();
+    } catch (err) {
+      if (err.code === ErrorCodes.RestockingNotSupported) {
+        // If restock monitoring is not supported, go straight to ATC
+        return States.AddToCart;
+      }
+    }
+    const { errors, message, nextState, shouldBan } = res;
+    if (errors) {
+      this._logger.verbose('Restock Monitor Handler completed with errors: %j', errors);
+      this._emitTaskEvent({
+        message: 'Error running for restocks...',
+        errors,
+      });
+      await this._waitForErrorDelay();
+    }
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    if (nextState === States.Restocking) {
+      await waitForDelay(this._context.task.monitorDelay);
+    }
+    // Restock Monitor will be in charge of choosing the next state
+    return nextState;
+  }
+
   async _handleAddToCart() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -466,6 +532,8 @@ class TaskRunner {
         // token was returned, store it and remove the request
         ({ value: this._checkout.captchaToken } = this._checkout.captchaTokenRequest);
         this._checkout.captchaTokenRequest = null;
+        // We have the token, so suspend harvesting for now
+        this.suspendHarvestCaptcha();
 
         if (this._prevState === States.PostPayment) {
           return States.CompletePayment;
@@ -620,6 +688,7 @@ class TaskRunner {
       [States.PollQueue]: this._handlePollQueue,
       [States.PatchCheckout]: this._handlePatchCheckout,
       [States.Monitor]: this._handleMonitor,
+      [States.Restocking]: this._handleRestocking,
       [States.AddToCart]: this._handleAddToCart,
       [States.ShippingRates]: this._handleShipping,
       [States.RequestCaptcha]: this._handleRequestCaptcha,

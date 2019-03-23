@@ -1,5 +1,6 @@
 /* global describe */
-import pDefns, { initialProfileStates } from '../../../../utils/definitions/profileDefinitions';
+import pDefns from '../../../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../../../state/initial/profiles';
 import { setupConsoleErrorSpy, testKey } from '../../../../__testUtils__/definitionTestUtils';
 
 describe('profile definitions', () => {

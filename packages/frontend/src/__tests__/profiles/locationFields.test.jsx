@@ -8,7 +8,7 @@ import {
   mapDispatchToProps,
 } from '../../profiles/locationFields';
 import { PROFILE_FIELDS, LOCATION_FIELDS, profileActions } from '../../state/actions';
-import { initialProfileStates } from '../../utils/definitions/profileDefinitions';
+import initialProfileStates from '../../state/initial/profiles';
 
 describe('<LocationFields />', () => {
   it('should render with required props', () => {
@@ -251,7 +251,7 @@ describe('<LocationFields />', () => {
       testOnChange('province', event, {
         field: LOCATION_FIELDS.PROVINCE,
         value: {
-          country: null,
+          country: initialProfileStates.location.country,
           province: event,
         },
       });

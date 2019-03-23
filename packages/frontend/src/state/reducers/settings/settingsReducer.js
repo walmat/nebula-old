@@ -1,6 +1,6 @@
 import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../actions';
 
-import { initialSettingsStates } from '../../../utils/definitions/settingsDefinitions';
+import initialSettingsStates from '../../initial/settings';
 
 export default function settingsReducer(state = initialSettingsStates.settings, action) {
   let change = {};

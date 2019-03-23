@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 import { WebhooksPrimitive, mapStateToProps, mapDispatchToProps } from '../../settings/webhooks';
 import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
-import { initialSettingsStates } from '../../utils/definitions/settingsDefinitions';
+import initialSettingsStates from '../../state/initial/settings';
 
 describe('<Webhooks />', () => {
   let defaultProps;
