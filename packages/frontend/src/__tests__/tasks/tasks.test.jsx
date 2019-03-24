@@ -7,8 +7,11 @@ import CreateTask from '../../tasks/createTask';
 import ViewTask from '../../tasks/viewTask';
 import LogTask from '../../tasks/logTask';
 import initialTaskStates from '../../state/initial/tasks';
+import initialSettingsStates from '../../state/initial/settings';
 
 import getByTestId from '../../__testUtils__/getByTestId';
+import { SETTINGS_FIELDS } from '../../state/actions/settings/settingsActions';
+import { SETTINGS_ACTIONS } from '../../state/actions';
 
 describe('<Tasks />', () => {
   let defaultProps;
@@ -21,8 +24,11 @@ describe('<Tasks />', () => {
     return shallow(
       <TasksPrimitive
         newTask={renderProps.newTask}
+        monitorDelay={renderProps.monitorDelay}
+        errorDelay={renderProps.errorDelay}
         tasks={renderProps.tasks}
         proxies={renderProps.proxies}
+        onSettingsChange={renderProps.onSettingsChange}
         onDestroyTask={renderProps.onDestroyTask}
         onStartTask={renderProps.onStartTask}
         onStopTask={renderProps.onStopTask}
@@ -36,8 +42,11 @@ describe('<Tasks />', () => {
       newTask: {
         ...initialTaskStates.task,
       },
+      monitorDelay: initialSettingsStates.settings.monitorDelay,
+      errorDelay: initialSettingsStates.settings.errorDelay,
       tasks: [],
       proxies: [],
+      onSettingsChange: () => {},
       onDestroyTask: () => {},
       onStartTask: () => {},
       onStopTask: () => {},
@@ -66,6 +75,11 @@ describe('<Tasks />', () => {
     expect(getByTestId(wrapper, 'Tasks.bulkActionButton.start')).toHaveLength(1);
     expect(getByTestId(wrapper, 'Tasks.bulkActionButton.stop')).toHaveLength(1);
     expect(getByTestId(wrapper, 'Tasks.bulkActionButton.destroy')).toHaveLength(1);
+    expect(wrapper.find('.bulk-action-sidebar__monitor-delay')).toHaveLength(1);
+    expect(wrapper.find('.bulk-action-sidebar__monitor-delay').prop('value')).toEqual(1500);
+    expect(wrapper.find('.bulk-action-sidebar__error-delay')).toHaveLength(1);
+    expect(wrapper.find('.bulk-action-sidebar__error-delay').prop('value')).toEqual(1500);
+
     getByTestId(wrapper, 'Tasks.bulkActionButton.start').simulate('keyPress');
   });
 
@@ -212,6 +226,30 @@ describe('<Tasks />', () => {
         expect(customProps.onDestroyTask).not.toHaveBeenCalled();
       });
     });
+
+    describe('should call onSettingsChange when editing', () => {
+      test('monitor delay', () => {
+        const customProps = {
+          onSettingsChange: jest.fn(),
+        };
+        const wrapper = renderShallowWithProps(customProps);
+        const monitorDelayInput = wrapper.find('.bulk-action-sidebar__monitor-delay');
+        expect(monitorDelayInput).toHaveLength(1);
+        monitorDelayInput.simulate('change', { target: { value: 1500 } });
+        expect(customProps.onSettingsChange).toHaveBeenCalled();
+      });
+
+      test('error delay', () => {
+        const customProps = {
+          onSettingsChange: jest.fn(),
+        };
+        const wrapper = renderShallowWithProps(customProps);
+        const errorDelayInput = wrapper.find('.bulk-action-sidebar__error-delay');
+        expect(errorDelayInput).toHaveLength(1);
+        errorDelayInput.simulate('change', { target: { value: 1500 } });
+        expect(customProps.onSettingsChange).toHaveBeenCalled();
+      });
+    });
   });
 
   test('map state to props returns correct structure', () => {
@@ -254,12 +292,18 @@ describe('<Tasks />', () => {
     actual.onDestroyTask({});
     actual.onStartTask({}, []);
     actual.onStopTask({});
+    actual.onSettingsChange({ field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY, value: 1500 });
     // Since these actions generate a thunk, we can't test for
     // exact equality, only that a function (i.e. thunk) was
     // dispatched.
-    expect(dispatch).toHaveBeenCalledTimes(3);
+    expect(dispatch).toHaveBeenCalledTimes(4);
     expect(dispatch).toHaveBeenNthCalledWith(1, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(2, expect.any(Function));
     expect(dispatch).toHaveBeenNthCalledWith(3, expect.any(Function));
+    expect(dispatch).toHaveBeenNthCalledWith(4, {
+      field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+      type: SETTINGS_ACTIONS.EDIT,
+      value: 1500,
+    });
   });
 });

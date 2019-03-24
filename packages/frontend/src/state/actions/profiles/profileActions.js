@@ -39,9 +39,12 @@ export const PROFILE_ACTIONS = {
 // }
 const _addProfileRequest = async profile =>
   // TODO: Replace this with an actual API call
-  new Promise(resolve => {
-    const copy = JSON.parse(JSON.stringify(profile));
-    resolve(copy);
+  new Promise((resolve, reject) => {
+    if (profile) {
+      const copy = JSON.parse(JSON.stringify(profile));
+      resolve(copy);
+    }
+    reject(new Error('Invalid profile!'))
     // console.log('trying for request');
     // try {
     //   const response = await fetch(
@@ -99,10 +102,13 @@ const _addProfileRequest = async profile =>
 // }
 const _updateProfileRequest = async (id, profile) =>
   // TODO: Replace this with an actual API call
-  new Promise(resolve => {
-    const copy = JSON.parse(JSON.stringify(profile));
-    copy.id = id;
-    resolve(copy);
+  new Promise((resolve, reject) => {
+    if (profile) {
+      const copy = JSON.parse(JSON.stringify(profile));
+      copy.id = id;
+      resolve(copy);
+    }
+    reject(new Error('Invalid profile!'));
   });
 
 // TODO this is only temporary until we get registration key stuff implemented
@@ -131,8 +137,11 @@ const _updateProfileRequest = async (id, profile) =>
 // }
 const _removeProfileRequest = async id =>
   // TODO: Replace this with an actual API call
-  new Promise(resolve => {
-    resolve(id);
+  new Promise((resolve, reject) => {
+    if (id) {
+      resolve(id);
+    }
+    reject(new Error('Invalid profile!'));
   });
 
 // Private Actions

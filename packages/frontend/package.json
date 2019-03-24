@@ -117,11 +117,13 @@
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      ".eslintrc.js"
+      ".eslintrc.js",
+      "setupTests.js"
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      ".eslintrc.js"
+      ".eslintrc.js",
+      "setupTests.js"
     ]
   }
 }

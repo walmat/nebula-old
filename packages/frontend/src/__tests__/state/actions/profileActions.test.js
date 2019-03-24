@@ -37,9 +37,33 @@ describe('profile actions', () => {
     await asyncProfileTests(action, expectedActions);
   });
 
+  it('should create an error action when adding an invalid profile', async () => {
+    const action = profileActions.add(null);
+    const expectedActions = [
+      {
+        type: PROFILE_ACTIONS.ERROR,
+        action: PROFILE_ACTIONS.ADD,
+        error: new Error('Invalid profile!'),
+      },
+    ];
+    await asyncProfileTests(action, expectedActions);
+  });
+
   it('should create an action to remove a profile', async () => {
     const action = profileActions.remove(42);
     const expectedActions = [{ type: PROFILE_ACTIONS.REMOVE, id: 42 }];
+    await asyncProfileTests(action, expectedActions);
+  });
+
+  it('should create an error action when removing an invalid profile', async () => {
+    const action = profileActions.remove(null);
+    const expectedActions = [
+      {
+        type: PROFILE_ACTIONS.ERROR,
+        action: PROFILE_ACTIONS.REMOVE,
+        error: new Error('Invalid profile!'),
+      },
+    ];
     await asyncProfileTests(action, expectedActions);
   });
 
@@ -79,6 +103,18 @@ describe('profile actions', () => {
           ...initialProfileState,
           id: 50,
         },
+      },
+    ];
+    await asyncProfileTests(action, expectedActions);
+  });
+
+  it('should create an error action when updating an invalid profile', async () => {
+    const action = profileActions.update(null);
+    const expectedActions = [
+      {
+        type: PROFILE_ACTIONS.ERROR,
+        action: PROFILE_ACTIONS.UPDATE,
+        error: new Error('Invalid profile!'),
       },
     ];
     await asyncProfileTests(action, expectedActions);
