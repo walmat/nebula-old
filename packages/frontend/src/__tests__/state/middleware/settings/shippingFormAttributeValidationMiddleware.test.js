@@ -129,7 +129,7 @@ describe('settings attribute validatation middleware', () => {
   });
 
   describe('shipping form product', () => {
-    it.skip('should not pass an errors object if input is valid', () => {
+    it('should not pass an errors object if input is valid keywords', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
@@ -151,7 +151,75 @@ describe('settings attribute validatation middleware', () => {
       expect(nextAction.errors.product).toEqual(false);
     });
 
-    it('should pass an errors object if input is invalid', () => {
+    it('should not pass an errors object if input is an object and valid', () => {
+      const { store, next, invoke } = create();
+      store.getState = jest.fn(() => ({
+        settings: initialSettingsStates.settings,
+      }));
+      const expectedErrors = {
+        ...initialSettingsStates.settings.shipping.errors,
+        product: false,
+      };
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+        value: {
+          raw: '+test',
+        },
+        errors: expectedErrors,
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors.product).toEqual(false);
+    });
+
+    it('should not pass an errors object if input is a valid variant', () => {
+      const { store, next, invoke } = create();
+      store.getState = jest.fn(() => ({
+        settings: initialSettingsStates.settings,
+      }));
+      const expectedErrors = {
+        ...initialSettingsStates.settings.shipping.errors,
+        product: false,
+      };
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+        value: 1234123141241,
+        errors: expectedErrors,
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors.product).toEqual(false);
+    });
+
+    it('should not pass an errors object if input is a valid url', () => {
+      const { store, next, invoke } = create();
+      store.getState = jest.fn(() => ({
+        settings: initialSettingsStates.settings,
+      }));
+      const expectedErrors = {
+        ...initialSettingsStates.settings.shipping.errors,
+        product: false,
+      };
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+        value: 'https://example.com',
+        errors: expectedErrors,
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors.product).toEqual(false);
+    });
+
+    it('should pass an errors object if input is undefined', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
@@ -159,7 +227,29 @@ describe('settings attribute validatation middleware', () => {
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
         field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
-        value: 'invalid',
+        value: undefined,
+      };
+      const expectedAction = {
+        ...action,
+        errors: {
+          ...initialSettingsStates.settings.shipping.errors,
+          product: true,
+        },
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(expectedAction);
+      expect(store.getState).toHaveBeenCalled();
+    });
+
+    it('should pass an errors object if input is not valid', () => {
+      const { store, next, invoke } = create();
+      store.getState = jest.fn(() => ({
+        settings: initialSettingsStates.settings,
+      }));
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+        value: 'test',
       };
       const expectedAction = {
         ...action,
@@ -175,13 +265,14 @@ describe('settings attribute validatation middleware', () => {
   });
 
   describe('shipping form rate name', () => {
-    it.skip('should not pass an errors object if input is valid', () => {
+    it('should not pass an errors object if input is valid', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
         ...initialSettingsStates.settings.shipping.errors,
+        name: false,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
@@ -220,13 +311,14 @@ describe('settings attribute validatation middleware', () => {
   });
 
   describe('shipping form profile', () => {
-    it.skip('should not pass an errors object if input is valid', () => {
+    it('should not pass an errors object if input is valid', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
         ...initialSettingsStates.settings.shipping.errors,
+        profile: false,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
@@ -265,20 +357,21 @@ describe('settings attribute validatation middleware', () => {
   });
 
   describe('shipping form site', () => {
-    it.skip('should not pass an errors object if input is valid', () => {
+    it('should not pass an errors object if input is valid', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
         ...initialSettingsStates.settings.shipping.errors,
+        site: false,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
         field: SETTINGS_FIELDS.EDIT_SHIPPING_SITE,
         value: {
-          label: 'Kith',
-          value: 'https://kith.com',
+          name: 'Kith',
+          url: 'https://kith.com',
           apiKey: '08430b96c47dd2ac8e17e305db3b71e8',
           auth: false,
           supported: true,
@@ -316,13 +409,14 @@ describe('settings attribute validatation middleware', () => {
   });
 
   describe('shipping form username', () => {
-    it.skip('should not pass an errors object if input is valid', () => {
+    it('should not pass an errors object if input is valid', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
         ...initialSettingsStates.settings.shipping.errors,
+        username: false,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
@@ -361,13 +455,14 @@ describe('settings attribute validatation middleware', () => {
   });
 
   describe('shipping form password', () => {
-    it.skip('should not pass an errors object if input is valid', () => {
+    it('should not pass an errors object if input is valid', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
       }));
       const expectedErrors = {
         ...initialSettingsStates.settings.shipping.errors,
+        password: false,
       };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,

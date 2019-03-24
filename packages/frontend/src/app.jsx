@@ -141,11 +141,13 @@ export class App extends PureComponent {
               >
                 {theme === THEMES.LIGHT
                   ? renderSvgIcon(NightModeIcon, {
-                      alt: 'theme',
+                      alt: 'night mode',
+                      'data-testid': addTestId('App.button.theme.light-mode'),
                       style: { marginTop: '5px', marginLeft: '5px' },
                     })
                   : renderSvgIcon(LightModeIcon, {
-                      alt: 'theme',
+                      alt: 'light mode',
+                      'data-testid': addTestId('App.button.theme.dark-mode'),
                       style: { marginTop: '6px', marginLeft: '4px' },
                     })}
               </div>

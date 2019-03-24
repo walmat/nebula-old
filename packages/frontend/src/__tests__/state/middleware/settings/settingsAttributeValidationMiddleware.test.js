@@ -216,4 +216,50 @@ describe('settings attribute validatation middleware', () => {
       expect(store.getState).toHaveBeenCalled();
     });
   });
+
+  describe('for edit slack', () => {
+    it('should not pass an errors object if input is valid', () => {
+      const { store, next, invoke } = create();
+      store.getState = jest.fn(() => ({
+        settings: initialSettingsStates.settings,
+      }));
+      const expectedErrors = {
+        ...initialSettingsStates.settingsErrors,
+        slack: false,
+      };
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SLACK,
+        value: 'https://hooks.slack.com/services/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',
+        errors: expectedErrors,
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors.slack).toEqual(false);
+    });
+
+    it('should pass an errors object if input is invalid', () => {
+      const { store, next, invoke } = create();
+      store.getState = jest.fn(() => ({
+        settings: initialSettingsStates.settings,
+      }));
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SLACK,
+        value: 'invalid',
+      };
+      const expectedAction = {
+        ...action,
+        errors: {
+          ...initialSettingsStates.settingsErrors,
+          slack: true,
+        },
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(expectedAction);
+      expect(store.getState).toHaveBeenCalled();
+    });
+  });
 });

@@ -24,7 +24,7 @@ export default function shippingReducer(state = initialSettingsStates.shipping, 
           break;
         }
         const newSite = getAllSites().find(s => URL.host === parseURL(s.value).host);
-        if (!newSite || newSite.label === state.shipping.site.name) {
+        if (!newSite || newSite.label === state.site.name) {
           break;
         }
 

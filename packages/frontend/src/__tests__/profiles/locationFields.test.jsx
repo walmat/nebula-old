@@ -96,6 +96,126 @@ describe('<LocationFields />', () => {
     ).toBeTruthy();
   });
 
+  it('should render shipping row with billing matches shipping button not clicked', () => {
+    const wrapper = shallow(
+      <LocationFieldsPrimitive
+        errors={{ ...initialProfileStates.locationErrors }}
+        onChange={() => {}}
+        disabled
+        id="shipping"
+        value={{ ...initialProfileStates.location }}
+        currentProfile={{ ...initialProfileStates.profile }}
+      />,
+    );
+
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--first-name').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--last-name').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--address-one').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--address-two').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--city').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--province').prop('isDisabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--zip-code').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--country').prop('isDisabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--phone').prop('disabled'),
+    ).toBeTruthy();
+    expect(wrapper.find('.profiles__fields--matches')).toHaveLength(1);
+    expect(wrapper.find('.profiles__fields--matches').prop('title')).toEqual(
+      "Billing Doesn't Match Shipping",
+    );
+  });
+
+  it('should render shipping row with billing matches shipping button not clicked', () => {
+    const wrapper = shallow(
+      <LocationFieldsPrimitive
+        errors={{ ...initialProfileStates.locationErrors }}
+        onChange={() => {}}
+        onClickBillingMatchesShipping={() => {}}
+        disabled
+        id="shipping"
+        value={{ ...initialProfileStates.location }}
+        currentProfile={{ ...initialProfileStates.profile, billingMatchesShipping: true }}
+      />,
+    );
+
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--first-name').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--last-name').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--address-one').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--address-two').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--city').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--province').prop('isDisabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--zip-code').prop('disabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--country').prop('isDisabled'),
+    ).toBeTruthy();
+    expect(
+      wrapper.find('.shipping-profiles-location__input-group--phone').prop('disabled'),
+    ).toBeTruthy();
+    const BMS = wrapper.find('.profiles__fields--matches');
+    expect(BMS).toHaveLength(1);
+    expect(BMS.prop('title')).toEqual('Billing Matches Shipping');
+    BMS.simulate('click');
+    const expectedAction = profileActions.edit(
+      null,
+      PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING,
+      '',
+    );
+    const dispatch = jest.fn();
+    const actual = mapDispatchToProps(dispatch, {});
+    expect(actual.onClickBillingMatchesShipping).toBeDefined();
+    actual.onClickBillingMatchesShipping();
+    expect(dispatch).toHaveBeenCalledWith(expectedAction);
+  });
+
+  it('should render no province options for countries that have none', () => {
+    const wrapper = shallow(
+      <LocationFieldsPrimitive
+        errors={{ ...initialProfileStates.locationErrors }}
+        onChange={() => {}}
+        disabled
+        id="test"
+        value={{ ...initialProfileStates.location, country: null }}
+      />,
+    );
+
+    expect(
+      wrapper.find('.test-profiles-location__input-group--province').prop('isDisabled'),
+    ).toBeTruthy();
+    expect(wrapper.find('.test-profiles-location__input-group--province').prop('options')).toEqual(
+      undefined,
+    );
+  });
+
   describe('should render correct values for', () => {
     const testFieldValue = (id, field, value1, value2, disabled) => {
       const input = {
