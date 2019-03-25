@@ -512,7 +512,7 @@ describe('task actions', () => {
           },
         ];
         await asyncTaskTests(action, expectedActions);
-        expect(Bridge.startTasks).toHaveBeenCalledWith(task);
+        expect(Bridge.startTasks).toHaveBeenCalledWith(task, {});
         expect(Bridge.addProxies).toHaveBeenCalled();
         delete global.window.Bridge;
       });
