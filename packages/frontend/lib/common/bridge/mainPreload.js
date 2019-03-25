@@ -60,6 +60,7 @@ const _deregisterForTaskEvents = handler => {
  * Sends task(s) that should be started to launcher.js
  */
 const _startTasks = (tasks, options) => {
+  console.log(options);
   util.sendEvent(IPCKeys.RequestStartTasks, tasks, options);
 };
 
@@ -69,7 +70,7 @@ const _startShippingRatesRunner = task =>
     const srrMessageHandler = (_, id, payload) => {
       console.log(_, id, payload);
       // Only respond to specific id and type
-      if (id === task.id && type === TaskRunnerTypes.ShippingRates) {
+      if (id === task.id && task.type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
         response.shippingRates = payload.rates || response.shippingRates; // update rates if it exists
         response.selectedRate = payload.selected || response.selectedRate; // update selected if it exists

@@ -112,7 +112,7 @@ const _startTaskRequest = async (task, proxies = []) => {
   } else {
     if (window.Bridge) {
       window.Bridge.addProxies(proxies);
-      window.Bridge.startTasks(task);
+      window.Bridge.startTasks(task, {});
     }
     return { task };
   }
