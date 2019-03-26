@@ -126,17 +126,6 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     if (window.Bridge) {
       window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
     }
-  } else if (action.type === SETTINGS_ACTIONS.FETCH_SHIPPING) {
-    if (
-      !action ||
-      (action && action.errors) ||
-      (action && action.response && !action.response.rates) ||
-      (action && action.response && !action.response.selectedRate)
-    ) {
-      return Object.assign({}, state, change);
-    }
-    console.log(action);
-    // TODO - setup reducer here
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
     change.shipping = {
       ...initialSettingsStates.shipping,

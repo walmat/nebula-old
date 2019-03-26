@@ -46,8 +46,14 @@ const fetchShipping = task => dispatch =>
   // Perform the request and handle the response
   _fetchShippingRequest(task)
     .then(({ shippingRates, selectedRate }) => {
-      console.log(shippingRates, selectedRate);
-      dispatch(_saveShippingRates({ rates: shippingRates, selectedRate }));
+      dispatch(
+        _saveShippingRates({
+          id: task.profile.id,
+          site: task.site,
+          rates: shippingRates,
+          selectedRate,
+        }),
+      );
     })
     // Handle errors
     .catch(err => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, err)));

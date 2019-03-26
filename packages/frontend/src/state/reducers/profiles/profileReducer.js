@@ -1,4 +1,9 @@
-import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../actions';
+import {
+  PROFILE_FIELDS,
+  PROFILE_ACTIONS,
+  mapProfileFieldToKey,
+  SETTINGS_ACTIONS,
+} from '../../actions';
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
 import initialProfileStates from '../../initial/profiles';
@@ -143,6 +148,42 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
         nextState.selectedSite = null;
       }
       return nextState;
+    }
+    case SETTINGS_ACTIONS.FETCH_SHIPPING: {
+      if (
+        !action ||
+        (action && action.errors) ||
+        (action && action.response && !action.response.rates) ||
+        (action && action.response && !action.response.selectedRate)
+      ) {
+        break;
+      }
+      console.log(action, state);
+      // copy state
+      const nextState = JSON.parse(JSON.stringify(state));
+
+      // deconstruct response
+      const { id, site, rates, selectedRate } = action.response;
+
+      // find the profile that we were using
+      const profile = nextState.find(p => p.id === id);
+
+      // see if we already have an entry for that site
+      const siteObj = nextState.rates.find(r => r.site.url === site.url);
+
+      // if we do, add to it
+      if (siteObj) {
+        // reset the selected rate to the new one
+        siteObj.selectedRate = selectedRate;
+
+        // add to the rates array
+        // TODO - maybe do some added logic here to not add already existing rates
+        siteObj.rates.push(rates);
+      }
+
+      // push onto the rates array
+      profile.rates.push({ site, rates, selectedRate });
+      break;
     }
     default:
       break;
