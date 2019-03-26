@@ -1,7 +1,9 @@
 /* global describe expect it test jest */
 import { newTaskReducer } from '../../../../state/reducers/tasks/taskReducer';
 import initialTaskStates from '../../../../state/initial/tasks';
+import initialProfileStates from '../../../../state/initial/profiles';
 import {
+  PROFILE_ACTIONS,
   TASK_ACTIONS,
   TASK_FIELDS,
   SETTINGS_ACTIONS,
@@ -29,36 +31,98 @@ describe('new task reducer', () => {
       expect(actual).toEqual(expected);
     });
 
-    test('when updating error delay', () => {
-      const expected = {
-        ...initialTaskStates.task,
-        monitorDelay: 1500,
-        errorDelay: 5000,
-      };
+    describe('when updating error delay', () => {
+      test('with no action value', () => {
+        const expected = {
+          ...initialTaskStates.task,
+          errorDelay: 0,
+        };
 
-      const actual = newTaskReducer(initialTaskStates.task, {
-        type: SETTINGS_ACTIONS.EDIT,
-        id: null,
-        field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
-        value: 5000,
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: undefined,
+        });
+        expect(actual).toEqual(expected);
       });
-      expect(actual).toEqual(expected);
+
+      test('with action value being non-numerical', () => {
+        const expected = {
+          ...initialTaskStates.task,
+          errorDelay: 1500,
+        };
+
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: 'test',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('with action value being numerical', () => {
+        const expected = {
+          ...initialTaskStates.task,
+          errorDelay: 5000,
+        };
+
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+          value: 5000,
+        });
+        expect(actual).toEqual(expected);
+      });
     });
 
-    test('when updating monitor delay', () => {
-      const expected = {
-        ...initialTaskStates.task,
-        monitorDelay: 5000,
-        errorDelay: 1500,
-      };
+    describe('when updating monitor delay', () => {
+      test('with no action value', () => {
+        const expected = {
+          ...initialTaskStates.task,
+          monitorDelay: 0,
+        };
 
-      const actual = newTaskReducer(initialTaskStates.task, {
-        type: SETTINGS_ACTIONS.EDIT,
-        id: null,
-        field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
-        value: 5000,
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: undefined,
+        });
+        expect(actual).toEqual(expected);
       });
-      expect(actual).toEqual(expected);
+
+      test('with action value being non-numerical', () => {
+        const expected = {
+          ...initialTaskStates.task,
+          monitorDelay: 1500,
+        };
+
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: 'test',
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('with action value being numerical', () => {
+        const expected = {
+          ...initialTaskStates.task,
+          monitorDelay: 5000,
+        };
+
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+          value: 5000,
+        });
+        expect(actual).toEqual(expected);
+      });
     });
 
     test('when updating discord webhook', () => {
@@ -74,6 +138,38 @@ describe('new task reducer', () => {
         value: 'test',
       });
       expect(actual).toEqual(expected);
+    });
+
+    describe('should not respond to edits on', () => {
+      test('proxies', () => {
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_PROXIES,
+          value: 'test',
+        });
+        expect(actual).toEqual(initialTaskStates.task);
+      });
+
+      test('defaults', () => {
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
+          value: ['5'],
+        });
+        expect(actual).toEqual(initialTaskStates.task);
+      });
+
+      test('shippings ', () => {
+        const actual = newTaskReducer(initialTaskStates.task, {
+          type: SETTINGS_ACTIONS.EDIT,
+          id: null,
+          field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+          value: '+test',
+        });
+        expect(actual).toEqual(initialTaskStates.task);
+      });
     });
 
     test('when updating slack webhook', () => {
@@ -127,6 +223,76 @@ describe('new task reducer', () => {
         field: TASK_FIELDS.EDIT_USERNAME,
       });
       expect(actual).toEqual(initialTaskStates.task);
+    });
+  });
+
+  describe('should handle profile updates', () => {
+    test('when no profile is given', () => {
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: PROFILE_ACTIONS.UPDATE,
+        profile: undefined,
+      });
+      expect(actual).toEqual(initialTaskStates.task);
+    });
+
+    test('when errors are given', () => {
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: PROFILE_ACTIONS.UPDATE,
+        profile: {},
+        errors: {},
+      });
+      expect(actual).toEqual(initialTaskStates.task);
+    });
+
+    test('when selected profile is the updated profile', () => {
+      const initial = {
+        ...initialTaskStates.task,
+        profile: {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'test',
+        },
+      };
+
+      const expected = {
+        ...initialTaskStates.task,
+        profile: {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'test change',
+        },
+      };
+
+      const actual = newTaskReducer(initial, {
+        type: PROFILE_ACTIONS.UPDATE,
+        profile: {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'test change',
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when selected profile is not the updated profile', () => {
+      const initial = {
+        ...initialTaskStates.task,
+        profile: {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'test',
+        },
+      };
+
+      const actual = newTaskReducer(initial, {
+        type: PROFILE_ACTIONS.UPDATE,
+        profile: {
+          ...initialProfileStates.profile,
+          id: 2,
+          profileName: 'test change',
+        },
+      });
+      expect(actual).toEqual(initial);
     });
   });
 

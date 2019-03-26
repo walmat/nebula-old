@@ -118,7 +118,12 @@ const _startTaskRequest = async (task, proxies = []) => {
   }
 };
 
-const _copyTaskRequest = async task => ({ task });
+const _copyTaskRequest = async task => {
+  if (!task) {
+    throw new Error('Invalid task structure!');
+  }
+  return task;
+};
 
 const _stopTaskRequest = async task => {
   if (task.status === 'stopped') {

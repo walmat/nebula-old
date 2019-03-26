@@ -1,7 +1,7 @@
 /* global describe it expect test jest */
 import profileListReducer from '../../../../state/reducers/profiles/profileListReducer';
 import initialProfileStates from '../../../../state/initial/profiles';
-import { PROFILE_ACTIONS, PROFILE_FIELDS } from '../../../../state/actions';
+import { PROFILE_ACTIONS, SETTINGS_ACTIONS, PROFILE_FIELDS } from '../../../../state/actions';
 
 describe('profile list reducer', () => {
   it('should return initial state', () => {
@@ -373,6 +373,260 @@ describe('profile list reducer', () => {
         errors: {},
       });
       expect(actual).toEqual(start);
+    });
+  });
+
+  describe('should handle fetch shipping', () => {
+    test('when invalid action is passed', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'testing',
+        },
+      ];
+      const actual = profileListReducer(start, {});
+      expect(actual).toEqual(start);
+    });
+
+    test('when action that contains errors is passed', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'testing',
+        },
+      ];
+      const actual = profileListReducer(start, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          id: 1,
+          site: {},
+          rates: [],
+          selectedRate: {},
+        },
+        errors: {},
+      });
+      expect(actual).toEqual(start);
+    });
+
+    test('when malformed action is passed', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'testing',
+        },
+      ];
+      const actual = profileListReducer(start, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          id: 1,
+          site: {},
+          rates: undefined,
+          selectedRate: {},
+        },
+      });
+      expect(actual).toEqual(start);
+    });
+
+    test('when profile is removed mid-thunk', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 2,
+          profileName: 'testing',
+        },
+      ];
+
+      const actual = profileListReducer(start, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          id: 1, // index 1 was there before, now it's not
+          site: {},
+          rates: [],
+          selectedRate: {},
+        },
+      });
+      expect(actual).toEqual(start);
+    });
+
+    test('when profile rates for site is not found', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'testing',
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+              ],
+              selectedRate: {
+                name: 'Free Shipping',
+                rate: 'test',
+              },
+            },
+          ],
+        },
+      ];
+
+      const expected = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'testing',
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+              ],
+              selectedRate: {
+                name: 'Free Shipping',
+                rate: 'test',
+              },
+            },
+            {
+              site: {
+                name: 'Nebula Bots',
+                url: 'https://nebulabots.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+              ],
+              selectedRate: {
+                name: 'Free Shipping',
+                rate: 'test',
+              },
+            },
+          ],
+        },
+      ];
+
+      const actual = profileListReducer(start, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          id: 1,
+          site: {
+            name: 'Nebula Bots',
+            url: 'https://nebulabots.com',
+            apiKey: '',
+            supported: true,
+            auth: false,
+          },
+          rates: [
+            {
+              name: 'Free Shipping',
+              rate: 'test',
+            },
+          ],
+          selectedRate: {
+            name: 'Free Shipping',
+            rate: 'test',
+          },
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    test('when profile rates for site is found', () => {
+      const start = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'testing',
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+              ],
+              selectedRate: {
+                name: 'Free Shipping',
+                rate: 'test',
+              },
+            },
+          ],
+        },
+      ];
+
+      const expected = [
+        {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'testing',
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+                {
+                  name: 'Not Free Shipping',
+                  rate: 'test',
+                },
+              ],
+              selectedRate: {
+                name: 'Not Free Shipping',
+                rate: 'test',
+              },
+            },
+          ],
+        },
+      ];
+
+      const actual = profileListReducer(start, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          id: 1,
+          site: {
+            name: 'Kith',
+            url: 'https://kith.com',
+            apiKey: '',
+            supported: true,
+            auth: false,
+          },
+          rates: [
+            {
+              name: 'Not Free Shipping',
+              rate: 'test',
+            },
+          ],
+          selectedRate: {
+            name: 'Not Free Shipping',
+            rate: 'test',
+          },
+        },
+      });
+      expect(actual).toEqual(expected);
     });
   });
 

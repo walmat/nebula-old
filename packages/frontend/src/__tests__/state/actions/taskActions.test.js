@@ -263,6 +263,59 @@ describe('task actions', () => {
     });
   });
 
+  describe('should handle copy task action', () => {
+    test('with valid task', async () => {
+      const task = {
+        ...initialTaskState,
+        product: {
+          raw: 'bad, keywords',
+        },
+        edits: {
+          product: {},
+          sizes: [],
+          username: 'testing',
+          password: 'testing',
+          profile: {},
+        },
+      };
+      const action = taskActions.copy(task);
+      const expectedActions = [
+        {
+          type: TASK_ACTIONS.COPY,
+          response: {
+            ...task,
+          },
+        },
+      ];
+      await asyncTaskTests(action, expectedActions);
+    });
+
+    test('with invalid task', async () => {
+      const task = {
+        ...initialTaskState,
+        product: {
+          raw: 'bad, keywords',
+        },
+        edits: {
+          product: {},
+          sizes: [],
+          username: 'testing',
+          password: 'testing',
+          profile: {},
+        },
+      };
+      const action = taskActions.copy(undefined);
+      const expectedActions = [
+        {
+          type: TASK_ACTIONS.ERROR,
+          action: TASK_ACTIONS.COPY,
+          error: expect.any(Error),
+        },
+      ];
+      await asyncTaskTests(action, expectedActions);
+    });
+  });
+
   it('should create an action to select a task', () => {
     const action = taskActions.select('task_object');
     const expectedActions = [

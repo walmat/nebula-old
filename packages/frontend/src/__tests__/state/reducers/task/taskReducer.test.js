@@ -175,25 +175,48 @@ describe('task reducer', () => {
           checkGeneralFieldEdit(TASK_FIELDS.EDIT_PASSWORD, 'test');
         });
 
-        test('site', () => {
-          const start = {
-            ...initialTaskStates.task,
-            site: 'something else',
-            username: 'username',
-            password: 'password',
-          };
-          const expected = {
-            ...initialTaskStates.task,
-            site: 'test',
-            username: null,
-            password: null,
-          };
-          const actual = taskReducer(start, {
-            type: TASK_ACTIONS.EDIT,
-            field: TASK_FIELDS.EDIT_SITE,
-            value: 'test',
+        describe('site', () => {
+          test('when selected site is different than previous site', () => {
+            const start = {
+              ...initialTaskStates.task,
+              site: {
+                name: 'test',
+              },
+            };
+            const expected = {
+              ...initialTaskStates.task,
+              site: {
+                name: 'test',
+              },
+            };
+            const actual = taskReducer(start, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SITE,
+              value: { name: 'test' },
+            });
+            expect(actual).toEqual(expected);
           });
-          expect(actual).toEqual(expected);
+
+          test('when selected site is the same as previous site', () => {
+            const start = {
+              ...initialTaskStates.task,
+              site: 'something else',
+              username: 'username',
+              password: 'password',
+            };
+            const expected = {
+              ...initialTaskStates.task,
+              site: 'something else',
+              username: null,
+              password: null,
+            };
+            const actual = taskReducer(start, {
+              type: TASK_ACTIONS.EDIT,
+              field: TASK_FIELDS.EDIT_SITE,
+              value: 'something else',
+            });
+            expect(actual).toEqual(expected);
+          });
         });
 
         test('profile', () => {
@@ -509,7 +532,7 @@ describe('task reducer', () => {
             checkExistingFieldEdit(TASK_FIELDS.EDIT_SITE, 'test', 1);
           });
 
-          test('when existing site', () => {
+          test('when existing site is different than previous site', () => {
             checkExistingFieldEdit(
               TASK_FIELDS.EDIT_SITE,
               {
