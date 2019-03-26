@@ -60,8 +60,16 @@ describe('settings actions', () => {
           {
             type: SETTINGS_ACTIONS.FETCH_SHIPPING,
             response: {
+              id: 1,
               rates: [],
               selectedRate: 'test',
+              site: {
+                name: 'Nebula Bots',
+                url: 'https://nebulabots.com',
+                apiKey: '6526a5b5393b6316a64853cfe091841c',
+                auth: false,
+                supported: true,
+              },
             },
           },
         ];
