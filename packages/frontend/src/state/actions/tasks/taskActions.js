@@ -122,7 +122,7 @@ const _copyTaskRequest = async task => {
   if (!task) {
     throw new Error('Invalid task structure!');
   }
-  return task;
+  return { task };
 };
 
 const _stopTaskRequest = async task => {
