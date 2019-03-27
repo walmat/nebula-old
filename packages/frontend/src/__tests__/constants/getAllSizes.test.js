@@ -182,10 +182,40 @@ describe('getAllSizes', () => {
     });
   });
 
-  test('should build the correct sizes for a category', () => {
+  test("should build the correct sizes for US/UK Men's category", () => {
     const category = "US/UK Men's";
 
     const expected = expectedSizes[2].options.filter(
+      s => s.label !== 'Random' && s.label !== 'Full Size Run',
+    );
+    const actual = buildSizesForCategory(category);
+    expect(actual).toEqual(expected);
+  });
+
+  test('should build the correct sizes for Clothing category', () => {
+    const category = 'Clothing';
+
+    const expected = expectedSizes[1].options.filter(
+      s => s.label !== 'Random' && s.label !== 'Full Size Run',
+    );
+    const actual = buildSizesForCategory(category);
+    expect(actual).toEqual(expected);
+  });
+
+  test("should build the correct sizes for EU Men's category", () => {
+    const category = "EU Men's";
+
+    const expected = expectedSizes[3].options.filter(
+      s => s.label !== 'Random' && s.label !== 'Full Size Run',
+    );
+    const actual = buildSizesForCategory(category);
+    expect(actual).toEqual(expected);
+  });
+
+  test('should build the correct sizes for Generic category', () => {
+    const category = 'Generic';
+
+    const expected = expectedSizes[0].options.filter(
       s => s.label !== 'Random' && s.label !== 'Full Size Run',
     );
     const actual = buildSizesForCategory(category);

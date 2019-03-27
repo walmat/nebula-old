@@ -283,7 +283,9 @@ describe('task actions', () => {
         {
           type: TASK_ACTIONS.COPY,
           response: {
-            ...task,
+            task: {
+              ...task,
+            },
           },
         },
       ];

@@ -533,13 +533,13 @@ describe('profile list reducer', () => {
           },
           rates: [
             {
-              name: 'Free Shipping',
-              rate: 'test',
+              title: 'Free Shipping',
+              id: 'test',
             },
           ],
           selectedRate: {
-            name: 'Free Shipping',
-            rate: 'test',
+            title: 'Free Shipping',
+            id: 'test',
           },
         },
       });
@@ -616,13 +616,13 @@ describe('profile list reducer', () => {
           },
           rates: [
             {
-              name: 'Not Free Shipping',
-              rate: 'test',
+              title: 'Not Free Shipping',
+              id: 'test',
             },
           ],
           selectedRate: {
-            name: 'Not Free Shipping',
-            rate: 'test',
+            title: 'Not Free Shipping',
+            id: 'test',
           },
         },
       });

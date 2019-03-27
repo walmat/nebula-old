@@ -6,12 +6,14 @@ import semver from 'semver';
 import v0_0_0_migrator from './migrators/v0.0.0';
 import v0_1_0_migrator from './migrators/v0.1.0';
 import v0_1_1_migrator from './migrators/v0.1.1';
+import v0_2_0_migrator from './migrators/v0.2.0';
 /* eslint-enable camelcase */
 
 const trackedMigrators = {
   '0.0.0': v0_0_0_migrator,
   '0.1.0': v0_1_0_migrator,
   '0.1.1': v0_1_1_migrator,
+  '0.2.0': v0_2_0_migrator,
 };
 
 const getInitialState = () => {

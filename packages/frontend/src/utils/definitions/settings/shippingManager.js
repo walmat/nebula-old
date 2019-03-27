@@ -1,30 +1,7 @@
 import PropTypes from 'prop-types';
 
 import pDefns from '../profileDefinitions';
-import initialProfileStates from '../../../state/initial/profiles';
-import shippingManagerErrors, { initialShippingManagerErrorState } from './shippingManagerErrors';
-
-export const initialShippingManagerState = {
-  name: '',
-  profile: initialProfileStates.profile,
-  site: {
-    name: null,
-    url: null,
-    supported: null,
-    apiKey: null,
-    auth: null,
-  },
-  product: {
-    raw: '',
-    variant: null,
-    pos_keywords: null,
-    neg_keywords: null,
-    url: null,
-  },
-  username: '',
-  password: '',
-  errors: initialShippingManagerErrorState,
-};
+import shippingManagerErrors from './shippingManagerErrors';
 
 const shippingManager = PropTypes.shape({
   name: PropTypes.string,

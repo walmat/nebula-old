@@ -3,15 +3,16 @@ import shippingFormAttributeValidatorMap from '../../../utils/validation/shippin
 
 const shippingFormAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing shipping
-  if (
-    action.type !== SETTINGS_ACTIONS.EDIT ||
-    (action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT &&
-      action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME &&
-      action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE &&
-      action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_SITE &&
-      action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME &&
-      action.field !== SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD)
-  ) {
+  const validField = [
+    SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+    SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME,
+    SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE,
+    SETTINGS_FIELDS.EDIT_SHIPPING_SITE,
+    SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME,
+    SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
+  ].includes(action.field);
+
+  if (action.type !== SETTINGS_ACTIONS.EDIT || !validField) {
     return next(action);
   }
 

@@ -82,16 +82,19 @@ export default function profileListReducer(state = initialProfileStates.list, ac
     case SETTINGS_ACTIONS.FETCH_SHIPPING: {
       if (
         !action ||
-        (action && action.errors) ||
-        (action && action.response && !action.response.rates) ||
-        (action && action.response && !action.response.selectedRate)
+        action.errors ||
+        (action.response && (!action.response.rates || !action.response.selectedRate))
       ) {
         break;
       }
 
       // deconstruct response
-      const { id, site, rates, selectedRate } = action.response;
+      const { id, site } = action.response;
+      let { rates, selectedRate } = action.response;
 
+      // filter out data we don't need (for now)...
+      rates = rates.map(r => ({ name: r.title, rate: r.id }));
+      selectedRate = { name: selectedRate.title, rate: selectedRate.id };
       // find the profile that we were using to fetch shipping rates
       const profile = nextState.find(p => p.id === id);
 
@@ -100,29 +103,17 @@ export default function profileListReducer(state = initialProfileStates.list, ac
         break;
       }
 
-      // find the index of the profile object in the state
-      const profileIdx = nextState.indexOf(profile);
-
-      // see if we already have an entry for that site
-      const ratesForSite = nextState[profileIdx].rates.find(r => r.site.url === site.url);
-
-      const ratesIdx = nextState[profileIdx].rates.indexOf(ratesForSite);
-
-      // if we don't have an entry for that site
-      if (!ratesForSite) {
-        // push a new entry onto the rates array
+      const ratesIdx = profile.rates.findIndex(r => r.site.url === site.url);
+      if (ratesIdx < 0) {
         profile.rates.push({ site: { name: site.name, url: site.url }, rates, selectedRate });
-        break;
+      } else {
+        profile.rates[ratesIdx].selectedRate = selectedRate;
+        // filter out duplicate rates from the previously stored rates
+        const oldRates = profile.rates[ratesIdx].rates.filter(
+          r1 => !rates.find(r2 => r2.name === r1.name),
+        );
+        profile.rates[ratesIdx].rates = oldRates.concat(rates);
       }
-      // reset the selected rate to the new one
-      ratesForSite.selectedRate = selectedRate;
-      // add to the rates array
-      // TODO - maybe do some added logic here to not add already existing rates
-      const newRates = ratesForSite.rates.concat(rates);
-      ratesForSite.rates = newRates;
-
-      // finally, update the index in the nextState array
-      nextState[profileIdx].rates[ratesIdx] = ratesForSite;
       break;
     }
     case PROFILE_ACTIONS.ERROR: {
