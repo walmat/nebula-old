@@ -44,7 +44,7 @@ const _addProfileRequest = async profile =>
       const copy = JSON.parse(JSON.stringify(profile));
       resolve(copy);
     }
-    reject(new Error('Invalid profile!'))
+    reject(new Error('Invalid profile!'));
     // console.log('trying for request');
     // try {
     //   const response = await fetch(
