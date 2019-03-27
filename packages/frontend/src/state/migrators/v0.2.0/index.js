@@ -86,7 +86,7 @@ export default (state = initialState) => {
         profile: addShippingRatesToProfile(state.settings.defaults.profile),
         edits: {
           ...state.settings.defaults.edits,
-          profile: addShippingRatesToProfile(state.settings.defaults.edits),
+          profile: addShippingRatesToProfile(state.settings.defaults.edits.profile),
         },
       },
     },
