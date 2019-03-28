@@ -88,6 +88,10 @@
           color: themed('buttonPrimaryText') !important;
         }
         width: 83px !important;
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed !important;
+        }
       }
 
       &--clear {

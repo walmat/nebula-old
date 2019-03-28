@@ -102,7 +102,7 @@ export class ShippingManagerPrimitive extends Component {
         disabled={disabled}
         data-testid={addTestId(`ShippingManager.button.${type}`)}
       >
-        {label}
+        {disabled ? 'Fetching...' : label}
       </button>
     );
   }

@@ -199,6 +199,10 @@
   background: #f0405e !important;
   color: #f4f4f4 !important;
 }
+.settings--shipping-manager__input-group--fetch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
 .settings--shipping-manager__input-group--clear {
   width: 83px !important;
   margin-right: 7.5px;

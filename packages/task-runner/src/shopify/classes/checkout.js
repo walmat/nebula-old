@@ -22,11 +22,13 @@ class Checkout {
       r => r.site.url === this._context.task.site.url,
     );
 
+    this._logger.verbose('DEBUG DEBUG DEBUG!!!!! %j', preFetchedShippingRates);
+
     if (preFetchedShippingRates && preFetchedShippingRates.selectedRate) {
-      const { label, value } = preFetchedShippingRates.selectedRate;
+      const { name, rate } = preFetchedShippingRates.selectedRate;
       this.chosenShippingMethod = {
-        name: label,
-        id: value,
+        name,
+        id: rate,
       };
     } else {
       this.chosenShippingMethod = {
@@ -34,6 +36,8 @@ class Checkout {
         id: null,
       };
     }
+
+    this._logger.verbose('DEBUG DEBUG DEBUG!!!!!::: %j', this.chosenShippingMethod);
 
     this.paymentToken = null;
     this.checkoutToken = null;

@@ -1,7 +1,7 @@
 /* global describe it expect test */
 import { selectedProfileReducer } from '../../../../state/reducers/profiles/profileReducer';
 import initialProfileStates from '../../../../state/initial/profiles';
-import { PROFILE_ACTIONS } from '../../../../state/actions';
+import { PROFILE_ACTIONS, SETTINGS_ACTIONS } from '../../../../state/actions';
 
 describe('selected profile reducer', () => {
   it('should return initial state', () => {
@@ -174,6 +174,624 @@ describe('selected profile reducer', () => {
         id: 1,
       });
       expect(actual).toEqual(start);
+    });
+  });
+
+  describe('should handle fetch shipping actions', () => {
+    test('when there are errors', () => {
+      const initial = {
+        ...initialProfileStates.profile,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            ],
+            selectedRate: null,
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const actual = selectedProfileReducer(initial, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        errors: {},
+      });
+      expect(actual).toEqual(initial);
+    });
+
+    test('when there are no rates returned', () => {
+      const initial = {
+        ...initialProfileStates.profile,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            ],
+            selectedRate: null,
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const actual = selectedProfileReducer(initial, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          rates: undefined,
+          selectedRate: {},
+        },
+      });
+      expect(actual).toEqual(initial);
+    });
+
+    test('when there is no selectedRate returned', () => {
+      const initial = {
+        ...initialProfileStates.profile,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            ],
+            selectedRate: null,
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const actual = selectedProfileReducer(initial, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          rates: [],
+          selectedRate: undefined,
+        },
+      });
+      expect(actual).toEqual(initial);
+    });
+
+    test('when the current profile is not the fetched profile', () => {
+      const initial = {
+        ...initialProfileStates.profile,
+        id: 2,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            ],
+            selectedRate: null,
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: null,
+          },
+        ],
+      };
+
+      const actual = selectedProfileReducer(initial, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          id: 1,
+          rates: [],
+          selectedRate: {},
+        },
+      });
+      expect(actual).toEqual(initial);
+    });
+
+    test('when the rates object is the first for the given site', () => {
+      const initial = {
+        ...initialProfileStates.profile,
+        id: 1,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            ],
+            selectedRate: {
+              name: '5-7 Business Days',
+              rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+            },
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: {
+              name: 'Small Goods Shipping',
+              rate: 'shopify-Small%20Goods%20Shipping-7.00',
+            },
+          },
+        ],
+      };
+
+      const expected = {
+        ...initialProfileStates.profile,
+        id: 1,
+        selectedSite: {
+          name: 'Kith',
+          url: 'https://kith.com',
+        },
+        rates: [
+          {
+            site: {
+              name: 'Kith',
+              url: 'https://kith.com',
+            },
+            rates: [
+              {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            ],
+            selectedRate: {
+              name: '5-7 Business Days',
+              rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+            },
+          },
+          {
+            site: {
+              name: '12 AM RUN',
+              url: 'https://12amrun.com',
+            },
+            rates: [
+              {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            ],
+            selectedRate: {
+              name: 'Small Goods Shipping',
+              rate: 'shopify-Small%20Goods%20Shipping-7.00',
+            },
+          },
+          {
+            site: {
+              name: 'Nebula Bots',
+              url: 'https://nebulabots.com',
+            },
+            rates: [
+              {
+                name: 'Free Shipping',
+                rate: 'test',
+              },
+            ],
+            selectedRate: {
+              name: 'Free Shipping',
+              rate: 'test',
+            },
+          },
+        ],
+      };
+
+      const actual = selectedProfileReducer(initial, {
+        type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+        response: {
+          id: 1,
+          site: {
+            name: 'Nebula Bots',
+            url: 'https://nebulabots.com',
+            apiKey: '',
+            supported: true,
+            auth: false,
+          },
+          rates: [
+            {
+              title: 'Free Shipping',
+              id: 'test',
+            },
+          ],
+          selectedRate: {
+            title: 'Free Shipping',
+            id: 'test',
+          },
+        },
+      });
+      expect(actual).toEqual(expected);
+    });
+
+    describe('when the rates object is not the first for the given site', () => {
+      test('should filter out duplicate entries', () => {
+        const initial = {
+          ...initialProfileStates.profile,
+          id: 1,
+          selectedSite: {
+            name: 'Kith',
+            url: 'https://kith.com',
+          },
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: '5-7 Business Days',
+                  rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+                },
+              ],
+              selectedRate: {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            },
+            {
+              site: {
+                name: '12 AM RUN',
+                url: 'https://12amrun.com',
+              },
+              rates: [
+                {
+                  name: 'Small Goods Shipping',
+                  rate: 'shopify-Small%20Goods%20Shipping-7.00',
+                },
+              ],
+              selectedRate: {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            },
+            {
+              site: {
+                name: 'Nebula Bots',
+                url: 'https://nebulabots.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+              ],
+              selectedRate: {
+                name: 'Free Shipping',
+                rate: 'test',
+              },
+            },
+          ],
+        };
+
+        const expected = {
+          ...initialProfileStates.profile,
+          id: 1,
+          selectedSite: {
+            name: 'Kith',
+            url: 'https://kith.com',
+          },
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: '5-7 Business Days',
+                  rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+                },
+              ],
+              selectedRate: {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            },
+            {
+              site: {
+                name: '12 AM RUN',
+                url: 'https://12amrun.com',
+              },
+              rates: [
+                {
+                  name: 'Small Goods Shipping',
+                  rate: 'shopify-Small%20Goods%20Shipping-7.00',
+                },
+              ],
+              selectedRate: {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            },
+            {
+              site: {
+                name: 'Nebula Bots',
+                url: 'https://nebulabots.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+              ],
+              selectedRate: {
+                name: 'Free Shipping',
+                rate: 'test',
+              },
+            },
+          ],
+        };
+
+        const actual = selectedProfileReducer(initial, {
+          type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+          response: {
+            id: 1,
+            site: {
+              name: 'Nebula Bots',
+              url: 'https://nebulabots.com',
+              apiKey: '',
+              supported: true,
+              auth: false,
+            },
+            rates: [
+              {
+                title: 'Free Shipping',
+                id: 'test',
+              },
+            ],
+            selectedRate: {
+              title: 'Free Shipping',
+              id: 'test',
+            },
+          },
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test('should add new entries', () => {
+        const initial = {
+          ...initialProfileStates.profile,
+          id: 1,
+          selectedSite: {
+            name: 'Kith',
+            url: 'https://kith.com',
+          },
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: '5-7 Business Days',
+                  rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+                },
+              ],
+              selectedRate: {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            },
+            {
+              site: {
+                name: '12 AM RUN',
+                url: 'https://12amrun.com',
+              },
+              rates: [
+                {
+                  name: 'Small Goods Shipping',
+                  rate: 'shopify-Small%20Goods%20Shipping-7.00',
+                },
+              ],
+              selectedRate: {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            },
+            {
+              site: {
+                name: 'Nebula Bots',
+                url: 'https://nebulabots.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+              ],
+              selectedRate: {
+                name: 'Free Shipping',
+                rate: 'test',
+              },
+            },
+          ],
+        };
+
+        const expected = {
+          ...initialProfileStates.profile,
+          id: 1,
+          selectedSite: {
+            name: 'Kith',
+            url: 'https://kith.com',
+          },
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: '5-7 Business Days',
+                  rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+                },
+              ],
+              selectedRate: {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            },
+            {
+              site: {
+                name: '12 AM RUN',
+                url: 'https://12amrun.com',
+              },
+              rates: [
+                {
+                  name: 'Small Goods Shipping',
+                  rate: 'shopify-Small%20Goods%20Shipping-7.00',
+                },
+              ],
+              selectedRate: {
+                name: 'Small Goods Shipping',
+                rate: 'shopify-Small%20Goods%20Shipping-7.00',
+              },
+            },
+            {
+              site: {
+                name: 'Nebula Bots',
+                url: 'https://nebulabots.com',
+              },
+              rates: [
+                {
+                  name: 'Free Shipping',
+                  rate: 'test',
+                },
+                {
+                  name: 'Not Free Shipping',
+                  rate: 'test-rate',
+                },
+              ],
+              selectedRate: {
+                name: 'Not Free Shipping',
+                rate: 'test-rate',
+              },
+            },
+          ],
+        };
+
+        const actual = selectedProfileReducer(initial, {
+          type: SETTINGS_ACTIONS.FETCH_SHIPPING,
+          response: {
+            id: 1,
+            site: {
+              name: 'Nebula Bots',
+              url: 'https://nebulabots.com',
+              apiKey: '',
+              supported: true,
+              auth: false,
+            },
+            rates: [
+              {
+                title: 'Free Shipping',
+                id: 'test',
+              },
+              {
+                title: 'Not Free Shipping',
+                id: 'test-rate',
+              },
+            ],
+            selectedRate: {
+              title: 'Not Free Shipping',
+              id: 'test-rate',
+            },
+          },
+        });
+        expect(actual).toEqual(expected);
+      });
     });
   });
 

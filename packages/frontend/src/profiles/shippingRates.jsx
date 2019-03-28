@@ -62,10 +62,8 @@ export class ShippingRatesPrimitive extends Component {
       }
       default: {
         return event => {
-          onChange(
-            { field, value: { site: value.selectedSite, rate: event } },
-            PROFILE_FIELDS.EDIT_RATES,
-          );
+          const rate = { name: event.label, rate: event.value };
+          onChange({ field, value: { site: value.selectedSite, rate } }, PROFILE_FIELDS.EDIT_RATES);
         };
       }
     }
@@ -98,11 +96,14 @@ export class ShippingRatesPrimitive extends Component {
     const siteOptions = value.rates.map(({ site: { url, name } }) => ({ value: url, label: name }));
     let nameOptions = [];
     let siteObject = [];
-    let rateValue = '';
+    let rateValue = null;
     if (value.selectedSite) {
       siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
       if (siteObject && siteObject.selectedRate) {
-        rateValue = siteObject.selectedRate.value;
+        const {
+          selectedRate: { name, rate },
+        } = siteObject;
+        rateValue = { label: name, value: rate };
       }
       nameOptions = siteObject.rates.map(({ rate, name }) => ({ value: rate, label: name }));
     } else {
@@ -113,14 +114,14 @@ export class ShippingRatesPrimitive extends Component {
       <div className="col profiles-rates__input-group">
         <div className="row row--gutter row--start">
           {this.renderSelect(RATES_FIELDS.SITE, value.selectedSite, siteOptions)}
-          {this.renderSelect(RATES_FIELDS.RATE, siteObject.selectedRate, nameOptions)}
+          {this.renderSelect(RATES_FIELDS.RATE, rateValue, nameOptions)}
         </div>
         <div className="row row--gutter">
           <input
             className="profiles-rates__input-group--rate"
             required
             disabled
-            value={rateValue}
+            value={rateValue ? rateValue.value : ''}
             style={validationStatus(false)}
             placeholder=""
           />

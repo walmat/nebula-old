@@ -151,7 +151,6 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
     }
     case SETTINGS_ACTIONS.FETCH_SHIPPING: {
       if (
-        !action ||
         action.errors ||
         (action.response && (!action.response.rates || !action.response.selectedRate))
       ) {
@@ -170,7 +169,7 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
 
       // filter out data we don't need (for now)...
       rates = rates.map(r => ({ name: r.title, rate: r.id }));
-      selectedRate = { label: selectedRate.title, value: selectedRate.id };
+      selectedRate = { name: selectedRate.title, rate: selectedRate.id };
 
       const ratesIdx = nextState.rates.findIndex(r => r.site.url === site.url);
       if (ratesIdx < 0) {
@@ -224,7 +223,6 @@ export function selectedProfileReducer(state = initialProfileStates.profile, act
     }
     case SETTINGS_ACTIONS.FETCH_SHIPPING: {
       if (
-        !action ||
         action.errors ||
         (action.response && (!action.response.rates || !action.response.selectedRate))
       ) {
@@ -243,7 +241,7 @@ export function selectedProfileReducer(state = initialProfileStates.profile, act
 
       // filter out data we don't need (for now)...
       rates = rates.map(r => ({ name: r.title, rate: r.id }));
-      selectedRate = { label: selectedRate.title, value: selectedRate.id };
+      selectedRate = { name: selectedRate.title, rate: selectedRate.id };
 
       const ratesIdx = nextState.rates.findIndex(r => r.site.url === site.url);
       if (ratesIdx < 0) {

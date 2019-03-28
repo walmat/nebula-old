@@ -264,7 +264,7 @@ describe('task actions', () => {
   });
 
   describe('should handle copy task action', () => {
-    test('with valid task', async () => {
+    test('with valid task data', async () => {
       const task = {
         ...initialTaskState,
         product: {
@@ -292,7 +292,7 @@ describe('task actions', () => {
       await asyncTaskTests(action, expectedActions);
     });
 
-    test('with invalid task', async () => {
+    test('with no task', async () => {
       const action = taskActions.copy(undefined);
       const expectedActions = [
         {
