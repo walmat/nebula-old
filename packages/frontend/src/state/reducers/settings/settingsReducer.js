@@ -135,6 +135,16 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         initialSettingsStates.settings.shipping.errors,
       ),
     };
+  } else if (action.type === SETTINGS_ACTIONS.SETUP_SHIPPING) {
+    change.shipping = {
+      ...state.shipping,
+      status: 'inprogress',
+    };
+  } else if (action.type === SETTINGS_ACTIONS.CLEANUP_SHIPPING) {
+    change.shipping = {
+      ...state.shipping,
+      status: 'idle',
+    };
   } else if (action.type === SETTINGS_ACTIONS.ERROR) {
     // TODO: Handle error
     console.error(`Error trying to perform: ${action.action}! ${action.error}`);

@@ -807,6 +807,49 @@ describe('settings reducer', () => {
     });
   });
 
+  describe('should handle setup shipping action', () => {
+    test('when status is already in progress', () => {
+      const start = { ...initialSettingsStates.settings };
+      start.shipping.status = 'inprogress';
+      const actual = settingsReducer(start, {
+        type: SETTINGS_ACTIONS.SETUP_SHIPPING,
+      });
+      expect(actual).toEqual(start);
+    });
+
+    test('when status is idle', () => {
+      const expected = { ...initialSettingsStates.settings };
+      expected.shipping.status = 'inprogress';
+      const actual = settingsReducer(undefined, {
+        type: SETTINGS_ACTIONS.SETUP_SHIPPING,
+      });
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('should handle cleanup shipping action', () => {
+    test('when status is already idle', () => {
+      const start = { ...initialSettingsStates.settings };
+      start.shipping.status = 'idle';
+      const actual = settingsReducer(start, {
+        type: SETTINGS_ACTIONS.CLEANUP_SHIPPING,
+        status: true,
+      });
+      expect(actual).toEqual(start);
+    });
+
+    test('when status is in progress', () => {
+      const start = { ...initialSettingsStates.settings };
+      start.shipping.status = 'inprogress';
+      const actual = settingsReducer(start, {
+        type: SETTINGS_ACTIONS.CLEANUP_SHIPPING,
+        status: true,
+      });
+      start.shipping.status = 'idle';
+      expect(actual).toEqual(start);
+    });
+  });
+
   describe('should add errors to state from', () => {
     let expected;
 
