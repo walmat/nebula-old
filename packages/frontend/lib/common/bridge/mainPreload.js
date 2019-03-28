@@ -8,6 +8,9 @@ const { base, util } = require('./index');
 
 nebulaEnv.setUpEnvironment();
 
+let handlers = [];
+const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
+
 /**
  * Sends the deactivate trigger to authManager.js
  */
@@ -30,37 +33,44 @@ const _launchCaptchaHarvester = opts => {
  * Sends a listener for task events to launcher.js
  */
 const _registerForTaskEvents = handler => {
-  util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
-  ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
-    // Check and make sure we have a key to listen on
-    if (eventKey) {
-      util.handleEvent(eventKey, handler);
-    } else {
-      console.error('Unable to Register for Task Events!');
-    }
-  });
+  if (handlers.length > 0) {
+    handlers.push(handler);
+  } else {
+    util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
+    ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+      // Check and make sure we have a key to listen on
+      if (eventKey) {
+        util.handleEvent(eventKey, taskEventHandler);
+      } else {
+        console.error('Unable to Register for Task Events!');
+      }
+    });
+  }
 };
 
 /**
  * Removes a listener for task events to launcher.js
  */
 const _deregisterForTaskEvents = handler => {
-  util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
-  ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
-    // Check and make sure we have a key to deregister from
-    if (eventKey) {
-      util.removeEvent(eventKey, handler);
-    } else {
-      console.error('Unable to Deregister from Task Events!');
-    }
-  });
+  if (handlers.length > 0) {
+    handlers = handlers.filter(h => h !== handler);
+  } else {
+    util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
+    ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+      // Check and make sure we have a key to deregister from
+      if (eventKey) {
+        util.removeEvent(eventKey, taskEventHandler);
+      } else {
+        console.error('Unable to Deregister from Task Events!');
+      }
+    });
+  }
 };
 
 /**
  * Sends task(s) that should be started to launcher.js
  */
 const _startTasks = (tasks, options) => {
-  console.log(options);
   util.sendEvent(IPCKeys.RequestStartTasks, tasks, options);
 };
 
@@ -68,7 +78,6 @@ const _startShippingRatesRunner = task =>
   new Promise((resolve, reject) => {
     const response = {};
     const srrMessageHandler = (_, id, payload) => {
-      console.log(_, id, payload);
       // Only respond to specific id and type
       if (id === task.id && task.type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
