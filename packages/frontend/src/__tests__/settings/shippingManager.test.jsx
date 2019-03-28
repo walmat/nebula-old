@@ -13,6 +13,8 @@ import initialSettingsStates from '../../state/initial/settings';
 import initialProfileStates from '../../state/initial/profiles';
 import getAllSupportedSitesSorted from '../../constants/getAllSites';
 
+import getByTestId from '../../__testUtils__/getByTestId';
+
 describe('<ShippingManager />', () => {
   let defaultProps;
 
@@ -212,6 +214,22 @@ describe('<ShippingManager />', () => {
         field: SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
         value: 'test',
       });
+    });
+  });
+
+  describe('fetch shipping button', () => {
+    test('renders properly when status is idle', () => {
+      const wrapper = renderShallowWithProps();
+      const fetchButton = getByTestId(wrapper, 'ShippingManager.button.fetch');
+      expect(fetchButton.prop('disabled')).toBeFalsy();
+    });
+
+    test('renders properly when status is inprogress', () => {
+      const shipping = { ...initialSettingsStates.shipping };
+      shipping.status = 'inprogress';
+      const wrapper = renderShallowWithProps({ shipping });
+      const fetchButton = getByTestId(wrapper, 'ShippingManager.button.fetch');
+      expect(fetchButton.prop('disabled')).toBeTruthy();
     });
   });
 

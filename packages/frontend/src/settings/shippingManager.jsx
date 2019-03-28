@@ -9,6 +9,8 @@ import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSupportedSitesSorted from '../constants/getAllSites';
 
+import addTestId from '../utils/addTestId';
+
 export class ShippingManagerPrimitive extends Component {
   constructor(props) {
     super(props);
@@ -78,12 +80,18 @@ export class ShippingManagerPrimitive extends Component {
   }
 
   renderButton(field, value) {
-    const { onKeyPress, onClearShippingFields, onFetchShippingMethods } = this.props;
+    const {
+      onKeyPress,
+      onClearShippingFields,
+      onFetchShippingMethods,
+      shipping: { status },
+    } = this.props;
     const { type, label } = this.buttons[field];
     const onClick = () =>
       field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS
         ? onFetchShippingMethods(value)
         : onClearShippingFields(field);
+    const disabled = field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS && status === 'inprogress';
     return (
       <button
         type="button"
@@ -91,6 +99,8 @@ export class ShippingManagerPrimitive extends Component {
         tabIndex={0}
         onKeyPress={onKeyPress}
         onClick={onClick}
+        disabled={disabled}
+        data-testid={addTestId(`ShippingManager.button.${type}`)}
       >
         {label}
       </button>
