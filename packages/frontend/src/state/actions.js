@@ -14,6 +14,7 @@ export const GLOBAL_ACTIONS = {
   RESET: '@@RESET',
   SET_THEME: '@@SET_THEME',
   MIGRATE_STATE: '@@MIGRATE_STATE',
+  INIT: '@@INIT',
 };
 
 export const globalActions = {
