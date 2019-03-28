@@ -53,9 +53,7 @@ const _registerForTaskEvents = handler => {
  * Removes a listener for task events to launcher.js
  */
 const _deregisterForTaskEvents = handler => {
-  if (handlers.length > 0) {
-    handlers = handlers.filter(h => h !== handler);
-  } else {
+  if (handlers.length === 1) {
     util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
     ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
       // Check and make sure we have a key to deregister from
@@ -67,6 +65,7 @@ const _deregisterForTaskEvents = handler => {
       }
     });
   }
+  handlers = handlers.filter(h => h !== handler);
 };
 
 /**
