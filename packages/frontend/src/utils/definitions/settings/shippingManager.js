@@ -22,6 +22,7 @@ const shippingManager = PropTypes.shape({
   }),
   username: PropTypes.string,
   password: PropTypes.string,
+  status: PropTypes.string,
   errors: shippingManagerErrors,
 });
 
