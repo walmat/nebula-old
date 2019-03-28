@@ -37,7 +37,7 @@ const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
 
-const fetchShipping = task => dispatch => {
+const fetchShipping = task => dispatch =>
   // TODO (Optional): dispatch an action to set the shipping rates status to "Pending"
   // TODO: Validate form before doing anything else
   // dispatch(_validateShippingForm(task));
@@ -55,7 +55,6 @@ const fetchShipping = task => dispatch => {
       );
     })
     .catch(err => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, err)));
-};
 
 export const settingsActions = {
   edit: editSettings,

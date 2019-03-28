@@ -470,8 +470,8 @@ describe('profile list reducer', () => {
                 },
               ],
               selectedRate: {
-                name: 'Free Shipping',
-                rate: 'test',
+                label: 'Free Shipping',
+                value: 'test',
               },
             },
           ],

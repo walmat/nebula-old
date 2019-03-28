@@ -36,7 +36,7 @@ describe('settings actions', () => {
       it('should dispatch a successful action when shipping form is valid', async () => {
         const Bridge = {
           startShippingRatesRunner: jest.fn(() => ({
-            shippingRates: [],
+            rates: [],
             selectedRate: 'test',
           })),
         };

@@ -1,4 +1,9 @@
-import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey, SETTINGS_ACTIONS } from '../../actions';
+import {
+  PROFILE_FIELDS,
+  PROFILE_ACTIONS,
+  mapProfileFieldToKey,
+  SETTINGS_ACTIONS,
+} from '../../actions';
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
 import initialProfileStates from '../../initial/profiles';

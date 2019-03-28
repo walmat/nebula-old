@@ -268,7 +268,7 @@ describe('task actions', () => {
       const task = {
         ...initialTaskState,
         product: {
-          raw: 'bad, keywords',
+          raw: '+good, +keywords',
         },
         edits: {
           product: {},
@@ -293,19 +293,6 @@ describe('task actions', () => {
     });
 
     test('with invalid task', async () => {
-      const task = {
-        ...initialTaskState,
-        product: {
-          raw: 'bad, keywords',
-        },
-        edits: {
-          product: {},
-          sizes: [],
-          username: 'testing',
-          password: 'testing',
-          profile: {},
-        },
-      };
       const action = taskActions.copy(undefined);
       const expectedActions = [
         {
