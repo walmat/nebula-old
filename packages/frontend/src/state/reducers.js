@@ -12,15 +12,24 @@ import navbarReducer from './reducers/navbar/navbarReducer';
 import { GLOBAL_ACTIONS } from './actions';
 import topLevelMigrator, { initialState } from './migrators';
 
-const topLevelReducer = (state = initialState, action) => {
+const topLevelReducer = (startState, action) => {
   // Return State if a null/undefined action is given
   if (!action) {
-    return state;
+    return startState || initialState;
   }
+
+  // Check for migration and perform it
+  if (action.type === GLOBAL_ACTIONS.MIGRATE_STATE) {
+    return topLevelMigrator(startState);
+  }
+
   // Check for reset and return initial state
   if (action.type === GLOBAL_ACTIONS.RESET) {
     return { ...initialState };
   }
+
+  // Use initial state if start state isn't given
+  const state = startState || initialState;
 
   // Check for set theme and adjust it here
   if (action.type === GLOBAL_ACTIONS.SET_THEME) {
@@ -32,11 +41,6 @@ const topLevelReducer = (state = initialState, action) => {
       };
     }
     return { ...state };
-  }
-
-  // Check for migration and perform it
-  if (action.type === GLOBAL_ACTIONS.MIGRATE_STATE) {
-    return topLevelMigrator(state);
   }
 
   // If not a global action, handle the action with sub reducers
