@@ -80,7 +80,6 @@ const _startShippingRatesRunner = task =>
   new Promise((resolve, reject) => {
     const response = {};
     const srrMessageHandler = (_, id, payload) => {
-      console.log(id, payload);
       // Only respond to specific type
       if (payload.type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
@@ -88,16 +87,13 @@ const _startShippingRatesRunner = task =>
         response.selectedRate = payload.selected || response.selectedRate; // update selected if it exists
 
         if (payload.done) {
-          console.log(response);
           // SRR is done
           _deregisterForTaskEvents(srrMessageHandler);
           if (!response.rates || !response.selectedRate) {
-            console.log('data not provided');
             // Reject since we don't have the required data
             reject(new Error('Data was not provided!'));
           } else {
             // Resolve since we have the required data
-            console.log('resolving with provided data');
             resolve(response);
           }
         }

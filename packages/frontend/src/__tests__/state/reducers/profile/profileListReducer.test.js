@@ -496,8 +496,8 @@ describe('profile list reducer', () => {
                 },
               ],
               selectedRate: {
-                name: 'Free Shipping',
-                rate: 'test',
+                label: 'Free Shipping',
+                value: 'test',
               },
             },
             {
@@ -512,8 +512,8 @@ describe('profile list reducer', () => {
                 },
               ],
               selectedRate: {
-                name: 'Free Shipping',
-                rate: 'test',
+                label: 'Free Shipping',
+                value: 'test',
               },
             },
           ],
@@ -565,8 +565,8 @@ describe('profile list reducer', () => {
                 },
               ],
               selectedRate: {
-                name: 'Free Shipping',
-                rate: 'test',
+                label: 'Free Shipping',
+                value: 'test',
               },
             },
           ],
@@ -595,8 +595,8 @@ describe('profile list reducer', () => {
                 },
               ],
               selectedRate: {
-                name: 'Not Free Shipping',
-                rate: 'test',
+                label: 'Not Free Shipping',
+                value: 'test',
               },
             },
           ],

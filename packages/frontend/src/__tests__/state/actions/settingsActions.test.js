@@ -44,7 +44,11 @@ describe('settings actions', () => {
         const action = settingsActions.fetch({
           ...initialSettingsStates.shipping,
           name: 'test',
-          product: { ...initialSettingsStates.shipping.product, raw: '+test' },
+          product: {
+            ...initialSettingsStates.shipping.product,
+            raw: '+test',
+            pos_keywords: ['test'],
+          },
           profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
           site: {
             name: 'Nebula Bots',

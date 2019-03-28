@@ -9,7 +9,6 @@ export const SETTINGS_ACTIONS = {
   CLEAR_SHIPPING: 'CLEAR_SHIPPING',
   TEST: 'TEST_WEBHOOK',
   FETCH_SHIPPING: 'FETCH_SHIPPING',
-  FETCH_SHIPPING_PENDING: 'FETCH_SHIPPING_PENDING',
   ERROR: 'SETTINGS_HANDLE_ERROR',
 };
 
@@ -29,7 +28,6 @@ const _fetchShippingRequest = async task => {
   return window.Bridge.startShippingRatesRunner(copy);
 };
 
-const _shippingOptionsPending = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING_PENDING);
 const _saveShippingRates = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
@@ -41,7 +39,6 @@ const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error')
 
 const fetchShipping = task => dispatch => {
   // TODO (Optional): dispatch an action to set the shipping rates status to "Pending"
-  dispatch(_shippingOptionsPending());
   // TODO: Validate form before doing anything else
   // dispatch(_validateShippingForm(task));
 
