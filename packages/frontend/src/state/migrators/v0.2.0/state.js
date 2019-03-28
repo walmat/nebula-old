@@ -39,7 +39,7 @@ const initialShippingManagerState = {
   errors: initialShippingManagerErrorState,
 };
 
-export default {
+const newState = {
   ...prevState,
   version: '0.2.0',
   profiles: prevState.profiles.map(newInitialProfile),
@@ -66,3 +66,5 @@ export default {
     },
   },
 };
+
+export default newState;
