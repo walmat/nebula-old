@@ -8,7 +8,9 @@ export const SETTINGS_ACTIONS = {
   CLEAR_DEFAULTS: 'CLEAR_DEFAULTS',
   CLEAR_SHIPPING: 'CLEAR_SHIPPING',
   TEST: 'TEST_WEBHOOK',
+  SETUP_SHIPPING: 'START_SHIPPING',
   FETCH_SHIPPING: 'FETCH_SHIPPING',
+  CLEANUP_SHIPPING: 'CLEANUP_SHIPPING',
   ERROR: 'SETTINGS_HANDLE_ERROR',
 };
 
@@ -29,6 +31,8 @@ const _fetchShippingRequest = async task => {
 };
 
 const _saveShippingRates = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
+const _setupShipping = makeActionCreator(SETTINGS_ACTIONS.SETUP_SHIPPING);
+const _cleanupShipping = makeActionCreator(SETTINGS_ACTIONS.CLEANUP_SHIPPING, 'success');
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
@@ -37,13 +41,14 @@ const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
 const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error');
 
-const fetchShipping = task => dispatch =>
+const fetchShipping = task => dispatch => {
   // TODO (Optional): dispatch an action to set the shipping rates status to "Pending"
   // TODO: Validate form before doing anything else
   // dispatch(_validateShippingForm(task));
 
   // Perform the request and handle the response
-  _fetchShippingRequest(task)
+  dispatch(_setupShipping());
+  return _fetchShippingRequest(task)
     .then(({ rates, selectedRate }) => {
       dispatch(
         _saveShippingRates({
@@ -53,8 +58,13 @@ const fetchShipping = task => dispatch =>
           selectedRate,
         }),
       );
+      dispatch(_cleanupShipping(true));
     })
-    .catch(err => dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, err)));
+    .catch(err => {
+      dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, err));
+      dispatch(_cleanupShipping(false));
+    });
+};
 
 export const settingsActions = {
   edit: editSettings,

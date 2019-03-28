@@ -27,12 +27,18 @@ describe('settings actions', () => {
   const asyncSettingsTests = async (action, expectedActions) => {
     await mockStore.dispatch(action);
     const actualActions = mockStore.getActions();
-    expect(actualActions.length).toBe(1);
+    expect(actualActions.length).toBe(expectedActions.length);
     expect(actualActions).toEqual(expectedActions);
   };
 
   describe('fetch shipping', () => {
     describe('when window.Bridge is defined', () => {
+      afterEach(() => {
+        if (global.window.Bridge) {
+          delete global.window.Bridge;
+        }
+      });
+
       it('should dispatch a successful action when shipping form is valid', async () => {
         const Bridge = {
           startShippingRatesRunner: jest.fn(() => ({
@@ -62,6 +68,9 @@ describe('settings actions', () => {
         });
         const expectedActions = [
           {
+            type: SETTINGS_ACTIONS.SETUP_SHIPPING,
+          },
+          {
             type: SETTINGS_ACTIONS.FETCH_SHIPPING,
             response: {
               id: 1,
@@ -76,9 +85,12 @@ describe('settings actions', () => {
               },
             },
           },
+          {
+            type: SETTINGS_ACTIONS.CLEANUP_SHIPPING,
+            success: true,
+          },
         ];
         await asyncSettingsTests(action, expectedActions);
-        delete global.window.Bridge;
       });
 
       it('should dispatch a error action when shipping form is invalid', async () => {
@@ -94,13 +106,19 @@ describe('settings actions', () => {
         });
         const expectedActions = [
           {
+            type: SETTINGS_ACTIONS.SETUP_SHIPPING,
+          },
+          {
             type: SETTINGS_ACTIONS.ERROR,
             action: SETTINGS_ACTIONS.FETCH_SHIPPING,
             error: expect.any(Error),
           },
+          {
+            type: SETTINGS_ACTIONS.CLEANUP_SHIPPING,
+            success: false,
+          },
         ];
         await asyncSettingsTests(action, expectedActions);
-        delete global.window.Bridge;
       });
     });
 
@@ -123,9 +141,16 @@ describe('settings actions', () => {
         });
         const expectedActions = [
           {
+            type: SETTINGS_ACTIONS.SETUP_SHIPPING,
+          },
+          {
             type: SETTINGS_ACTIONS.ERROR,
             action: SETTINGS_ACTIONS.FETCH_SHIPPING,
             error: expect.any(Error),
+          },
+          {
+            type: SETTINGS_ACTIONS.CLEANUP_SHIPPING,
+            success: false,
           },
         ];
         await asyncSettingsTests(action, expectedActions);
@@ -140,9 +165,16 @@ describe('settings actions', () => {
         });
         const expectedActions = [
           {
+            type: SETTINGS_ACTIONS.SETUP_SHIPPING,
+          },
+          {
             type: SETTINGS_ACTIONS.ERROR,
             action: SETTINGS_ACTIONS.FETCH_SHIPPING,
             error: expect.any(Error),
+          },
+          {
+            type: SETTINGS_ACTIONS.CLEANUP_SHIPPING,
+            success: false,
           },
         ];
         await asyncSettingsTests(action, expectedActions);
