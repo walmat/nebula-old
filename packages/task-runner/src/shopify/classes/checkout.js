@@ -18,10 +18,23 @@ class Checkout {
     this._request = this._context.request;
 
     this.shippingMethods = [];
-    this.chosenShippingMethod = {
-      name: null,
-      id: null,
-    };
+    const preFetchedShippingRates = this._context.task.profile.rates.find(
+      r => r.site.url === this._context.task.site.url,
+    );
+
+    if (preFetchedShippingRates && preFetchedShippingRates.selectedRate) {
+      const { label, value } = preFetchedShippingRates.selectedRate;
+      this.chosenShippingMethod = {
+        name: label,
+        id: value,
+      };
+    } else {
+      this.chosenShippingMethod = {
+        name: null,
+        id: null,
+      };
+    }
+
     this.paymentToken = null;
     this.checkoutToken = null;
 

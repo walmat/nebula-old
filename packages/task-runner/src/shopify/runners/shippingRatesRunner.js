@@ -23,6 +23,7 @@ class ShippingRatesRunner extends TaskRunner {
     if (this._state === States.PostPayment) {
       this._emitTaskEvent({
         message: 'Shipping Rates Found',
+        done: true,
         rates: this._checkout.shippingMethods,
         selected: this._checkout.selectedShippingRate,
       });
@@ -34,6 +35,7 @@ class ShippingRatesRunner extends TaskRunner {
       // Stopped before
       this._emitTaskEvent({
         message: 'Unable to get shipping rates!',
+        done: true,
       });
       return true;
     }

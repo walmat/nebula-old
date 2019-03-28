@@ -259,6 +259,10 @@ class APICheckout extends Checkout {
         this.prices.total = (
           parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
         ).toFixed(2);
+        if (this.chosenShippingMethod.id) {
+          this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
+          return { message: `Posting payment`, nextState: States.PostPayment };
+        }
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
       return { message: 'Failed: Add to cart', nextState: States.Errored };

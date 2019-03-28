@@ -1,4 +1,4 @@
-import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../actions';
+import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey, SETTINGS_ACTIONS } from '../../actions';
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
 import initialProfileStates from '../../initial/profiles';
@@ -144,6 +144,42 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       }
       return nextState;
     }
+    case SETTINGS_ACTIONS.FETCH_SHIPPING: {
+      if (
+        !action ||
+        action.errors ||
+        (action.response && (!action.response.rates || !action.response.selectedRate))
+      ) {
+        break;
+      }
+
+      // deconstruct response
+      const { id, site } = action.response;
+      let { rates, selectedRate } = action.response;
+
+      const nextState = JSON.parse(JSON.stringify(state));
+
+      if (id !== nextState.editId) {
+        break;
+      }
+
+      // filter out data we don't need (for now)...
+      rates = rates.map(r => ({ name: r.title, rate: r.id }));
+      selectedRate = { label: selectedRate.title, value: selectedRate.id };
+
+      const ratesIdx = nextState.rates.findIndex(r => r.site.url === site.url);
+      if (ratesIdx < 0) {
+        nextState.rates.push({ site: { name: site.name, url: site.url }, rates, selectedRate });
+      } else {
+        nextState.rates[ratesIdx].selectedRate = selectedRate;
+        // filter out duplicate rates from the previously stored rates
+        const oldRates = nextState.rates[ratesIdx].rates.filter(
+          r1 => !rates.find(r2 => r2.name === r1.name),
+        );
+        nextState.rates[ratesIdx].rates = oldRates.concat(rates);
+      }
+      return nextState;
+    }
     default:
       break;
   }
@@ -180,6 +216,42 @@ export function selectedProfileReducer(state = initialProfileStates.profile, act
         return Object.assign({}, action.profile);
       }
       break;
+    }
+    case SETTINGS_ACTIONS.FETCH_SHIPPING: {
+      if (
+        !action ||
+        action.errors ||
+        (action.response && (!action.response.rates || !action.response.selectedRate))
+      ) {
+        break;
+      }
+
+      // deconstruct response
+      const { id, site } = action.response;
+      let { rates, selectedRate } = action.response;
+
+      const nextState = JSON.parse(JSON.stringify(state));
+
+      if (id !== nextState.id) {
+        break;
+      }
+
+      // filter out data we don't need (for now)...
+      rates = rates.map(r => ({ name: r.title, rate: r.id }));
+      selectedRate = { label: selectedRate.title, value: selectedRate.id };
+
+      const ratesIdx = nextState.rates.findIndex(r => r.site.url === site.url);
+      if (ratesIdx < 0) {
+        nextState.rates.push({ site: { name: site.name, url: site.url }, rates, selectedRate });
+      } else {
+        nextState.rates[ratesIdx].selectedRate = selectedRate;
+        // filter out duplicate rates from the previously stored rates
+        const oldRates = nextState.rates[ratesIdx].rates.filter(
+          r1 => !rates.find(r2 => r2.name === r1.name),
+        );
+        nextState.rates[ratesIdx].rates = oldRates.concat(rates);
+      }
+      return nextState;
     }
     default:
       break;

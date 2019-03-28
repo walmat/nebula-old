@@ -40,6 +40,7 @@ const _registerForTaskEvents = handler => {
     ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
       // Check and make sure we have a key to listen on
       if (eventKey) {
+        handlers.push(handler);
         util.handleEvent(eventKey, taskEventHandler);
       } else {
         console.error('Unable to Register for Task Events!');
@@ -59,7 +60,8 @@ const _deregisterForTaskEvents = handler => {
     ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
       // Check and make sure we have a key to deregister from
       if (eventKey) {
-        util.removeEvent(eventKey, taskEventHandler);
+        handlers = [];
+        util.removeEvent(event, taskEventHandler);
       } else {
         console.error('Unable to Deregister from Task Events!');
       }
@@ -78,19 +80,24 @@ const _startShippingRatesRunner = task =>
   new Promise((resolve, reject) => {
     const response = {};
     const srrMessageHandler = (_, id, payload) => {
-      // Only respond to specific id and type
-      if (id === task.id && task.type === TaskRunnerTypes.ShippingRates) {
+      console.log(id, payload);
+      // Only respond to specific type
+      if (payload.type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
-        response.shippingRates = payload.rates || response.shippingRates; // update rates if it exists
+        response.rates = payload.rates || response.rates; // update rates if it exists
         response.selectedRate = payload.selected || response.selectedRate; // update selected if it exists
+
         if (payload.done) {
+          console.log(response);
           // SRR is done
           _deregisterForTaskEvents(srrMessageHandler);
-          if (!response.shippingRates || !response.selectedRate) {
+          if (!response.rates || !response.selectedRate) {
+            console.log('data not provided');
             // Reject since we don't have the required data
             reject(new Error('Data was not provided!'));
           } else {
             // Resolve since we have the required data
+            console.log('resolving with provided data');
             resolve(response);
           }
         }
