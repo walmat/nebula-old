@@ -19,7 +19,7 @@ const topLevelReducer = (startState, action) => {
   }
 
   // Check for migration and perform it
-  if (action.type === GLOBAL_ACTIONS.MIGRATE_STATE) {
+  if (action.type === GLOBAL_ACTIONS.MIGRATE_STATE || action.type === GLOBAL_ACTIONS.INIT) {
     return topLevelMigrator(startState);
   }
 
