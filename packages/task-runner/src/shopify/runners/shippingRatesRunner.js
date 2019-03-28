@@ -31,7 +31,7 @@ class ShippingRatesRunner extends TaskRunner {
     }
 
     // Stop if we error out for another reason
-    if (superShouldStop) {
+    if (this._state === States.Restocking || superShouldStop) {
       // Stopped before
       this._emitTaskEvent({
         message: 'Unable to get shipping rates!',
