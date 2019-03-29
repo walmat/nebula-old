@@ -2,8 +2,8 @@ const TaskRunner = require('./taskRunner');
 const { Types, States, CheckoutTypes } = require('../classes/utils/constants').TaskRunner;
 
 class ShippingRatesRunner extends TaskRunner {
-  constructor(...params) {
-    super(...params, Types.ShippingRates);
+  constructor(id, task, proxy, loggerPath) {
+    super(id, task, proxy, loggerPath, Types.ShippingRates);
 
     if (this._checkoutType === CheckoutTypes.fe) {
       this._logger.error(
