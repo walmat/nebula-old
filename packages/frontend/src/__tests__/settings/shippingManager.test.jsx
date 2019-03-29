@@ -158,7 +158,7 @@ describe('<ShippingManager />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const siteSelector = wrapper.find('.settings--shipping-manager__input-group--site');
-      expect(siteSelector.prop('value')).toBeNull();
+      expect(siteSelector.prop('value')).toEqual({ label: null, value: null });
       expect(siteSelector.prop('onChange')).toBeDefined();
       expect(siteSelector.prop('options')).toEqual(getAllSupportedSitesSorted());
 
@@ -285,12 +285,47 @@ describe('<ShippingManager />', () => {
 
   test('map dispatch to props should return correct structure', () => {
     const dispatch = jest.fn();
-    const expectedAction = settingsActions.edit(SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT, '+data');
+    const task = {
+      ...initialSettingsStates.shipping,
+      product: {
+        ...initialSettingsStates.shipping.product,
+        raw: '+test',
+        pos_keywords: ['test'],
+      },
+      site: {
+        ...initialSettingsStates.shipping.site,
+        name: 'Nebula Bots',
+        url: 'https://nebulabots.com',
+        apiKey: '6526a5b5393b6316a64853cfe091841c',
+        localCheckout: false,
+        special: false,
+        auth: false,
+      },
+      profile: {
+        ...initialSettingsStates.shipping.profile,
+        id: 1,
+        profileName: 'test',
+      },
+    };
+
+    const expectedActions = [
+      settingsActions.edit(SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT, '+test'),
+      settingsActions.fetch(task),
+      settingsActions.clearShipping(SETTINGS_FIELDS.CLEAR_SHIPPING_FIELDS),
+    ];
+
     const actual = mapDispatchToProps(dispatch);
     actual.onSettingsChange({
       field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
-      value: '+data',
+      value: '+test',
     });
-    expect(dispatch).toHaveBeenCalledWith(expectedAction);
+    actual.onFetchShippingMethods(task);
+    actual.onClearShippingFields(SETTINGS_FIELDS.CLEAR_SHIPPING_FIELDS);
+    expectedActions.forEach((action, n) => {
+      expect(dispatch).toHaveBeenNthCalledWith(
+        n + 1,
+        typeof action !== 'function' ? action : expect.any(Function),
+      );
+    });
   });
 });

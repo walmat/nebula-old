@@ -134,6 +134,7 @@ export class ShippingManagerPrimitive extends Component {
     const { shipping, errors } = this.props;
     const { profile, site, product, name, username, password } = shipping;
     let shippingProfileValue = null;
+    let accountFieldsDisabled = true;
     if (profile && profile.id !== null) {
       shippingProfileValue = {
         value: profile.id,
@@ -141,15 +142,12 @@ export class ShippingManagerPrimitive extends Component {
       };
     }
     let shippingSiteValue = null;
-    if (site && site.name !== null) {
+    if (site) {
+      accountFieldsDisabled = !site.auth;
       shippingSiteValue = {
         value: site.url,
         label: site.name,
       };
-    }
-    let accountFieldsDisabled = true;
-    if (site) {
-      accountFieldsDisabled = !site.auth;
     }
     return (
       <div>
