@@ -145,10 +145,11 @@ const _startShippingRatesRunner = task => {
 
 const _stopShippingRatesRunner = () => {
   if (!srrRequest) {
-    return;
+    return Promise.reject(new Error('No SRR Running'));
   }
   srrRequest.cancel();
   srrRequest = null;
+  return Promise.resolve();
 };
 
 /**

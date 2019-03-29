@@ -69,7 +69,7 @@ const fetchShipping = task => dispatch => {
 const stopShipping = () => dispatch =>
   _stopShippingRequest().then(
     () => dispatch(_stopShipping()),
-    err => dispatch(handleError(SETTINGS_ACTIONS.STOP_SHIPPING, err)),
+    () => dispatch(_cleanupShipping(true)),
   );
 
 export const settingsActions = {
