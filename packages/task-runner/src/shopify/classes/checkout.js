@@ -22,9 +22,6 @@ class Checkout {
       r => r.site.url === this._context.task.site.url,
     );
 
-    this._logger.verbose('DEBUG DEBUG DEBUG!!!!! %j', preFetchedShippingRates);
-    this._logger.verbose('DEBUG DEBUG DEBUG!!!!! %s', this._context.type)
-
     if (
       this._context.type === Types.Normal &&
       preFetchedShippingRates &&
@@ -41,8 +38,6 @@ class Checkout {
         id: null,
       };
     }
-
-    this._logger.verbose('DEBUG DEBUG DEBUG!!!!!::: %j', this.chosenShippingMethod);
 
     this.paymentToken = null;
     this.checkoutToken = null;
