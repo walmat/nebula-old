@@ -1,6 +1,6 @@
 /* global describe it test expect beforeAll */
 import settingsReducer from '../../../../state/reducers/settings/settingsReducer';
-import { SETTINGS_ACTIONS, SETTINGS_FIELDS } from '../../../../state/actions';
+import { SETTINGS_ACTIONS, SETTINGS_FIELDS, PROFILE_ACTIONS } from '../../../../state/actions';
 import initialSettingsStates from '../../../../state/initial/settings';
 
 describe('settings reducer', () => {
@@ -847,6 +847,56 @@ describe('settings reducer', () => {
       });
       start.shipping.status = 'idle';
       expect(actual).toEqual(start);
+    });
+  });
+
+  describe('should handle remove profile action', () => {
+    it('when no action id is present', () => {
+      const actual = settingsReducer(initialSettingsStates.settings, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: undefined,
+      });
+      expect(actual).toEqual(initialSettingsStates.settings);
+    });
+
+    it('when shipping profile matches removed profile', () => {
+      const initial = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          profile: {
+            ...initialSettingsStates.shipping.profile,
+            id: 1,
+            profileName: 'test',
+          },
+        },
+      };
+
+      const actual = settingsReducer(initial, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 1,
+      });
+      expect(actual).toEqual(initialSettingsStates.settings);
+    });
+
+    it('when shipping profile does not match removed profile', () => {
+      const initial = {
+        ...initialSettingsStates.settings,
+        shipping: {
+          ...initialSettingsStates.shipping,
+          profile: {
+            ...initialSettingsStates.shipping.profile,
+            id: 2,
+            profileName: 'test',
+          },
+        },
+      };
+
+      const actual = settingsReducer(initial, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 1,
+      });
+      expect(actual).toEqual(initial);
     });
   });
 

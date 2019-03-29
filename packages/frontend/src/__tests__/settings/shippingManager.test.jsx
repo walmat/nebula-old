@@ -158,7 +158,7 @@ describe('<ShippingManager />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       const siteSelector = wrapper.find('.settings--shipping-manager__input-group--site');
-      expect(siteSelector.prop('value')).toEqual({ label: null, value: null });
+      expect(siteSelector.prop('value')).toBeNull();
       expect(siteSelector.prop('onChange')).toBeDefined();
       expect(siteSelector.prop('options')).toEqual(getAllSupportedSitesSorted());
 

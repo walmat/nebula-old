@@ -1,4 +1,9 @@
-import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../actions';
+import {
+  SETTINGS_ACTIONS,
+  PROFILE_ACTIONS,
+  mapSettingsFieldToKey,
+  SETTINGS_FIELDS,
+} from '../../actions';
 import initialSettingsStates from '../../initial/settings';
 import shippingReducer from './shippingReducer';
 
@@ -145,6 +150,17 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       ...state.shipping,
       status: 'idle',
     };
+  } else if (action.type === PROFILE_ACTIONS.REMOVE) {
+    if (!action.id) {
+      return Object.assign({}, state, change);
+    }
+
+    if (state.shipping && state.shipping.profile && state.shipping.profile.id === action.id) {
+      change.shipping = {
+        ...state.shipping,
+        profile: initialSettingsStates.shipping.profile,
+      };
+    }
   } else if (action.type === SETTINGS_ACTIONS.ERROR) {
     // TODO: Handle error
     console.error(`Error trying to perform: ${action.action}! ${action.error}`);

@@ -182,6 +182,50 @@ describe('settings actions', () => {
     });
   });
 
+  describe('stop shipping', () => {
+    describe('when window.Bridge is defined', () => {
+      afterEach(() => {
+        if (global.window.Bridge) {
+          delete global.window.Bridge;
+        }
+      });
+
+      it('should dispatch stop shipping runner', async () => {
+        const Bridge = {
+          stopShippingRatesRunner: jest.fn(),
+        };
+        global.window.Bridge = Bridge;
+
+        const action = settingsActions.stop();
+        const expectedActions = [
+          {
+            type: SETTINGS_ACTIONS.STOP_SHIPPING,
+          },
+        ];
+        await asyncSettingsTests(action, expectedActions);
+      });
+    });
+
+    describe('when window.Bridge is undefined', () => {
+      afterEach(() => {
+        if (global.window.Bridge) {
+          delete global.window.Bridge;
+        }
+      });
+
+      it('should dispatch stop shipping runner', async () => {
+        const action = settingsActions.stop();
+        const expectedActions = [
+          {
+            type: SETTINGS_ACTIONS.CLEANUP_SHIPPING,
+            success: true,
+          },
+        ];
+        await asyncSettingsTests(action, expectedActions);
+      });
+    });
+  });
+
   it('should create an action to edit settings', () => {
     const action = settingsActions.edit('test_field', 'test_value');
     const expectedActions = [

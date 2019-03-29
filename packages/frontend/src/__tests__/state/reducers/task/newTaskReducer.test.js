@@ -296,6 +296,49 @@ describe('new task reducer', () => {
     });
   });
 
+  describe('should handle profile removal', () => {
+    it('when no action id is present', () => {
+      const actual = newTaskReducer(initialTaskStates.task, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: undefined,
+      });
+      expect(actual).toEqual(initialTaskStates.task);
+    });
+
+    it('when id matches the profile that is selected', () => {
+      const initial = {
+        ...initialTaskStates.task,
+        profile: {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'test',
+        },
+      };
+
+      const actual = newTaskReducer(initial, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 1,
+      });
+      expect(actual).toEqual(initialTaskStates.task);
+    });
+
+    it('when id does not match the profile that is selected', () => {
+      const initial = {
+        ...initialTaskStates.task,
+        profile: {
+          ...initialProfileStates.profile,
+          id: 1,
+          profileName: 'test',
+        },
+      };
+
+      const actual = newTaskReducer(initial, {
+        type: PROFILE_ACTIONS.REMOVE,
+        id: 2,
+      });
+      expect(actual).toEqual(initial);
+    });
+  });
   describe('should handle add', () => {
     describe('when action is valid', () => {
       test('when defaults are not given', () => {

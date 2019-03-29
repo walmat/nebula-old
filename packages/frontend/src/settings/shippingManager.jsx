@@ -161,10 +161,12 @@ export class ShippingManagerPrimitive extends Component {
     let shippingSiteValue = null;
     if (site) {
       accountFieldsDisabled = !site.auth;
-      shippingSiteValue = {
-        value: site.url,
-        label: site.name,
-      };
+      if (site.name) {
+        shippingSiteValue = {
+          value: site.url,
+          label: site.name,
+        };
+      }
     }
     return (
       <div>
