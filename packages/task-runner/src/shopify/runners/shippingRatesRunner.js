@@ -3,11 +3,7 @@ const { Types, States, CheckoutTypes } = require('../classes/utils/constants').T
 
 class ShippingRatesRunner extends TaskRunner {
   constructor(...params) {
-    super(...params);
-
-    // Specify the Runner Type
-    this._type = Types.ShippingRates;
-    this._context.type = this._type;
+    super(...params, Types.ShippingRates);
 
     if (this._checkoutType === CheckoutTypes.fe) {
       this._logger.error(

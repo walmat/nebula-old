@@ -9,7 +9,7 @@ const {
   userAgent,
   waitForDelay,
 } = require('./utils');
-const { States } = require('./utils/constants').TaskRunner;
+const { States, Types } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   constructor(context) {
@@ -23,9 +23,13 @@ class Checkout {
     );
 
     this._logger.verbose('DEBUG DEBUG DEBUG!!!!! %j', preFetchedShippingRates);
-    this._logger.verbose('DEBUG DEBUG DEBUG!!!!! %s', this._context.type);
+    this._logger.verbose('DEBUG DEBUG DEBUG!!!!! %s', this._context.type)
 
-    if (preFetchedShippingRates && preFetchedShippingRates.selectedRate) {
+    if (
+      this._context.type === Types.Normal &&
+      preFetchedShippingRates &&
+      preFetchedShippingRates.selectedRate
+    ) {
       const { name, rate } = preFetchedShippingRates.selectedRate;
       this.chosenShippingMethod = {
         name,

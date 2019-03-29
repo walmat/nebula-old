@@ -30,8 +30,8 @@ class TaskRunner {
     return this._state;
   }
 
-  constructor(id, task, proxy, loggerPath) {
-    this._type = Types.Normal;
+  constructor(id, task, proxy, loggerPath, type = Types.Normal) {
+    this._type = type;
     // Add Ids to object
     this.taskId = task.id;
     this.id = id;
@@ -78,6 +78,7 @@ class TaskRunner {
      */
     this._context = {
       id,
+      type: this._type,
       task,
       proxy: proxy ? proxy.proxy : null,
       request: this._request,
