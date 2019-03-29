@@ -224,7 +224,7 @@ export class ShippingManagerPrimitive extends Component {
                           onChange={this.createOnChangeHandler(
                             SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME,
                           )}
-                          value={username}
+                          value={username || ''}
                           style={buildStyle(
                             false,
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME]],
@@ -242,7 +242,7 @@ export class ShippingManagerPrimitive extends Component {
                           onChange={this.createOnChangeHandler(
                             SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
                           )}
-                          value={password}
+                          value={password || ''}
                           style={buildStyle(
                             false,
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD]],

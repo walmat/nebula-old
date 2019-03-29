@@ -43,6 +43,26 @@ export default function shippingReducer(state = initialSettingsStates.shipping, 
         };
         break;
       }
+      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE: {
+        if (action.value) {
+          if (state.site && action.value.name && action.value.name === state.site.name) {
+            break;
+          }
+          change = {
+            site: action.value,
+            username: null,
+            password: null,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+        } else {
+          change = {
+            site: initialSettingsStates.shipping.site,
+            username: initialSettingsStates.shipping.username,
+            password: initialSettingsStates.shipping.password,
+          };
+        }
+        break;
+      }
       default: {
         change = {
           [mapSettingsFieldToKey[action.field]]: action.value,

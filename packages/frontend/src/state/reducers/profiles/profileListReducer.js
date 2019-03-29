@@ -30,6 +30,7 @@ export default function profileListReducer(state = initialProfileStates.list, ac
 
       // add new profile
       newProfile.id = newId;
+      newProfile.rates = initialProfileStates.rates;
       nextState.push(newProfile);
       break;
     }
