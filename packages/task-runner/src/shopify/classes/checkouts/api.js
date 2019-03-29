@@ -10,7 +10,7 @@ const {
 } = require('../utils');
 const { patchCheckoutForm } = require('../utils/forms');
 const { buildPaymentForm, patchToCart } = require('../utils/forms');
-const { States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
+const { Types, States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
 const Checkout = require('../checkout');
 
 /**
@@ -161,7 +161,7 @@ class APICheckout extends Checkout {
   }
 
   async addToCart() {
-    const { timers } = this._context;
+    const { timers, type } = this._context;
     const { site, product, monitorDelay } = this._context.task;
     const { url } = site;
 
@@ -232,6 +232,9 @@ class APICheckout extends Checkout {
           return { message: 'Running for restocks', nextState: States.Restocking };
         }
         if (error.variant_id && error.variant_id[0]) {
+          if (type === Types.ShippingRates) {
+            return { message: 'Invalid variant', nextState: States.Errored };
+          }
           if (timers.monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }

@@ -58,14 +58,21 @@ const _deregisterForTaskEvents = handler => {
     ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
       // Check and make sure we have a key to deregister from
       if (eventKey) {
+        util.removeEvent(eventKey, taskEventHandler);
         handlers = [];
-        util.removeEvent(event, taskEventHandler);
       } else {
         console.error('Unable to Deregister from Task Events!');
       }
     });
   }
   handlers = handlers.filter(h => h !== handler);
+};
+
+/**
+ * Removes all listeners if the window was closed
+ */
+window.onbeforeunload = () => {
+  handlers.forEach(h => _deregisterForTaskEvents(h));
 };
 
 /**
