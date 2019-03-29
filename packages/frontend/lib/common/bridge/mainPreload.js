@@ -8,6 +8,7 @@ const { base, util } = require('./index');
 
 nebulaEnv.setUpEnvironment();
 
+let srrRequest = null;
 let handlers = [];
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
@@ -82,9 +83,28 @@ const _startTasks = (tasks, options) => {
   util.sendEvent(IPCKeys.RequestStartTasks, tasks, options);
 };
 
-const _startShippingRatesRunner = task =>
-  new Promise((resolve, reject) => {
+/**
+ * Sends task(s) that should be stopped to launcher.js
+ */
+const _stopTasks = tasks => {
+  util.sendEvent(IPCKeys.RequestStopTasks, tasks);
+};
+
+const _startShippingRatesRunner = task => {
+  const request = {
+    task: { ...task, id: 1000, sizes: ['Random'] },
+    cancel: () => {},
+    promise: null,
+  };
+
+  if (srrRequest) {
+    return Promise.reject(new Error('Shipping Rates Runner has already been started!'));
+  }
+
+  request.promise = new Promise((resolve, reject) => {
     const response = {};
+
+    // Define srr message handler to retrive data
     const srrMessageHandler = (_, id, payload) => {
       // Only respond to specific type
       if (payload.type === TaskRunnerTypes.ShippingRates) {
@@ -102,18 +122,33 @@ const _startShippingRatesRunner = task =>
             // Resolve since we have the required data
             resolve(response);
           }
+          srrRequest = null;
         }
       }
     };
+
+    // Define cancel method for request
+    request.cancel = () => {
+      _deregisterForTaskEvents(srrMessageHandler);
+      _stopTasks(request.task);
+      srrRequest = null;
+      reject(new Error('Runner was cancelled'));
+    };
+
+    srrRequest = request;
     _registerForTaskEvents(srrMessageHandler);
-    _startTasks({ ...task, sizes: ['Random'] }, { type: TaskRunnerTypes.ShippingRates });
+    _startTasks(request.task, { type: TaskRunnerTypes.ShippingRates });
   });
 
-/**
- * Sends task(s) that should be stopped to launcher.js
- */
-const _stopTasks = tasks => {
-  util.sendEvent(IPCKeys.RequestStopTasks, tasks);
+  return request.promise;
+};
+
+const _stopShippingRatesRunner = () => {
+  if (!srrRequest) {
+    return;
+  }
+  srrRequest.cancel();
+  srrRequest = null;
 };
 
 /**
@@ -156,6 +191,7 @@ process.once('loaded', () => {
     launchCaptchaHarvester: _launchCaptchaHarvester,
     setTheme: _setTheme,
     startShippingRatesRunner: _startShippingRatesRunner,
+    stopShippingRatesRunner: _stopShippingRatesRunner,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,
