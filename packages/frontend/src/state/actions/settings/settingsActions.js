@@ -10,6 +10,7 @@ export const SETTINGS_ACTIONS = {
   TEST: 'TEST_WEBHOOK',
   SETUP_SHIPPING: 'START_SHIPPING',
   FETCH_SHIPPING: 'FETCH_SHIPPING',
+  STOP_SHIPPING: 'STOP_SHIPPING',
   CLEANUP_SHIPPING: 'CLEANUP_SHIPPING',
   ERROR: 'SETTINGS_HANDLE_ERROR',
 };
@@ -30,9 +31,12 @@ const _fetchShippingRequest = async task => {
   return window.Bridge.startShippingRatesRunner(copy);
 };
 
+const _stopShippingRequest = async () => window.Bridge.stopShippingRatesRunner();
+
 const _saveShippingRates = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
 const _setupShipping = makeActionCreator(SETTINGS_ACTIONS.SETUP_SHIPPING);
 const _cleanupShipping = makeActionCreator(SETTINGS_ACTIONS.CLEANUP_SHIPPING, 'success');
+const _stopShipping = makeActionCreator(SETTINGS_ACTIONS.STOP_SHIPPING);
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
@@ -62,6 +66,12 @@ const fetchShipping = task => dispatch => {
     });
 };
 
+const stopShipping = () => dispatch =>
+  _stopShippingRequest().then(
+    () => dispatch(_stopShipping()),
+    err => dispatch(handleError(SETTINGS_ACTIONS.STOP_SHIPPING, err)),
+  );
+
 export const settingsActions = {
   edit: editSettings,
   save: saveDefaults,
@@ -69,6 +79,7 @@ export const settingsActions = {
   clearShipping,
   test: testWebhook,
   fetch: fetchShipping,
+  stop: stopShipping,
   error: handleError,
 };
 

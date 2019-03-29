@@ -84,13 +84,30 @@ export class ShippingManagerPrimitive extends Component {
       onKeyPress,
       onClearShippingFields,
       onFetchShippingMethods,
+      onStopShippingMethods,
       shipping: { status },
     } = this.props;
-    const { type, label } = this.buttons[field];
-    const onClick = () =>
-      field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS
-        ? onFetchShippingMethods(value)
-        : onClearShippingFields(field);
+    const { type } = this.buttons[field];
+    let { label } = this.buttons[field];
+    let onClick;
+    switch (field) {
+      case SETTINGS_FIELDS.FETCH_SHIPPING_METHODS: {
+        onClick = () => onFetchShippingMethods(value);
+        break;
+      }
+      case SETTINGS_FIELDS.CLEAR_SHIPPING_FIELDS: {
+        if (status === 'inprogress') {
+          onClick = () => onStopShippingMethods();
+          label = 'Cancel';
+          break;
+        }
+        onClick = () => onClearShippingFields(field);
+        break;
+      }
+      default: {
+        onClick = () => {};
+      }
+    }
     const disabled = field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS && status === 'inprogress';
     return (
       <button
@@ -272,6 +289,7 @@ export class ShippingManagerPrimitive extends Component {
 ShippingManagerPrimitive.propTypes = {
   onSettingsChange: PropTypes.func.isRequired,
   onFetchShippingMethods: PropTypes.func.isRequired,
+  onStopShippingMethods: PropTypes.func.isRequired,
   onClearShippingFields: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   shipping: sDefns.shipping.isRequired,
@@ -300,6 +318,9 @@ export const mapDispatchToProps = dispatch => ({
   },
   onClearShippingFields: changes => {
     dispatch(settingsActions.clearShipping(changes));
+  },
+  onStopShippingMethods: () => {
+    dispatch(settingsActions.stop());
   },
 });
 
