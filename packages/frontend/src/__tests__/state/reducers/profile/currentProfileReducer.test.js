@@ -440,8 +440,8 @@ describe('current profile reducer', () => {
           value: 'https://kith.com',
         },
         rate: {
-          label: '5-7 Business Days',
-          value: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+          name: '5-7 Business Days',
+          rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
         },
       });
       expect(actual).toEqual(expected);
@@ -514,8 +514,8 @@ describe('current profile reducer', () => {
           value: 'https://kith.com',
         },
         rate: {
-          label: '5-7 Business Days',
-          value: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+          name: '5-7 Business Days',
+          rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
         },
       });
       expect(actual).toEqual(expected);

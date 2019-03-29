@@ -133,7 +133,7 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       // reset the selectedRate
       siteObj.selectedRate = null;
       // remove the passed in rate field from the rates array
-      siteObj.rates = siteObj.rates.filter(r => r.rate !== action.rate.value);
+      siteObj.rates = siteObj.rates.filter(r => r.rate !== action.rate.rate);
 
       // check to see if the rates array is empty,
       // if so, remove the site obj itself from the
