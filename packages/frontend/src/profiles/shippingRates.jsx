@@ -62,7 +62,7 @@ export class ShippingRatesPrimitive extends Component {
       }
       default: {
         return event => {
-          const rate = { name: event.label, rate: event.value };
+          const rate = { name: event.label, price: event.price, rate: event.value };
           onChange({ field, value: { site: value.selectedSite, rate } }, PROFILE_FIELDS.EDIT_RATES);
         };
       }
@@ -101,11 +101,15 @@ export class ShippingRatesPrimitive extends Component {
       siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
       if (siteObject && siteObject.selectedRate) {
         const {
-          selectedRate: { name, rate },
+          selectedRate: { name, price, rate },
         } = siteObject;
-        rateValue = { label: name, value: rate };
+        rateValue = { label: name, price, value: rate };
       }
-      nameOptions = siteObject.rates.map(({ rate, name }) => ({ value: rate, label: name }));
+      nameOptions = siteObject.rates.map(({ rate, price, name }) => ({
+        value: rate,
+        price,
+        label: name,
+      }));
     } else {
       // reset selectedRate if there's no selected site
       siteObject.selectedRate = null;
@@ -117,14 +121,26 @@ export class ShippingRatesPrimitive extends Component {
           {this.renderSelect(RATES_FIELDS.RATE, rateValue, nameOptions)}
         </div>
         <div className="row row--gutter">
-          <input
-            className="profiles-rates__input-group--rate"
-            required
-            disabled
-            value={rateValue ? rateValue.value : ''}
-            style={validationStatus(false)}
-            placeholder=""
-          />
+          <div className="col col--no-gutter">
+            <input
+              className="profiles-rates__input-group--rate"
+              required
+              disabled
+              value={rateValue ? rateValue.value : ''}
+              style={validationStatus(false)}
+              placeholder=""
+            />
+          </div>
+          <div className="col col--no-gutter">
+            <input
+              className="profiles-rates__input-group--price"
+              required
+              disabled
+              value={rateValue ? rateValue.price : ''}
+              style={validationStatus(false)}
+              placeholder=""
+            />
+          </div>
         </div>
         <div className="row row--gutter row--end">
           <div className="col col--end col--no-gutter-left">

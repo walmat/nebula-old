@@ -78,7 +78,6 @@ class TaskRunner {
      */
     this._context = {
       id,
-      type: this._type,
       task,
       proxy: proxy ? proxy.proxy : null,
       request: this._request,

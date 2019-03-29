@@ -168,8 +168,8 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       }
 
       // filter out data we don't need (for now)...
-      rates = rates.map(r => ({ name: r.title, rate: r.id }));
-      selectedRate = { name: selectedRate.title, rate: selectedRate.id };
+      rates = rates.map(r => ({ name: r.title, price: r.price, rate: r.id }));
+      selectedRate = { name: selectedRate.title, price: selectedRate.price, rate: selectedRate.id };
 
       const ratesIdx = nextState.rates.findIndex(r => r.site.url === site.url);
       if (ratesIdx < 0) {
@@ -240,8 +240,8 @@ export function selectedProfileReducer(state = initialProfileStates.profile, act
       }
 
       // filter out data we don't need (for now)...
-      rates = rates.map(r => ({ name: r.title, rate: r.id }));
-      selectedRate = { name: selectedRate.title, rate: selectedRate.id };
+      rates = rates.map(r => ({ name: r.title, price: r.price, rate: r.id }));
+      selectedRate = { name: selectedRate.title, price: selectedRate.price, rate: selectedRate.id };
 
       const ratesIdx = nextState.rates.findIndex(r => r.site.url === site.url);
       if (ratesIdx < 0) {

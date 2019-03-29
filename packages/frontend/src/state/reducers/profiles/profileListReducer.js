@@ -93,8 +93,8 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       let { rates, selectedRate } = action.response;
 
       // filter out data we don't need (for now)...
-      rates = rates.map(r => ({ name: r.title, rate: r.id }));
-      selectedRate = { name: selectedRate.title, rate: selectedRate.id };
+      rates = rates.map(r => ({ name: r.title, price: r.price, rate: r.id }));
+      selectedRate = { name: selectedRate.title, price: selectedRate.price, rate: selectedRate.id };
       // find the profile that we were using to fetch shipping rates
       const profile = nextState.find(p => p.id === id);
 

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 export const rate = PropTypes.shape({
   name: PropTypes.string,
   rate: PropTypes.string,
+  price: PropTypes.string,
 });
 
 export const rateEntry = PropTypes.shape({

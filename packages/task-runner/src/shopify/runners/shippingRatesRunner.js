@@ -7,6 +7,7 @@ class ShippingRatesRunner extends TaskRunner {
 
     // Specify the Runner Type
     this._type = Types.ShippingRates;
+    this._context.type = this._type;
 
     if (this._checkoutType === CheckoutTypes.fe) {
       this._logger.error(
