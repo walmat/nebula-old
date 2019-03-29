@@ -101,6 +101,8 @@ class TaskManager {
       hash: proxyHash,
       proxy,
       banList: {},
+      useList: {},
+      assignedRunners: [],
     });
     this._logger.verbose('Proxy Added with id %s', proxyId);
   }
@@ -178,13 +180,18 @@ class TaskManager {
     );
     let proxy = null;
     for (const val of this._proxies.values()) {
-      if (!val.assignedRunner && !val.banList[site]) {
+      if (
+        !proxy.assignedRunners.find(id => id === runnerId) &&
+        !val.useList[site] &&
+        !val.banList[site]
+      ) {
         proxy = val;
         break;
       }
     }
     if (proxy) {
-      proxy.assignedRunner = runnerId;
+      proxy.assignedRunners.push(runnerId);
+      proxy.useList[site] = true;
       this._proxies.delete(proxy.id);
       this._proxies.set(proxy.id, proxy);
       this._logger.verbose('Returning proxy: %s', proxy.id);
@@ -209,14 +216,15 @@ class TaskManager {
    * @param {String} runnerId the id of the runner this proxy is being released from
    * @param {String} proxyId the id of the proxy to release
    */
-  releaseProxy(runnerId, proxyId) {
+  releaseProxy(runnerId, site, proxyId) {
     this._logger.verbose('Releasing proxy %s for runner %s ...', proxyId, runnerId);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.verbose('No proxy found, skipping release');
       return;
     }
-    delete proxy.assignedRunner;
+    proxy.assignedRunners = proxy.assignedRunners.filter(rId => rId !== runnerId);
+    delete proxy.useList[site];
     this._logger.verbose('Released Proxy %s', proxyId);
   }
 
@@ -277,7 +285,7 @@ class TaskManager {
       if (shouldBan) {
         this.banProxy(runnerId, site, proxyId);
       }
-      this.releaseProxy(runnerId, proxyId);
+      this.releaseProxy(runnerId, site, proxyId);
     }
     this._logger.verbose('New proxy: %j', newProxy);
     // Return the new reserved proxy
