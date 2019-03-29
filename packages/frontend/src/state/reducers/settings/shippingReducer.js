@@ -37,8 +37,8 @@ export default function shippingReducer(state = initialSettingsStates.shipping, 
             special: newSite.special || false,
             auth: newSite.auth,
           },
-          username: null,
-          password: null,
+          username: '',
+          password: '',
           errors: Object.assign({}, state.errors, action.errors),
         };
         break;
@@ -50,8 +50,8 @@ export default function shippingReducer(state = initialSettingsStates.shipping, 
           }
           change = {
             site: action.value,
-            username: null,
-            password: null,
+            username: '',
+            password: '',
             errors: Object.assign({}, state.errors, action.errors),
           };
         } else {

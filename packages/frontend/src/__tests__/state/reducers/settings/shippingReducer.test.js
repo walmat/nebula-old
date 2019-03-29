@@ -85,8 +85,8 @@ describe('settings reducer', () => {
             special: false,
             auth: false,
           },
-          username: null,
-          password: null,
+          username: '',
+          password: '',
         };
         const actual = shippingReducer(undefined, {
           type: SETTINGS_ACTIONS.EDIT,
