@@ -241,8 +241,8 @@ class TaskManager {
       this._logger.verbose('No proxy found, skipping ban');
       return;
     }
-    proxy.banList[site] = true;
-    setTimeout(() => delete proxy.banList[site], 30000);
+    proxy.banList[site.url] = true;
+    setTimeout(() => delete proxy.banList[site.url], 30000);
     this._logger.verbose('Banned Proxy %s', proxyId);
   }
 
