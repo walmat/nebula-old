@@ -183,7 +183,7 @@ class TaskManager {
       if (
         !val.assignedRunners.find(id => id === runnerId) &&
         !val.useList[site.url] &&
-        !val.banList[site]
+        !val.banList[site.url]
       ) {
         proxy = val;
         break;
