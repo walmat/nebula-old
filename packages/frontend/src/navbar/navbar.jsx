@@ -12,6 +12,7 @@ import { ReactComponent as TasksIcon } from '../_assets/tasks.svg';
 import { ReactComponent as ProfilesIcon } from '../_assets/profiles.svg';
 import { ReactComponent as ServersIcon } from '../_assets/server-disabled.svg';
 import { ReactComponent as SettingsIcon } from '../_assets/settings.svg';
+import { mapThemeToColor } from '../constants/themes';
 import './navbar.css';
 
 const bodymovinOptions = {
@@ -61,6 +62,24 @@ export class NavbarPrimitive extends PureComponent {
         </div>
       </div>
     );
+  }
+
+  static openHarvesterWindow(theme) {
+    if (window.Bridge) {
+      window.Bridge.launchCaptchaHarvester({ backgroundColor: mapThemeToColor[theme] });
+    } else {
+      // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
+      console.error('Unable to launch harvester!');
+    }
+  }
+
+  static closeAllCaptchaWindows() {
+    if (window.Bridge) {
+      window.Bridge.closeAllCaptchaWindows();
+    } else {
+      // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
+      console.error('Unable to close all windows');
+    }
   }
 
   constructor(props) {
@@ -115,6 +134,7 @@ export class NavbarPrimitive extends PureComponent {
 
   render() {
     const { name, version } = NavbarPrimitive._getAppData();
+    const { theme } = this.props;
     return (
       <div className="container navbar">
         <div className="row">
@@ -127,14 +147,32 @@ export class NavbarPrimitive extends PureComponent {
                 <div className="col col--expand col--no-gutter navbar__icons">
                   {this.renderNavbarIconRows()}
                 </div>
-                <div className="row">
-                  <div className="col col--no-gutter">
-                    <div className="row row--start">
+                <div className="row row--gutter">
+                  <button
+                    type="button"
+                    className="navbar__button--open-captcha"
+                    onClick={() => NavbarPrimitive.openHarvesterWindow(theme)}
+                  >
+                    Captcha
+                  </button>
+                </div>
+                <div className="row row--gutter">
+                  <button
+                    type="button"
+                    className="navbar__button--close-captcha"
+                    onClick={NavbarPrimitive.closeAllCaptchaWindows}
+                  >
+                    Close All
+                  </button>
+                </div>
+                <div className="row navbar__text--gap">
+                  <div className="col col--gutter col--expand">
+                    <div className="row row--expand row--gutter">
                       <div>
                         <p className="navbar__text--app-name">{name.replace('-', ' ')}</p>
                       </div>
                     </div>
-                    <div className="row row--end">
+                    <div className="row row--expand row--gutter">
                       <div
                         role="button"
                         tabIndex={0}
@@ -165,6 +203,7 @@ export class NavbarPrimitive extends PureComponent {
 NavbarPrimitive.propTypes = {
   history: PropTypes.objectOf(PropTypes.any).isRequired,
   navbar: PropTypes.objectOf(PropTypes.any).isRequired,
+  theme: PropTypes.string.isRequired,
   onRoute: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };

@@ -1,5 +1,4 @@
 import { SETTINGS_FIELDS } from '../../state/actions';
-
 import regexes from '../validation';
 
 function validateProxies(proxies) {
@@ -16,8 +15,8 @@ function validateProxies(proxies) {
   return errorMap;
 }
 
-const settingsAttributeValidatorMap = {
+const proxyAttributeValidatorMap = {
   [SETTINGS_FIELDS.EDIT_PROXIES]: validateProxies,
 };
 
-export default settingsAttributeValidatorMap;
+export default proxyAttributeValidatorMap;

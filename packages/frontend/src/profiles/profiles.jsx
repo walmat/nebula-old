@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import PaymentFields from './paymentFields';
+import ShippingRateFields from './shippingRates';
 import LocationFields from './locationFields';
 import LoadProfile from './loadProfile';
 import validationStatus from '../utils/validationStatus';
@@ -57,6 +58,9 @@ export class ProfilesPrimitive extends Component {
 
   render() {
     const { currentProfile, onProfileNameChange } = this.props;
+    const shippingRateFields = currentProfile.editId ? (
+      <ShippingRateFields profileToEdit={currentProfile} />
+    ) : null;
     return (
       <form>
         <div className="container profiles">
@@ -91,10 +95,18 @@ export class ProfilesPrimitive extends Component {
               }
               disabled={currentProfile.billingMatchesShipping}
             />
-            <PaymentFields className="profiles__fields--payment" profileToEdit={currentProfile} />
+            <div className="col col--start">
+              <div className="row row--start">
+                <PaymentFields
+                  className="profiles__fields--payment"
+                  profileToEdit={currentProfile}
+                />
+              </div>
+              <div className="row row--start">{shippingRateFields}</div>
+            </div>
           </div>
-          <div className="row row--expand row--end row--gutter">
-            <div className="col col--start col--no-gutter-left">
+          <div className="row row--expand row--end row--gutter profiles--save-row">
+            <div className="col col--no-gutter-left">
               <div className="row row--extend row--end row--gutter">
                 <input
                   className="profiles__fields--name"
@@ -107,6 +119,8 @@ export class ProfilesPrimitive extends Component {
                   placeholder="Profile Name"
                 />
               </div>
+            </div>
+            <div className="col col--end col--gutter">
               <div className="row row--extend row--end row--no-gutter">
                 <button type="button" className="profiles__fields--save" onClick={this.saveProfile}>
                   Save
@@ -131,7 +145,6 @@ ProfilesPrimitive.propTypes = {
 export const mapStateToProps = state => ({
   profiles: state.profiles,
   currentProfile: state.currentProfile,
-  selectedProfile: state.selectedProfile,
 });
 
 export const mapDispatchToProps = dispatch => ({

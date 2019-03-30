@@ -19,7 +19,8 @@ describe('<Webhooks />', () => {
         onSettingsChange={renderProps.onSettingsChange}
         onTestDiscord={renderProps.onTestDiscord}
         onTestSlack={renderProps.onTestSlack}
-        settings={renderProps.settings}
+        discord={renderProps.discord}
+        slack={renderProps.slack}
         onKeyPress={renderProps.onKeyPress}
         errors={renderProps.errors}
       />,
@@ -28,9 +29,8 @@ describe('<Webhooks />', () => {
 
   beforeEach(() => {
     defaultProps = {
-      settings: {
-        ...initialSettingsStates.settings,
-      },
+      discord: initialSettingsStates.settings.discord,
+      slack: initialSettingsStates.settings.slack,
       errors: {
         ...initialSettingsStates.settingsErrors.defaults,
       },
@@ -49,19 +49,22 @@ describe('<Webhooks />', () => {
 
   it('renders with non-default props', () => {
     const customProps = {
-      settings: {
-        ...initialSettingsStates.settings,
-        discord: 'discordTest',
-        slack: 'slackTest',
-      },
+      discord: 'discordTest',
+      slack: 'slackTest',
+      onKeyPress: jest.fn(),
     };
     const wrapper = renderShallowWithProps(customProps);
     expect(wrapper.find('.settings__input-group--webhook__discord')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--button-discord')).toHaveLength(1);
     expect(wrapper.find('.settings__input-group--webhook__slack')).toHaveLength(1);
+    expect(wrapper.find('.settings__input-group--button-slack')).toHaveLength(1);
     expect(wrapper.find('.settings__input-group--webhook__discord').prop('value')).toBe(
       'discordTest',
     );
     expect(wrapper.find('.settings__input-group--webhook__slack').prop('value')).toBe('slackTest');
+    wrapper.find('.settings__input-group--button-discord').simulate('keyPress');
+    wrapper.find('.settings__input-group--button-slack').simulate('keyPress');
+    expect(customProps.onKeyPress).toHaveBeenCalled();
   });
 
   describe('calls correct handler when editing', () => {
@@ -98,19 +101,54 @@ describe('<Webhooks />', () => {
     });
   });
 
+  describe('calls correct onClick handler when testing webhooks', () => {
+    test('discord', () => {
+      const customProps = {
+        onTestDiscord: jest.fn(),
+        discord: 'test',
+      };
+      const wrapper = renderShallowWithProps(customProps);
+      const discordInput = wrapper.find('.settings__input-group--webhook__discord');
+      const discordButton = wrapper.find('.settings__input-group--button-discord');
+      expect(discordInput.prop('value')).toBe('test');
+      expect(discordInput.prop('onChange')).toBeDefined();
+      expect(discordButton.prop('onClick')).toBeDefined();
+
+      discordButton.simulate('click');
+      expect(customProps.onTestDiscord).toHaveBeenCalledWith('test');
+    });
+
+    test('slack', () => {
+      const customProps = {
+        onTestSlack: jest.fn(),
+        slack: 'test',
+      };
+      const wrapper = renderShallowWithProps(customProps);
+      const slackInput = wrapper.find('.settings__input-group--webhook__slack');
+      const slackButton = wrapper.find('.settings__input-group--button-slack');
+      expect(slackInput.prop('value')).toBe('test');
+      expect(slackInput.prop('onChange')).toBeDefined();
+      expect(slackButton.prop('onClick')).toBeDefined();
+
+      slackButton.simulate('click');
+      expect(customProps.onTestSlack).toHaveBeenCalledWith('test');
+    });
+  });
+
   test('map state to props returns the correct structure', () => {
     const state = {
       settings: {
         ...initialSettingsStates.settings,
       },
+      discord: initialSettingsStates.settings.discord,
+      slack: initialSettingsStates.settings.slack,
       extra: 'fields',
       that: "aren't included",
     };
     const expected = {
-      profiles: state.profiles,
-      settings: state.settings,
+      discord: state.discord,
+      slack: state.slack,
       errors: state.settings.errors,
-      theme: state.theme,
     };
     expect(mapStateToProps(state)).toEqual(expected);
   });
@@ -122,11 +160,21 @@ describe('<Webhooks />', () => {
       field: SETTINGS_FIELDS.EDIT_SLACK,
       value: 'test',
     });
+    actual.onSettingsChange({
+      field: SETTINGS_FIELDS.EDIT_DISCORD,
+      value: 'test',
+    });
     actual.onTestSlack('test');
+    actual.onTestDiscord('test');
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
       settingsActions.edit(SETTINGS_FIELDS.EDIT_SLACK, 'test'),
     );
-    expect(dispatch).toHaveBeenNthCalledWith(2, settingsActions.test('test', 'slack'));
+    expect(dispatch).toHaveBeenNthCalledWith(
+      2,
+      settingsActions.edit(SETTINGS_FIELDS.EDIT_DISCORD, 'test'),
+    );
+    expect(dispatch).toHaveBeenNthCalledWith(3, settingsActions.test('test', 'slack'));
+    expect(dispatch).toHaveBeenNthCalledWith(4, settingsActions.test('test', 'discord'));
   });
 });

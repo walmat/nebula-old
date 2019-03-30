@@ -61,7 +61,7 @@ class FrontendCheckout extends Checkout {
         this.paymentToken = id;
         return { message: 'Monitoring for product', nextState: States.Monitor };
       }
-      return { message: 'Failed: Creating payment token', nextState: States.Stopped };
+      return { message: 'Failed: Creating payment token', nextState: States.Errored };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Request error creating payment token: %s', err);
 
@@ -69,7 +69,7 @@ class FrontendCheckout extends Checkout {
         message: 'Starting task setup',
         nextState: States.PaymentToken,
       });
-      return nextState || { message: 'Failed: Creating payment token', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Creating payment token', nextState: States.Errored };
     }
   }
 
@@ -127,7 +127,7 @@ class FrontendCheckout extends Checkout {
           if (this._context.task.username && this._context.task.password) {
             return { message: 'Logging in', nextState: States.Login };
           }
-          return { message: 'Account required', nextState: States.Stopped };
+          return { message: 'Account required', nextState: States.Errored };
         }
 
         // password page
@@ -163,7 +163,7 @@ class FrontendCheckout extends Checkout {
         message: 'Adding to cart',
         nextState: States.AddToCart,
       });
-      return nextState || { message: 'Failed: Add to cart', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Add to cart', nextState: States.Errored };
     }
   }
 
@@ -178,7 +178,6 @@ class FrontendCheckout extends Checkout {
   }
 
   async getCheckout() {
-    const { timers } = this._context;
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
@@ -222,7 +221,7 @@ class FrontendCheckout extends Checkout {
           if (this._context.task.username && this._context.task.password) {
             return { message: 'Logging in', nextState: States.Login };
           }
-          return { message: 'Account required', nextState: States.Stopped };
+          return { message: 'Account required', nextState: States.Errored };
         }
 
         // out of stock
@@ -247,8 +246,7 @@ class FrontendCheckout extends Checkout {
       const recaptcha = $('.g-recaptcha');
       this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
       if (recaptcha.length > 0) {
-        this._context.task.checkoutSpeed = timers.checkout.getRunTime();
-        return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
+        this.needsCaptcha = true;
       }
 
       return { message: 'Submitting information', nextState: States.PatchCheckout };
@@ -259,7 +257,7 @@ class FrontendCheckout extends Checkout {
         message: 'Fetching checkout',
         nextState: States.GetCheckout,
       });
-      return nextState || { message: 'Failed: Fetching checkout', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Fetching checkout', nextState: States.Errored };
     }
   }
 
@@ -309,7 +307,7 @@ class FrontendCheckout extends Checkout {
         if (statusCode >= 200 && statusCode < 310) {
           return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
         }
-        return { message: 'Failed: Submitting information', nextState: States.Stopped };
+        return { message: 'Failed: Submitting information', nextState: States.Errored };
       }
 
       // check for redirects
@@ -319,7 +317,7 @@ class FrontendCheckout extends Checkout {
           if (this._context.task.username && this._context.task.password) {
             return { message: 'Logging in', nextState: States.Login };
           }
-          return { message: 'Account required', nextState: States.Stopped };
+          return { message: 'Account required', nextState: States.Errored };
         }
 
         // password page
@@ -335,7 +333,7 @@ class FrontendCheckout extends Checkout {
       }
 
       // unknown redirect, stopping...
-      return { message: 'Failed: Submitting information', nextState: States.Stopped };
+      return { message: 'Failed: Submitting information', nextState: States.Errored };
     } catch (err) {
       this._logger.debug('FRONTEND CHECKOUT: Request error patching checkout: %j', err);
 
@@ -343,7 +341,7 @@ class FrontendCheckout extends Checkout {
         message: 'Submitting information',
         nextState: States.PatchCheckout,
       });
-      return nextState || { message: 'Failed: Submitting information', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Submitting information', nextState: States.Errored };
     }
   }
 
@@ -379,7 +377,7 @@ class FrontendCheckout extends Checkout {
 
       // extra check for carting
       if (statusCode === 422) {
-        return { message: 'Country not supported', nextState: States.Stopped };
+        return { message: 'Country not supported', nextState: States.Errored };
       }
 
       if (statusCode === 500 || statusCode === 503) {
@@ -426,7 +424,7 @@ class FrontendCheckout extends Checkout {
         message: 'Fetching shipping rates',
         nextState: States.ShippingRates,
       });
-      return nextState || { message: 'Failed: Fetching shipping rates', nextState: States.Stopped };
+      return nextState || { message: 'Failed: Fetching shipping rates', nextState: States.Errored };
     }
   }
 }

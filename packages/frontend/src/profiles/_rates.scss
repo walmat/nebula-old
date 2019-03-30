@@ -1,0 +1,71 @@
+@import 'mixins';
+@import '../themes';
+
+%input_field {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
+}
+
+.profiles-rates {
+  &__section-header {
+    max-height: 32px;
+    margin: 14px 0 !important;
+  }
+
+  &__input-group {
+    border-radius: 3px;
+    margin-bottom: 28px;
+
+    &--delete {
+      @include button-font();
+      @include themify($themes) {
+        background: themed('buttonColorPrimary');
+        color: themed('buttonPrimaryText');
+      }
+      border-radius: 3px;
+      border: none;
+      width: 83px;
+      height: 29px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    &--clear {
+      @include button-font();
+      @include themify($themes) {
+        background: themed('buttonColorSecondary');
+        color: themed('buttonPrimaryText');
+      }
+      border-radius: 3px;
+      border: none;
+      width: 83px;
+      height: 29px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    &--rate {
+      @extend %input_field;
+      margin-top: 17px !important;
+      width: 155px;
+    }
+
+    &--price {
+      @extend %input_field;
+      margin-top: 17px !important;
+      width: 79px;
+    }
+
+    &--site {
+      width: 117px;
+      height: 29px;
+    }
+
+    &--name {
+      width: 117px;
+      height: 29px;
+    }
+  }
+}

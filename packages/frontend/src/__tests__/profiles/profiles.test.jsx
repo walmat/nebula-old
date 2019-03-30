@@ -281,9 +281,6 @@ describe('<Profiles />', () => {
       currentProfile: {
         ...initialProfileStates.profile,
       },
-      selectedProfile: {
-        ...initialProfileStates.profile,
-      },
       other: 'stuff',
       that: "should't",
       be: 'in',
@@ -292,7 +289,6 @@ describe('<Profiles />', () => {
     const expected = {
       profiles: state.profiles,
       currentProfile: state.currentProfile,
-      selectedProfile: state.selectedProfile,
     };
     const actual = mapStateToProps(state);
     expect(actual).toEqual(expected);

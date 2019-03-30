@@ -14,6 +14,7 @@ export const GLOBAL_ACTIONS = {
   RESET: '@@RESET',
   SET_THEME: '@@SET_THEME',
   MIGRATE_STATE: '@@MIGRATE_STATE',
+  INIT: '@@INIT',
 };
 
 export const globalActions = {
@@ -28,7 +29,9 @@ export const {
   mapProfileFieldToKey,
   mapLocationFieldToKey,
   mapPaymentFieldToKey,
+  mapRateFieldToKey,
   PROFILE_ACTIONS,
+  RATES_FIELDS,
   PROFILE_FIELDS,
   PAYMENT_FIELDS,
   LOCATION_FIELDS,

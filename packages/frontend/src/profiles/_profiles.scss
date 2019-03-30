@@ -9,6 +9,9 @@
   &--input-fields {
     margin-top: 22px !important;
   }
+  &--save-row {
+    margin-top: 28px !important;
+  }
 
   .profiles__fields {
     &--matches {
@@ -25,13 +28,10 @@
       height: 29px;
       border: 1px solid;
       border-radius: 3px;
-      margin-left: -25px;
-      margin-top: -18px;
     }
 
     &--save {
       @extend %input_field;
-      margin-top: 15px;
       background: #f0405e;
       color: #efefef;
       font-size: 12px;

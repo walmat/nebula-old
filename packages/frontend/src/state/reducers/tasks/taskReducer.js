@@ -274,6 +274,19 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
       }
       break;
     }
+    case PROFILE_ACTIONS.REMOVE: {
+      if (!action.id) {
+        break;
+      }
+
+      if (state.profile && state.profile.id === action.id) {
+        return {
+          ...state,
+          profile: initialTaskStates.task.profile,
+        };
+      }
+      break;
+    }
     case PROFILE_ACTIONS.UPDATE: {
       // If there's no profile, we should do nothing
       if (!action.profile || action.errors) {

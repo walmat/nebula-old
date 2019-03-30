@@ -1,6 +1,6 @@
 import uuidv4 from 'uuid/v4';
 
-import { PROFILE_ACTIONS } from '../../actions';
+import { PROFILE_ACTIONS, SETTINGS_ACTIONS } from '../../actions';
 import { profileReducer } from './profileReducer';
 import initialProfileStates from '../../initial/profiles';
 
@@ -30,6 +30,7 @@ export default function profileListReducer(state = initialProfileStates.list, ac
 
       // add new profile
       newProfile.id = newId;
+      newProfile.rates = initialProfileStates.rates;
       nextState.push(newProfile);
       break;
     }
@@ -77,6 +78,43 @@ export default function profileListReducer(state = initialProfileStates.list, ac
 
       // Update the profile value with the one that was given to us
       nextState[idx] = Object.assign({}, action.profile, { id: action.id });
+      break;
+    }
+    case SETTINGS_ACTIONS.FETCH_SHIPPING: {
+      if (
+        !action ||
+        action.errors ||
+        (action.response && (!action.response.rates || !action.response.selectedRate))
+      ) {
+        break;
+      }
+
+      // deconstruct response
+      const { id, site } = action.response;
+      let { rates, selectedRate } = action.response;
+
+      // filter out data we don't need (for now)...
+      rates = rates.map(r => ({ name: r.title, price: r.price, rate: r.id }));
+      selectedRate = { name: selectedRate.title, price: selectedRate.price, rate: selectedRate.id };
+      // find the profile that we were using to fetch shipping rates
+      const profile = nextState.find(p => p.id === id);
+
+      // if the profile was removed somehow, don't do anything
+      if (!profile) {
+        break;
+      }
+
+      const ratesIdx = profile.rates.findIndex(r => r.site.url === site.url);
+      if (ratesIdx < 0) {
+        profile.rates.push({ site: { name: site.name, url: site.url }, rates, selectedRate });
+      } else {
+        profile.rates[ratesIdx].selectedRate = selectedRate;
+        // filter out duplicate rates from the previously stored rates
+        const oldRates = profile.rates[ratesIdx].rates.filter(
+          r1 => !rates.find(r2 => r2.name === r1.name),
+        );
+        profile.rates[ratesIdx].rates = oldRates.concat(rates);
+      }
       break;
     }
     case PROFILE_ACTIONS.ERROR: {

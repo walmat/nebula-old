@@ -5,9 +5,10 @@ const EventEmitter = require('eventemitter3');
 const hash = require('object-hash');
 const shortid = require('shortid');
 
-const TaskRunner = require('../taskRunner');
+const TaskRunner = require('../runners/taskRunner');
+const ShippingRatesRunner = require('../runners/shippingRatesRunner');
 const { Events } = require('../classes/utils/constants').TaskManager;
-const { HookTypes } = require('../classes/utils/constants').TaskRunner;
+const { HookTypes, Types: RunnerTypes } = require('../classes/utils/constants').TaskRunner;
 const Discord = require('../classes/hooks/discord');
 const Slack = require('../classes/hooks/slack');
 const { createLogger } = require('../../common/logger');
@@ -100,6 +101,8 @@ class TaskManager {
       hash: proxyHash,
       proxy,
       banList: {},
+      useList: {},
+      assignedRunners: [],
     });
     this._logger.verbose('Proxy Added with id %s', proxyId);
   }
@@ -171,19 +174,25 @@ class TaskManager {
       waitLimit = 0;
     }
     this._logger.verbose(
-      'Reserving proxy for runner %s ... Looking through %d proxies',
+      'Reserving proxy for runner %s for site %s... Looking through %d proxies',
       runnerId,
+      site,
       this._proxies.size,
     );
     let proxy = null;
     for (const val of this._proxies.values()) {
-      if (!val.assignedRunner && !val.banList[site]) {
+      if (
+        !val.assignedRunners.find(id => id === runnerId) &&
+        !val.useList[site] &&
+        !val.banList[site]
+      ) {
         proxy = val;
         break;
       }
     }
     if (proxy) {
-      proxy.assignedRunner = runnerId;
+      proxy.assignedRunners.push(runnerId);
+      proxy.useList[site] = true;
       this._proxies.delete(proxy.id);
       this._proxies.set(proxy.id, proxy);
       this._logger.verbose('Returning proxy: %s', proxy.id);
@@ -208,14 +217,15 @@ class TaskManager {
    * @param {String} runnerId the id of the runner this proxy is being released from
    * @param {String} proxyId the id of the proxy to release
    */
-  releaseProxy(runnerId, proxyId) {
+  releaseProxy(runnerId, site, proxyId) {
     this._logger.verbose('Releasing proxy %s for runner %s ...', proxyId, runnerId);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.verbose('No proxy found, skipping release');
       return;
     }
-    delete proxy.assignedRunner;
+    proxy.assignedRunners = proxy.assignedRunners.filter(rId => rId !== runnerId);
+    delete proxy.useList[site];
     this._logger.verbose('Released Proxy %s', proxyId);
   }
 
@@ -232,8 +242,8 @@ class TaskManager {
       this._logger.verbose('No proxy found, skipping ban');
       return;
     }
-    proxy.banList[site] = true;
-    setTimeout(() => delete proxy.banList[site], 30000);
+    proxy.banList[site.url] = true;
+    setTimeout(() => delete proxy.banList[site.url], 30000);
     this._logger.verbose('Banned Proxy %s', proxyId);
   }
 
@@ -276,7 +286,7 @@ class TaskManager {
       if (shouldBan) {
         this.banProxy(runnerId, site, proxyId);
       }
-      this.releaseProxy(runnerId, proxyId);
+      this.releaseProxy(runnerId, site, proxyId);
     }
     this._logger.verbose('New proxy: %j', newProxy);
     // Return the new reserved proxy
@@ -445,10 +455,10 @@ class TaskManager {
   }
 
   cleanup(runnerId) {
-    const { proxy } = this._runners[runnerId];
+    const { proxy, site } = this._runners[runnerId];
     delete this._runners[runnerId];
     if (proxy) {
-      this.releaseProxy(runnerId, proxy.id);
+      this.releaseProxy(runnerId, site, proxy.id);
     }
   }
 
@@ -463,8 +473,10 @@ class TaskManager {
    *
    * If the given task has already started, this method does nothing.
    * @param {Task} task
+   * @param {object} options Options to customize the runner:
+   *   - type - The runner type to start
    */
-  async start(task) {
+  async start(task, { type = RunnerTypes.Normal }) {
     this._logger.info('Starting task %s', task.id);
 
     const alreadyStarted = Object.values(this._runners).find(r => r.taskId === task.id);
@@ -472,10 +484,10 @@ class TaskManager {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
-    const { runnerId, openProxy } = await this.setup(task.site);
+    const { runnerId, openProxy } = await this.setup(task.site.url);
     this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
-    this._start([runnerId, task, openProxy]).then(() => {
+    this._start([runnerId, task, openProxy, type]).then(() => {
       this.cleanup(runnerId);
     });
   }
@@ -488,9 +500,11 @@ class TaskManager {
    * tasks in the given list.
    *
    * @param {List<Task>} tasks list of tasks to start
+   * @param {object} options Options to customize the runner:
+   *   - type - The runner type to start
    */
-  startAll(tasks) {
-    [...tasks].forEach(t => this.start(t));
+  startAll(tasks, options) {
+    [...tasks].forEach(t => this.start(t, options));
   }
 
   /**
@@ -639,15 +653,17 @@ class TaskManager {
     );
   }
 
-  async _start([runnerId, task, openProxy]) {
-    const runner = new TaskRunner(
-      runnerId,
-      task,
-      openProxy,
-      this._loggerPath,
-      this._discord,
-      this._slack,
-    );
+  async _start([runnerId, task, openProxy, type]) {
+    let runner;
+    if (type === RunnerTypes.Normal) {
+      runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
+    } else if (type === RunnerTypes.ShippingRates) {
+      runner = new ShippingRatesRunner(runnerId, task, openProxy, this._loggerPath);
+    }
+    // Return early if invalid type was passed in
+    if (!runner) {
+      return;
+    }
     runner.site = task.site.url;
     this._runners[runnerId] = runner;
 

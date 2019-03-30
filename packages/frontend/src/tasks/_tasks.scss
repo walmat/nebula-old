@@ -20,9 +20,40 @@
   padding-bottom: 3px !important;
 }
 
+.tasks__label {
+  height: 12px;
+  margin-bottom: 3px;
+  margin-top: 0px;
+  padding-left: 0.5px;
+}
+
+.tasks__delay {
+  &--gutter-bottom {
+    margin-bottom: 6px !important;
+  }
+}
+
 .bulk-action-sidebar {
-  & &__button {
+  &__button {
     padding-bottom: 15px;
     cursor: pointer;
+  }
+  &__monitor-delay {
+    width: 60px;
+    height: 29px;
+    padding-left: 3.5px;
+    text-align: center;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+  }
+  &__error-delay {
+    width: 60px;
+    height: 29px;
+    padding-left: 3.5px;
+    text-align: center;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
   }
 }

@@ -10,7 +10,6 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  cursor: default;
   text-rendering: optimizeLegibility;
 
   :focus {
@@ -22,6 +21,13 @@
 ::-webkit-scrollbar {
   width: 0px;
   background: transparent; /* make scrollbar transparent */
+}
+
+svg,
+button,
+img,
+a {
+  cursor: pointer !important;
 }
 
 html,
@@ -63,6 +69,7 @@ select {
   left: 0;
   right: 0;
   height: 25px;
+  cursor: move !important;
   background: transparent;
   -webkit-user-select: none;
   -webkit-app-region: drag;
@@ -79,13 +86,13 @@ select {
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
   z-index: 1;
-  cursor: pointer;
+  cursor: pointer !important;
 
   & > img {
     position: absolute;
     top: 6px;
     right: 6px;
-    cursor: pointer;
+    cursor: pointer !important;
     vertical-align: middle;
     width: 12px;
     height: 12px;
@@ -102,13 +109,13 @@ select {
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
   z-index: 1;
-  cursor: pointer;
+  cursor: pointer !important;
 
   & > img {
     position: absolute;
     top: 6px;
     right: 6px;
-    cursor: pointer;
+    cursor: pointer !important;
     vertical-align: middle;
     width: 12px;
     height: 12px;
@@ -124,7 +131,7 @@ select {
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
   z-index: 1;
-  cursor: pointer;
+  cursor: pointer !important;
 
   & > img {
     position: absolute;
@@ -132,7 +139,7 @@ select {
       top: themed('iconPositionTop');
       right: themed('iconPositionRight');
     }
-    cursor: 'pointer';
+    cursor: pointer !important;
     vertical-align: middle;
     z-index: 1;
     width: 12px;

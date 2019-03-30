@@ -3,12 +3,14 @@ import { profileReducer } from '../../../../state/reducers/profiles/profileReduc
 import initialProfileStates from '../../../../state/initial/profiles';
 import {
   mapProfileFieldToKey,
+  mapRateFieldToKey,
   mapLocationFieldToKey,
   mapPaymentFieldToKey,
   PROFILE_ACTIONS,
   LOCATION_FIELDS,
   PAYMENT_FIELDS,
   PROFILE_FIELDS,
+  RATES_FIELDS,
 } from '../../../../state/actions';
 
 describe('profile reducer', () => {
@@ -24,7 +26,9 @@ describe('profile reducer', () => {
           ...initialProfileStates.profile,
           [mapProfileFieldToKey[field]]: {
             ...initialFieldState,
-            [mapLocationFieldToKey[subField] || mapPaymentFieldToKey[subField]]:
+            [mapLocationFieldToKey[subField] ||
+            mapRateFieldToKey[subField] ||
+            mapPaymentFieldToKey[subField]]:
               subField === LOCATION_FIELDS.PROVINCE ? value.province : value,
           },
         };
@@ -350,6 +354,181 @@ describe('profile reducer', () => {
           value: 'testing',
           subField: PAYMENT_FIELDS.EMAIL,
           errors: 'testing',
+        });
+        expect(actual).toEqual(expected);
+      });
+    });
+
+    describe('rates', () => {
+      test(`when valid site selection`, () => {
+        const initial = {
+          ...initialProfileStates.profile,
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: '5-7 Business Days',
+                  rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+                },
+              ],
+              selectedRate: null,
+            },
+            {
+              site: {
+                name: '12 AM RUN',
+                url: 'https://12amrun.com',
+              },
+              rates: [
+                {
+                  name: 'Small Goods Shipping',
+                  rate: 'shopify-Small%20Goods%20Shipping-7.00',
+                },
+              ],
+              selectedRate: null,
+            },
+          ],
+        };
+
+        const expected = {
+          ...initialProfileStates.profile,
+          selectedSite: {
+            name: 'Kith',
+            url: 'https://kith.com',
+          },
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: '5-7 Business Days',
+                  rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+                },
+              ],
+              selectedRate: null,
+            },
+            {
+              site: {
+                name: '12 AM RUN',
+                url: 'https://12amrun.com',
+              },
+              rates: [
+                {
+                  name: 'Small Goods Shipping',
+                  rate: 'shopify-Small%20Goods%20Shipping-7.00',
+                },
+              ],
+              selectedRate: null,
+            },
+          ],
+        };
+        const actual = profileReducer(initial, {
+          type: PROFILE_ACTIONS.EDIT,
+          field: PROFILE_FIELDS.EDIT_SELECTED_SITE,
+          subField: RATES_FIELDS.SITE,
+          value: {
+            name: 'Kith',
+            url: 'https://kith.com',
+          },
+        });
+        expect(actual).toEqual(expected);
+      });
+
+      test(`when valid rate selection`, () => {
+        const initial = {
+          ...initialProfileStates.profile,
+          selectedSite: {
+            name: 'Kith',
+            url: 'https://kith.com',
+          },
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: '5-7 Business Days',
+                  rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+                },
+              ],
+              selectedRate: null,
+            },
+            {
+              site: {
+                name: '12 AM RUN',
+                url: 'https://12amrun.com',
+              },
+              rates: [
+                {
+                  name: 'Small Goods Shipping',
+                  rate: 'shopify-Small%20Goods%20Shipping-7.00',
+                },
+              ],
+              selectedRate: null,
+            },
+          ],
+        };
+
+        const expected = {
+          ...initialProfileStates.profile,
+          selectedSite: {
+            name: 'Kith',
+            url: 'https://kith.com',
+          },
+          rates: [
+            {
+              site: {
+                name: 'Kith',
+                url: 'https://kith.com',
+              },
+              rates: [
+                {
+                  name: '5-7 Business Days',
+                  rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+                },
+              ],
+              selectedRate: {
+                name: '5-7 Business Days',
+                rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+              },
+            },
+            {
+              site: {
+                name: '12 AM RUN',
+                url: 'https://12amrun.com',
+              },
+              rates: [
+                {
+                  name: 'Small Goods Shipping',
+                  rate: 'shopify-Small%20Goods%20Shipping-7.00',
+                },
+              ],
+              selectedRate: null,
+            },
+          ],
+        };
+        const actual = profileReducer(initial, {
+          type: PROFILE_ACTIONS.EDIT,
+          field: PROFILE_FIELDS.EDIT_RATES,
+          subField: RATES_FIELDS.RATE,
+          value: {
+            site: {
+              value: 'https://kith.com',
+              label: 'Kith',
+            },
+            rate: {
+              name: '5-7 Business Days',
+              rate: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
+            },
+          },
         });
         expect(actual).toEqual(expected);
       });
