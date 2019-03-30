@@ -191,7 +191,7 @@ class TaskManager {
     }
     if (proxy) {
       proxy.assignedRunners.push(runnerId);
-      proxy.useList[site] = true;
+      proxy.useList[site.url] = true;
       this._proxies.delete(proxy.id);
       this._proxies.set(proxy.id, proxy);
       this._logger.verbose('Returning proxy: %s', proxy.id);
