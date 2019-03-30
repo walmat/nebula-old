@@ -172,7 +172,7 @@ export class NavbarPrimitive extends PureComponent {
                         <p className="navbar__text--app-name">{name.replace('-', ' ')}</p>
                       </div>
                     </div>
-                    <div className="row row--end">
+                    <div className="row row--expand row--gutter">
                       <div
                         role="button"
                         tabIndex={0}
