@@ -234,6 +234,8 @@ class WindowManager {
         this._main = null;
         // Always close captcha windows when the main window closes
         this._captchaWindowManager.closeAllCaptchaWindows();
+        // Stop the task launcher when the main window closes
+        this._context.taskLauncher.stop();
       } else if (this._auth && winId === this._auth.id) {
         this._auth = null;
       }
