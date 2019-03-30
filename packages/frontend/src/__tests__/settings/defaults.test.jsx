@@ -23,7 +23,7 @@ describe('<Defaults />', () => {
         onSaveDefaults={renderProps.onSaveDefaults}
         onClearDefaults={renderProps.onClearDefaults}
         profiles={renderProps.profiles}
-        settings={renderProps.settings}
+        defaults={renderProps.defaults}
         onKeyPress={renderProps.onKeyPress}
         theme={renderProps.theme}
         errors={renderProps.errors}
@@ -38,8 +38,8 @@ describe('<Defaults />', () => {
         { ...initialProfileStates.profile, id: 2, profileName: 'profile2' },
         { ...initialProfileStates.profile, id: 3, profileName: 'profile3' },
       ],
-      settings: {
-        ...initialSettingsStates.settings,
+      defaults: {
+        ...initialSettingsStates.settings.defaults,
       },
       errors: {
         ...initialSettingsStates.settingsErrors.defaults,
@@ -64,12 +64,9 @@ describe('<Defaults />', () => {
 
   it('renders with non-default props', () => {
     const customProps = {
-      settings: {
-        ...initialSettingsStates.settings,
-        defaults: {
-          profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
-          sizes: ['4', '4.5', '5'],
-        },
+      defaults: {
+        profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
+        sizes: ['4', '4.5', '5'],
       },
     };
     const wrapper = renderShallowWithProps(customProps);
@@ -150,12 +147,10 @@ describe('<Defaults />', () => {
   describe('handles', () => {
     test('saving defaults', () => {
       const customProps = {
-        settings: {
-          ...initialSettingsStates.settings,
-          defaults: {
-            profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
-            sizes: [{ value: '4', label: '4.0' }],
-          },
+        ...initialSettingsStates.settings,
+        defaults: {
+          profile: { ...initialProfileStates.profile, id: 1, profileName: 'profile1' },
+          sizes: [{ value: '4', label: '4.0' }],
         },
         onSaveDefaults: jest.fn(),
         onKeyPress: jest.fn(),
@@ -165,7 +160,7 @@ describe('<Defaults />', () => {
       saveButton.simulate('keyPress');
       expect(customProps.onKeyPress).toHaveBeenCalled();
       saveButton.simulate('click');
-      expect(customProps.onSaveDefaults).toHaveBeenCalledWith(customProps.settings.defaults);
+      expect(customProps.onSaveDefaults).toHaveBeenCalledWith(customProps.defaults);
     });
 
     test('clearing defaults', () => {
@@ -208,7 +203,7 @@ describe('<Defaults />', () => {
     };
     const expected = {
       profiles: state.profiles,
-      settings: state.settings,
+      defaults: state.settings.defaults,
       errors: state.settings.errors,
       theme: state.theme,
     };
@@ -242,6 +237,9 @@ describe('<Defaults />', () => {
         sizes: [],
       }),
     );
-    expect(dispatch).toHaveBeenNthCalledWith(3, settingsActions.clear(SETTINGS_FIELDS.CLEAR));
+    expect(dispatch).toHaveBeenNthCalledWith(
+      3,
+      settingsActions.clearDefaults(SETTINGS_FIELDS.CLEAR_DEFAULTS),
+    );
   });
 });

@@ -4,6 +4,7 @@ import makeActionCreator from '../actionCreator';
 export const PROFILE_ACTIONS = {
   ADD: 'ADD_PROFILE',
   REMOVE: 'REMOVE_PROFILE',
+  DELETE_RATE: 'DELETE_RATE',
   EDIT: 'EDIT_PROFILE',
   ERROR: 'PROFILE_HANDLE_ERROR',
   SELECT: 'SELECT_PROFILE',
@@ -38,9 +39,12 @@ export const PROFILE_ACTIONS = {
 // }
 const _addProfileRequest = async profile =>
   // TODO: Replace this with an actual API call
-  new Promise(resolve => {
-    const copy = JSON.parse(JSON.stringify(profile));
-    resolve(copy);
+  new Promise((resolve, reject) => {
+    if (profile) {
+      const copy = JSON.parse(JSON.stringify(profile));
+      resolve(copy);
+    }
+    reject(new Error('Invalid profile!'));
     // console.log('trying for request');
     // try {
     //   const response = await fetch(
@@ -98,10 +102,13 @@ const _addProfileRequest = async profile =>
 // }
 const _updateProfileRequest = async (id, profile) =>
   // TODO: Replace this with an actual API call
-  new Promise(resolve => {
-    const copy = JSON.parse(JSON.stringify(profile));
-    copy.id = id;
-    resolve(copy);
+  new Promise((resolve, reject) => {
+    if (profile) {
+      const copy = JSON.parse(JSON.stringify(profile));
+      copy.id = id;
+      resolve(copy);
+    }
+    reject(new Error('Invalid profile!'));
   });
 
 // TODO this is only temporary until we get registration key stuff implemented
@@ -130,8 +137,11 @@ const _updateProfileRequest = async (id, profile) =>
 // }
 const _removeProfileRequest = async id =>
   // TODO: Replace this with an actual API call
-  new Promise(resolve => {
-    resolve(id);
+  new Promise((resolve, reject) => {
+    if (id) {
+      resolve(id);
+    }
+    reject(new Error('Invalid profile!'));
   });
 
 // Private Actions
@@ -144,6 +154,7 @@ const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'valu
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
 const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
+const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'site', 'rate');
 
 // Public Thunks
 const addProfile = profile => dispatch =>
@@ -172,6 +183,7 @@ export const profileActions = {
   load: loadProfile,
   update: updateProfile,
   error: handleError,
+  deleteRate,
 };
 
 // Field Edits
@@ -179,6 +191,8 @@ export const PROFILE_FIELDS = {
   EDIT_SHIPPING: 'EDIT_SHIPPING',
   EDIT_BILLING: 'EDIT_BILLING',
   EDIT_PAYMENT: 'EDIT_PAYMENT',
+  EDIT_RATES: 'EDIT_RATES',
+  EDIT_SELECTED_SITE: 'EDIT_SELECTED_SITE',
   EDIT_BILLING_MATCHES_SHIPPING: 'EDIT_BILLING_MATCHES_SHIPPING',
   TOGGLE_BILLING_MATCHES_SHIPPING: 'TOGGLE_BILLING_MATCHES_SHIPPING',
   EDIT_NAME: 'EDIT_NAME',
@@ -203,10 +217,18 @@ export const PAYMENT_FIELDS = {
   CVV: 'cvv',
 };
 
+export const RATES_FIELDS = {
+  SITE: 'selectedSite',
+  NAME: 'selectedName',
+  RATE: 'selectedRate',
+};
+
 export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_SHIPPING]: 'shipping',
   [PROFILE_FIELDS.EDIT_BILLING]: 'billing',
   [PROFILE_FIELDS.EDIT_PAYMENT]: 'payment',
+  [PROFILE_FIELDS.EDIT_RATES]: 'rates',
+  [PROFILE_FIELDS.EDIT_SELECTED_SITE]: 'selectedSite',
   [PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
   [PROFILE_FIELDS.EDIT_NAME]: 'profileName',
@@ -229,4 +251,10 @@ export const mapPaymentFieldToKey = {
   [PAYMENT_FIELDS.CARD_NUMBER]: 'cardNumber',
   [PAYMENT_FIELDS.EXP]: 'exp',
   [PAYMENT_FIELDS.CVV]: 'cvv',
+};
+
+export const mapRateFieldToKey = {
+  [RATES_FIELDS.SITE]: 'selectedSite',
+  [RATES_FIELDS.NAME]: 'selectedName',
+  [RATES_FIELDS.RATE]: 'selectedRate',
 };

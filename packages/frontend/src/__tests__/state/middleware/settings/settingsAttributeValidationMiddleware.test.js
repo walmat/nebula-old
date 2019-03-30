@@ -42,6 +42,121 @@ describe('settings attribute validatation middleware', () => {
     expect(nextAction.errors).not.toBeDefined();
   });
 
+  describe('should pass through actions that edit field', () => {
+    test('proxies', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_PROXIES };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('error delay', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_ERROR_DELAY };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('monitor delay', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('default profile', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('default sizes', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_DEFAULT_SIZES };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('shipping product', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('shipping rate name', () => {
+      const { store, next, invoke } = create();
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME,
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('shipping profile', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('shipping site', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_SHIPPING_SITE };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('shipping username', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+
+    test('shipping password', () => {
+      const { store, next, invoke } = create();
+      const action = { type: SETTINGS_ACTIONS.EDIT, field: SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).not.toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors).not.toBeDefined();
+    });
+  });
+
   it('should not respond to invalid fields', () => {
     const { store, next, invoke } = create();
     const action = {
@@ -55,49 +170,91 @@ describe('settings attribute validatation middleware', () => {
     expect(nextAction.errors).not.toBeDefined();
   });
 
-  describe('for edit proxies', () => {
-    it('should not pass an errors object if proxies are valid', () => {
+  describe('for edit discord', () => {
+    it('should not pass an errors object if input is valid', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
       }));
-      const expectedErrors = { ...initialSettingsStates.settingsErrors };
-      delete expectedErrors.proxies;
+      const expectedErrors = {
+        ...initialSettingsStates.settingsErrors,
+        discord: false,
+      };
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
-        field: SETTINGS_FIELDS.EDIT_PROXIES,
-        value: ['123.123.123.123:8080', '123.123.123.123:8080:user:pass'],
+        field: SETTINGS_FIELDS.EDIT_DISCORD,
+        value:
+          'https://discordapp.com/api/webhooks/492205269942796298/H0giZl0oansmwORuW4ifx-fwKWbcVPXR23FMoWkgrBfIqQErIKBiNQznQIHQuj-EPXic',
         errors: expectedErrors,
       };
       invoke(action);
       expect(next).toHaveBeenCalledWith(action);
       expect(store.getState).toHaveBeenCalled();
       const nextAction = next.mock.calls[0][0];
-      expect(nextAction.errors.proxies).not.toBeDefined();
+      expect(nextAction.errors.discord).toEqual(false);
     });
 
-    it('should pass an errors object if some proxies are invalid', () => {
+    it('should pass an errors object if input is invalid', () => {
       const { store, next, invoke } = create();
       store.getState = jest.fn(() => ({
         settings: initialSettingsStates.settings,
       }));
       const action = {
         type: SETTINGS_ACTIONS.EDIT,
-        field: SETTINGS_FIELDS.EDIT_PROXIES,
-        value: [
-          '123.123.123.123:8080',
-          '123.123.123.123:8080:user:pass',
-          'invalid',
-          '123.123.123.123:8080:',
-          '123.123.123.123:8080:user:',
-          '123.123.123.123:8080:user:pass:invalid',
-        ],
+        field: SETTINGS_FIELDS.EDIT_DISCORD,
+        value: 'invalid',
       };
       const expectedAction = {
         ...action,
         errors: {
           ...initialSettingsStates.settingsErrors,
-          proxies: [2, 3, 4, 5],
+          discord: true,
+        },
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(expectedAction);
+      expect(store.getState).toHaveBeenCalled();
+    });
+  });
+
+  describe('for edit slack', () => {
+    it('should not pass an errors object if input is valid', () => {
+      const { store, next, invoke } = create();
+      store.getState = jest.fn(() => ({
+        settings: initialSettingsStates.settings,
+      }));
+      const expectedErrors = {
+        ...initialSettingsStates.settingsErrors,
+        slack: false,
+      };
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SLACK,
+        value: 'https://hooks.slack.com/services/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',
+        errors: expectedErrors,
+      };
+      invoke(action);
+      expect(next).toHaveBeenCalledWith(action);
+      expect(store.getState).toHaveBeenCalled();
+      const nextAction = next.mock.calls[0][0];
+      expect(nextAction.errors.slack).toEqual(false);
+    });
+
+    it('should pass an errors object if input is invalid', () => {
+      const { store, next, invoke } = create();
+      store.getState = jest.fn(() => ({
+        settings: initialSettingsStates.settings,
+      }));
+      const action = {
+        type: SETTINGS_ACTIONS.EDIT,
+        field: SETTINGS_FIELDS.EDIT_SLACK,
+        value: 'invalid',
+      };
+      const expectedAction = {
+        ...action,
+        errors: {
+          ...initialSettingsStates.settingsErrors,
+          slack: true,
         },
       };
       invoke(action);

@@ -1,11 +1,16 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
+const { TaskRunnerTypes } = require('@nebula/task-runner').shopify;
 
 const IPCKeys = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 const { base, util } = require('./index');
 
 nebulaEnv.setUpEnvironment();
+
+let srrRequest = null;
+let handlers = [];
+const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
 const _checkForUpdates = () => {
   util.sendEvent(IPCKeys.RequestCheckForUpdates);
@@ -33,37 +38,53 @@ const _launchCaptchaHarvester = opts => {
  * Sends a listener for task events to launcher.js
  */
 const _registerForTaskEvents = handler => {
-  util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
-  ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
-    // Check and make sure we have a key to listen on
-    if (eventKey) {
-      util.handleEvent(eventKey, handler);
-    } else {
-      console.error('Unable to Register for Task Events!');
-    }
-  });
+  if (handlers.length > 0) {
+    handlers.push(handler);
+  } else {
+    util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
+    ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+      // Check and make sure we have a key to listen on
+      if (eventKey) {
+        handlers.push(handler);
+        util.handleEvent(eventKey, taskEventHandler);
+      } else {
+        console.error('Unable to Register for Task Events!');
+      }
+    });
+  }
 };
 
 /**
  * Removes a listener for task events to launcher.js
  */
 const _deregisterForTaskEvents = handler => {
-  util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
-  ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
-    // Check and make sure we have a key to deregister from
-    if (eventKey) {
-      util.removeEvent(eventKey, handler);
-    } else {
-      console.error('Unable to Deregister from Task Events!');
-    }
-  });
+  if (handlers.length === 1) {
+    util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
+    ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+      // Check and make sure we have a key to deregister from
+      if (eventKey) {
+        util.removeEvent(eventKey, taskEventHandler);
+        handlers = [];
+      } else {
+        console.error('Unable to Deregister from Task Events!');
+      }
+    });
+  }
+  handlers = handlers.filter(h => h !== handler);
+};
+
+/**
+ * Removes all listeners if the window was closed
+ */
+window.onbeforeunload = () => {
+  handlers.forEach(h => _deregisterForTaskEvents(h));
 };
 
 /**
  * Sends task(s) that should be started to launcher.js
  */
-const _startTasks = tasks => {
-  util.sendEvent(IPCKeys.RequestStartTasks, tasks);
+const _startTasks = (tasks, options) => {
+  util.sendEvent(IPCKeys.RequestStartTasks, tasks, options);
 };
 
 /**
@@ -71,6 +92,68 @@ const _startTasks = tasks => {
  */
 const _stopTasks = tasks => {
   util.sendEvent(IPCKeys.RequestStopTasks, tasks);
+};
+
+const _startShippingRatesRunner = task => {
+  const request = {
+    task: { ...task, id: 1000, sizes: ['Random'] },
+    cancel: () => {},
+    promise: null,
+  };
+
+  if (srrRequest) {
+    return Promise.reject(new Error('Shipping Rates Runner has already been started!'));
+  }
+
+  request.promise = new Promise((resolve, reject) => {
+    const response = {};
+
+    // Define srr message handler to retrive data
+    const srrMessageHandler = (_, id, payload) => {
+      // Only respond to specific type
+      if (payload.type === TaskRunnerTypes.ShippingRates) {
+        // Runner type is exposed from the task-runner package
+        response.rates = payload.rates || response.rates; // update rates if it exists
+        response.selectedRate = payload.selected || response.selectedRate; // update selected if it exists
+
+        if (payload.done) {
+          // SRR is done
+          _deregisterForTaskEvents(srrMessageHandler);
+          if (!response.rates || !response.selectedRate) {
+            // Reject since we don't have the required data
+            reject(new Error('Data was not provided!'));
+          } else {
+            // Resolve since we have the required data
+            resolve(response);
+          }
+          srrRequest = null;
+        }
+      }
+    };
+
+    // Define cancel method for request
+    request.cancel = () => {
+      _deregisterForTaskEvents(srrMessageHandler);
+      _stopTasks(request.task);
+      srrRequest = null;
+      reject(new Error('Runner was cancelled'));
+    };
+
+    srrRequest = request;
+    _registerForTaskEvents(srrMessageHandler);
+    _startTasks(request.task, { type: TaskRunnerTypes.ShippingRates });
+  });
+
+  return request.promise;
+};
+
+const _stopShippingRatesRunner = () => {
+  if (!srrRequest) {
+    return Promise.reject(new Error('No SRR Running'));
+  }
+  srrRequest.cancel();
+  srrRequest = null;
+  return Promise.resolve();
 };
 
 /**
@@ -113,6 +196,8 @@ process.once('loaded', () => {
     checkForUpdates: _checkForUpdates,
     launchCaptchaHarvester: _launchCaptchaHarvester,
     setTheme: _setTheme,
+    startShippingRatesRunner: _startShippingRatesRunner,
+    stopShippingRatesRunner: _stopShippingRatesRunner,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,

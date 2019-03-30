@@ -1,11 +1,26 @@
-import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../actions';
-
+import {
+  SETTINGS_ACTIONS,
+  PROFILE_ACTIONS,
+  mapSettingsFieldToKey,
+  SETTINGS_FIELDS,
+} from '../../actions';
 import initialSettingsStates from '../../initial/settings';
+import shippingReducer from './shippingReducer';
 
 export default function settingsReducer(state = initialSettingsStates.settings, action) {
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME:
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD:
+        change = {
+          shipping: shippingReducer(state.shipping, action),
+        };
+        break;
       case SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE:
       case SETTINGS_FIELDS.EDIT_DEFAULT_SIZES: {
         let useKey = 'useProfile';
@@ -72,7 +87,6 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         break;
       }
       case SETTINGS_FIELDS.EDIT_DISCORD: {
-        // TODO - check for valid `action.value` once validation middleware is setup
         if (window.Bridge) {
           window.Bridge.updateHook(action.value, 'discord');
         }
@@ -83,7 +97,6 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         break;
       }
       case SETTINGS_FIELDS.EDIT_SLACK: {
-        // TODO - check for valid `a`ction.value` once validation middleware is setup
         if (window.Bridge) {
           window.Bridge.updateHook(action.value, 'slack');
         }
@@ -109,7 +122,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       },
       errors: Object.assign({}, state.errors, action.errors),
     };
-  } else if (action.type === SETTINGS_ACTIONS.CLEAR) {
+  } else if (action.type === SETTINGS_ACTIONS.CLEAR_DEFAULTS) {
     change = {
       defaults: initialSettingsStates.defaults,
       errors: Object.assign({}, state.errors, action.errors),
@@ -118,6 +131,39 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     if (window.Bridge) {
       window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
     }
+  } else if (action.type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
+    change.shipping = {
+      ...initialSettingsStates.shipping,
+      errors: Object.assign(
+        {},
+        state.shipping.errors,
+        initialSettingsStates.settings.shipping.errors,
+      ),
+    };
+  } else if (action.type === SETTINGS_ACTIONS.SETUP_SHIPPING) {
+    change.shipping = {
+      ...state.shipping,
+      status: 'inprogress',
+    };
+  } else if (action.type === SETTINGS_ACTIONS.CLEANUP_SHIPPING) {
+    change.shipping = {
+      ...state.shipping,
+      status: 'idle',
+    };
+  } else if (action.type === PROFILE_ACTIONS.REMOVE) {
+    if (!action.id) {
+      return Object.assign({}, state, change);
+    }
+
+    if (state.shipping && state.shipping.profile && state.shipping.profile.id === action.id) {
+      change.shipping = {
+        ...state.shipping,
+        profile: initialSettingsStates.shipping.profile,
+      };
+    }
+  } else if (action.type === SETTINGS_ACTIONS.ERROR) {
+    // TODO: Handle error
+    console.error(`Error trying to perform: ${action.action}! ${action.error}`);
   }
   return Object.assign({}, state, change);
 }

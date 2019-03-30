@@ -61,10 +61,9 @@ export class App extends PureComponent {
     window.removeEventListener('beforeunload', this._cleanupTaskEvents);
   }
 
-  // Next you can import it here and use it
   setTheme(store) {
     const { theme } = store.getState();
-    const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT; // assign a default theme in case an invalid theme is given
+    const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT;
     store.dispatch(globalActions.setTheme(nextTheme));
     if (window.Bridge) {
       const backgroundColor = mapThemeToColor[nextTheme];
@@ -75,7 +74,11 @@ export class App extends PureComponent {
 
   taskHandler(event, taskId, statusMessage) {
     const { store } = this.props;
-    store.dispatch(taskActions.status(taskId, statusMessage));
+    const { type } = statusMessage;
+    // filter out shipping rate handler
+    if (type !== 'srr') {
+      store.dispatch(taskActions.status(taskId, statusMessage));
+    }
   }
 
   _cleanupTaskEvents() {
@@ -134,18 +137,21 @@ export class App extends PureComponent {
                 className="theme-icon"
                 role="button"
                 tabIndex={0}
-                title={theme === THEMES.LIGHT ? 'night mode' : 'light mode'}
+                title="theme"
                 onKeyPress={onKeyPress}
                 onClick={() => this.setTheme(store)}
                 draggable="false"
+                data-testid={addTestId('App.button.theme')}
               >
                 {theme === THEMES.LIGHT
                   ? renderSvgIcon(NightModeIcon, {
-                      alt: 'theme',
+                      alt: 'night mode',
+                      'data-testid': addTestId('App.button.theme.light-mode'),
                       style: { marginTop: '5px', marginLeft: '5px' },
                     })
                   : renderSvgIcon(LightModeIcon, {
-                      alt: 'theme',
+                      alt: 'light mode',
+                      'data-testid': addTestId('App.button.theme.dark-mode'),
                       style: { marginTop: '6px', marginLeft: '4px' },
                     })}
               </div>

@@ -1,12 +1,760 @@
 /* global describe expect it test beforeEach jest */
 import taskListReducer from '../../../../state/reducers/tasks/taskListReducer';
 import initialTaskStates from '../../../../state/initial/tasks';
-import { TASK_ACTIONS, TASK_FIELDS } from '../../../../state/actions';
+import initialProfileStates from '../../../../state/initial/profiles';
+import {
+  TASK_ACTIONS,
+  TASK_FIELDS,
+  SETTINGS_ACTIONS,
+  SETTINGS_FIELDS,
+  PROFILE_ACTIONS,
+} from '../../../../state/actions';
 
 describe('task list reducer', () => {
   it('should return initial state', () => {
     const actual = taskListReducer(undefined, {});
     expect(actual).toEqual(initialTaskStates.list);
+  });
+
+  describe('should update existing tasks', () => {
+    describe('when editing settings field', () => {
+      test('discord', () => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+          },
+        ];
+
+        const expected = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            discord: 'test',
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            discord: 'test',
+          },
+        ];
+
+        const actual = taskListReducer(start, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_DISCORD,
+          value: 'test',
+        });
+
+        expect(actual).toEqual(expected);
+      });
+
+      test('slack', () => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+          },
+        ];
+
+        const expected = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            slack: 'test',
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            slack: 'test',
+          },
+        ];
+
+        const actual = taskListReducer(start, {
+          type: SETTINGS_ACTIONS.EDIT,
+          field: SETTINGS_FIELDS.EDIT_SLACK,
+          value: 'test',
+        });
+
+        expect(actual).toEqual(expected);
+      });
+
+      describe('monitor delay', () => {
+        test('when value is greater than 0', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const expected = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+              monitorDelay: 1500,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+              monitorDelay: 1500,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+            value: 1500,
+          });
+
+          expect(actual).toEqual(expected);
+        });
+
+        test('when value is empty due to backspacing', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const expected = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+              monitorDelay: 0,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+              monitorDelay: 0,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+            value: '',
+          });
+
+          expect(actual).toEqual(expected);
+        });
+
+        test('when value is non-numerical', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const expected = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+              errorDelay: 1500,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+              errorDelay: 1500,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY,
+            value: 'test',
+          });
+
+          expect(actual).toEqual(expected);
+        });
+      });
+
+      describe('error delay', () => {
+        test('when value is greater than 0', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const expected = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+              errorDelay: 1500,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+              errorDelay: 1500,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+            value: 1500,
+          });
+
+          expect(actual).toEqual(expected);
+        });
+
+        test('when value is empty due to backspacing', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const expected = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+              errorDelay: 0,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+              errorDelay: 0,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+            value: '',
+          });
+
+          expect(actual).toEqual(expected);
+        });
+
+        test('when value is non-numerical', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const expected = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+              errorDelay: 1500,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+              errorDelay: 1500,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_ERROR_DELAY,
+            value: 'test',
+          });
+
+          expect(actual).toEqual(expected);
+        });
+      });
+
+      describe('no operation fields', () => {
+        test('default profile', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE,
+            value: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
+          });
+
+          expect(actual).toEqual(start);
+        });
+
+        test('default sizes', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_DEFAULT_SIZES,
+            value: ['Random'],
+          });
+
+          expect(actual).toEqual(start);
+        });
+
+        test('proxies', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_PROXIES,
+            value: '127.0.0.1:888',
+          });
+
+          expect(actual).toEqual(start);
+        });
+
+        test('shipping product', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
+            value: '+test',
+          });
+
+          expect(actual).toEqual(start);
+        });
+
+        test('shipping rate name', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME,
+            value: 'test',
+          });
+
+          expect(actual).toEqual(start);
+        });
+
+        test('shipping profile', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE,
+            value: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
+          });
+
+          expect(actual).toEqual(start);
+        });
+
+        test('shipping profile', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_SHIPPING_SITE,
+            value: {
+              label: 'Nebula Bots',
+              value: 'https://nebulabots.com',
+              apiKey: '6526a5b5393b6316a64853cfe091841c',
+              auth: false,
+              supported: true,
+            },
+          });
+
+          expect(actual).toEqual(start);
+        });
+
+        test('shipping username', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME,
+            value: 'test',
+          });
+
+          expect(actual).toEqual(start);
+        });
+
+        test('shipping password', () => {
+          const start = [
+            {
+              ...initialTaskStates.task,
+              id: 'task1',
+              index: 1,
+            },
+            {
+              ...initialTaskStates.task,
+              id: 'task3',
+              index: 3,
+            },
+          ];
+
+          const actual = taskListReducer(start, {
+            type: SETTINGS_ACTIONS.EDIT,
+            field: SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
+            value: 'test',
+          });
+
+          expect(actual).toEqual(start);
+        });
+      });
+    });
+
+    describe('when editing profile fields', () => {
+      test('adding a profile', () => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 1,
+              profileName: 'not test',
+            },
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+            },
+          },
+        ];
+
+        const expected = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 1,
+              profileName: 'test',
+            },
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+            },
+          },
+        ];
+
+        const actual = taskListReducer(start, {
+          type: PROFILE_ACTIONS.ADD,
+          profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
+        });
+
+        expect(actual).toEqual(expected);
+      });
+
+      test('updating a profile', () => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 1,
+              profileName: 'not test',
+            },
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+            },
+          },
+        ];
+
+        const expected = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 1,
+              profileName: 'test',
+            },
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+            },
+          },
+        ];
+
+        const actual = taskListReducer(start, {
+          type: PROFILE_ACTIONS.UPDATE,
+          profile: { ...initialProfileStates.profile, id: 1, profileName: 'test' },
+        });
+
+        expect(actual).toEqual(expected);
+      });
+
+      test('no operation when no profile is passed along', () => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 1,
+              profileName: 'not test',
+            },
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+            },
+          },
+        ];
+
+        const actual = taskListReducer(start, {
+          type: PROFILE_ACTIONS.ADD,
+          profile: null,
+        });
+
+        expect(actual).toEqual(start);
+      });
+
+      test('removing a profile with tasks using that profile', () => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 1,
+              profileName: 'not test',
+            },
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+            },
+          },
+        ];
+
+        const expected = [
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+            },
+          },
+        ];
+
+        const actual = taskListReducer(start, {
+          type: PROFILE_ACTIONS.REMOVE,
+          id: 1,
+        });
+
+        expect(actual).toEqual(expected);
+      });
+
+      test('removing a profile with tasks using that profile', () => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+              profileName: 'not test',
+            },
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            profile: {
+              ...initialProfileStates.profile,
+              id: 2,
+              profileName: 'not test',
+            },
+          },
+        ];
+
+        const actual = taskListReducer(start, {
+          type: PROFILE_ACTIONS.REMOVE,
+          id: 1,
+        });
+
+        expect(actual).toEqual(start);
+      });
+    });
   });
 
   describe('should handle add', () => {
@@ -224,6 +972,111 @@ describe('task list reducer', () => {
         const expected = JSON.parse(JSON.stringify(start));
         const actual = taskListReducer(start, {
           type: TASK_ACTIONS.REMOVE,
+          ...payload,
+        });
+        expect(actual).toEqual(expected);
+      };
+
+      test('task is not given', () => {
+        testNoop({
+          response: {},
+        });
+      });
+
+      test('when errors map exists', () => {
+        testNoop({
+          errors: {},
+        });
+      });
+
+      test('response is null', () => {
+        testNoop({
+          response: null,
+        });
+      });
+
+      test('response is not given', () => {
+        testNoop({});
+      });
+    });
+  });
+
+  describe('should handle copy', () => {
+    describe('when valid action is formed to', () => {
+      test('copy a specific task', () => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            username: 'test1',
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task2',
+            index: 2,
+            username: 'test2',
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            username: 'test3',
+          },
+        ];
+
+        const expected = [
+          {
+            ...initialTaskStates.task,
+            id: 'task1',
+            index: 1,
+            username: 'test1',
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task2',
+            index: 2,
+            username: 'test2',
+          },
+          {
+            ...initialTaskStates.task,
+            id: 'task3',
+            index: 3,
+            username: 'test3',
+          },
+          {
+            ...initialTaskStates.task,
+            id: expect.any(String),
+            index: 4,
+            username: 'test2',
+          },
+        ];
+        const actual = taskListReducer(start, {
+          type: TASK_ACTIONS.COPY,
+          response: {
+            task: {
+              ...initialTaskStates.task,
+              id: 'task2',
+              index: 2,
+              username: 'test2',
+            },
+          },
+        });
+        expect(actual).toEqual(expected);
+      });
+    });
+
+    describe('when invalid action is formed because', () => {
+      const testNoop = payload => {
+        const start = [
+          {
+            ...initialTaskStates.task,
+            id: 1,
+          },
+        ];
+        const expected = JSON.parse(JSON.stringify(start));
+        const actual = taskListReducer(start, {
+          type: TASK_ACTIONS.COPY,
           ...payload,
         });
         expect(actual).toEqual(expected);

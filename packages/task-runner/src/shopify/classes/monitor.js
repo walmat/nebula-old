@@ -1,6 +1,6 @@
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
 const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
-const { States } = require('./utils/constants').TaskRunner;
+const { Types, States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
 const generateVariants = require('./utils/generateVariants');
@@ -127,6 +127,9 @@ class Monitor {
     } catch (errors) {
       this._logger.debug('MONITOR: All request errored out! %j', errors);
       // handle parsing errors
+      if (this._context.type === Types.ShippingRates) {
+        return { message: 'Product not found!', nextState: States.Errored };
+      }
       return this._handleParsingErrors(errors);
     }
     this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
@@ -178,6 +181,9 @@ class Monitor {
         fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
       } catch (errors) {
         this._logger.debug('MONITOR: All request errored out! %j', errors);
+        if (this._context.type === Types.ShippingRates) {
+          return { message: 'Product not found!', nextState: States.Errored };
+        }
         // handle parsing errors
         return this._handleParsingErrors(errors);
       }

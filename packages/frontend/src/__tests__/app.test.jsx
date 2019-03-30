@@ -11,6 +11,7 @@ import Profiles from '../profiles/profiles';
 import Server from '../server/server';
 import Settings from '../settings/settings';
 import { ROUTES, globalActions } from '../state/actions';
+import { THEMES, mapThemeToColor, mapToNextTheme } from '../constants/themes';
 
 import getByTestId from '../__testUtils__/getByTestId';
 
@@ -32,9 +33,81 @@ describe('Top Level App', () => {
       expect(wrapper.find('#container-wrapper')).toHaveLength(1);
       expect(getByTestId(wrapper, 'App.button.close')).toHaveLength(1);
       expect(getByTestId(wrapper, 'App.button.deactivate')).toHaveLength(1);
+      expect(getByTestId(wrapper, 'App.button.theme')).toHaveLength(1);
       getByTestId(wrapper, 'App.button.deactivate').simulate('keyPress');
       expect(wrapper.instance().props.store.getState).toHaveBeenCalled();
       wrapper.unmount();
+    });
+
+    describe('Theme Button', () => {
+      let Bridge;
+
+      afterEach(() => {
+        if (Bridge && window.Bridge) {
+          delete window.Bridge;
+        }
+      });
+
+      it('should render with correct props', () => {
+        const wrapper = appProvider();
+        const themeButton = getByTestId(wrapper, 'App.button.theme');
+        expect(themeButton.prop('className')).toBe('theme-icon');
+        expect(themeButton.prop('role')).toBe('button');
+        expect(themeButton.prop('title')).toBe('theme');
+        expect(themeButton.prop('onKeyPress')).toBeDefined();
+        expect(themeButton.prop('onClick')).toBeDefined();
+      });
+
+      describe("should not call window bridge method if it isn't defined", () => {
+        test('when current theme is not in the theme map', () => {
+          const onKeyPress = jest.fn();
+          const wrapper = appProvider({ onKeyPress });
+          const { store } = wrapper.instance().props;
+          const initialTheme = 'RANDOM_TEST_STRING';
+          const themeButton = getByTestId(wrapper, 'App.button.theme');
+          themeButton.simulate('click');
+          themeButton.simulate('keyPress');
+          expect(onKeyPress).toHaveBeenCalled();
+          expect(store.dispatch).toHaveBeenCalled();
+          expect(store.dispatch.mock.calls[0][0]).toEqual(
+            globalActions.setTheme(mapToNextTheme[initialTheme] || THEMES.LIGHT),
+          );
+          expect(store.theme).toEqual(mapToNextTheme[initialTheme]);
+        });
+
+        test('when current theme is in the theme map', () => {
+          const onKeyPress = jest.fn();
+          const wrapper = appProvider({ onKeyPress });
+          const { store } = wrapper.instance().props;
+          const { theme } = store;
+          const themeButton = getByTestId(wrapper, 'App.button.theme');
+          themeButton.simulate('click');
+          themeButton.simulate('keyPress');
+          expect(onKeyPress).toHaveBeenCalled();
+          expect(store.dispatch).toHaveBeenCalled();
+          expect(store.dispatch.mock.calls[0][0]).toEqual(
+            globalActions.setTheme(mapToNextTheme[theme] || THEMES.LIGHT),
+          );
+          expect(store.theme).toEqual(mapToNextTheme[theme]);
+        });
+      });
+
+      test('should call window.Bridge.setTheme if it is defined', () => {
+        const wrapper = appProvider();
+        const { store } = wrapper.instance().props;
+        const { theme } = store;
+        const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT;
+        const backgroundColor = mapThemeToColor[nextTheme];
+        const themeButton = getByTestId(wrapper, 'App.button.theme');
+        Bridge = {
+          setTheme: jest.fn(),
+        };
+        window.Bridge = Bridge;
+        themeButton.simulate('click');
+        expect(store.dispatch).toHaveBeenCalled();
+        expect(store.dispatch.mock.calls[0][0]).toEqual(globalActions.setTheme(nextTheme));
+        expect(Bridge.setTheme).toHaveBeenCalledWith({ backgroundColor });
+      });
     });
 
     describe('Deactivate Button', () => {

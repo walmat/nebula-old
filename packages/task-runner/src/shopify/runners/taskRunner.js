@@ -1,27 +1,37 @@
 const EventEmitter = require('eventemitter3');
 const request = require('request-promise');
 
-const Timer = require('./classes/timer');
-const Monitor = require('./classes/monitor');
-const RestockMonitor = require('./classes/restockMonitor');
-const Discord = require('./classes/hooks/discord');
-const Slack = require('./classes/hooks/slack');
-const AsyncQueue = require('../common/asyncQueue');
+const Timer = require('../classes/timer');
+const Monitor = require('../classes/monitor');
+const RestockMonitor = require('../classes/restockMonitor');
+const Discord = require('../classes/hooks/discord');
+const Slack = require('../classes/hooks/slack');
+const AsyncQueue = require('../../common/asyncQueue');
 const {
   ErrorCodes,
-  TaskRunner: { States, Events, DelayTypes, HookTypes, StateMap, CheckoutRefresh, HarvestStates },
-} = require('./classes/utils/constants');
-const TaskManagerEvents = require('./classes/utils/constants').TaskManager.Events;
-const { createLogger } = require('../common/logger');
-const { waitForDelay } = require('./classes/utils');
-const { getCheckoutMethod } = require('./classes/checkouts');
+  TaskRunner: {
+    States,
+    Events,
+    Types,
+    DelayTypes,
+    HookTypes,
+    StateMap,
+    CheckoutRefresh,
+    HarvestStates,
+  },
+} = require('../classes/utils/constants');
+const TaskManagerEvents = require('../classes/utils/constants').TaskManager.Events;
+const { createLogger } = require('../../common/logger');
+const { waitForDelay } = require('../classes/utils');
+const { getCheckoutMethod } = require('../classes/checkouts');
 
 class TaskRunner {
   get state() {
     return this._state;
   }
 
-  constructor(id, task, proxy, loggerPath) {
+  constructor(id, task, proxy, loggerPath, type = Types.Normal) {
+    this._type = type;
     // Add Ids to object
     this.taskId = task.id;
     this.id = id;
@@ -68,6 +78,7 @@ class TaskRunner {
      */
     this._context = {
       id,
+      type: this._type,
       task,
       proxy: proxy ? proxy.proxy : null,
       request: this._request,
@@ -258,7 +269,10 @@ class TaskRunner {
   }
 
   _emitTaskEvent(payload) {
-    this._emitEvent(Events.TaskStatus, payload);
+    if (payload.message) {
+      this._context.status = payload.message;
+    }
+    this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
   }
 
   // MARK: State Machine Step Logic
@@ -552,14 +566,18 @@ class TaskRunner {
           this._checkout.captchaTokenRequest.status,
         );
         // TODO: should we emit a status update here?
-        return States.Stopped;
+        // clear out the status so we get a generic "errored out task event"
+        this._context.status = null;
+        return States.Errored;
       }
       default: {
         this._logger.verbose(
           'Unknown Harvest Captcha status! %s, stopping...',
           this._checkout.captchaTokenRequest.status,
         );
-        return States.Stopped;
+        // clear out the status so we get a generic "errored out task event"
+        this._context.status = null;
+        return States.Errored;
       }
     }
   }
@@ -666,6 +684,7 @@ class TaskRunner {
     return () => {
       this._emitTaskEvent({
         message: this._context.status || `Task has ${status}`,
+        done: true,
       });
       return States.Stopped;
     };
@@ -706,27 +725,34 @@ class TaskRunner {
 
   // MARK: State Machine Run Loop
 
+  async runSingleLoop() {
+    let nextState = this._state;
+    if (this._context.aborted) {
+      nextState = States.Aborted;
+    }
+    try {
+      nextState = await this._handleStepLogic(this._state);
+    } catch (e) {
+      this._logger.debug('Run loop errored out! %s', e);
+      nextState = States.Errored;
+    }
+    this._logger.verbose('Run Loop finished, state transitioned to: %s', nextState);
+
+    if (this._state !== nextState) {
+      this._prevState = this._state;
+      this._state = nextState;
+    }
+
+    return false;
+  }
+
   async start() {
     this._prevState = States.Started;
     this._state = States.Started;
-    while (this._state !== States.Stopped) {
-      let nextState = this._state;
-      if (this._context.aborted) {
-        nextState = States.Aborted;
-      }
-      try {
-        // eslint-disable-next-line no-await-in-loop
-        nextState = await this._handleStepLogic(this._state);
-      } catch (e) {
-        this._logger.debug('Run loop errored out! %s', e);
-        nextState = States.Errored;
-      }
-      this._logger.verbose('Run Loop finished, state transitioned to: %s', nextState);
-
-      if (this._state !== nextState) {
-        this._prevState = this._state;
-        this._state = nextState;
-      }
+    let shouldStop = false;
+    while (this._state !== States.Stopped && !shouldStop) {
+      // eslint-disable-next-line no-await-in-loop
+      shouldStop = await this.runSingleLoop();
     }
 
     this._cleanup();

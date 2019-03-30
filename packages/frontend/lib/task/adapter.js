@@ -87,11 +87,11 @@ class TaskManagerAdapter {
     this._taskManager.harvestCaptchaToken(runnerId, token);
   }
 
-  _onStartTasksRequest(_, tasks) {
+  _onStartTasksRequest(_, tasks, options) {
     if (tasks instanceof Array) {
-      this._taskManager.startAll(tasks);
+      this._taskManager.startAll(tasks, options);
     } else {
-      this._taskManager.start(tasks);
+      this._taskManager.start(tasks, options);
     }
   }
 

@@ -1,15 +1,17 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import NumberFormat from 'react-number-format';
 
 import ViewTask from './viewTask';
 import LogTask from './logTask';
 import CreateTask from './createTask';
-import { taskActions } from '../state/actions';
+import { taskActions, SETTINGS_FIELDS, settingsActions } from '../state/actions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 import { addTestId, renderSvgIcon } from '../utils';
+import { buildStyle } from '../utils/styles';
 
 import { ReactComponent as StartAllIcon } from '../_assets/start-all.svg';
 import { ReactComponent as StopAllIcon } from '../_assets/stop-all.svg';
@@ -19,6 +21,34 @@ import '../app.css';
 import './tasks.css';
 
 export class TasksPrimitive extends Component {
+  constructor(props) {
+    super(props);
+    this.delays = {
+      [SETTINGS_FIELDS.EDIT_MONITOR_DELAY]: {
+        className: 'col col--no-gutter tasks__delay--gutter-bottom',
+        label: 'Monitor Delay',
+        placeholder: '3500',
+        delayType: 'monitor',
+      },
+      [SETTINGS_FIELDS.EDIT_ERROR_DELAY]: {
+        className: 'col col--no-gutter',
+        label: 'Error Delay',
+        placeholder: '3500',
+        delayType: 'error',
+      },
+    };
+  }
+
+  createOnChangeHandler(field) {
+    const { onSettingsChange } = this.props;
+    return event => {
+      onSettingsChange({
+        field,
+        value: event.target.value,
+      });
+    };
+  }
+
   startAllTasks() {
     const { tasks, proxies, onStartTask } = this.props;
     tasks.forEach(t => onStartTask(t, proxies));
@@ -34,8 +64,25 @@ export class TasksPrimitive extends Component {
     tasks.forEach(t => onDestroyTask(t));
   }
 
+  renderDelay(field, value) {
+    const { className, delayType, label, placeholder } = this.delays[field];
+    return (
+      <div className={className}>
+        <p className="tasks__label">{label}</p>
+        <NumberFormat
+          value={value}
+          placeholder={placeholder}
+          className={`bulk-action-sidebar__${delayType}-delay`}
+          style={buildStyle(false)}
+          onChange={this.createOnChangeHandler(field)}
+          required
+        />
+      </div>
+    );
+  }
+
   render() {
-    const { newTask, onKeyPress } = this.props;
+    const { newTask, errorDelay, monitorDelay, onKeyPress } = this.props;
     return (
       <div className="container tasks">
         <div className="row">
@@ -185,6 +232,12 @@ export class TasksPrimitive extends Component {
                     {renderSvgIcon(DestroyAllIcon, { alt: 'destroy all' })}
                   </div>
                 </div>
+                <div className="row row--start">
+                  {this.renderDelay(SETTINGS_FIELDS.EDIT_MONITOR_DELAY, monitorDelay)}
+                </div>
+                <div className="row row--start">
+                  {this.renderDelay(SETTINGS_FIELDS.EDIT_ERROR_DELAY, errorDelay)}
+                </div>
               </div>
             </div>
           </div>
@@ -196,8 +249,11 @@ export class TasksPrimitive extends Component {
 
 TasksPrimitive.propTypes = {
   newTask: tDefns.task.isRequired,
+  monitorDelay: PropTypes.number.isRequired,
+  errorDelay: PropTypes.number.isRequired,
   tasks: tDefns.taskList.isRequired,
   proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
+  onSettingsChange: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
@@ -210,11 +266,16 @@ TasksPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   newTask: state.newTask,
+  monitorDelay: state.settings.monitorDelay,
+  errorDelay: state.settings.errorDelay,
   tasks: state.tasks,
   proxies: state.settings.proxies,
 });
 
 export const mapDispatchToProps = dispatch => ({
+  onSettingsChange: changes => {
+    dispatch(settingsActions.edit(changes.field, changes.value));
+  },
   onDestroyTask: task => {
     dispatch(taskActions.destroy(task, 'all'));
   },

@@ -1,0 +1,108 @@
+%button-base {
+  @include settings-font();
+  font-size: 12px;
+  width: 65px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+}
+
+.settings {
+  &--shipping-manager {
+    &__section-header {
+      margin-top: 15px;
+    }
+
+    &__input-group {
+      width: 422px;
+      height: 228px;
+      @include themify($themes) {
+        border-color: themed('tableBorderColor');
+      }
+      border-width: 1px;
+      border-style: solid;
+      padding-bottom: 3px;
+      border-radius: 3px;
+
+      &--product {
+        @include settings-font();
+        border-width: 1px;
+        border-style: solid;
+        height: 29px;
+        border-radius: 3px;
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--name {
+        @include settings-font();
+        border-width: 1px;
+        border-style: solid;
+        height: 29px;
+        border-radius: 3px;
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--profile {
+        @include settings-font();
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--site {
+        @include settings-font();
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--username {
+        @include settings-font();
+        border-width: 1px;
+        border-style: solid;
+        height: 29px;
+        border-radius: 3px;
+        width: 170px;
+        border-radius: 3px;
+      }
+      &--password {
+        @include settings-font();
+        border-width: 1px;
+        border-style: solid;
+        height: 29px;
+        border-radius: 3px;
+        width: 170px;
+        border-radius: 3px;
+      }
+
+      &--label {
+        @include settings-font();
+        @include themify($themes) {
+          color: themed('tableHeaderColor');
+        }
+        margin: 0;
+        margin-bottom: 2px;
+      }
+
+      &--fetch {
+        @extend %button-base;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary') !important;
+          color: themed('buttonPrimaryText') !important;
+        }
+        width: 83px !important;
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed !important;
+        }
+      }
+
+      &--clear {
+        @extend %button-base;
+        @include themify($themes) {
+          background: themed('buttonColorSecondary') !important;
+          color: themed('buttonPrimaryText') !important;
+        }
+        width: 83px !important;
+        margin-right: 7.5px;
+      }
+    }
+  }
+}

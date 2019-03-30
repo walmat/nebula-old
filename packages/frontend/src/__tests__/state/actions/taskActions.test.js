@@ -263,6 +263,48 @@ describe('task actions', () => {
     });
   });
 
+  describe('should handle copy task action', () => {
+    test('with valid task data', async () => {
+      const task = {
+        ...initialTaskState,
+        product: {
+          raw: '+good, +keywords',
+        },
+        edits: {
+          product: {},
+          sizes: [],
+          username: 'testing',
+          password: 'testing',
+          profile: {},
+        },
+      };
+      const action = taskActions.copy(task);
+      const expectedActions = [
+        {
+          type: TASK_ACTIONS.COPY,
+          response: {
+            task: {
+              ...task,
+            },
+          },
+        },
+      ];
+      await asyncTaskTests(action, expectedActions);
+    });
+
+    test('with no task', async () => {
+      const action = taskActions.copy(undefined);
+      const expectedActions = [
+        {
+          type: TASK_ACTIONS.ERROR,
+          action: TASK_ACTIONS.COPY,
+          error: expect.any(Error),
+        },
+      ];
+      await asyncTaskTests(action, expectedActions);
+    });
+  });
+
   it('should create an action to select a task', () => {
     const action = taskActions.select('task_object');
     const expectedActions = [
@@ -512,7 +554,7 @@ describe('task actions', () => {
           },
         ];
         await asyncTaskTests(action, expectedActions);
-        expect(Bridge.startTasks).toHaveBeenCalledWith(task);
+        expect(Bridge.startTasks).toHaveBeenCalledWith(task, {});
         expect(Bridge.addProxies).toHaveBeenCalled();
         delete global.window.Bridge;
       });

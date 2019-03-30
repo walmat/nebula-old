@@ -1,7 +1,7 @@
 import { initialState } from '../migrators';
 
 const { selectedProfile: profile, profiles: list } = initialState;
-const { billing: location, payment } = profile;
+const { billing: location, payment, rates } = profile;
 
 export default {
   location,
@@ -10,4 +10,5 @@ export default {
   paymentErrors: payment.errors,
   profile,
   list,
+  rates,
 };
