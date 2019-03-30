@@ -53,7 +53,7 @@ class Monitor {
     // consolidate statuses
     const statuses = errors.map(error => error.status);
     // Check for bans
-    let checkStatus = statuses.find(s => s === 403 || s === 429 || s === 430);
+    let checkStatus = statuses.every(s => s === 403 || s === 429 || s === 430);
     if (checkStatus) {
       this._logger.info('Proxy was Banned, swapping proxies...');
       return {
