@@ -182,7 +182,7 @@ class TaskManager {
     for (const val of this._proxies.values()) {
       if (
         !val.assignedRunners.find(id => id === runnerId) &&
-        !val.useList[site] &&
+        !val.useList[site.url] &&
         !val.banList[site]
       ) {
         proxy = val;
