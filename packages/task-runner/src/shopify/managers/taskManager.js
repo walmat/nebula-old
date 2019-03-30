@@ -224,7 +224,7 @@ class TaskManager {
       return;
     }
     proxy.assignedRunners = proxy.assignedRunners.filter(rId => rId !== runnerId);
-    delete proxy.useList[site];
+    delete proxy.useList[site.url];
     this._logger.verbose('Released Proxy %s', proxyId);
   }
 
