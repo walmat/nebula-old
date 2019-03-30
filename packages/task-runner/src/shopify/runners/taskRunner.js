@@ -216,12 +216,18 @@ class TaskRunner {
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
+        this._logger.verbose('Reached Proxy Handler, resolving');
         clearTimeout(timeout);
+        timeout = null;
         resolve(proxy);
       };
       timeout = setTimeout(() => {
         this._events.removeListener(Events.ReceiveProxy, proxyHandler);
-        reject(new Error('Timeout'));
+        this._logger.verbose('Reached Proxy Timeout: should reject? %s', !!timeout);
+        // only reject if timeout has not been cleared
+        if (timeout) {
+          reject(new Error('Timeout'));
+        }
       }, 10000); // TODO: Make this a variable delay?
       this._events.once(Events.ReceiveProxy, proxyHandler);
     });
@@ -640,6 +646,7 @@ class TaskRunner {
         this.proxy = proxy;
         this._context.proxy = proxy.proxy;
         this.shouldBanProxy = false; // reset ban flag
+        this._logger.verbose('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
         return this._prevState;
       }
 
