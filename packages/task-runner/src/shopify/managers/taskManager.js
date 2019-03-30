@@ -174,16 +174,17 @@ class TaskManager {
       waitLimit = 0;
     }
     this._logger.verbose(
-      'Reserving proxy for runner %s ... Looking through %d proxies',
+      'Reserving proxy for runner %s for site %s... Looking through %d proxies',
       runnerId,
+      site,
       this._proxies.size,
     );
     let proxy = null;
     for (const val of this._proxies.values()) {
       if (
         !val.assignedRunners.find(id => id === runnerId) &&
-        !val.useList[site.url] &&
-        !val.banList[site.url]
+        !val.useList[site] &&
+        !val.banList[site]
       ) {
         proxy = val;
         break;
@@ -191,7 +192,7 @@ class TaskManager {
     }
     if (proxy) {
       proxy.assignedRunners.push(runnerId);
-      proxy.useList[site.url] = true;
+      proxy.useList[site] = true;
       this._proxies.delete(proxy.id);
       this._proxies.set(proxy.id, proxy);
       this._logger.verbose('Returning proxy: %s', proxy.id);
@@ -224,7 +225,7 @@ class TaskManager {
       return;
     }
     proxy.assignedRunners = proxy.assignedRunners.filter(rId => rId !== runnerId);
-    delete proxy.useList[site.url];
+    delete proxy.useList[site];
     this._logger.verbose('Released Proxy %s', proxyId);
   }
 
@@ -454,10 +455,10 @@ class TaskManager {
   }
 
   cleanup(runnerId) {
-    const { proxy } = this._runners[runnerId];
+    const { proxy, site } = this._runners[runnerId];
     delete this._runners[runnerId];
     if (proxy) {
-      this.releaseProxy(runnerId, proxy.id);
+      this.releaseProxy(runnerId, site, proxy.id);
     }
   }
 
@@ -483,7 +484,7 @@ class TaskManager {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
-    const { runnerId, openProxy } = await this.setup(task.site);
+    const { runnerId, openProxy } = await this.setup(task.site.url);
     this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
 
     this._start([runnerId, task, openProxy, type]).then(() => {
