@@ -31,11 +31,10 @@ class TaskRunner {
   }
 
   constructor(id, task, proxy, loggerPath, type = Types.Normal) {
-    this._type = type;
     // Add Ids to object
-    this.taskId = task.id;
     this.id = id;
     this.proxy = proxy;
+    this._type = type;
 
     this._jar = request.jar();
     this._request = request.defaults({
@@ -78,7 +77,7 @@ class TaskRunner {
      */
     this._context = {
       id,
-      type: this._type,
+      type,
       task,
       proxy: proxy ? proxy.proxy : null,
       request: this._request,
