@@ -33,6 +33,7 @@ class TaskRunner {
   constructor(id, task, proxy, loggerPath, type = Types.Normal) {
     // Add Ids to object
     this.id = id;
+    this.taskId = task.id;
     this.proxy = proxy;
     this._type = type;
 
