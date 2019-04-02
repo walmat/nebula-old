@@ -13,9 +13,9 @@ class WebWorkerContext {
   }
 
   constructor(rId, task, proxy) {
-    // if (!global.window || !global.window.Worker) {
-    //   throw new Error('WebWorker Threads are required for this context!');
-    // }
+    if (!global.window || !global.window.Worker) {
+       throw new Error('WebWorker Threads are required for this context!');
+     }
     this.id = rId;
     this.taskId = task.id;
     this.site = task.site.url;

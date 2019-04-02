@@ -129,7 +129,7 @@ class TaskLauncher {
         webSecurity: true,
         allowRunningInsecureContent: false,
         experimentalCanvasFeatures: false,
-        experimentalFeatures: true,
+        experimentalFeatures: false,
         enableBlinkFeatures: '',
         preload: path.resolve(__dirname, 'adapter.js'),
       },
