@@ -215,13 +215,17 @@ class TaskLauncher {
   _taskEventHandler(_, taskId, statusMessage) {
     // forward event if we have listeners
     if (this._eventListeners.length > 0) {
+      const workingListeners = [];
       this._eventListeners.forEach(l => {
         try {
           l.send(_TASK_EVENT_KEY, taskId, statusMessage);
+          workingListeners.push(l);
         } catch (e) {
           // fail silently...
+          // TODO: add a log message once we get winston added to the frontend
         }
       });
+      this._eventListeners = workingListeners;
     }
   }
 

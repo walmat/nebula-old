@@ -82,10 +82,12 @@ class TaskManager {
    * @param {Proxy} proxy the proxy to register
    */
   registerProxy(proxy) {
+    this._logger.silly('Registering proxy...');
     let proxyId;
     const proxyHash = hash(proxy);
     for (const val of this._proxies.values()) {
       if (val.hash.includes(proxyHash)) {
+        this._logger.silly('Proxy already exists with hash %s! proxy not added', proxyHash);
         return;
       }
     }

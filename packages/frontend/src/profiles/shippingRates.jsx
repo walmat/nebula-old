@@ -126,7 +126,7 @@ export class ShippingRatesPrimitive extends Component {
               className="profiles-rates__input-group--rate"
               required
               disabled
-              value={rateValue && rateValue.value ? rateValue.value : ''}
+              value={rateValue ? rateValue.value : ''}
               style={validationStatus(false)}
               placeholder=""
             />
@@ -136,7 +136,7 @@ export class ShippingRatesPrimitive extends Component {
               className="profiles-rates__input-group--price"
               required
               disabled
-              value={rateValue && rateValue.price ? rateValue.price : ''}
+              value={rateValue ? rateValue.price : ''}
               style={validationStatus(false)}
               placeholder=""
             />
