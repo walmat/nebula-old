@@ -129,7 +129,7 @@ class TaskLauncher {
         webSecurity: true,
         allowRunningInsecureContent: false,
         experimentalCanvasFeatures: false,
-        experimentalFeatures: false,
+        experimentalFeatures: true,
         enableBlinkFeatures: '',
         preload: path.resolve(__dirname, 'adapter.js'),
       },
@@ -150,8 +150,12 @@ class TaskLauncher {
       this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
     });
 
-    this._launcherWindow.webContents.on('destroyed', () => {
+    this._launcherWindow.webContents.on('destroyed', async () => {
       // Remove launcher window reference if it gets destroyed by an outside source
+      if (this._launcherWindow) {
+        await this.abortAllTasks();
+        this._launcherWindow.close();
+      }
       this._launcherWindow = null;
 
       // Remove the handler for listening to task event statuses
@@ -182,8 +186,9 @@ class TaskLauncher {
       console.log('Closing Launcher...');
     }
     await this.abortAllTasks();
-    this._launcherWindow.close();
-    this._launcherWindow = null;
+    if (this._launcherWindow) {
+      this._launcherWindow.close();
+    }
   }
 
   async abortAllTasks() {
@@ -210,7 +215,13 @@ class TaskLauncher {
   _taskEventHandler(_, taskId, statusMessage) {
     // forward event if we have listeners
     if (this._eventListeners.length > 0) {
-      this._eventListeners.forEach(l => l.send(_TASK_EVENT_KEY, taskId, statusMessage));
+      this._eventListeners.forEach(l => {
+        try {
+          l.send(_TASK_EVENT_KEY, taskId, statusMessage);
+        } catch (e) {
+          // fail silently...
+        }
+      });
     }
   }
 
