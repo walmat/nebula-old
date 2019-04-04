@@ -110,6 +110,7 @@ const urlToOptionIndex = {
   'https://thechimpstore.com': 1,
   'https://alifenewyork.com': 1,
   'https://atmosny.com': 1,
+  'https://shop.hbo.com': 1,
   'https://biancachandon.com': 1,
   'https://centre214.com': 1,
   'https://concrete.nl': 1, // TODO (option 1 looks like: UK 3.5 - US 4.0 - EU 36.0)
