@@ -204,6 +204,13 @@ const sites = [
     supported: true,
   },
   {
+    name: 'HBO Shop',
+    url: 'https://shop.hbo.com',
+    apiKey: 'd141a5b5b5850619d4142b03dbe80753',
+    auth: false,
+    supported: true,
+  },
+  {
     name: 'Highs & Lows',
     url: 'https://highsandlows.net.au',
     apiKey: '29452cd62f80a6435ff15e311766261d',

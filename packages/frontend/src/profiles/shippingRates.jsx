@@ -99,17 +99,19 @@ export class ShippingRatesPrimitive extends Component {
     let rateValue = null;
     if (value.selectedSite) {
       siteObject = value.rates.find(v => v.site.url === value.selectedSite.value);
-      if (siteObject && siteObject.selectedRate) {
-        const {
-          selectedRate: { name, price, rate },
-        } = siteObject;
-        rateValue = { label: name, price, value: rate };
+      if (siteObject) {
+        if (siteObject.selectedRate) {
+          const {
+            selectedRate: { name, price, rate },
+          } = siteObject;
+          rateValue = { label: name, price, value: rate };
+        }
+        nameOptions = siteObject.rates.map(({ rate, price, name }) => ({
+          value: rate,
+          price,
+          label: name,
+        }));
       }
-      nameOptions = siteObject.rates.map(({ rate, price, name }) => ({
-        value: rate,
-        price,
-        label: name,
-      }));
     } else {
       // reset selectedRate if there's no selected site
       siteObject.selectedRate = null;
