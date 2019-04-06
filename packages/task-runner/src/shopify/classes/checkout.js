@@ -655,6 +655,8 @@ class Checkout {
     const { chosenSizes } = product;
     const { url, apiKey, name } = site;
 
+    this._logger.debug('CHOSEN SIZES: %j', chosenSizes);
+
     if (checkoutTimer.getRunTime() > 20000) {
       return { message: 'Processing timed out, check email', nextState: States.Finished };
     }

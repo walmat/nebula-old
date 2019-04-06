@@ -62,6 +62,12 @@ export class App extends PureComponent {
     window.removeEventListener('beforeunload', this._cleanup);
   }
 
+  async onCloseHandler() {
+    const { store } = this.props;
+    const { tasks } = store.getState();
+    tasks.forEach(t => store.dispatch(taskActions.stop(t)));
+  }
+
   setTheme(store) {
     const { theme } = store.getState();
     const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT;
