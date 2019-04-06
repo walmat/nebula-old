@@ -126,7 +126,7 @@ const _copyTaskRequest = async task => {
 };
 
 const _stopTaskRequest = async task => {
-  if (task.status === 'stopped') {
+  if (task.status === 'stopped' || task.status === 'idle') {
     throw new Error('Already stopped');
   } else {
     if (window.Bridge) {

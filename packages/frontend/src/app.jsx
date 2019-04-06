@@ -68,7 +68,11 @@ export class App extends PureComponent {
   async onCloseHandler() {
     const { store } = this.props;
     const { tasks } = store.getState();
-    tasks.forEach(t => store.dispatch(taskActions.stop(t)));
+    tasks.forEach(t => {
+      if (t.status !== 'stopped' || t.status !== 'idle') {
+        store.dispatch(taskActions.stop(t));
+      }
+    });
   }
 
   setTheme(store) {
