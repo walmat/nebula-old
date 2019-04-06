@@ -600,7 +600,7 @@ class TaskRunner {
   async _handlePostPayment() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 

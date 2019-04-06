@@ -126,10 +126,10 @@ class TaskLauncher {
         // This is needed when running in multi thread mode
         // TODO: Add a check to make sure we are running in this mode before enabling
         nodeIntegrationInWorker: true,
-        webSecurity: true,
-        allowRunningInsecureContent: false,
-        experimentalCanvasFeatures: false,
-        experimentalFeatures: false,
+        webSecurity: false,
+        allowRunningInsecureContent: true,
+        experimentalCanvasFeatures: true,
+        experimentalFeatures: true,
         enableBlinkFeatures: '',
         preload: path.resolve(__dirname, 'adapter.js'),
       },

@@ -1,4 +1,4 @@
-const Electron = require('electron');
+xconst Electron = require('electron');
 const Path = require('path');
 const nebulaEnv = require('./env');
 
@@ -10,7 +10,7 @@ const _defaultWebPreferences = {
   webSecurity: true,
   allowRunningInsecureContent: false,
   experimentalCanvasFeatures: true,
-  experimentalFeatures: false,
+  experimentalFeatures: true,
   blinkFeatures: '',
 };
 
