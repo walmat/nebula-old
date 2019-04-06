@@ -54,14 +54,14 @@ class SpecialParser extends Parser {
     } catch (error) {
       // Handle Redirect response (wait for refresh delay)
       if (error.statusCode === 302) {
-        this._logger.debug('%s: Redirect Detected!', this._name);
+        this._logger.error('%s: Redirect Detected!', this._name);
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('RedirectDetected');
         rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay
         throw rethrow;
       }
       // Handle other error responses
-      this._logger.debug('%s: ERROR making request! %s', this._name, error.messsage, error.stack);
+      this._logger.error('%s: ERROR making request! %s', this._name, error.messsage, error.stack);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;
@@ -82,7 +82,7 @@ class SpecialParser extends Parser {
         try {
           products = await this.parseInitialPageForProducts.call(this, response);
         } catch (error) {
-          this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
+          this._logger.error('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.statusCode || error.status || 404;
@@ -94,7 +94,7 @@ class SpecialParser extends Parser {
         try {
           productsToVisit = await this.parseInitialPageForUrls.call(this, response);
         } catch (error) {
-          this._logger.debug('%s: ERROR parsing response as initial page', this._name, error);
+          this._logger.error('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.statusCode || error.status || 404;
@@ -117,7 +117,7 @@ class SpecialParser extends Parser {
                 ...productInfo,
               };
             } catch (err) {
-              this._logger.debug(
+              this._logger.error(
                 '%s: ERROR parsing product info page',
                 this._name,
                 err.statusCode || err.status,
@@ -138,7 +138,7 @@ class SpecialParser extends Parser {
       try {
         matchedProduct = super.match(products);
       } catch (error) {
-        this._logger.debug('%s: ERROR matching product!', this._name, error);
+        this._logger.error('%s: ERROR matching product!', this._name, error);
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error(error.message);
         rethrow.status = error.status || 404;
@@ -151,7 +151,7 @@ class SpecialParser extends Parser {
       try {
         matchedProduct = await this.parseProductInfoPageForProduct.call(this, response);
       } catch (error) {
-        this._logger.debug('%s: ERROR getting product!', this._name, error);
+        this._logger.error('%s: ERROR getting product!', this._name, error);
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error(error.message);
         rethrow.status = error.status || 404;

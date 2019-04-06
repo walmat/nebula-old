@@ -5,11 +5,12 @@ const nebulaEnv = require('./env');
 nebulaEnv.setUpEnvironment();
 
 const _defaultWebPreferences = {
-  nodeIntegration: false,
+  nodeIntegration: true,
+  nodeIntegrationInWorker: true,
   webSecurity: true,
   allowRunningInsecureContent: false,
   experimentalCanvasFeatures: true,
-  experimentalFeatures: false,
+  experimentalFeatures: true,
   blinkFeatures: '',
 };
 

@@ -20,7 +20,7 @@ class WebWorkerContext {
     this.taskId = task.id;
     this.site = task.site.url;
     this.proxy = proxy;
-    this._name = 'Worker Thread';
+    this._name = 'Web Workers';
     this._target = 'worker';
     this._errorHandlers = [];
     this._messageHandlers = [];
@@ -81,7 +81,7 @@ class WebWorkerContext {
   }
 }
 
-class SplitThreadTaskManager extends SplitContextTaskManager {
+class SplitWebWorkerTaskManager extends SplitContextTaskManager {
   constructor(loggerPath) {
     super(loggerPath, WebWorkerContext);
     if (!global.window || !global.window.Worker) {
@@ -90,4 +90,4 @@ class SplitThreadTaskManager extends SplitContextTaskManager {
   }
 }
 
-module.exports = SplitThreadTaskManager;
+module.exports = SplitWebWorkerTaskManager;

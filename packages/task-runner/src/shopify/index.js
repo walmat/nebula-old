@@ -1,5 +1,6 @@
 const TaskManager = require('./managers/taskManager');
-const SplitThreadTaskManager = require('./managers/splitThreadTaskManager');
+const SplitWebWorkerTaskManager = require('./managers/splitWebWorkerTaskManager');
+const SplitWorkerThreadTaskManager = require('./managers/splitWorkerThreadTaskManager');
 const SplitProcessTaskManager = require('./managers/splitProcessTaskManager');
 const TaskRunner = require('./runners/taskRunner');
 const ShippingRatesRunner = require('./runners/shippingRatesRunner');
@@ -9,7 +10,8 @@ const {
 
 module.exports = {
   TaskManager,
-  SplitThreadTaskManager,
+  SplitWorkerThreadTaskManager,
+  SplitWebWorkerTaskManager,
   SplitProcessTaskManager,
   TaskRunner,
   ShippingRatesRunner,
