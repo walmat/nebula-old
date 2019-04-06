@@ -5,7 +5,7 @@ window.onload = () => {
     loop: true,
     prerender: true,
     autoplay: true,
-    path: './js/nebula.json',
+    path: './nebula.json',
   };
   const anim = bodymovin.loadAnimation(animData);
   const close = document.getElementById('close');
