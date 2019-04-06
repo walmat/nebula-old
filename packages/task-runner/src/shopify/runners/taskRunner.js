@@ -442,6 +442,9 @@ class TaskRunner {
       });
       await this._waitForErrorDelay();
     }
+    if (this._context.task.product.chosenSizes) {
+      this._emitTaskEvent({ message, size: this._context.task.product.chosenSizes[0] });
+    }
     this._emitTaskEvent({ message });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
@@ -480,10 +483,14 @@ class TaskRunner {
       });
       await this._waitForErrorDelay();
     }
-    this._emitTaskEvent({ message });
-    if (nextState === States.SwapProxies) {
+
+    if (this._context.task.product.chosenSizes) {
+      this._emitTaskEvent({ message, size: this._context.task.product.chosenSizes[0] });
+    }
+    this._emitTaskEvent({ message });    if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
+
     if (nextState === States.Restocking) {
       await waitForDelay(this._context.task.monitorDelay);
     }

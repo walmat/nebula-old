@@ -58,7 +58,10 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }) {
     ),
   );
   if (validVariants.length > 0) {
-    return validVariants.map(v => `${v.id}`);
+    return {
+      variants: validVariants.map(v => `${v.id}`),
+      sizes: validVariants.map(v => `${v.title}`),
+    };
   }
   const err = new Error('No variants matched');
   err.code = ErrorCodes.VariantsNotMatched;

@@ -47,13 +47,14 @@ class RestockMonitor extends Monitor {
       'RESTOCK MONITOR: Retrieve Full Product %s, Generating Variants List...',
       fullProductInfo.title,
     );
-    const variants = this._generateVariants(fullProductInfo);
+    const { variants, sizes, nextState, message } = this._generateVariants(fullProductInfo);
     // check for next state (means we hit an error when generating variants)
-    if (variants.nextState) {
-      return variants;
+    if (nextState) {
+      return { nextState, message };
     }
     this._logger.silly('RESTOCK MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
+    this._context.task.product.chosenSizes = sizes;
     // Everything is setup -- kick it to checkout
     this._logger.silly('RESTOCK MONITOR: Status is OK, proceeding to checkout');
     this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);

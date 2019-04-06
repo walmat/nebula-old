@@ -268,6 +268,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       } else {
         nextState[idx].status = 'stopped';
         nextState[idx].output = 'Stopping task...';
+        nextState[idx].chosenSizes = nextState[idx].sizes;
       }
       break;
     }
