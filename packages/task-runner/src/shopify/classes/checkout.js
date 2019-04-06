@@ -621,9 +621,12 @@ class Checkout {
       discord,
       id,
     } = this._context;
-    const { site, product, profile, sizes, checkoutSpeed } = this._context.task;
+    const { site, product, profile, checkoutSpeed } = this._context.task;
     const { profileName } = profile;
+    const { chosenSizes } = product;
     const { url, apiKey, name } = site;
+
+    this._logger.debug('CHOSEN SIZES: %j', chosenSizes);
 
     if (checkoutTimer.getRunTime() > 20000) {
       return { message: 'Processing timed out, check email', nextState: States.Finished };
@@ -686,7 +689,7 @@ class Checkout {
                 url: order.status_url,
               },
               profile: profileName,
-              sizes,
+              sizes: chosenSizes,
               checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               logger: `runner-${id}.log`,

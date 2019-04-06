@@ -195,6 +195,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       const task = nextState.find(t => t.id === action.response.id);
       if (task) {
         task.output = action.response.message;
+        if (action.response.message.size) {
+          task.chosenSizes = [action.response.message.size];
+        }
       }
       break;
     }
