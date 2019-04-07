@@ -1,9 +1,10 @@
-const webhook = require('hookcord');
+const DiscordJS = require('discord.js');
 
 class Discord {
   constructor(hook) {
     if (hook) {
-      this.hook = new webhook.Hook().setLink(hook);
+      const [, , , , , id, token] = hook.split('/');
+      this.hook = new DiscordJS.WebhookClient(id, token);
     }
   }
 
@@ -21,70 +22,22 @@ class Discord {
     image,
   ) {
     if (this.hook) {
-      const payload = {
-        embeds: [
-          {
-            title: success ? 'Successful checkout!' : 'Payment failed!',
-            color: success ? 4631988 : 15679838,
-            thumbnail: {
-              url: image,
-            },
-            fields: [
-              {
-                name: 'Product',
-                value: `[${product.name}](${product.url})`,
-                inline: true,
-              },
-              {
-                name: 'Price',
-                value: price,
-                inline: true,
-              },
-              {
-                name: 'Store',
-                value: `[${site.name}](${site.url})`,
-                inline: true,
-              },
-              {
-                name: 'Order #',
-                value: order ? `[${order.number}](${order.url})` : 'None',
-                inline: true,
-              },
-              {
-                name: 'Billing Profile',
-                value: profile || 'None',
-                inline: true,
-              },
-              {
-                name: 'Size(s)',
-                value: `${sizes[0]}`,
-                inline: true,
-              },
-              {
-                name: 'Checkout Speed (ms)',
-                value: checkoutSpeed,
-                inline: true,
-              },
-              {
-                name: 'Shipping Method',
-                value: shippingMethod || 'None',
-                inline: true,
-              },
-              {
-                name: 'Logger File',
-                value: logger || 'None',
-                inline: true,
-              },
-            ],
-            footer: {
-              icon_url: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg', // TODO - host our own image
-              text: 'Nebula Orion © 2019',
-            },
-            timestamp: new Date(),
-          },
-        ],
-      };
-      return this.hook.setPayload(payload).fire();
+      const embed = new DiscordJS.RichEmbed()
+        .setTitle(success ? 'Successful checkout!' : 'Payment failed!')
+        .setColor(success ? 4631988 : 15679838)
+        .setThumbnail(image)
+        .setTimestamp(new Date())
+        .addField('Product', `[${product.name}](${product.url})`, true)
+        .addField('Price', `${price}`, true)
+        .addField('Store', `[${site.name}](${site.url})`, true)
+        .addField('Order #', order ? `[${order.number}](${order.url})` : 'None', true)
+        .addField('Billing Profile', profile ? `${profile}` : 'None', true)
+        .addField('Size(s)', `${sizes[0]}`, true)
+        .addField('Checkout Speed (ms)', `${checkoutSpeed}`, true)
+        .addField('Shipping Method', shippingMethod ? `${shippingMethod}` : 'None', true)
+        .addField('Logger File', logger ? `${logger}` : 'None', true)
+        .setFooter('Nebula Orion © 2019', 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg');
+      return this.hook.send(embed);
     }
     return null;
   }
