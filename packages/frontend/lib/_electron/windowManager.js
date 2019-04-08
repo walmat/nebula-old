@@ -246,6 +246,10 @@ class WindowManager {
    * Function to handle the transition between main -> auth window
    */
   async transitionToDeauthedState() {
+    // Auth window is already open, no need to open it again
+    if (this._auth) {
+      return this._auth;
+    }
     this._auth = await createAuthWindow();
     const winUrl = urls.get('auth');
     this._auth.loadURL(winUrl);
@@ -266,6 +270,10 @@ class WindowManager {
    * Function to handle the transition between auth -> main window
    */
   async transitiontoAuthedState() {
+    // Main window is already open, no need to open it again
+    if (this._main) {
+      return this._main;
+    }
     this._main = await createMainWindow();
     this._context.taskLauncher.start();
     const winUrl = urls.get('main');
