@@ -37,6 +37,10 @@ export class TasksPrimitive extends Component {
         delayType: 'error',
       },
     };
+
+    this.state = {
+      fullscreen: false,
+    };
   }
 
   createOnChangeHandler(field) {
@@ -83,13 +87,15 @@ export class TasksPrimitive extends Component {
 
   render() {
     const { newTask, errorDelay, monitorDelay, onKeyPress } = this.props;
+    const { fullscreen } = this.state;
+    console.log(fullscreen);
     return (
       <div className="container tasks">
         <div className="row">
           <div className="col col--start">
             <div className="row row--start">
               <div className="col col--no-gutter-left">
-                <h1 className="text-header tasks__title">Tasks</h1>
+                <h1 className={`text-header tasks__title`}>Tasks</h1>
               </div>
             </div>
             <div className="row">
@@ -107,44 +113,8 @@ export class TasksPrimitive extends Component {
               </div>
             </div>
           </div>
-          <div className="col col--start">
-            <div className="row row--start">
-              <div className="col">
-                <p className="body-text section-header section-header--no-top tasks-log__section-header">
-                  Log
-                </p>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col col--start tasks-log-container">
-                <div className="tasks-log">
-                  <div className="row row--start row--gutter-left row--gutter-right tasks-log__header">
-                    <div className="col tasks-log__header--id">
-                      <p>#</p>
-                    </div>
-                    <div className="col tasks-log__header--site">
-                      <p>Site</p>
-                    </div>
-                    <div className="col tasks-log__header--size">
-                      <p>Size</p>
-                    </div>
-                    <div className="col tasks-log__header--output">
-                      <p>Output</p>
-                    </div>
-                  </div>
-                  <div className="row row--start tasks-log__view-line">
-                    <div className="col col--expand">
-                      <hr className="view-line" />
-                    </div>
-                  </div>
-                  <div className="row row--expand">
-                    <div className="col tasks-table__wrapper">
-                      <LogTask />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="col col--start" onDoubleClick={() => this.setState({ fullscreen: !fullscreen })}>
+            <LogTask fullscreen={fullscreen} />
           </div>
         </div>
         <div className="row row--start">

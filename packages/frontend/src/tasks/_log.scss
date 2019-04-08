@@ -26,6 +26,21 @@
     border-style: solid;
     border-radius: 3px;
 
+    &__fullscreen {
+      border-width: 1px;
+      border-style: solid;
+      border-radius: 3px;
+      z-index: 999;
+      position: absolute;
+      @include themify($themes) {
+        background-color: themed('background');
+      }
+      top: 30px;
+      left: 125px;
+      height: calc(100% - 60px);
+      width: calc(100% - 259px);
+    }
+
     .tasks-table__wrapper {
       min-width: 0;
       width: 100%;
@@ -34,16 +49,65 @@
     }
   }
 
-  .tasks-table {
+  .tasks-log {
     border-collapse: collapse;
     border-spacing: 0 10px;
-    max-height: 265px;
     height: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
+    cursor: sw-resize;
+
+    &__fullscreen {
+      position: absolute;
+      @include themify($themes) {
+        background-color: themed('background');
+      }
+      top: 30px;
+      left: 120px;
+      width: calc(100% - 230px);
+      height: calc(100% - 50px);
+      cursor: ne-resize;
+      z-index: 999;
+    }
+
+    &__header {
+      margin: 0;
+      padding-bottom: 1px;
+      height: 26px;
+      min-height: 26px;
+
+      &--id {
+        @extend %tasks-log__header__field;
+        width: 7px;
+        padding-left: 14px;
+      }
+
+      &--site {
+        @extend %tasks-log__header__field;
+        width: 110px;
+        padding-left: 15px;
+      }
+
+      &--size {
+        @extend %tasks-log__header__field;
+        width: 65px;
+        padding-left: 18px;
+      }
+
+      &--output {
+        @extend %tasks-log__header__field;
+        width: 20px;
+        padding-left: 30px;
+      }
+    }
 
     &__section-header {
       padding-top: 1px;
+      &__fullscreen {
+        position: absolute;
+        left: 140px;
+        top: 10px;
+      }
     }
 
     .blank {
@@ -72,64 +136,29 @@
 
         &__log {
           &--id {
-            width: 7px;
-            margin-left: -1px;
-            padding-left: 14px;
+            @extend %tasks-table__text-field;
+            margin-left: 6.5px;
+            margin-right: 0;
           }
 
           &--site {
-            width: 205px;
-            white-space: nowrap;
-            padding-left: 3px;
+            @extend %tasks-table__text-field;
+            width: 116px;
           }
 
           &--size {
-            width: 150px;
-            padding-left: 20px;
+            @extend %tasks-table__text-field;
+            width: 66px;
           }
 
           &--output {
-            width: 440px;
+            @extend %tasks-table__text-field;
+            width: 224px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
           }
         }
-      }
-    }
-  }
-  .tasks-log {
-    width: 504px;
-    height: 300px;
-    border-radius: 3px;
-
-    &__section-header {
-      padding-top: 1px;
-      padding-bottom: 2px;
-    }
-
-    &__header {
-      padding-bottom: 1px;
-
-      &--id {
-        @extend %tasks-log__header__field;
-        width: 7px;
-        padding-left: 14px;
-      }
-
-      &--site {
-        @extend %tasks-log__header__field;
-        width: 110px;
-        padding-left: 15px;
-      }
-
-      &--size {
-        @extend %tasks-log__header__field;
-        width: 65px;
-        padding-left: 18px;
-      }
-
-      &--output {
-        @extend %tasks-log__header__field;
-        width: 20px;
-        padding-left: 30px;
       }
     }
   }

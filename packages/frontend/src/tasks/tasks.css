@@ -198,75 +198,57 @@
 .theme-dark .tasks .tasks-log-container {
   border-color: #f0405e;
 }
+.tasks .tasks-log-container__fullscreen {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 3px;
+  z-index: 999;
+  position: absolute;
+  top: 30px;
+  left: 125px;
+  height: calc(100% - 60px);
+  width: calc(100% - 259px);
+}
+.theme-light .tasks .tasks-log-container__fullscreen {
+  background-color: #f4f4f4;
+}
+.theme-dark .tasks .tasks-log-container__fullscreen {
+  background-color: #313236;
+}
 .tasks .tasks-log-container .tasks-table__wrapper {
   min-width: 0;
   width: 100%;
   overflow: hidden;
   display: block;
 }
-.tasks .tasks-table {
+.tasks .tasks-log {
   border-collapse: collapse;
   border-spacing: 0 10px;
-  max-height: 265px;
   height: 100%;
   overflow-y: scroll;
   overflow-x: hidden;
+  cursor: sw-resize;
 }
-.tasks .tasks-table__section-header {
-  padding-top: 1px;
+.tasks .tasks-log__fullscreen {
+  position: absolute;
+  top: 30px;
+  left: 120px;
+  width: calc(100% - 230px);
+  height: calc(100% - 50px);
+  cursor: ne-resize;
+  z-index: 999;
 }
-.tasks .tasks-table .blank {
-  padding-left: 10px;
+.theme-light .tasks .tasks-log__fullscreen {
+  background-color: #f4f4f4;
 }
-.tasks .tasks-table .extend {
-  padding-right: 4px;
-}
-.tasks .tasks-table .pad-left {
-  padding-left: 5px;
-  padding-bottom: 0;
-}
-.tasks .tasks-table .tasks-row-container {
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
-}
-.theme-light .tasks .tasks-table .tasks-row-container {
-  border-bottom-color: #dfdfdf;
-}
-.theme-dark .tasks .tasks-table .tasks-row-container {
-  border-bottom-color: #6d6e70;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row {
-  display: flex;
-  height: 30px;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row__log--id {
-  width: 7px;
-  margin-left: -1px;
-  padding-left: 14px;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row__log--site {
-  width: 205px;
-  white-space: nowrap;
-  padding-left: 3px;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row__log--size {
-  width: 150px;
-  padding-left: 20px;
-}
-.tasks .tasks-table .tasks-row-container .tasks-row__log--output {
-  width: 440px;
-}
-.tasks .tasks-log {
-  width: 504px;
-  height: 300px;
-  border-radius: 3px;
-}
-.tasks .tasks-log__section-header {
-  padding-top: 1px;
-  padding-bottom: 2px;
+.theme-dark .tasks .tasks-log__fullscreen {
+  background-color: #313236;
 }
 .tasks .tasks-log__header {
+  margin: 0;
   padding-bottom: 1px;
+  height: 26px;
+  min-height: 26px;
 }
 .tasks .tasks-log__header--id {
   width: 7px;
@@ -284,6 +266,54 @@
   width: 20px;
   padding-left: 30px;
 }
+.tasks .tasks-log__section-header {
+  padding-top: 1px;
+}
+.tasks .tasks-log__section-header__fullscreen {
+  position: absolute;
+  left: 140px;
+  top: 10px;
+}
+.tasks .tasks-log .blank {
+  padding-left: 10px;
+}
+.tasks .tasks-log .extend {
+  padding-right: 4px;
+}
+.tasks .tasks-log .pad-left {
+  padding-left: 5px;
+  padding-bottom: 0;
+}
+.tasks .tasks-log .tasks-row-container {
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+.theme-light .tasks .tasks-log .tasks-row-container {
+  border-bottom-color: #dfdfdf;
+}
+.theme-dark .tasks .tasks-log .tasks-row-container {
+  border-bottom-color: #6d6e70;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row {
+  display: flex;
+  height: 30px;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--id {
+  margin-left: 6.5px;
+  margin-right: 0;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--site {
+  width: 116px;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--size {
+  width: 66px;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--output {
+  width: 224px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
 
 /*
  * Implementation of themes
@@ -291,7 +321,7 @@
 /*
  * Implementation of themes
  */
-.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--id, .tasks .tasks-log .tasks-row-container .tasks-row__log--site, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;
