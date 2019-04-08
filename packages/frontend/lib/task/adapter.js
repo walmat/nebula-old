@@ -17,6 +17,11 @@ const _TASK_EVENT_KEY = 'TaskEventKey';
 
 class TaskManagerAdapter {
   constructor(logPath) {
+    /**
+     * :: taskId, [statusMessages]
+     */
+    this.statusMessageBuffer = new Map();
+
     // Use environment to initialize the right task manager
     switch (process.env.NEBULA_RUNNER_CONCURRENCY_TYPE) {
       case 'single': {
@@ -50,7 +55,33 @@ class TaskManagerAdapter {
     }
 
     this._taskEventHandler = (taskId, statusMessage) => {
-      ipcRenderer.send(_TASK_EVENT_KEY, taskId, statusMessage);
+      // grab the old messages (if they exists)..
+      const oldMessages = this.statusMessageBuffer.get(taskId);
+
+      if (oldMessages && oldMessages.length > 0) {
+        // push the new status message onto the buffer for that task
+        this.statusMessageBuffer.set(taskId, oldMessages.push(statusMessage));
+      } else {
+        // create a new array of messages for that task
+        this.statusMessageBuffer.set(taskId, [statusMessage]);
+      }
+    };
+
+    this._taskEventMessageSender = () => {
+      // send the status message buffer along IPC
+      ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
+      // then, clear the buffer
+      this.statusMessageBuffer.clear();
+    };
+
+    this._taskEventMessageHandler = () => {
+      if (this.statusMessageBuffer.size > 0) {
+        // set interval for the buffer to batch the updates
+        // TODO: play around with this value to find the sweet spot!
+        setInterval(() => this._taskEventMessageSender, 250);
+      }
+      // clear the interval after we've dispatched all the updates
+      clearInterval(this._taskEventMessageSender);
     };
 
     // TODO: Research if this should always listened to, or if we can dynamically
