@@ -23,9 +23,20 @@ class AuthManager {
      */
     this._store = new Store();
 
-    context.ipc.on(IPCKeys.AuthRequestActivate, this._onAuthRequestActivate.bind(this));
-    context.ipc.on(IPCKeys.AuthRequestDeactivate, this._onAuthRequestDeactivate.bind(this));
-    context.ipc.on(IPCKeys.AuthRequestStatus, this._onAuthRequestStatus.bind(this));
+    const lockify = func => {
+      let _lock = false;
+      return async (...params) => {
+        if (!_lock) {
+          _lock = true;
+          await func.apply(this, params);
+          _lock = false;
+        }
+      };
+    };
+
+    context.ipc.on(IPCKeys.AuthRequestActivate, lockify(this._onAuthRequestActivate));
+    context.ipc.on(IPCKeys.AuthRequestDeactivate, lockify(this._onAuthRequestDeactivate));
+    context.ipc.on(IPCKeys.AuthRequestStatus, lockify(this._onAuthRequestStatus));
   }
 
   /**
@@ -156,7 +167,7 @@ class AuthManager {
    * IPCMain intercept to validate a user
    * @return {none}
    */
-  async _onAuthRequestActivate(event, key) {
+  async _onAuthRequestActivate(_, key) {
     let session = await this.getSession();
     if (!session) {
       session = await this.createSession(key);
