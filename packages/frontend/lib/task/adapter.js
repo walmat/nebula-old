@@ -20,7 +20,7 @@ class TaskManagerAdapter {
     /**
      * :: taskId, [statusMessages]
      */
-    this.statusMessageBuffer = new Map();
+    this.statusMessageBuffer = {};
     this._messageInterval = null;
 
     // Use environment to initialize the right task manager
@@ -57,23 +57,20 @@ class TaskManagerAdapter {
 
     this._taskEventHandler = (taskId, statusMessage) => {
       // grab the old messages (if they exists)..
-      const oldMessages = this.statusMessageBuffer.get(taskId);
-
+      const oldMessages = this.statusMessageBuffer[taskId];
       if (oldMessages) {
         // push the new status message onto the buffer for that task
         oldMessages.push(statusMessage);
       } else {
         // create a new array of messages for that task
-        this.statusMessageBuffer.set(taskId, [statusMessage]);
+        this.statusMessageBuffer[taskId] = [statusMessage];
       }
     };
 
     this._taskEventMessageSender = () => {
-      if (this.statusMessageBuffer.size > 0) {
-        // set interval for the buffer to batch the updates
-        // TODO: play around with this value to find the sweet spot!
+      if (this.statusMessageBuffer) {
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
-        this.statusMessageBuffer.clear();
+        this.statusMessageBuffer = {};
       }
     };
 
@@ -94,7 +91,7 @@ class TaskManagerAdapter {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
-          this._messageInterval = setInterval(() => this._taskEventMessageSender, 250);
+          this._messageInterval = setInterval(this._taskEventMessageSender, 1500);
         }
       }
     });

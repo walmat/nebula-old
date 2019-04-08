@@ -97,9 +97,8 @@ const _destroyTaskRequest = async (task, type) => {
 };
 
 const _statusTaskRequest = async messageBuffer => {
-  console.log(messageBuffer);
   if (messageBuffer) {
-    return messageBuffer;
+    return { messageBuffer };
   }
   throw new Error('Invalid task structure');
 };
