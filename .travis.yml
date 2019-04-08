@@ -1,10 +1,7 @@
 language: node_js
 node_js:
   - '10.11.0'
-cache:
-  yarn: true
-  directories:
-    - 'node_modules'
+cache: yarn
 install:
   - yarn install
 script:
