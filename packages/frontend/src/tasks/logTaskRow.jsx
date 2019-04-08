@@ -11,7 +11,7 @@ const LogTaskRow = ({ task }) => (
       <div className="col col--no-gutter tasks-row__log--size">
         {task.chosenSizes || task.sizes}
       </div>
-      <div className="col tasks-row__log--output">{task.output.message}</div>
+      <div className="col tasks-row__log--output">{task.output}</div>
     </div>
   </div>
 );

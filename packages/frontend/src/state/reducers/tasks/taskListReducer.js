@@ -189,22 +189,20 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.STATUS: {
-      if (!action.response.messageBuffer) {
+      if (!action.messageBuffer) {
         break;
       }
-      const { messageBuffer } = action.response;
+      const { messageBuffer } = action;
+      const taskMap = {};
+      nextState.forEach(t => (taskMap[t.id] = t));
       // for each task in the messageBuffer, update the status
-      Object.entries(messageBuffer).forEach(taskEntry => {
-        const [taskId, msgArray] = taskEntry;
-        const task = nextState.find(t => t.id === taskId);
+      Object.entries(messageBuffer).forEach(([taskId, msg]) => {
+        const task = taskMap[taskId];
         if (task) {
-          task.output = msgArray[msgArray.length - 1];
-          const message = msgArray.find(msg => msg && msg.size !== undefined);
-          if (message) {
-            const { size } = message;
-            if (size) {
-              task.chosenSizes = [size];
-            }
+          const { message, size } = msg;
+          task.output = message;
+          if (size) {
+            task.chosenSizes = [size];
           }
         }
       });

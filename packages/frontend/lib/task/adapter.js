@@ -57,13 +57,16 @@ class TaskManagerAdapter {
 
     this._taskEventHandler = (taskId, statusMessage) => {
       // grab the old messages (if they exists)..
-      const oldMessages = this.statusMessageBuffer[taskId];
-      if (oldMessages) {
-        // push the new status message onto the buffer for that task
-        oldMessages.push(statusMessage);
-      } else {
-        // create a new array of messages for that task
-        this.statusMessageBuffer[taskId] = [statusMessage];
+      if (statusMessage) {
+        const lastMessage = this.statusMessageBuffer[taskId];
+        if (!lastMessage) {
+          this.statusMessageBuffer[taskId] = statusMessage;
+        } else {
+          this.statusMessageBuffer[taskId] = {
+            ...lastMessage,
+            ...statusMessage,
+          };
+        }
       }
     };
 
