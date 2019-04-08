@@ -23,12 +23,12 @@ class Monitor {
   }
 
   _waitForRefreshDelay() {
-    this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.monitorDelay);
+    // this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.monitorDelay);
     return waitForDelay(this._context.task.monitorDelay);
   }
 
   _waitForErrorDelay() {
-    this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.errorDelay);
+    // this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.errorDelay);
     return waitForDelay(this._context.task.errorDelay);
   }
 
@@ -45,7 +45,7 @@ class Monitor {
         break;
     }
     await delay.call(this);
-    this._logger.silly('Monitoring not complete, remonitoring...');
+    // this._logger.silly('Monitoring not complete, remonitoring...');
     return { message: `Monitoring for product...`, nextState: States.Monitor };
   }
 
@@ -55,7 +55,7 @@ class Monitor {
     // Check for bans
     let checkStatus = statuses.every(s => s === 403 || s === 429 || s === 430);
     if (checkStatus) {
-      this._logger.silly('Proxy was Banned, swapping proxies...');
+      // this._logger.silly('Proxy was Banned, swapping proxies...');
       return {
         message: 'Swapping proxy',
         shouldBan: checkStatus === 403,
@@ -99,7 +99,7 @@ class Monitor {
     try {
       ({ variants, sizes: chosenSizes } = generateVariants(product, sizes, site, this._logger));
     } catch (err) {
-      this._logger.debug('ERROR:::: %j', err);
+      // this._logger.debug('ERROR:::: %j', err);
       if (err.code === ErrorCodes.VariantsNotMatched) {
         return {
           message: 'Unable to match variants',
@@ -112,7 +112,7 @@ class Monitor {
           nextState: States.Restocking,
         };
       }
-      this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
+      // this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
       return {
         message: 'Task has errored out!',
         nextState: States.Errored,
@@ -127,15 +127,15 @@ class Monitor {
       // Try parsing all files and wait for the first response
       parsed = await this._parseAll();
     } catch (errors) {
-      this._logger.error('MONITOR: All request errored out! %j', errors);
+      // this._logger.error('MONITOR: All request errored out! %j', errors);
       // handle parsing errors
       if (this._context.type === Types.ShippingRates) {
         return { message: 'Product not found!', nextState: States.Errored };
       }
       return this._handleParsingErrors(errors);
     }
-    this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
-    this._logger.silly('MONITOR: Generating variant lists now...');
+    // this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
+    // this._logger.silly('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     const { site } = this._context.task;
     const { variants, sizes, nextState, message } = this._generateVariants(parsed);
@@ -143,12 +143,12 @@ class Monitor {
     if (nextState) {
       return { nextState, message };
     }
-    this._logger.silly('MONITOR: Variants Generated, updating context...');
+    // this._logger.silly('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
     this._context.task.product.chosenSizes = sizes;
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
-    this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
+    // this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
@@ -173,17 +173,17 @@ class Monitor {
       });
 
       // Response Succeeded -- Get Product Info
-      this._logger.silly(
-        'MONITOR: Url %s responded with status code %s. Getting full info',
-        url,
-        response.statusCode,
-      );
+      // this._logger.silly(
+      //   'MONITOR: Url %s responded with status code %s. Getting full info',
+      //   url,
+      //   response.statusCode,
+      // );
       let fullProductInfo;
       try {
         // Try getting full product info
         fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
       } catch (errors) {
-        this._logger.error('MONITOR: All request errored out! %j', errors);
+        // this._logger.error('MONITOR: All request errored out! %j', errors);
         if (this._context.type === Types.ShippingRates) {
           return { message: 'Product not found!', nextState: States.Errored };
         }
@@ -191,22 +191,22 @@ class Monitor {
         return this._handleParsingErrors(errors);
       }
       // Generate Variants
-      this._logger.silly(
-        'MONITOR: Retrieve Full Product %s, Generating Variants List...',
-        fullProductInfo.title,
-      );
+      // this._logger.silly(
+      //   'MONITOR: Retrieve Full Product %s, Generating Variants List...',
+      //   fullProductInfo.title,
+      // );
       this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
       const { variants, sizes, nextState, message } = this._generateVariants(fullProductInfo);
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
         return { nextState, message };
       }
-      this._logger.silly('MONITOR: Variants Generated, updating context...');
+      // this._logger.silly('MONITOR: Variants Generated, updating context...');
       this._context.task.product.variants = variants;
       this._context.task.product.chosenSizes = sizes;
 
       // Everything is setup -- kick it to checkout
-      this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
+      // this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
         message: `Found product: ${this._context.task.product.name}`,
@@ -214,11 +214,11 @@ class Monitor {
       };
     } catch (error) {
       // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
-      this._logger.error(
-        'MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...',
-        url,
-        error.statusCode,
-      );
+      // this._logger.error(
+      //   'MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...',
+      //   url,
+      //   error.statusCode,
+      // );
       return this._delay(error.statusCode);
     }
   }
@@ -241,8 +241,8 @@ class Monitor {
       }
       return this._delay(error.status);
     }
-    this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
-    this._logger.silly('MONITOR: Generating variant lists now...');
+    // this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
+    // this._logger.silly('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     let variants;
     let sizes;
@@ -257,11 +257,11 @@ class Monitor {
         return { nextState, message };
       }
     }
-    this._logger.silly('MONITOR: Variants Generated, updating context...');
+    // this._logger.silly('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
     this._context.task.product.chosenSizes = sizes;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
-    this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
+    // this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
@@ -270,7 +270,7 @@ class Monitor {
 
   async run() {
     if (this._context.aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      // this._logger.silly('Abort Detected, Stopping...');
       return { nextState: States.Aborted };
     }
 
@@ -284,31 +284,31 @@ class Monitor {
     switch (this._parseType) {
       case ParseType.Variant: {
         // TODO: Add a way to determine if variant is correct
-        this._logger.silly('MONITOR: Variant Parsing Detected');
+        // this._logger.silly('MONITOR: Variant Parsing Detected');
         this._context.task.product.variants = [this._context.task.product.variant];
         result = { message: 'Adding to cart', nextState: States.AddToCart };
         break;
       }
       case ParseType.Url: {
-        this._logger.silly('MONITOR: Url Parsing Detected');
+        // this._logger.silly('MONITOR: Url Parsing Detected');
         result = await this._monitorUrl();
         break;
       }
       case ParseType.Keywords: {
-        this._logger.silly('MONITOR: Keyword Parsing Detected');
+        // this._logger.silly('MONITOR: Keyword Parsing Detected');
         result = await this._monitorKeywords();
         break;
       }
       case ParseType.Special: {
-        this._logger.silly('MONITOR: Special Parsing Detected');
+        // this._logger.silly('MONITOR: Special Parsing Detected');
         result = await this._monitorSpecial();
         break;
       }
       default: {
-        this._logger.error(
-          'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...',
-          this._parseType,
-        );
+        // this._logger.error(
+        //   'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...',
+        //   this._parseType,
+        // );
         return { message: 'Invalid Product Input given!', nextState: States.Errored };
       }
     }

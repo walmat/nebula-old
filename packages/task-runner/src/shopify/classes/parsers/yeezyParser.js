@@ -35,10 +35,10 @@ class YeezyParser extends SpecialParser {
         const product = JSON.parse(html);
         products.push(product);
       } catch (err) {
-        this._logger.silly(
-          '%s: found script tag but was unable to parse json! skipping...',
-          this._name,
-        );
+        // this._logger.silly(
+        //   '%s: found script tag but was unable to parse json! skipping...',
+        //   this._name,
+        // );
       }
     };
 
@@ -57,11 +57,11 @@ class YeezyParser extends SpecialParser {
     }
 
     validateArray(products);
-    this._logger.silly(
-      '%s: Found %d potential products, validating...',
-      this._name,
-      products.length,
-    );
+    // this._logger.silly(
+    //   '%s: Found %d potential products, validating...',
+    //   this._name,
+    //   products.length,
+    // );
 
     // check to see if product is live yet
     const liveAvailableProducts = products.filter(
@@ -69,18 +69,18 @@ class YeezyParser extends SpecialParser {
     );
     validateArray(liveAvailableProducts, ErrorCodes.ProductNotLive);
 
-    this._logger.silly(
-      '%s: Found %d live products, filtering...',
-      this._name,
-      liveAvailableProducts.length,
-    );
+    // this._logger.silly(
+    //   '%s: Found %d live products, filtering...',
+    //   this._name,
+    //   liveAvailableProducts.length,
+    // );
 
     const validatedProducts = liveAvailableProducts.filter(
       ({ id, title, handle, variants }) => id && variants && (title || handle),
     );
 
     validateArray(validatedProducts);
-    this._logger.silly('%s: Found %d valid products!', this._name, validatedProducts.length);
+    // this._logger.silly('%s: Found %d valid products!', this._name, validatedProducts.length);
 
     return validatedProducts;
   }

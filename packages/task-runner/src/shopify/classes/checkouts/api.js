@@ -59,7 +59,7 @@ class APICheckout extends Checkout {
       const body = JSON.parse(res.body);
       if (body && body.id) {
         const { id } = body;
-        this._logger.silly('Payment token: %s', id);
+        // this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
@@ -121,7 +121,7 @@ class APICheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.silly('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+      // this._logger.silly('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         if (statusCode === 200) {
           return { message: 'Monitoring for product', nextState: States.Monitor };
@@ -201,7 +201,7 @@ class APICheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
+      // this._logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       // check redirects
       if (redirectUrl) {
@@ -228,7 +228,7 @@ class APICheckout extends Checkout {
 
       if (body.errors && body.errors.line_items[0]) {
         const error = res.body.errors.line_items[0];
-        this._logger.silly('Error adding to cart: %j', error);
+        // this._logger.silly('Error adding to cart: %j', error);
         if (error.quantity) {
           if (timers.monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
@@ -267,7 +267,7 @@ class APICheckout extends Checkout {
           parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
         ).toFixed(2);
         if (this.chosenShippingMethod.id) {
-          this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
+          // this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
           return { message: `Posting payment`, nextState: States.PostPayment };
         }
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
@@ -332,12 +332,12 @@ class APICheckout extends Checkout {
         if (errors && errors.checkout) {
           const errorMessage = JSON.stringify(errors.checkout);
           if (errorMessage.indexOf('does_not_require_shipping') > -1) {
-            this._logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
+            // this._logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
             return { message: 'Cart empty, retrying ATC', nextState: States.AddToCart };
           }
 
           if (errorMessage.indexOf("can't be blank") > -1) {
-            this._logger.silly('API CHECKOUT: Country not supported');
+            // this._logger.silly('API CHECKOUT: Country not supported');
             return { message: 'Country not supported', nextState: States.Errored };
           }
         }
@@ -356,14 +356,14 @@ class APICheckout extends Checkout {
         this.selectedShippingRate = cheapest;
         const { id, title } = cheapest;
         this.chosenShippingMethod = { id, name: title };
-        this._logger.silly('API CHECKOUT: Using shipping method: %s', title);
+        // this._logger.silly('API CHECKOUT: Using shipping method: %s', title);
 
         // set shipping price for cart
         this.prices.shipping = parseFloat(cheapest.price).toFixed(2);
-        this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
+        // this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
         return { message: `Posting payment`, nextState: States.PostPayment };
       }
-      this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
+      // this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
       await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {

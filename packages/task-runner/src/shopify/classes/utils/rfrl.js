@@ -21,49 +21,49 @@ function resolveFirstRejectLast(promises, tag, logger) {
   const _logger = logger || { log: () => {} };
   const tagStr = tag ? ` - ${tag}` : '';
   return new Promise((resolve, reject) => {
-    _logger.log('silly', 'RFRL%s: Starting...', tagStr);
+    // _logger.log('silly', 'RFRL%s: Starting...', tagStr);
     let errorCount = 0;
     const status = {
       winner: null,
       errors: new Array(promises.length),
     };
-    _logger.log('silly', '[ASYNC] RFRL%s: Attaching Handlers...', tagStr);
+    // _logger.log('silly', '[ASYNC] RFRL%s: Attaching Handlers...', tagStr);
     _.forEach(promises, (p, idx) => {
       p.then(
         resolved => {
-          _logger.log('silly', '[ASYNC] RFRL%s - %d: RESOLVE', tagStr, idx, resolved);
+          // _logger.log('silly', '[ASYNC] RFRL%s - %d: RESOLVE', tagStr, idx, resolved);
           if (!status.winner) {
-            _logger.log('silly', '[ASYNC] RFRL%s - %d: Chosen as WINNER', tagStr, idx);
+            // _logger.log('silly', '[ASYNC] RFRL%s - %d: Chosen as WINNER', tagStr, idx);
             status.winner = resolved;
             resolve(resolved);
           } else {
-            _logger.log('silly', '[ASYNC] RFRL%s - %d: Not chosen as WINNER', tagStr, idx);
+            // _logger.log('silly', '[ASYNC] RFRL%s - %d: Not chosen as WINNER', tagStr, idx);
           }
         },
         error => {
-          _logger.log('silly', '[ASYNC] RFRL%s - %d: REJECTED', tagStr, idx, error);
+          // _logger.log('silly', '[ASYNC] RFRL%s - %d: REJECTED', tagStr, idx, error);
           status.errors[idx] = error;
           errorCount += 1;
           if (errorCount >= status.errors.length && !status.winner) {
-            _logger.log(
-              'silly',
-              '[ASYNC] RFRL%s - %d: Final error detected, rejecting.',
-              tagStr,
-              idx,
-            );
+            // _logger.log(
+            //   'silly',
+            //   '[ASYNC] RFRL%s - %d: Final error detected, rejecting.',
+            //   tagStr,
+            //   idx,
+            // );
             reject(status.errors);
           } else {
-            _logger.log(
-              'silly',
-              "[ASYNC] RFRL%s - %d: Not the final error, there's still hope!",
-              tagStr,
-              idx,
-            );
+            // _logger.log(
+            //   'silly',
+            //   "[ASYNC] RFRL%s - %d: Not the final error, there's still hope!",
+            //   tagStr,
+            //   idx,
+            // );
           }
         },
       );
     });
-    _logger.log('silly', 'RFRL%s: Sync work done, waiting on promises...', tagStr);
+    // _logger.log('silly', 'RFRL%s: Sync work done, waiting on promises...', tagStr);
   });
 }
 

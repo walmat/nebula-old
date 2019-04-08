@@ -24,29 +24,29 @@ class DsmUkParser extends DsmParser {
         }
       }
     });
-    this._logger.silly(
-      '%s: Found %d custom.js links',
-      this._name,
-      customJsLinks.length,
-      customJsLinks,
-    );
+    // this._logger.silly(
+    //   '%s: Found %d custom.js links',
+    //   this._name,
+    //   customJsLinks.length,
+    //   customJsLinks,
+    // );
     const [customJsLink] = customJsLinks;
     if (!customJsLink) {
       throw new Error('no custom js links found!');
     }
     if (customJsLinks.length > 1) {
-      this._logger.silly(
-        '%s: More than 1 custom links found! using the first one: %s',
-        this._name,
-        customJsLink,
-      );
+      // this._logger.silly(
+      //   '%s: More than 1 custom links found! using the first one: %s',
+      //   this._name,
+      //   customJsLink,
+      // );
     }
 
     return customJsLink;
   }
 
   _getCustomJsContent(uri) {
-    this._logger.silly('%s: Requesting custom js from %s ...', this._name, uri);
+    // this._logger.silly('%s: Requesting custom js from %s ...', this._name, uri);
     return this._request({
       method: 'GET',
       uri,
@@ -73,7 +73,7 @@ class DsmUkParser extends DsmParser {
       throw new Error("Couldn't find input tag in response!");
     }
 
-    this._logger.silly('%s: Found matching element, parsing now...', this._name, matches[1]);
+    // this._logger.silly('%s: Found matching element, parsing now...', this._name, matches[1]);
 
     // Load the input tag into cheerio to easily get the name and value attributes
     // (cheerio is used so we don't have to worry about the order of attributes)
@@ -95,7 +95,7 @@ class DsmUkParser extends DsmParser {
   }
 
   async parseInitialPageForHash($) {
-    this._logger.silly('%s: Parsing for hash on initial page...', this._name);
+    // this._logger.silly('%s: Parsing for hash on initial page...', this._name);
 
     try {
       const customJsLink = this._parseForCustomJsLink($);
@@ -103,21 +103,21 @@ class DsmUkParser extends DsmParser {
       const hash = this._parseCustomJsContent(body);
       return hash;
     } catch (err) {
-      this._logger.debug('%s: Error parsing custom.js! %s', this._name, err.message);
-      this._logger.silly('%s: Hash parsing failed, will try again on product page...', this._name);
+      // this._logger.debug('%s: Error parsing custom.js! %s', this._name, err.message);
+      // this._logger.silly('%s: Hash parsing failed, will try again on product page...', this._name);
       return null;
     }
   }
 
   async parseProductInfoPageForHash($) {
     if (this._hashIds.__default__) {
-      this._logger.silly(
-        '%s: Default hash id already parsed! Skipping product specific hash parsing...',
-        this._name,
-      );
+      // this._logger.silly(
+      //   '%s: Default hash id already parsed! Skipping product specific hash parsing...',
+      //   this._name,
+      // );
       return null;
     }
-    this._logger.silly('%s: Parsing for hash on product page...', this._name);
+    // this._logger.silly('%s: Parsing for hash on product page...', this._name);
 
     try {
       const customJsLink = this._parseForCustomJsLink($);
@@ -125,11 +125,11 @@ class DsmUkParser extends DsmParser {
       const hash = this._parseCustomJsContent(body);
       return hash;
     } catch (err) {
-      this._logger.error(
-        '%s: Error parsing custom.js! Using backup hash.. %s',
-        this._name,
-        err.message,
-      );
+      // this._logger.error(
+      //   '%s: Error parsing custom.js! Using backup hash.. %s',
+      //   this._name,
+      //   err.message,
+      // );
       return null;
     }
   }

@@ -130,7 +130,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.silly('CHECKOUT: Login redirect url: %s', redirectUrl);
+      // this._logger.silly('CHECKOUT: Login redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // password page
@@ -141,19 +141,19 @@ class Checkout {
 
         // challenge page
         if (redirectUrl.indexOf('challenge') > -1) {
-          this._logger.silly('CHECKOUT: Login needs captcha');
+          // this._logger.silly('CHECKOUT: Login needs captcha');
           return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
         }
 
         // still at login page
         if (redirectUrl.indexOf('login') > -1) {
-          this._logger.silly('CHECKOUT: Invalid login credentials');
+          // this._logger.silly('CHECKOUT: Invalid login credentials');
           return { message: 'Invalid login credentials', nextState: States.Errored };
         }
 
         // since we're here, we can assume `account/login` === false
         if (redirectUrl.indexOf('account') > -1) {
-          this._logger.silly('CHECKOUT: Logged in');
+          // this._logger.silly('CHECKOUT: Logged in');
           // check to see if we already have the storeId and checkoutToken.
           if (this.storeId && this.checkoutToken) {
             return { message: 'Submitting information', nextState: States.PatchCheckout };
@@ -217,7 +217,7 @@ class Checkout {
       }
 
       const [redirectUrl, qs] = headers.location.split('?');
-      this._logger.silly('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+      // this._logger.silly('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         return { message: 'Failed: Creating checkout', nextState: States.Errored };
       }
@@ -313,7 +313,7 @@ class Checkout {
       });
 
       const { statusCode, body, headers } = res;
-      this._logger.silly('Checkout: poll response %d', statusCode);
+      // this._logger.silly('Checkout: poll response %d', statusCode);
       const checkStatus = stateForStatusCode(statusCode);
       if (checkStatus) {
         return checkStatus;
@@ -329,7 +329,7 @@ class Checkout {
         return { message: 'Polling queue', nextState: States.PollQueue };
       }
 
-      this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
+      // this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
       let redirectUrl;
 
@@ -418,7 +418,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.silly('CHECKOUT: Pinging checkout redirect url: %s', redirectUrl);
+      // this._logger.silly('CHECKOUT: Pinging checkout redirect url: %s', redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -499,7 +499,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
+      // this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -521,7 +521,7 @@ class Checkout {
       // check if captcha is present
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
       const recaptcha = $('.g-recaptcha');
-      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
+      // this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
       if (recaptcha.length > 0 || url.indexOf('socialstatus') > -1 || this.needsCaptcha) {
         this._context.task.checkoutSpeed = checkoutTimer.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
@@ -593,7 +593,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.silly('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
+      // this._logger.silly('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // processing
@@ -655,8 +655,6 @@ class Checkout {
     const { chosenSizes } = product;
     const { url, apiKey, name } = site;
 
-    this._logger.debug('CHOSEN SIZES: %j', chosenSizes);
-
     if (checkoutTimer.getRunTime() > 20000) {
       return { message: 'Processing timed out, check email', nextState: States.Finished };
     }
@@ -698,7 +696,7 @@ class Checkout {
       if (body && payments.length > 0) {
         const bodyString = JSON.stringify(payments[0]);
 
-        this._logger.silly('CHECKOUT: Payments object: %j', body.payments[0]);
+        // this._logger.silly('CHECKOUT: Payments object: %j', body.payments[0]);
         // success
         if (bodyString.indexOf('thank_you') > -1) {
           const { order } = payments[0].checkout;
@@ -747,7 +745,7 @@ class Checkout {
           return { message: 'Payment failed', nextState: States.Errored };
         }
       }
-      this._logger.silly('CHECKOUT: Processing payment');
+      // this._logger.silly('CHECKOUT: Processing payment');
       await waitForDelay(2000);
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
