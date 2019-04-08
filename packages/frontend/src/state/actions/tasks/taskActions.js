@@ -96,12 +96,10 @@ const _destroyTaskRequest = async (task, type) => {
   };
 };
 
-const _statusTaskRequest = async (id, message) => {
-  if (id) {
-    return {
-      id,
-      message,
-    };
+const _statusTaskRequest = async messageBuffer => {
+  console.log(messageBuffer);
+  if (messageBuffer) {
+    return messageBuffer;
   }
   throw new Error('Invalid task structure');
 };
@@ -175,8 +173,8 @@ const updateTask = (id, task) => (dispatch, getState) =>
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
   );
 
-const statusTask = (id, message) => dispatch =>
-  _statusTaskRequest(id, message).then(
+const statusTask = messageBuffer => dispatch =>
+  _statusTaskRequest(messageBuffer).then(
     response => dispatch(_statusTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.STATUS, error)),
   );

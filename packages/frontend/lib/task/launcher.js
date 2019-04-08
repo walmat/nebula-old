@@ -212,13 +212,13 @@ class TaskLauncher {
     }
   }
 
-  _taskEventHandler(_, taskId, statusMessage) {
+  _taskEventHandler(_, statusMessageBuffer) {
     // forward event if we have listeners
     if (this._eventListeners.length > 0) {
       const workingListeners = [];
       this._eventListeners.forEach(l => {
         try {
-          l.send(_TASK_EVENT_KEY, taskId, statusMessage);
+          l.send(_TASK_EVENT_KEY, statusMessageBuffer);
           workingListeners.push(l);
         } catch (e) {
           // fail silently...

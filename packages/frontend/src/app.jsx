@@ -86,13 +86,9 @@ export class App extends PureComponent {
     this.forceUpdate();
   }
 
-  taskHandler(event, taskId, statusMessage) {
+  taskHandler(event, statusMessageBuffer) {
     const { store } = this.props;
-    const { type } = statusMessage;
-    // filter out shipping rate handler
-    if (type !== 'srr') {
-      store.dispatch(taskActions.status(taskId, statusMessage));
-    }
+    store.dispatch(taskActions.status(statusMessageBuffer));
   }
 
   _cleanupTaskEvents() {
