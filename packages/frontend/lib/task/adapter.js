@@ -59,7 +59,6 @@ class TaskManagerAdapter {
 
     this._taskEventHandler = (taskId, statusMessage) => {
       // grab the old messages (if they exists)..
-<<<<<<< HEAD
       if (statusMessage) {
         const lastMessage = this.statusMessageBuffer[taskId];
         if (!lastMessage) {
@@ -70,41 +69,14 @@ class TaskManagerAdapter {
             ...statusMessage,
           };
         }
-=======
-      const oldMessages = this.statusMessageBuffer.get(taskId);
-
-      if (oldMessages && oldMessages.length > 0) {
-        // push the new status message onto the buffer for that task
-        this.statusMessageBuffer.set(taskId, oldMessages.push(statusMessage));
-      } else {
-        // create a new array of messages for that task
-        this.statusMessageBuffer.set(taskId, [statusMessage]);
->>>>>>> batch update
       }
     };
 
     this._taskEventMessageSender = () => {
-<<<<<<< HEAD
       if (this.statusMessageBuffer) {
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }
-=======
-      // send the status message buffer along IPC
-      ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
-      // then, clear the buffer
-      this.statusMessageBuffer.clear();
-    };
-
-    this._taskEventMessageHandler = () => {
-      if (this.statusMessageBuffer.size > 0) {
-        // set interval for the buffer to batch the updates
-        // TODO: play around with this value to find the sweet spot!
-        setInterval(() => this._taskEventMessageSender, 250);
-      }
-      // clear the interval after we've dispatched all the updates
-      clearInterval(this._taskEventMessageSender);
->>>>>>> batch update
     };
 
     // TODO: Research if this should always listened to, or if we can dynamically
