@@ -36,7 +36,10 @@ class Discord {
         .addField('Checkout Speed (ms)', `${checkoutSpeed}`, true)
         .addField('Shipping Method', shippingMethod ? `${shippingMethod}` : 'None', true)
         .addField('Logger File', logger ? `${logger}` : 'None', true)
-        .setFooter('Nebula Orion © 2019', 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg');
+        .setFooter(
+          'Nebula Orion © 2019',
+          'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg',
+        );
       return this.hook.send(embed);
     }
     return null;

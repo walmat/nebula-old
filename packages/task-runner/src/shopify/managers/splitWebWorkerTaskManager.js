@@ -14,7 +14,7 @@ class WebWorkerContext {
 
   constructor(rId, task, proxy) {
     if (!global.window || !global.window.Worker) {
-      throw new Error('WebWorker Threads are required for this context!');
+      throw new Error('Web Worker Threads are required for this context!');
     }
     this.id = rId;
     this.taskId = task.id;
@@ -85,7 +85,7 @@ class SplitWebWorkerTaskManager extends SplitContextTaskManager {
   constructor(loggerPath) {
     super(loggerPath, WebWorkerContext);
     if (!global.window || !global.window.Worker) {
-      throw new Error('WebWorker Threads are required for this task manager!');
+      throw new Error('Web Worker Threads are required for this task manager!');
     }
   }
 }

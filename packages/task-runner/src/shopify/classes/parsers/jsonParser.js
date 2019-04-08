@@ -13,11 +13,11 @@ class JsonParser extends Parser {
   }
 
   async run() {
-    this._logger.silly('%s: Starting run...', this._name);
+    // this._logger.silly('%s: Starting run...', this._name);
     const { url } = this._task.site;
     let products;
     try {
-      this._logger.silly('%s: Making request for %s/products.json ...', this._name, url);
+      // this._logger.silly('%s: Making request for %s/products.json ...', this._name, url);
       const response = await this._request({
         method: 'GET',
         uri: `${url}/products.json`,
@@ -32,24 +32,24 @@ class JsonParser extends Parser {
       });
       ({ products } = JSON.parse(response));
     } catch (error) {
-      this._logger.silly(
-        '%s: ERROR making request! %s %d',
-        this._name,
-        error.name,
-        error.statusCode,
-      );
+      // this._logger.silly(
+      //   '%s: ERROR making request! %s %d',
+      //   this._name,
+      //   error.name,
+      //   error.statusCode,
+      // );
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
-    this._logger.silly('%s: Received Response, Attempting to match...', this._name);
+    // this._logger.silly('%s: Received Response, Attempting to match...', this._name);
     const matchedProduct = super.match(products);
 
     if (!matchedProduct) {
-      this._logger.silly("%s: Couldn't find a match!", this._name);
+      // this._logger.silly("%s: Couldn't find a match!", this._name);
       throw new Error('unable to match the product');
     }
-    this._logger.silly('%s: Product Found!', this._name);
+    // this._logger.silly('%s: Product Found!', this._name);
     return {
       ...matchedProduct,
       // insert generated product url (for restocking purposes)

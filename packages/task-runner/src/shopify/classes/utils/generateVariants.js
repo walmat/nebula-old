@@ -50,13 +50,13 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   // Flatten the groups to a one-level array and remove null elements
   const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
   // only pick certain properties of the variants to print
-  logger.log(
-    'silly',
-    'Generated valid variants: %j',
-    validVariants.map(v =>
-      _.pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
-    ),
-  );
+  // logger.log(
+  //   'silly',
+  //   'Generated valid variants: %j',
+  //   validVariants.map(v =>
+  //     _.pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
+  //   ),
+  // );
   if (validVariants.length > 0) {
     return {
       variants: validVariants.map(v => `${v.id}`),

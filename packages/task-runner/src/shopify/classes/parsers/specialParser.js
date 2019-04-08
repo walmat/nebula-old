@@ -19,7 +19,7 @@ class SpecialParser extends Parser {
   }
 
   async run() {
-    this._logger.silly('%s: Starting run...', this._name);
+    // this._logger.silly('%s: Starting run...', this._name);
 
     // If parse type is url, use the product's url, otherwise use the site url
     const { url: siteUrl } = this._task.site;
@@ -31,7 +31,7 @@ class SpecialParser extends Parser {
     // Make initial request to site
     let response;
     try {
-      this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
+      // this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
       response = await this._request({
         method: 'GET',
         uri: initialUrl,
@@ -54,14 +54,14 @@ class SpecialParser extends Parser {
     } catch (error) {
       // Handle Redirect response (wait for refresh delay)
       if (error.statusCode === 302) {
-        this._logger.error('%s: Redirect Detected!', this._name);
+        // this._logger.error('%s: Redirect Detected!', this._name);
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('RedirectDetected');
         rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay
         throw rethrow;
       }
       // Handle other error responses
-      this._logger.error('%s: ERROR making request! %s', this._name, error.messsage, error.stack);
+      // this._logger.error('%s: ERROR making request! %s', this._name, error.messsage, error.stack);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;
@@ -71,10 +71,10 @@ class SpecialParser extends Parser {
     // a direct link (when the parse type is url)
     let matchedProduct;
     if (this._type !== ParseType.Url) {
-      this._logger.silly(
-        '%s: Received Response, Generating Product Info Pages to visit...',
-        this._name,
-      );
+      // this._logger.silly(
+      //   '%s: Received Response, Generating Product Info Pages to visit...',
+      //   this._name,
+      // );
 
       let products;
       if (this.initialPageContainsProducts) {
@@ -82,7 +82,7 @@ class SpecialParser extends Parser {
         try {
           products = await this.parseInitialPageForProducts.call(this, response);
         } catch (error) {
-          this._logger.error('%s: ERROR parsing response as initial page', this._name, error);
+          // this._logger.error('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.statusCode || error.status || 404;
@@ -94,17 +94,17 @@ class SpecialParser extends Parser {
         try {
           productsToVisit = await this.parseInitialPageForUrls.call(this, response);
         } catch (error) {
-          this._logger.error('%s: ERROR parsing response as initial page', this._name, error);
+          // this._logger.error('%s: ERROR parsing response as initial page', this._name, error);
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.statusCode || error.status || 404;
           throw rethrow;
         }
-        this._logger.silly(
-          '%s: Generated Product Pages, capturing product page info...',
-          this._name,
-          productsToVisit,
-        );
+        // this._logger.silly(
+        //   '%s: Generated Product Pages, capturing product page info...',
+        //   this._name,
+        //   productsToVisit,
+        // );
 
         // Visit Product Pages and Parse them for product info
         products = (await Promise.all(
@@ -117,12 +117,12 @@ class SpecialParser extends Parser {
                 ...productInfo,
               };
             } catch (err) {
-              this._logger.error(
-                '%s: ERROR parsing product info page',
-                this._name,
-                err.statusCode || err.status,
-                err.message,
-              );
+              // this._logger.error(
+              //   '%s: ERROR parsing product info page',
+              //   this._name,
+              //   err.statusCode || err.status,
+              //   err.message,
+              // );
               return null;
             }
           }),
@@ -130,28 +130,28 @@ class SpecialParser extends Parser {
       }
 
       // Attempt to Match Product
-      this._logger.silly(
-        '%s: Received Product info from %d products, matching now...',
-        this._name,
-        products.length,
-      );
+      // this._logger.silly(
+      //   '%s: Received Product info from %d products, matching now...',
+      //   this._name,
+      //   products.length,
+      // );
       try {
         matchedProduct = super.match(products);
       } catch (error) {
-        this._logger.error('%s: ERROR matching product!', this._name, error);
+        // this._logger.error('%s: ERROR matching product!', this._name, error);
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error(error.message);
         rethrow.status = error.status || 404;
         throw rethrow;
       }
     } else {
-      this._logger.silly('%s: Received Response, attempt to parse as product page...', this._name);
+      // this._logger.silly('%s: Received Response, attempt to parse as product page...', this._name);
 
       // Attempt to parse the response as a product page and get the product info
       try {
         matchedProduct = await this.parseProductInfoPageForProduct.call(this, response);
       } catch (error) {
-        this._logger.error('%s: ERROR getting product!', this._name, error);
+        // this._logger.error('%s: ERROR getting product!', this._name, error);
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error(error.message);
         rethrow.status = error.status || 404;
@@ -160,13 +160,13 @@ class SpecialParser extends Parser {
     }
 
     if (!matchedProduct) {
-      this._logger.silly("%s: Couldn't find a match!", this._name);
+      // this._logger.silly("%s: Couldn't find a match!", this._name);
       // TODO: Maybe replace with a custom error object?
       const rethrow = new Error('unable to match the product');
       rethrow.status = ErrorCodes.ProductNotFound;
       throw rethrow;
     }
-    this._logger.silly('%s: Product Found!', this._name);
+    // this._logger.silly('%s: Product Found!', this._name);
     return {
       // Backup method to add product url for restocking purposes
       url: `${siteUrl}/products/${matchedProduct.handle}`,
@@ -232,7 +232,7 @@ class SpecialParser extends Parser {
   }
 
   getProductInfoPage(productUrl) {
-    this._logger.log('silly', '%s: Getting Full Product Info... %s', this._name, productUrl);
+    // this._logger.log('silly', '%s: Getting Full Product Info... %s', this._name, productUrl);
     return this._request({
       method: 'GET',
       uri: productUrl,
