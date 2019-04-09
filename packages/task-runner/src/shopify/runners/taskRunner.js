@@ -280,9 +280,13 @@ class TaskRunner {
         break;
       }
     }
+<<<<<<< HEAD
     // Emit all events on the All channel
     this._events.emit(Events.All, this._context.id, payload, event);
     this._logger.silly('Event %s emitted: %j', event, payload);
+=======
+    this._logger.verbose('Event %s emitted: %j', event, payload);
+>>>>>>> added proxy event sender
   }
 
   _emitTaskEvent(payload = {}) {
@@ -300,6 +304,13 @@ class TaskRunner {
       this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
+<<<<<<< HEAD
+=======
+    this._emitTaskEvent({
+      message: 'Starting task setup',
+      proxy: this._context.proxy,
+    });
+>>>>>>> added proxy event sender
     if (this._context.task.username && this._context.task.password) {
       return States.Login;
     }
@@ -665,7 +676,15 @@ class TaskRunner {
         this.proxy = proxy;
         this._context.proxy = proxy.proxy;
         this.shouldBanProxy = false; // reset ban flag
+<<<<<<< HEAD
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
+=======
+        this._logger.verbose('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
+        this._emitTaskEvent({
+          message: `Swapped proxy to: ${proxy.proxy}`,
+          proxy: proxy.proxy,
+        });
+>>>>>>> added proxy event sender
         return this._prevState;
       }
 
