@@ -203,12 +203,19 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         if (type !== 'srr') {
           const task = taskMap[taskId];
           if (task) {
-            const { message, size } = msg;
+            const { message, size, proxy, found } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
             }
+            if (proxy) {
+              task.proxy = proxy;
+            }
+            if (found) {
+              task.product.found = found;
+            }
           }
+          // TODO: compound `output` to the log
         }
       });
       break;
@@ -284,6 +291,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         nextState[idx].status = 'stopped';
         nextState[idx].output = 'Stopping task...';
         nextState[idx].chosenSizes = nextState[idx].sizes;
+        nextState[idx].proxy = null;
+        nextState[idx].product.found = null;
+        nextState[idx].log = [];
       }
       break;
     }

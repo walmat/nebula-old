@@ -407,7 +407,7 @@ class TaskManager {
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(runnerId, message, event) {
-    this._logger.silly('Runner %s posted new event %s - %s', runnerId, event, message.message);
+    this._logger.silly('Runner %s posted new event %s - %j', runnerId, event, message);
     // For now only re emit Task Status Events
     if (event === TaskRunner.Events.TaskStatus) {
       this._logger.silly('Reemitting this status update...');

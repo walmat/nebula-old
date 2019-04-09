@@ -137,6 +137,7 @@ class Monitor {
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.silly('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
+    this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     const { site } = this._context.task;
     const { variants, sizes, nextState, message } = this._generateVariants(parsed);
     // check for next state (means we hit an error when generating variants)
@@ -147,7 +148,6 @@ class Monitor {
     this._context.task.product.variants = variants;
     this._context.task.product.chosenSizes = sizes;
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
-    this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,

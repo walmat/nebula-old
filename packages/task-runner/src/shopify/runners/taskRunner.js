@@ -280,13 +280,7 @@ class TaskRunner {
         break;
       }
     }
-<<<<<<< HEAD
-    // Emit all events on the All channel
-    this._events.emit(Events.All, this._context.id, payload, event);
     this._logger.silly('Event %s emitted: %j', event, payload);
-=======
-    this._logger.verbose('Event %s emitted: %j', event, payload);
->>>>>>> added proxy event sender
   }
 
   _emitTaskEvent(payload = {}) {
@@ -304,13 +298,10 @@ class TaskRunner {
       this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
-<<<<<<< HEAD
-=======
     this._emitTaskEvent({
       message: 'Starting task setup',
       proxy: this._context.proxy,
     });
->>>>>>> added proxy event sender
     if (this._context.task.username && this._context.task.password) {
       return States.Login;
     }
@@ -462,9 +453,14 @@ class TaskRunner {
       });
       await this._waitForErrorDelay();
     }
-    const { chosenSizes } = this._context.task.product;
-    if (chosenSizes) {
-      this._emitTaskEvent({ message, size: chosenSizes[0] });
+    const { chosenSizes, name } = this._context.task.product;
+    if (chosenSizes || name) {
+      // TODO: is there a better way to do this?
+      this._emitTaskEvent({
+        message,
+        size: chosenSizes ? chosenSizes[0] : undefined,
+        found: name || undefined,
+      });
     } else {
       this._emitTaskEvent({ message });
     }
@@ -506,9 +502,14 @@ class TaskRunner {
       await this._waitForErrorDelay();
     }
 
-    const { chosenSizes } = this._context.task.product;
-    if (chosenSizes) {
-      this._emitTaskEvent({ message, size: chosenSizes[0] });
+    const { chosenSizes, name } = this._context.task.product;
+    if (chosenSizes || name) {
+      // TODO: is there a better way to do this?
+      this._emitTaskEvent({
+        message,
+        size: chosenSizes ? chosenSizes[0] : undefined,
+        found: name || undefined,
+      });
     } else {
       this._emitTaskEvent({ message });
     }
@@ -676,15 +677,11 @@ class TaskRunner {
         this.proxy = proxy;
         this._context.proxy = proxy.proxy;
         this.shouldBanProxy = false; // reset ban flag
-<<<<<<< HEAD
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
-=======
-        this._logger.verbose('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
         this._emitTaskEvent({
           message: `Swapped proxy to: ${proxy.proxy}`,
           proxy: proxy.proxy,
         });
->>>>>>> added proxy event sender
         return this._prevState;
       }
 

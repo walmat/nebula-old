@@ -88,7 +88,6 @@ export class TasksPrimitive extends Component {
   render() {
     const { newTask, errorDelay, monitorDelay, onKeyPress } = this.props;
     const { fullscreen } = this.state;
-    console.log(fullscreen);
     return (
       <div className="container tasks">
         <div className="row">

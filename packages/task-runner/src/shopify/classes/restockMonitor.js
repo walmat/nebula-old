@@ -55,9 +55,9 @@ class RestockMonitor extends Monitor {
     this._logger.silly('RESTOCK MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
     this._context.task.product.chosenSizes = sizes;
+    this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
     // Everything is setup -- kick it to checkout
     this._logger.silly('RESTOCK MONITOR: Status is OK, proceeding to checkout');
-    this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
     return {
       message: `Product restocked: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
