@@ -169,19 +169,19 @@
 /*
  * Implementation of themes
  */
-.tasks .tasks-log__header--output, .tasks .tasks-log__header--size, .tasks .tasks-log__header--site, .tasks .tasks-log__header--id {
+.tasks .tasks-log__header--output__fullscreen, .tasks .tasks-log__header--output, .tasks .tasks-log__header--proxy__fullscreen, .tasks .tasks-log__header--size, .tasks .tasks-log__header--product__fullscreen, .tasks .tasks-log__header--store, .tasks .tasks-log__header--id {
   margin: 0;
 }
-.tasks .tasks-log__header--output > p, .tasks .tasks-log__header--size > p, .tasks .tasks-log__header--site > p, .tasks .tasks-log__header--id > p {
+.tasks .tasks-log__header--output__fullscreen > p, .tasks .tasks-log__header--output > p, .tasks .tasks-log__header--proxy__fullscreen > p, .tasks .tasks-log__header--size > p, .tasks .tasks-log__header--product__fullscreen > p, .tasks .tasks-log__header--store > p, .tasks .tasks-log__header--id > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   letter-spacing: 0;
   margin: 5px 0;
 }
-.theme-light .tasks .tasks-log__header--output > p, .tasks .theme-light .tasks-log__header--output > p, .theme-light .tasks .tasks-log__header--size > p, .tasks .theme-light .tasks-log__header--size > p, .theme-light .tasks .tasks-log__header--site > p, .tasks .theme-light .tasks-log__header--site > p, .theme-light .tasks .tasks-log__header--id > p, .tasks .theme-light .tasks-log__header--id > p {
+.theme-light .tasks .tasks-log__header--output__fullscreen > p, .tasks .theme-light .tasks-log__header--output__fullscreen > p, .theme-light .tasks .tasks-log__header--output > p, .tasks .theme-light .tasks-log__header--output > p, .theme-light .tasks .tasks-log__header--proxy__fullscreen > p, .tasks .theme-light .tasks-log__header--proxy__fullscreen > p, .theme-light .tasks .tasks-log__header--size > p, .tasks .theme-light .tasks-log__header--size > p, .theme-light .tasks .tasks-log__header--product__fullscreen > p, .tasks .theme-light .tasks-log__header--product__fullscreen > p, .theme-light .tasks .tasks-log__header--store > p, .tasks .theme-light .tasks-log__header--store > p, .theme-light .tasks .tasks-log__header--id > p, .tasks .theme-light .tasks-log__header--id > p {
   color: #161318;
 }
-.theme-dark .tasks .tasks-log__header--output > p, .tasks .theme-dark .tasks-log__header--output > p, .theme-dark .tasks .tasks-log__header--size > p, .tasks .theme-dark .tasks-log__header--size > p, .theme-dark .tasks .tasks-log__header--site > p, .tasks .theme-dark .tasks-log__header--site > p, .theme-dark .tasks .tasks-log__header--id > p, .tasks .theme-dark .tasks-log__header--id > p {
+.theme-dark .tasks .tasks-log__header--output__fullscreen > p, .tasks .theme-dark .tasks-log__header--output__fullscreen > p, .theme-dark .tasks .tasks-log__header--output > p, .tasks .theme-dark .tasks-log__header--output > p, .theme-dark .tasks .tasks-log__header--proxy__fullscreen > p, .tasks .theme-dark .tasks-log__header--proxy__fullscreen > p, .theme-dark .tasks .tasks-log__header--size > p, .tasks .theme-dark .tasks-log__header--size > p, .theme-dark .tasks .tasks-log__header--product__fullscreen > p, .tasks .theme-dark .tasks-log__header--product__fullscreen > p, .theme-dark .tasks .tasks-log__header--store > p, .tasks .theme-dark .tasks-log__header--store > p, .theme-dark .tasks .tasks-log__header--id > p, .tasks .theme-dark .tasks-log__header--id > p {
   color: #dcdcdc;
 }
 
@@ -230,19 +230,7 @@
   cursor: sw-resize;
 }
 .tasks .tasks-log__fullscreen {
-  position: absolute;
-  top: 30px;
-  left: 120px;
-  width: calc(100% - 230px);
-  height: calc(100% - 50px);
   cursor: ne-resize;
-  z-index: 999;
-}
-.theme-light .tasks .tasks-log__fullscreen {
-  background-color: #f4f4f4;
-}
-.theme-dark .tasks .tasks-log__fullscreen {
-  background-color: #313236;
 }
 .tasks .tasks-log__header {
   margin: 0;
@@ -254,7 +242,14 @@
   width: 7px;
   padding-left: 14px;
 }
-.tasks .tasks-log__header--site {
+.tasks .tasks-log__header--store {
+  width: 110px;
+  padding-left: 15px;
+}
+.tasks .tasks-log__header--product {
+  display: none;
+}
+.tasks .tasks-log__header--product__fullscreen {
   width: 110px;
   padding-left: 15px;
 }
@@ -262,17 +257,25 @@
   width: 65px;
   padding-left: 18px;
 }
+.tasks .tasks-log__header--proxy {
+  display: none;
+}
+.tasks .tasks-log__header--proxy__fullscreen {
+  width: 65px;
+}
 .tasks .tasks-log__header--output {
   width: 20px;
   padding-left: 30px;
+}
+.tasks .tasks-log__header--output__fullscreen {
+  width: 20px;
+  padding-left: 80px;
 }
 .tasks .tasks-log__section-header {
   padding-top: 1px;
 }
 .tasks .tasks-log__section-header__fullscreen {
-  position: absolute;
-  left: 140px;
-  top: 10px;
+  display: none;
 }
 .tasks .tasks-log .blank {
   padding-left: 10px;
@@ -302,11 +305,33 @@
   margin-left: 6.5px;
   margin-right: 0;
 }
-.tasks .tasks-log .tasks-row-container .tasks-row__log--site {
+.tasks .tasks-log .tasks-row-container .tasks-row__log--id__fullscreen {
+  margin-left: 7.5px;
+  margin-right: 9.5px;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--store {
   width: 116px;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--store__fullscreen {
+  width: 122px;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--product {
+  display: none;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--product__fullscreen {
+  width: 123px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size {
   width: 66px;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--size__fullscreen {
+  width: 60px;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--proxy {
+  display: none;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--proxy__fullscreen {
+  width: 125px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
   width: 224px;
@@ -321,7 +346,7 @@
 /*
  * Implementation of themes
  */
-.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--id, .tasks .tasks-log .tasks-row-container .tasks-row__log--site, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--id, .tasks .tasks-log .tasks-row-container .tasks-row__log--id__fullscreen, .tasks .tasks-log .tasks-row-container .tasks-row__log--store, .tasks .tasks-log .tasks-row-container .tasks-row__log--product__fullscreen, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy__fullscreen, .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;

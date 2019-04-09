@@ -29,13 +29,19 @@ export class LogTaskPrimitive extends Component {
               <div className="col tasks-log__header--id">
                 <p>#</p>
               </div>
-              <div className="col tasks-log__header--site">
-                <p>Site</p>
+              <div className="col tasks-log__header--store">
+                <p>Store</p>
+              </div>
+              <div className={`col ${!fullscreen ? 'tasks-log__header--product' : 'tasks-log__header--product__fullscreen' }`}>
+                <p>Product</p>
               </div>
               <div className="col tasks-log__header--size">
                 <p>Size</p>
               </div>
-              <div className="col tasks-log__header--output">
+              <div className={`col ${!fullscreen ? 'tasks-log__header--proxy' : 'tasks-log__header--proxy__fullscreen' }`}>
+                <p>Proxy</p>
+              </div>
+              <div className={`col ${!fullscreen ? 'tasks-log__header--output' : 'tasks-log__header--output__fullscreen' }`}>
                 <p>Output</p>
               </div>
             </div>

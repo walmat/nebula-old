@@ -58,16 +58,7 @@
     cursor: sw-resize;
 
     &__fullscreen {
-      position: absolute;
-      @include themify($themes) {
-        background-color: themed('background');
-      }
-      top: 30px;
-      left: 120px;
-      width: calc(100% - 230px);
-      height: calc(100% - 50px);
       cursor: ne-resize;
-      z-index: 999;
     }
 
     &__header {
@@ -82,10 +73,19 @@
         padding-left: 14px;
       }
 
-      &--site {
+      &--store {
         @extend %tasks-log__header__field;
         width: 110px;
         padding-left: 15px;
+      }
+
+      &--product {
+        display: none;
+        &__fullscreen {
+          @extend %tasks-log__header__field;
+          width: 110px;
+          padding-left: 15px;
+        }
       }
 
       &--size {
@@ -94,19 +94,30 @@
         padding-left: 18px;
       }
 
+      &--proxy {
+        display: none;
+        &__fullscreen {
+          @extend %tasks-log__header__field;
+          width: 65px;
+        }
+      }
+
       &--output {
         @extend %tasks-log__header__field;
         width: 20px;
         padding-left: 30px;
+        &__fullscreen {
+          @extend %tasks-log__header__field;
+          width: 20px;
+          padding-left: 80px;
+        }
       }
     }
 
     &__section-header {
       padding-top: 1px;
       &__fullscreen {
-        position: absolute;
-        left: 140px;
-        top: 10px;
+        display: none;
       }
     }
 
@@ -139,16 +150,43 @@
             @extend %tasks-table__text-field;
             margin-left: 6.5px;
             margin-right: 0;
+            &__fullscreen {
+              @extend %tasks-table__text-field;
+              margin-left: 7.5px;
+              margin-right: 9.5px;
+            }
           }
 
-          &--site {
+          &--store {
             @extend %tasks-table__text-field;
             width: 116px;
+            &__fullscreen {
+              width: 122px;
+            }
+          }
+
+          &--product {
+            display: none;
+            &__fullscreen {
+              @extend %tasks-table__text-field;
+              width: 123px;
+            }
           }
 
           &--size {
             @extend %tasks-table__text-field;
             width: 66px;
+            &__fullscreen {
+              width: 60px;
+            }
+          }
+
+          &--proxy {
+            display: none;
+            &__fullscreen {
+              @extend %tasks-table__text-field;
+              width: 125px;
+            }
           }
 
           &--output {

@@ -1,20 +1,28 @@
 import React from 'react';
 import tDefns from '../utils/definitions/taskDefinitions';
 
-const LogTaskRow = ({
-  task: {
-    index,
-    chosenSizes,
-    sizes,
-    output,
-    site: { name },
-  },
-}) => (
+const LogTaskRow =
+  ({
+    task: {
+      index,
+      site: { name },
+      product: { raw },
+      chosenSizes,
+      sizes,
+      proxy,
+      output
+    },
+    fullscreen
+  }) => (
   <div className="tasks-row-container col">
-    <div key={index} className="tasks-row row">
-      <div className="col tasks-row__log--id">{index < 10 ? `0${index}` : index}</div>
-      <div className="col col--no-gutter tasks-row__log--site">{name}</div>
-      <div className="col col--no-gutter tasks-row__log--size">{chosenSizes || sizes}</div>
+    <div key={key} className="tasks-row row">
+      <div className={`col ${!fullscreen ? 'tasks-row__log--id' : 'tasks-row__log--id__fullscreen'}`}>
+        {task.index < 10 ? `0${index}` : index}
+      </div>
+      <div className={`col ${!fullscreen ? 'col--no-gutter tasks-row__log--store' : 'col--no-gutter tasks-row__log--store__fullscreen' }`}>{name}</div>
+      <div className={`col ${!fullscreen ? 'col--no-gutter tasks-row__log--product' : 'col--no-gutter tasks-row__log--product__fullscreen' }`}>{raw}</div>
+      <div className={`col ${!fullscreen ? 'col--no-gutter tasks-row__log--size' : 'col--no-gutter tasks-row__log--size__fullscreen' }`}>{chosenSizes || sizes}</div>
+      <div className={`col ${!fullscreen ? 'col--no-gutter tasks-row__log--proxy' : 'col--no-gutter tasks-row__log--proxy__fullscreen' }`}>{proxy || 'None'}</div>
       <div className="col tasks-row__log--output">{output}</div>
     </div>
   </div>
