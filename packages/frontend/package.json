@@ -101,10 +101,6 @@
     "rimraf": "^2.6.2",
     "sass": "^1.15.2"
   },
-  "engines": {
-    "node": ">=10.11.0",
-    "npm": ">=6.0.0"
-  },
   "browserslist": [
     ">0.2%",
     "not dead",
