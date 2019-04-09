@@ -62,7 +62,7 @@ export class App extends PureComponent {
     window.removeEventListener('beforeunload', this._cleanup);
   }
 
-  async onCloseHandler() {
+  async _cleanupTaskLog() {
     const { store } = this.props;
     const { tasks } = store.getState();
     tasks.forEach(t => {
@@ -70,6 +70,12 @@ export class App extends PureComponent {
         store.dispatch(taskActions.stop(t));
       }
     });
+  }
+
+  _cleanupTaskEvents() {
+    if (window.Bridge) {
+      window.Bridge.deregisterForTaskEvents(this.taskHandler);
+    }
   }
 
   setTheme(store) {

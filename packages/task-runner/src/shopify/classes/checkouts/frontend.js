@@ -56,7 +56,7 @@ class FrontendCheckout extends Checkout {
       const body = JSON.parse(res.body);
       if (body && body.id) {
         const { id } = body;
-        // this._logger.silly('Payment token: %s', id);
+        this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
         return { message: 'Monitoring for product', nextState: States.Monitor };
       }
@@ -115,7 +115,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      // this._logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
+      this._logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // out of stock
@@ -217,7 +217,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location || res.request.href;
-      // this._logger.silly('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
+      this._logger.silly('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
 
       // check for redirects
       if (redirectUrl) {
@@ -249,7 +249,7 @@ class FrontendCheckout extends Checkout {
       // check if captcha is present
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
       const recaptcha = $('.g-recaptcha');
-      // this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
+      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
       if (recaptcha.length > 0) {
         this.needsCaptcha = true;
       }
@@ -311,7 +311,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      // this._logger.silly('FRONTEND CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+      this._logger.silly('FRONTEND CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         if (statusCode >= 200 && statusCode < 310) {
           return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
@@ -403,7 +403,7 @@ class FrontendCheckout extends Checkout {
       }
 
       if (body && body.errors) {
-        // this._logger.silly('FRONTEND CHECKOUT: Error getting shipping rates: %j', body.errors);
+        this._logger.silly('FRONTEND CHECKOUT: Error getting shipping rates: %j', body.errors);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
@@ -417,11 +417,11 @@ class FrontendCheckout extends Checkout {
         const { name } = cheapest;
         const id = `${cheapest.source}-${encodeURIComponent(cheapest.name)}-${cheapest.price}`;
         this.chosenShippingMethod = { id, name };
-        // this._logger.silly('FRONTEND CHECKOUT: Using shipping rate: %s', name);
+        this._logger.silly('FRONTEND CHECKOUT: Using shipping rate: %s', name);
 
         // set shipping price for cart
         this.prices.shipping = cheapest.price;
-        // this._logger.silly('FRONTEND CHECKOUT: Shipping cost: %s', this.prices.shipping);
+        this._logger.silly('FRONTEND CHECKOUT: Shipping cost: %s', this.prices.shipping);
 
         return {
           message: `Using rate: ${name}`,

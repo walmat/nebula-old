@@ -18,8 +18,8 @@ class Parser {
    */
   static getFullProductInfo(productUrl, request, logger) {
     const _logger = logger || { log: () => {} };
-    // _logger.log('silly', 'Parser: Getting Full Product Info...');
-    // _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', productUrl);
+    _logger.log('silly', 'Parser: Getting Full Product Info...');
+    _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', productUrl);
     const genRequestPromise = uri =>
       request({
         method: 'GET',
@@ -82,12 +82,12 @@ class Parser {
   constructor(request, task, proxy, logger, name) {
     this._logger = logger || { log: () => {} };
     this._name = name || 'Parser';
-    // this._logger.log('silly', '%s: constructing...', this._name);
+    this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
     this._request = request;
     this._task = task;
     this._type = getParseType(task.product);
-    // this._logger.log('silly', '%s: constructed', this._name);
+    this._logger.log('silly', '%s: constructed', this._name);
   }
 
   /**
@@ -105,40 +105,40 @@ class Parser {
    * Perform Product Matching based on the parse type
    */
   match(products) {
-    // this._logger.silly('%s: starting parse...', this._name);
+    this._logger.silly('%s: starting parse...', this._name);
     switch (this._type) {
       case ParseType.Variant: {
-        // this._logger.silly('%s: parsing type %s detected', this._name, this._type);
+        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
         const product = matchVariant(products, this._task.product.variant, this._logger);
         if (!product) {
-          // this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
+          this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?
           const error = new Error('ProductNotFound');
           error.status = ErrorCodes.ProductNotFound;
           throw error;
         }
-        // this._logger.silly('%s: Product found!', this._name);
+        this._logger.silly('%s: Product found!', this._name);
         return product;
       }
       case ParseType.Keywords: {
-        // this._logger.silly('%s: parsing type %s detected', this._name, this._type);
+        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
         const keywords = {
           pos: this._task.product.pos_keywords,
           neg: this._task.product.neg_keywords,
         };
         const product = matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
         if (!product) {
-          // this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
+          this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?
           const error = new Error('ProductNotFound');
           error.status = ErrorCodes.ProductNotFound;
           throw error;
         }
-        // this._logger.silly('%s: Matching Product found!', this._name);
+        this._logger.silly('%s: Matching Product found!', this._name);
         return product;
       }
       default: {
-        // this._logger.silly('%s: Invalid parsing type %s! throwing error', this._name, this._type);
+        this._logger.silly('%s: Invalid parsing type %s! throwing error', this._name, this._type);
         // TODO: Create an ErrorCode for this
         throw new Error('InvalidParseType');
       }

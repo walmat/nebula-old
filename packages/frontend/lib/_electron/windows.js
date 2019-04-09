@@ -10,7 +10,7 @@ const _defaultWebPreferences = {
   webSecurity: true,
   allowRunningInsecureContent: false,
   experimentalCanvasFeatures: true,
-  experimentalFeatures: true,
+  experimentalFeatures: false,
   blinkFeatures: '',
 };
 

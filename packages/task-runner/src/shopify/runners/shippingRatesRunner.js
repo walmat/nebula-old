@@ -6,9 +6,9 @@ class ShippingRatesRunner extends TaskRunner {
     super(id, task, proxy, loggerPath, Types.ShippingRates);
 
     if (this._checkoutType === CheckoutTypes.fe) {
-      // this._logger.error(
-      //   'Running for Shipping Rates is not Supported with FE Sites! Throwing error now...',
-      // );
+      this._logger.error(
+        'Running for Shipping Rates is not Supported with FE Sites! Throwing error now...',
+      );
       throw new Error('Running for Shipping Rates is not Supported with FE Sites!');
     }
   }

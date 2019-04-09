@@ -22,33 +22,33 @@ module.exports.ParseType = ParseType;
  */
 function getParseType(product, logger, site) {
   const _logger = logger || { log: () => {} };
-  // _logger.log('silly', 'Determining Parse Type for Product...', product);
+  _logger.log('silly', 'Determining Parse Type for Product...', product);
   if (!product) {
-    // _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
+    _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
     return ParseType.Unknown;
   }
 
   if (site && isSpecialSite(site)) {
-    // _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
+    _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
     return ParseType.Special;
   }
 
   if (product.variant) {
-    // _logger.log('silly', 'Parse Type determined as %s', ParseType.Variant);
+    _logger.log('silly', 'Parse Type determined as %s', ParseType.Variant);
     return ParseType.Variant;
   }
 
   if (product.url) {
-    // _logger.log('silly', 'Parse Type determined as %s', ParseType.Url);
+    _logger.log('silly', 'Parse Type determined as %s', ParseType.Url);
     return ParseType.Url;
   }
 
   if (product.pos_keywords && product.neg_keywords) {
-    // _logger.log('silly', 'Parse Type Determined as %s', ParseType.Keywords);
+    _logger.log('silly', 'Parse Type Determined as %s', ParseType.Keywords);
     return ParseType.Keywords;
   }
 
-  // _logger.log('silly', 'Parse Type could not be determined!');
+  _logger.log('silly', 'Parse Type could not be determined!');
   return ParseType.Unknown;
 }
 module.exports.getParseType = getParseType;
@@ -75,28 +75,28 @@ module.exports.getParseType = getParseType;
  */
 function filterAndLimit(list, sorter, limit, logger) {
   const _logger = logger || { log: () => {} };
-  // _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
+  _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
   if (!list) {
-    // _logger.log('silly', 'No list given! returning empty list');
+    _logger.log('silly', 'No list given! returning empty list');
     return [];
   }
-  // _logger.log('silly', 'List Detected with %d elements. Proceeding to sorting now...', list.length);
+  _logger.log('silly', 'List Detected with %d elements. Proceeding to sorting now...', list.length);
   let sorted = list;
   if (sorter) {
-    // _logger.log('silly', 'Sorter detected, sorting...');
+    _logger.log('silly', 'Sorter detected, sorting...');
     sorted = _.sortBy(list, sorter);
   }
 
   const _limit = limit || 0;
   if (_limit === 0) {
-    // _logger.log('silly', 'No limit given! returning...');
+    _logger.log('silly', 'No limit given! returning...');
     return sorted;
   }
   if (_limit > 0) {
-    // _logger.log('silly', 'Ascending Limit detected, limiting...');
+    _logger.log('silly', 'Ascending Limit detected, limiting...');
     return sorted.slice(_limit);
   }
-  // _logger.log('silly', 'Descending Limit detected, limiting...');
+  _logger.log('silly', 'Descending Limit detected, limiting...');
   // slice, then reverse elements to get the proper order
   return sorted.slice(0, _limit).reverse();
 }
@@ -121,13 +121,13 @@ module.exports.filterAndLimit = filterAndLimit;
  */
 function matchVariant(products, variantId, logger) {
   const _logger = logger || { log: () => {} };
-  // _logger.log('silly', 'Starting variant matching for variant: %s', variantId);
+  _logger.log('silly', 'Starting variant matching for variant: %s', variantId);
   if (!products) {
-    // _logger.log('silly', 'No product list given! Returning null');
+    _logger.log('silly', 'No product list given! Returning null');
     return null;
   }
   if (!variantId) {
-    // _logger.log('silly', 'No variant id given! Returning null');
+    _logger.log('silly', 'No variant id given! Returning null');
     return null;
   }
   // Sometimes the objects in the variants list don't include a product_id hook back to the associated product.
@@ -152,21 +152,21 @@ function matchVariant(products, variantId, logger) {
     v => v.id.toString() === variantId,
   );
   if (matchedVariant) {
-    // _logger.log(
-    //   'silly',
-    //   'Searched %d products. Found variant %s}',
-    //   transformedProducts.length,
-    //   variantId,
-    // );
-    // _logger.log('silly', 'Returning product associated with this variant...');
+    _logger.log(
+      'silly',
+      'Searched %d products. Found variant %s}',
+      transformedProducts.length,
+      variantId,
+    );
+    _logger.log('silly', 'Returning product associated with this variant...');
     return _.find(transformedProducts, p => p.id === matchedVariant.product_id);
   }
-  // _logger.log(
-  //   'silly',
-  //   'Searched %d products. Variant %s was not found! Returning null',
-  //   products.length,
-  //   variantId,
-  // );
+  _logger.log(
+    'silly',
+    'Searched %d products. Variant %s was not found! Returning null',
+    products.length,
+    variantId,
+  );
   return null;
 }
 module.exports.matchVariant = matchVariant;
@@ -193,22 +193,22 @@ module.exports.matchVariant = matchVariant;
  */
 function matchKeywords(products, keywords, filter, logger, returnAll) {
   const _logger = logger || { log: () => {} };
-  // _logger.log(
-  //   'silly',
-  //   'Starting keyword matching for keywords: %s',
-  //   JSON.stringify(keywords, null, 2),
-  //   keywords,
-  // );
+  _logger.log(
+    'silly',
+    'Starting keyword matching for keywords: %s',
+    JSON.stringify(keywords, null, 2),
+    keywords,
+  );
   if (!products) {
-    // _logger.log('silly', 'No product list given! Returning null');
+    _logger.log('silly', 'No product list given! Returning null');
     return null;
   }
   if (!keywords) {
-    // _logger.log('silly', 'No keywords object given! Returning null');
+    _logger.log('silly', 'No keywords object given! Returning null');
     return null;
   }
   if (!keywords.pos || !keywords.neg) {
-    // _logger.log('silly', 'Malformed keywords object! Returning null');
+    _logger.log('silly', 'Malformed keywords object! Returning null');
     return null;
   }
 
@@ -240,53 +240,53 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
   });
 
   if (!matches.length) {
-    // _logger.log('silly', 'Searched %d products. No matches found! Returning null', products.length);
+    _logger.log('silly', 'Searched %d products. No matches found! Returning null', products.length);
     return null;
   }
   if (matches.length > 1) {
     let filtered;
-    // _logger.log(
-    //   'silly',
-    //   'Searched %d products. %d Products Found',
-    //   products.length,
-    //   matches.length,
-    //   JSON.stringify(matches.map(({ title }) => title), null, 2),
-    // );
+    _logger.log(
+      'silly',
+      'Searched %d products. %d Products Found',
+      products.length,
+      matches.length,
+      JSON.stringify(matches.map(({ title }) => title), null, 2),
+    );
     if (filter && filter.sorter && filter.limit) {
-      // _logger.log('silly', 'Using given filtering heuristic on the products...');
+      _logger.log('silly', 'Using given filtering heuristic on the products...');
       let { limit } = filter;
       if (returnAll) {
-        // _logger.log('silly', "Overriding filter's limit and returning all products...");
+        _logger.log('silly', "Overriding filter's limit and returning all products...");
         limit = 0;
       }
       filtered = filterAndLimit(matches, filter.sorter, limit, this._logger);
       if (!returnAll) {
-        // _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
+        _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
         return filtered[0];
       }
-      // _logger.log('silly', 'Returning %d Matched Products', filtered.length);
+      _logger.log('silly', 'Returning %d Matched Products', filtered.length);
       return filtered;
     }
-    // _logger.log(
-    //   'silly',
-    //   'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...',
-    // );
+    _logger.log(
+      'silly',
+      'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...',
+    );
     if (returnAll) {
-      // _logger.log('silly', 'Returning all products...');
+      _logger.log('silly', 'Returning all products...');
       filtered = filterAndLimit(matches, 'updated_at', 0, this._logger);
-      // _logger.log('silly', 'Returning %d Matched Products', filtered);
+      _logger.log('silly', 'Returning %d Matched Products', filtered);
       return filtered;
     }
     filtered = filterAndLimit(matches, 'updated_at', -1, this._logger);
-    // _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
+    _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
     return filtered[0];
   }
-  // _logger.log(
-  //   'silly',
-  //   'Searched %d products. Matching Product Found: %s',
-  //   products.length,
-  //   matches[0].title,
-  // );
+  _logger.log(
+    'silly',
+    'Searched %d products. Matching Product Found: %s',
+    products.length,
+    matches[0].title,
+  );
   return returnAll ? matches : matches[0];
 }
 module.exports.matchKeywords = matchKeywords;

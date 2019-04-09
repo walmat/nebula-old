@@ -46,12 +46,21 @@ class TaskRunner {
     /**
      * Logger Instance
      */
+    // TODO: TEMPORARY UNTIL WE FIGURE OUT FASTER I/O
     // this._logger = createLogger({
     //   dir: loggerPath,
     //   name: `TaskRunner-${id}`,
     //   prefix: `runner-${id}`,
     // });
-    this._logger = () => {};
+    this._logger = {
+      error: () => {},
+      warn: () => {},
+      info: () => {},
+      verbose: () => {},
+      debug: () => {},
+      silly: () => {},
+      log: () => {},
+    };
 
     /**
      * Internal Task Runner State
@@ -127,7 +136,7 @@ class TaskRunner {
   }
 
   _waitForErrorDelay() {
-    // this._logger.silly('Waiting for error delay...');
+    this._logger.silly('Waiting for error delay...');
     return waitForDelay(this._context.task.errorDelay);
   }
 
@@ -185,7 +194,7 @@ class TaskRunner {
     }
 
     if (this._context.harvestState === HarvestStates.start) {
-      // this._logger.silly('[DEBUG]: Starting harvest...');
+      this._logger.silly('[DEBUG]: Starting harvest...');
       this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
     }
 
@@ -195,7 +204,7 @@ class TaskRunner {
 
   suspendHarvestCaptcha() {
     if (this._context.harvestState === HarvestStates.start) {
-      // this._logger.silly('[DEBUG]: Suspending harvest...');
+      this._logger.silly('[DEBUG]: Suspending harvest...');
       this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
       this._context.harvestState = HarvestStates.suspend;
     }
@@ -206,7 +215,7 @@ class TaskRunner {
     if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
       this._captchaQueue.destroy();
       this._captchaQueue = null;
-      // this._logger.silly('[DEBUG]: Stopping harvest...');
+      this._logger.silly('[DEBUG]: Stopping harvest...');
       this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
       this._context.harvestState = HarvestStates.stop;
@@ -218,14 +227,14 @@ class TaskRunner {
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
-        // this._logger.silly('Reached Proxy Handler, resolving');
+        this._logger.silly('Reached Proxy Handler, resolving');
         clearTimeout(timeout);
         timeout = null;
         resolve(proxy);
       };
       timeout = setTimeout(() => {
         this._events.removeListener(Events.ReceiveProxy, proxyHandler);
-        // this._logger.silly('Reached Proxy Timeout: should reject? %s', !!timeout);
+        this._logger.silly('Reached Proxy Timeout: should reject? %s', !!timeout);
         // only reject if timeout has not been cleared
         if (timeout) {
           reject(new Error('Timeout'));
@@ -273,7 +282,7 @@ class TaskRunner {
     }
     // Emit all events on the All channel
     this._events.emit(Events.All, this._context.id, payload, event);
-    // this._logger.silly('Event %s emitted: %j', event, payload);
+    this._logger.silly('Event %s emitted: %j', event, payload);
   }
 
   _emitTaskEvent(payload = {}) {
@@ -288,7 +297,7 @@ class TaskRunner {
   async _handleStarted() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
     if (this._context.task.username && this._context.task.password) {
@@ -300,7 +309,7 @@ class TaskRunner {
   async _handleLogin() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -316,7 +325,7 @@ class TaskRunner {
   async _handlePaymentToken() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -332,7 +341,7 @@ class TaskRunner {
   async _handleCreateCheckout() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -347,7 +356,7 @@ class TaskRunner {
   async _handleGetCheckout() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -363,7 +372,7 @@ class TaskRunner {
   async _handlePingCheckout() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -381,7 +390,7 @@ class TaskRunner {
 
   async _handlePatchCheckout() {
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -399,7 +408,7 @@ class TaskRunner {
   async _handlePollQueue() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -424,7 +433,7 @@ class TaskRunner {
   async _handleMonitor() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -435,7 +444,7 @@ class TaskRunner {
 
     const { errors, message, nextState, shouldBan } = await this._monitor.run();
     if (errors) {
-      // this._logger.verbose('Monitor Handler completed with errors: %j', errors);
+      this._logger.verbose('Monitor Handler completed with errors: %j', errors);
       this._emitTaskEvent({
         message: 'Error monitoring product...',
         errors,
@@ -458,7 +467,7 @@ class TaskRunner {
   async _handleRestocking() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -478,7 +487,7 @@ class TaskRunner {
     }
     const { errors, message, nextState, shouldBan } = res;
     if (errors) {
-      // this._logger.silly('Restock Monitor Handler completed with errors: %j', errors);
+      this._logger.silly('Restock Monitor Handler completed with errors: %j', errors);
       this._emitTaskEvent({
         message: 'Error running for restocks...',
         errors,
@@ -506,7 +515,7 @@ class TaskRunner {
   async _handleAddToCart() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -522,7 +531,7 @@ class TaskRunner {
   async _handleShipping() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -538,7 +547,7 @@ class TaskRunner {
   async _handleRequestCaptcha() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       if (this._checkout.captchaTokenRequest) {
         // cancel the request if it was previously started
         this._checkout.captchaTokenRequest.cancel('aborted');
@@ -577,20 +586,20 @@ class TaskRunner {
       }
       case 'cancelled':
       case 'destroyed': {
-        // this._logger.silly(
-        //   'Harvest Captcha status: %s, stopping...',
-        //   this._checkout.captchaTokenRequest.status,
-        // );
+        this._logger.silly(
+          'Harvest Captcha status: %s, stopping...',
+          this._checkout.captchaTokenRequest.status,
+        );
         // TODO: should we emit a status update here?
         // clear out the status so we get a generic "errored out task event"
         this._context.status = null;
         return States.Errored;
       }
       default: {
-        // this._logger.silly(
-        //   'Unknown Harvest Captcha status! %s, stopping...',
-        //   this._checkout.captchaTokenRequest.status,
-        // );
+        this._logger.silly(
+          'Unknown Harvest Captcha status! %s, stopping...',
+          this._checkout.captchaTokenRequest.status,
+        );
         // clear out the status so we get a generic "errored out task event"
         this._context.status = null;
         return States.Errored;
@@ -617,7 +626,7 @@ class TaskRunner {
   async _handleCompletePayment() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -633,7 +642,7 @@ class TaskRunner {
   async _handlePaymentProcess() {
     // exit if abort is detected
     if (this._context.aborted) {
-      // this._logger.silly('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
@@ -648,7 +657,7 @@ class TaskRunner {
 
   async _handleSwapProxies() {
     try {
-      // this._logger.silly('Waiting for new proxy...');
+      this._logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
       // Proxy is fine, update the references
@@ -656,7 +665,7 @@ class TaskRunner {
         this.proxy = proxy;
         this._context.proxy = proxy.proxy;
         this.shouldBanProxy = false; // reset ban flag
-        // this._logger.silly('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
+        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
         return this._prevState;
       }
 
@@ -669,7 +678,7 @@ class TaskRunner {
         });
       }
     } catch (err) {
-      // this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
+      this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitTaskEvent({
         message: 'Error swapping proxies! Retrying...',
         errors: err,
@@ -712,7 +721,7 @@ class TaskRunner {
       throw new Error('Reached Unknown State!');
     }
 
-    // this._logger.silly('Handling state: %s', currentState);
+    this._logger.silly('Handling state: %s', currentState);
 
     const stepMap = {
       [States.Started]: this._handleStarted,
@@ -750,10 +759,10 @@ class TaskRunner {
     try {
       nextState = await this._handleStepLogic(this._state);
     } catch (e) {
-      // this._logger.verbose('Run loop errored out! %s', e);
+      this._logger.verbose('Run loop errored out! %s', e);
       nextState = States.Errored;
     }
-    // this._logger.silly('Run Loop finished, state transitioned to: %s', nextState);
+    this._logger.silly('Run Loop finished, state transitioned to: %s', nextState);
 
     if (this._state !== nextState) {
       this._prevState = this._state;
