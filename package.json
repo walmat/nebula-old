@@ -62,9 +62,5 @@
       "eslint --no-ignore --fix",
       "git add"
     ]
-  },
-  "engines": {
-    "node": ">=11.12.0",
-    "npm": ">=6.0.0"
   }
 }
