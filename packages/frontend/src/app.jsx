@@ -47,25 +47,27 @@ export class App extends PureComponent {
   constructor(props) {
     super(props);
     this.taskHandler = this.taskHandler.bind(this);
-    this.onCloseHandler = this.onCloseHandler.bind(this);
+    this._cleanup = this._cleanup.bind(this);
   }
 
   componentDidMount() {
     if (window.Bridge) {
       window.Bridge.registerForTaskEvents(this.taskHandler);
     }
-    window.addEventListener('beforeunload', this.onCloseHandler);
-    window.addEventListener('beforeunload', this._cleanupTaskEvents);
+    window.addEventListener('beforeunload', this._cleanup);
   }
 
   componentWillUnmount() {
-    this.onCloseHandler();
-    this._cleanupTaskEvents();
-    window.removeEventListener('beforeunload', this.onCloseHandler);
-    window.removeEventListener('beforeunload', this._cleanupTaskEvents);
+    this._cleanup();
+    window.removeEventListener('beforeunload', this._cleanup);
   }
 
-  async onCloseHandler() {
+  _cleanup() {
+    this._cleanupTaskLog();
+    this._cleanupTaskEvents();
+  }
+
+  async _cleanupTaskLog() {
     const { store } = this.props;
     const { tasks } = store.getState();
     tasks.forEach(t => {
@@ -73,6 +75,12 @@ export class App extends PureComponent {
         store.dispatch(taskActions.stop(t));
       }
     });
+  }
+
+  _cleanupTaskEvents() {
+    if (window.Bridge) {
+      window.Bridge.deregisterForTaskEvents(this.taskHandler);
+    }
   }
 
   setTheme(store) {
@@ -89,12 +97,6 @@ export class App extends PureComponent {
   taskHandler(event, statusMessageBuffer) {
     const { store } = this.props;
     store.dispatch(taskActions.status(statusMessageBuffer));
-  }
-
-  _cleanupTaskEvents() {
-    if (window.Bridge) {
-      window.Bridge.deregisterForTaskEvents(this.taskHandler);
-    }
   }
 
   render() {

@@ -130,7 +130,6 @@ const _stopTaskRequest = async task => {
 const _addTask = makeActionCreator(TASK_ACTIONS.ADD, 'response');
 const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
-const statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'messageBuffer');
 const _copyTask = makeActionCreator(TASK_ACTIONS.COPY, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
@@ -138,6 +137,7 @@ const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 // Public Actions
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
 const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
+const statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'messageBuffer');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
