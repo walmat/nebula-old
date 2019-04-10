@@ -7,7 +7,8 @@
     "build": "yarn workspaces run build",
     "ci": "yarn workspaces run ci",
     "lint": "yarn workspaces run lint",
-    "test": "yarn workspaces run test"
+    "test": "yarn workspaces run test",
+    "postinstall": "yarn workspace @nebula/orion run afterinstall"
   },
   "workspaces": [
     "packages/*"
