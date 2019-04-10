@@ -4,7 +4,7 @@
   "description": "nebula discord bot",
   "main": "build/index.js",
   "scripts": {
-    "build": "babel auth.js index.js -d build",
+    "build": "babel --root-mode upward --no-comments -d build auth.js index.js",
     "ci": "exit 0",
     "lint": "eslint auth.js index.js",
     "prestart": "npm run build",

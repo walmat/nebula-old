@@ -4,7 +4,7 @@
   "private": true,
   "main": "./build/index.js",
   "scripts": {
-    "build": "babel src -d build",
+    "build": "babel --root-mode upward --no-comments -d build src/",
     "ci": "exit 0",
     "lint": "eslint src/",
     "postinstall": "npm run build",

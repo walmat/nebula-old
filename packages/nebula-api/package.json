@@ -13,7 +13,7 @@
     "recaptcha-verify": "^0.1.1"
   },
   "scripts": {
-    "build": "babel src/ -d build/",
+    "build": "babel --root-mode upward --no-comments -d build src/",
     "ci": "exit 0",
     "dev": "cross-env NODE_ENV=development nodemon src/app.js",
     "lint": "eslint src",
