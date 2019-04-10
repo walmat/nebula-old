@@ -2,12 +2,12 @@
   "name": "@nebula/task-runner",
   "version": "0.1.0",
   "private": true,
-  "main": "./build/index.js",
+  "main": "build/index.js",
   "scripts": {
     "build": "babel --root-mode upward --no-comments -d build src/",
     "ci": "exit 0",
     "lint": "eslint src/",
-    "postinstall": "npm run build",
+    "postinstall": "yarn run build",
     "test": "echo \"Warning: no test specified\" && exit 0"
   },
   "dependencies": {

@@ -7,8 +7,8 @@
     "build": "babel --root-mode upward --no-comments -d build auth.js index.js",
     "ci": "exit 0",
     "lint": "eslint auth.js index.js",
-    "prestart": "npm run build",
-    "postinstall": "npm run build",
+    "prestart": "yarn run build",
+    "postinstall": "yarn run build",
     "start": "nodemon build/index.js",
     "test": "echo \"Warning: no test specified\" && exit 0"
   },

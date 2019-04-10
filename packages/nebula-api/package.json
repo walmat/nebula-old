@@ -17,9 +17,10 @@
     "ci": "exit 0",
     "dev": "cross-env NODE_ENV=development nodemon src/app.js",
     "lint": "eslint src",
-    "prestart": "npm run build",
+    "postinstall": "yarn run build",
+    "prestart": "yarn run build",
     "prod": "cross-env NODE_ENV=production nodemon build/app.js",
-    "start": "npm run prod",
+    "start": "yarn run prod",
     "test": "echo \"Warning: no test specified\" && exit 0"
   }
 }

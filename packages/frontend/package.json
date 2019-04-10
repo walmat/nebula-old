@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production GENERATE_SOURCEMAP=false react-app-rewired build",
-    "ci": "cross-env CI=true npm run test",
+    "ci": "cross-env CI=true yarn run test",
     "coverage": "yarn run test --coverage",
     "dev-server": "cross-env HTTPS=true react-app-rewired start",
     "dev": "cross-env NODE_ENV=development electron .",
