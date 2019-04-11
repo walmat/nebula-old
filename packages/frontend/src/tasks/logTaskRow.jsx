@@ -3,6 +3,8 @@ import tDefns from '../utils/definitions/taskDefinitions';
 
 const LogTaskRow =
   ({
+    onClick,
+    selected,
     task: {
       index,
       site: { name },
@@ -14,8 +16,8 @@ const LogTaskRow =
     },
     fullscreen
   }) => (
-  <div className="tasks-row-container col">
-    <div key={index} className="tasks-row row">
+  <div className="tasks-row-container col" onClick={onClick}>
+    <div key={index} className={`${selected ? 'tasks-row__selected' : 'tasks-row'} row`}>
       <div className={`col ${!fullscreen ? 'tasks-row__log--id' : 'tasks-row__log--id__fullscreen'}`}>
         {index < 10 ? `0${index}` : index}
       </div>

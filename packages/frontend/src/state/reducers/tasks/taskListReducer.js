@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations */
 import shortId from 'shortid';
+import moment from 'moment';
 
 import {
   TASK_ACTIONS,
@@ -215,7 +216,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
               task.product.found = found;
             }
           }
-          // TODO: compound `output` to the log
+          task.log.push(`[${moment().format('hh:mm:ss A')}]: ${task.output}`);
         }
       });
       break;

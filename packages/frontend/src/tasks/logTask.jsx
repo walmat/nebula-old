@@ -5,10 +5,63 @@ import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 export class LogTaskPrimitive extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      selected: [],
+      focused: '',
+    }
+  }
+
+  selectRow(taskId) {
+    let { selected } = this.state;
+    if (taskId && !selected.includes(taskId)) {
+      selected.push(taskId);
+      this.setState({ focused: taskId });
+    } else {
+      selected = selected.filter(e => e !== taskId);
+      this.setState({ focused: selected[selected.length - 1]})
+    }
+    this.setState({ selected });
+  }
+
+  renderOutputLogRow(msg) {
+    return (
+      <div className="row row--start row--gutter tasks-live-log__output-row">
+        <p>{msg}</p>
+      </div>
+    );
+  }
+
+  showLiveLog() {
+    const { tasks } = this.props;
+    const { focused } = this.state;
+    const task = tasks.find(t => t.id === focused);
+    if (focused) {
+      return (
+        <div className="row row--expand table--lower">
+          <div className="col col--start tasks-live-log__wrapper">
+            {task.log.map(msg => this.renderOutputLogRow(msg))}
+          </div>
+        </div>
+      );
+    }
+  }
+
   createTable() {
     const { tasks, fullscreen } = this.props;
-    const runningTasks = tasks.filter(task => task.status === 'running');
-    const table = runningTasks.map(t => <LogTaskRow key={t.index} task={t} fullscreen={fullscreen} />);
+    const { selected } = this.state;
+    const runningTasks = tasks.filter(task => task.status === 'running' || task.status === 'finished');
+    const table = runningTasks.map(t =>
+      <LogTaskRow
+        onClick={() =>this.selectRow(t.id)}
+        key={t.index}
+        selected={selected.find(e => e === t.id)}
+        task={t}
+        fullscreen={fullscreen}
+      />
+    );
+    // TODO: ADD IN LIVE LOG AREA TOGGLING HERE?
     return table;
   }
 
@@ -50,11 +103,12 @@ export class LogTaskPrimitive extends Component {
                 <hr className="view-line" />
               </div>
             </div>
-            <div className="row row--expand">
+            <div className="row row--expand table--upper">
               <div className="col tasks-table__wrapper">
                 <div className={`tasks-log ${fullscreen ? 'tasks-log__fullscreen' : '' }`}>{this.createTable()}</div>
               </div>
             </div>
+            { fullscreen ? this.showLiveLog() : null }
           </div>
         </div>
       </div>
