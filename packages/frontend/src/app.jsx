@@ -67,7 +67,7 @@ export class App extends PureComponent {
     this._cleanupTaskEvents();
   }
 
-  async _cleanupTaskLog() {
+  _cleanupTaskLog() {
     const { store } = this.props;
     const { tasks } = store.getState();
     tasks.forEach(t => {
@@ -94,9 +94,8 @@ export class App extends PureComponent {
     this.forceUpdate();
   }
 
-  taskHandler(event, statusMessageBuffer) {
+  taskHandler(_, statusMessageBuffer) {
     const { store } = this.props;
-    console.log(statusMessageBuffer);
     store.dispatch(taskActions.status(statusMessageBuffer));
   }
 

@@ -10,6 +10,7 @@ nebulaEnv.setUpEnvironment();
 
 let srrRequest = null;
 let handlers = [];
+const SRR_ID = 1000;
 
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
@@ -97,7 +98,7 @@ const _stopTasks = tasks => {
 
 const _startShippingRatesRunner = task => {
   const request = {
-    task: { ...task, id: 1000, sizes: ['Random'] },
+    task: { ...task, id: SRR_ID, sizes: ['Random'] },
     cancel: () => {},
     promise: null,
   };
@@ -112,12 +113,12 @@ const _startShippingRatesRunner = task => {
     // Define srr message handler to retrive data
     const srrMessageHandler = (_, payload) => {
       // Only respond to specific type and id
-      if (payload.type === TaskRunnerTypes.ShippingRates) {
+      if (payload[SRR_ID] && payload[SRR_ID].type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
-        response.rates = payload.rates || response.rates; // update rates if it exists
-        response.selectedRate = payload.selected || response.selectedRate; // update selected if it exists
-        console.log(payload, payload.rates, payload.selectedRate);
-        if (payload.done) {
+        response.rates = payload[SRR_ID].rates || response.rates; // update rates if it exists
+        response.selectedRate = payload[SRR_ID].selected || response.selectedRate; // update selected if it exists
+
+        if (payload[SRR_ID].done) {
           // SRR is done
           _deregisterForTaskEvents(srrMessageHandler);
           if (!response.rates || !response.selectedRate) {

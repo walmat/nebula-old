@@ -54,20 +54,21 @@ function _setLevels(levels, name) {
 }
 
 function _createLogger({ dir, name, prefix }) {
+  // disable logger
+  if (_isDevelopment || process.env.NEBULA_DISABLE_LOGGER) {
+    return {
+      error: () => {},
+      warn: () => {},
+      info: () => {},
+      verbose: () => {},
+      debug: () => {},
+      silly: () => {},
+      log: () => {},
+    };
+  }
+
   const dirname = path.join(dir, 'Nebula Orion');
   const auditFile = path.join(dirname, 'audit.json');
-
-  /**
-  this._logger = {
-    error: () => {},
-    warn: () => {},
-    info: () => {},
-    verbose: () => {},
-    debug: () => {},
-    silly: () => {},
-    log: () => {},
-  };
-   */
 
   // Check if the logs directory exists and create it if needed
   if (!fs.existsSync(dirname)) {
@@ -116,6 +117,7 @@ function _createLogger({ dir, name, prefix }) {
       auditFile,
     }),
   ];
+
   if (_isDevelopment || process.env.NEBULA_ENABLE_CONSOLE) {
     // Add console transport only when in dev mode or if we define the enable flag
     transports.push(
