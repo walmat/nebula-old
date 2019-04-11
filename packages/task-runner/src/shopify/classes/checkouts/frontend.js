@@ -62,8 +62,12 @@ class FrontendCheckout extends Checkout {
       }
       return { message: 'Failed: Creating payment token', nextState: States.Errored };
     } catch (err) {
-      this._logger.error('FRONTEND CHECKOUT: Request error creating payment token: %s', err);
-
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Payment Token.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
       const nextState = stateForError(err, {
         message: 'Starting task setup',
         nextState: States.PaymentToken,
@@ -155,8 +159,12 @@ class FrontendCheckout extends Checkout {
 
       return { message: 'Creating checkout', nextState: States.CreateCheckout };
     } catch (err) {
-      this._logger.error('CART: Request error in add to cart: %s', err);
-
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Add to Cart.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
       const nextState = stateForError(err, {
         message: 'Adding to cart',
         nextState: States.AddToCart,
@@ -248,7 +256,12 @@ class FrontendCheckout extends Checkout {
 
       return { message: 'Submitting information', nextState: States.PatchCheckout };
     } catch (err) {
-      this._logger.error('CHECKOUT: Request error fetching checkout %j', err);
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Fetch Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Fetching checkout',
@@ -331,7 +344,12 @@ class FrontendCheckout extends Checkout {
       // unknown redirect, stopping...
       return { message: 'Failed: Submitting information', nextState: States.Errored };
     } catch (err) {
-      this._logger.error('FRONTEND CHECKOUT: Request error patching checkout: %j', err);
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Submiting Information.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Submitting information',
@@ -414,7 +432,12 @@ class FrontendCheckout extends Checkout {
       await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
-      this._logger.error('FRONTEND CHECKOUT: Request error fetching shipping rates: %j', err);
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Shipping Rates.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Fetching shipping rates',

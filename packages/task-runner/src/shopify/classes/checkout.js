@@ -164,7 +164,12 @@ class Checkout {
 
       return { message: 'Failed: Logging in', nextState: States.Errored };
     } catch (err) {
-      this._logger.error('CHECKOUT: Request error logging in: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Login.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Starting task setup',
@@ -262,7 +267,12 @@ class Checkout {
       // not sure where we are, stop...
       return { message: 'Failed: Creating checkout', nextState: States.Errored };
     } catch (err) {
-      this._logger.error('CHECKOUT: Request error creating checkout: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Creating checkout',
@@ -350,8 +360,12 @@ class Checkout {
       await waitForDelay(2000);
       return { message: 'Waiting in queue', nextState: States.PollQueue };
     } catch (err) {
-      this._logger.error('CHECKOUT: Request error polling queue: %j', err);
-
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Poll Queue.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
       const nextState = stateForError(err, {
         message: 'Waiting in queue',
         nextState: States.PollQueue,
@@ -418,7 +432,12 @@ class Checkout {
       monitorTimer.start();
       return { message: 'Monitoring for product' };
     } catch (err) {
-      this._logger.error('CHECKOUT: Request error during post payment: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Ping Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Pinging checkout',
@@ -512,7 +531,12 @@ class Checkout {
       checkoutTimer.reset();
       return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
-      this._logger.error('CHECKOUT: Request error during post payment: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Post Payment.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Posting payment',
@@ -604,7 +628,12 @@ class Checkout {
       checkoutTimer.start();
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
-      this._logger.error('CHECKOUT: Request error during review payment: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Complete Payment.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Processing payment',
@@ -694,7 +723,12 @@ class Checkout {
               image: product.image,
             });
           } catch (err) {
-            this._logger.error('CHECKOUT: Request error sending webhook: %s', err);
+            this._logger.error(
+              'CHECKOUT: %d Request Error..\n Step: Send Webhooks.\n\n %j %j',
+              err.statusCode,
+              err.message,
+              err.stack,
+            );
           }
           return { message: 'Payment successful', nextState: States.Finished };
         }
@@ -715,7 +749,12 @@ class Checkout {
       await waitForDelay(2000);
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
-      this._logger.error('CHECKOUT: Request error failed processing payment: %s', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Process Payment.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Processing payment',

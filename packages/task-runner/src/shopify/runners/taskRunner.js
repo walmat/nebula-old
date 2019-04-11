@@ -21,7 +21,7 @@ const {
   },
 } = require('../classes/utils/constants');
 const TaskManagerEvents = require('../classes/utils/constants').TaskManager.Events;
-// const { createLogger } = require('../../common/logger');
+const { createLogger } = require('../../common/logger');
 const { waitForDelay } = require('../classes/utils');
 const { getCheckoutMethod } = require('../classes/checkouts');
 
@@ -46,21 +46,11 @@ class TaskRunner {
     /**
      * Logger Instance
      */
-    // TODO: TEMPORARY UNTIL WE FIGURE OUT FASTER I/O
-    // this._logger = createLogger({
-    //   dir: loggerPath,
-    //   name: `TaskRunner-${id}`,
-    //   prefix: `runner-${id}`,
-    // });
-    this._logger = {
-      error: () => {},
-      warn: () => {},
-      info: () => {},
-      verbose: () => {},
-      debug: () => {},
-      silly: () => {},
-      log: () => {},
-    };
+    this._logger = createLogger({
+      dir: loggerPath,
+      name: `TaskRunner-${id}`,
+      prefix: `runner-${id}`,
+    });
 
     /**
      * Internal Task Runner State

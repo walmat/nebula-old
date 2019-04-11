@@ -56,6 +56,19 @@ function _setLevels(levels, name) {
 function _createLogger({ dir, name, prefix }) {
   const dirname = path.join(dir, 'Nebula Orion');
   const auditFile = path.join(dirname, 'audit.json');
+
+  /**
+  this._logger = {
+    error: () => {},
+    warn: () => {},
+    info: () => {},
+    verbose: () => {},
+    debug: () => {},
+    silly: () => {},
+    log: () => {},
+  };
+   */
+
   // Check if the logs directory exists and create it if needed
   if (!fs.existsSync(dirname)) {
     fs.mkdirSync(dirname, { recursive: true });

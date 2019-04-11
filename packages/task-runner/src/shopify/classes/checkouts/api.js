@@ -65,7 +65,12 @@ class APICheckout extends Checkout {
       }
       return { message: 'Failed: Creating payment token', nextState: States.Errored };
     } catch (err) {
-      this._logger.error('API CHECKOUT: Request error creating payment token: %j', err);
+      this._logger.error(
+        'API CHECKOUT: %d Request Error..\n Step: Payment Token.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Starting task setup',
@@ -146,7 +151,12 @@ class APICheckout extends Checkout {
       // not sure where we are, stop...
       return { message: 'Failed: Submitting information', nextState: States.Errored };
     } catch (err) {
-      this._logger.error('API CHECKOUT: Request error creating checkout: %j', err);
+      this._logger.error(
+        'API CHECKOUT: %d Request Error..\n Step: Submitting Information.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Submitting information',
@@ -264,8 +274,12 @@ class APICheckout extends Checkout {
       }
       return { message: 'Failed: Add to cart', nextState: States.Errored };
     } catch (err) {
-      this._logger.error('API CHECKOUT: Request error adding to cart %j', err);
-
+      this._logger.error(
+        'API CHECKOUT: %d Request Error..\n Step: Add to Cart.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
       const nextState = stateForError(err, {
         message: 'Adding to cart',
         nextState: States.AddToCart,
@@ -353,7 +367,12 @@ class APICheckout extends Checkout {
       await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
-      this._logger.error('API CHECKOUT: Request error fetching shipping method: %j', err);
+      this._logger.error(
+        'API CHECKOUT: %d Request Error..\n Step: Shipping Rates.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Fetching shipping rates',

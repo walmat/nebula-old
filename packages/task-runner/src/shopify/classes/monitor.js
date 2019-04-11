@@ -234,7 +234,7 @@ class Monitor {
     try {
       parsed = await parser.run();
     } catch (error) {
-      this._logger.error('MONITOR: Error with special parsing!', error);
+      this._logger.error('MONITOR: Error with special parsing! %j %j', error.message, error.stack);
       // Check for a product not found error
       if (error.status === ErrorCodes.ProductNotFound) {
         return { message: 'Error: Product Not Found!', nextState: States.Errored };

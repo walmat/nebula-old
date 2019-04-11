@@ -82,7 +82,12 @@ class SpecialParser extends Parser {
         try {
           products = await this.parseInitialPageForProducts.call(this, response);
         } catch (error) {
-          this._logger.error('%s: ERROR parsing response as initial page', this._name, error);
+          this._logger.error(
+            '%s: ERROR parsing response as initial page %j %j',
+            this._name,
+            error.message,
+            error.stack,
+          );
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.statusCode || error.status || 404;
@@ -94,7 +99,12 @@ class SpecialParser extends Parser {
         try {
           productsToVisit = await this.parseInitialPageForUrls.call(this, response);
         } catch (error) {
-          this._logger.error('%s: ERROR parsing response as initial page', this._name, error);
+          this._logger.error(
+            '%s: ERROR parsing response as initial page %j %j',
+            this._name,
+            error.message,
+            error.stack,
+          );
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.statusCode || error.status || 404;

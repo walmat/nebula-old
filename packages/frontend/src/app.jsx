@@ -96,6 +96,7 @@ export class App extends PureComponent {
 
   taskHandler(event, statusMessageBuffer) {
     const { store } = this.props;
+    console.log(statusMessageBuffer);
     store.dispatch(taskActions.status(statusMessageBuffer));
   }
 

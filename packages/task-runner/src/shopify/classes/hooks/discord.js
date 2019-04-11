@@ -1,10 +1,10 @@
-const DiscordJS = require('discord.js');
+const { RichEmbed, WebhookClient } = require('discord.js');
 
 class Discord {
   constructor(hook) {
     if (hook) {
       const [, , , , , id, token] = hook.split('/');
-      this.hook = new DiscordJS.WebhookClient(id, token);
+      this.hook = new WebhookClient(id, token);
     }
   }
 
@@ -22,7 +22,7 @@ class Discord {
     image,
   ) {
     if (this.hook) {
-      const embed = new DiscordJS.RichEmbed()
+      const embed = new RichEmbed()
         .setTitle(success ? 'Successful checkout!' : 'Payment failed!')
         .setColor(success ? 4631988 : 15679838)
         .setThumbnail(image)
