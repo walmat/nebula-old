@@ -67,6 +67,8 @@
       overflow-y: scroll;
       display: flex;
       border-top: 1px solid;
+      border-top-right-radius: 3px;
+      border-top-left-radius: 3px;
       @include themify($themes) {
         border-top-color: themed('liveLogTableBorderTop');
         background-color: themed('inputBackgroundDisabled');
@@ -82,7 +84,6 @@
       & > p {
         text-align: left;
         vertical-align: middle;
-        font-weight: 500;
       }
     }
   }
@@ -93,17 +94,17 @@
     height: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
-    cursor: sw-resize;
-
-    &__fullscreen {
-      cursor: ne-resize;
-    }
 
     &__header {
       margin: 0;
       padding-bottom: 1px;
       height: 26px;
       min-height: 26px;
+      cursor: sw-resize;
+
+      &--fullscreen {
+        cursor: ne-resize;
+      }
 
       &--id {
         @extend %tasks-log__header__field;

@@ -37,10 +37,6 @@ export class TasksPrimitive extends Component {
         delayType: 'error',
       },
     };
-
-    this.state = {
-      fullscreen: false,
-    };
   }
 
   createOnChangeHandler(field) {
@@ -87,7 +83,6 @@ export class TasksPrimitive extends Component {
 
   render() {
     const { newTask, errorDelay, monitorDelay, onKeyPress } = this.props;
-    const { fullscreen } = this.state;
     return (
       <div className="container tasks">
         <div className="row">
@@ -112,8 +107,8 @@ export class TasksPrimitive extends Component {
               </div>
             </div>
           </div>
-          <div className="col col--start" onDoubleClick={() => this.setState({ fullscreen: !fullscreen })}>
-            <LogTask fullscreen={fullscreen} />
+          <div className="col col--start">
+            <LogTask />
           </div>
         </div>
         <div className="row row--start">

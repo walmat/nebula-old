@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -8,13 +7,18 @@ export class LogTaskPrimitive extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      fullscreen: false,
       selected: [],
       focused: '',
     }
   }
 
   selectRow(taskId) {
-    let { selected } = this.state;
+    let { selected, fullscreen } = this.state;
+    if (!fullscreen) {
+      return;
+    }
+
     if (taskId && !selected.includes(taskId)) {
       selected.push(taskId);
       this.setState({ focused: taskId });
@@ -49,8 +53,8 @@ export class LogTaskPrimitive extends Component {
   }
 
   createTable() {
-    const { tasks, fullscreen } = this.props;
-    const { selected } = this.state;
+    const { tasks } = this.props;
+    const { fullscreen, selected } = this.state;
     const runningTasks = tasks.filter(task => task.status === 'running' || task.status === 'finished');
     const table = runningTasks.map(t =>
       <LogTaskRow
@@ -61,12 +65,11 @@ export class LogTaskPrimitive extends Component {
         fullscreen={fullscreen}
       />
     );
-    // TODO: ADD IN LIVE LOG AREA TOGGLING HERE?
     return table;
   }
 
   render() {
-    const { fullscreen } = this.props;
+    const { fullscreen } = this.state;
     return (
       <div>
         <div className="row row--start">
@@ -78,7 +81,7 @@ export class LogTaskPrimitive extends Component {
         </div>
         <div className="row">
           <div className={`col col--start tasks-log-container ${fullscreen ? 'tasks-log-container__fullscreen' : '' }`}>
-            <div className="row row--start row--gutter-left row--gutter-right tasks-log__header">
+            <div onDoubleClick={() => this.setState({ fullscreen: !fullscreen })} className={`row row--start row--gutter-left row--gutter-right ${fullscreen ? 'tasks-log__header--fullscreen' : 'tasks-log__header'}`}>
               <div className="col tasks-log__header--id">
                 <p>#</p>
               </div>
@@ -118,12 +121,10 @@ export class LogTaskPrimitive extends Component {
 
 LogTaskPrimitive.propTypes = {
   tasks: tDefns.taskList.isRequired,
-  fullscreen: PropTypes.bool.isRequired,
 };
 
-export const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   tasks: state.tasks,
-  fullscreen: ownProps.fullscreen,
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);
