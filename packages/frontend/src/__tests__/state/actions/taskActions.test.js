@@ -600,8 +600,8 @@ describe('task actions', () => {
           stopTasks: jest.fn(),
         };
         global.window.Bridge = Bridge;
-        const task = { ...initialTaskState };
-        const action = taskActions.stop(initialTaskState);
+        const task = { ...initialTaskState, status: 'running' };
+        const action = taskActions.stop(task);
         const expectedActions = [
           {
             type: TASK_ACTIONS.STOP,
@@ -619,12 +619,13 @@ describe('task actions', () => {
         const Bridge = {
           stopTasks: jest.fn(),
         };
-        const action = taskActions.stop(initialTaskState);
+        const task = { ...initialTaskState, status: 'running' };
+        const action = taskActions.stop(task);
         const expectedActions = [
           {
             type: TASK_ACTIONS.STOP,
             response: {
-              task: initialTaskState,
+              task,
             },
           },
         ];
@@ -651,26 +652,16 @@ describe('task actions', () => {
 
   describe('status task', () => {
     it('should create a status action when id is given', async () => {
-      const action = taskActions.status(1, 'test');
+      const action = taskActions.status({ 1: { id: 1, message: 'test' } });
       const expectedActions = [
         {
           type: TASK_ACTIONS.STATUS,
-          response: {
-            id: 1,
-            message: 'test',
+          messageBuffer: {
+            1: {
+              id: 1,
+              message: 'test',
+            },
           },
-        },
-      ];
-      await asyncTaskTests(action, expectedActions);
-    });
-
-    it('should create an error action when id is not given', async () => {
-      const action = taskActions.status(null, 'test');
-      const expectedActions = [
-        {
-          type: TASK_ACTIONS.ERROR,
-          action: TASK_ACTIONS.STATUS,
-          error: expect.any(Error),
         },
       ];
       await asyncTaskTests(action, expectedActions);

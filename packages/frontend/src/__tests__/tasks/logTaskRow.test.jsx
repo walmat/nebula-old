@@ -10,7 +10,7 @@ describe('<LogTaskRow />', () => {
       id: 'testTask',
       index: 1,
       site: { name: 'Test' },
-      output: { message: 'Test Message' },
+      output: 'Test Message',
     };
     const wrapper = shallow(<LogTaskRow task={task} />);
     expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
@@ -31,7 +31,7 @@ describe('<LogTaskRow />', () => {
       id: 'testTask',
       index: 11,
       site: { name: 'Test' },
-      output: { message: 'Test Message' },
+      output: 'Test Message',
     };
     const wrapper = shallow(<LogTaskRow task={task} />);
     expect(wrapper.find('.tasks-row-container')).toHaveLength(1);

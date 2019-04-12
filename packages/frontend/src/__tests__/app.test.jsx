@@ -10,7 +10,7 @@ import Tasks from '../tasks/tasks';
 import Profiles from '../profiles/profiles';
 import Server from '../server/server';
 import Settings from '../settings/settings';
-import { ROUTES, globalActions } from '../state/actions';
+import { ROUTES, globalActions, TASK_ACTIONS } from '../state/actions';
 import { THEMES, mapThemeToColor, mapToNextTheme } from '../constants/themes';
 
 import getByTestId from '../__testUtils__/getByTestId';
@@ -301,9 +301,15 @@ describe('Top Level App', () => {
         const appComponent = wrapper.instance();
         expect(appComponent.taskHandler).toBeDefined();
 
-        appComponent.taskHandler({}, 1, 'test message');
+        const messageBuffer = {
+          1: {
+            id: 1,
+            message: 'test message',
+          },
+        };
+        appComponent.taskHandler({}, messageBuffer);
         expect(store.dispatch).toHaveBeenCalledTimes(1);
-        expect(store.dispatch).toHaveBeenCalledWith(expect.any(Function));
+        expect(store.dispatch).toHaveBeenCalledWith({ messageBuffer, type: TASK_ACTIONS.STATUS });
       });
     });
 
@@ -332,7 +338,7 @@ describe('Top Level App', () => {
   beforeEach(() => {
     defaultProps = {
       store: {
-        getState: jest.fn(() => ({ navbar: { location: '/' } })),
+        getState: jest.fn(() => ({ navbar: { location: '/' }, tasks: [] })),
         dispatch: jest.fn(),
         subscribe: jest.fn(),
       },

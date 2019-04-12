@@ -1,17 +1,21 @@
 import React from 'react';
 import tDefns from '../utils/definitions/taskDefinitions';
 
-const LogTaskRow = ({ task }) => (
+const LogTaskRow = ({
+  task: {
+    index,
+    chosenSizes,
+    sizes,
+    output,
+    site: { name },
+  },
+}) => (
   <div className="tasks-row-container col">
-    <div key={task.index} className="tasks-row row">
-      <div className="col tasks-row__log--id">
-        {task.index < 10 ? `0${task.index}` : task.index}
-      </div>
-      <div className="col col--no-gutter tasks-row__log--site">{task.site.name}</div>
-      <div className="col col--no-gutter tasks-row__log--size">
-        {task.chosenSizes || task.sizes}
-      </div>
-      <div className="col tasks-row__log--output">{task.output}</div>
+    <div key={index} className="tasks-row row">
+      <div className="col tasks-row__log--id">{index < 10 ? `0${index}` : index}</div>
+      <div className="col col--no-gutter tasks-row__log--site">{name}</div>
+      <div className="col col--no-gutter tasks-row__log--size">{chosenSizes || sizes}</div>
+      <div className="col tasks-row__log--output">{output}</div>
     </div>
   </div>
 );
