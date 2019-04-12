@@ -54,8 +54,16 @@ export class LogTaskPrimitive extends Component {
 
   createTable() {
     const { tasks } = this.props;
-    const { fullscreen, selected } = this.state;
+    const { fullscreen, focused, selected } = this.state;
     const runningTasks = tasks.filter(task => task.status === 'running' || task.status === 'finished');
+
+    if (!runningTasks.length && (focused || selected.length)) {
+      this.setState({
+        selected: [],
+        focused: '',
+      });
+    }
+
     const table = runningTasks.map(t =>
       <LogTaskRow
         onClick={() =>this.selectRow(t.id)}
