@@ -94,17 +94,13 @@ const _close = () => {
   _sendEvent(IPCKeys.RequestCloseWindow, id);
 };
 
-/**
- * ... TODO!
- * Sends the confirmation dialog trigger to windowManager.js
- */
-const _confirmDialog = async message =>
+const _showDialog = async (message, type, buttons, title) =>
   new Promise(resolve => {
     dialog.showMessageBox(
       {
-        type: 'question',
-        buttons: ['Yes', 'No'],
-        title: 'Confirm',
+        type,
+        buttons,
+        title,
         message,
       },
       response => resolve(response === 0),
@@ -128,7 +124,7 @@ if (nebulaEnv.isDevelopment()) {
 
 module.exports = {
   base: {
-    confirmDialog: _confirmDialog,
+    showDialog: _showDialog,
     close: _close,
     getAppData: _getAppData,
     ..._debug,

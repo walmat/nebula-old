@@ -15,13 +15,8 @@ export class ViewTaskPrimitive extends Component {
     return tasks.map(task => <TaskRow key={task.id} task={task} />);
   }
 
-  renderViewTable() {}
-
   render() {
-    const { fullscreen } = this.props;
-    return (
-      !fullscreen ? (<div className="tasks-table">{this.createTable()}</div>) : null
-    );
+    return <div className="tasks-table">{this.createTable()}</div>;
   }
 }
 
@@ -29,9 +24,8 @@ ViewTaskPrimitive.propTypes = {
   tasks: defns.taskList.isRequired,
 };
 
-export const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   tasks: state.tasks,
-  fullscreen: ownProps.fullscreen,
 });
 
 export default connect(mapStateToProps)(ViewTaskPrimitive);

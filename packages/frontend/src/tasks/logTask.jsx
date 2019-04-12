@@ -6,14 +6,16 @@ import tDefns from '../utils/definitions/taskDefinitions';
 export class LogTaskPrimitive extends Component {
   constructor(props) {
     super(props);
+    this.selectRow = this.selectRow.bind(this);
     this.state = {
-      fullscreen: false,
-      selected: [],
-      focused: '',
+      fullscreen: false, // fullscreen toggle
+      selected: [], // list of selected tasks
+      focused: '', // task in focused (used for showing the log data)
     }
   }
 
   selectRow(taskId) {
+    // TODO: Enable range selection with SHIFT + CLICK
     let { selected, fullscreen } = this.state;
     if (!fullscreen) {
       return;
@@ -27,6 +29,61 @@ export class LogTaskPrimitive extends Component {
       this.setState({ focused: selected[selected.length - 1]})
     }
     this.setState({ selected });
+  }
+
+  renderMassChangeOptions() {
+    const { selected, focused } = this.state;
+
+    if (focused || selected.length) {
+      return (
+        <div>
+          <button
+            className="tasks-log__button--links"
+            onClick={() => this.massLinkChange()}
+          >
+            Mass Link
+          </button>
+          <button
+          className="tasks-log__button--password"
+          onClick={() => this.massPasswordChange()}
+          >
+            Password
+          </button>
+        </div>
+      );
+    }
+  }
+
+  massLinkChange() {
+    if (window.Bridge) {
+      const link = window.Bridge.massDialog(
+        'Enter in the link to the product',
+        'question',
+        ['Okay', 'Cancel'],
+        'Mass Link Change'
+      );
+
+      if (link) {
+        console.log(link);
+        // TODO: dispatch link!
+      }
+    }
+  }
+
+  massPasswordChange() {
+    if (window.Bridge) {
+      const password = window.Bridge.massDialog(
+        'Enter in the password',
+        'question',
+        ['Okay', 'Cancel'],
+        'Mass Password Change'
+      );
+
+      if (password) {
+        console.log(password);
+        // TODO: dispatch password!
+      }
+    }
   }
 
   renderOutputLogRow(msg) {
@@ -66,7 +123,7 @@ export class LogTaskPrimitive extends Component {
 
     const table = runningTasks.map(t =>
       <LogTaskRow
-        onClick={() =>this.selectRow(t.id)}
+        onClick={() => this.selectRow(t.id)}
         key={t.index}
         selected={selected.find(e => e === t.id)}
         task={t}
@@ -77,35 +134,53 @@ export class LogTaskPrimitive extends Component {
   }
 
   render() {
-    const { fullscreen } = this.state;
+    const { fullscreen, selected, focused } = this.state;
+    const classMap = {
+      sectionHeader: ['body-text', 'section-header', 'section-header--no-top', 'tasks-log__section-header'],
+      container: ['col', 'col--start', 'tasks-log-container'],
+      tableHeader: ['row', 'row--start', 'row--gutter-left', 'row--gutter-right', 'tasks-log__header'],
+      product: ['col', 'tasks-log__header--product'],
+      proxy: ['col', 'tasks-log__header', 'tasks-log__header--proxy'],
+      output: ['col', 'tasks-log__header', 'tasks-log__header--output'],
+    }
+    if (fullscreen) {
+      Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
+    }
     return (
       <div>
         <div className="row row--start">
           <div className="col">
-            <p className={`body-text section-header section-header--no-top ${fullscreen ? 'tasks-log__section-header__fullscreen' : 'tasks-log__section-header'}`}>
+            <p className={classMap.sectionHeader.join(' ')}>
               Log
             </p>
           </div>
         </div>
         <div className="row">
-          <div className={`col col--start tasks-log-container ${fullscreen ? 'tasks-log-container__fullscreen' : '' }`}>
-            <div onDoubleClick={() => this.setState({ fullscreen: !fullscreen })} className={`row row--start row--gutter-left row--gutter-right ${fullscreen ? 'tasks-log__header--fullscreen' : 'tasks-log__header'}`}>
+          <div className={classMap.container.join(' ')}>
+            <div
+              onDoubleClick={() =>
+                this.setState({
+                  fullscreen: !fullscreen,
+                  selected: fullscreen ? [] : selected, // opposite toggle for coming in/out of FS mode
+                  focused: fullscreen ? '' : focused, // opposite toggle for coming in/out of FS mode
+                })}
+              className={classMap.tableHeader.join(' ')}>
               <div className="col tasks-log__header--id">
                 <p>#</p>
               </div>
               <div className="col tasks-log__header--store">
                 <p>Store</p>
               </div>
-              <div className={`col ${!fullscreen ? 'tasks-log__header--product' : 'tasks-log__header--product__fullscreen' }`}>
+              <div className={classMap.product.join(' ')}>
                 <p>Product</p>
               </div>
               <div className="col tasks-log__header--size">
                 <p>Size</p>
               </div>
-              <div className={`col ${!fullscreen ? 'tasks-log__header--proxy' : 'tasks-log__header--proxy__fullscreen' }`}>
+              <div className={classMap.proxy.join(' ')}>
                 <p>Proxy</p>
               </div>
-              <div className={`col ${!fullscreen ? 'tasks-log__header--output' : 'tasks-log__header--output__fullscreen' }`}>
+              <div className={classMap.output.join(' ')}>
                 <p>Output</p>
               </div>
             </div>
@@ -116,12 +191,13 @@ export class LogTaskPrimitive extends Component {
             </div>
             <div className="row row--expand table--upper">
               <div className="col tasks-table__wrapper">
-                <div className={`tasks-log ${fullscreen ? 'tasks-log__fullscreen' : '' }`}>{this.createTable()}</div>
+                <div className="tasks-log">{this.createTable()}</div>
               </div>
             </div>
             { fullscreen ? this.showLiveLog() : null }
           </div>
         </div>
+        { focused || selected.length ? this.renderMassChangeOptions() : null }
       </div>
     );
   }

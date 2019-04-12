@@ -6,10 +6,10 @@ const updateTask = task => ({
   ...task,
   product: {
     ...task.product,
-    found: null,
+    found: task.product.found || null,
   },
-  proxy: null,
-  log: [],
+  proxy: task.proxy || null,
+  log: task.log || [],
 });
 
 /**

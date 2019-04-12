@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 import shortId from 'shortid';
-import moment from 'moment';
+import { format } from 'date-fns';
 
 import {
   TASK_ACTIONS,
@@ -216,7 +216,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
               task.product.found = found;
             }
           }
-          task.log.push(`[${moment().format('hh:mm:ss A')}]: ${task.output}`);
+          task.log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
         }
       });
       break;

@@ -169,19 +169,37 @@
 /*
  * Implementation of themes
  */
-.tasks .tasks-log__header--output__fullscreen, .tasks .tasks-log__header--output, .tasks .tasks-log__header--proxy__fullscreen, .tasks .tasks-log__header--size, .tasks .tasks-log__header--product__fullscreen, .tasks .tasks-log__header--store, .tasks .tasks-log__header--id {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--output, .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--product, .tasks .tasks-log .tasks-row-container .tasks-row__log--store, .tasks .tasks-log .tasks-row-container .tasks-row__log--id {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  vertical-align: middle;
+}
+
+.tasks .tasks-log__button--password, .tasks .tasks-log__button--links {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  letter-spacing: 0;
+  width: 89px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+}
+
+.tasks .tasks-log__header--output--fullscreen, .tasks .tasks-log__header--output, .tasks .tasks-log__header--proxy--fullscreen, .tasks .tasks-log__header--size, .tasks .tasks-log__header--product--fullscreen, .tasks .tasks-log__header--store, .tasks .tasks-log__header--id {
   margin: 0;
 }
-.tasks .tasks-log__header--output__fullscreen > p, .tasks .tasks-log__header--output > p, .tasks .tasks-log__header--proxy__fullscreen > p, .tasks .tasks-log__header--size > p, .tasks .tasks-log__header--product__fullscreen > p, .tasks .tasks-log__header--store > p, .tasks .tasks-log__header--id > p {
+.tasks .tasks-log__header--output--fullscreen > p, .tasks .tasks-log__header--output > p, .tasks .tasks-log__header--proxy--fullscreen > p, .tasks .tasks-log__header--size > p, .tasks .tasks-log__header--product--fullscreen > p, .tasks .tasks-log__header--store > p, .tasks .tasks-log__header--id > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   letter-spacing: 0;
   margin: 5px 0;
 }
-.theme-light .tasks .tasks-log__header--output__fullscreen > p, .tasks .theme-light .tasks-log__header--output__fullscreen > p, .theme-light .tasks .tasks-log__header--output > p, .tasks .theme-light .tasks-log__header--output > p, .theme-light .tasks .tasks-log__header--proxy__fullscreen > p, .tasks .theme-light .tasks-log__header--proxy__fullscreen > p, .theme-light .tasks .tasks-log__header--size > p, .tasks .theme-light .tasks-log__header--size > p, .theme-light .tasks .tasks-log__header--product__fullscreen > p, .tasks .theme-light .tasks-log__header--product__fullscreen > p, .theme-light .tasks .tasks-log__header--store > p, .tasks .theme-light .tasks-log__header--store > p, .theme-light .tasks .tasks-log__header--id > p, .tasks .theme-light .tasks-log__header--id > p {
+.theme-light .tasks .tasks-log__header--output--fullscreen > p, .tasks .theme-light .tasks-log__header--output--fullscreen > p, .theme-light .tasks .tasks-log__header--output > p, .tasks .theme-light .tasks-log__header--output > p, .theme-light .tasks .tasks-log__header--proxy--fullscreen > p, .tasks .theme-light .tasks-log__header--proxy--fullscreen > p, .theme-light .tasks .tasks-log__header--size > p, .tasks .theme-light .tasks-log__header--size > p, .theme-light .tasks .tasks-log__header--product--fullscreen > p, .tasks .theme-light .tasks-log__header--product--fullscreen > p, .theme-light .tasks .tasks-log__header--store > p, .tasks .theme-light .tasks-log__header--store > p, .theme-light .tasks .tasks-log__header--id > p, .tasks .theme-light .tasks-log__header--id > p {
   color: #161318;
 }
-.theme-dark .tasks .tasks-log__header--output__fullscreen > p, .tasks .theme-dark .tasks-log__header--output__fullscreen > p, .theme-dark .tasks .tasks-log__header--output > p, .tasks .theme-dark .tasks-log__header--output > p, .theme-dark .tasks .tasks-log__header--proxy__fullscreen > p, .tasks .theme-dark .tasks-log__header--proxy__fullscreen > p, .theme-dark .tasks .tasks-log__header--size > p, .tasks .theme-dark .tasks-log__header--size > p, .theme-dark .tasks .tasks-log__header--product__fullscreen > p, .tasks .theme-dark .tasks-log__header--product__fullscreen > p, .theme-dark .tasks .tasks-log__header--store > p, .tasks .theme-dark .tasks-log__header--store > p, .theme-dark .tasks .tasks-log__header--id > p, .tasks .theme-dark .tasks-log__header--id > p {
+.theme-dark .tasks .tasks-log__header--output--fullscreen > p, .tasks .theme-dark .tasks-log__header--output--fullscreen > p, .theme-dark .tasks .tasks-log__header--output > p, .tasks .theme-dark .tasks-log__header--output > p, .theme-dark .tasks .tasks-log__header--proxy--fullscreen > p, .tasks .theme-dark .tasks-log__header--proxy--fullscreen > p, .theme-dark .tasks .tasks-log__header--size > p, .tasks .theme-dark .tasks-log__header--size > p, .theme-dark .tasks .tasks-log__header--product--fullscreen > p, .tasks .theme-dark .tasks-log__header--product--fullscreen > p, .theme-dark .tasks .tasks-log__header--store > p, .tasks .theme-dark .tasks-log__header--store > p, .theme-dark .tasks .tasks-log__header--id > p, .tasks .theme-dark .tasks-log__header--id > p {
   color: #dcdcdc;
 }
 
@@ -198,10 +216,7 @@
 .theme-dark .tasks .tasks-log-container {
   border-color: #f0405e;
 }
-.tasks .tasks-log-container__fullscreen {
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 3px;
+.tasks .tasks-log-container--fullscreen {
   z-index: 999;
   position: absolute;
   top: 30px;
@@ -209,10 +224,10 @@
   height: calc(100% - 60px);
   width: calc(100% - 259px);
 }
-.theme-light .tasks .tasks-log-container__fullscreen {
+.theme-light .tasks .tasks-log-container--fullscreen {
   background-color: #f4f4f4;
 }
-.theme-dark .tasks .tasks-log-container__fullscreen {
+.theme-dark .tasks .tasks-log-container--fullscreen {
   background-color: #313236;
 }
 .tasks .tasks-table__wrapper {
@@ -264,6 +279,32 @@
   overflow-y: scroll;
   overflow-x: hidden;
 }
+.tasks .tasks-log__button--links {
+  position: absolute;
+  right: 14px;
+  top: 105px;
+}
+.theme-light .tasks .tasks-log__button--links {
+  background: #f0405e;
+  color: #f4f4f4;
+}
+.theme-dark .tasks .tasks-log__button--links {
+  background: #f0405e;
+  color: #f4f4f4;
+}
+.tasks .tasks-log__button--password {
+  position: absolute;
+  right: 14px;
+  top: 155px;
+}
+.theme-light .tasks .tasks-log__button--password {
+  background: #f0405e;
+  color: #f4f4f4;
+}
+.theme-dark .tasks .tasks-log__button--password {
+  background: #f0405e;
+  color: #f4f4f4;
+}
 .tasks .tasks-log__header {
   margin: 0;
   padding-bottom: 1px;
@@ -285,7 +326,8 @@
 .tasks .tasks-log__header--product {
   display: none;
 }
-.tasks .tasks-log__header--product__fullscreen {
+.tasks .tasks-log__header--product--fullscreen {
+  display: unset;
   width: 110px;
   padding-left: 15px;
 }
@@ -296,21 +338,22 @@
 .tasks .tasks-log__header--proxy {
   display: none;
 }
-.tasks .tasks-log__header--proxy__fullscreen {
+.tasks .tasks-log__header--proxy--fullscreen {
+  display: unset;
   width: 65px;
 }
 .tasks .tasks-log__header--output {
   width: 20px;
   padding-left: 30px;
 }
-.tasks .tasks-log__header--output__fullscreen {
+.tasks .tasks-log__header--output--fullscreen {
   width: 20px;
   padding-left: 80px;
 }
 .tasks .tasks-log__section-header {
   padding-top: 1px;
 }
-.tasks .tasks-log__section-header__fullscreen {
+.tasks .tasks-log__section-header--fullscreen {
   display: none;
 }
 .tasks .tasks-log .blank {
@@ -337,53 +380,54 @@
   display: flex;
   height: 30px;
 }
-.tasks .tasks-log .tasks-row-container .tasks-row__selected {
+.tasks .tasks-log .tasks-row-container .tasks-row--selected {
   display: flex;
   height: 30px;
 }
-.theme-light .tasks .tasks-log .tasks-row-container .tasks-row__selected {
+.theme-light .tasks .tasks-log .tasks-row-container .tasks-row--selected {
   background-color: #dfdfdf;
 }
-.theme-dark .tasks .tasks-log .tasks-row-container .tasks-row__selected {
+.theme-dark .tasks .tasks-log .tasks-row-container .tasks-row--selected {
   background-color: #262626;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--id {
   margin-left: 6.5px;
-  margin-right: 0;
+  margin-right: 8.5px;
 }
-.tasks .tasks-log .tasks-row-container .tasks-row__log--id__fullscreen {
+.tasks .tasks-log .tasks-row-container .tasks-row__log--id--fullscreen {
   margin-left: 7.5px;
   margin-right: 9.5px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store {
   width: 116px;
 }
-.tasks .tasks-log .tasks-row-container .tasks-row__log--store__fullscreen {
-  width: 122px;
+.tasks .tasks-log .tasks-row-container .tasks-row__log--store--fullscreen {
+  width: 120px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product {
-  display: none;
+  visibility: hidden;
+  width: 0;
 }
-.tasks .tasks-log .tasks-row-container .tasks-row__log--product__fullscreen {
+.tasks .tasks-log .tasks-row-container .tasks-row__log--product--fullscreen {
+  visibility: visible;
   width: 123px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size {
-  width: 66px;
+  width: 84px;
 }
-.tasks .tasks-log .tasks-row-container .tasks-row__log--size__fullscreen {
+.tasks .tasks-log .tasks-row-container .tasks-row__log--size--fullscreen {
   width: 60px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy {
-  display: none;
+  visibility: hidden;
+  width: 0;
 }
-.tasks .tasks-log .tasks-row-container .tasks-row__log--proxy__fullscreen {
-  width: 125px;
+.tasks .tasks-log .tasks-row-container .tasks-row__log--proxy--fullscreen {
+  visibility: visible;
+  width: 140px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
-  width: 224px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: middle;
+  width: 239px;
 }
 
 /*
@@ -392,7 +436,7 @@
 /*
  * Implementation of themes
  */
-.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--id, .tasks .tasks-log .tasks-row-container .tasks-row__log--id__fullscreen, .tasks .tasks-log .tasks-row-container .tasks-row__log--store, .tasks .tasks-log .tasks-row-container .tasks-row__log--product__fullscreen, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy__fullscreen, .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--id, .tasks .tasks-log .tasks-row-container .tasks-row__log--store, .tasks .tasks-log .tasks-row-container .tasks-row__log--product, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy, .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;

@@ -46,7 +46,7 @@ class Monitor {
     }
     await delay.call(this);
     this._logger.silly('Monitoring not complete, remonitoring...');
-    return { message: `Monitoring for product`, nextState: States.Monitor };
+    return { message: 'Monitoring for product', nextState: States.Monitor };
   }
 
   async _handleParsingErrors(errors) {
@@ -57,7 +57,7 @@ class Monitor {
     if (checkStatus) {
       this._logger.silly('Proxy was Banned, swapping proxies...');
       return {
-        message: `Swapping proxy`,
+        message: 'Swapping proxy',
         shouldBan: checkStatus === 403,
         nextState: States.SwapProxies,
       };

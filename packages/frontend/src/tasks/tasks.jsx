@@ -89,7 +89,7 @@ export class TasksPrimitive extends Component {
           <div className="col col--start">
             <div className="row row--start">
               <div className="col col--no-gutter-left">
-                <h1 className={`text-header tasks__title`}>Tasks</h1>
+                <h1 className="text-header tasks__title">Tasks</h1>
               </div>
             </div>
             <div className="row">

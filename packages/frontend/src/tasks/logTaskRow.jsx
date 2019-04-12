@@ -1,8 +1,7 @@
 import React from 'react';
 import tDefns from '../utils/definitions/taskDefinitions';
 
-const LogTaskRow =
-  ({
+const LogTaskRow = ({
     onClick,
     selected,
     task: {
@@ -15,20 +14,36 @@ const LogTaskRow =
       output
     },
     fullscreen
-  }) => (
-  <div className="tasks-row-container col" onClick={onClick}>
-    <div key={index} className={`${selected ? 'tasks-row__selected' : 'tasks-row'} row`}>
-      <div className={`col ${!fullscreen ? 'tasks-row__log--id' : 'tasks-row__log--id__fullscreen'}`}>
-        {index < 10 ? `0${index}` : index}
+  }) => {
+  const classMap = {
+    id: ['col', 'tasks-row__log--id'],
+    store: ['col', 'col--no-gutter', 'tasks-row__log--store'],
+    product: ['col', 'col--no-gutter', 'tasks-row__log--product'],
+    size: ['col', 'col--no-gutter', 'tasks-row__log--size'],
+    proxy: ['col', 'col--no-gutter', 'tasks-row__log--proxy'],
+    output: ['col', 'col--no-gutter', 'tasks-row__log--output'],
+  }
+
+  const tasksRow = `row ${selected ? 'tasks-row--selected' : 'tasks-row'}`;
+
+  if (fullscreen) {
+    Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
+  }
+  return (
+    <div className="tasks-row-container col" onClick={onClick}>
+      <div key={index} className={tasksRow}>
+        <div className={classMap.id.join(' ')}>
+          {index < 10 ? `0${index}` : index}
+        </div>
+        <div className={classMap.store.join(' ')}>{name}</div>
+        <div className={classMap.product.join(' ')}>{found || raw}</div>
+        <div className={classMap.size.join(' ')}>{chosenSizes || sizes}</div>
+        <div className={classMap.proxy.join(' ')}>{proxy || 'None'}</div>
+        <div className={classMap.output.join(' ')}>{output}</div>
       </div>
-      <div className={`col ${!fullscreen ? 'col--no-gutter tasks-row__log--store' : 'col--no-gutter tasks-row__log--store__fullscreen' }`}>{name}</div>
-      <div className={`col ${!fullscreen ? 'col--no-gutter tasks-row__log--product' : 'col--no-gutter tasks-row__log--product__fullscreen' }`}>{found || raw}</div>
-      <div className={`col ${!fullscreen ? 'col--no-gutter tasks-row__log--size' : 'col--no-gutter tasks-row__log--size__fullscreen' }`}>{chosenSizes || sizes}</div>
-      <div className={`col ${!fullscreen ? 'col--no-gutter tasks-row__log--proxy' : 'col--no-gutter tasks-row__log--proxy__fullscreen' }`}>{proxy || 'None'}</div>
-      <div className="col tasks-row__log--output">{output}</div>
     </div>
-  </div>
-);
+  );
+};
 
 LogTaskRow.propTypes = {
   task: tDefns.taskLog.isRequired,

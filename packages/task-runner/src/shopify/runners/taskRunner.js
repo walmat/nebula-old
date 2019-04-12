@@ -454,16 +454,11 @@ class TaskRunner {
       await this._waitForErrorDelay();
     }
     const { chosenSizes, name } = this._context.task.product;
-    if (chosenSizes || name) {
-      // TODO: is there a better way to do this?
-      this._emitTaskEvent({
-        message,
-        size: chosenSizes ? chosenSizes[0] : undefined,
-        found: name || undefined,
-      });
-    } else {
-      this._emitTaskEvent({ message });
-    }
+    this._emitTaskEvent({
+      message,
+      size: chosenSizes ? chosenSizes[0] : undefined,
+      found: name || undefined,
+    });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -503,16 +498,11 @@ class TaskRunner {
     }
 
     const { chosenSizes, name } = this._context.task.product;
-    if (chosenSizes || name) {
-      // TODO: is there a better way to do this?
-      this._emitTaskEvent({
-        message,
-        size: chosenSizes ? chosenSizes[0] : undefined,
-        found: name || undefined,
-      });
-    } else {
-      this._emitTaskEvent({ message });
-    }
+    this._emitTaskEvent({
+      message,
+      size: chosenSizes ? chosenSizes[0] : undefined,
+      found: name || undefined,
+    });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
