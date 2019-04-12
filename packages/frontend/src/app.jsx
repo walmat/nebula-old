@@ -62,6 +62,22 @@ export class App extends PureComponent {
     window.removeEventListener('beforeunload', this._cleanup);
   }
 
+  setTheme(store) {
+    const { theme } = store.getState();
+    const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT;
+    store.dispatch(globalActions.setTheme(nextTheme));
+    if (window.Bridge) {
+      const backgroundColor = mapThemeToColor[nextTheme];
+      window.Bridge.setTheme({ backgroundColor });
+    }
+    this.forceUpdate();
+  }
+
+  taskHandler(_, statusMessageBuffer) {
+    const { store } = this.props;
+    store.dispatch(taskActions.status(statusMessageBuffer));
+  }
+
   _cleanup() {
     this._cleanupTaskLog();
     this._cleanupTaskEvents();
@@ -81,22 +97,6 @@ export class App extends PureComponent {
     if (window.Bridge) {
       window.Bridge.deregisterForTaskEvents(this.taskHandler);
     }
-  }
-
-  setTheme(store) {
-    const { theme } = store.getState();
-    const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT;
-    store.dispatch(globalActions.setTheme(nextTheme));
-    if (window.Bridge) {
-      const backgroundColor = mapThemeToColor[nextTheme];
-      window.Bridge.setTheme({ backgroundColor });
-    }
-    this.forceUpdate();
-  }
-
-  taskHandler(_, statusMessageBuffer) {
-    const { store } = this.props;
-    store.dispatch(taskActions.status(statusMessageBuffer));
   }
 
   render() {

@@ -1,4 +1,5 @@
 const path = require('path');
+// eslint-disable-next-line import/no-unresolved
 const { Worker } = require('worker_threads');
 
 const SplitContextTaskManager = require('./splitContextTaskManager');

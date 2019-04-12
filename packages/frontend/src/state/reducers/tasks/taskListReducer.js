@@ -194,7 +194,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       }
       const { messageBuffer } = action;
       const taskMap = {};
-      nextState.forEach(t => (taskMap[t.id] = t));
+      nextState.forEach(t => {
+        taskMap[t.id] = t;
+      });
       // for each task in the messageBuffer, update the status
       Object.entries(messageBuffer).forEach(([taskId, msg]) => {
         const { type } = msg;
