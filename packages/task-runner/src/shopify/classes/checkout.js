@@ -180,56 +180,6 @@ class Checkout {
     }
   }
 
-  async handlePassword(password) {
-    const { site } = this._context.task;
-    const { url } = site;
-
-    try {
-      const res = await this._request({
-        uri: `${url}/form_type=storefront_password&utf8=%E2%9C%93&password=${password}&commit=`,
-        method: 'POST',
-        proxy: formatProxy(this._context.proxy),
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: false,
-        headers: getHeaders(site),
-        body: JSON.stringify({}),
-      });
-
-      const { statusCode, headers } = res;
-      const checkStatus = stateForStatusCode(statusCode);
-      if (checkStatus) {
-        return checkStatus;
-      }
-
-      // check server error
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Submitting password', nextState: States.Password };
-      }
-
-      const [redirectUrl] = headers.location.split('?');
-      this._logger.silly('CHECKOUT: Submitting password redirect url: %s', redirectUrl);
-      if (redirectUrl) {
-        if (redirectUrl.indexOf('password') > -1) {
-          // password wrong... don't return a nextState so we can return to the _prevState
-          return { message: 'Incorrect password' };
-        }
-        return { message: 'Password correct, proceeding...' };
-      }
-      return { message: 'Incorrect password' };
-    } catch (err) {
-      this._logger.error('CHECKOUT: Request error submitting password: %j', err);
-
-      const nextState = stateForError(err, {
-        message: 'Submitting password',
-        nextState: States.Password,
-      });
-      return nextState || { message: 'Failed: Submitting password', nextState: States.Errored };
-    }
-  }
-
   async createCheckout() {
     const { site, monitorDelay } = this._context.task;
     const { url, localCheckout = false } = site;

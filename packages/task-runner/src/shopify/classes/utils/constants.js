@@ -5,8 +5,6 @@ const TaskManagerEvents = {
   Harvest: 'CAPTCHA_HARVEST',
   SendProxy: 'SEND_PROXY',
   ChangeDelay: 'CHANGE_DELAY',
-  ChangeLink: 'CHANGE_LINK',
-  ChangePassword: 'CHANGE_PASSWORD',
   UpdateHook: 'UPDATE_HOOK',
 };
 
