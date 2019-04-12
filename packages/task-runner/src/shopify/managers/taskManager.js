@@ -416,6 +416,16 @@ class TaskManager {
     }
   }
 
+  massChangeLink(link) {
+    this._logger.silly('Changing link to: %s', link);
+    this._events.emit(Events.ChangeLink, 'ALL', link);
+  }
+
+  massChangePassword(password) {
+    this._logger.silly('Changing password to: %s', password);
+    this._events.emit(Events.ChangePassword, 'ALL', password);
+  }
+
   changeDelay(delay, type) {
     this._logger.silly('Changing %s to: %s ms', type, delay);
     this._events.emit(Events.ChangeDelay, 'ALL', delay, type);

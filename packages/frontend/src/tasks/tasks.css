@@ -180,7 +180,7 @@
   font-family: AvenirNext-Medium;
   font-size: 9px;
   letter-spacing: 0;
-  width: 89px;
+  width: 64px;
   height: 29px;
   cursor: pointer;
   border: none;
@@ -295,7 +295,7 @@
 .tasks .tasks-log__button--password {
   position: absolute;
   right: 14px;
-  top: 155px;
+  top: 150px;
 }
 .theme-light .tasks .tasks-log__button--password {
   background: #f0405e;

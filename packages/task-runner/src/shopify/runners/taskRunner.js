@@ -1,4 +1,5 @@
 const EventEmitter = require('eventemitter3');
+const { parseURL } = require('whatwg-url');
 const request = require('request-promise');
 
 const Timer = require('../classes/timer');
@@ -132,6 +133,8 @@ class TaskRunner {
     this._handleAbort = this._handleAbort.bind(this);
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
+    this._events.on(TaskManagerEvents.ChangeLink, this._handleChangeLink, this);
+    this._events.on(TaskManagerEvents.ChangePassword, this._handleChangePassword, this);
     this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
   }
 
@@ -159,6 +162,32 @@ class TaskRunner {
       } else if (type === DelayTypes.monitor) {
         this._context.task.monitorDelay = delay;
       }
+    }
+  }
+
+  _handleChangeLink(id, link) {
+    if (id === this._context.id) {
+      // filter out tasks that aren't using that site
+      const URL = parseURL(link);
+      const { url } = this._context.task.site;
+      if (URL && URL.host.includes(url)) {
+        this._context.task.product.url = link;
+      }
+    }
+  }
+
+  async _handleChangePassword(id, password) {
+    if (id === this._context.id) {
+      const { message, shouldBan, nextState } = await this._checkout.handlePassword(password);
+      if (!nextState) {
+        // return to previous state no matter what..
+        return this._prevState;
+      }
+      this._emitTaskEvent({ message });
+      if (nextState === States.SwapProxies) {
+        this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      }
+      return nextState;
     }
   }
 

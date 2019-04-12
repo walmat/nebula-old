@@ -6,7 +6,7 @@ import tDefns from '../utils/definitions/taskDefinitions';
 export class LogTaskPrimitive extends Component {
   constructor(props) {
     super(props);
-    this.selectRow = this.selectRow.bind(this);
+
     this.state = {
       fullscreen: false, // fullscreen toggle
       selected: [], // list of selected tasks
@@ -56,33 +56,13 @@ export class LogTaskPrimitive extends Component {
 
   massLinkChange() {
     if (window.Bridge) {
-      const link = window.Bridge.massDialog(
-        'Enter in the link to the product',
-        'question',
-        ['Okay', 'Cancel'],
-        'Mass Link Change'
-      );
-
-      if (link) {
-        console.log(link);
-        // TODO: dispatch link!
-      }
+      // TODO: CREATE DIALOG TO ALLOW INPUT
     }
   }
 
   massPasswordChange() {
     if (window.Bridge) {
-      const password = window.Bridge.massDialog(
-        'Enter in the password',
-        'question',
-        ['Okay', 'Cancel'],
-        'Mass Password Change'
-      );
-
-      if (password) {
-        console.log(password);
-        // TODO: dispatch password!
-      }
+      // TODO: CREATE DIALOG TO ALLOW INPUT
     }
   }
 

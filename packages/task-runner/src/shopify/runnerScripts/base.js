@@ -210,6 +210,14 @@ class TaskRunnerContextTransformer {
           runner._events.emit(TaskManagerEvents.ChangeDelay, ...args);
           break;
         }
+        case TaskManagerEvents.ChangeLink: {
+          runner._events.emit(TaskManagerEvents.ChangeLink, ...args);
+          break;
+        }
+        case TaskManagerEvents.ChangePassword: {
+          runner._events.emit(TaskManagerEvents.ChangePassword, ...args);
+          break;
+        }
         case TaskManagerEvents.UpdateHook: {
           // TODO: Respect the scope of Runner (issue #137)
           runner._events.emit(TaskManagerEvents.UpdateHook, ...args);
