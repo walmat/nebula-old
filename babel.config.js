@@ -34,5 +34,6 @@ module.exports = api => {
       'test*.js',
       'test*.jsx',
     ],
+    babelrcRoots: ['.', './packages/*'],
   };
 };

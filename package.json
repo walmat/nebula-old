@@ -7,12 +7,14 @@
     "build": "yarn workspaces run build",
     "ci": "yarn workspaces run ci",
     "lint": "yarn workspaces run lint",
-    "test": "yarn workspaces run test"
+    "test": "yarn workspaces run test",
+    "postinstall": "yarn workspace @nebula/orion run afterinstall"
   },
   "workspaces": [
     "packages/*"
   ],
   "devDependencies": {
+    "@babel/cli": "^7.2.0",
     "@babel/core": "^7.2.0",
     "@babel/node": "^7.2.0",
     "@babel/plugin-proposal-export-default-from": "^7.2.0",
@@ -20,9 +22,10 @@
     "@babel/plugin-proposal-function-bind": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
     "@babel/preset-react": "^7.0.0",
-    "babel-core": "^7.0.0-0",
+    "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^23.6.0",
-    "eslint": "5.6.0",
+    "cross-env": "^5.2.0",
+    "eslint": "5.12.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^3.3.0",
     "eslint-plugin-import": "^2.14.0",
@@ -32,8 +35,12 @@
     "husky": "^1.3.1",
     "jest": "^23.6.0",
     "lint-staged": "^8.1.0",
+    "nodemon": "^1.18.11",
     "prettier": "^1.15.3",
     "prettier-eslint": "^8.8.2",
+    "replace": "^1.1.0",
+    "rimraf": "^2.6.3",
+    "sass": "^1.17.4",
     "yarn": "^1.12.3"
   },
   "resolutions": {
