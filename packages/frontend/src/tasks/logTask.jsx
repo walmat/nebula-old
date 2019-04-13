@@ -104,7 +104,6 @@ export class LogTaskPrimitive extends Component {
     const table = runningTasks.map(t =>
       <LogTaskRow
         onClick={() => this.selectRow(t.id)}
-        key={t.index}
         selected={selected.find(e => e === t.id)}
         task={t}
         fullscreen={fullscreen}

@@ -236,10 +236,10 @@
         &__log {
           &--id {
             @extend %tasks-table__text-field;
-            margin-left: 6.5px;
-            margin-right: 8.5px;
+            margin-left: 8.5px;
+            margin-right: 6.5px;
             &--fullscreen {
-              margin-left: 7.5px;
+              margin-left: 12.5px;
               margin-right: 9.5px;
             }
           }
@@ -248,7 +248,7 @@
             @extend %tasks-table__text-field;
             width: 116px;
             &--fullscreen {
-              width: 120px;
+              width: 122px;
             }
           }
 
@@ -258,7 +258,7 @@
             width: 0;
             &--fullscreen {
               visibility: visible;
-              width: 123px;
+              width: 126px;
             }
           }
 
@@ -266,7 +266,7 @@
             @extend %tasks-table__text-field;
             width: 84px;
             &--fullscreen {
-              width: 60px;
+              width: 64px;
             }
           }
 
@@ -276,13 +276,13 @@
             width: 0;
             &--fullscreen {
               visibility: visible;
-              width: 140px;
+              width: 142px;
             }
           }
 
           &--output {
             @extend %tasks-table__text-field;
-            width: 239px;
+            width: 241px;
           }
         }
       }

@@ -11,7 +11,7 @@ const { Events } = require('../classes/utils/constants').TaskManager;
 const { HookTypes, Types: RunnerTypes } = require('../classes/utils/constants').TaskRunner;
 const Discord = require('../classes/hooks/discord');
 const Slack = require('../classes/hooks/slack');
-// const { createLogger } = require('../../common/logger');
+const { createLogger } = require('../../common/logger');
 
 class TaskManager {
   get loggerPath() {
@@ -41,21 +41,11 @@ class TaskManager {
     this._proxies = new Map();
 
     // Logger
-    // TODO: TEMPORARY UNTIL WE FIGURE OUT FASTER I/O
-    // this._logger = createLogger({
-    //   dir: this._loggerPath,
-    //   name: 'TaskManager',
-    //   prefix: 'manager',
-    // });
-    this._logger = {
-      error: () => {},
-      warn: () => {},
-      info: () => {},
-      verbose: () => {},
-      debug: () => {},
-      silly: () => {},
-      log: () => {},
-    };
+    this._logger = createLogger({
+      dir: this._loggerPath,
+      name: 'TaskManager',
+      prefix: 'manager',
+    });
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }

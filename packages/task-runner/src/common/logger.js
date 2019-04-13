@@ -55,7 +55,7 @@ function _setLevels(levels, name) {
 
 function _createLogger({ dir, name, prefix }) {
   // disable logger
-  if (_isDevelopment || process.env.NEBULA_DISABLE_LOGGER) {
+  if (process.env.NEBULA_DISABLE_LOGGER) {
     return {
       error: () => {},
       warn: () => {},

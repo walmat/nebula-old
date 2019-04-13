@@ -1,4 +1,4 @@
-xconst Electron = require('electron');
+const Electron = require('electron');
 const Path = require('path');
 const nebulaEnv = require('./env');
 

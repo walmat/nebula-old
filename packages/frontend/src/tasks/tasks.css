@@ -391,18 +391,18 @@
   background-color: #262626;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--id {
-  margin-left: 6.5px;
-  margin-right: 8.5px;
+  margin-left: 8.5px;
+  margin-right: 6.5px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--id--fullscreen {
-  margin-left: 7.5px;
+  margin-left: 12.5px;
   margin-right: 9.5px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store {
   width: 116px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store--fullscreen {
-  width: 120px;
+  width: 122px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product {
   visibility: hidden;
@@ -410,13 +410,13 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product--fullscreen {
   visibility: visible;
-  width: 123px;
+  width: 126px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size {
   width: 84px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size--fullscreen {
-  width: 60px;
+  width: 64px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy {
   visibility: hidden;
@@ -424,10 +424,10 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy--fullscreen {
   visibility: visible;
-  width: 140px;
+  width: 142px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
-  width: 239px;
+  width: 241px;
 }
 
 /*
