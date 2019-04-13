@@ -10660,7 +10660,7 @@ prop-types-exact@^1.2.0:
     object.assign "^4.1.0"
     reflect.ownkeys "^0.2.0"
 
-prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -13982,7 +13982,7 @@ wrappy@1:
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
 
-write-file-atomic@2.3.0, write-file-atomic@^2.0.0, write-file-atomic@^2.1.0, write-file-atomic@^2.3.0:
+write-file-atomic@^2.0.0, write-file-atomic@^2.1.0, write-file-atomic@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/write-file-atomic/-/write-file-atomic-2.3.0.tgz#1ff61575c2e2a4e8e510d6fa4e243cce183999ab"
   integrity sha512-xuPeK4OdjWqtfi59ylvVL0Yn35SF3zgcAcv7rBPFHVaEapaDr4GdGgm3j7ckTwH9wHL7fGmgfAnb0+THrHb8tA==
