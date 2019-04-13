@@ -4,7 +4,7 @@ const { ipcRenderer } = require('electron');
 const {
   TaskManager,
   SplitWebWorkerTaskManager,
-  SplitWorkerThreadTaskManager,
+  // SplitWorkerThreadTaskManager, // TODO: Add this back in when we implement it (#412)
   SplitProcessTaskManager,
 } = require('@nebula/task-runner').shopify;
 
@@ -33,10 +33,11 @@ class TaskManagerAdapter {
         this._taskManager = new SplitProcessTaskManager(logPath);
         break;
       }
-      case 'threads': {
-        this._taskManager = new SplitWorkerThreadTaskManager(logPath);
-        break;
-      }
+      // TODO: Add this back in when we implement it (#412)
+      // case 'threads': {
+      //   this._taskManager = new SplitWorkerThreadTaskManager(logPath);
+      //   break;
+      // }
       case 'workers': {
         this._taskManager = new SplitWebWorkerTaskManager(logPath);
         break;
@@ -44,10 +45,11 @@ class TaskManagerAdapter {
       default: {
         // Use worker threads TaskManager as default if supported
         try {
-          this._taskManager = new SplitWorkerThreadTaskManager(logPath);
+          // TODO: Move this to worker threads when we implement it (#412)
+          this._taskManager = new SplitWebWorkerTaskManager(logPath);
         } catch (_) {
           console.log(
-            '[WARNING]: Worker Thread are not supported in this environment! Falling back to multi-process manager...',
+            '[WARNING]: Web Workers are not supported in this environment! Falling back to multi-process manager...',
           );
           this._taskManager = new SplitProcessTaskManager(logPath);
         }
