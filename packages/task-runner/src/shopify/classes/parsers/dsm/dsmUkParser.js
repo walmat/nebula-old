@@ -24,7 +24,7 @@ class DsmUkParser extends DsmParser {
         }
       }
     });
-    this._logger.debug(
+    this._logger.silly(
       '%s: Found %d custom.js links',
       this._name,
       customJsLinks.length,
@@ -125,8 +125,11 @@ class DsmUkParser extends DsmParser {
       const hash = this._parseCustomJsContent(body);
       return hash;
     } catch (err) {
-      this._logger.debug('%s: Error parsing custom.js! %s', this._name, err.message);
-      this._logger.silly('%s: Hash parsing failed, will use backup hash', this._name);
+      this._logger.error(
+        '%s: Error parsing custom.js! Using backup hash.. %s',
+        this._name,
+        err.message,
+      );
       return null;
     }
   }

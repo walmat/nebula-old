@@ -1370,9 +1370,11 @@ describe('task list reducer', () => {
       expected[0].output = 'testing...';
       const actual = taskListReducer(start, {
         type: TASK_ACTIONS.STATUS,
-        response: {
-          id: 1,
-          message: 'testing...',
+        messageBuffer: {
+          1: {
+            id: 1,
+            message: 'testing...',
+          },
         },
       });
       expect(actual).toEqual(expected);

@@ -6,6 +6,7 @@ nebulaEnv.setUpEnvironment();
 
 const _defaultWebPreferences = {
   nodeIntegration: false,
+  nodeIntegrationInWorker: false,
   webSecurity: true,
   allowRunningInsecureContent: false,
   experimentalCanvasFeatures: true,

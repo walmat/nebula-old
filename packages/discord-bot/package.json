@@ -15,6 +15,7 @@
   "author": "Matthew Wall",
   "license": "MIT",
   "dependencies": {
+    "@babel/runtime": "^7.4.3",
     "bufferutil": "^3.0.3",
     "discord.js": "^11.3.2",
     "dotenv": "^6.0.0",

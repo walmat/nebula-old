@@ -27,7 +27,6 @@ class FrontendCheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
 
-    this._logger.verbose('FRONTEND CHECKOUT: Creating Payment Token');
     try {
       const res = await this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
@@ -57,14 +56,18 @@ class FrontendCheckout extends Checkout {
       const body = JSON.parse(res.body);
       if (body && body.id) {
         const { id } = body;
-        this._logger.verbose('Payment token: %s', id);
+        this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
         return { message: 'Monitoring for product', nextState: States.Monitor };
       }
       return { message: 'Failed: Creating payment token', nextState: States.Errored };
     } catch (err) {
-      this._logger.debug('FRONTEND CHECKOUT: Request error creating payment token: %s', err);
-
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Payment Token.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
       const nextState = stateForError(err, {
         message: 'Starting task setup',
         nextState: States.PaymentToken,
@@ -78,7 +81,6 @@ class FrontendCheckout extends Checkout {
     const { variants, hash } = product;
     const { url } = site;
 
-    this._logger.verbose('FRONTEND CHECKOUT: Adding to cart');
     try {
       const res = await this._request({
         uri: `${url}/cart/add`,
@@ -113,7 +115,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
+      this._logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // out of stock
@@ -157,8 +159,12 @@ class FrontendCheckout extends Checkout {
 
       return { message: 'Creating checkout', nextState: States.CreateCheckout };
     } catch (err) {
-      this._logger.debug('CART: Request error in add to cart: %s', err);
-
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Add to Cart.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
       const nextState = stateForError(err, {
         message: 'Adding to cart',
         nextState: States.AddToCart,
@@ -181,7 +187,6 @@ class FrontendCheckout extends Checkout {
     const { site, monitorDelay } = this._context.task;
     const { url } = site;
 
-    this._logger.verbose('FRONTEND CHECKOUT: Getting checkout');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -212,7 +217,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location || res.request.href;
-      this._logger.verbose('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
+      this._logger.silly('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
 
       // check for redirects
       if (redirectUrl) {
@@ -251,7 +256,12 @@ class FrontendCheckout extends Checkout {
 
       return { message: 'Submitting information', nextState: States.PatchCheckout };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error getting checkout %j', err);
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Fetch Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Fetching checkout',
@@ -266,7 +276,6 @@ class FrontendCheckout extends Checkout {
     const { shipping, billing, payment } = profile;
     const { url } = site;
 
-    this._logger.verbose('FRONTEND CHECKOUT: Patching checkout');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -302,7 +311,7 @@ class FrontendCheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('FRONTEND CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+      this._logger.silly('FRONTEND CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         if (statusCode >= 200 && statusCode < 310) {
           return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
@@ -335,7 +344,12 @@ class FrontendCheckout extends Checkout {
       // unknown redirect, stopping...
       return { message: 'Failed: Submitting information', nextState: States.Errored };
     } catch (err) {
-      this._logger.debug('FRONTEND CHECKOUT: Request error patching checkout: %j', err);
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Submiting Information.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Submitting information',
@@ -351,7 +365,6 @@ class FrontendCheckout extends Checkout {
     const { shipping } = profile;
     const { country, province, zipCode } = shipping;
 
-    this._logger.verbose('FRONTEND CHECKOUT: Fetching shipping rates');
     try {
       const res = await this._request({
         uri: `${url}/cart/shipping_rates.json`,
@@ -390,7 +403,7 @@ class FrontendCheckout extends Checkout {
       }
 
       if (body && body.errors) {
-        this._logger.verbose('FRONTEND CHECKOUT: Error getting shipping rates: %j', body.errors);
+        this._logger.silly('FRONTEND CHECKOUT: Error getting shipping rates: %j', body.errors);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
@@ -404,7 +417,7 @@ class FrontendCheckout extends Checkout {
         const { name } = cheapest;
         const id = `${cheapest.source}-${encodeURIComponent(cheapest.name)}-${cheapest.price}`;
         this.chosenShippingMethod = { id, name };
-        this._logger.verbose('FRONTEND CHECKOUT: Using shipping rate: %s', name);
+        this._logger.silly('FRONTEND CHECKOUT: Using shipping rate: %s', name);
 
         // set shipping price for cart
         this.prices.shipping = cheapest.price;
@@ -415,10 +428,16 @@ class FrontendCheckout extends Checkout {
           nextState: States.PostPayment,
         };
       }
-      this._logger.verbose('No shipping rates available, polling %d ms', monitorDelay);
+      this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
+      await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
-      this._logger.debug('FRONTEND CHECKOUT: Request error fetching shipping rates: %j', err);
+      this._logger.error(
+        'FRONTEND CHECKOUT: %d Request Error..\n Step: Shipping Rates.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Fetching shipping rates',

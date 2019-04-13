@@ -189,13 +189,28 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.STATUS: {
-      if (!action.response.id || !action.response.message) {
+      if (!action.messageBuffer) {
         break;
       }
-      const task = nextState.find(t => t.id === action.response.id);
-      if (task) {
-        task.output = action.response.message;
-      }
+      const { messageBuffer } = action;
+      const taskMap = {};
+      nextState.forEach(t => {
+        taskMap[t.id] = t;
+      });
+      // for each task in the messageBuffer, update the status
+      Object.entries(messageBuffer).forEach(([taskId, msg]) => {
+        const { type } = msg;
+        if (type !== 'srr') {
+          const task = taskMap[taskId];
+          if (task) {
+            const { message, size } = msg;
+            task.output = message;
+            if (size) {
+              task.chosenSizes = [size];
+            }
+          }
+        }
+      });
       break;
     }
     case TASK_ACTIONS.EDIT: {
@@ -268,6 +283,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       } else {
         nextState[idx].status = 'stopped';
         nextState[idx].output = 'Stopping task...';
+        nextState[idx].chosenSizes = nextState[idx].sizes;
       }
       break;
     }

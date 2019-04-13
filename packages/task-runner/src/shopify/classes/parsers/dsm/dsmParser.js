@@ -132,7 +132,7 @@ class DsmParser extends SpecialParser {
     // Check for hash and store it before returning
     const hash = this._hashIds[matchedProduct.id] || this._hashIds.__default__;
     if (hash) {
-      this._logger.debug(
+      this._logger.silly(
         '%s, Found hash %s for matched product %s, storing on task...',
         this._name,
         hash,

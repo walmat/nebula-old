@@ -30,9 +30,6 @@ class APICheckout extends Checkout {
   async getPaymentToken() {
     const { payment, billing } = this._context.task.profile;
 
-    this._logger.verbose('API CHECKOUT: PROXY FORMAT IS: %s', formatProxy(this._context.proxy));
-
-    this._logger.verbose('API CHECKOUT: Creating Payment Token');
     try {
       const res = await this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
@@ -62,13 +59,18 @@ class APICheckout extends Checkout {
       const body = JSON.parse(res.body);
       if (body && body.id) {
         const { id } = body;
-        this._logger.verbose('Payment token: %s', id);
+        this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
       return { message: 'Failed: Creating payment token', nextState: States.Errored };
     } catch (err) {
-      this._logger.debug('API CHECKOUT: Request error creating payment token: %j', err);
+      this._logger.error(
+        'API CHECKOUT: %d Request Error..\n Step: Payment Token.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Starting task setup',
@@ -83,7 +85,6 @@ class APICheckout extends Checkout {
     const { shipping, billing, payment } = profile;
     const { url } = site;
 
-    this._logger.verbose('API CHECKOUT: Patching checkout');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -120,7 +121,7 @@ class APICheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
+      this._logger.silly('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         if (statusCode === 200) {
           return { message: 'Monitoring for product', nextState: States.Monitor };
@@ -150,7 +151,12 @@ class APICheckout extends Checkout {
       // not sure where we are, stop...
       return { message: 'Failed: Submitting information', nextState: States.Errored };
     } catch (err) {
-      this._logger.debug('API CHECKOUT: Request error creating checkout: %j', err);
+      this._logger.error(
+        'API CHECKOUT: %d Request Error..\n Step: Submitting Information.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Submitting information',
@@ -165,7 +171,6 @@ class APICheckout extends Checkout {
     const { site, product, monitorDelay } = this._context.task;
     const { url } = site;
 
-    this._logger.verbose('API CHECKOUT: Adding to cart');
     try {
       const res = await this._request({
         uri: `${url}/api/checkouts/${this.checkoutToken}.json`,
@@ -196,7 +201,7 @@ class APICheckout extends Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
+      this._logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       // check redirects
       if (redirectUrl) {
@@ -223,7 +228,7 @@ class APICheckout extends Checkout {
 
       if (body.errors && body.errors.line_items[0]) {
         const error = res.body.errors.line_items[0];
-        this._logger.debug('Error adding to cart: %j', error);
+        this._logger.silly('Error adding to cart: %j', error);
         if (error.quantity) {
           if (timers.monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
@@ -245,7 +250,6 @@ class APICheckout extends Checkout {
       }
 
       if (body.checkout && body.checkout.line_items.length > 0) {
-        this._logger.verbose('Successfully added to cart');
         const { total_price: totalPrice } = body.checkout;
 
         this._context.task.product.name = body.checkout.line_items[0].title;
@@ -270,8 +274,12 @@ class APICheckout extends Checkout {
       }
       return { message: 'Failed: Add to cart', nextState: States.Errored };
     } catch (err) {
-      this._logger.debug('API CHECKOUT: Request error adding to cart %j', err);
-
+      this._logger.error(
+        'API CHECKOUT: %d Request Error..\n Step: Add to Cart.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
       const nextState = stateForError(err, {
         message: 'Adding to cart',
         nextState: States.AddToCart,
@@ -281,7 +289,6 @@ class APICheckout extends Checkout {
   }
 
   async shippingRates() {
-    this._logger.verbose('API CHECKOUT: Fetching shipping rates');
     const { site, monitorDelay, errorDelay } = this._context.task;
     const { url } = site;
 
@@ -321,17 +328,16 @@ class APICheckout extends Checkout {
 
       if (body && body.errors) {
         const { errors } = body;
-        this._logger.verbose('API CHECKOUT: Error getting shipping rates: %j', errors);
+        this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', errors);
         if (errors && errors.checkout) {
           const errorMessage = JSON.stringify(errors.checkout);
-          this._logger.verbose('API CHECKOUT: Shipping rates error message: %s', errorMessage);
           if (errorMessage.indexOf('does_not_require_shipping') > -1) {
-            this._logger.verbose('API CHECKOUT: Cart empty, retrying add to cart');
+            this._logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
             return { message: 'Cart empty, retrying ATC', nextState: States.AddToCart };
           }
 
           if (errorMessage.indexOf("can't be blank") > -1) {
-            this._logger.verbose('API CHECKOUT: Country not supported');
+            this._logger.silly('API CHECKOUT: Country not supported');
             return { message: 'Country not supported', nextState: States.Errored };
           }
         }
@@ -357,11 +363,16 @@ class APICheckout extends Checkout {
         this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
         return { message: `Posting payment`, nextState: States.PostPayment };
       }
-      this._logger.verbose('No shipping rates available, polling %d ms', monitorDelay);
+      this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
       await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
-      this._logger.debug('API CHECKOUT: Request error fetching shipping method: %j', err);
+      this._logger.error(
+        'API CHECKOUT: %d Request Error..\n Step: Shipping Rates.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Fetching shipping rates',

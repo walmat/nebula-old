@@ -91,7 +91,7 @@ class TaskManager {
         return;
       }
     }
-    this._logger.verbose('New Proxy Detected with hash %s. Adding now', proxyHash);
+    this._logger.silly('New Proxy Detected with hash %s. Adding now', proxyHash);
     do {
       proxyId = shortid.generate();
     } while (this._proxies.get(proxyId));
@@ -104,7 +104,7 @@ class TaskManager {
       useList: {},
       assignedRunners: [],
     });
-    this._logger.verbose('Proxy Added with id %s', proxyId);
+    this._logger.silly('Proxy Added with id %s', proxyId);
   }
 
   /**
@@ -130,7 +130,7 @@ class TaskManager {
    * @param {Proxy} proxy the proxy to deregister
    */
   deregisterProxy(proxy) {
-    this._logger.verbose('Deregistering proxy...');
+    this._logger.silly('Deregistering proxy...');
     const proxyHash = hash(proxy);
     let storedProxy = null;
     for (const val of this._proxies.values()) {
@@ -141,12 +141,12 @@ class TaskManager {
     }
 
     if (!storedProxy) {
-      this._logger.verbose('Proxy with hash %s not found! Skipping removal', proxyHash);
+      this._logger.silly('Proxy with hash %s not found! Skipping removal', proxyHash);
       return;
     }
-    this._logger.verbose('Proxy found with hash %s. Removing now', proxyHash);
+    this._logger.silly('Proxy found with hash %s. Removing now', proxyHash);
     this._proxies.delete(storedProxy.id);
-    this._logger.verbose('Proxy removed with id %s', storedProxy.id);
+    this._logger.silly('Proxy removed with id %s', storedProxy.id);
   }
 
   /**
@@ -173,7 +173,7 @@ class TaskManager {
       // Force wait limit to be 0 if we have an invalid parameter value passed in
       waitLimit = 0;
     }
-    this._logger.verbose(
+    this._logger.silly(
       'Reserving proxy for runner %s for site %s... Looking through %d proxies',
       runnerId,
       site,
@@ -195,14 +195,14 @@ class TaskManager {
       proxy.useList[site] = true;
       this._proxies.delete(proxy.id);
       this._proxies.set(proxy.id, proxy);
-      this._logger.verbose('Returning proxy: %s', proxy.id);
+      this._logger.silly('Returning proxy: %s', proxy.id);
       return proxy;
     }
     if (!waitForOpenProxy || waitLimit === 0) {
-      this._logger.verbose('Not waiting for open proxy, returning null');
+      this._logger.silly('Not waiting for open proxy, returning null');
       return null;
     }
-    this._logger.verbose('All proxies are reserved, waiting for open proxy...');
+    this._logger.silly('All proxies are reserved, waiting for open proxy...');
     return new Promise(resolve => {
       setTimeout(
         () => resolve(this.reserveProxy(runnerId, site, waitForOpenProxy, waitLimit - 1)),
@@ -218,15 +218,15 @@ class TaskManager {
    * @param {String} proxyId the id of the proxy to release
    */
   releaseProxy(runnerId, site, proxyId) {
-    this._logger.verbose('Releasing proxy %s for runner %s ...', proxyId, runnerId);
+    this._logger.silly('Releasing proxy %s for runner %s ...', proxyId, runnerId);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
-      this._logger.verbose('No proxy found, skipping release');
+      this._logger.silly('No proxy found, skipping release');
       return;
     }
     proxy.assignedRunners = proxy.assignedRunners.filter(rId => rId !== runnerId);
     delete proxy.useList[site];
-    this._logger.verbose('Released Proxy %s', proxyId);
+    this._logger.silly('Released Proxy %s', proxyId);
   }
 
   /**
@@ -236,15 +236,15 @@ class TaskManager {
    * @param {String} proxyId the id of the proxy to ban
    */
   banProxy(runnerId, site, proxyId) {
-    this._logger.verbose('Banning proxy %s for runner %s ...', proxyId, runnerId);
+    this._logger.silly('Banning proxy %s for runner %s ...', proxyId, runnerId);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
-      this._logger.verbose('No proxy found, skipping ban');
+      this._logger.silly('No proxy found, skipping ban');
       return;
     }
     proxy.banList[site.url] = true;
     setTimeout(() => delete proxy.banList[site.url], 30000);
-    this._logger.verbose('Banned Proxy %s', proxyId);
+    this._logger.silly('Banned Proxy %s', proxyId);
   }
 
   /**
@@ -260,7 +260,7 @@ class TaskManager {
    * @param {bool} shouldBan whether the old proxy should be banned
    */
   async swapProxy(runnerId, proxyId, site, shouldBan) {
-    this._logger.verbose(
+    this._logger.silly(
       'Swapping Proxy %s for runner %s on site %s. Should ban? %s ...',
       proxyId,
       runnerId,
@@ -269,14 +269,14 @@ class TaskManager {
     );
     let shouldRelease = true;
     if (!this._proxies.get(proxyId)) {
-      this._logger.verbose('No proxy found, skipping release/ban');
+      this._logger.silly('No proxy found, skipping release/ban');
       shouldRelease = false;
     }
 
     // Attempt to reserve a proxy first before releasing the old one
     const newProxy = await this.reserveProxy(runnerId, site);
     if (!newProxy) {
-      this._logger.verbose('No new proxy available, skipping release/ban');
+      this._logger.silly('No new proxy available, skipping release/ban');
       return null;
     }
 
@@ -288,7 +288,7 @@ class TaskManager {
       }
       this.releaseProxy(runnerId, site, proxyId);
     }
-    this._logger.verbose('New proxy: %j', newProxy);
+    this._logger.silly('New proxy: %j', newProxy);
     // Return the new reserved proxy
     return newProxy;
   }
@@ -397,22 +397,22 @@ class TaskManager {
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(runnerId, message, event) {
-    this._logger.info('Runner %s posted new event %s - %s', runnerId, event, message.message);
+    this._logger.silly('Runner %s posted new event %s - %s', runnerId, event, message.message);
     // For now only re emit Task Status Events
     if (event === TaskRunner.Events.TaskStatus) {
-      this._logger.info('Reemitting this status update...');
+      this._logger.silly('Reemitting this status update...');
       const { taskId } = this._runners[runnerId];
       this._events.emit('status', taskId, message, event);
     }
   }
 
   changeDelay(delay, type) {
-    this._logger.info('Changing %s to: %s ms', type, delay);
+    this._logger.silly('Changing %s to: %s ms', type, delay);
     this._events.emit(Events.ChangeDelay, 'ALL', delay, type);
   }
 
   updateHook(hook, type) {
-    this._logger.info('Updating %s webhook to: %s', type, hook);
+    this._logger.silly('Updating %s webhook to: %s', type, hook);
     this._events.emit(Events.UpdateHook, 'ALL', hook, type);
   }
 
@@ -421,7 +421,7 @@ class TaskManager {
    * @param {string} type `discord` || `slack`
    */
   async testWebhook(hook, type) {
-    this._logger.info('Testing %s with url: %s', type, hook);
+    this._logger.silly('Testing %s with url: %s', type, hook);
     const payload = [
       true,
       { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
@@ -477,7 +477,7 @@ class TaskManager {
    *   - type - The runner type to start
    */
   async start(task, { type = RunnerTypes.Normal }) {
-    this._logger.info('Starting task %s', task.id);
+    this._logger.silly('Starting task %s', task.id);
 
     const alreadyStarted = Object.values(this._runners).find(r => r.taskId === task.id);
     if (alreadyStarted) {
@@ -485,7 +485,7 @@ class TaskManager {
       return;
     }
     const { runnerId, openProxy } = await this.setup(task.site.url);
-    this._logger.info('Creating new runner %s for task %s', runnerId, task.id);
+    this._logger.silly('Creating new runner %s for task %s', runnerId, task.id);
 
     this._start([runnerId, task, openProxy, type]).then(() => {
       this.cleanup(runnerId);
@@ -520,7 +520,7 @@ class TaskManager {
    * @param {Task} task the task to stop
    */
   stop(task) {
-    this._logger.info('Attempting to stop runner with task id: %s', task.id);
+    this._logger.silly('Attempting to stop runner with task id: %s', task.id);
     const rId = Object.keys(this._runners).find(k => this._runners[k].taskId === task.id);
     if (!rId) {
       this._logger.warn(
@@ -531,7 +531,7 @@ class TaskManager {
 
     // Send abort signal
     this._events.emit(Events.Abort, rId);
-    this._logger.verbose('Stop signal sent');
+    this._logger.silly('Stop signal sent');
     return rId;
   }
 
@@ -551,7 +551,7 @@ class TaskManager {
     if (force) {
       tasksToStop = Object.values(this._runners).map(({ taskId: id }) => ({ id }));
       if (tasksToStop.length > 0) {
-        this._logger.info('Force Stopping %d tasks', tasksToStop.length, tasksToStop);
+        this._logger.silly('Force Stopping %d tasks', tasksToStop.length, tasksToStop);
       }
     }
     return [...tasksToStop].map(t => this.stop(t, { wait }));
@@ -667,14 +667,14 @@ class TaskManager {
     runner.site = task.site.url;
     this._runners[runnerId] = runner;
 
-    this._logger.verbose('Wiring up TaskRunner Events ...');
+    this._logger.silly('Wiring up TaskRunner Events ...');
     this._setup(runner);
 
     // Start the runner asynchronously
-    this._logger.verbose('Starting Runner ...');
+    this._logger.silly('Starting Runner ...');
     try {
       await runner.start();
-      this._logger.info('Runner %s finished without errors', runnerId);
+      this._logger.silly('Runner %s finished without errors', runnerId);
     } catch (error) {
       this._logger.error(
         'Runner %s was stopped due to an error: %s',
@@ -684,7 +684,7 @@ class TaskManager {
       );
     }
 
-    this._logger.verbose('Performing cleanup for runner %s', runnerId);
+    this._logger.silly('Performing cleanup for runner %s', runnerId);
     this._cleanup(runner);
   }
 }

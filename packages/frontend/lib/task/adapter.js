@@ -1,8 +1,10 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
+
 const {
   TaskManager,
-  SplitThreadTaskManager,
+  SplitWebWorkerTaskManager,
+  // SplitWorkerThreadTaskManager, // TODO: Add this back in when we implement it (#412)
   SplitProcessTaskManager,
 } = require('@nebula/task-runner').shopify;
 
@@ -15,6 +17,12 @@ const _TASK_EVENT_KEY = 'TaskEventKey';
 
 class TaskManagerAdapter {
   constructor(logPath) {
+    /**
+     * :: taskId, [statusMessages]
+     */
+    this.statusMessageBuffer = {};
+    this._messageInterval = null;
+
     // Use environment to initialize the right task manager
     switch (process.env.NEBULA_RUNNER_CONCURRENCY_TYPE) {
       case 'single': {
@@ -25,14 +33,23 @@ class TaskManagerAdapter {
         this._taskManager = new SplitProcessTaskManager(logPath);
         break;
       }
-      case 'thread':
+      // TODO: Add this back in when we implement it (#412)
+      // case 'threads': {
+      //   this._taskManager = new SplitWorkerThreadTaskManager(logPath);
+      //   break;
+      // }
+      case 'workers': {
+        this._taskManager = new SplitWebWorkerTaskManager(logPath);
+        break;
+      }
       default: {
-        // Use multithread TaskManager as default if supported
+        // Use worker threads TaskManager as default if supported
         try {
-          this._taskManager = new SplitThreadTaskManager(logPath);
+          // TODO: Move this to worker threads when we implement it (#412)
+          this._taskManager = new SplitWebWorkerTaskManager(logPath);
         } catch (_) {
           console.log(
-            '[WARNING]: Worker Thread are not supported in this environment! Falling back to multi-process manager...',
+            '[WARNING]: Web Workers are not supported in this environment! Falling back to multi-process manager...',
           );
           this._taskManager = new SplitProcessTaskManager(logPath);
         }
@@ -41,7 +58,25 @@ class TaskManagerAdapter {
     }
 
     this._taskEventHandler = (taskId, statusMessage) => {
-      ipcRenderer.send(_TASK_EVENT_KEY, taskId, statusMessage);
+      // grab the old messages (if they exists)..
+      if (statusMessage) {
+        const lastMessage = this.statusMessageBuffer[taskId];
+        if (!lastMessage) {
+          this.statusMessageBuffer[taskId] = statusMessage;
+        } else {
+          this.statusMessageBuffer[taskId] = {
+            ...lastMessage,
+            ...statusMessage,
+          };
+        }
+      }
+    };
+
+    this._taskEventMessageSender = () => {
+      if (this.statusMessageBuffer) {
+        ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
+        this.statusMessageBuffer = {};
+      }
     };
 
     // TODO: Research if this should always listened to, or if we can dynamically
@@ -60,11 +95,17 @@ class TaskManagerAdapter {
     ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
+        if (!this._messageInterval) {
+          this._messageInterval = setInterval(this._taskEventMessageSender, 1500);
+        }
       }
     });
     ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
       if (this._taskManager) {
         this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
+        if (this._messageInterval) {
+          clearInterval(this._messageInterval);
+        }
       }
     });
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
