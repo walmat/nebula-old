@@ -1,20 +1,21 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 const LogTaskRow = ({
-    onClick,
-    selected,
-    task: {
-      index,
-      site: { name },
-      product: { found, raw },
-      chosenSizes,
-      sizes,
-      proxy,
-      output
-    },
-    fullscreen
-  }) => {
+  onClick,
+  selected,
+  task: {
+    index,
+    site: { name },
+    product: { found, raw },
+    chosenSizes,
+    sizes,
+    proxy,
+    output,
+  },
+  fullscreen,
+}) => {
   const classMap = {
     id: ['col', 'tasks-row__log--id'],
     store: ['col', 'col--no-gutter', 'tasks-row__log--store'],
@@ -22,7 +23,7 @@ const LogTaskRow = ({
     size: ['col', 'col--no-gutter', 'tasks-row__log--size'],
     proxy: ['col', 'col--no-gutter', 'tasks-row__log--proxy'],
     output: ['col', 'col--no-gutter', 'tasks-row__log--output'],
-  }
+  };
 
   const tasksRow = `row ${selected ? 'tasks-row--selected' : 'tasks-row'}`;
 
@@ -30,11 +31,15 @@ const LogTaskRow = ({
     Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
   }
   return (
-    <div className="tasks-row-container col" onClick={onClick}>
+    <div
+      className="tasks-row-container col"
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyPress={() => {}}
+    >
       <div key={index} className={tasksRow}>
-        <div className={classMap.id.join(' ')}>
-          {index < 10 ? `0${index}` : index}
-        </div>
+        <div className={classMap.id.join(' ')}>{index < 10 ? `0${index}` : index}</div>
         <div className={classMap.store.join(' ')}>{name}</div>
         <div className={classMap.product.join(' ')}>{found || raw}</div>
         <div className={classMap.size.join(' ')}>{chosenSizes || sizes}</div>
@@ -47,6 +52,9 @@ const LogTaskRow = ({
 
 LogTaskRow.propTypes = {
   task: tDefns.taskLog.isRequired,
+  onClick: PropTypes.func.isRequired,
+  selected: PropTypes.arrayOf(PropTypes.shape(PropTypes.string)).isRequired,
+  fullscreen: PropTypes.string.isRequired,
 };
 
 export default LogTaskRow;

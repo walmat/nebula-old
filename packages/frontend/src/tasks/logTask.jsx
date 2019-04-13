@@ -4,6 +4,26 @@ import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 export class LogTaskPrimitive extends Component {
+  static massLinkChange() {
+    if (window.Bridge) {
+      // TODO: CREATE DIALOG TO ALLOW INPUT
+    }
+  }
+
+  static massPasswordChange() {
+    if (window.Bridge) {
+      // TODO: CREATE DIALOG TO ALLOW INPUT
+    }
+  }
+
+  static renderOutputLogRow(msg) {
+    return (
+      <div className="row row--start row--gutter tasks-live-log__output-row">
+        <p>{msg}</p>
+      </div>
+    );
+  }
+
   constructor(props) {
     super(props);
 
@@ -11,12 +31,13 @@ export class LogTaskPrimitive extends Component {
       fullscreen: false, // fullscreen toggle
       selected: [], // list of selected tasks
       focused: '', // task in focused (used for showing the log data)
-    }
+    };
   }
 
   selectRow(taskId) {
     // TODO: Enable range selection with SHIFT + CLICK
-    let { selected, fullscreen } = this.state;
+    let { selected } = this.state;
+    const { fullscreen } = this.state;
     if (!fullscreen) {
       return;
     }
@@ -26,52 +47,9 @@ export class LogTaskPrimitive extends Component {
       this.setState({ focused: taskId });
     } else {
       selected = selected.filter(e => e !== taskId);
-      this.setState({ focused: selected[selected.length - 1]})
+      this.setState({ focused: selected[selected.length - 1] });
     }
     this.setState({ selected });
-  }
-
-  renderMassChangeOptions() {
-    const { selected, focused } = this.state;
-
-    if (focused || selected.length) {
-      return (
-        <div>
-          <button
-            className="tasks-log__button--links"
-            onClick={() => this.massLinkChange()}
-          >
-            Mass Link
-          </button>
-          <button
-          className="tasks-log__button--password"
-          onClick={() => this.massPasswordChange()}
-          >
-            Password
-          </button>
-        </div>
-      );
-    }
-  }
-
-  massLinkChange() {
-    if (window.Bridge) {
-      // TODO: CREATE DIALOG TO ALLOW INPUT
-    }
-  }
-
-  massPasswordChange() {
-    if (window.Bridge) {
-      // TODO: CREATE DIALOG TO ALLOW INPUT
-    }
-  }
-
-  renderOutputLogRow(msg) {
-    return (
-      <div className="row row--start row--gutter tasks-live-log__output-row">
-        <p>{msg}</p>
-      </div>
-    );
   }
 
   showLiveLog() {
@@ -82,17 +60,20 @@ export class LogTaskPrimitive extends Component {
       return (
         <div className="row row--expand table--lower">
           <div className="col col--start tasks-live-log__wrapper">
-            {task.log.map(msg => this.renderOutputLogRow(msg))}
+            {task.log.map(msg => LogTaskPrimitive.renderOutputLogRow(msg))}
           </div>
         </div>
       );
     }
+    return null;
   }
 
   createTable() {
     const { tasks } = this.props;
     const { fullscreen, focused, selected } = this.state;
-    const runningTasks = tasks.filter(task => task.status === 'running' || task.status === 'finished');
+    const runningTasks = tasks.filter(
+      task => task.status === 'running' || task.status === 'finished',
+    );
 
     if (!runningTasks.length && (focused || selected.length)) {
       this.setState({
@@ -101,27 +82,64 @@ export class LogTaskPrimitive extends Component {
       });
     }
 
-    const table = runningTasks.map(t =>
+    const table = runningTasks.map(t => (
       <LogTaskRow
         onClick={() => this.selectRow(t.id)}
         selected={selected.find(e => e === t.id)}
         task={t}
         fullscreen={fullscreen}
       />
-    );
+    ));
     return table;
+  }
+
+  renderMassChangeOptions() {
+    const { selected, focused } = this.state;
+
+    if (focused || selected.length) {
+      return (
+        <div>
+          <button
+            type="button"
+            className="tasks-log__button--links"
+            onClick={() => LogTaskPrimitive.massLinkChange()}
+          >
+            Mass Link
+          </button>
+          <button
+            type="button"
+            className="tasks-log__button--password"
+            onClick={() => LogTaskPrimitive.massPasswordChange()}
+          >
+            Password
+          </button>
+        </div>
+      );
+    }
+    return null;
   }
 
   render() {
     const { fullscreen, selected, focused } = this.state;
     const classMap = {
-      sectionHeader: ['body-text', 'section-header', 'section-header--no-top', 'tasks-log__section-header'],
+      sectionHeader: [
+        'body-text',
+        'section-header',
+        'section-header--no-top',
+        'tasks-log__section-header',
+      ],
       container: ['col', 'col--start', 'tasks-log-container'],
-      tableHeader: ['row', 'row--start', 'row--gutter-left', 'row--gutter-right', 'tasks-log__header'],
+      tableHeader: [
+        'row',
+        'row--start',
+        'row--gutter-left',
+        'row--gutter-right',
+        'tasks-log__header',
+      ],
       product: ['col', 'tasks-log__header--product'],
       proxy: ['col', 'tasks-log__header', 'tasks-log__header--proxy'],
       output: ['col', 'tasks-log__header', 'tasks-log__header--output'],
-    }
+    };
     if (fullscreen) {
       Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
     }
@@ -129,9 +147,7 @@ export class LogTaskPrimitive extends Component {
       <div>
         <div className="row row--start">
           <div className="col">
-            <p className={classMap.sectionHeader.join(' ')}>
-              Log
-            </p>
+            <p className={classMap.sectionHeader.join(' ')}>Log</p>
           </div>
         </div>
         <div className="row">
@@ -142,8 +158,10 @@ export class LogTaskPrimitive extends Component {
                   fullscreen: !fullscreen,
                   selected: fullscreen ? [] : selected, // opposite toggle for coming in/out of FS mode
                   focused: fullscreen ? '' : focused, // opposite toggle for coming in/out of FS mode
-                })}
-              className={classMap.tableHeader.join(' ')}>
+                })
+              }
+              className={classMap.tableHeader.join(' ')}
+            >
               <div className="col tasks-log__header--id">
                 <p>#</p>
               </div>
@@ -173,10 +191,10 @@ export class LogTaskPrimitive extends Component {
                 <div className="tasks-log">{this.createTable()}</div>
               </div>
             </div>
-            { fullscreen ? this.showLiveLog() : null }
+            {fullscreen ? this.showLiveLog() : null}
           </div>
         </div>
-        { focused || selected.length ? this.renderMassChangeOptions() : null }
+        {focused || selected.length ? this.renderMassChangeOptions() : null}
       </div>
     );
   }

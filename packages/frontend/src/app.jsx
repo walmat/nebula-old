@@ -37,7 +37,7 @@ export class App extends PureComponent {
           'Are you sure you want to deactivate Orion? Doing so will erase all data!',
           'question',
           ['Okay', 'Cancel'],
-          'Confirm'
+          'Confirm',
         );
         if (confirm) {
           store.dispatch(globalActions.reset());
