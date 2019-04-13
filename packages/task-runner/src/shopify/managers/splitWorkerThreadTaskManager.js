@@ -1,5 +1,5 @@
 const path = require('path');
-const { Worker } = require('worker_threads');
+// const { Worker } = require('worker_threads');
 
 const SplitContextTaskManager = require('./splitContextTaskManager');
 
@@ -22,7 +22,7 @@ class WorkerThreadContext {
     this._target = 'worker';
     this._errorHandlers = [];
     this._messageHandlers = [];
-    this._worker = new Worker(path.resolve(__dirname, '../runnerScripts/worker.js'));
+    this._worker = new global.window.Worker(path.resolve(__dirname, '../runnerScripts/worker.js'));
     this._worker.on('message', ({ data }) => {
       // construct chain
       const chainedHandler = WorkerThreadContext.chainify(data, this._messageHandlers, this);

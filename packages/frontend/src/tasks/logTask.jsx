@@ -34,13 +34,15 @@ export class LogTaskPrimitive extends Component {
     };
   }
 
-  selectRow(taskId) {
-    // TODO: Enable range selection with SHIFT + CLICK
+  selectRow(e, taskId) {
     let { selected } = this.state;
     const { fullscreen } = this.state;
     if (!fullscreen) {
       return;
     }
+
+    console.log(e.shiftKey);
+    // TODO: range-select/deselect
 
     if (taskId && !selected.includes(taskId)) {
       selected.push(taskId);
@@ -84,7 +86,7 @@ export class LogTaskPrimitive extends Component {
 
     const table = runningTasks.map(t => (
       <LogTaskRow
-        onClick={() => this.selectRow(t.id)}
+        onClick={(e) => this.selectRow(e, t.id)}
         selected={selected.find(e => e === t.id)}
         task={t}
         fullscreen={fullscreen}
