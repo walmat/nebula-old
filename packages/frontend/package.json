@@ -86,10 +86,7 @@
     "electron-icon-maker": "0.0.4",
     "enzyme": "^3.6.0",
     "enzyme-adapter-react-16": "^1.5.0",
-<<<<<<< HEAD
     "glob": "^7.1.3",
-=======
->>>>>>> Update Repo Configuration (#410)
     "history": "^4.7.2",
     "javascript-obfuscator": "^0.18.1",
     "jest": "^23.6.0",
