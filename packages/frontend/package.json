@@ -38,6 +38,7 @@
     "test": "react-app-rewired test --env=jsdom --verbose=false"
   },
   "dependencies": {
+    "@babel/runtime": "^7.4.3",
     "@nebula/task-runner": "^0.1.0",
     "aws-sdk": "^2.315.0",
     "body-parser": "^1.18.3",

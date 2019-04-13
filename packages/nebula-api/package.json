@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@babel/runtime": "^7.4.3",
     "aws-sdk": "^2.229.1",
     "cors": "^2.8.4",
     "dotenv": "^6.2.0",
