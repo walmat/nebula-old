@@ -35,23 +35,22 @@ export class LogTaskPrimitive extends Component {
   }
 
   selectRow(e, taskId) {
-    let { selected } = this.state;
+    // let { selected } = this.state;
     const { fullscreen } = this.state;
     if (!fullscreen) {
       return;
     }
 
-    console.log(e.shiftKey);
+    // console.log(e.shiftKey);
     // TODO: batch select/deselect (issue: #414)
-
-    if (taskId && !selected.includes(taskId)) {
-      selected.push(taskId);
-      this.setState({ focused: taskId });
-    } else {
-      selected = selected.filter(t => t !== taskId);
-      this.setState({ focused: selected[selected.length - 1] });
-    }
-    this.setState({ selected });
+    // if (taskId && !selected.includes(taskId)) {
+    //   selected.push(taskId);
+    //   this.setState({ focused: taskId });
+    // } else {
+    //   selected = selected.filter(t => t !== taskId);
+    //   this.setState({ focused: selected[selected.length - 1] });
+    // }
+    this.setState({ focused: taskId, selected: [taskId] });
   }
 
   showLiveLog() {
@@ -60,8 +59,8 @@ export class LogTaskPrimitive extends Component {
     const task = tasks.find(t => t.id === focused);
     if (focused) {
       return (
-        <div className="row row--expand table--lower">
-          <div className="col col--start tasks-live-log__wrapper">
+        <div className="row row--start row--expand table--lower">
+          <div className="col col--start col--no-gutter tasks-live-log__wrapper">
             {task.log.map(msg => LogTaskPrimitive.renderOutputLogRow(msg))}
           </div>
         </div>
@@ -87,7 +86,7 @@ export class LogTaskPrimitive extends Component {
     const table = runningTasks.map(t => (
       <LogTaskRow
         onClick={e => this.selectRow(e, t.id)}
-        selected={selected.find(e => e === t.id)}
+        selected={selected.find(e => e === t.id) || ''}
         task={t}
         fullscreen={fullscreen}
       />

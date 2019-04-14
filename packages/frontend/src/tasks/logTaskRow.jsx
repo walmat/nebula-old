@@ -32,13 +32,14 @@ const LogTaskRow = ({
   }
   return (
     <div
+      key={index}
       className="tasks-row-container col"
       role="button"
       tabIndex={0}
       onClick={onClick}
       onKeyPress={() => {}}
     >
-      <div key={index} className={tasksRow}>
+      <div className={tasksRow}>
         <div className={classMap.id.join(' ')}>{index < 10 ? `0${index}` : index}</div>
         <div className={classMap.store.join(' ')}>{name}</div>
         <div className={classMap.product.join(' ')}>{found || raw}</div>
@@ -53,8 +54,8 @@ const LogTaskRow = ({
 LogTaskRow.propTypes = {
   task: tDefns.taskLog.isRequired,
   onClick: PropTypes.func.isRequired,
-  selected: PropTypes.arrayOf(PropTypes.shape(PropTypes.string)).isRequired,
-  fullscreen: PropTypes.string.isRequired,
+  selected: PropTypes.string.isRequired,
+  fullscreen: PropTypes.bool.isRequired,
 };
 
 export default LogTaskRow;

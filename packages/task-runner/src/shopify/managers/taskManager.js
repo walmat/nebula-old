@@ -179,7 +179,15 @@ class TaskManager {
       this._proxies.size,
     );
     let proxy = null;
+
     for (const val of this._proxies.values()) {
+      this._logger.debug(
+        '%s: \n\n Ban predicate: %j, Used predicate: %j, Conditional: %s',
+        val.proxy,
+        val.useList[site],
+        val.banList[site],
+        !val.useList[site] && !val.banList[site],
+      );
       if (!val.useList[site] && !val.banList[site]) {
         proxy = val;
         break;
@@ -210,13 +218,19 @@ class TaskManager {
    * @param {String} runnerId the id of the runner this proxy is being released from
    * @param {String} proxyId the id of the proxy to release
    */
-  releaseProxy(runnerId, site, proxyId) {
+  releaseProxy(runnerId, site, proxyId, force = false) {
     this._logger.silly('Releasing proxy %s for runner %s on site %s...', proxyId, runnerId, site);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.silly('No proxy found, skipping release');
       return;
     }
+    // if the application is forced closed, force the proxy list to be freed up
+    if (force) {
+      delete proxy.banList[site];
+      delete proxy.useList[site];
+    }
+    // otherwise, just free up the use list
     delete proxy.useList[site];
     this._logger.silly('Released Proxy %s', proxyId);
   }
@@ -234,12 +248,20 @@ class TaskManager {
       this._logger.silly('No proxy found, skipping ban');
       return;
     }
+    // free up the useList, but wait 2 min. to lift the ban
+    delete proxy.useList[site];
     proxy.banList[site] = true;
+    this._logger.debug(
+      'Ban predicate: %j, Used predicate: %j',
+      proxy.useList[site],
+      proxy.banList[site],
+    );
     setTimeout(() => {
       // reset the proxy by removing the ban and opening it up again
+      this._logger.debug('Freeing up ban and used predicate');
       delete proxy.banList[site];
-      delete proxy.useList[site];
-    }, 120000);
+    }, 120000); // TODO: play around with this timeout more!
+    // wait two minutes before releasing the ban
     this._logger.silly('Banned Proxy %s', proxyId);
   }
 
@@ -454,7 +476,7 @@ class TaskManager {
     const { proxy, site } = this._runners[runnerId];
     delete this._runners[runnerId];
     if (proxy) {
-      this.releaseProxy(runnerId, site, proxy.id);
+      this.releaseProxy(runnerId, site, proxy.id, true);
     }
   }
 
