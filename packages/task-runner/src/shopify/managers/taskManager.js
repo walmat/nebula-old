@@ -102,7 +102,6 @@ class TaskManager {
       proxy,
       banList: {},
       useList: {},
-      assignedRunners: [],
     });
     this._logger.silly('Proxy Added with id %s', proxyId);
   }
@@ -181,19 +180,13 @@ class TaskManager {
     );
     let proxy = null;
     for (const val of this._proxies.values()) {
-      if (
-        !val.assignedRunners.find(id => id === runnerId) &&
-        !val.useList[site] &&
-        !val.banList[site]
-      ) {
+      if (!val.useList[site] && !val.banList[site]) {
         proxy = val;
         break;
       }
     }
     if (proxy) {
-      proxy.assignedRunners.push(runnerId);
       proxy.useList[site] = true;
-      this._proxies.delete(proxy.id);
       this._proxies.set(proxy.id, proxy);
       this._logger.silly('Returning proxy: %s', proxy.id);
       return proxy;
@@ -218,13 +211,12 @@ class TaskManager {
    * @param {String} proxyId the id of the proxy to release
    */
   releaseProxy(runnerId, site, proxyId) {
-    this._logger.silly('Releasing proxy %s for runner %s ...', proxyId, runnerId);
+    this._logger.silly('Releasing proxy %s for runner %s on site %s...', proxyId, runnerId, site);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.silly('No proxy found, skipping release');
       return;
     }
-    proxy.assignedRunners = proxy.assignedRunners.filter(rId => rId !== runnerId);
     delete proxy.useList[site];
     this._logger.silly('Released Proxy %s', proxyId);
   }
@@ -236,14 +228,18 @@ class TaskManager {
    * @param {String} proxyId the id of the proxy to ban
    */
   banProxy(runnerId, site, proxyId) {
-    this._logger.silly('Banning proxy %s for runner %s ...', proxyId, runnerId);
+    this._logger.silly('Banning proxy %s for runner %s on site %s ...', proxyId, runnerId, site);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.silly('No proxy found, skipping ban');
       return;
     }
-    proxy.banList[site.url] = true;
-    setTimeout(() => delete proxy.banList[site.url], 30000);
+    proxy.banList[site] = true;
+    setTimeout(() => {
+      // reset the proxy by removing the ban and opening it up again
+      delete proxy.banList[site];
+      delete proxy.useList[site];
+    }, 120000);
     this._logger.silly('Banned Proxy %s', proxyId);
   }
 

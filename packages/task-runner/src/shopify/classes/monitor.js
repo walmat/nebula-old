@@ -58,7 +58,7 @@ class Monitor {
       this._logger.silly('Proxy was Banned, swapping proxies...');
       return {
         message: 'Swapping proxy',
-        shouldBan: checkStatus === 403,
+        shouldBan: true,
         nextState: States.SwapProxies,
       };
     }

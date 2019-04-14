@@ -6,13 +6,13 @@ import tDefns from '../utils/definitions/taskDefinitions';
 export class LogTaskPrimitive extends Component {
   static massLinkChange() {
     if (window.Bridge) {
-      // TODO: CREATE DIALOG TO ALLOW INPUT
+      // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
     }
   }
 
   static massPasswordChange() {
     if (window.Bridge) {
-      // TODO: CREATE DIALOG TO ALLOW INPUT
+      // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
     }
   }
 
@@ -42,13 +42,13 @@ export class LogTaskPrimitive extends Component {
     }
 
     console.log(e.shiftKey);
-    // TODO: range-select/deselect
+    // TODO: batch select/deselect (issue: #414)
 
     if (taskId && !selected.includes(taskId)) {
       selected.push(taskId);
       this.setState({ focused: taskId });
     } else {
-      selected = selected.filter(e => e !== taskId);
+      selected = selected.filter(t => t !== taskId);
       this.setState({ focused: selected[selected.length - 1] });
     }
     this.setState({ selected });
@@ -86,7 +86,7 @@ export class LogTaskPrimitive extends Component {
 
     const table = runningTasks.map(t => (
       <LogTaskRow
-        onClick={(e) => this.selectRow(e, t.id)}
+        onClick={e => this.selectRow(e, t.id)}
         selected={selected.find(e => e === t.id)}
         task={t}
         fullscreen={fullscreen}
@@ -196,7 +196,8 @@ export class LogTaskPrimitive extends Component {
             {fullscreen ? this.showLiveLog() : null}
           </div>
         </div>
-        {focused || selected.length ? this.renderMassChangeOptions() : null}
+        {/* TODO: Add this back in with #414 */}
+        {/* {focused || selected.length ? this.renderMassChangeOptions() : null} */}
       </div>
     );
   }

@@ -652,6 +652,7 @@ class TaskRunner {
       this._logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
+      this._logger.debug('PROXY IN _handleSwapProxies: %j', proxy);
       // Proxy is fine, update the references
       if (proxy) {
         this.proxy = proxy;
@@ -677,7 +678,6 @@ class TaskRunner {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitTaskEvent({
         message: 'Error swapping proxies! Retrying...',
-        errors: err,
       });
     }
     // Go back to previous state
