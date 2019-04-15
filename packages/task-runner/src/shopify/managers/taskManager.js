@@ -184,8 +184,8 @@ class TaskManager {
       this._logger.debug(
         '%s: \n\n Ban predicate: %j, Used predicate: %j, Conditional: %s',
         val.proxy,
-        val.useList[site],
         val.banList[site],
+        val.useList[site],
         !val.useList[site] && !val.banList[site],
       );
       if (!val.useList[site] && !val.banList[site]) {
@@ -258,7 +258,7 @@ class TaskManager {
     );
     setTimeout(() => {
       // reset the proxy by removing the ban and opening it up again
-      this._logger.debug('Freeing up ban and used predicate');
+      this._logger.debug('Freeing up ban predicate for %s', proxy.proxy);
       delete proxy.banList[site];
     }, 120000); // TODO: play around with this timeout more!
     // wait two minutes before releasing the ban
@@ -278,35 +278,39 @@ class TaskManager {
    * @param {bool} shouldBan whether the old proxy should be banned
    */
   async swapProxy(runnerId, proxyId, site, shouldBan) {
-    this._logger.silly(
-      'Swapping Proxy %s for runner %s on site %s. Should ban? %s ...',
-      proxyId,
-      runnerId,
-      site,
-      shouldBan,
-    );
     let shouldRelease = true;
-    if (!this._proxies.get(proxyId)) {
+
+    const oldProxy = this._proxies.get(proxyId);
+    if (!oldProxy) {
       this._logger.silly('No proxy found, skipping release/ban');
       shouldRelease = false;
     }
 
     // Attempt to reserve a proxy first before releasing the old one
     const newProxy = await this.reserveProxy(runnerId, site);
+
     if (!newProxy) {
       this._logger.silly('No new proxy available, skipping release/ban');
       return null;
     }
 
+    this._logger.debug(
+      'Swapped old proxy %s: \n Returned new proxy: %s',
+      oldProxy.proxy,
+      newProxy.proxy,
+    );
+
     // Check if we need to release the old proxy
     if (shouldRelease) {
       // Check if we need to ban the old proxy
       if (shouldBan) {
+        this._logger.debug('Banning old proxy... %s', oldProxy.proxy);
         this.banProxy(runnerId, site, proxyId);
       }
+      this._logger.debug('Releasing old proxy... %s', oldProxy.proxy);
       this.releaseProxy(runnerId, site, proxyId);
     }
-    this._logger.silly('New proxy: %j', newProxy);
+    this._logger.silly('New proxy: %j', newProxy.proxy);
     // Return the new reserved proxy
     return newProxy;
   }

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -16,9 +17,9 @@ export class LogTaskPrimitive extends Component {
     }
   }
 
-  static renderOutputLogRow(msg) {
+  static renderOutputLogRow(msg, i) {
     return (
-      <div className="row row--start row--gutter tasks-live-log__output-row">
+      <div key={i} className="row row--start row--gutter tasks-live-log__output-row">
         <p>{msg}</p>
       </div>
     );
@@ -61,7 +62,9 @@ export class LogTaskPrimitive extends Component {
       return (
         <div className="row row--start row--expand table--lower">
           <div className="col col--start col--no-gutter tasks-live-log__wrapper">
-            {task.log.map(msg => LogTaskPrimitive.renderOutputLogRow(msg))}
+            <ScrollableFeed>
+              {task.log.map((msg, i) => LogTaskPrimitive.renderOutputLogRow(msg, i))}
+            </ScrollableFeed>
           </div>
         </div>
       );

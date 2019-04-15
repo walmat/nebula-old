@@ -213,13 +213,19 @@ class TaskRunner {
   }
 
   async swapProxies() {
+    // emit the swap event
     this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
         this._logger.silly('Reached Proxy Handler, resolving');
+        // clear the timeout interval
         clearTimeout(timeout);
+        // reset the timeout
         timeout = null;
+        // reset the ban flag
+        this.shouldBanProxy = false;
+        // finally, resolve with the new proxy
         resolve(proxy);
       };
       timeout = setTimeout(() => {
