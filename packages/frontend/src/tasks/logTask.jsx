@@ -55,19 +55,22 @@ export class LogTaskPrimitive extends Component {
   }
 
   showLiveLog() {
-    const { tasks } = this.props;
     const { focused } = this.state;
-    const task = tasks.find(t => t.id === focused);
     if (focused) {
-      return (
-        <div className="row row--start row--expand table--lower">
-          <div className="col col--start col--no-gutter tasks-live-log__wrapper">
-            <ScrollableFeed>
-              {task.log.map((msg, i) => LogTaskPrimitive.renderOutputLogRow(msg, i))}
-            </ScrollableFeed>
+      const { tasks } = this.props;
+      const task = tasks.find(t => t.id === focused);
+      if (task) {
+        return (
+          <div className="row row--start row--expand table--lower">
+            <div className="col col--start col--no-gutter tasks-live-log__wrapper">
+              <ScrollableFeed>
+                {task.log.map((msg, i) => LogTaskPrimitive.renderOutputLogRow(msg, i))}
+              </ScrollableFeed>
+            </div>
           </div>
-        </div>
-      );
+        );
+      }
+      this.setState({ focused: '' });
     }
     return null;
   }
@@ -86,10 +89,13 @@ export class LogTaskPrimitive extends Component {
       });
     }
 
+    const selectedMap = {};
+    // eslint-disable-next-line no-return-assign
+    selected.forEach(id => (selectedMap[id] = id));
     const table = runningTasks.map(t => (
       <LogTaskRow
         onClick={e => this.selectRow(e, t.id)}
-        selected={selected.find(e => e === t.id) || ''}
+        selected={!!selectedMap[t.id]}
         task={t}
         fullscreen={fullscreen}
       />

@@ -23,7 +23,7 @@ const stateForError = (err, currentState) => {
     if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
       return {
         message: 'Swapping proxy',
-        shouldBan: true,
+        shouldBan: statusCode === 403,
         nextState: States.SwapProxies,
       };
     }
@@ -39,7 +39,11 @@ const stateForError = (err, currentState) => {
       switch (match[1]) {
         // connection reset
         case 'ECONNRESET': {
-          return { message: 'Swapping proxy', shouldBan: true, nextState: States.SwapProxies };
+          return {
+            message: 'Swapping proxy',
+            shouldBan: err.statusCode === 403,
+            nextState: States.SwapProxies,
+          };
         }
         // request timeout or socket freeze timeout
         case 'ETIMEDOUT':
@@ -65,7 +69,7 @@ const stateForStatusCode = statusCode => {
   if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
     return {
       message: 'Swapping proxy',
-      shouldBan: true,
+      shouldBan: statusCode === 403,
       nextState: States.SwapProxies,
     };
   }

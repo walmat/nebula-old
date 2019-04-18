@@ -54,7 +54,7 @@ const LogTaskRow = ({
 LogTaskRow.propTypes = {
   task: tDefns.taskLog.isRequired,
   onClick: PropTypes.func.isRequired,
-  selected: PropTypes.string.isRequired,
+  selected: PropTypes.bool.isRequired,
   fullscreen: PropTypes.bool.isRequired,
 };
 
