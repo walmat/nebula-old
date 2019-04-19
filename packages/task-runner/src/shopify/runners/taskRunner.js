@@ -224,7 +224,7 @@ class TaskRunner {
         // reset the timeout
         timeout = null;
         // reset the ban flag
-        this.shouldBanProxy = false;
+        this.shouldBanProxy = 0;
         // finally, resolve with the new proxy
         resolve(proxy);
       };
@@ -663,7 +663,7 @@ class TaskRunner {
       if (proxy) {
         this.proxy = proxy;
         this._context.proxy = proxy.proxy;
-        this.shouldBanProxy = false; // reset ban flag
+        this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
         this._emitTaskEvent({
           message: `Swapped proxy to: ${proxy.proxy}`,

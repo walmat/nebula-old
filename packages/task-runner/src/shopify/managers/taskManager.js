@@ -186,18 +186,19 @@ class TaskManager {
         val.proxy,
         val.banList[site],
         val.useList[site],
-        !val.useList[site] && !val.banList[site],
+        !val.useList[site] && (!val.banList[site] || val.banList[site] === 0),
       );
-      if (!val.useList[site] && !val.banList[site]) {
+      if (!val.useList[site] && (!val.banList[site] || val.banList[site] === 0)) {
         proxy = val;
-        break;
+        // immediately remove the proxy from the list
+        this._proxies.delete(proxy.id);
+        // set it to in use
+        proxy.useList[site] = true;
+        // push the proxy back onto the end of the stack
+        this._proxies.set(proxy.id, proxy);
+        this._logger.silly('Returning proxy: %s', proxy.id);
+        return proxy;
       }
-    }
-    if (proxy) {
-      proxy.useList[site] = true;
-      this._proxies.set(proxy.id, proxy);
-      this._logger.silly('Returning proxy: %s', proxy.id);
-      return proxy;
     }
     if (!waitForOpenProxy || waitLimit === 0) {
       this._logger.silly('Not waiting for open proxy, returning null');
@@ -241,7 +242,7 @@ class TaskManager {
    * @param {String} runnerId the id of the runner
    * @param {String} proxyId the id of the proxy to ban
    */
-  banProxy(runnerId, site, proxyId) {
+  banProxy(runnerId, site, proxyId, shouldBan) {
     this._logger.silly('Banning proxy %s for runner %s on site %s ...', proxyId, runnerId, site);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
@@ -250,17 +251,20 @@ class TaskManager {
     }
     // free up the useList, but wait 2 min. to lift the ban
     delete proxy.useList[site];
-    proxy.banList[site] = true;
+    proxy.banList[site] = shouldBan;
     this._logger.debug(
       'Ban predicate: %j, Used predicate: %j',
-      proxy.useList[site],
       proxy.banList[site],
+      proxy.useList[site],
     );
-    setTimeout(() => {
-      // reset the proxy by removing the ban and opening it up again
-      this._logger.debug('Freeing up ban predicate for %s', proxy.proxy);
-      delete proxy.banList[site];
-    }, 120000); // TODO: play around with this timeout more!
+    // for a soft ban, just timeout the proxy for a couple minutes
+    if (proxy.banList[site] === 1) {
+      setTimeout(() => {
+        // reset the proxy by removing the ban and opening it up again
+        this._logger.debug('Freeing up ban predicate for %s', proxy.proxy);
+        delete proxy.banList[site];
+      }, 120000); // TODO: play around with this timeout more!
+    }
     // wait two minutes before releasing the ban
     this._logger.silly('Banned Proxy %s', proxyId);
   }
@@ -303,9 +307,10 @@ class TaskManager {
     // Check if we need to release the old proxy
     if (shouldRelease) {
       // Check if we need to ban the old proxy
+      this._logger.debug('Should ban old proxy?: %s', shouldBan);
       if (shouldBan) {
         this._logger.debug('Banning old proxy... %s', oldProxy.proxy);
-        this.banProxy(runnerId, site, proxyId);
+        this.banProxy(runnerId, site, proxyId, shouldBan);
       }
       this._logger.debug('Releasing old proxy... %s', oldProxy.proxy);
       this.releaseProxy(runnerId, site, proxyId);

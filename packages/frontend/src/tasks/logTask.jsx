@@ -90,8 +90,9 @@ export class LogTaskPrimitive extends Component {
     }
 
     const selectedMap = {};
-    // eslint-disable-next-line no-return-assign
-    selected.forEach(id => (selectedMap[id] = id));
+    selected.forEach(id => {
+      selectedMap[id] = id;
+    });
     const table = runningTasks.map(t => (
       <LogTaskRow
         onClick={e => this.selectRow(e, t.id)}

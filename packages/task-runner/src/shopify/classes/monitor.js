@@ -52,23 +52,26 @@ class Monitor {
   async _handleParsingErrors(errors) {
     let delayStatus;
     let ban = true; // assume we have a softban
-    let hardban = false; // assume we don't have a hardban
+    let hardBan = false; // assume we don't have a hardban
     errors.forEach(({ status }) => {
       if (status === 403) {
         // ban is a strict hardban, so set the flag
-        hardban = true;
+        hardBan = true;
       } else if (status !== 429 && status !== 430) {
         // status is neither 403, 429, 430, so set ban to false
         ban = false;
-      } else if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
+      }
+      if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
         delayStatus = status; // find the first error that is either a product not found or 4xx response
       }
     });
-    if (ban || hardban) {
-      this._logger.sillly('Proxy was banned, swapping proxies...');
+    if (ban || hardBan) {
+      this._logger.silly('Proxy was banned, swapping proxies...');
+      // we can assume that it's a soft ban by default since it's either ban || hardBan
+      const shouldBan = hardBan ? 2 : 1;
       return {
         message: 'Swapping proxy',
-        shouldBan: hardban,
+        shouldBan,
         nextState: States.SwapProxies,
       };
     }
