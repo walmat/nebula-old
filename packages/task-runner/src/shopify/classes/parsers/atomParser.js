@@ -75,6 +75,7 @@ class AtomParser extends Parser {
     try {
       fullProductInfo = await Parser.getFullProductInfo(
         matchedProduct.url,
+        this._proxy,
         this._request,
         this._logger,
       );

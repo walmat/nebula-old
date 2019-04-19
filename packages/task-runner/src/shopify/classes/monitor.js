@@ -111,7 +111,6 @@ class Monitor {
     try {
       ({ variants, sizes: chosenSizes } = generateVariants(product, sizes, site, this._logger));
     } catch (err) {
-      this._logger.debug('ERROR:::: %j', err);
       if (err.code === ErrorCodes.VariantsNotMatched) {
         return {
           message: 'Unable to match variants',
@@ -193,7 +192,12 @@ class Monitor {
       let fullProductInfo;
       try {
         // Try getting full product info
-        fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
+        fullProductInfo = await Parser.getFullProductInfo(
+          url,
+          this._context.proxy,
+          this._request,
+          this._logger,
+        );
       } catch (errors) {
         this._logger.error('MONITOR: All request errored out! %j', errors);
         if (this._context.type === Types.ShippingRates) {

@@ -35,7 +35,12 @@ class RestockMonitor extends Monitor {
 
     let fullProductInfo;
     try {
-      fullProductInfo = await Parser.getFullProductInfo(restockUrl, this._request, this._logger);
+      fullProductInfo = await Parser.getFullProductInfo(
+        restockUrl,
+        this._context.proxy,
+        this._request,
+        this._logger,
+      );
     } catch (errors) {
       this._logger.error('RESTOCK MONITOR: Getting full product info failed! %j', errors);
       // handle parsing errors

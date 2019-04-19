@@ -669,6 +669,7 @@ class TaskRunner {
           message: `Swapped proxy to: ${proxy.proxy}`,
           proxy: proxy.proxy,
         });
+        this._logger.debug('RETURNING TO STATE: %s', this._prevState);
         return this._prevState;
       }
 
