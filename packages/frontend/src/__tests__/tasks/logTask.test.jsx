@@ -11,6 +11,11 @@ describe('<LogTask />', () => {
     expect(wrapper.find('.tasks-log')).toHaveLength(1);
   });
 
+  it('should render full screen', () => {
+    const wrapper = shallow(<LogTaskPrimitive tasks={[]} />);
+    expect(wrapper.find('.tasks-log')).toHaveLength(1);
+  });
+
   it('should render with the correct number of rows', () => {
     const tasks = [
       { status: 'running' },

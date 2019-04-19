@@ -57,6 +57,7 @@ describe('<Navbar />', () => {
       Bridge = {
         closeAllCaptchaWindows: jest.fn(),
         launchCaptchaHarvester: jest.fn(),
+        checkForUpdates: jest.fn(),
         getAppData: jest.fn(() => ({ name: 'Nebula Orion', version: '1.0.0' })),
       };
       global.window.Bridge = Bridge;
@@ -73,6 +74,15 @@ describe('<Navbar />', () => {
       const version = wrapper.find('.navbar__text--app-version').text();
       expect(appName).toEqual('Nebula Orion');
       expect(version).toEqual('1.0.0');
+    });
+
+    test('should check for updates properly', () => {
+      const appVersion = wrapper
+        .find('.navbar__text--app-version')
+        .parent()
+        .first();
+      appVersion.simulate('click');
+      expect(Bridge.checkForUpdates).toHaveBeenCalled();
     });
 
     test('launch captcha button calls correct function', () => {
@@ -107,6 +117,15 @@ describe('<Navbar />', () => {
       const version = wrapper.find('.navbar__text--app-version').text();
       expect(appName).toEqual('Nebula Orion');
       expect(version).toEqual('');
+    });
+
+    test('should not check for updates', () => {
+      const appVersion = wrapper
+        .find('.navbar__text--app-version')
+        .parent()
+        .first();
+      appVersion.simulate('click');
+      expect(consoleSpy).toHaveBeenCalled();
     });
 
     test('launch harvester button displays error', () => {
@@ -260,6 +279,18 @@ describe('<Navbar />', () => {
       const onKeyPressHandler = div.prop('onKeyPress');
       expect(onKeyPressHandler).toBeDefined();
       div.simulate('keyPress');
+      expect(props.onKeyPress).toHaveBeenCalled();
+    });
+
+    test('for app version', () => {
+      const wrapper = renderShallowWithProps();
+      const appVersion = wrapper
+        .find('.navbar__text--app-version')
+        .parent()
+        .first();
+      const onKeyPressHandler = appVersion.prop('onKeyPress');
+      expect(onKeyPressHandler).toBeDefined();
+      appVersion.simulate('keyPress');
       expect(props.onKeyPress).toHaveBeenCalled();
     });
   });
