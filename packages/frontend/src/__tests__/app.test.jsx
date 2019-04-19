@@ -155,8 +155,8 @@ describe('Top Level App', () => {
           registerForTaskEvents: jest.fn(),
           deregisterForTaskEvents: jest.fn(),
         };
-        // Attach confirmDialog after Bridge is defined so we can reference it
-        Bridge.confirmDialog = jest.fn(() => {
+        // Attach showDialog after Bridge is defined so we can reference it
+        Bridge.showDialog = jest.fn(() => {
           // Before continuing, make sure we have prevented the click event,
           // but have not yet called deactivate.
           expect(ev.preventDefault).toHaveBeenCalled();
@@ -170,7 +170,7 @@ describe('Top Level App', () => {
         await evHandler(ev);
         // Now confirm all appropriate functions have been called
         expect(ev.preventDefault).toHaveBeenCalled();
-        expect(Bridge.confirmDialog).toHaveBeenCalled();
+        expect(Bridge.showDialog).toHaveBeenCalled();
         expect(Bridge.deactivate).toHaveBeenCalled();
       });
 
@@ -183,7 +183,7 @@ describe('Top Level App', () => {
         };
         Bridge = {
           deactivate: jest.fn(),
-          confirmDialog: jest.fn(() => Promise.resolve(true)),
+          showDialog: jest.fn(() => Promise.resolve(true)),
           registerForTaskEvents: jest.fn(),
           deregisterForTaskEvents: jest.fn(),
         };
@@ -193,7 +193,7 @@ describe('Top Level App', () => {
         const evHandler = App.deactivate(store);
         await evHandler(ev);
         expect(ev.preventDefault).toHaveBeenCalled();
-        expect(Bridge.confirmDialog).toHaveBeenCalled();
+        expect(Bridge.showDialog).toHaveBeenCalled();
         expect(store.dispatch).toHaveBeenCalled();
         expect(store.dispatch.mock.calls[0][0]).toEqual(globalActions.reset());
         expect(Bridge.deactivate).toHaveBeenCalled();
@@ -208,7 +208,7 @@ describe('Top Level App', () => {
         };
         Bridge = {
           deactivate: jest.fn(),
-          confirmDialog: jest.fn(() => Promise.resolve(false)),
+          showDialog: jest.fn(() => Promise.resolve(false)),
           registerForTaskEvents: jest.fn(),
           deregisterForTaskEvents: jest.fn(),
         };
@@ -218,7 +218,7 @@ describe('Top Level App', () => {
         const evHandler = App.deactivate(store);
         await evHandler(ev);
         expect(ev.preventDefault).toHaveBeenCalled();
-        expect(Bridge.confirmDialog).toHaveBeenCalled();
+        expect(Bridge.showDialog).toHaveBeenCalled();
         expect(store.dispatch).not.toHaveBeenCalled();
         expect(Bridge.deactivate).not.toHaveBeenCalled();
       });

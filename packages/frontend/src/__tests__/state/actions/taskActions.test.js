@@ -147,10 +147,12 @@ describe('task actions', () => {
         ...initialTaskState.product,
         raw: 'https://test.com/myproduct',
         url: 'https://test.com/myproduct',
+        found: null,
       };
       const task = {
         ...initialTaskState,
         product: {
+          ...initialTaskState.product,
           raw: 'https://test.com/myproduct',
         },
         edits: {
@@ -194,10 +196,12 @@ describe('task actions', () => {
         ...initialTaskState.product,
         raw: 'https://test.com/myproduct',
         url: 'https://test.com/myproduct',
+        found: null,
       };
       const task = {
         ...initialTaskState,
         product: {
+          ...initialTaskState.product,
           raw: 'https://test.com/myproduct',
         },
         edits: {

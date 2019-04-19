@@ -8,7 +8,7 @@ import LogTaskRow from '../../tasks/logTaskRow';
 describe('<LogTask />', () => {
   it('should render', () => {
     const wrapper = shallow(<LogTaskPrimitive tasks={[]} />);
-    expect(wrapper.find('.tasks-table')).toHaveLength(1);
+    expect(wrapper.find('.tasks-log')).toHaveLength(1);
   });
 
   it('should render with the correct number of rows', () => {
