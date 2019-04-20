@@ -10,6 +10,7 @@ import v0_2_0_migrator from './migrators/v0.2.0';
 import v0_2_1_migrator from './migrators/v0.2.1';
 import v0_3_0_migrator from './migrators/v0.3.0';
 import v0_3_1_migrator from './migrators/v0.3.1';
+
 /* eslint-enable camelcase */
 
 const trackedMigrators = {
