@@ -55,7 +55,7 @@ class TaskRunner {
     /**
      * Internal Task Runner State
      */
-    this._state = States.Initialized;
+    this._state = States.PaymentToken;
 
     /**
      * Type of Checkout Process to be used
@@ -288,22 +288,6 @@ class TaskRunner {
 
   // MARK: State Machine Step Logic
 
-  async _handleStarted() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-    this._emitTaskEvent({
-      message: 'Starting task setup',
-      proxy: this._context.proxy,
-    });
-    if (this._context.task.username && this._context.task.password) {
-      return States.Login;
-    }
-    return States.PaymentToken;
-  }
-
   async _handleLogin() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -313,7 +297,7 @@ class TaskRunner {
 
     const { message, shouldBan, nextState } = await this._checkout.login();
 
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, proxy: this._context.proxy });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -329,7 +313,7 @@ class TaskRunner {
 
     const { message, shouldBan, nextState } = await this._checkout.getPaymentToken();
 
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, proxy: this._context.proxy });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -727,7 +711,6 @@ class TaskRunner {
     this._logger.silly('Handling state: %s', currentState);
 
     const stepMap = {
-      [States.Started]: this._handleStarted,
       [States.Login]: this._handleLogin,
       [States.PaymentToken]: this._handlePaymentToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
@@ -777,7 +760,9 @@ class TaskRunner {
 
   async start() {
     this._prevState = States.Started;
-    this._state = States.Started;
+    if (this._context.task.username && this._context.task.password) {
+      this._state = States.Login;
+    }
     let shouldStop = false;
     while (this._state !== States.Stopped && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
