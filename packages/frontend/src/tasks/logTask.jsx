@@ -5,17 +5,17 @@ import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
 
 export class LogTaskPrimitive extends Component {
-  static massLinkChange() {
-    if (window.Bridge) {
-      // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
-    }
-  }
+  // static massLinkChange() {
+  //   if (window.Bridge) {
+  //     // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
+  //   }
+  // }
 
-  static massPasswordChange() {
-    if (window.Bridge) {
-      // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
-    }
-  }
+  // static massPasswordChange() {
+  //   if (window.Bridge) {
+  //     // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
+  //   }
+  // }
 
   static renderOutputLogRow(msg, i) {
     return (
@@ -104,31 +104,31 @@ export class LogTaskPrimitive extends Component {
     return table;
   }
 
-  renderMassChangeOptions() {
-    const { selected, focused } = this.state;
+  // renderMassChangeOptions() {
+  //   const { selected, focused } = this.state;
 
-    if (focused || selected.length) {
-      return (
-        <div>
-          <button
-            type="button"
-            className="tasks-log__button--links"
-            onClick={() => LogTaskPrimitive.massLinkChange()}
-          >
-            Mass Link
-          </button>
-          <button
-            type="button"
-            className="tasks-log__button--password"
-            onClick={() => LogTaskPrimitive.massPasswordChange()}
-          >
-            Password
-          </button>
-        </div>
-      );
-    }
-    return null;
-  }
+  //   if (focused || selected.length) {
+  //     return (
+  //       <div>
+  //         <button
+  //           type="button"
+  //           className="tasks-log__button--links"
+  //           onClick={() => LogTaskPrimitive.massLinkChange()}
+  //         >
+  //           Mass Link
+  //         </button>
+  //         <button
+  //           type="button"
+  //           className="tasks-log__button--password"
+  //           onClick={() => LogTaskPrimitive.massPasswordChange()}
+  //         >
+  //           Password
+  //         </button>
+  //       </div>
+  //     );
+  //   }
+  //   return null;
+  // }
 
   render() {
     const { fullscreen, selected, focused } = this.state;
