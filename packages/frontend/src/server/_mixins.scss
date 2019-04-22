@@ -37,3 +37,21 @@
     opacity: 0.5;
   }
 }
+
+@mixin button-base {
+  width: 110px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  letter-spacing: 0;
+  @include themify($themes) {
+    color: themed('buttonPrimaryText');
+  }
+
+  &:hover {
+    opacity: 0.8333;
+  }
+}
