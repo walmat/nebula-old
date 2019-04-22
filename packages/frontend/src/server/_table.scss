@@ -1,5 +1,6 @@
 // Tasks Table Specific Rules
 @import '_mixins';
+@import '../themes';
 
 %server-table__text-field {
   text-overflow: ellipsis;
@@ -9,9 +10,11 @@
   margin: 0;
 
   & > p {
+    @include themify($themes) {
+      color: themed('textColor');
+    }
     font-family: AvenirNext-Medium;
     font-size: 12px;
-    color: #161318;
     letter-spacing: 0;
     margin: 5px 0;
   }
@@ -98,7 +101,11 @@
     }
 
     .server-row-container {
-      border-bottom: #dfdfdf solid 1px;
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
+      @include themify($themes) {
+        border-bottom-color: themed('tableRowBottomBorderColow');
+      }
 
       .server-row {
         display: flex;

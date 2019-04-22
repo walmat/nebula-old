@@ -38,8 +38,14 @@ export class AWSCredentialsPrimitive extends Component {
   }
 
   render() {
-    const { serverInfo, errors, onKeyPress } = this.props;
-    const loggedInAws = serverInfo.credentials.accessToken != null;
+    const {
+      serverInfo: {
+        credentials: { accessToken, AWSAccessKey, AWSSecretKey },
+      },
+      errors,
+      onKeyPress,
+    } = this.props;
+    const loggedInAws = accessToken != null;
     return (
       <div className="server-credentials col col--start col--no-gutter">
         <div className="row row--start row--gutter">
@@ -57,7 +63,7 @@ export class AWSCredentialsPrimitive extends Component {
                     errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]],
                   )}
                   onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
-                  value={serverInfo.credentials.AWSAccessKey}
+                  value={AWSAccessKey}
                   required
                   data-testid={addTestId('AWSCredentials.accessKeyInput')}
                 />
@@ -79,7 +85,7 @@ export class AWSCredentialsPrimitive extends Component {
                   errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]],
                 )}
                 onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
-                value={serverInfo.credentials.AWSSecretKey}
+                value={AWSSecretKey}
                 required
                 data-testid={addTestId('AWSCredentials.secretKeyInput')}
               />

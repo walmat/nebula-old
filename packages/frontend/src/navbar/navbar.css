@@ -73,9 +73,6 @@
   width: 42px;
   height: 46px;
 }
-.navbar__icon--servers > div > svg {
-  cursor: not-allowed !important;
-}
 .navbar__icon--settings {
   margin-left: -2px;
   width: 40px;

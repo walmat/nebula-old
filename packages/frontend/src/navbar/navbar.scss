@@ -67,10 +67,6 @@
       @extend %icons-base;
       width: 42px;
       height: 46px;
-      // temporary while servers page is disabled
-      & > div > svg {
-        cursor: not-allowed !important;
-      }
     }
     &--settings {
       @extend %icons-base;

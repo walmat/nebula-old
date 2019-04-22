@@ -43,6 +43,7 @@ export class CreateServerPrimitive extends Component {
     label,
     defaultOption,
     value,
+    theme,
     disabled,
     onChange,
     optionGenerator,
@@ -59,7 +60,7 @@ export class CreateServerPrimitive extends Component {
                 components={{ DropdownIndicator }}
                 classNamePrefix="select"
                 className="server-options__input--select"
-                styles={colourStyles(buildStyle(disabled, null))}
+                styles={colourStyles(theme, buildStyle(disabled, null))}
                 onChange={onChange}
                 isDisabled={disabled}
                 value={value}
@@ -74,12 +75,13 @@ export class CreateServerPrimitive extends Component {
   }
 
   renderServerTypeComponent() {
-    const { serverType, serverListOptions } = this.props;
+    const { serverType, serverListOptions, theme } = this.props;
     return CreateServerPrimitive.renderServerOptionComponent(
       'type',
       'Type',
       'Choose Server',
       serverType,
+      theme,
       false,
       CreateServerPrimitive.changeServerChoice(
         serverListOptions.types,
@@ -90,13 +92,14 @@ export class CreateServerPrimitive extends Component {
   }
 
   renderServerSizeComponent() {
-    const { serverSize, serverType, serverListOptions } = this.props;
+    const { serverSize, serverType, serverListOptions, theme } = this.props;
 
     return CreateServerPrimitive.renderServerOptionComponent(
       'size',
       'Size',
       'Choose Size',
       serverSize,
+      theme,
       !serverType,
       CreateServerPrimitive.changeServerChoice(
         serverListOptions.sizes,
@@ -109,13 +112,14 @@ export class CreateServerPrimitive extends Component {
   }
 
   renderServerLocationComponent() {
-    const { serverLocation, serverListOptions } = this.props;
+    const { serverLocation, serverListOptions, theme } = this.props;
 
     return CreateServerPrimitive.renderServerOptionComponent(
       'location',
       'Location',
       'Choose Location',
       serverLocation,
+      theme,
       false,
       CreateServerPrimitive.changeServerChoice(
         serverListOptions.locations,
@@ -176,6 +180,7 @@ export class CreateServerPrimitive extends Component {
 }
 
 CreateServerPrimitive.propTypes = {
+  theme: PropTypes.string.isRequired,
   servers: defns.serverList.isRequired,
   serverType: defns.serverProperty,
   serverSize: defns.serverProperty,
@@ -198,6 +203,7 @@ CreateServerPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
+  theme: state.theme,
   servers: state.servers,
   serverInfo: state.serverInfo,
   serverType: state.serverInfo.serverOptions.type || null,

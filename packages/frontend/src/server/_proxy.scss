@@ -47,8 +47,13 @@
       &--field {
         width: 234px;
         height: 29px;
+        @include themify($themes) {
+          background: themed('inputBackground');
+        }
         &:disabled {
-          background: rgb(229, 229, 229);
+          @include themify($themes) {
+            background: themed('inputBackgroundDisabled');
+          }
           cursor: not-allowed;
         }
       }
@@ -70,6 +75,10 @@
       font-size: 12px;
       color: #efefef;
       letter-spacing: 0;
+
+      &:hover {
+        opacity: 0.8333;
+      }
     }
 
     &__destroy {
@@ -84,6 +93,10 @@
       font-size: 12px;
       color: #efefef;
       letter-spacing: 0;
+
+      &:hover {
+        opacity: 0.8333;
+      }
     }
   }
 }

@@ -68,6 +68,9 @@
   margin-right: 0 !important;
 }
 
+/*
+ * Implementation of themes
+ */
 .server .server-credentials {
   margin-top: 1px;
   height: 167px;
@@ -85,6 +88,12 @@
   margin-top: 9px;
   padding-left: 0.5px;
 }
+.theme-light .server .server-credentials__label {
+  color: #161318;
+}
+.theme-dark .server .server-credentials__label {
+  color: #efefef;
+}
 .server .server-credentials__input-group {
   margin: 0 11.5px !important;
   padding-top: -1px;
@@ -95,6 +104,12 @@
   font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .server-credentials__input {
+  color: #161318;
+}
+.theme-dark .server .server-credentials__input {
+  color: #efefef;
 }
 .server .server-credentials__input--bordered {
   border: 1px solid #f0405e;
@@ -124,6 +139,12 @@
   letter-spacing: 0;
 }
 
+/*
+ * Implementation of themes
+ */
+/*
+ * Implementation of themes
+ */
 .server .server-options {
   height: 219px;
   width: 258px;
@@ -143,6 +164,12 @@
   margin-top: 9px;
   padding-left: 0.5px;
 }
+.theme-light .server .server-options__label {
+  color: #161318;
+}
+.theme-dark .server .server-options__label {
+  color: #efefef;
+}
 .server .server-options__input-group {
   margin: 0 11.5px !important;
   padding-bottom: 2px;
@@ -152,6 +179,12 @@
   font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .server-options__input {
+  color: #161318;
+}
+.theme-dark .server .server-options__input {
+  color: #efefef;
 }
 .server .server-options__input--bordered {
   border: 1px solid #f0405e;
@@ -172,32 +205,61 @@
   align-self: flex-end;
 }
 .server .server-options__create {
-  margin-right: -3px;
   width: 110px;
   height: 29px;
   cursor: pointer;
-  background: #f0405e;
   border: none;
   border-radius: 3px;
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #efefef;
   letter-spacing: 0;
+  margin-right: -3px;
+}
+.theme-light .server .server-options__create {
+  color: #f4f4f4;
+}
+.theme-dark .server .server-options__create {
+  color: #f4f4f4;
+}
+.server .server-options__create:hover {
+  opacity: 0.8333;
+}
+.theme-light .server .server-options__create {
+  background: #f0405e;
+}
+.theme-dark .server .server-options__create {
+  background: #f0405e;
 }
 .server .server-options__destroy {
-  margin-right: -17px;
   width: 110px;
   height: 29px;
   cursor: pointer;
-  background: #46adb4;
   border: none;
   border-radius: 3px;
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #efefef;
   letter-spacing: 0;
+  margin-right: -17px;
+}
+.theme-light .server .server-options__destroy {
+  color: #f4f4f4;
+}
+.theme-dark .server .server-options__destroy {
+  color: #f4f4f4;
+}
+.server .server-options__destroy:hover {
+  opacity: 0.8333;
+}
+.theme-light .server .server-options__destroy {
+  background: #46adb4;
+}
+.theme-dark .server .server-options__destroy {
+  background: #46adb4;
 }
 
+/*
+ * Implementation of themes
+ */
 .server .proxy-options {
   margin-left: -10px;
   height: 219px;
@@ -218,6 +280,12 @@
   margin-top: 9px;
   padding-left: 0.5px;
 }
+.theme-light .server .proxy-options__label {
+  color: #161318;
+}
+.theme-dark .server .proxy-options__label {
+  color: #efefef;
+}
 .server .proxy-options__input-group {
   margin: 0 11.5px !important;
   padding-top: -1px;
@@ -228,6 +296,12 @@
   font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .proxy-options__input {
+  color: #161318;
+}
+.theme-dark .server .proxy-options__input {
+  color: #efefef;
 }
 .server .proxy-options__input--bordered {
   border: 1px solid #f0405e;
@@ -244,9 +318,20 @@
   width: 234px;
   height: 29px;
 }
+.theme-light .server .proxy-options__input--field {
+  background: #f4f4f4;
+}
+.theme-dark .server .proxy-options__input--field {
+  background: #393c3f;
+}
 .server .proxy-options__input--field:disabled {
-  background: #e5e5e5;
   cursor: not-allowed;
+}
+.theme-light .server .proxy-options__input--field:disabled {
+  background: #dcdcdc;
+}
+.theme-dark .server .proxy-options__input--field:disabled {
+  background: #262626;
 }
 .server .proxy-options__submit-row {
   align-self: flex-end;
@@ -264,6 +349,9 @@
   color: #efefef;
   letter-spacing: 0;
 }
+.server .proxy-options__generate:hover {
+  opacity: 0.8333;
+}
 .server .proxy-options__destroy {
   margin-right: -17px;
   width: 110px;
@@ -277,7 +365,16 @@
   color: #efefef;
   letter-spacing: 0;
 }
+.server .proxy-options__destroy:hover {
+  opacity: 0.8333;
+}
 
+/*
+ * Implementation of themes
+ */
+/*
+ * Implementation of themes
+ */
 .server .server-table .server-row-container .server-row__status, .server .server-table .server-row-container .server-row__charges, .server .server-table .server-row-container .server-row__size {
   text-overflow: ellipsis;
 }
@@ -288,9 +385,14 @@
 .server .server-table-container .server-table__header .server-table__header__actions > p, .server .server-table-container .server-table__header .server-table__header__status > p, .server .server-table-container .server-table__header .server-table__header__charges > p, .server .server-table-container .server-table__header .server-table__header__location > p, .server .server-table-container .server-table__header .server-table__header__size > p, .server .server-table-container .server-table__header .server-table__header__type > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #161318;
   letter-spacing: 0;
   margin: 5px 0;
+}
+.theme-light .server .server-table-container .server-table__header .server-table__header__actions > p, .server .server-table-container .server-table__header .theme-light .server-table__header__actions > p, .theme-light .server .server-table-container .server-table__header .server-table__header__status > p, .server .server-table-container .server-table__header .theme-light .server-table__header__status > p, .theme-light .server .server-table-container .server-table__header .server-table__header__charges > p, .server .server-table-container .server-table__header .theme-light .server-table__header__charges > p, .theme-light .server .server-table-container .server-table__header .server-table__header__location > p, .server .server-table-container .server-table__header .theme-light .server-table__header__location > p, .theme-light .server .server-table-container .server-table__header .server-table__header__size > p, .server .server-table-container .server-table__header .theme-light .server-table__header__size > p, .theme-light .server .server-table-container .server-table__header .server-table__header__type > p, .server .server-table-container .server-table__header .theme-light .server-table__header__type > p {
+  color: #161318;
+}
+.theme-dark .server .server-table-container .server-table__header .server-table__header__actions > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__actions > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__status > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__status > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__charges > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__charges > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__location > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__location > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__size > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__size > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__type > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__type > p {
+  color: #efefef;
 }
 
 .server .server-table-container {
@@ -354,7 +456,14 @@
   padding-bottom: 0;
 }
 .server .server-table .server-row-container {
-  border-bottom: #dfdfdf solid 1px;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+.theme-light .server .server-table .server-row-container {
+  border-bottom-color: #dfdfdf;
+}
+.theme-dark .server .server-table .server-row-container {
+  border-bottom-color: #6d6e70;
 }
 .server .server-table .server-row-container .server-row {
   display: flex;

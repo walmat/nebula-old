@@ -24,6 +24,7 @@ export class CreateProxiesPrimitive extends Component {
 
   render() {
     const {
+      theme,
       serverInfo,
       serverListOptions,
       onKeyPress,
@@ -57,7 +58,7 @@ export class CreateProxiesPrimitive extends Component {
                   components={{ DropdownIndicator }}
                   classNamePrefix="select"
                   className="proxy-options__input--location"
-                  styles={colourStyles(buildStyle(false, null))}
+                  styles={colourStyles(theme, buildStyle(false, null))}
                   value={serverInfo.proxyOptions.location}
                   options={serverListOptions.locations}
                   data-testid={addTestId('CreateProxies.location')}
@@ -155,6 +156,7 @@ export class CreateProxiesPrimitive extends Component {
 }
 
 CreateProxiesPrimitive.propTypes = {
+  theme: PropTypes.string.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
   serverListOptions: defns.serverListOptions.isRequired,
   serverInfo: defns.serverInfo.isRequired,
@@ -170,6 +172,7 @@ CreateProxiesPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
+  theme: state.theme,
   serverInfo: state.serverInfo,
   serverListOptions: state.serverListOptions,
 });
