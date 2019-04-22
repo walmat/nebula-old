@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow, mount } from 'enzyme';
+import { shallow } from 'enzyme';
 
 import { LogTaskPrimitive, mapStateToProps } from '../../tasks/logTask';
 import LogTaskRow from '../../tasks/logTaskRow';
@@ -17,8 +17,6 @@ describe('<LogTask />', () => {
   };
 
   const renderShallowWithProps = customProps => getWrapper(shallow, customProps);
-
-  const renderMountWithProps = customProps => getWrapper(mount, customProps);
 
   beforeEach(() => {
     defaultProps = {
