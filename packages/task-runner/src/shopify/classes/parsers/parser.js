@@ -16,7 +16,7 @@ class Parser {
    *
    * @param {String} productUrl
    */
-  static getFullProductInfo(productUrl, request, logger) {
+  static getFullProductInfo(productUrl, proxy, request, logger) {
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Parser: Getting Full Product Info...');
     _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', productUrl);
@@ -24,7 +24,7 @@ class Parser {
       request({
         method: 'GET',
         uri,
-        proxy: formatProxy(this._proxy) || undefined,
+        proxy: formatProxy(proxy),
         rejectUnauthorized: false,
         json: false,
         simple: true,

@@ -46,24 +46,36 @@ class Monitor {
     }
     await delay.call(this);
     this._logger.silly('Monitoring not complete, remonitoring...');
-    return { message: `Monitoring for product...`, nextState: States.Monitor };
+    return { message: 'Monitoring for product', nextState: States.Monitor };
   }
 
   async _handleParsingErrors(errors) {
-    // consolidate statuses
-    const statuses = errors.map(error => error.status);
-    // Check for bans
-    let checkStatus = statuses.every(s => s === 403 || s === 429 || s === 430);
-    if (checkStatus) {
-      this._logger.silly('Proxy was Banned, swapping proxies...');
+    let delayStatus;
+    let ban = true; // assume we have a softban
+    let hardBan = false; // assume we don't have a hardban
+    errors.forEach(({ status }) => {
+      if (status === 403) {
+        // ban is a strict hardban, so set the flag
+        hardBan = true;
+      } else if (status !== 429 && status !== 430) {
+        // status is neither 403, 429, 430, so set ban to false
+        ban = false;
+      }
+      if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
+        delayStatus = status; // find the first error that is either a product not found or 4xx response
+      }
+    });
+    if (ban || hardBan) {
+      this._logger.silly('Proxy was banned, swapping proxies...');
+      // we can assume that it's a soft ban by default since it's either ban || hardBan
+      const shouldBan = hardBan ? 2 : 1;
       return {
         message: 'Swapping proxy',
-        shouldBan: checkStatus === 403,
+        shouldBan,
         nextState: States.SwapProxies,
       };
     }
-    checkStatus = statuses.find(s => s === ErrorCodes.ProductNotFound || s >= 400);
-    return this._delay(checkStatus || 404);
+    return this._delay(delayStatus || 404);
   }
 
   _parseAll() {
@@ -99,7 +111,6 @@ class Monitor {
     try {
       ({ variants, sizes: chosenSizes } = generateVariants(product, sizes, site, this._logger));
     } catch (err) {
-      this._logger.debug('ERROR:::: %j', err);
       if (err.code === ErrorCodes.VariantsNotMatched) {
         return {
           message: 'Unable to match variants',
@@ -137,6 +148,7 @@ class Monitor {
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.silly('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
+    this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     const { site } = this._context.task;
     const { variants, sizes, nextState, message } = this._generateVariants(parsed);
     // check for next state (means we hit an error when generating variants)
@@ -147,7 +159,6 @@ class Monitor {
     this._context.task.product.variants = variants;
     this._context.task.product.chosenSizes = sizes;
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
-    this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
@@ -181,7 +192,12 @@ class Monitor {
       let fullProductInfo;
       try {
         // Try getting full product info
-        fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
+        fullProductInfo = await Parser.getFullProductInfo(
+          url,
+          this._context.proxy,
+          this._request,
+          this._logger,
+        );
       } catch (errors) {
         this._logger.error('MONITOR: All request errored out! %j', errors);
         if (this._context.type === Types.ShippingRates) {

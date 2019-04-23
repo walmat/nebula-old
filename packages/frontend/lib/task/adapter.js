@@ -4,7 +4,6 @@ const { ipcRenderer } = require('electron');
 const {
   TaskManager,
   SplitWebWorkerTaskManager,
-  // SplitWorkerThreadTaskManager, // TODO: Add this back in when we implement it (#412)
   SplitProcessTaskManager,
 } = require('@nebula/task-runner').shopify;
 
@@ -33,11 +32,6 @@ class TaskManagerAdapter {
         this._taskManager = new SplitProcessTaskManager(logPath);
         break;
       }
-      // TODO: Add this back in when we implement it (#412)
-      // case 'threads': {
-      //   this._taskManager = new SplitWorkerThreadTaskManager(logPath);
-      //   break;
-      // }
       case 'workers': {
         this._taskManager = new SplitWebWorkerTaskManager(logPath);
         break;

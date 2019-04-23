@@ -55,7 +55,7 @@ class TaskRunner {
     /**
      * Internal Task Runner State
      */
-    this._state = States.Initialized;
+    this._state = States.PaymentToken;
 
     /**
      * Type of Checkout Process to be used
@@ -213,13 +213,19 @@ class TaskRunner {
   }
 
   async swapProxies() {
+    // emit the swap event
     this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
         this._logger.silly('Reached Proxy Handler, resolving');
+        // clear the timeout interval
         clearTimeout(timeout);
+        // reset the timeout
         timeout = null;
+        // reset the ban flag
+        this.shouldBanProxy = 0;
+        // finally, resolve with the new proxy
         resolve(proxy);
       };
       timeout = setTimeout(() => {
@@ -270,8 +276,6 @@ class TaskRunner {
         break;
       }
     }
-    // Emit all events on the All channel
-    this._events.emit(Events.All, this._context.id, payload, event);
     this._logger.silly('Event %s emitted: %j', event, payload);
   }
 
@@ -284,18 +288,6 @@ class TaskRunner {
 
   // MARK: State Machine Step Logic
 
-  async _handleStarted() {
-    // exit if abort is detected
-    if (this._context.aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-    if (this._context.task.username && this._context.task.password) {
-      return States.Login;
-    }
-    return States.PaymentToken;
-  }
-
   async _handleLogin() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -305,7 +297,7 @@ class TaskRunner {
 
     const { message, shouldBan, nextState } = await this._checkout.login();
 
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, proxy: this._context.proxy });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -321,7 +313,7 @@ class TaskRunner {
 
     const { message, shouldBan, nextState } = await this._checkout.getPaymentToken();
 
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, proxy: this._context.proxy });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -441,12 +433,12 @@ class TaskRunner {
       });
       await this._waitForErrorDelay();
     }
-    const { chosenSizes } = this._context.task.product;
-    if (chosenSizes) {
-      this._emitTaskEvent({ message, size: chosenSizes[0] });
-    } else {
-      this._emitTaskEvent({ message });
-    }
+    const { chosenSizes, name } = this._context.task.product;
+    this._emitTaskEvent({
+      message,
+      size: chosenSizes ? chosenSizes[0] : undefined,
+      found: name || undefined,
+    });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -485,12 +477,12 @@ class TaskRunner {
       await this._waitForErrorDelay();
     }
 
-    const { chosenSizes } = this._context.task.product;
-    if (chosenSizes) {
-      this._emitTaskEvent({ message, size: chosenSizes[0] });
-    } else {
-      this._emitTaskEvent({ message });
-    }
+    const { chosenSizes, name } = this._context.task.product;
+    this._emitTaskEvent({
+      message,
+      size: chosenSizes ? chosenSizes[0] : undefined,
+      found: name || undefined,
+    });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -650,12 +642,18 @@ class TaskRunner {
       this._logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
+      this._logger.debug('PROXY IN _handleSwapProxies: %j', proxy);
       // Proxy is fine, update the references
       if (proxy) {
         this.proxy = proxy;
         this._context.proxy = proxy.proxy;
-        this.shouldBanProxy = false; // reset ban flag
+        this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
+        this._emitTaskEvent({
+          message: `Swapped proxy to: ${proxy.proxy}`,
+          proxy: proxy.proxy,
+        });
+        this._logger.debug('RETURNING TO STATE: %s', this._prevState);
         return this._prevState;
       }
 
@@ -671,7 +669,6 @@ class TaskRunner {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitTaskEvent({
         message: 'Error swapping proxies! Retrying...',
-        errors: err,
       });
     }
     // Go back to previous state
@@ -714,7 +711,6 @@ class TaskRunner {
     this._logger.silly('Handling state: %s', currentState);
 
     const stepMap = {
-      [States.Started]: this._handleStarted,
       [States.Login]: this._handleLogin,
       [States.PaymentToken]: this._handlePaymentToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
@@ -764,7 +760,9 @@ class TaskRunner {
 
   async start() {
     this._prevState = States.Started;
-    this._state = States.Started;
+    if (this._context.task.username && this._context.task.password) {
+      this._state = States.Login;
+    }
     let shouldStop = false;
     while (this._state !== States.Stopped && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop

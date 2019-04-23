@@ -1,7 +1,7 @@
 /* global describe it expect beforeEach jest test */
 import React from 'react';
 import { shallow } from 'enzyme';
-
+import getByTestId from '../../__testUtils__/getByTestId';
 import LogTaskRow from '../../tasks/logTaskRow';
 
 describe('<LogTaskRow />', () => {
@@ -10,18 +10,104 @@ describe('<LogTaskRow />', () => {
       id: 'testTask',
       index: 1,
       site: { name: 'Test' },
+      sizes: ['Random'],
+      proxy: null,
+      product: { found: undefined, raw: '+Test' },
       output: 'Test Message',
     };
-    const wrapper = shallow(<LogTaskRow task={task} />);
-    expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
-    const id = wrapper.find('.tasks-row__log--id');
-    const site = wrapper.find('.tasks-row__log--site');
-    const output = wrapper.find('.tasks-row__log--output');
+    const onClick = () => {};
+    const wrapper = shallow(
+      <LogTaskRow task={task} onClick={onClick} selected={false} fullscreen={false} />,
+    );
+    const container = getByTestId(wrapper, 'LogTaskRow.container');
+    const id = getByTestId(wrapper, 'LogTaskRow.id');
+    const store = getByTestId(wrapper, 'LogTaskRow.store');
+    const product = getByTestId(wrapper, 'LogTaskRow.product');
+    const size = getByTestId(wrapper, 'LogTaskRow.size');
+    const proxy = getByTestId(wrapper, 'LogTaskRow.proxy');
+    const output = getByTestId(wrapper, 'LogTaskRow.output');
 
+    expect(container).toHaveLength(1);
     expect(id).toHaveLength(1);
     expect(id.text()).toBe('01');
-    expect(site).toHaveLength(1);
-    expect(site.text()).toBe('Test');
+    expect(store).toHaveLength(1);
+    expect(store.text()).toBe('Test');
+    expect(product).toHaveLength(1);
+    expect(product.text()).toBe('+Test');
+    expect(size).toHaveLength(1);
+    expect(size.text()).toBe('Random');
+    expect(proxy).toHaveLength(1);
+    expect(proxy.text()).toBe('None');
+    expect(output).toHaveLength(1);
+    expect(output.text()).toBe('Test Message');
+  });
+
+  it('should render with required props while fullscreen', () => {
+    const task = {
+      id: 'testTask',
+      index: 1,
+      site: { name: 'Test' },
+      sizes: ['Random'],
+      proxy: null,
+      product: { found: undefined, raw: '+Test' },
+      output: 'Test Message',
+    };
+    const onClick = () => {};
+    const wrapper = shallow(
+      <LogTaskRow task={task} onClick={onClick} selected={false} fullscreen />,
+    );
+    const container = getByTestId(wrapper, 'LogTaskRow.container');
+    const id = getByTestId(wrapper, 'LogTaskRow.id');
+    const store = getByTestId(wrapper, 'LogTaskRow.store');
+    const product = getByTestId(wrapper, 'LogTaskRow.product');
+    const size = getByTestId(wrapper, 'LogTaskRow.size');
+    const proxy = getByTestId(wrapper, 'LogTaskRow.proxy');
+    const output = getByTestId(wrapper, 'LogTaskRow.output');
+    expect(container).toHaveLength(1);
+    expect(id).toHaveLength(1);
+    expect(id.text()).toBe('01');
+    expect(store).toHaveLength(1);
+    expect(store.text()).toBe('Test');
+    expect(product).toHaveLength(1);
+    expect(product.text()).toBe('+Test');
+    expect(size).toHaveLength(1);
+    expect(size.text()).toBe('Random');
+    expect(proxy).toHaveLength(1);
+    expect(proxy.text()).toBe('None');
+    expect(output).toHaveLength(1);
+    expect(output.text()).toBe('Test Message');
+  });
+
+  it('should render with required props while selected', () => {
+    const task = {
+      id: 'testTask',
+      index: 1,
+      site: { name: 'Test' },
+      sizes: ['Random'],
+      proxy: null,
+      product: { found: undefined, raw: '+Test' },
+      output: 'Test Message',
+    };
+    const onClick = () => {};
+    const wrapper = shallow(<LogTaskRow task={task} onClick={onClick} selected fullscreen />);
+    const container = getByTestId(wrapper, 'LogTaskRow.container');
+    const id = getByTestId(wrapper, 'LogTaskRow.id');
+    const store = getByTestId(wrapper, 'LogTaskRow.store');
+    const product = getByTestId(wrapper, 'LogTaskRow.product');
+    const size = getByTestId(wrapper, 'LogTaskRow.size');
+    const proxy = getByTestId(wrapper, 'LogTaskRow.proxy');
+    const output = getByTestId(wrapper, 'LogTaskRow.output');
+    expect(container).toHaveLength(1);
+    expect(id).toHaveLength(1);
+    expect(id.text()).toBe('01');
+    expect(store).toHaveLength(1);
+    expect(store.text()).toBe('Test');
+    expect(product).toHaveLength(1);
+    expect(product.text()).toBe('+Test');
+    expect(size).toHaveLength(1);
+    expect(size.text()).toBe('Random');
+    expect(proxy).toHaveLength(1);
+    expect(proxy.text()).toBe('None');
     expect(output).toHaveLength(1);
     expect(output.text()).toBe('Test Message');
   });
@@ -31,18 +117,30 @@ describe('<LogTaskRow />', () => {
       id: 'testTask',
       index: 11,
       site: { name: 'Test' },
+      sizes: ['Random'],
+      proxy: null,
+      product: { found: undefined, raw: '+Test' },
       output: 'Test Message',
     };
     const wrapper = shallow(<LogTaskRow task={task} />);
-    expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
-    const id = wrapper.find('.tasks-row__log--id');
-    const site = wrapper.find('.tasks-row__log--site');
-    const output = wrapper.find('.tasks-row__log--output');
-
+    const container = getByTestId(wrapper, 'LogTaskRow.container');
+    const id = getByTestId(wrapper, 'LogTaskRow.id');
+    const store = getByTestId(wrapper, 'LogTaskRow.store');
+    const product = getByTestId(wrapper, 'LogTaskRow.product');
+    const size = getByTestId(wrapper, 'LogTaskRow.size');
+    const proxy = getByTestId(wrapper, 'LogTaskRow.proxy');
+    const output = getByTestId(wrapper, 'LogTaskRow.output');
+    expect(container).toHaveLength(1);
     expect(id).toHaveLength(1);
     expect(id.text()).toBe('11');
-    expect(site).toHaveLength(1);
-    expect(site.text()).toBe('Test');
+    expect(store).toHaveLength(1);
+    expect(store.text()).toBe('Test');
+    expect(product).toHaveLength(1);
+    expect(product.text()).toBe('+Test');
+    expect(size).toHaveLength(1);
+    expect(size.text()).toBe('Random');
+    expect(proxy).toHaveLength(1);
+    expect(proxy.text()).toBe('None');
     expect(output).toHaveLength(1);
     expect(output.text()).toBe('Test Message');
   });

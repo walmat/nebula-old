@@ -64,8 +64,6 @@ describe('<Tasks />', () => {
     expect(wrapper.find(CreateTask)).toHaveLength(1);
     expect(wrapper.find(CreateTask).prop('taskToEdit')).toEqual(defaultProps.newTask);
     // Log Task
-    expect(wrapper.find('.tasks-log__section-header')).toHaveLength(1);
-    expect(wrapper.find('.tasks-log__section-header').text()).toBe('Log');
     expect(wrapper.find(LogTask)).toHaveLength(1);
     // View Task
     expect(wrapper.find('.tasks-table__section-header')).toHaveLength(1);

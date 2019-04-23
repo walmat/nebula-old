@@ -14,7 +14,7 @@ const _defaultWebPreferences = {
   blinkFeatures: '',
 };
 
-const _createWindow = (type, options) => {
+const _createWindow = options => {
   // Create options
   const browserWindowOptions = {
     center: true,
@@ -114,7 +114,7 @@ const urls = new Map();
  * @return {BrowserWindow} Auth Window
  */
 const createAuthWindow = () =>
-  _createWindow('auth', {
+  _createWindow({
     width: 300,
     height: 215,
     webPreferences: {
@@ -123,7 +123,10 @@ const createAuthWindow = () =>
     },
   });
 
-const authUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
+let authUrl = `file:///${Path.join(__dirname, '../../build/auth.html')}`;
+if (nebulaEnv.isDevelopment()) {
+  authUrl = `file:///${Path.join(__dirname, '../../public/auth.html')}`;
+}
 urls.set('auth', authUrl);
 
 /**
@@ -132,7 +135,7 @@ urls.set('auth', authUrl);
  * @return {BrowserWindow} About Window
  */
 const createAboutWindow = () =>
-  _createWindow('about', {
+  _createWindow({
     width: 300,
     height: 215,
     webPreferences: {
@@ -141,7 +144,10 @@ const createAboutWindow = () =>
     },
   });
 
-const aboutUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
+let aboutUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
+if (nebulaEnv.isDevelopment()) {
+  aboutUrl = `file:///${Path.join(__dirname, '../../public/about.html')}`;
+}
 urls.set('about', aboutUrl);
 
 /**
@@ -150,7 +156,7 @@ urls.set('about', aboutUrl);
  * @return {BrowserWindow} Captcha Window
  */
 const createCaptchaWindow = (options = {}, webPreferences = {}) =>
-  _createWindow('captcha', {
+  _createWindow({
     // assign default background color first, so it can be overwritten by parameter options
     backgroundColor: '#f4f4f4',
     ...options,
@@ -182,7 +188,7 @@ urls.set('captcha', captchaUrl);
  * @return {BrowserWindow} YouTube Window
  */
 const createYouTubeWindow = (options = {}, webPreferences = {}) =>
-  _createWindow('gmail', {
+  _createWindow({
     ...options,
     width: 650,
     height: 615,
@@ -211,7 +217,7 @@ urls.set('gmail', youtubeUrl);
  * @return {BrowserWindow} Main Window
  */
 const createMainWindow = () =>
-  _createWindow('main', {
+  _createWindow({
     width: 1000,
     height: 715,
     webPreferences: {

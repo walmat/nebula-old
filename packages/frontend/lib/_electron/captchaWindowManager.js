@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { session: Session } = require('electron');
-const moment = require('moment');
+const { differenceInSeconds } = require('date-fns');
 
 const { createCaptchaWindow, createYouTubeWindow, urls } = require('./windows');
 const nebulaEnv = require('./env');
@@ -61,7 +61,7 @@ class CaptchaWindowManager {
     this.validateSender = this.validateSender.bind(this);
 
     this._tokenQueue.addExpirationFilter(
-      ({ timestamp }) => moment().diff(moment(timestamp), 'seconds') <= 110,
+      ({ timestamp }) => differenceInSeconds(new Date(), timestamp) <= 110,
       1000,
       this._handleTokenExpirationUpdate,
       this,
@@ -409,7 +409,7 @@ class CaptchaWindowManager {
       token,
       siteKey,
       host,
-      timestamp: moment(),
+      timestamp: new Date(),
     });
 
     if (this._tokenQueue.backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {

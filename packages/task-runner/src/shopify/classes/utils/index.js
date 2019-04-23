@@ -14,21 +14,27 @@ const stateForError = (err, currentState) => {
   const { statusCode, cause } = err;
   if (err instanceof StatusCodeError) {
     // Check request status code
-    if (statusCode === 303) {
-      return {
-        message: 'Waiting in queue',
-        nextState: States.PollQueue,
-      };
-    }
-    if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
-      return {
-        message: 'Swapping proxy',
-        shouldBan: statusCode === 403,
-        nextState: States.SwapProxies,
-      };
-    }
-    if (statusCode >= 500) {
-      return currentState;
+    let shouldBan = 0;
+    switch (statusCode) {
+      case 403:
+      case 429:
+      case 430: {
+        shouldBan = statusCode === 403 ? 2 : 1;
+        return {
+          message: 'Swapping proxy',
+          shouldBan,
+          nextState: States.SwapProxies,
+        };
+      }
+      case 303: {
+        return {
+          message: 'Waiting in queue',
+          nextState: States.PollQueue,
+        };
+      }
+      default: {
+        return statusCode >= 500 ? currentState : null;
+      }
     }
   } else if (err instanceof RequestError) {
     // Look for errors in cause
@@ -39,7 +45,11 @@ const stateForError = (err, currentState) => {
       switch (match[1]) {
         // connection reset
         case 'ECONNRESET': {
-          return { message: 'Swapping proxy', shouldBan: true, nextState: States.SwapProxies };
+          return {
+            message: 'Swapping proxy',
+            shouldBan: 0, // just swap with no ban
+            nextState: States.SwapProxies,
+          };
         }
         // request timeout or socket freeze timeout
         case 'ETIMEDOUT':
@@ -56,20 +66,29 @@ const stateForError = (err, currentState) => {
 };
 
 const stateForStatusCode = statusCode => {
-  if (statusCode === 303) {
-    return {
-      message: 'Waiting in queue',
-      nextState: States.PollQueue,
-    };
+  // Check request status code
+  let shouldBan = 0;
+  switch (statusCode) {
+    case 403:
+    case 429:
+    case 430: {
+      shouldBan = statusCode === 403 ? 2 : 1;
+      return {
+        message: 'Swapping proxy',
+        shouldBan,
+        nextState: States.SwapProxies,
+      };
+    }
+    case 303: {
+      return {
+        message: 'Waiting in queue',
+        nextState: States.PollQueue,
+      };
+    }
+    default: {
+      return null;
+    }
   }
-  if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
-    return {
-      message: 'Swapping proxy',
-      shouldBan: statusCode === 403,
-      nextState: States.SwapProxies,
-    };
-  }
-  return null;
 };
 
 const getHeaders = site => {

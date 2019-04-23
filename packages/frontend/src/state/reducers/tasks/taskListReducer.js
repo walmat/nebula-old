@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations */
 import shortId from 'shortid';
+import { format } from 'date-fns';
 
 import {
   TASK_ACTIONS,
@@ -203,12 +204,19 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         if (type !== 'srr') {
           const task = taskMap[taskId];
           if (task) {
-            const { message, size } = msg;
+            const { message, size, proxy, found } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
             }
+            if (proxy) {
+              task.proxy = proxy;
+            }
+            if (found) {
+              task.product.found = found;
+            }
           }
+          task.log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
         }
       });
       break;
@@ -284,6 +292,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         nextState[idx].status = 'stopped';
         nextState[idx].output = 'Stopping task...';
         nextState[idx].chosenSizes = nextState[idx].sizes;
+        nextState[idx].proxy = null;
+        nextState[idx].product.found = null;
+        nextState[idx].log = [];
       }
       break;
     }

@@ -102,7 +102,6 @@ class TaskManager {
       proxy,
       banList: {},
       useList: {},
-      assignedRunners: [],
     });
     this._logger.silly('Proxy Added with id %s', proxyId);
   }
@@ -180,23 +179,26 @@ class TaskManager {
       this._proxies.size,
     );
     let proxy = null;
+
     for (const val of this._proxies.values()) {
-      if (
-        !val.assignedRunners.find(id => id === runnerId) &&
-        !val.useList[site] &&
-        !val.banList[site]
-      ) {
+      this._logger.debug(
+        '%s: \n\n Ban predicate: %j, Used predicate: %j, Conditional: %s',
+        val.proxy,
+        val.banList[site],
+        val.useList[site],
+        !val.useList[site] && (!val.banList[site] || val.banList[site] === 0),
+      );
+      if (!val.useList[site] && (!val.banList[site] || val.banList[site] === 0)) {
         proxy = val;
-        break;
+        // immediately remove the proxy from the list
+        this._proxies.delete(proxy.id);
+        // set it to in use
+        proxy.useList[site] = true;
+        // push the proxy back onto the end of the stack
+        this._proxies.set(proxy.id, proxy);
+        this._logger.silly('Returning proxy: %s', proxy.id);
+        return proxy;
       }
-    }
-    if (proxy) {
-      proxy.assignedRunners.push(runnerId);
-      proxy.useList[site] = true;
-      this._proxies.delete(proxy.id);
-      this._proxies.set(proxy.id, proxy);
-      this._logger.silly('Returning proxy: %s', proxy.id);
-      return proxy;
     }
     if (!waitForOpenProxy || waitLimit === 0) {
       this._logger.silly('Not waiting for open proxy, returning null');
@@ -217,14 +219,19 @@ class TaskManager {
    * @param {String} runnerId the id of the runner this proxy is being released from
    * @param {String} proxyId the id of the proxy to release
    */
-  releaseProxy(runnerId, site, proxyId) {
-    this._logger.silly('Releasing proxy %s for runner %s ...', proxyId, runnerId);
+  releaseProxy(runnerId, site, proxyId, force = false) {
+    this._logger.silly('Releasing proxy %s for runner %s on site %s...', proxyId, runnerId, site);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.silly('No proxy found, skipping release');
       return;
     }
-    proxy.assignedRunners = proxy.assignedRunners.filter(rId => rId !== runnerId);
+    // if the application is forced closed, force the proxy list to be freed up
+    if (force) {
+      delete proxy.banList[site];
+      delete proxy.useList[site];
+    }
+    // otherwise, just free up the use list
     delete proxy.useList[site];
     this._logger.silly('Released Proxy %s', proxyId);
   }
@@ -235,15 +242,30 @@ class TaskManager {
    * @param {String} runnerId the id of the runner
    * @param {String} proxyId the id of the proxy to ban
    */
-  banProxy(runnerId, site, proxyId) {
-    this._logger.silly('Banning proxy %s for runner %s ...', proxyId, runnerId);
+  banProxy(runnerId, site, proxyId, shouldBan) {
+    this._logger.silly('Banning proxy %s for runner %s on site %s ...', proxyId, runnerId, site);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.silly('No proxy found, skipping ban');
       return;
     }
-    proxy.banList[site.url] = true;
-    setTimeout(() => delete proxy.banList[site.url], 30000);
+    // free up the useList, but wait 2 min. to lift the ban
+    delete proxy.useList[site];
+    proxy.banList[site] = shouldBan;
+    this._logger.debug(
+      'Ban predicate: %j, Used predicate: %j',
+      proxy.banList[site],
+      proxy.useList[site],
+    );
+    // for a soft ban, just timeout the proxy for a couple minutes
+    if (proxy.banList[site] === 1) {
+      setTimeout(() => {
+        // reset the proxy by removing the ban and opening it up again
+        this._logger.debug('Freeing up ban predicate for %s', proxy.proxy);
+        delete proxy.banList[site];
+      }, 120000); // TODO: play around with this timeout more!
+    }
+    // wait two minutes before releasing the ban
     this._logger.silly('Banned Proxy %s', proxyId);
   }
 
@@ -260,35 +282,40 @@ class TaskManager {
    * @param {bool} shouldBan whether the old proxy should be banned
    */
   async swapProxy(runnerId, proxyId, site, shouldBan) {
-    this._logger.silly(
-      'Swapping Proxy %s for runner %s on site %s. Should ban? %s ...',
-      proxyId,
-      runnerId,
-      site,
-      shouldBan,
-    );
     let shouldRelease = true;
-    if (!this._proxies.get(proxyId)) {
+
+    const oldProxy = this._proxies.get(proxyId);
+    if (!oldProxy) {
       this._logger.silly('No proxy found, skipping release/ban');
       shouldRelease = false;
     }
 
     // Attempt to reserve a proxy first before releasing the old one
     const newProxy = await this.reserveProxy(runnerId, site);
+
     if (!newProxy) {
       this._logger.silly('No new proxy available, skipping release/ban');
       return null;
     }
 
+    this._logger.debug(
+      'Swapped old proxy %s: \n Returned new proxy: %s',
+      oldProxy.proxy,
+      newProxy.proxy,
+    );
+
     // Check if we need to release the old proxy
     if (shouldRelease) {
       // Check if we need to ban the old proxy
+      this._logger.debug('Should ban old proxy?: %s', shouldBan);
       if (shouldBan) {
-        this.banProxy(runnerId, site, proxyId);
+        this._logger.debug('Banning old proxy... %s', oldProxy.proxy);
+        this.banProxy(runnerId, site, proxyId, shouldBan);
       }
+      this._logger.debug('Releasing old proxy... %s', oldProxy.proxy);
       this.releaseProxy(runnerId, site, proxyId);
     }
-    this._logger.silly('New proxy: %j', newProxy);
+    this._logger.silly('New proxy: %j', newProxy.proxy);
     // Return the new reserved proxy
     return newProxy;
   }
@@ -397,7 +424,7 @@ class TaskManager {
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(runnerId, message, event) {
-    this._logger.silly('Runner %s posted new event %s - %s', runnerId, event, message.message);
+    this._logger.silly('Runner %s posted new event %s - %j', runnerId, event, message);
     // For now only re emit Task Status Events
     if (event === TaskRunner.Events.TaskStatus) {
       this._logger.silly('Reemitting this status update...');
@@ -458,7 +485,7 @@ class TaskManager {
     const { proxy, site } = this._runners[runnerId];
     delete this._runners[runnerId];
     if (proxy) {
-      this.releaseProxy(runnerId, site, proxy.id);
+      this.releaseProxy(runnerId, site, proxy.id, true);
     }
   }
 
