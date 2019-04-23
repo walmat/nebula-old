@@ -3,6 +3,7 @@ import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
+import { addTestId } from '../utils';
 
 export class LogTaskPrimitive extends Component {
   // static massLinkChange() {
@@ -63,7 +64,7 @@ export class LogTaskPrimitive extends Component {
         return (
           <div className="row row--start row--expand table--lower">
             <div className="col col--start col--no-gutter tasks-live-log__wrapper">
-              <ScrollableFeed>
+              <ScrollableFeed data-testid={addTestId('LogTaskPrimitive.feed')}>
                 {task.log.map((msg, i) => LogTaskPrimitive.renderOutputLogRow(msg, i))}
               </ScrollableFeed>
             </div>
@@ -158,11 +159,19 @@ export class LogTaskPrimitive extends Component {
       <div>
         <div className="row row--start">
           <div className="col">
-            <p className={classMap.sectionHeader.join(' ')}>Log</p>
+            <p
+              className={classMap.sectionHeader.join(' ')}
+              data-testid={addTestId('LogTaskPrimitive.sectionHeader')}
+            >
+              Log
+            </p>
           </div>
         </div>
         <div className="row">
-          <div className={classMap.container.join(' ')}>
+          <div
+            data-testid={addTestId('LogTaskPrimitive.container')}
+            className={classMap.container.join(' ')}
+          >
             <div
               onDoubleClick={() =>
                 this.setState({
@@ -171,24 +180,43 @@ export class LogTaskPrimitive extends Component {
                   focused: fullscreen ? '' : focused, // opposite toggle for coming in/out of FS mode
                 })
               }
+              data-testid={addTestId('LogTaskPrimitive.tableHeader')}
               className={classMap.tableHeader.join(' ')}
             >
-              <div className="col tasks-log__header--id">
+              <div
+                data-testid={addTestId('LogTaskPrimitive.header--id')}
+                className="col tasks-log__header--id"
+              >
                 <p>#</p>
               </div>
-              <div className="col tasks-log__header--store">
+              <div
+                data-testid={addTestId('LogTaskPrimitive.header--store')}
+                className="col tasks-log__header--store"
+              >
                 <p>Store</p>
               </div>
-              <div className={classMap.product.join(' ')}>
+              <div
+                data-testid={addTestId('LogTaskPrimitive.header--product')}
+                className={classMap.product.join(' ')}
+              >
                 <p>Product</p>
               </div>
-              <div className="col tasks-log__header--size">
+              <div
+                data-testid={addTestId('LogTaskPrimitive.header--size')}
+                className="col tasks-log__header--size"
+              >
                 <p>Size</p>
               </div>
-              <div className={classMap.proxy.join(' ')}>
+              <div
+                data-testid={addTestId('LogTaskPrimitive.header--proxy')}
+                className={classMap.proxy.join(' ')}
+              >
                 <p>Proxy</p>
               </div>
-              <div className={classMap.output.join(' ')}>
+              <div
+                data-testid={addTestId('LogTaskPrimitive.header--output')}
+                className={classMap.output.join(' ')}
+              >
                 <p>Output</p>
               </div>
             </div>

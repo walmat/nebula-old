@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 const $ = require('cheerio');
 const now = require('performance-now');
 const { StatusCodeError, RequestError } = require('request-promise/errors');
@@ -15,21 +14,27 @@ const stateForError = (err, currentState) => {
   const { statusCode, cause } = err;
   if (err instanceof StatusCodeError) {
     // Check request status code
-    if (statusCode === 303) {
-      return {
-        message: 'Waiting in queue',
-        nextState: States.PollQueue,
-      };
-    }
-    if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
-      return {
-        message: 'Swapping proxy',
-        shouldBan: statusCode === 429 || statusCode === 430 ? 1 : statusCode === 403 ? 2 : 0,
-        nextState: States.SwapProxies,
-      };
-    }
-    if (statusCode >= 500) {
-      return currentState;
+    let shouldBan = 0;
+    switch (statusCode) {
+      case 403:
+      case 429:
+      case 430: {
+        shouldBan = statusCode === 403 ? 2 : 1;
+        return {
+          message: 'Swapping proxy',
+          shouldBan,
+          nextState: States.SwapProxies,
+        };
+      }
+      case 303: {
+        return {
+          message: 'Waiting in queue',
+          nextState: States.PollQueue,
+        };
+      }
+      default: {
+        return currentState;
+      }
     }
   } else if (err instanceof RequestError) {
     // Look for errors in cause
@@ -61,20 +66,29 @@ const stateForError = (err, currentState) => {
 };
 
 const stateForStatusCode = statusCode => {
-  if (statusCode === 303) {
-    return {
-      message: 'Waiting in queue',
-      nextState: States.PollQueue,
-    };
+  // Check request status code
+  let shouldBan = 0;
+  switch (statusCode) {
+    case 403:
+    case 429:
+    case 430: {
+      shouldBan = statusCode === 403 ? 2 : 1;
+      return {
+        message: 'Swapping proxy',
+        shouldBan,
+        nextState: States.SwapProxies,
+      };
+    }
+    case 303: {
+      return {
+        message: 'Waiting in queue',
+        nextState: States.PollQueue,
+      };
+    }
+    default: {
+      return null;
+    }
   }
-  if (statusCode === 403 || statusCode === 429 || statusCode === 430) {
-    return {
-      message: 'Swapping proxy',
-      shouldBan: statusCode === 429 || statusCode === 430 ? 1 : statusCode === 403 ? 2 : 0,
-      nextState: States.SwapProxies,
-    };
-  }
-  return null;
 };
 
 const getHeaders = site => {

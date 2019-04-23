@@ -1,7 +1,7 @@
 /* global describe it expect beforeEach jest test */
 import React from 'react';
 import { shallow } from 'enzyme';
-
+import getByTestId from '../../__testUtils__/getByTestId';
 import LogTaskRow from '../../tasks/logTaskRow';
 
 describe('<LogTaskRow />', () => {
@@ -19,13 +19,15 @@ describe('<LogTaskRow />', () => {
     const wrapper = shallow(
       <LogTaskRow task={task} onClick={onClick} selected={false} fullscreen={false} />,
     );
-    expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
-    const id = wrapper.find('.tasks-row__log--id');
-    const store = wrapper.find('.tasks-row__log--store');
-    const product = wrapper.find('.tasks-row__log--product');
-    const size = wrapper.find('.tasks-row__log--size');
-    const proxy = wrapper.find('.tasks-row__log--proxy');
-    const output = wrapper.find('.tasks-row__log--output');
+    const container = getByTestId(wrapper, 'LogTaskRow.container');
+    const id = getByTestId(wrapper, 'LogTaskRow.id');
+    const store = getByTestId(wrapper, 'LogTaskRow.store');
+    const product = getByTestId(wrapper, 'LogTaskRow.product');
+    const size = getByTestId(wrapper, 'LogTaskRow.size');
+    const proxy = getByTestId(wrapper, 'LogTaskRow.proxy');
+    const output = getByTestId(wrapper, 'LogTaskRow.output');
+
+    expect(container).toHaveLength(1);
     expect(id).toHaveLength(1);
     expect(id.text()).toBe('01');
     expect(store).toHaveLength(1);
@@ -54,13 +56,14 @@ describe('<LogTaskRow />', () => {
     const wrapper = shallow(
       <LogTaskRow task={task} onClick={onClick} selected={false} fullscreen />,
     );
-    expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
-    const id = wrapper.find('.tasks-row__log--id--fullscreen');
-    const store = wrapper.find('.tasks-row__log--store--fullscreen');
-    const product = wrapper.find('.tasks-row__log--product--fullscreen');
-    const size = wrapper.find('.tasks-row__log--size--fullscreen');
-    const proxy = wrapper.find('.tasks-row__log--proxy--fullscreen');
-    const output = wrapper.find('.tasks-row__log--output--fullscreen');
+    const container = getByTestId(wrapper, 'LogTaskRow.container');
+    const id = getByTestId(wrapper, 'LogTaskRow.id');
+    const store = getByTestId(wrapper, 'LogTaskRow.store');
+    const product = getByTestId(wrapper, 'LogTaskRow.product');
+    const size = getByTestId(wrapper, 'LogTaskRow.size');
+    const proxy = getByTestId(wrapper, 'LogTaskRow.proxy');
+    const output = getByTestId(wrapper, 'LogTaskRow.output');
+    expect(container).toHaveLength(1);
     expect(id).toHaveLength(1);
     expect(id.text()).toBe('01');
     expect(store).toHaveLength(1);
@@ -87,13 +90,14 @@ describe('<LogTaskRow />', () => {
     };
     const onClick = () => {};
     const wrapper = shallow(<LogTaskRow task={task} onClick={onClick} selected fullscreen />);
-    expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
-    const id = wrapper.find('.tasks-row__log--id--fullscreen');
-    const store = wrapper.find('.tasks-row__log--store--fullscreen');
-    const product = wrapper.find('.tasks-row__log--product--fullscreen');
-    const size = wrapper.find('.tasks-row__log--size--fullscreen');
-    const proxy = wrapper.find('.tasks-row__log--proxy--fullscreen');
-    const output = wrapper.find('.tasks-row__log--output--fullscreen');
+    const container = getByTestId(wrapper, 'LogTaskRow.container');
+    const id = getByTestId(wrapper, 'LogTaskRow.id');
+    const store = getByTestId(wrapper, 'LogTaskRow.store');
+    const product = getByTestId(wrapper, 'LogTaskRow.product');
+    const size = getByTestId(wrapper, 'LogTaskRow.size');
+    const proxy = getByTestId(wrapper, 'LogTaskRow.proxy');
+    const output = getByTestId(wrapper, 'LogTaskRow.output');
+    expect(container).toHaveLength(1);
     expect(id).toHaveLength(1);
     expect(id.text()).toBe('01');
     expect(store).toHaveLength(1);
@@ -119,13 +123,14 @@ describe('<LogTaskRow />', () => {
       output: 'Test Message',
     };
     const wrapper = shallow(<LogTaskRow task={task} />);
-    expect(wrapper.find('.tasks-row-container')).toHaveLength(1);
-    const id = wrapper.find('.tasks-row__log--id');
-    const store = wrapper.find('.tasks-row__log--store');
-    const product = wrapper.find('.tasks-row__log--product');
-    const size = wrapper.find('.tasks-row__log--size');
-    const proxy = wrapper.find('.tasks-row__log--proxy');
-    const output = wrapper.find('.tasks-row__log--output');
+    const container = getByTestId(wrapper, 'LogTaskRow.container');
+    const id = getByTestId(wrapper, 'LogTaskRow.id');
+    const store = getByTestId(wrapper, 'LogTaskRow.store');
+    const product = getByTestId(wrapper, 'LogTaskRow.product');
+    const size = getByTestId(wrapper, 'LogTaskRow.size');
+    const proxy = getByTestId(wrapper, 'LogTaskRow.proxy');
+    const output = getByTestId(wrapper, 'LogTaskRow.output');
+    expect(container).toHaveLength(1);
     expect(id).toHaveLength(1);
     expect(id.text()).toBe('11');
     expect(store).toHaveLength(1);

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import tDefns from '../utils/definitions/taskDefinitions';
+import { addTestId } from '../utils';
 
 const LogTaskRow = ({
   onClick,
@@ -34,18 +35,31 @@ const LogTaskRow = ({
     <div
       key={index}
       className="tasks-row-container col"
+      data-testid={addTestId('LogTaskRow.container')}
       role="button"
       tabIndex={0}
       onClick={onClick}
       onKeyPress={() => {}}
     >
       <div className={tasksRow}>
-        <div className={classMap.id.join(' ')}>{index < 10 ? `0${index}` : index}</div>
-        <div className={classMap.store.join(' ')}>{name}</div>
-        <div className={classMap.product.join(' ')}>{found || raw}</div>
-        <div className={classMap.size.join(' ')}>{chosenSizes || sizes}</div>
-        <div className={classMap.proxy.join(' ')}>{proxy || 'None'}</div>
-        <div className={classMap.output.join(' ')}>{output}</div>
+        <div className={classMap.id.join(' ')} data-testid={addTestId('LogTaskRow.id')}>
+          {index < 10 ? `0${index}` : index}
+        </div>
+        <div className={classMap.store.join(' ')} data-testid={addTestId('LogTaskRow.store')}>
+          {name}
+        </div>
+        <div className={classMap.product.join(' ')} data-testid={addTestId('LogTaskRow.product')}>
+          {found || raw}
+        </div>
+        <div className={classMap.size.join(' ')} data-testid={addTestId('LogTaskRow.size')}>
+          {chosenSizes || sizes}
+        </div>
+        <div className={classMap.proxy.join(' ')} data-testid={addTestId('LogTaskRow.proxy')}>
+          {proxy || 'None'}
+        </div>
+        <div className={classMap.output.join(' ')} data-testid={addTestId('LogTaskRow.output')}>
+          {output}
+        </div>
       </div>
     </div>
   );
