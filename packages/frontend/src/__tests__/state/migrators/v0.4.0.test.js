@@ -3,7 +3,7 @@ import migrator from '../../../state/migrators/v0.4.0';
 import initialState from '../../../state/migrators/v0.4.0/state';
 import prevState from '../../../state/migrators/v0.3.1/state';
 
-describe('v0.3.1 migrator', () => {
+describe('v0.4.0 migrator', () => {
   it('should return initial state if no state is given', () => {
     const migrated = migrator();
     expect(migrated).toEqual(initialState);
