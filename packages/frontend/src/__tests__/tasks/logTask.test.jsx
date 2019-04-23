@@ -35,6 +35,7 @@ describe('<LogTask />', () => {
     const size = getByTestId(wrapper, 'LogTaskPrimitive.header--size');
     const proxy = getByTestId(wrapper, 'LogTaskPrimitive.header--proxy');
     const output = getByTestId(wrapper, 'LogTaskPrimitive.header--output');
+    const header = getByTestId(wrapper, 'LogTaskPrimitive.tableHeader');
 
     expect(container).toHaveLength(1);
     expect(sectionHeader).toHaveLength(1);
@@ -49,8 +50,7 @@ describe('<LogTask />', () => {
     expect(wrapper.state('selected')).toEqual([]);
     expect(wrapper.state('focused')).toEqual('');
 
-    const header = getByTestId(wrapper, 'LogTaskPrimitive.tableHeader');
-    header.simulate('doubleClick');
+    header.prop('onDoubleClick')();
 
     expect(wrapper.state('fullscreen')).toBeTruthy();
     expect(wrapper.state('selected')).toEqual([]);

@@ -33,7 +33,7 @@ const stateForError = (err, currentState) => {
         };
       }
       default: {
-        return currentState;
+        return statusCode >= 500 ? currentState : null;
       }
     }
   } else if (err instanceof RequestError) {
