@@ -34,14 +34,17 @@ describe('v0.4.0 migrator', () => {
         {
           ...prevState.newTask,
           id: 1,
+          index: 1,
         },
         {
           ...prevState.newTask,
           id: 2,
+          index: 2,
         },
         {
           ...prevState.newTask,
           id: 3,
+          index: 3,
         },
       ],
     };
@@ -53,14 +56,17 @@ describe('v0.4.0 migrator', () => {
         {
           ...prevState.newTask,
           id: 1,
+          index: 1,
         },
         {
           ...prevState.newTask,
           id: 2,
+          index: 2,
         },
         {
           ...prevState.newTask,
           id: 3,
+          index: 3,
         },
       ],
     });
@@ -73,14 +79,17 @@ describe('v0.4.0 migrator', () => {
         {
           ...prevState.newTask,
           id: 1,
+          index: 1,
         },
         {
           ...prevState.newTask,
-          id: '2-2',
+          id: 2,
+          index: '2-2',
         },
         {
           ...prevState.newTask,
-          id: '3-3',
+          id: 3,
+          index: '3-3',
         },
       ],
     };
@@ -92,6 +101,7 @@ describe('v0.4.0 migrator', () => {
         {
           ...prevState.newTask,
           id: 1,
+          index: 1,
         },
       ],
     });
