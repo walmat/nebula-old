@@ -409,7 +409,7 @@ class CaptchaWindowManager {
       token,
       siteKey,
       host,
-      timestamp: moment(),
+      timestamp: new Date(),
     });
 
     if (this._tokenQueue.backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
