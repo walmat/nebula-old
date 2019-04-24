@@ -9,6 +9,7 @@ const {
   userAgent,
   waitForDelay,
 } = require('./utils');
+const { isSpecialSite } = require('./utils/siteOptions');
 const { States, Types } = require('./utils/constants').TaskRunner;
 
 class Checkout {
@@ -105,7 +106,6 @@ class Checkout {
     // Reset captcha token so we don't reuse it
     this.captchaToken = null;
 
-    this._logger.verbose('CHECKOUT: Logging in');
     try {
       const res = await this._request({
         uri: `${url}/account/login`,
@@ -131,7 +131,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('CHECKOUT: Login redirect url: %s', redirectUrl);
+      this._logger.silly('CHECKOUT: Login redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // password page
@@ -142,19 +142,19 @@ class Checkout {
 
         // challenge page
         if (redirectUrl.indexOf('challenge') > -1) {
-          this._logger.verbose('CHECKOUT: Login needs captcha');
+          this._logger.silly('CHECKOUT: Login needs captcha');
           return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
         }
 
         // still at login page
         if (redirectUrl.indexOf('login') > -1) {
-          this._logger.verbose('CHECKOUT: Invalid login credentials');
+          this._logger.silly('CHECKOUT: Invalid login credentials');
           return { message: 'Invalid login credentials', nextState: States.Errored };
         }
 
         // since we're here, we can assume `account/login` === false
         if (redirectUrl.indexOf('account') > -1) {
-          this._logger.verbose('CHECKOUT: Logged in');
+          this._logger.silly('CHECKOUT: Logged in');
           // check to see if we already have the storeId and checkoutToken.
           if (this.storeId && this.checkoutToken) {
             return { message: 'Submitting information', nextState: States.PatchCheckout };
@@ -165,7 +165,12 @@ class Checkout {
 
       return { message: 'Failed: Logging in', nextState: States.Errored };
     } catch (err) {
-      this._logger.debug('ACCOUNT: Error logging in: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Login.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Starting task setup',
@@ -180,7 +185,6 @@ class Checkout {
     const { site, monitorDelay } = this._context.task;
     const { url, localCheckout = false } = site;
 
-    this._logger.verbose('CHECKOUT: Creating checkout');
     try {
       const res = await this._request({
         uri: `${url}/checkout`,
@@ -214,7 +218,7 @@ class Checkout {
       }
 
       const [redirectUrl, qs] = headers.location.split('?');
-      this._logger.verbose('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
+      this._logger.silly('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         return { message: 'Failed: Creating checkout', nextState: States.Errored };
       }
@@ -264,7 +268,12 @@ class Checkout {
       // not sure where we are, stop...
       return { message: 'Failed: Creating checkout', nextState: States.Errored };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error creating checkout: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Creating checkout',
@@ -284,10 +293,9 @@ class Checkout {
    * @returns {} || `CheckoutObject`
    */
   async pollQueue() {
-    const { site, monitorDelay } = this._context.task;
+    const { site } = this._context.task;
     const { url } = site;
 
-    this._logger.verbose('CHECKOUT: Polling queue');
     try {
       const res = await this._request({
         uri: `${url}/checkout/poll`,
@@ -349,12 +357,16 @@ class Checkout {
           return { queue: 'done' };
         }
       }
-      this._logger.verbose('CHECKOUT: Not passed queue, delaying %d ms', monitorDelay);
+      this._logger.silly('CHECKOUT: Not passed queue, delaying 2000 ms');
       await waitForDelay(2000);
       return { message: 'Waiting in queue', nextState: States.PollQueue };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Error polling queue: %j', err);
-
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Poll Queue.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
       const nextState = stateForError(err, {
         message: 'Waiting in queue',
         nextState: States.PollQueue,
@@ -374,7 +386,6 @@ class Checkout {
     monitorTimer.stop();
     monitorTimer.reset();
 
-    this._logger.verbose('CHECKOUT: Pinging checkout');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -408,7 +419,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('CHECKOUT: Pinging checkout redirect url: %s', redirectUrl);
+      this._logger.silly('CHECKOUT: Pinging checkout redirect url: %s', redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -422,7 +433,12 @@ class Checkout {
       monitorTimer.start();
       return { message: 'Monitoring for product' };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Ping Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Pinging checkout',
@@ -442,7 +458,6 @@ class Checkout {
     const { url, apiKey, localCheckout = false } = site;
     const { id } = this.chosenShippingMethod;
 
-    this._logger.verbose('CHECKOUT: Posting payment');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -485,7 +500,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('CHECKOUT: Post payment redirect url: %s', redirectUrl);
+      this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -517,7 +532,12 @@ class Checkout {
       checkoutTimer.reset();
       return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Request error during post payment: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Post Payment.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Posting payment',
@@ -534,7 +554,6 @@ class Checkout {
     const { site, monitorDelay } = this._context.task;
     const { url, apiKey, localCheckout = false } = site;
 
-    this._logger.verbose('CHECKOUT: Completing payment');
     try {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
@@ -575,7 +594,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.location;
-      this._logger.verbose('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
+      this._logger.silly('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // processing
@@ -610,7 +629,12 @@ class Checkout {
       checkoutTimer.start();
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Request error during review payment: %j', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Complete Payment.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Processing payment',
@@ -627,15 +651,15 @@ class Checkout {
       discord,
       id,
     } = this._context;
-    const { site, product, profile, sizes, checkoutSpeed } = this._context.task;
+    const { site, product, profile, checkoutSpeed } = this._context.task;
     const { profileName } = profile;
+    const { chosenSizes } = product;
     const { url, apiKey, name } = site;
 
     if (checkoutTimer.getRunTime() > 20000) {
       return { message: 'Processing timed out, check email', nextState: States.Finished };
     }
 
-    this._logger.verbose('CHECKOUT: Processing payment');
     try {
       const res = await this._request({
         uri: `${url}/api/checkouts/${this.checkoutToken}/payments`,
@@ -673,7 +697,7 @@ class Checkout {
       if (body && payments.length > 0) {
         const bodyString = JSON.stringify(payments[0]);
 
-        this._logger.verbose('CHECKOUT: Payments object: %j', body.payments[0]);
+        this._logger.silly('CHECKOUT: Payments object: %j', body.payments[0]);
         // success
         if (bodyString.indexOf('thank_you') > -1) {
           const { order } = payments[0].checkout;
@@ -693,35 +717,51 @@ class Checkout {
                 url: order.status_url,
               },
               profile: profileName,
-              sizes,
+              sizes: chosenSizes,
               checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               logger: `runner-${id}.log`,
               image: product.image,
             });
           } catch (err) {
-            this._logger.debug('CHECKOUT: Request error sending webhook: %s', err);
+            this._logger.error(
+              'CHECKOUT: %d Request Error..\n Step: Send Webhooks.\n\n %j %j',
+              err.statusCode,
+              err.message,
+              err.stack,
+            );
           }
+
           return { message: 'Payment successful', nextState: States.Finished };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
 
         if (paymentProcessingErrorMessage !== null) {
+          // TODO: temporary stop special parsers from entering restock mode
+          if (isSpecialSite(site)) {
+            return { message: 'Payment failed', nextState: States.Stopped };
+          }
+
           // out of stock during payment processing
           if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
-            return { message: 'Payment failed (OOS)', nextState: States.Finished };
+            return { message: 'Payment failed (OOS)', nextState: States.Restocking };
           }
 
           // generic payment processing failure
-          return { message: 'Payment failed', nextState: States.Errored };
+          return { message: 'Payment failed', nextState: States.Restocking };
         }
       }
-      this._logger.verbose('CHECKOUT: Processing payment');
+      this._logger.silly('CHECKOUT: Processing payment');
       await waitForDelay(2000);
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
-      this._logger.debug('CHECKOUT: Request error failed processing payment: %s', err);
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Process Payment.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
 
       const nextState = stateForError(err, {
         message: 'Processing payment',

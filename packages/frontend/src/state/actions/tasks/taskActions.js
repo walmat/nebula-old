@@ -96,16 +96,6 @@ const _destroyTaskRequest = async (task, type) => {
   };
 };
 
-const _statusTaskRequest = async (id, message) => {
-  if (id) {
-    return {
-      id,
-      message,
-    };
-  }
-  throw new Error('Invalid task structure');
-};
-
 const _startTaskRequest = async (task, proxies = []) => {
   if (task.status === 'running') {
     throw new Error('Already running');
@@ -126,7 +116,7 @@ const _copyTaskRequest = async task => {
 };
 
 const _stopTaskRequest = async task => {
-  if (task.status === 'stopped') {
+  if (task.status === 'stopped' || task.status === 'idle') {
     throw new Error('Already stopped');
   } else {
     if (window.Bridge) {
@@ -140,7 +130,6 @@ const _stopTaskRequest = async task => {
 const _addTask = makeActionCreator(TASK_ACTIONS.ADD, 'response');
 const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
-const _statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'response');
 const _copyTask = makeActionCreator(TASK_ACTIONS.COPY, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
@@ -148,6 +137,7 @@ const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 // Public Actions
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
 const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
+const statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'messageBuffer');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
@@ -173,12 +163,6 @@ const updateTask = (id, task) => (dispatch, getState) =>
       }
     },
     error => dispatch(handleError(TASK_ACTIONS.UPDATE, error)),
-  );
-
-const statusTask = (id, message) => dispatch =>
-  _statusTaskRequest(id, message).then(
-    response => dispatch(_statusTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.STATUS, error)),
   );
 
 const clearEdits = (id, task) => {

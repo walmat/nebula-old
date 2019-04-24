@@ -27,6 +27,8 @@ class ShippingRatesRunner extends TaskRunner {
       return true;
     }
 
+    this._logger.debug('STATE: %s, PREV STATE: %s', this._state, this._prevState);
+
     // Stop if we error out for another reason
     if (this._state === States.Restocking || superShouldStop) {
       // Stopped before

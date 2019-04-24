@@ -2,15 +2,8 @@
   "name": "@nebula/api",
   "version": "0.0.1",
   "private": true,
-  "devDependencies": {
-    "@babel/cli": "^7.2.0",
-    "@babel/core": "^7.2.0",
-    "cross-env": "^5.2.0",
-    "eslint": "5.6.0",
-    "eslint-config-google": "^0.11.0",
-    "nodemon": "^1.18.7"
-  },
   "dependencies": {
+    "@babel/runtime": "^7.4.3",
     "aws-sdk": "^2.229.1",
     "cors": "^2.8.4",
     "dotenv": "^6.2.0",
@@ -21,13 +14,14 @@
     "recaptcha-verify": "^0.1.1"
   },
   "scripts": {
-    "build": "babel src/ -d build/",
+    "build": "babel --root-mode upward --no-comments -d build src/",
     "ci": "exit 0",
     "dev": "cross-env NODE_ENV=development nodemon src/app.js",
     "lint": "eslint src",
-    "prestart": "npm run build",
+    "postinstall": "yarn run build",
+    "prestart": "yarn run build",
     "prod": "cross-env NODE_ENV=production nodemon build/app.js",
-    "start": "npm run prod",
+    "start": "yarn run prod",
     "test": "echo \"Warning: no test specified\" && exit 0"
   }
 }

@@ -4,21 +4,18 @@
   "description": "nebula discord bot",
   "main": "build/index.js",
   "scripts": {
-    "build": "babel auth.js index.js -d build",
+    "build": "babel --root-mode upward --no-comments -d build auth.js index.js",
     "ci": "exit 0",
     "lint": "eslint auth.js index.js",
-    "prestart": "npm run build",
-    "postinstall": "npm run build",
+    "prestart": "yarn run build",
+    "postinstall": "yarn run build",
     "start": "nodemon build/index.js",
     "test": "echo \"Warning: no test specified\" && exit 0"
   },
   "author": "Matthew Wall",
   "license": "MIT",
-  "devDependencies": {
-    "@babel/cli": "^7.2.0",
-    "@babel/core": "^7.2.0"
-  },
   "dependencies": {
+    "@babel/runtime": "^7.4.3",
     "bufferutil": "^3.0.3",
     "discord.js": "^11.3.2",
     "dotenv": "^6.0.0",

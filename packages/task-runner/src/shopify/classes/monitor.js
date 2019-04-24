@@ -45,25 +45,37 @@ class Monitor {
         break;
     }
     await delay.call(this);
-    this._logger.info('Monitoring not complete, remonitoring...');
-    return { message: `Monitoring for product...`, nextState: States.Monitor };
+    this._logger.silly('Monitoring not complete, remonitoring...');
+    return { message: 'Monitoring for product', nextState: States.Monitor };
   }
 
   async _handleParsingErrors(errors) {
-    // consolidate statuses
-    const statuses = errors.map(error => error.status);
-    // Check for bans
-    let checkStatus = statuses.every(s => s === 403 || s === 429 || s === 430);
-    if (checkStatus) {
-      this._logger.info('Proxy was Banned, swapping proxies...');
+    let delayStatus;
+    let ban = true; // assume we have a softban
+    let hardBan = false; // assume we don't have a hardban
+    errors.forEach(({ status }) => {
+      if (status === 403) {
+        // ban is a strict hardban, so set the flag
+        hardBan = true;
+      } else if (status !== 429 && status !== 430) {
+        // status is neither 403, 429, 430, so set ban to false
+        ban = false;
+      }
+      if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
+        delayStatus = status; // find the first error that is either a product not found or 4xx response
+      }
+    });
+    if (ban || hardBan) {
+      this._logger.silly('Proxy was banned, swapping proxies...');
+      // we can assume that it's a soft ban by default since it's either ban || hardBan
+      const shouldBan = hardBan ? 2 : 1;
       return {
         message: 'Swapping proxy',
-        shouldBan: checkStatus === 403,
+        shouldBan,
         nextState: States.SwapProxies,
       };
     }
-    checkStatus = statuses.find(s => s === ErrorCodes.ProductNotFound || s >= 400);
-    return this._delay(checkStatus || 404);
+    return this._delay(delayStatus || 404);
   }
 
   _parseAll() {
@@ -95,8 +107,9 @@ class Monitor {
   _generateVariants(product) {
     const { sizes, site } = this._context.task;
     let variants;
+    let chosenSizes;
     try {
-      variants = generateVariants(product, sizes, site, this._logger);
+      ({ variants, sizes: chosenSizes } = generateVariants(product, sizes, site, this._logger));
     } catch (err) {
       if (err.code === ErrorCodes.VariantsNotMatched) {
         return {
@@ -110,13 +123,13 @@ class Monitor {
           nextState: States.Restocking,
         };
       }
-      this._logger.debug('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
+      this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
       return {
         message: 'Task has errored out!',
         nextState: States.Errored,
       };
     }
-    return variants;
+    return { variants, sizes: chosenSizes };
   }
 
   async _monitorKeywords() {
@@ -125,27 +138,28 @@ class Monitor {
       // Try parsing all files and wait for the first response
       parsed = await this._parseAll();
     } catch (errors) {
-      this._logger.debug('MONITOR: All request errored out! %j', errors);
+      this._logger.error('MONITOR: All request errored out! %j', errors);
       // handle parsing errors
       if (this._context.type === Types.ShippingRates) {
         return { message: 'Product not found!', nextState: States.Errored };
       }
       return this._handleParsingErrors(errors);
     }
-    this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
-    this._logger.verbose('MONITOR: Generating variant lists now...');
+    this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
+    this._logger.silly('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
-    const { site } = this._context.task;
-    const variants = this._generateVariants(parsed);
-    // check for next state (means we hit an error when generating variants)
-    if (variants.nextState) {
-      return variants;
-    }
-    this._logger.verbose('MONITOR: Variants Generated, updating context...');
-    this._context.task.product.variants = variants;
-    this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
-    this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
+    const { site } = this._context.task;
+    const { variants, sizes, nextState, message } = this._generateVariants(parsed);
+    // check for next state (means we hit an error when generating variants)
+    if (nextState) {
+      return { nextState, message };
+    }
+    this._logger.silly('MONITOR: Variants Generated, updating context...');
+    this._context.task.product.variants = variants;
+    this._context.task.product.chosenSizes = sizes;
+    this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
+    this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
@@ -170,7 +184,7 @@ class Monitor {
       });
 
       // Response Succeeded -- Get Product Info
-      this._logger.verbose(
+      this._logger.silly(
         'MONITOR: Url %s responded with status code %s. Getting full info',
         url,
         response.statusCode,
@@ -178,9 +192,14 @@ class Monitor {
       let fullProductInfo;
       try {
         // Try getting full product info
-        fullProductInfo = await Parser.getFullProductInfo(url, this._request, this._logger);
+        fullProductInfo = await Parser.getFullProductInfo(
+          url,
+          this._context.proxy,
+          this._request,
+          this._logger,
+        );
       } catch (errors) {
-        this._logger.debug('MONITOR: All request errored out! %j', errors);
+        this._logger.error('MONITOR: All request errored out! %j', errors);
         if (this._context.type === Types.ShippingRates) {
           return { message: 'Product not found!', nextState: States.Errored };
         }
@@ -188,21 +207,22 @@ class Monitor {
         return this._handleParsingErrors(errors);
       }
       // Generate Variants
-      this._logger.verbose(
+      this._logger.silly(
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',
         fullProductInfo.title,
       );
       this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
-      const variants = this._generateVariants(fullProductInfo);
+      const { variants, sizes, nextState, message } = this._generateVariants(fullProductInfo);
       // check for next state (means we hit an error when generating variants)
-      if (variants.nextState) {
-        return variants;
+      if (nextState) {
+        return { nextState, message };
       }
-      this._logger.verbose('MONITOR: Variants Generated, updating context...');
+      this._logger.silly('MONITOR: Variants Generated, updating context...');
       this._context.task.product.variants = variants;
+      this._context.task.product.chosenSizes = sizes;
 
       // Everything is setup -- kick it to checkout
-      this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
+      this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
         message: `Found product: ${this._context.task.product.name}`,
@@ -210,7 +230,7 @@ class Monitor {
       };
     } catch (error) {
       // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
-      this._logger.debug(
+      this._logger.error(
         'MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...',
         url,
         error.statusCode,
@@ -230,30 +250,34 @@ class Monitor {
     try {
       parsed = await parser.run();
     } catch (error) {
-      this._logger.debug('MONITOR: Error with special parsing!', error);
+      this._logger.error('MONITOR: Error with special parsing! %j %j', error.message, error.stack);
       // Check for a product not found error
       if (error.status === ErrorCodes.ProductNotFound) {
         return { message: 'Error: Product Not Found!', nextState: States.Errored };
       }
       return this._delay(error.status);
     }
-    this._logger.verbose('MONITOR: %s retrieved as a matched product', parsed.title);
-    this._logger.verbose('MONITOR: Generating variant lists now...');
+    this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
+    this._logger.silly('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     let variants;
+    let sizes;
+    let nextState;
+    let message;
     if (product.variant) {
       variants = [product.variant];
     } else {
-      variants = this._generateVariants(parsed);
+      ({ variants, sizes, nextState, message } = this._generateVariants(parsed));
       // check for next state (means we hit an error when generating variants)
-      if (variants.nextState) {
-        return variants;
+      if (nextState) {
+        return { nextState, message };
       }
     }
-    this._logger.verbose('MONITOR: Variants Generated, updating context...');
+    this._logger.silly('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
+    this._context.task.product.chosenSizes = sizes;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
-    this._logger.verbose('MONITOR: Status is OK, proceeding to checkout');
+    this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Found product: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
@@ -262,7 +286,7 @@ class Monitor {
 
   async run() {
     if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return { nextState: States.Aborted };
     }
 
@@ -276,29 +300,28 @@ class Monitor {
     switch (this._parseType) {
       case ParseType.Variant: {
         // TODO: Add a way to determine if variant is correct
-        this._logger.verbose('MONITOR: Variant Parsing Detected');
+        this._logger.silly('MONITOR: Variant Parsing Detected');
         this._context.task.product.variants = [this._context.task.product.variant];
-        this._logger.verbose('MONITOR: Skipping Monitor and Going to Checkout Directly...');
         result = { message: 'Adding to cart', nextState: States.AddToCart };
         break;
       }
       case ParseType.Url: {
-        this._logger.verbose('MONITOR: Url Parsing Detected');
+        this._logger.silly('MONITOR: Url Parsing Detected');
         result = await this._monitorUrl();
         break;
       }
       case ParseType.Keywords: {
-        this._logger.verbose('MONITOR: Keyword Parsing Detected');
+        this._logger.silly('MONITOR: Keyword Parsing Detected');
         result = await this._monitorKeywords();
         break;
       }
       case ParseType.Special: {
-        this._logger.verbose('MONITOR: Special Parsing Detected');
+        this._logger.silly('MONITOR: Special Parsing Detected');
         result = await this._monitorSpecial();
         break;
       }
       default: {
-        this._logger.verbose(
+        this._logger.error(
           'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...',
           this._parseType,
         );

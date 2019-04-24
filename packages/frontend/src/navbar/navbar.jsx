@@ -38,7 +38,8 @@ export class NavbarPrimitive extends PureComponent {
     if (window.Bridge) {
       return window.Bridge.checkForUpdates();
     }
-    return new Error('window.Bridge is not available');
+    console.error('Unable to check for updates!');
+    return null;
   }
 
   static _renderNavbarIconRow({ Icon, iconName, className, onClick, onKeyPress }) {
@@ -134,7 +135,7 @@ export class NavbarPrimitive extends PureComponent {
 
   render() {
     const { name, version } = NavbarPrimitive._getAppData();
-    const { theme } = this.props;
+    const { theme, onKeyPress } = this.props;
     return (
       <div className="container navbar">
         <div className="row">
@@ -179,7 +180,7 @@ export class NavbarPrimitive extends PureComponent {
                         onClick={() => {
                           NavbarPrimitive._checkForUpdates();
                         }}
-                        onKeyPress={() => {}}
+                        onKeyPress={onKeyPress}
                       >
                         <p className="navbar__text--app-version" title="Check for updates">
                           {version}

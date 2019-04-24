@@ -1,6 +1,24 @@
 // Tasks Log Specific Rules
 @import '../themes';
 
+%tasks-table__text-field {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  vertical-align: middle;
+}
+
+%tasks-log__button {
+  font-family: AvenirNext-Medium;
+  font-size: 9px;
+  letter-spacing: 0;
+  width: 64px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+}
+
 %tasks-log__header__field {
   margin: 0;
 
@@ -26,24 +44,172 @@
     border-style: solid;
     border-radius: 3px;
 
-    .tasks-table__wrapper {
-      min-width: 0;
-      width: 100%;
-      overflow: hidden;
-      display: block;
+    &--fullscreen {
+      z-index: 999;
+      position: absolute;
+      @include themify($themes) {
+        background-color: themed('background');
+      }
+      top: 30px;
+      left: 125px;
+      height: calc(100% - 60px);
+      width: calc(100% - 259px);
     }
   }
 
-  .tasks-table {
+  .tasks-table__wrapper {
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+    display: block;
+  }
+
+  .table--upper {
+    flex-grow: 1;
+  }
+
+  .table--lower {
+    flex-grow: 0 !important;
+    height: 175px;
+    width: calc(100% - 16px);
+    padding-left: 15px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    margin: 0 16px 0 0 !important;
+    border-top: 1px solid;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    @include themify($themes) {
+      border-top-color: themed('liveLogTableBorderTop');
+      background-color: themed('inputBackgroundDisabled');
+    }
+  }
+
+  .tasks-live-log {
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+    display: block;
+
+    &__wrapper {
+      border-collapse: collapse;
+      border-spacing: 0 10px;
+      height: 100%;
+      width: 100%;
+      overflow-y: scroll;
+      overflow-x: hidden;
+    }
+
+    &__output-row {
+      margin: 0;
+      line-height: 0;
+      padding-bottom: 10px;
+      height: 15px;
+      min-height: 15px;
+
+      & > p {
+        text-align: left;
+        vertical-align: middle;
+      }
+    }
+  }
+
+  .tasks-log {
     border-collapse: collapse;
     border-spacing: 0 10px;
-    max-height: 265px;
     height: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
 
+    &__button {
+      &--links {
+        @extend %tasks-log__button;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+        }
+        position: absolute;
+        right: 14px;
+        top: 105px;
+      }
+
+      &--password {
+        @extend %tasks-log__button;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+        }
+        position: absolute;
+        right: 14px;
+        top: 150px;
+      }
+    }
+
+    &__header {
+      margin: 0;
+      padding-bottom: 1px;
+      height: 26px;
+      min-height: 26px;
+      cursor: sw-resize;
+
+      &--fullscreen {
+        cursor: ne-resize;
+      }
+
+      &--id {
+        @extend %tasks-log__header__field;
+        width: 7px;
+        padding-left: 14px;
+      }
+
+      &--store {
+        @extend %tasks-log__header__field;
+        width: 110px;
+        padding-left: 15px;
+      }
+
+      &--product {
+        display: none;
+        &--fullscreen {
+          display: unset;
+          @extend %tasks-log__header__field;
+          width: 110px;
+          padding-left: 15px;
+        }
+      }
+
+      &--size {
+        @extend %tasks-log__header__field;
+        width: 65px;
+        padding-left: 18px;
+      }
+
+      &--proxy {
+        display: none;
+        &--fullscreen {
+          display: unset;
+          @extend %tasks-log__header__field;
+          width: 65px;
+        }
+      }
+
+      &--output {
+        @extend %tasks-log__header__field;
+        width: 20px;
+        padding-left: 30px;
+        &--fullscreen {
+          @extend %tasks-log__header__field;
+          width: 20px;
+          padding-left: 80px;
+        }
+      }
+    }
+
     &__section-header {
       padding-top: 1px;
+      &--fullscreen {
+        display: none;
+      }
     }
 
     .blank {
@@ -70,66 +236,66 @@
         display: flex;
         height: 30px;
 
+        &--selected {
+          @include themify($themes) {
+            background-color: themed('liveLogtableRowSelected');
+          }
+          display: flex;
+          height: 30px;
+        }
+
         &__log {
           &--id {
-            width: 7px;
-            margin-left: -1px;
-            padding-left: 14px;
+            @extend %tasks-table__text-field;
+            margin-left: 8.5px;
+            margin-right: 6.5px;
+            &--fullscreen {
+              margin-left: 12.5px;
+              margin-right: 9.5px;
+            }
           }
 
-          &--site {
-            width: 205px;
-            white-space: nowrap;
-            padding-left: 3px;
+          &--store {
+            @extend %tasks-table__text-field;
+            width: 116px;
+            &--fullscreen {
+              width: 122px;
+            }
+          }
+
+          &--product {
+            @extend %tasks-table__text-field;
+            visibility: hidden;
+            width: 0;
+            &--fullscreen {
+              visibility: visible;
+              width: 126px;
+            }
           }
 
           &--size {
-            width: 150px;
-            padding-left: 20px;
+            @extend %tasks-table__text-field;
+            width: 84px;
+            &--fullscreen {
+              width: 64px;
+            }
+          }
+
+          &--proxy {
+            @extend %tasks-table__text-field;
+            visibility: hidden;
+            width: 0;
+            &--fullscreen {
+              visibility: visible;
+              width: 142px;
+            }
           }
 
           &--output {
-            width: 440px;
+            @extend %tasks-table__text-field;
+            width: 241px;
           }
         }
-      }
-    }
-  }
-  .tasks-log {
-    width: 504px;
-    height: 300px;
-    border-radius: 3px;
-
-    &__section-header {
-      padding-top: 1px;
-      padding-bottom: 2px;
-    }
-
-    &__header {
-      padding-bottom: 1px;
-
-      &--id {
-        @extend %tasks-log__header__field;
-        width: 7px;
-        padding-left: 14px;
-      }
-
-      &--site {
-        @extend %tasks-log__header__field;
-        width: 110px;
-        padding-left: 15px;
-      }
-
-      &--size {
-        @extend %tasks-log__header__field;
-        width: 65px;
-        padding-left: 18px;
-      }
-
-      &--output {
-        @extend %tasks-log__header__field;
-        width: 20px;
-        padding-left: 30px;
       }
     }
   }

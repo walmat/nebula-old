@@ -51,14 +51,17 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
   // only pick certain properties of the variants to print
   logger.log(
-    'verbose',
+    'silly',
     'Generated valid variants: %j',
     validVariants.map(v =>
       _.pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
     ),
   );
   if (validVariants.length > 0) {
-    return validVariants.map(v => `${v.id}`);
+    return {
+      variants: validVariants.map(v => `${v.id}`),
+      sizes: validVariants.map(v => `${v.title}`),
+    };
   }
   const err = new Error('No variants matched');
   err.code = ErrorCodes.VariantsNotMatched;

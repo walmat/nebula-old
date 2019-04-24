@@ -1,8 +1,9 @@
 module.exports = {
+  root: true,
   env: {
     es6: true,
   },
-  extends: ['airbnb-base', 'prettier'],
+  extends: ['airbnb', 'prettier'],
   parserOptions: {
     ecmaFeatures: { jsx: false }, // to be overridden as necessary
     ecmaVersion: 2018,

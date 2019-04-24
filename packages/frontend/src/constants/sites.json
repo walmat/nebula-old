@@ -98,6 +98,13 @@
     "supported": true
   },
   {
+    "label": "Bring the Heat Bots",
+    "value": "https://bringtheheatbots.com",
+    "apiKey": "6147e9f3c3886ac3deee7e77546da729",
+    "auth": false,
+    "supported": true
+  },
+  {
     "label": "Burn Rubber",
     "value": "https://burnrubbersneakers.com",
     "apiKey": "7bbda6e82f72c3dba50a7f27be6227ec",
@@ -653,8 +660,15 @@
     "supported": true
   },
   {
-    "label": "Travis Scott Store",
-    "value": "https://store.travisscott.com",
+    "label": "Travis Scott (AJ1)",
+    "value": "https://aj1.travisscott.com",
+    "apiKey": "8eadffbda47bb8f4167fbf8a086590e0",
+    "auth": false,
+    "supported": true
+  },
+  {
+    "label": "Travis Scott (Astros)",
+    "value": "https://astros.travisscott.com",
     "apiKey": "8eadffbda47bb8f4167fbf8a086590e0",
     "auth": false,
     "supported": true

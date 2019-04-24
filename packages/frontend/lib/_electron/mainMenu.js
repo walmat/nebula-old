@@ -18,16 +18,16 @@ class MainMenu {
    * @return {Object[]} Menu.
    */
   static menu(context) {
-    const templates = [
-      MainMenu._menuView(),
-      MainMenu._menuEdit(),
-      MainMenu._menuWindow(),
-      MainMenu._menuHelp(),
-    ];
+    const templates = [MainMenu._menuEdit(), MainMenu._menuWindow(), MainMenu._menuHelp()];
 
     if (process.platform === 'darwin') {
       templates.unshift(MainMenu._menuApp(context));
     }
+
+    if (nebulaEnv.isDevelopment()) {
+      templates.push(MainMenu._menuView());
+    }
+
     return templates;
   }
 
@@ -91,34 +91,29 @@ class MainMenu {
    * @return {Object} Menu data.
    */
   static _menuView() {
-    if (nebulaEnv.isDevelopment()) {
-      const templates = {
-        label: 'View',
-        submenu: [
-          {
-            label: 'Reload',
-            accelerator: 'CmdOrCtrl+R',
-            click: (item, focusedWindow) => {
-              if (focusedWindow) {
-                focusedWindow.reload();
-              }
-            },
+    return {
+      label: 'View',
+      submenu: [
+        {
+          label: 'Reload',
+          accelerator: 'CmdOrCtrl+R',
+          click: (item, focusedWindow) => {
+            if (focusedWindow) {
+              focusedWindow.reload();
+            }
           },
-          {
-            label: 'Toggle Developer Tools',
-            accelerator: (() =>
-              process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
-            click: (item, focusedWindow) => {
-              if (focusedWindow) {
-                focusedWindow.toggleDevTools();
-              }
-            },
+        },
+        {
+          label: 'Toggle Developer Tools',
+          accelerator: (() => (process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
+          click: (item, focusedWindow) => {
+            if (focusedWindow) {
+              focusedWindow.toggleDevTools();
+            }
           },
-        ],
-      };
-      return templates;
-    }
-    return {};
+        },
+      ],
+    };
   }
 
   static _menuEdit() {

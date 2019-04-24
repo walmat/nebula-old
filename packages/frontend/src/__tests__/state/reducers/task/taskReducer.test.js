@@ -10,11 +10,15 @@ describe('task reducer', () => {
   });
 
   describe('should handle edit', () => {
-    const checkGeneralFieldEdit = (field, value) => {
-      const expected = {
-        ...initialTaskStates.task,
-        [mapTaskFieldsToKey[field]]: value,
-      };
+    const checkGeneralFieldEdit = (field, value, generateExpected) => {
+      let expected = { ...initialTaskStates.task };
+      if (!generateExpected) {
+        // By default, set value for the given field
+        expected[mapTaskFieldsToKey[field]] = value;
+      } else {
+        // use given generator to get expected value
+        expected = generateExpected(expected, value);
+      }
       const actual = taskReducer(initialTaskStates.task, {
         type: TASK_ACTIONS.EDIT,
         field,
@@ -23,15 +27,21 @@ describe('task reducer', () => {
       expect(actual).toEqual(expected);
     };
 
-    const checkExistingFieldEdit = (field, value, id) => {
-      const expected = {
+    const checkExistingFieldEdit = (field, value, id, generateExpected) => {
+      let expected = {
         ...initialTaskStates.task,
         id,
-        edits: {
+      };
+      if (!generateExpected) {
+        // By default, set value for the given edit field
+        expected.edits = {
           ...initialTaskStates.edit,
           [mapTaskFieldsToKey[field]]: value,
-        },
-      };
+        };
+      } else {
+        // use given generator to get expected value
+        expected = generateExpected(expected, value);
+      }
       const actual = taskReducer(
         {
           ...initialTaskStates.task,
@@ -225,7 +235,11 @@ describe('task reducer', () => {
 
         describe('sizes', () => {
           test('when adding sizes to an empty list', () => {
-            checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, ['test']);
+            checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, ['test'], (input, value) => ({
+              ...input,
+              sizes: value,
+              chosenSizes: value,
+            }));
           });
 
           test('when resetting sizes to an empty list', () => {
@@ -253,6 +267,7 @@ describe('task reducer', () => {
             const expected = {
               ...initialState,
               sizes: ['test2', 'test3', 'test'],
+              chosenSizes: ['test2', 'test3', 'test'],
             };
             const actual = taskReducer(initialState, {
               type: TASK_ACTIONS.EDIT,
@@ -270,6 +285,7 @@ describe('task reducer', () => {
             const expected = {
               ...initialState,
               sizes: ['test2', 'test3'],
+              chosenSizes: ['test2', 'test3'],
             };
             const actual = taskReducer(initialState, {
               type: TASK_ACTIONS.EDIT,
@@ -653,11 +669,23 @@ describe('task reducer', () => {
         });
 
         test('username', () => {
-          checkGeneralFieldEdit(TASK_FIELDS.EDIT_USERNAME, '', 1);
+          checkExistingFieldEdit(TASK_FIELDS.EDIT_USERNAME, '', 1, input => ({
+            ...input,
+            edits: {
+              ...input.edits,
+              username: null,
+            },
+          }));
         });
 
         test('password', () => {
-          checkGeneralFieldEdit(TASK_FIELDS.EDIT_PASSWORD, '', 1);
+          checkExistingFieldEdit(TASK_FIELDS.EDIT_PASSWORD, '', 1, input => ({
+            ...input,
+            edits: {
+              ...input.edits,
+              password: null,
+            },
+          }));
         });
 
         test('site', () => {
@@ -691,11 +719,11 @@ describe('task reducer', () => {
         });
 
         test('profile', () => {
-          checkGeneralFieldEdit(TASK_FIELDS.EDIT_PROFILE, { id: 1 }, 1);
+          checkExistingFieldEdit(TASK_FIELDS.EDIT_PROFILE, { id: 1 }, 1);
         });
 
         test('sizes', () => {
-          checkGeneralFieldEdit(TASK_FIELDS.EDIT_SIZES, [], 1);
+          checkExistingFieldEdit(TASK_FIELDS.EDIT_SIZES, [], 1);
         });
       });
 

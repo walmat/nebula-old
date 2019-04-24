@@ -83,6 +83,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
           }
           change = {
             sizes: nextSizes,
+            chosenSizes: nextSizes,
             errors: Object.assign({}, state.errors, action.errors),
           };
           break;

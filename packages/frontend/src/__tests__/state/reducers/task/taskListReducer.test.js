@@ -1,4 +1,6 @@
 /* global describe expect it test beforeEach jest */
+import { format } from 'date-fns';
+
 import taskListReducer from '../../../../state/reducers/tasks/taskListReducer';
 import initialTaskStates from '../../../../state/initial/tasks';
 import initialProfileStates from '../../../../state/initial/profiles';
@@ -1368,11 +1370,14 @@ describe('task list reducer', () => {
       ];
       const expected = JSON.parse(JSON.stringify(start));
       expected[0].output = 'testing...';
+      expected[0].log = [`[${format(new Date(), 'hh:mm:ss A')}]: testing...`];
       const actual = taskListReducer(start, {
         type: TASK_ACTIONS.STATUS,
-        response: {
-          id: 1,
-          message: 'testing...',
+        messageBuffer: {
+          1: {
+            id: 1,
+            message: 'testing...',
+          },
         },
       });
       expect(actual).toEqual(expected);

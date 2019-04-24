@@ -29,7 +29,7 @@ class SplitContextTaskManager extends TaskManager {
       await new Promise(resolve => {
         let forceKill;
         forceKill = setTimeout(() => {
-          this._logger.debug('%s abort timeout reached for task: %s', childContext.name, rId);
+          this._logger.silly('%s abort timeout reached for task: %s', childContext.name, rId);
           // Clear out the timeout handler so we don't trigger the clearTimeout call
           forceKill = null;
           // Force kill the child context
@@ -38,7 +38,7 @@ class SplitContextTaskManager extends TaskManager {
         }, 5000);
         childContext.on('exit', (payload, next = () => {}) => {
           if (childContext.isExitPayload(payload)) {
-            this._logger.debug('%s exited for task: %s', childContext.name, rId);
+            this._logger.silly('%s exited for task: %s', childContext.name, rId);
             if (forceKill) {
               clearTimeout(forceKill);
             }
@@ -69,7 +69,7 @@ class SplitContextTaskManager extends TaskManager {
 
   _setup(rId) {
     const childContext = this._runners[rId];
-    this._logger.verbose('Setting up %s handlers for runner: %s', childContext.name, rId);
+    this._logger.silly('Setting up %s handlers for runner: %s', childContext.name, rId);
     const handlerGenerator = (event, sideEffects) => (id, ...params) => {
       if (id === rId || id === 'ALL') {
         const args = [rId, ...params];
@@ -89,9 +89,6 @@ class SplitContextTaskManager extends TaskManager {
         // Only handle events that target the main context
         if (target !== 'main') {
           return;
-        }
-        if (event === TaskRunnerEvents.SwapProxy) {
-          this._logger.warn('Sending swap proxy... %j', args);
         }
         const eventHandlerMap = {
           [TaskRunnerEvents.TaskStatus]: this.mergeStatusUpdates,
@@ -147,7 +144,7 @@ class SplitContextTaskManager extends TaskManager {
 
   _cleanup(rId) {
     const childContext = this._runners[rId];
-    this._logger.verbose('Cleanup %s handlers for runner: %s', childContext.name, rId);
+    this._logger.silly('Cleanup %s handlers for runner: %s', childContext.name, rId);
     const handlers = this._handlers[rId];
     delete this._handlers[rId];
 
@@ -167,7 +164,7 @@ class SplitContextTaskManager extends TaskManager {
   }
 
   async _start([runnerId, task, openProxy, type]) {
-    this._logger.verbose('Spawning Child Context for runner: %s', runnerId);
+    this._logger.silly('Spawning Child Context for runner: %s', runnerId);
     const childContext = new this._ContextCtor(runnerId, task, openProxy);
     this._runners[runnerId] = childContext;
 
@@ -210,7 +207,7 @@ class SplitContextTaskManager extends TaskManager {
         };
         childContext.on('message', doneHandler);
       });
-      this._logger.info('Runner %s finished without errors', runnerId);
+      this._logger.silly('Runner %s finished without errors', runnerId);
     } catch (error) {
       this._logger.error('Runner %s was stopped due to errors: %s', runnerId, error.message);
     }

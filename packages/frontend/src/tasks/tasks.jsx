@@ -108,43 +108,7 @@ export class TasksPrimitive extends Component {
             </div>
           </div>
           <div className="col col--start">
-            <div className="row row--start">
-              <div className="col">
-                <p className="body-text section-header section-header--no-top tasks-log__section-header">
-                  Log
-                </p>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col col--start tasks-log-container">
-                <div className="tasks-log">
-                  <div className="row row--start row--gutter-left row--gutter-right tasks-log__header">
-                    <div className="col tasks-log__header--id">
-                      <p>#</p>
-                    </div>
-                    <div className="col tasks-log__header--site">
-                      <p>Site</p>
-                    </div>
-                    <div className="col tasks-log__header--size">
-                      <p>Size</p>
-                    </div>
-                    <div className="col tasks-log__header--output">
-                      <p>Output</p>
-                    </div>
-                  </div>
-                  <div className="row row--start tasks-log__view-line">
-                    <div className="col col--expand">
-                      <hr className="view-line" />
-                    </div>
-                  </div>
-                  <div className="row row--expand">
-                    <div className="col tasks-table__wrapper">
-                      <LogTask />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <LogTask />
           </div>
         </div>
         <div className="row row--start">

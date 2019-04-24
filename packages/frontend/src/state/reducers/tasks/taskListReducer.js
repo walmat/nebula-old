@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations */
 import shortId from 'shortid';
+import { format } from 'date-fns';
 
 import {
   TASK_ACTIONS,
@@ -189,13 +190,35 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.STATUS: {
-      if (!action.response.id || !action.response.message) {
+      if (!action.messageBuffer) {
         break;
       }
-      const task = nextState.find(t => t.id === action.response.id);
-      if (task) {
-        task.output = action.response.message;
-      }
+      const { messageBuffer } = action;
+      const taskMap = {};
+      nextState.forEach(t => {
+        taskMap[t.id] = t;
+      });
+      // for each task in the messageBuffer, update the status
+      Object.entries(messageBuffer).forEach(([taskId, msg]) => {
+        const { type } = msg;
+        if (type !== 'srr') {
+          const task = taskMap[taskId];
+          if (task) {
+            const { message, size, proxy, found } = msg;
+            task.output = message;
+            if (size) {
+              task.chosenSizes = [size];
+            }
+            if (proxy) {
+              task.proxy = proxy;
+            }
+            if (found) {
+              task.product.found = found;
+            }
+          }
+          task.log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
+        }
+      });
       break;
     }
     case TASK_ACTIONS.EDIT: {
@@ -268,6 +291,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       } else {
         nextState[idx].status = 'stopped';
         nextState[idx].output = 'Stopping task...';
+        nextState[idx].chosenSizes = nextState[idx].sizes;
+        nextState[idx].proxy = null;
+        nextState[idx].product.found = null;
+        nextState[idx].log = [];
       }
       break;
     }

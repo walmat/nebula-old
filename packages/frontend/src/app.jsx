@@ -33,8 +33,11 @@ export class App extends PureComponent {
     return async e => {
       e.preventDefault();
       if (window.Bridge) {
-        const confirm = await window.Bridge.confirmDialog(
+        const confirm = await window.Bridge.showDialog(
           'Are you sure you want to deactivate Orion? Doing so will erase all data!',
+          'question',
+          ['Okay', 'Cancel'],
+          'Confirm',
         );
         if (confirm) {
           store.dispatch(globalActions.reset());
@@ -47,18 +50,19 @@ export class App extends PureComponent {
   constructor(props) {
     super(props);
     this.taskHandler = this.taskHandler.bind(this);
+    this._cleanup = this._cleanup.bind(this);
   }
 
   componentDidMount() {
     if (window.Bridge) {
       window.Bridge.registerForTaskEvents(this.taskHandler);
     }
-    window.addEventListener('beforeunload', this._cleanupTaskEvents);
+    window.addEventListener('beforeunload', this._cleanup);
   }
 
   componentWillUnmount() {
-    this._cleanupTaskEvents();
-    window.removeEventListener('beforeunload', this._cleanupTaskEvents);
+    this._cleanup();
+    window.removeEventListener('beforeunload', this._cleanup);
   }
 
   setTheme(store) {
@@ -72,13 +76,24 @@ export class App extends PureComponent {
     this.forceUpdate();
   }
 
-  taskHandler(event, taskId, statusMessage) {
+  taskHandler(_, statusMessageBuffer) {
     const { store } = this.props;
-    const { type } = statusMessage;
-    // filter out shipping rate handler
-    if (type !== 'srr') {
-      store.dispatch(taskActions.status(taskId, statusMessage));
-    }
+    store.dispatch(taskActions.status(statusMessageBuffer));
+  }
+
+  _cleanup() {
+    this._cleanupTaskLog();
+    this._cleanupTaskEvents();
+  }
+
+  _cleanupTaskLog() {
+    const { store } = this.props;
+    const { tasks } = store.getState();
+    tasks.forEach(t => {
+      if (t.status !== 'stopped' || t.status !== 'idle') {
+        store.dispatch(taskActions.stop(t));
+      }
+    });
   }
 
   _cleanupTaskEvents() {
