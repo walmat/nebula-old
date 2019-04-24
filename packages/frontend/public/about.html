@@ -6,33 +6,13 @@
   <title>About</title>
   <script src="./js/lottie.js"></script>
   <link rel="stylesheet" type="text/css" href="./css/about.css">
-  <script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function(event) {
-      var appData = window.Bridge.getAppData();
-      document.getElementById("title").innerHTML = appData.name;
-      document.getElementById("version").innerHTML = appData.version;
-    });
-  </script>
+  <script src="./js/about.js"></script>
 </head>
 <body>
   <div id="titlebar"></div>
-  <img src="./assets/close-auth.svg" id="close" onclick="window.Bridge.close()" draggable="false"/>
-  <!-- this ^ will fail once we do a build or something I'm assuming.. -->
+  <img src="./assets/close.svg" id="close" draggable="false"/>
   <div id="bodymovin" draggable="false"></div>
   <h4 id="title"></h4>
   <p id="version"></p>
 </body>
-<script>
-  const animData = {
-    wrapper: document.getElementById('bodymovin'),
-    animType: 'html',
-    loop: true,
-    prerender: true,
-    autoplay: true,
-    path: './js/nebula.json',
-  };
-  const anim = bodymovin.loadAnimation(animData);
-
-  // window.onload = () => document.getElementById('close').onclick = window.Bridge.close;
-</script>
 </html>
