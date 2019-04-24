@@ -103,6 +103,16 @@ describe('v0.4.0 migrator', () => {
           id: 1,
           index: 1,
         },
+        {
+          ...prevState.newTask,
+          id: 2,
+          index: 2,
+        },
+        {
+          ...prevState.newTask,
+          id: 3,
+          index: 3,
+        },
       ],
     });
   });
