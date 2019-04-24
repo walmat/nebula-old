@@ -664,8 +664,15 @@ const sites = [
     supported: true,
   },
   {
-    name: 'Travis Scott Store',
-    url: 'https://store.travisscott.com',
+    name: 'Travis Scott (AJ1)',
+    url: 'https://aj1.travisscott.com',
+    apiKey: '8eadffbda47bb8f4167fbf8a086590e0',
+    auth: false,
+    supported: true,
+  },
+  {
+    name: 'Travis Scott (Astros)',
+    url: 'https://astros.travisscott.com',
     apiKey: '8eadffbda47bb8f4167fbf8a086590e0',
     auth: false,
     supported: true,

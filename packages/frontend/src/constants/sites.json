@@ -660,8 +660,15 @@
     "supported": true
   },
   {
-    "label": "Travis Scott Store",
-    "value": "https://store.travisscott.com",
+    "label": "Travis Scott (AJ1)",
+    "value": "https://aj1.travisscott.com",
+    "apiKey": "8eadffbda47bb8f4167fbf8a086590e0",
+    "auth": false,
+    "supported": true
+  },
+  {
+    "label": "Travis Scott (Astros)",
+    "value": "https://astros.travisscott.com",
     "apiKey": "8eadffbda47bb8f4167fbf8a086590e0",
     "auth": false,
     "supported": true
