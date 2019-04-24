@@ -9,6 +9,7 @@ const {
   userAgent,
   waitForDelay,
 } = require('./utils');
+const { isSpecialSite } = require('./utils/siteOptions');
 const { States, Types } = require('./utils/constants').TaskRunner;
 
 class Checkout {
@@ -730,12 +731,18 @@ class Checkout {
               err.stack,
             );
           }
+
           return { message: 'Payment successful', nextState: States.Finished };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
 
         if (paymentProcessingErrorMessage !== null) {
+          // TODO: temporary stop special parsers from entering restock mode
+          if (isSpecialSite(site)) {
+            return { message: 'Payment failed', nextState: States.Stopped };
+          }
+
           // out of stock during payment processing
           if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
             return { message: 'Payment failed (OOS)', nextState: States.Restocking };
