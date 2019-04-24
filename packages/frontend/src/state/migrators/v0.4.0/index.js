@@ -19,6 +19,6 @@ export default (state = initialState) => {
   return {
     ...state,
     version: newVersion,
-    tasks: state.tasks.filter(t => `${t.index}`.indexOf('-') === -1),
+    tasks: state.tasks.map((t, idx) => ({ ...t, index: idx + 1 })),
   };
 };
