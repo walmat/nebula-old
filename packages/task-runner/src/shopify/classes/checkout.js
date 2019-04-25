@@ -523,7 +523,12 @@ class Checkout {
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
       const recaptcha = $('.g-recaptcha');
       this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
-      if (recaptcha.length > 0 || url.indexOf('socialstatus') > -1 || this.needsCaptcha) {
+      if (
+        recaptcha.length > 0 ||
+        url.indexOf('socialstatus') > -1 ||
+        url.indexOf('hbo') > -1 ||
+        this.needsCaptcha
+      ) {
         this._context.task.checkoutSpeed = checkoutTimer.getRunTime();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }

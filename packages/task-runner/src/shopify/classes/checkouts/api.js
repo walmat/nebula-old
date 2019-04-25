@@ -122,8 +122,8 @@ class APICheckout extends Checkout {
 
       const redirectUrl = headers.location;
       this._logger.silly('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
-      if (!redirectUrl) {
-        if (statusCode === 200) {
+      if (!redirectUrl || redirectUrl.indexOf('checkouts') > -1) {
+        if (statusCode === 200 || statusCode === 302) {
           return { message: 'Monitoring for product', nextState: States.Monitor };
         }
         return { message: 'Failed: Patching checkout', nextState: States.Errored };
@@ -144,7 +144,6 @@ class APICheckout extends Checkout {
 
       // queue
       if (redirectUrl.indexOf('throttle') > -1) {
-        await waitForDelay(monitorDelay);
         return { message: 'Waiting in queue', nextState: States.PollQueue };
       }
 
