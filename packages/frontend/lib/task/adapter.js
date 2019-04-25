@@ -139,11 +139,11 @@ class TaskManagerAdapter {
   }
 
   _onAddProxiesRequest(_, proxies) {
-    this._taskManager.registerProxies(proxies);
+    this._taskManager.proxyManager.registerAll(proxies);
   }
 
   _onRemoveProxiesRequest(_, proxies) {
-    this._taskManager.deregisterProxies(proxies);
+    this._taskManager.proxyManager.deregisterAll(proxies);
   }
 
   _onChangeDelayRequest(_, delay, type) {
