@@ -641,10 +641,9 @@ class TaskRunner {
     const {
       task: { errorDelay },
     } = this._context;
-    let { proxy } = this._context;
     try {
       this._logger.silly('Waiting for new proxy...');
-      const p = await this.swapProxies();
+      const proxy = await this.swapProxies();
 
       this._logger.debug(
         'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
@@ -652,16 +651,15 @@ class TaskRunner {
         this.shouldBanProxy,
       );
       // Proxy is fine, update the references
-      if (p) {
-        const { proxy: newProxy } = p;
-        this.proxy = p;
-        proxy = newProxy;
-        this._checkout.context.proxy = p.proxy;
+      if (proxy) {
+        this.proxy = proxy;
+        this._context.proxy = proxy.proxy;
+        this._checkout.context.proxy = proxy.proxy;
         this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
         this._emitTaskEvent({
-          message: `Swapped proxy to: ${p.proxy}`,
-          proxy: p.proxy,
+          message: `Swapped proxy to: ${proxy.proxy}`,
+          proxy: proxy.proxy,
         });
         return this._prevState;
       }
