@@ -81,7 +81,7 @@ class APICheckout extends Checkout {
   }
 
   async patchCheckout() {
-    const { site, profile, monitorDelay } = this._context.task;
+    const { site, profile } = this._context.task;
     const { shipping, billing, payment } = profile;
     const { url } = site;
 
