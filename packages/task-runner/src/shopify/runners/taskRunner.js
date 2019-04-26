@@ -638,33 +638,39 @@ class TaskRunner {
   }
 
   async _handleSwapProxies() {
+    const {
+      task: { errorDelay },
+    } = this._context;
+    let { proxy } = this._context;
     try {
       this._logger.silly('Waiting for new proxy...');
-      const proxy = await this.swapProxies();
+      const p = await this.swapProxies();
 
-      this._logger.debug('PROXY IN _handleSwapProxies: %j', proxy);
+      this._logger.debug(
+        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
+        proxy,
+        this.shouldBanProxy,
+      );
       // Proxy is fine, update the references
-      if (proxy) {
-        this.proxy = proxy;
-        this._context.proxy = proxy.proxy;
+      if (p) {
+        const { proxy: newProxy } = p;
+        this.proxy = p;
+        proxy = newProxy;
+        this._checkout.context.proxy = p.proxy;
         this.shouldBanProxy = 0; // reset ban flag
-        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', this._context.proxy);
+        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
         this._emitTaskEvent({
-          message: `Swapped proxy to: ${proxy.proxy}`,
-          proxy: proxy.proxy,
+          message: `Swapped proxy to: ${p.proxy}`,
+          proxy: p.proxy,
         });
-        this._logger.debug('RETURNING TO STATE: %s', this._prevState);
         return this._prevState;
       }
 
+      this._emitTaskEvent({
+        message: `No open proxies! Waiting ${errorDelay} ms`,
+      });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
       await this._waitForErrorDelay();
-      // If we have a hard ban, continue waiting for open proxy
-      if (this.shouldBanProxy) {
-        this._emitTaskEvent({
-          message: `No open proxies! Waiting ${this._context.task.errorDelay} ms`,
-        });
-      }
     } catch (err) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitTaskEvent({

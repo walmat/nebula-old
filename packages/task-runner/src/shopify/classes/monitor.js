@@ -138,7 +138,7 @@ class Monitor {
       // Try parsing all files and wait for the first response
       parsed = await this._parseAll();
     } catch (errors) {
-      this._logger.error('MONITOR: All request errored out! %j', errors);
+      this._logger.silly('MONITOR: All request errored out! %j', errors);
       // handle parsing errors
       if (this._context.type === Types.ShippingRates) {
         return { message: 'Product not found!', nextState: States.Errored };
