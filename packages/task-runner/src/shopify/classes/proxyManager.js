@@ -164,7 +164,7 @@ class ProxyManager {
       return;
     }
     // free up the use list, but wait 2 min. to lift the ban
-    proxy.use[site] = undefined;
+    delete proxy.use[site];
     proxy.ban[site] = shouldBan;
     this._logger.debug('Ban predicate: %j, Used predicate: %j', proxy.ban[site], proxy.use[site]);
     if (proxy.ban[site] === 1) {
@@ -173,7 +173,7 @@ class ProxyManager {
       setTimeout(() => {
         // reset the proxy by removing the ban and opening it up again
         this._logger.debug('Freeing up ban predicate for %s', proxy.proxy);
-        delete proxy.ban[site];
+        this.release(id, site, proxy.id, true);
       }, this.timeout);
     } else if (proxy.ban[site] === 2) {
       // delete the proxy from the list if we've hard banned it
