@@ -9,7 +9,6 @@ class RPC {
 
     this.rpc = new DiscordRPC.Client({ transport: 'ipc' });
 
-    this.rpc.on('ready', () => setInterval(() => this.setActivity(), 15e3));
     this.rpc.login({ clientId: this.clientId });
   }
 
