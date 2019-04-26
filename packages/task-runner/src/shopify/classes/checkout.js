@@ -13,6 +13,10 @@ const { isSpecialSite } = require('./utils/siteOptions');
 const { States, Types } = require('./utils/constants').TaskRunner;
 
 class Checkout {
+  get context() {
+    return this._context;
+  }
+
   constructor(context) {
     this._context = context;
     this._logger = this._context.logger;
@@ -378,6 +382,7 @@ class Checkout {
   async pingCheckout() {
     const {
       timers: { monitor: monitorTimer },
+      proxy,
     } = this._context;
     const { site } = this._context.task;
     const { url, apiKey } = site;
@@ -390,7 +395,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'GET',
-        proxy: formatProxy(this._context.proxy),
+        proxy: formatProxy(proxy),
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -444,9 +449,7 @@ class Checkout {
         message: 'Pinging checkout',
         nextState: States.PingCheckout,
       });
-      return (
-        nextState || { message: 'Failed: Refreshing checkout session', nextState: States.Errored }
-      );
+      return nextState || { message: 'Failed: Pinging checkout', nextState: States.Errored };
     }
   }
 
