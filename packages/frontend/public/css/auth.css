@@ -1,90 +1,273 @@
+@import './grid.css';
+
+@font-face {
+  font-family: 'AvenirNext-Bold';
+  src: url('../assets/fonts/AvenirNext-Bold.eot');
+  src: url('../assets/fonts/AvenirNext-Bold.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-Bold.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-Bold.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-Bold.svg#AvenirNext-Bold') format('svg'),
+    url('../assets/fonts/AvenirNext-Bold.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-BoldItalic';
+  src: url('../assets/fonts/AvenirNext-BoldItalic.eot');
+  src: url('../assets/fonts/AvenirNext-BoldItalic.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-BoldItalic.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-BoldItalic.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-BoldItalic.svg#AvenirNext-BoldItalic')
+      format('svg'),
+    url('../assets/fonts/AvenirNext-BoldItalic.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-DemiBold';
+  src: url('../assets/fonts/AvenirNext-DemiBold.eot');
+  src: url('../assets/fonts/AvenirNext-DemiBold.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-DemiBold.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-DemiBold.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-DemiBold.svg#AvenirNext-DemiBold')
+      format('svg'),
+    url('../assets/fonts/AvenirNext-DemiBold.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-DemiBoldItalic';
+  src: url('../assets/fonts/AvenirNext-DemiBoldItalic.eot');
+  src: url('../assets/fonts/AvenirNext-DemiBoldItalic.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-DemiBoldItalic.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-DemiBoldItalic.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-DemiBoldItalic.svg#AvenirNext-DemiBoldItalic')
+      format('svg'),
+    url('../assets/fonts/AvenirNext-DemiBoldItalic.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-Heavy';
+  src: url('../assets/fonts/AvenirNext-Heavy.eot');
+  src: url('../assets/fonts/AvenirNext-Heavy.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-Heavy.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-Heavy.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-Heavy.svg#AvenirNext-Heavy') format('svg'),
+    url('../assets/fonts/AvenirNext-Heavy.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-HeavyItalic';
+  src: url('../assets/fonts/AvenirNext-HeavyItalic.eot');
+  src: url('../assets/fonts/AvenirNext-HeavyItalic.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-HeavyItalic.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-HeavyItalic.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-HeavyItalic.svg#AvenirNext-HeavyItalic')
+      format('svg'),
+    url('../assets/fonts/AvenirNext-HeavyItalic.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-Italic';
+  src: url('../assets/fonts/AvenirNext-Italic.eot');
+  src: url('../assets/fonts/AvenirNext-Italic.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-Italic.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-Italic.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-Italic.svg#AvenirNext-Italic') format('svg'),
+    url('../assets/fonts/AvenirNext-Italic.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-Medium';
+  src: url('../assets/fonts/AvenirNext-Medium.eot');
+  src: url('../assets/fonts/AvenirNext-Medium.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-Medium.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-Medium.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-Medium.svg#AvenirNext-Medium') format('svg'),
+    url('../assets/fonts/AvenirNext-Medium.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-MediumItalic';
+  src: url('../assets/fonts/AvenirNext-MediumItalic.eot');
+  src: url('../assets/fonts/AvenirNext-MediumItalic.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-MediumItalic.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-MediumItalic.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-MediumItalic.svg#AvenirNext-MediumItalic')
+      format('svg'),
+    url('../assets/fonts/AvenirNext-MediumItalic.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-Regular';
+  src: url('../assets/fonts/AvenirNext-Regular.eot');
+  src: url('../assets/fonts/AvenirNext-Regular.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-Regular.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-Regular.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-Regular.svg#AvenirNext-Regular')
+      format('svg'),
+    url('../assets/fonts/AvenirNext-Regular.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-UltraLight';
+  src: url('../assets/fonts/AvenirNext-UltraLight.eot');
+  src: url('../assets/fonts/AvenirNext-UltraLight.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-UltraLight.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-UltraLight.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-UltraLight.svg#AvenirNext-UltraLight')
+      format('svg'),
+    url('../assets/fonts/AvenirNext-UltraLight.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AvenirNext-UltraLightItalic';
+  src: url('../assets/fonts/AvenirNext-UltraLightItalic.eot');
+  src: url('../assets/fonts/AvenirNext-UltraLightItalic.woff2') format('woff2'),
+    url('../assets/fonts/AvenirNext-UltraLightItalic.woff') format('woff'),
+    url('../assets/fonts/AvenirNext-UltraLightItalic.ttf') format('truetype'),
+    url('../assets/fonts/AvenirNext-UltraLightItalic.svg#AvenirNext-UltraLightItalic')
+      format('svg'),
+    url('../assets/fonts/AvenirNext-UltraLightItalic.eot?#iefix')
+      format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  font-family: AvenirNext-Medium;
+  letter-spacing: 0;
+}
+
 #bodymovin {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background-color: #46ADB4;
-    top: 20px;
-    left: 36%;
+    width: 250px;
+    height: 250px;
+    position: relative;
+    margin-left: 30% !important;
 }
+
+#bodymovin > div {
+  width: 100px;
+  height: 100px;
+  display: block;
+  transform-origin: 0px 0px 0px;
+  backface-visibility: visible;
+  transform-style: flat;
+  overflow: hidden;
+  transform: matrix3d(2.5, 0, 0, 0, 0, 2.5, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+}
+
 body, html {
-    height: 100%;
-    width:100%;
-    background: #46ADB4;
-    overflow: hidden;
-  }
-  #titlebar {
-    user-select: none;
-    position: absolute;
-    top:0;
-    left:0;
-    right:16px;
-    height:25px;
-    background: transparent;
-    -webkit-user-select: none;
-    -webkit-app-region: drag;
-  }
-  ::-webkit-scrollbar { 
-    display: none; 
+  height: 100%;
+  width:100%;
+  background: #46ADB4;
+  overflow: hidden;
 }
-  #close {
-    position: absolute;
-    top: 5px;
-    left: 285.11px;
-    height: 11px;
-    width: 11px;
-  }
-  #body-text {
-    font-family: AvenirNext-Medium;
-    font-size: 6.5px;
-    padding-left: 1px;
-    color: #EFEFEF;
-    letter-spacing: 0;
-    position: absolute;
-    top: 125.58px;
-    left: 63.5px;
-    width: 64px;
-    height: 14px;
-    margin: 0;
-  }
-  #authorization-box {
-    position: absolute;
-    top: 122px;
-    left: 57px;
-    width: 187px;
-    height: 42px;
-    border: 0.5px #B8D9D2 solid;
-    border-radius: 3px;
-  }
-  #license-key-input {
-    position: absolute;
-    top: 138.19px;
-    left: 63.5px;
-    width: 124.5px;
-    height: 14.67px;
-    border: 0.5px #EFEFEF solid;
-    border-radius: 1.5px;
-    background: #46ADB4;
-    outline: none;
-    padding-left: 5px;
-    font-size: 6px;
-    color: #EFEFEF;
-  }
-  #license-key-input::placeholder {
-    color: #EFEFEF;
-    opacity: 0.5;
-  }
-  #license-key-submit {
-    color: #46ADB4;
-    background-color: #EFEFEF;
-    position: absolute;
-    top: 138.19px;
-    left: 197.5px;
-    width: 42px;
-    height: 17.67px;
-    margin: 0;
-    font-size: 6px;
-    outline: none;
-    border: none;
-    border-radius: 1.5px;
-    cursor: pointer;
-  }
+
+#titlebar {
+  user-select: none;
+  position: absolute;
+  top:0;
+  left:0;
+  right:16px;
+  height:25px;
+  background: transparent;
+  -webkit-user-select: none;
+  -webkit-app-region: drag;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+#close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  height: 16px;
+  width: 16px;
+}
+
+#body-text {
+  font-family: AvenirNext-Medium;
+  font-size: 12px;
+  padding-left: 1px;
+  color: #f4f4f4;
+  letter-spacing: 0;
+  margin: 0;
+  margin-top: 9.5px;
+  margin-bottom: 9.5px;
+}
+
+#authorization-box {
+  margin: 0 55px !important;
+  border: 1px #f4f4f4 solid;
+  border-radius: 3px;
+}
+
+#license-key-input {
+  width: 278px;
+  height: 29px;
+  border: 1px #f4f4f4 solid;
+  border-radius: 3px;
+  background: #46ADB4;
+  outline: none;
+  margin-bottom: 9.5px;
+  padding-left: 7.5px;
+  font-size: 12px;
+  z-index: 999;
+  color: #f4f4f4;
+}
+
+#license-key-input::placeholder {
+  color: #f4f4f4;
+  opacity: 0.5;
+}
+
+#license-key-submit {
+  color: #46ADB4;
+  background-color: #f4f4f4;
+  width: 84px;
+  outline: none;
+  border: none;
+  margin-left: 14.5px;
+  margin-bottom: 9.5px;
+  border-radius: 3px;
+  cursor: pointer;
+  z-index: 999;
+}
+
+#license-key-submit:hover {
+  opacity: 0.8333;
+  cursor: pointer;
+}

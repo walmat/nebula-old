@@ -115,8 +115,8 @@ const urls = new Map();
  */
 const createAuthWindow = () =>
   _createWindow({
-    width: 300,
-    height: 215,
+    width: 600,
+    height: 430,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/authPreload.js'),

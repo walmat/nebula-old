@@ -4,7 +4,7 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https:; script-src 'self' https:; img-src 'self' https:; style-src 'self' 'unsafe-inline'"/>
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-    <title>Nebula Authentication</title>
+    <title>Nebula</title>
     <script src="./js/disableEval.js"></script>
     <script src="./js/checkLicense.js"></script>
     <script src="./js/lottie.js"></script>
@@ -14,10 +14,29 @@
   <body>
     <div id="titlebar"></div>
     <img src="./assets/close.svg" id="close" draggable="false"/>
-    <div id="bodymovin" draggable="false"></div>
-    <div id="authorization-box"></div>
-    <p id="body-text">License Key</p>
-    <input id="license-key-input" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"/>
-    <button id="license-key-submit">Submit</button>
+    <div class="row row--expand row--gutter">
+      <div class="col col--expand col--gutter">
+        <div class="row row--expand">
+          <div class="col col--expand">
+            <div id="bodymovin" draggable="false"></div>
+          </div>
+        </div>
+        <div class="row row--expand row--gutter">
+          <div class="col col--expand col--gutter">
+            <div class="row row--start row--gutter" id="authorization-box">
+              <div class="col col--expand">
+                <div class="row row--start row--expand row--gutter">
+                  <p id="body-text">License Key</p>
+                </div>
+                <div class="row row--expand row--start row--gutter">
+                  <input id="license-key-input" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"/>
+                  <button id="license-key-submit">Submit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
