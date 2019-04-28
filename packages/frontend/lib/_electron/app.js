@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const Electron = require('electron');
+const RPC = require('./rpc');
 const CaptchaServerManager = require('./captchaServerManager');
 const MainMenu = require('./mainMenu');
 const DialogManager = require('./dialogManager');
@@ -24,6 +25,8 @@ class App {
      * @type {ipcMain}
      */
     this._ipc = Electron.ipcMain;
+
+    this._rpc = new RPC(this);
 
     /**
      * The shell module provides functions related to desktop integration.
@@ -145,9 +148,14 @@ class App {
     if (nebulaEnv.isDevelopment()) {
       await App.installExtensions();
     }
+    // create the window
     await this._windowManager.createNewWindow('main');
+    // set the menu
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
+    // add discord RPC
+    this._rpc.setActivity();
+    this._rpc.rpc.on('ready', () => setInterval(() => this._rpc.setActivity(), 15e3));
   }
 
   /**

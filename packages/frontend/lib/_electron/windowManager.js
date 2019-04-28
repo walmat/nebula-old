@@ -56,6 +56,10 @@ autoUpdater.on('update-downloaded', info => {
  * Manage the window.
  */
 class WindowManager {
+  get main() {
+    return this._main;
+  }
+
   /**
    * Initialize instance.
    *
