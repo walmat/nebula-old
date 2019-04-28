@@ -366,7 +366,6 @@ export function selectedTaskReducer(state = initialTaskStates.task, action) {
       break;
     }
     case SETTINGS_ACTIONS.FETCH_SHIPPING: {
-      console.log(action, state);
       if (
         action.errors ||
         (action.response && (!action.response.rates || !action.response.selectedRate)) ||
