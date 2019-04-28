@@ -355,7 +355,11 @@ export function selectedTaskReducer(state = initialTaskStates.task, action) {
       return Object.assign({}, action.task);
     }
     case TASK_ACTIONS.REMOVE: {
-      if (!action.response.task.id) {
+      if (action.response && action.response.type && action.response.type === 'all') {
+        return Object.assign({}, initialTaskStates.task);
+      }
+
+      if (!action.response.task.id || !state.id) {
         break;
       }
 
