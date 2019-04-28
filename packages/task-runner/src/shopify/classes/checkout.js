@@ -753,11 +753,11 @@ class Checkout {
 
           // out of stock during payment processing
           if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
-            return { message: 'Payment failed (OOS)', nextState: States.Restocking };
+            return { message: 'Payment failed (OOS)', nextState: States.Stopped };
           }
 
           // generic payment processing failure
-          return { message: 'Payment failed', nextState: States.Restocking };
+          return { message: 'Payment failed', nextState: States.Stopped };
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');

@@ -19,9 +19,20 @@ export class LogTaskPrimitive extends Component {
   // }
 
   static renderOutputLogRow(msg, i) {
+    const outputColorMap = {
+      'Waiting for captcha': 'warning',
+      'Payment successful!': 'success',
+      'Payment failed': 'failed',
+    };
     return (
       <div key={i} className="row row--start row--gutter tasks-live-log__output-row">
-        <p>{msg}</p>
+        <p
+          className={`tasks-live-log__output-row-message--${
+            outputColorMap[msg.split(':')[3].trim()]
+          }`}
+        >
+          {msg}
+        </p>
       </div>
     );
   }
