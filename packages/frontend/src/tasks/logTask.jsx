@@ -24,15 +24,11 @@ export class LogTaskPrimitive extends Component {
       'Payment successful!': 'success',
       'Payment failed': 'failed',
     };
+    const messageClassName =
+      msg && msg.split(':')[3] ? outputColorMap[msg.split(':')[3].trim()] : 'normal';
     return (
       <div key={i} className="row row--start row--gutter tasks-live-log__output-row">
-        <p
-          className={`tasks-live-log__output-row-message--${
-            outputColorMap[msg.split(':')[3].trim()]
-          }`}
-        >
-          {msg}
-        </p>
+        <p className={`tasks-live-log__output-row-message--${messageClassName}`}>{msg}</p>
       </div>
     );
   }
