@@ -154,6 +154,7 @@ class App {
     const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
     Electron.Menu.setApplicationMenu(menu);
     // add discord RPC
+    this._rpc.setActivity();
     this._rpc.rpc.on('ready', () => setInterval(() => this._rpc.setActivity(), 15e3));
   }
 
