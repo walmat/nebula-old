@@ -359,7 +359,12 @@ export function selectedTaskReducer(state = initialTaskStates.task, action) {
         return Object.assign({}, initialTaskStates.task);
       }
 
-      if (!action.response.task.id || !state.id) {
+      if (
+        !action.response ||
+        !action.response.task ||
+        (action.response.task && !action.response.task.id) ||
+        !state.id
+      ) {
         break;
       }
 
