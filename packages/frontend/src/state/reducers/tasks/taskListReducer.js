@@ -46,8 +46,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
-      console.log(state, action);
-
       // deconstruct response
       const { id, site } = action.response;
       const { rates, selectedRate } = action.response;
@@ -201,7 +199,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       // find the index of the out of date task
       const idxToUpdate = nextState.indexOf(foundTask);
 
-      console.log(updateTask.edits.profile, updateTask.profile);
       // Check if current task has been setup properly
       if (updateTask.edits) {
         // Set it up properly
