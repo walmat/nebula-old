@@ -37,6 +37,9 @@ function validateProduct(product) {
 }
 
 function validateSite(site) {
+  if (!site || !site.url) {
+    return false;
+  }
   const URL = parseURL(site.url);
   return URL && URL.host;
 }
