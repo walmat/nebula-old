@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import Select from 'react-select';
+import CreatableSelect from 'react-select/lib/Creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { parseURL } from 'whatwg-url';
 
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
 import * as getAllSizes from '../constants/getAllSizes';
@@ -15,11 +17,24 @@ import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
 export class CreateTaskPrimitive extends Component {
+  static createOption(value) {
+    const URL = parseURL(value);
+    if (!URL || !URL.host) {
+      return null;
+    }
+    return { name: URL.host, url: value };
+  }
+
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
+    this.handleCreate = this.handleCreate.bind(this);
     this.saveTask = this.saveTask.bind(this);
+
+    this.state = {
+      isLoading: false,
+    };
   }
 
   buildProfileOptions() {
@@ -52,10 +67,23 @@ export class CreateTaskPrimitive extends Component {
     }
   }
 
+  handleCreate(value) {
+    const { onFieldChange } = this.props;
+    this.setState({ isLoading: true });
+    setTimeout(() => {
+      const newOption = CreateTaskPrimitive.createOption(value);
+      console.log(newOption);
+      this.setState({
+        isLoading: false,
+      });
+      onFieldChange({ field: TASK_FIELDS.EDIT_SITE, value: newOption });
+    }, 1000);
+  }
+
   createOnChangeHandler(field) {
     const { onFieldChange, profiles } = this.props;
     switch (field) {
-      case TASK_FIELDS.EDIT_SITE:
+      case TASK_FIELDS.EDIT_SITE: {
         return event => {
           const site = {
             name: event.label,
@@ -67,6 +95,7 @@ export class CreateTaskPrimitive extends Component {
           };
           onFieldChange({ field, value: site });
         };
+      }
       case TASK_FIELDS.EDIT_PROFILE:
         return event => {
           const change = profiles.find(p => p.id === event.value);
@@ -100,6 +129,7 @@ export class CreateTaskPrimitive extends Component {
 
   render() {
     const { task, errors, onKeyPress, theme } = this.props;
+    const { isLoading } = this.state;
     let newTaskProfileValue = null;
     if (task.profile.id) {
       newTaskProfileValue = {
@@ -139,7 +169,10 @@ export class CreateTaskPrimitive extends Component {
               </div>
               <div className="col col--no-gutter tasks-create__input-group--site">
                 <p className="tasks-create__label">Site</p>
-                <Select
+                <CreatableSelect
+                  isClearable={false}
+                  isDisabled={isLoading}
+                  isLoading={isLoading}
                   required
                   className="tasks-create__input tasks-create__input--field"
                   classNamePrefix="select"
@@ -150,6 +183,7 @@ export class CreateTaskPrimitive extends Component {
                     buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+                  onCreateOption={this.handleCreate}
                   value={newTaskSiteValue}
                   options={getAllSupportedSitesSorted()}
                   data-testid={addTestId('CreateTask.siteSelect')}
