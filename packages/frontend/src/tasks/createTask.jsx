@@ -33,11 +33,10 @@ export class CreateTaskPrimitive extends Component {
   saveTask(e) {
     const { task, onAddNewTask } = this.props;
     e.preventDefault();
+    const prevSizes = task.sizes;
     const fsrMap = {
-      FSR: "Men's",
+      FSR: "US/UK Men's",
       'CL FSR': 'Clothing',
-      // 'UK FSR': "UK Men's",
-      'EU FSR': "EU Men's",
     };
     const fsrSize = task.sizes.find(s => fsrMap[s]);
     if (fsrSize) {
@@ -47,6 +46,7 @@ export class CreateTaskPrimitive extends Component {
         task.sizes = [s.value];
         onAddNewTask(task);
       });
+      task.sizes = prevSizes;
     } else {
       onAddNewTask(task);
     }
