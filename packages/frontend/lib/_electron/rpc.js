@@ -5,15 +5,18 @@ class RPC {
     this._context = context;
     this.clientId = '571372290994864146';
     this.startTimestamp = new Date();
-    DiscordRPC.register(this.clientId);
 
-    this.rpc = new DiscordRPC.Client({ transport: 'ipc' });
-
-    this.rpc.login({ clientId: this.clientId });
+    try {
+      DiscordRPC.register(this.clientId);
+      this.rpc = new DiscordRPC.Client({ transport: 'ipc' });
+      this.rpc.login({ clientId: this.clientId });
+    } catch (e) {
+      // fail silently...
+    }
   }
 
   setActivity() {
-    if (!this.rpc || !this._context.windowManager.main) {
+    if ((this.rpc && !this.rpc.transport.socket) || !this._context.windowManager.main) {
       return;
     }
 

@@ -18,11 +18,23 @@ import { buildStyle } from '../utils/styles';
 
 export class CreateTaskPrimitive extends Component {
   static createOption(value) {
+    const sites = getAllSupportedSitesSorted();
+    const exists = sites.find(s => s.value.indexOf(value) > -1);
+    if (exists) {
+      return {
+        name: exists.label,
+        url: exists.value,
+        localCheckout: exists.localCheckout || false,
+        special: exists.special || false,
+        apiKey: exists.apiKey,
+        auth: exists.auth,
+      };
+    }
     const URL = parseURL(value);
     if (!URL || !URL.host) {
       return null;
     }
-    return { name: URL.host, url: value };
+    return { name: URL.host, url: `${URL.scheme}://${URL.host}` };
   }
 
   constructor(props) {
@@ -72,12 +84,13 @@ export class CreateTaskPrimitive extends Component {
     this.setState({ isLoading: true });
     setTimeout(() => {
       const newOption = CreateTaskPrimitive.createOption(value);
-      console.log(newOption);
+      if (newOption) {
+        onFieldChange({ field: TASK_FIELDS.EDIT_SITE, value: newOption });
+      }
       this.setState({
         isLoading: false,
       });
-      onFieldChange({ field: TASK_FIELDS.EDIT_SITE, value: newOption });
-    }, 1000);
+    }, 100);
   }
 
   createOnChangeHandler(field) {

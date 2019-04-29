@@ -1,7 +1,7 @@
 import _ from 'underscore';
+import { parseURL } from 'whatwg-url';
 import regexes from '../validation';
 import { TASK_FIELDS } from '../../state/actions';
-import getAllSupportedSitesSorted from '../../constants/getAllSites';
 
 function validateProduct(product) {
   if (!product) {
@@ -37,8 +37,8 @@ function validateProduct(product) {
 }
 
 function validateSite(site) {
-  const sites = getAllSupportedSitesSorted();
-  return site && site.name && sites.some(s => s.label === site.name);
+  const URL = parseURL(site.url);
+  return URL && URL.host;
 }
 
 /**
