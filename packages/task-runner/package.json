@@ -2,9 +2,11 @@
   "name": "@nebula/task-runner",
   "version": "0.1.0",
   "private": true,
-  "main": "build/index.js",
+  "main": "dist/build/index.js",
   "scripts": {
-    "build": "babel --root-mode upward --no-comments -d build src/",
+    "build": "run-s build:babel build:obfuscate",
+    "build:babel": "babel --root-mode upward --no-comments -d build src/",
+    "build:obfuscate": "javascript-obfuscator ./build --config ./.jsobfrc.js --output ./dist",
     "ci": "exit 0",
     "lint": "eslint src/",
     "postinstall": "yarn run build",
