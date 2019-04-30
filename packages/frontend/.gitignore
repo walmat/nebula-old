@@ -3,3 +3,4 @@
 # production
 logs/
 orion/
+dist/
