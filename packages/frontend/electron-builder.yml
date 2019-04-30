@@ -15,7 +15,7 @@ directories:
 
 files:
   - package.json
-  - lib/
+  - dist/
   - build/
   - .env.prod
   - node_modules/
