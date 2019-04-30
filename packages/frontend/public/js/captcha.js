@@ -190,12 +190,13 @@ async function _registerStartHandler(_, runnerId, siteKey) {
 
   // Show the form if it was previous hidden
   const form = document.getElementById('captchaForm');
-  form.setAttribute('style', '');
+  form.setAttribute('style', 'visibility:visible;');
 
   if (!_initialized) {
     const script = document.createElement('script');
-    script.setAttribute('type', 'text/javascript');
-    script.setAttribute('src', 'https://www.google.com/recaptcha/api.js');
+    script.src = 'https://www.google.com/recaptcha/api.js';
+    script.async = true;
+    script.defer = true;
     const container = document.createElement('div');
     container.setAttribute('id', 'captchaContainer');
     container.setAttribute('class', 'g-recaptcha');
