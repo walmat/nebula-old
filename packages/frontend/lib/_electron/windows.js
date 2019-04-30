@@ -200,6 +200,7 @@ const createYouTubeWindow = (options = {}, webPreferences = {}) =>
       ...webPreferences,
       webSecurity: false,
       allowRunningInsecureContent: true,
+      sandbox: true,
       webgl: true,
       webaudio: true,
       plugins: true,

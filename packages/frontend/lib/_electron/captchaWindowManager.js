@@ -262,7 +262,8 @@ class CaptchaWindowManager {
         break;
       }
     }
-    const win = createCaptchaWindow(options, { session });
+    console.log(`[DEBUG]: Session for captcha window: %j`, session);
+    const win = createCaptchaWindow(options, { session: session.session });
     win.webContents.session.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
       '*/*',
@@ -273,7 +274,7 @@ class CaptchaWindowManager {
     this._captchaWindowSessionPairs.set(winId, session.id);
     CaptchaWindowManager.setProxy(win, {
       proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
-      proxyBypassRules: '.google.com,.gstatic.com',
+      proxyBypassRules: '.google.com,.gstatic.com,.youtube.com',
     });
     win.loadURL('http://checkout.shopify.com');
     win.on('ready-to-show', () => {
@@ -299,7 +300,8 @@ class CaptchaWindowManager {
         console.log(`[DEBUG]: Window was closed, id = ${winId}`);
       }
       this._captchaWindows = this._captchaWindows.filter(w => w.id !== winId);
-      const s = this._captchaWindowSessionPairs.get(winId);
+      const sessionId = this._captchaWindowSessionPairs.get(winId);
+      const s = this._sessions.get(sessionId);
       this._captchaWindowSessionPairs.delete(winId);
       this._sessions.set(s.id, {
         id: s.id,
@@ -459,6 +461,7 @@ class CaptchaWindowManager {
    */
   _onRequestLaunchYoutube(ev) {
     const { id, session } = ev.sender;
+    console.log(`[DEBUG]: Incoming session: %j`, session);
     // Check if win already exists. if not, create it
     let win = this._youtubeWindows[id];
     if (!win) {
