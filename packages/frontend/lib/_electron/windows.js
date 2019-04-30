@@ -170,6 +170,7 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
       ..._defaultWebPreferences,
       ...webPreferences,
       webSecurity: false,
+      allowRunningInsecureContent: true,
       webgl: true,
       webaudio: true,
       plugins: true,
