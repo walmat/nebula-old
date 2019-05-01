@@ -5,7 +5,7 @@ const {
   TaskManager,
   SplitWebWorkerTaskManager,
   SplitProcessTaskManager,
-} = require('@nebula/task-runner').shopify;
+} = require('@nebula/task-runner-built').shopify;
 
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('../_electron/env');

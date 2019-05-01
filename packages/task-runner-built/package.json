@@ -1,16 +1,17 @@
 {
-  "name": "@nebula/task-runner",
+  "name": "@nebula/task-runner-built",
   "version": "0.1.0",
+  "description": "built code of task-runner",
   "private": true,
   "main": "dist/build/index.js",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
-    "build": "run-s build:babel build:obfuscate",
-    "build:babel": "babel --root-mode upward --no-comments -d build src/",
-    "build:obfuscate": "javascript-obfuscator ./build --config ./.jsobfrc.js --output ../task-runner-built/dist",
+    "build": "yarn workspace @nebula/task-runner run build",
     "ci": "exit 0",
-    "lint": "eslint src/",
-    "postinstall": "yarn run build",
-    "test": "echo \"Warning: no test specified\" && exit 0"
+    "lint": "exit 0",
+    "test": "exit 0"
   },
   "dependencies": {
     "@babel/runtime": "^7.4.3",
@@ -34,8 +35,5 @@
     "winston": "^3.1.0",
     "winston-daily-rotate-file": "^3.8.0",
     "xml2js": "^0.4.19"
-  },
-  "devDependencies": {
-    "javascript-obfuscator": "^0.18.1"
   }
 }
