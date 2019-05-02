@@ -280,9 +280,24 @@
   height: 15px;
   min-height: 15px;
 }
-.tasks .tasks-live-log__output-row > p {
+.tasks .tasks-live-log__output-row-message {
   text-align: left;
   vertical-align: middle;
+}
+.theme-light .tasks .tasks-live-log__output-row-message--normal {
+  color: #161318;
+}
+.theme-dark .tasks .tasks-live-log__output-row-message--normal {
+  color: #efefef;
+}
+.tasks .tasks-live-log__output-row-message--success {
+  color: #46adb4;
+}
+.tasks .tasks-live-log__output-row-message--failed {
+  color: #ef415e;
+}
+.tasks .tasks-live-log__output-row-message--warning {
+  color: #d8973c;
 }
 .tasks .tasks-log {
   border-collapse: collapse;
@@ -401,6 +416,15 @@
 }
 .theme-dark .tasks .tasks-log .tasks-row-container .tasks-row--selected {
   background-color: #262626;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--success {
+  color: #46adb4;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--failed {
+  color: #ef415e;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--warning {
+  color: #d8973c;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--id {
   margin-left: 8.5px;

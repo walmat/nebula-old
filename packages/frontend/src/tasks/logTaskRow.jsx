@@ -26,6 +26,15 @@ const LogTaskRow = ({
     output: ['col', 'col--no-gutter', 'tasks-row__log--output'],
   };
 
+  const outputColorMap = {
+    'Waiting for captcha': 'warning',
+    'Payment successful!': 'success',
+    'Payment failed': 'failed',
+  };
+
+  const match = /Waiting for captcha|Payment successful!|Payment failed!/.exec(output);
+  const messageClassName = match ? outputColorMap[match[0]] : 'normal';
+
   const tasksRow = `row ${selected ? 'tasks-row--selected' : 'tasks-row'}`;
 
   if (fullscreen) {
@@ -57,7 +66,10 @@ const LogTaskRow = ({
         <div className={classMap.proxy.join(' ')} data-testid={addTestId('LogTaskRow.proxy')}>
           {proxy || 'None'}
         </div>
-        <div className={classMap.output.join(' ')} data-testid={addTestId('LogTaskRow.output')}>
+        <div
+          className={`${classMap.output.join(' ')} tasks-row__log--${messageClassName}`}
+          data-testid={addTestId('LogTaskRow.output')}
+        >
           {output}
         </div>
       </div>
