@@ -295,7 +295,11 @@ class Checkout {
         return { message: 'Password page', nextState: States.CreateCheckout };
       }
 
-      const [redirectUrl, qs] = headers.location.split('?');
+      const location = headers && headers.location ? headers.location : null;
+      if (!location) {
+        return { message: 'Failed: Creating checkout', nextState: States.Errored };
+      }
+      const [redirectUrl, qs] = location.split('?');
       this._logger.silly('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         return { message: 'Failed: Creating checkout', nextState: States.Errored };
