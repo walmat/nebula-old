@@ -18,7 +18,7 @@ class RPC {
     }
 
     this.rpc.setActivity({
-      state: `Beta v7.4`,
+      state: `v1.0.0`,
       startTimestamp: this.startTimestamp,
       largeImageKey: 'logo',
       largeImageText: 'Nebula Orion',

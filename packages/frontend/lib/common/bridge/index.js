@@ -1,7 +1,10 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { remote, ipcRenderer, webFrame } = require('electron');
+const {
+  remote: { dialog, app, getCurrentWindow },
+  ipcRenderer,
+  webFrame,
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} = require('electron');
 
-const { dialog, app } = remote;
 const IPCKeys = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 
@@ -90,7 +93,7 @@ const _handleEvent = (channel, handler) => {
  * Sends the close window trigger to windowManager.js
  */
 const _close = () => {
-  const { id } = remote.getCurrentWindow();
+  const { id } = getCurrentWindow();
   _sendEvent(IPCKeys.RequestCloseWindow, id);
 };
 
