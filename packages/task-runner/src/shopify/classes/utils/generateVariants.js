@@ -16,11 +16,11 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   // Group variants by their size
   const variantsBySize = groupBy(availableVariants, variant => {
     // Use the variant option or the title segment
-    // TODO : try to match all cases if site isn't found?
-    const option =
-      variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
+    const defaultOption = urlToVariantOption[site.url] ? urlToVariantOption[site.url] : 'option1';
+    const option = variant[defaultOption] || urlToTitleSegment[site.url](variant.title);
+
     // TEMPORARY: Sometimes the option1 value contains /'s to separate regional sizes.
-    //   Until this case gets fully solved in issue #239
+    // Until this case gets fully solved in issue #239
     if (option.indexOf('/') > 0) {
       const newOption = urlToTitleSegment[site.url](variant.title);
       return newOption;
