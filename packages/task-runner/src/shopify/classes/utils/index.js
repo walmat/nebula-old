@@ -1,6 +1,5 @@
 const $ = require('cheerio');
 const now = require('performance-now');
-const { StatusCodeError, RequestError } = require('request-promise/errors');
 
 const rfrl = require('./rfrl');
 const { States } = require('./constants').TaskRunner;
