@@ -112,7 +112,7 @@ class Checkout {
         Referer: `${url}/account/login`,
       };
     }
-    // Reset captcha token so we don't reuse it
+
     this.captchaToken = '';
 
     try {
@@ -311,10 +311,13 @@ class Checkout {
     } = this._context;
 
     try {
-      const { headers, statusCode } = await this._request({
+      const {
+        headers: { location },
+        statusCode,
+      } = await this._request({
         uri: `${url}/checkout`,
         method: 'POST',
-        proxy: localCheckout ? undefined : formatProxy(proxy),
+        proxy: !localCheckout ? formatProxy(proxy) : undefined,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -341,7 +344,6 @@ class Checkout {
         return { message: 'Password page', nextState: States.CreateCheckout };
       }
 
-      const location = headers && headers.location ? headers.location : null;
       if (!location) {
         return { message: `(${statusCode}) Failed: Creating checkout`, nextState: States.Errored };
       }
@@ -605,7 +607,7 @@ class Checkout {
       } = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: localCheckout ? undefined : formatProxy(proxy),
+        proxy: !localCheckout ? formatProxy(proxy) : undefined,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -646,7 +648,6 @@ class Checkout {
 
       // check if redirected
       if (redirectUrl) {
-        // processing
         if (redirectUrl.indexOf('processing') > -1) {
           this._context.task.checkoutSpeed = checkout.getRunTime();
           checkout.reset();
@@ -654,7 +655,6 @@ class Checkout {
           return { message: 'Processing payment', nextState: States.PaymentProcess };
         }
 
-        // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           return { message: 'Running for restocks', nextState: States.Restocking };
         }
@@ -718,7 +718,7 @@ class Checkout {
       } = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: localCheckout ? undefined : formatProxy(proxy),
+        proxy: !localCheckout ? formatProxy(proxy) : undefined,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
