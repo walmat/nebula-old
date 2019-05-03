@@ -212,6 +212,9 @@ class WindowManager {
       if (win === this._main) {
         log.info('Starting update check...');
         autoUpdater.checkForUpdatesAndNotify();
+
+        // generate captcha window sessions
+        this._captchaWindowManager.generateSessions();
       }
     };
   }
