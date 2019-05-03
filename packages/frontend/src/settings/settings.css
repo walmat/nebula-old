@@ -15,7 +15,7 @@
 }
 .settings .proxy-list__input-group--text {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   margin-top: 10px;
   margin-bottom: 10px;
@@ -42,7 +42,7 @@
 
 .settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--shipping-manager__input-group--clear, .settings--shipping-manager__input-group--fetch {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   font-size: 12px;
   width: 65px;
@@ -77,7 +77,7 @@
 }
 .settings--shipping-manager__input-group--product {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   border-width: 1px;
   border-style: solid;
@@ -94,7 +94,7 @@
 }
 .settings--shipping-manager__input-group--name {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   border-width: 1px;
   border-style: solid;
@@ -111,7 +111,7 @@
 }
 .settings--shipping-manager__input-group--profile {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   width: 170px;
   border-radius: 3px;
@@ -124,7 +124,7 @@
 }
 .settings--shipping-manager__input-group--site {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   width: 170px;
   border-radius: 3px;
@@ -137,7 +137,7 @@
 }
 .settings--shipping-manager__input-group--username {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   border-width: 1px;
   border-style: solid;
@@ -154,7 +154,7 @@
 }
 .settings--shipping-manager__input-group--password {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   border-width: 1px;
   border-style: solid;
@@ -171,7 +171,7 @@
 }
 .settings--shipping-manager__input-group--label {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   margin: 0;
   margin-bottom: 2px;
@@ -231,7 +231,7 @@
 
 .settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   font-size: 12px;
   width: 65px;
@@ -269,7 +269,7 @@
 }
 .settings-defaults__input-group--select__profile {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   width: 170px;
   border-radius: 3px;
@@ -282,7 +282,7 @@
 }
 .settings-defaults__input-group--select__sizes {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   width: 170px;
   border-radius: 3px;
@@ -295,7 +295,7 @@
 }
 .settings-defaults__input-group--label {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   margin: 0;
   margin-bottom: 2px;
@@ -338,7 +338,7 @@
 
 .settings__label {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
@@ -383,7 +383,7 @@
 }
 .settings__input {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
 }
 .theme-light .settings__input {

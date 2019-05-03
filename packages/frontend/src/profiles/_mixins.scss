@@ -8,7 +8,7 @@
 
 @mixin profiles-select-font() {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   @include themify($themes) {
     color: themed('textColor');
   }

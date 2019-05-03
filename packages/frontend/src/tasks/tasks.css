@@ -92,7 +92,7 @@
 }
 .tasks .tasks-create__label {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
@@ -178,7 +178,7 @@
 
 .tasks .tasks-log__button--password, .tasks .tasks-log__button--links {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
   width: 64px;
   height: 29px;
@@ -604,7 +604,7 @@
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__label {
   margin: 0;
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
 }
 .theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__label {
@@ -615,7 +615,7 @@
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   letter-spacing: 0;
 }
 .theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .edit-field__select {

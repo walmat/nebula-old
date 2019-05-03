@@ -24,7 +24,7 @@ export class LogTaskPrimitive extends Component {
       'Payment successful!': 'success',
       'Payment failed': 'failed',
     };
-    const match = /Waiting for captcha|Payment successful!|Payment failed!/.exec(msg);
+    const match = /Waiting for captcha|Payment successful|Payment failed/.exec(msg);
     const messageClassName = match ? outputColorMap[match[0]] : 'normal';
     return (
       <div key={i} className="row row--start row--gutter tasks-live-log__output-row">
