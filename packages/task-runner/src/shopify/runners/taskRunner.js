@@ -323,13 +323,13 @@ class TaskRunner {
   async _handleParseAccessToken() {
     // exit if abort is detected
     if (this._context.aborted) {
-      this._logger.info('Abort Detected, Stopping...');
+      this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.parseAccessToken();
 
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, apiKey: this._context.task.site.apiKey || undefined });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
