@@ -10,7 +10,6 @@ const TaskLauncher = require('../task/launcher');
 const nebulaEnv = require('./env');
 const { bindDebugEvents } = require('./debug');
 
-
 nebulaEnv.setUpEnvironment();
 
 /**
@@ -41,7 +40,6 @@ class App {
      */
     this._session = Electron.session;
 
-    this._sessions = new Map();
 
     /**
      * Manage the window.

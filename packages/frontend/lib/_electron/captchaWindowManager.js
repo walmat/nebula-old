@@ -254,10 +254,10 @@ class CaptchaWindowManager {
     let session = null;
     // eslint-disable-next-line no-restricted-syntax
     for (const s of this._sessions.values()) {
-      if (!s.in_use) {
+      if (!s.inUse) {
         session = s;
         this._sessions.delete(s.id);
-        session.in_use = true;
+        session.inUse = true;
         this._sessions.set(session.id, session);
         break;
       }
@@ -306,7 +306,7 @@ class CaptchaWindowManager {
       this._sessions.set(s.id, {
         id: s.id,
         session: s.session,
-        in_use: false,
+        inUse: false,
       });
       const ytWin = this._youtubeWindows[webContentsId];
       if (ytWin) {
@@ -341,7 +341,7 @@ class CaptchaWindowManager {
       this._sessions.set(i, {
         id: i,
         session: Session.fromPartition(session),
-        in_use: false,
+        inUse: false,
       });
     }
   }
