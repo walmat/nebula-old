@@ -8,7 +8,7 @@ const buildPaymentForm = (payment, billing) => ({
   },
 });
 
-const patchCheckoutForm = (profile, shipping, billing, payment, captchaToken) => {
+const patchCheckoutForm = (billingMatchesShipping, shipping, billing, payment, captchaToken) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
     complete: '1',
@@ -29,7 +29,7 @@ const patchCheckoutForm = (profile, shipping, billing, payment, captchaToken) =>
       },
     },
   };
-  if (profile.billingMatchesShipping) {
+  if (billingMatchesShipping) {
     data = {
       ...data,
       checkout: {
@@ -75,13 +75,13 @@ const patchCheckoutForm = (profile, shipping, billing, payment, captchaToken) =>
   return data;
 };
 
-const addToCart = (variant, site, hash) => {
+const addToCart = (variant, name, hash) => {
   const base = {
     id: variant,
     add: '',
   };
   let opts = {};
-  switch (site.name) {
+  switch (name) {
     case 'DSM US': {
       opts = { 'properties[_HASH]': hash || 256783362428 };
       break;
