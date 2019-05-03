@@ -1,4 +1,4 @@
-const _ = require('underscore');
+const { sortBy } = require('underscore');
 
 module.exports = {};
 
@@ -777,7 +777,7 @@ module.exports.getAllSupportedSites = getAllSupportedSites;
 
 function getAllSupportedSitesSorted() {
   const supported = sites.filter(val => val.supported === true);
-  return _.sortBy(supported, 'name');
+  return sortBy(supported, 'name');
 }
 module.exports.getAllSupportedSitesSorted = getAllSupportedSitesSorted;
 
@@ -786,8 +786,8 @@ function getAllSpecialSites() {
 }
 module.exports.getAllSpecialSites = getAllSpecialSites;
 
-function isSpecialSite(site) {
+function isSpecialSite({ name, url }) {
   const specialSites = getAllSpecialSites();
-  return !!specialSites.find(s => s.name === site.name || s.url === site.url);
+  return !!specialSites.find(s => s.name === name || s.url === url);
 }
 module.exports.isSpecialSite = isSpecialSite;

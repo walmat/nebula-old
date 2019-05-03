@@ -1,6 +1,5 @@
 const $ = require('cheerio');
 const now = require('performance-now');
-const { StatusCodeError, RequestError } = require('request-promise/errors');
 
 const rfrl = require('./rfrl');
 const { States } = require('./constants').TaskRunner;
@@ -10,59 +9,55 @@ const userAgent =
 
 const waitForDelay = delay => new Promise(resolve => setTimeout(resolve, delay));
 
-const stateForError = (err, currentState) => {
-  const { statusCode, cause } = err;
-  if (err instanceof StatusCodeError) {
-    // Check request status code
-    let shouldBan = 0;
-    switch (statusCode) {
-      case 403:
-      case 429:
-      case 430: {
-        shouldBan = statusCode === 403 ? 2 : 1;
+const stateForError = ({ statusCode, code }, currentState) => {
+  // Look for errors in cause
+  const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT)/.exec(code);
+
+  if (match) {
+    // Check capturing group
+    switch (match[1]) {
+      // connection reset
+      case 'ECONNRESET': {
         return {
           message: 'Swapping proxy',
-          shouldBan,
+          shouldBan: 0, // just swap with no ban
           nextState: States.SwapProxies,
         };
       }
-      case 303: {
-        return {
-          message: 'Waiting in queue',
-          nextState: States.PollQueue,
-        };
+      // request timeout or socket freeze timeout
+      case 'ETIMEDOUT':
+      case 'ESOCKETTIMEDOUT': {
+        return currentState;
       }
       default: {
-        return statusCode >= 500 ? currentState : null;
-      }
-    }
-  } else if (err instanceof RequestError) {
-    // Look for errors in cause
-    const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT)/.exec(cause.code);
-
-    if (match) {
-      // Check capturing group
-      switch (match[1]) {
-        // connection reset
-        case 'ECONNRESET': {
-          return {
-            message: 'Swapping proxy',
-            shouldBan: 0, // just swap with no ban
-            nextState: States.SwapProxies,
-          };
-        }
-        // request timeout or socket freeze timeout
-        case 'ETIMEDOUT':
-        case 'ESOCKETTIMEDOUT': {
-          return currentState;
-        }
-        default: {
-          break;
-        }
+        break;
       }
     }
   }
-  return null;
+
+  // Check request status code
+  let shouldBan = 0;
+  switch (statusCode) {
+    case 403:
+    case 429:
+    case 430: {
+      shouldBan = statusCode === 403 ? 2 : 1;
+      return {
+        message: 'Swapping proxy',
+        shouldBan,
+        nextState: States.SwapProxies,
+      };
+    }
+    case 303: {
+      return {
+        message: 'Waiting in queue',
+        nextState: States.PollQueue,
+      };
+    }
+    default: {
+      return statusCode >= 500 ? currentState : null;
+    }
+  }
 };
 
 const stateForStatusCode = statusCode => {
@@ -91,20 +86,17 @@ const stateForStatusCode = statusCode => {
   }
 };
 
-const getHeaders = site => {
-  const { url, apiKey } = site;
-  return {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    Connection: 'keep-alive',
-    'X-Shopify-Checkout-Version': '2019-10-06',
-    'X-Shopify-Access-Token': `${apiKey}`,
-    'x-barba': 'yes',
-    'User-Agent': userAgent,
-    host: `${url.split('/')[2]}`,
-    authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
-  };
-};
+const getHeaders = ({ url, apiKey }) => ({
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+  Connection: 'keep-alive',
+  'X-Shopify-Checkout-Version': '2019-10-06',
+  'X-Shopify-Access-Token': `${apiKey}`,
+  'x-barba': 'yes',
+  'User-Agent': userAgent,
+  host: `${url.split('/')[2]}`,
+  authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
+});
 
 /**
  * Formats the proxy correctly to be used in a request
@@ -172,8 +164,8 @@ const trimKeywords = input => {
   return ret;
 };
 
-const capitalizeFirstLetter = word =>
-  word
+const capitalizeFirstLetter = sentence =>
+  sentence
     .toLowerCase()
     .split(' ')
     .map(s => s.charAt(0).toUpperCase() + s.substring(1))

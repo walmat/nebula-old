@@ -1,7 +1,7 @@
-import _ from 'underscore';
+import { every } from 'underscore';
+import { parseURL } from 'whatwg-url';
 import regexes from '../validation';
 import { TASK_FIELDS } from '../../state/actions';
-import getAllSupportedSitesSorted from '../../constants/getAllSites';
 
 function validateProduct(product) {
   if (!product) {
@@ -29,7 +29,7 @@ function validateProduct(product) {
 
   const kws = rawProduct.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
   const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
-  const validKeywords = _.every(testKeywords, isValid => isValid === true);
+  const validKeywords = every(testKeywords, isValid => isValid === true);
   if (validKeywords) {
     return true;
   }
@@ -37,8 +37,11 @@ function validateProduct(product) {
 }
 
 function validateSite(site) {
-  const sites = getAllSupportedSitesSorted();
-  return site && site.name && sites.some(s => s.label === site.name);
+  if (!site || !site.url) {
+    return false;
+  }
+  const URL = parseURL(site.url);
+  return URL && URL.host;
 }
 
 /**

@@ -1,4 +1,4 @@
-const _ = require('underscore');
+const { groupBy, filter, flatten, pick } = require('underscore');
 
 const { getRandomIntInclusive } = require('./index');
 const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
@@ -14,12 +14,13 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   }
 
   // Group variants by their size
-  const variantsBySize = _.groupBy(availableVariants, variant => {
+  const variantsBySize = groupBy(availableVariants, variant => {
     // Use the variant option or the title segment
-    const option =
-      variant[urlToVariantOption[site.url]] || urlToTitleSegment[site.url](variant.title);
+    const defaultOption = urlToVariantOption[site.url] ? urlToVariantOption[site.url] : 'option1';
+    const option = variant[defaultOption] || urlToTitleSegment[site.url](variant.title);
+
     // TEMPORARY: Sometimes the option1 value contains /'s to separate regional sizes.
-    //   Until this case gets fully solved in issue #239
+    // Until this case gets fully solved in issue #239
     if (option.indexOf('/') > 0) {
       const newOption = urlToTitleSegment[site.url](variant.title);
       return newOption;
@@ -48,13 +49,13 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }) {
   });
 
   // Flatten the groups to a one-level array and remove null elements
-  const validVariants = _.filter(_.flatten(mappedVariants, true), v => v);
+  const validVariants = filter(flatten(mappedVariants, true), v => v);
   // only pick certain properties of the variants to print
   logger.log(
     'silly',
     'Generated valid variants: %j',
     validVariants.map(v =>
-      _.pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
+      pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
     ),
   );
   if (validVariants.length > 0) {

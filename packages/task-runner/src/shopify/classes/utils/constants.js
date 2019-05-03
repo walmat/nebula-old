@@ -25,6 +25,7 @@ const TaskRunnerStates = {
   Started: 'STARTED',
   Login: 'LOGIN',
   PaymentToken: 'PAYMENT_TOKEN',
+  ParseAccessToken: 'PARSE_ACCESS_TOKEN',
   CreateCheckout: 'CREATE_CHECKOUT',
   GetCheckout: 'GET_CHECKOUT',
   PingCheckout: 'PING_CHECKOUT',

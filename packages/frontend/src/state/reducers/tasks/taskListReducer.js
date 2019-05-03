@@ -246,8 +246,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         const { type } = msg;
         if (type !== 'srr') {
           const task = taskMap[taskId];
+          const { log } = task;
           if (task) {
-            const { message, size, proxy, found } = msg;
+            const { message, size, proxy, found, apiKey } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
@@ -258,8 +259,13 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             if (found) {
               task.product.found = found;
             }
+            if (apiKey) {
+              task.site.apiKey = apiKey;
+            }
+            if (log) {
+              log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
+            }
           }
-          task.log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
         }
       });
       break;

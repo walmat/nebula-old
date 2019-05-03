@@ -115,7 +115,7 @@ const urlToOptionIndex = {
   'https://shop.hbo.com': 1,
   'https://biancachandon.com': 1,
   'https://centre214.com': 1,
-  'https://concrete.nl': 1, // TODO (option 1 looks like: UK 3.5 - US 4.0 - EU 36.0)
+  'https://concrete.nl': 1,
   'https://creme321.com': 1,
   'https://doomsday-store.com': 1,
   'https://epitomeatl.com': 1,
@@ -128,23 +128,23 @@ const urlToOptionIndex = {
   'https://store.unionlosangeles.com': 2,
   'https://thesportsedit.com': 1,
   'https://txdxe.com': 1,
-  'https://www.abovethecloudsstore.com': 1, // TODO -- (option 1 looks like: US 7)
-  'https://amongstfew.com': 1, // TODO -- (option 1 looks like: US 8 / UK 7 / EU 41)
+  'https://www.abovethecloudsstore.com': 1,
+  'https://amongstfew.com': 1,
   'https://bbbranded.com': 2,
   'https://capsuletoronto.com': 1,
   'https://cityblueshop.com': 1,
   'https://courtsidesneakers.com': 2,
   'https://dope-factory.com': 1,
   'https://footzonenyc.com': 2,
-  'https://huntinglodge.no': 1, // TODO - (option 1 looks like: US 8 - EURO 41 - CM 26, X-Large, etc.)
+  'https://huntinglodge.no': 1,
   'https://incu.com': 1,
   'https://k101store.com': 1,
-  'https://kongonline.co.uk': 1, // TODO - (option 1 looks like: UK 7.5)
+  'https://kongonline.co.uk': 1,
   'https://leaders1354.com': 1,
   'https://letusprosper.com': 1,
-  'https://likelihood.us': 1, // TODO - (option 1 looks like: 8 M - 9.5 W)
+  'https://likelihood.us': 1,
   'https://manorphx.com': 1,
-  'https://pampamlondon.com': 1, // TODO - (option 1 looks like: UK3)
+  'https://pampamlondon.com': 1,
   'https://www.rooneyshop.com': 2,
   'https://solestop.com': 1,
   'http://usgstore.com.au': 2,
@@ -157,7 +157,7 @@ const urlToOptionIndex = {
 const urlToVariantOption = (function generateUTVO() {
   const utvs = {};
   Object.keys(urlToOptionIndex).forEach(key => {
-    utvs[key] = `option${urlToOptionIndex[key]}`;
+    utvs[key] = urlToOptionIndex[key] ? `option${urlToOptionIndex[key]}` : 'option1';
   });
   return utvs;
 })();
@@ -167,6 +167,7 @@ const urlToTitleSegment = (function generateUTTS() {
   const utts = {};
   Object.keys(urlToOptionIndex).forEach(key => {
     // attach a function for each url
+    const siteOption = urlToOptionIndex[key] ? urlToOptionIndex[key] : 1;
     utts[key] = title => {
       if (!title) {
         return null;
@@ -174,9 +175,9 @@ const urlToTitleSegment = (function generateUTTS() {
       // split the title into segments based the `/` delimiter
       const segments = title.split('/');
       // Check if we have a valid number of segments
-      if (segments.length >= urlToOptionIndex[key]) {
+      if (segments.length >= siteOption) {
         // return the correct 0-indexed segment (trimming the surrounding whitespace)
-        return segments[urlToOptionIndex[key] - 1].trim();
+        return segments[siteOption - 1].trim();
       }
       // Invalid segment length, return null
       return null;
