@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import { every } from 'underscore';
 import { parseURL } from 'whatwg-url';
 import regexes from '../validation';
 import { TASK_FIELDS } from '../../state/actions';
@@ -29,7 +29,7 @@ function validateProduct(product) {
 
   const kws = rawProduct.split(',').reduce((a, x) => a.concat(x.trim().split(' ')), []);
   const testKeywords = kws.map(val => regexes.keywordRegex.test(val));
-  const validKeywords = _.every(testKeywords, isValid => isValid === true);
+  const validKeywords = every(testKeywords, isValid => isValid === true);
   if (validKeywords) {
     return true;
   }
