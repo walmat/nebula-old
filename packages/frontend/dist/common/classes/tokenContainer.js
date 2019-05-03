@@ -1,0 +1,1 @@
+var a=['_token','_host','_sitekey'];(function(c,d){var e=function(f){while(--f){c['push'](c['shift']());}};e(++d);}(a,0x10e));var b=function(c,d){c=c-0x0;var e=a[c];return e;};class TokenContainer{constructor(c,d,e,f){this[b('0x0')]=c;this['_timestamp']=d;this[b('0x1')]=e;this[b('0x2')]=f;}}module['exports']=TokenContainer;

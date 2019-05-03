@@ -40,7 +40,6 @@ class App {
      */
     this._session = Electron.session;
 
-
     /**
      * Manage the window.
      * @type {WindowManager}
@@ -96,10 +95,6 @@ class App {
    */
   get shell() {
     return this._shell;
-  }
-
-  get sessions() {
-    return this._sessions;
   }
 
   /**

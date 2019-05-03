@@ -1,0 +1,1 @@
+var a=['setUpEnvironment','once','loaded','Bridge','./index'];(function(c,d){var e=function(f){while(--f){c['push'](c['shift']());}};e(++d);}(a,0x162));var b=function(c,d){c=c-0x0;var e=a[c];return e;};const nebulaEnv=require('../../_electron/env');const {base}=require(b('0x0'));nebulaEnv[b('0x1')]();process[b('0x2')](b('0x3'),()=>{window[b('0x4')]=window[b('0x4')]||{...base};});
