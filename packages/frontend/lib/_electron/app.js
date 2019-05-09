@@ -154,13 +154,13 @@ class App {
 
     // attach an interval to check for any logging applications
     setInterval(async () => {
-      const isLoggerRunning = await this._securityManager.isRunning('Charles');
-      console.log(`[DEBUG]: Logger running?: %s`, isLoggerRunning);
-      if (isLoggerRunning) {
-        await this.onBeforeQuit();
-        Electron.app.quit();
-      }
-    }, 1000);
+      const res = await this._securityManager.isRunning('charles.exe');
+      console.log(`[DEBUG]: Logger response?: %s`, res);
+      // if (isLoggerRunning) {
+      //   await this.onBeforeQuit();
+      //   Electron.app.quit();
+      // }
+    }, 10000);
 
     // create the window
     await this._windowManager.createNewWindow('main');
