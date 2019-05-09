@@ -152,15 +152,17 @@ class App {
       await App.installExtensions();
     }
 
-    // attach an interval to check for any logging applications
-    setInterval(async () => {
-      const res = await this._securityManager.isRunning('charles.exe');
-      console.log(`[DEBUG]: Logger response?: %s`, res);
-      // if (isLoggerRunning) {
-      //   await this.onBeforeQuit();
-      //   Electron.app.quit();
-      // }
-    }, 10000);
+    if (!nebulaEnv.isDevelopment()) {
+      // attach an interval to check for any logging applications
+      setInterval(async () => {
+        const isRunning = await this._securityManager.isRunning();
+        console.log(`[DEBUG]: Logger running?: %j`, isRunning);
+        if (isRunning) {
+          await this.onBeforeQuit();
+          Electron.app.quit();
+        }
+      }, 1000); // TODO: is 1 second too short/long?
+    }
 
     // create the window
     await this._windowManager.createNewWindow('main');
