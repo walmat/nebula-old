@@ -154,8 +154,9 @@ class App {
 
     // attach an interval to check for any logging applications
     setInterval(async () => {
-      console.log(`[DEBUG]: Logger running?: %s`, this._securityManager.isLoggerRunning);
-      if (this._securityManager.isLoggerRunning) {
+      const isLoggerRunning = await this._securityManager.isRunning('Charles');
+      console.log(`[DEBUG]: Logger running?: %s`, isLoggerRunning);
+      if (isLoggerRunning) {
         await this.onBeforeQuit();
         Electron.app.quit();
       }

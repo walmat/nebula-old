@@ -1,13 +1,12 @@
+/* eslint-disable class-methods-use-this */
 const { exec } = require('child_process');
 
 class SecurityManager {
-  constructor() {
-    this.isLoggerRunning = setInterval(() => SecurityManager.isRunning('charles.exe'), 2500);
-  }
-
-  static isRunning(query) {
-    return new Promise(resolve => {
+  async isRunning(query) {
+    console.log(`[DEBUG]: Looking for processes matching ${query}`);
+    return new Promise(async resolve => {
       const { platform } = process;
+      console.log(`[DEBUG]: Platform detected: ${platform}`);
       let cmd = '';
       switch (platform) {
         case 'win32': {
@@ -28,10 +27,12 @@ class SecurityManager {
       if (cmd === '') {
         resolve(false);
       }
-      exec(cmd, (err, stdout) => {
-        console.log(stdout.toLowerCase().indexOf(query.toLowerCase()) > -1);
-        resolve(stdout.toLowerCase().indexOf(query.toLowerCase()) > -1);
-      });
+      const { stdout, stderr } = await exec(cmd);
+
+      if (stderr) {
+        resolve(false);
+      }
+      resolve(stdout.toLowerCase().indexOf(query.toLowerCase()) > -1);
     });
   }
 }
