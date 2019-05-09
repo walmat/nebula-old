@@ -344,7 +344,7 @@ class TaskRunner {
     }
 
     const { message, shouldBan, nextState } = await this._checkout.createCheckout();
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, checkout: this._checkout.checkoutToken });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }

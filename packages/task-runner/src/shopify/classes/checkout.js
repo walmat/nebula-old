@@ -337,8 +337,6 @@ class Checkout {
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
-      // TODO - test this more.
-      // On stores with password page it makes sense, but idk if it will mess with anything else..
       if (statusCode === 401) {
         await waitForDelay(monitorDelay);
         return { message: 'Password page', nextState: States.CreateCheckout };
@@ -347,6 +345,7 @@ class Checkout {
       if (!location) {
         return { message: `(${statusCode}) Failed: Creating checkout`, nextState: States.Errored };
       }
+
       const [redirectUrl, qs] = location.split('?');
       this._logger.silly('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
