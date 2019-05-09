@@ -30,6 +30,9 @@ class CaptchaWindowManager {
      */
     this._captchaWindows = [];
 
+    this._captchaWindowSessionPairs = new Map();
+    this._sessions = new Map();
+
     /**
      * Map of created youtube windows
      *
@@ -247,10 +250,20 @@ class CaptchaWindowManager {
       console.log('[DEBUG]: Starting captcha server');
       this._context.captchaServerManager.start();
     }
-    // Create window with randomly generated session partition
-    // const session = Session.fromPartition(shortid.generate());
-    const session = Session.defaultSession;
-    const win = createCaptchaWindow(options, { session });
+
+    let session = null;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const s of this._sessions.values()) {
+      if (!s.inUse) {
+        session = s;
+        this._sessions.delete(s.id);
+        session.inUse = true;
+        this._sessions.set(session.id, session);
+        break;
+      }
+    }
+    console.log(`[DEBUG]: Session for captcha window: %j`, session);
+    const win = createCaptchaWindow(options, { session: session.session });
     win.webContents.session.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
       '*/*',
@@ -258,9 +271,10 @@ class CaptchaWindowManager {
     const winId = win.id;
     const webContentsId = win.webContents.id;
     this._captchaWindows.push(win);
+    this._captchaWindowSessionPairs.set(winId, session.id);
     CaptchaWindowManager.setProxy(win, {
       proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
-      proxyBypassRules: '.google.com,.gstatic.com',
+      proxyBypassRules: '.google.com,.gstatic.com,.youtube.com',
     });
     win.loadURL('http://checkout.shopify.com');
     win.on('ready-to-show', () => {
@@ -273,7 +287,7 @@ class CaptchaWindowManager {
     });
 
     win.webContents.once('did-finish-load', () => {
-      CaptchaWindowManager.setProxy(win, '');
+      CaptchaWindowManager.setProxy(win, {});
       // If we are actively harvesting, start harvesting on the new window as well
       const { state, runnerId, siteKey } = this._harvestStatus;
       if (state === HARVEST_STATE.ACTIVE) {
@@ -286,6 +300,14 @@ class CaptchaWindowManager {
         console.log(`[DEBUG]: Window was closed, id = ${winId}`);
       }
       this._captchaWindows = this._captchaWindows.filter(w => w.id !== winId);
+      const sessionId = this._captchaWindowSessionPairs.get(winId);
+      const s = this._sessions.get(sessionId);
+      this._captchaWindowSessionPairs.delete(winId);
+      this._sessions.set(s.id, {
+        id: s.id,
+        session: s.session,
+        inUse: false,
+      });
       const ytWin = this._youtubeWindows[webContentsId];
       if (ytWin) {
         // Close youtube window
@@ -310,6 +332,18 @@ class CaptchaWindowManager {
     });
 
     return win;
+  }
+
+  generateSessions(persist = true) {
+    // get sessions (or create new ones)
+    for (let i = 0; i < 5; i += 1) {
+      const session = persist ? `persist:${i}` : i;
+      this._sessions.set(i, {
+        id: i,
+        session: Session.fromPartition(session),
+        inUse: false,
+      });
+    }
   }
 
   spawnYoutubeWindow(parentId, parentSession) {
@@ -427,6 +461,7 @@ class CaptchaWindowManager {
    */
   _onRequestLaunchYoutube(ev) {
     const { id, session } = ev.sender;
+    console.log(`[DEBUG]: Incoming session: %j`, session);
     // Check if win already exists. if not, create it
     let win = this._youtubeWindows[id];
     if (!win) {

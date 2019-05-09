@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import Select from 'react-select';
+import CreatableSelect from 'react-select/lib/Creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { parseURL } from 'whatwg-url';
 import getAllSizes from '../constants/getAllSizes';
 import getAllSites from '../constants/getAllSites';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
@@ -18,6 +20,35 @@ import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 
 export class TaskRowPrimitive extends Component {
+  static createOption(value) {
+    const sites = getAllSites();
+    const exists = sites.find(s => s.value.indexOf(value) > -1);
+    if (exists) {
+      return {
+        name: exists.label,
+        url: exists.value,
+        localCheckout: exists.localCheckout || false,
+        special: exists.special || false,
+        apiKey: exists.apiKey,
+        auth: exists.auth,
+      };
+    }
+    const URL = parseURL(value);
+    if (!URL || !URL.host) {
+      return null;
+    }
+    return { name: URL.host, url: `${URL.scheme}://${URL.host}` };
+  }
+
+  constructor(props) {
+    super(props);
+
+    this.handleCreate = this.handleCreate.bind(this);
+    this.state = {
+      isLoading: false,
+    };
+  }
+
   createOnChangeHandler(field) {
     const { onEditTask, task } = this.props;
     switch (field) {
@@ -66,6 +97,20 @@ export class TaskRowPrimitive extends Component {
         };
       }
     }
+  }
+
+  handleCreate(value) {
+    const { onEditTask, task } = this.props;
+    this.setState({ isLoading: true });
+    setTimeout(() => {
+      const newOption = TaskRowPrimitive.createOption(value);
+      if (newOption) {
+        onEditTask(task, { field: TASK_FIELDS.EDIT_SITE, value: newOption });
+      }
+      this.setState({
+        isLoading: false,
+      });
+    }, 500);
   }
 
   saveTask() {
@@ -119,6 +164,7 @@ export class TaskRowPrimitive extends Component {
 
   renderEditMenu() {
     const { isEditing, task, onKeyPress, theme } = this.props;
+    const { isLoading } = this.state;
     if (!isEditing) {
       return null;
     }
@@ -146,7 +192,7 @@ export class TaskRowPrimitive extends Component {
         value: edits.site.url,
         label: edits.site.name,
       };
-      editAccountFieldDisabled = !edits.site.auth;
+      editAccountFieldDisabled = !edits.site.auth && edits.site.auth !== undefined;
     }
     return (
       <div key={`${task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
@@ -168,7 +214,10 @@ export class TaskRowPrimitive extends Component {
             </div>
             <div className="col edit-field">
               <p className="edit-field__label">Site</p>
-              <Select
+              <CreatableSelect
+                isClearable={false}
+                isDisabled={isLoading}
+                isLoading={isLoading}
                 required
                 className="edit-field__select"
                 classNamePrefix="select"
@@ -179,6 +228,7 @@ export class TaskRowPrimitive extends Component {
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                 )}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+                onCreateOption={this.handleCreate}
                 value={editSite}
                 options={getAllSites()}
                 data-testid={addTestId(`${testIdBase}.siteSelect`)}

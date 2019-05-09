@@ -198,6 +198,8 @@ describe('task form validation middleware', () => {
                 : {
                     ...initialTaskStates.task.site,
                     name: 'Undefeated',
+                    url: 'https://undefeated.myshopify.com',
+                    apiKey: 'a0faf54ad7ec6fbbab86cd3f949c3cb9',
                     auth: true,
                   }
               : null,

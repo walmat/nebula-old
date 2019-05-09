@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
-const { TaskRunnerTypes } = require('@nebula/task-runner').shopify;
+const { TaskRunnerTypes } = require('@nebula/task-runner-built').shopify;
 
 const IPCKeys = require('../constants');
 const nebulaEnv = require('../../_electron/env');

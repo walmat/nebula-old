@@ -77,7 +77,7 @@
 }
 .server .server-credentials__label {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
   height: 12px;
@@ -92,7 +92,7 @@
 }
 .server .server-credentials__input {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
 }
@@ -135,7 +135,7 @@
 }
 .server .server-options__label {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
   height: 12px;
@@ -149,7 +149,7 @@
 }
 .server .server-options__input {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
 }
@@ -210,7 +210,7 @@
 }
 .server .proxy-options__label {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
   height: 12px;
@@ -225,7 +225,7 @@
 }
 .server .proxy-options__input {
   font-family: AvenirNext-Medium;
-  font-size: 9px;
+  font-size: 9.5px;
   color: #161318;
   letter-spacing: 0;
 }

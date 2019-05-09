@@ -6,14 +6,6 @@
     <link rel="stylesheet" type="text/css" href="./css/captcha.css">
     <script src="./js/disableEval.js"></script>
     <script src="./js/captcha.js"></script>
-    <script>
-      window.navigator.plugins = 	"Plugin 0: Chrome PDF Plugin; Portable Document Format; internal-pdf-viewer. Plugin 1: Chrome PDF Viewer; ; mhjfbmdgcfjbbpaeojofohoefgiehjai. Plugin 2: Native Client; ; internal-nacl-plugin. ";
-      window.screen.height = 1280;
-      window.screen.width = 800;
-      window.screen.colorDepth = 24;
-      window.navigator.cookieEnabled = "yes";
-      window.navigator.doNotTrack = "yes";
-    </script>
   </head>
   <body>
     <div id="titlebar"></div>
@@ -28,7 +20,7 @@
       </div>
     </div>
     <div id="captcha">
-      <form id="captchaForm" action="/submit" method="post" style="display: none;"></form>
+      <form id="captchaForm" action="/submit" method="post" style="visibility: hidden;"></form>
     </div>
     <div class="footer">
       <input id="captcha-proxy" placeholder="192.168.X.X:80"/>

@@ -38,6 +38,48 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
   switch (action.type) {
     // patch to check for settings updates
+    case SETTINGS_ACTIONS.FETCH_SHIPPING: {
+      if (
+        action.errors ||
+        (action.response && (!action.response.rates || !action.response.selectedRate))
+      ) {
+        break;
+      }
+
+      // deconstruct response
+      const { id, site } = action.response;
+      const { rates, selectedRate } = action.response;
+
+      nextState.forEach(task => {
+        const { id: profileId, rates: profileRates } = task.profile;
+        if (profileId === id) {
+          // filter out data we don't need (for now)...
+          const newRates = rates.map(r => ({ name: r.title, price: r.price, rate: r.id }));
+          const selected = {
+            name: selectedRate.title,
+            price: selectedRate.price,
+            rate: selectedRate.id,
+          };
+
+          const ratesIdx = profileRates.findIndex(r => r.site.url === site.url);
+          if (ratesIdx < 0) {
+            profileRates.push({
+              site: { name: site.name, url: site.url },
+              rates: newRates,
+              selectedRate: selected,
+            });
+          } else {
+            profileRates[ratesIdx].selectedRate = selected;
+            // filter out duplicate rates from the previously stored rates
+            const oldRates = profileRates[ratesIdx].rates.filter(
+              r1 => !newRates.find(r2 => r2.name === r1.name),
+            );
+            profileRates[ratesIdx].rates = oldRates.concat(newRates);
+          }
+        }
+      });
+      break;
+    }
     case SETTINGS_ACTIONS.EDIT: {
       switch (action.field) {
         case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
@@ -144,6 +186,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (action.errors || !action.response || !action.response.id || !action.response.task) {
         break;
       }
+
       const updateId = action.response.id;
       const updateTask = JSON.parse(JSON.stringify(action.response.task));
 
@@ -203,8 +246,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         const { type } = msg;
         if (type !== 'srr') {
           const task = taskMap[taskId];
+          const { log } = task;
           if (task) {
-            const { message, size, proxy, found } = msg;
+            const { message, size, proxy, found, apiKey } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
@@ -215,8 +259,13 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             if (found) {
               task.product.found = found;
             }
+            if (apiKey) {
+              task.site.apiKey = apiKey;
+            }
+            if (log) {
+              log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
+            }
           }
-          task.log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
         }
       });
       break;

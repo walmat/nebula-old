@@ -248,6 +248,41 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
         sizes: defaults.useSizes ? defaults.sizes : state.sizes,
       });
     }
+    case SETTINGS_ACTIONS.FETCH_SHIPPING: {
+      if (
+        action.errors ||
+        (action.response && (!action.response.rates || !action.response.selectedRate)) ||
+        (action.response && state.profile && action.response.id !== state.profile.id)
+      ) {
+        break;
+      }
+
+      // deconstruct response
+      const { site } = action.response;
+      let { rates, selectedRate } = action.response;
+      const nextState = JSON.parse(JSON.stringify(state));
+
+      // filter out data we don't need (for now)...
+      rates = rates.map(r => ({ name: r.title, price: r.price, rate: r.id }));
+      selectedRate = { name: selectedRate.title, price: selectedRate.price, rate: selectedRate.id };
+
+      const ratesIdx = nextState.profile.rates.findIndex(r => r.site.url === site.url);
+      if (ratesIdx < 0) {
+        nextState.profile.rates.push({
+          site: { name: site.name, url: site.url },
+          rates,
+          selectedRate,
+        });
+      } else {
+        nextState.profile.rates[ratesIdx].selectedRate = selectedRate;
+        // filter out duplicate rates from the previously stored rates
+        const oldRates = nextState.profile.rates[ratesIdx].rates.filter(
+          r1 => !rates.find(r2 => r2.name === r1.name),
+        );
+        nextState.profile.rates[ratesIdx].rates = oldRates.concat(rates);
+      }
+      return nextState;
+    }
     case SETTINGS_ACTIONS.EDIT: {
       switch (action.field) {
         case SETTINGS_FIELDS.EDIT_DISCORD:
@@ -318,6 +353,63 @@ export function selectedTaskReducer(state = initialTaskStates.task, action) {
       }
       // Set the next state to the selected profile
       return Object.assign({}, action.task);
+    }
+    case TASK_ACTIONS.REMOVE: {
+      if (action.response && action.response.type && action.response.type === 'all') {
+        return Object.assign({}, initialTaskStates.task);
+      }
+
+      if (
+        !action.response ||
+        !action.response.task ||
+        (action.response.task && !action.response.task.id) ||
+        !state.id
+      ) {
+        break;
+      }
+
+      // TODO - account for removing tasks that aren't it now
+      if (action.response.task.id === state.id) {
+        return Object.assign({}, initialTaskStates.task);
+      }
+      break;
+    }
+    case SETTINGS_ACTIONS.FETCH_SHIPPING: {
+      if (
+        action.errors ||
+        (action.response && (!action.response.rates || !action.response.selectedRate)) ||
+        (action.response && state.profile && action.response.id !== state.profile.id)
+      ) {
+        break;
+      }
+
+      // deconstruct response
+      const { site } = action.response;
+      let { rates, selectedRate } = action.response;
+      const nextState = JSON.parse(JSON.stringify(state));
+
+      // filter out data we don't need (for now)...
+      rates = rates.map(r => ({ name: r.title, price: r.price, rate: r.id }));
+      selectedRate = { name: selectedRate.title, price: selectedRate.price, rate: selectedRate.id };
+
+      const ratesIdx = nextState.profile.rates.findIndex(r => r.site.url === site.url);
+      if (ratesIdx < 0) {
+        nextState.profile.rates.push({
+          site: { name: site.name, url: site.url },
+          rates,
+          selectedRate,
+        });
+      } else {
+        nextState.profile.rates[ratesIdx].selectedRate = selectedRate;
+        // filter out duplicate rates from the previously stored rates
+        const oldRates = nextState.profile.rates[ratesIdx].rates.filter(
+          r1 => !rates.find(r2 => r2.name === r1.name),
+        );
+        nextState.profile.rates[ratesIdx].rates = oldRates.concat(rates);
+      }
+      // update the edit profile context as well!
+      nextState.edits.profile = nextState.profile;
+      return nextState;
     }
     default:
       break;

@@ -320,6 +320,22 @@ class TaskRunner {
     return nextState;
   }
 
+  async _handleParseAccessToken() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { message, shouldBan, nextState } = await this._checkout.parseAccessToken();
+
+    this._emitTaskEvent({ message, apiKey: this._context.task.site.apiKey || undefined });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+    return nextState;
+  }
+
   async _handleCreateCheckout() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -717,6 +733,7 @@ class TaskRunner {
     const stepMap = {
       [States.Login]: this._handleLogin,
       [States.PaymentToken]: this._handlePaymentToken,
+      [States.ParseAccessToken]: this._handleParseAccessToken,
       [States.CreateCheckout]: this._handleCreateCheckout,
       [States.GetCheckout]: this._handleGetCheckout,
       [States.PingCheckout]: this._handlePingCheckout,

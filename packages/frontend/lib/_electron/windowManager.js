@@ -56,6 +56,10 @@ autoUpdater.on('update-downloaded', info => {
  * Manage the window.
  */
 class WindowManager {
+  get main() {
+    return this._main;
+  }
+
   /**
    * Initialize instance.
    *
@@ -208,6 +212,9 @@ class WindowManager {
       if (win === this._main) {
         log.info('Starting update check...');
         autoUpdater.checkForUpdatesAndNotify();
+
+        // generate captcha window sessions
+        this._captchaWindowManager.generateSessions();
       }
     };
   }

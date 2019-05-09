@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import Select from 'react-select';
+import CreatableSelect from 'react-select/lib/Creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { parseURL } from 'whatwg-url';
 import { buildStyle } from '../utils/styles';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
@@ -12,8 +14,29 @@ import getAllSupportedSitesSorted from '../constants/getAllSites';
 import addTestId from '../utils/addTestId';
 
 export class ShippingManagerPrimitive extends Component {
+  static createOption(value) {
+    const sites = getAllSupportedSitesSorted();
+    const exists = sites.find(s => s.value.indexOf(value) > -1);
+    if (exists) {
+      return {
+        name: exists.label,
+        url: exists.value,
+        localCheckout: exists.localCheckout || false,
+        special: exists.special || false,
+        apiKey: exists.apiKey,
+        auth: exists.auth,
+      };
+    }
+    const URL = parseURL(value);
+    if (!URL || !URL.host) {
+      return null;
+    }
+    return { name: URL.host, url: `${URL.scheme}://${URL.host}` };
+  }
+
   constructor(props) {
     super(props);
+    this.handleCreate = this.handleCreate.bind(this);
     this.selects = {
       [SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE]: {
         label: 'Profile',
@@ -38,6 +61,9 @@ export class ShippingManagerPrimitive extends Component {
         type: 'fetch',
       },
     };
+    this.state = {
+      isLoading: false,
+    };
   }
 
   buildProfileOptions() {
@@ -47,6 +73,20 @@ export class ShippingManagerPrimitive extends Component {
       opts.push({ value: profile.id, label: profile.profileName });
     });
     return opts;
+  }
+
+  handleCreate(value) {
+    const { onSettingsChange } = this.props;
+    this.setState({ isLoading: true });
+    setTimeout(() => {
+      const newOption = ShippingManagerPrimitive.createOption(value);
+      if (newOption) {
+        onSettingsChange({ field: SETTINGS_FIELDS.EDIT_SHIPPING_SITE, value: newOption });
+      }
+      this.setState({
+        isLoading: false,
+      });
+    }, 100);
   }
 
   createOnChangeHandler(field) {
@@ -125,24 +165,43 @@ export class ShippingManagerPrimitive extends Component {
   }
 
   renderSelect(field, value, options) {
+    const { isLoading } = this.state;
     const { errors, theme } = this.props;
     const { label, placeholder, className, type } = this.selects[field];
     return (
       <div className={className}>
         <p className="settings--shipping-manager__input-group--label">{label}</p>
-        <Select
-          required
-          placeholder={placeholder}
-          components={{ DropdownIndicator }}
-          isMulti={false}
-          isClearable={false}
-          className={`settings--shipping-manager__input-group--${type}`}
-          classNamePrefix="select"
-          styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
-          onChange={this.createOnChangeHandler(field)}
-          value={value}
-          options={options}
-        />
+        {field === SETTINGS_FIELDS.EDIT_SHIPPING_SITE ? (
+          <CreatableSelect
+            isClearable={false}
+            isDisabled={isLoading}
+            isLoading={isLoading}
+            required
+            placeholder={placeholder}
+            components={{ DropdownIndicator }}
+            isMulti={false}
+            className={`settings--shipping-manager__input-group--${type}`}
+            classNamePrefix="select"
+            styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
+            onChange={this.createOnChangeHandler(field)}
+            value={value}
+            options={options}
+          />
+        ) : (
+          <Select
+            required
+            placeholder={placeholder}
+            components={{ DropdownIndicator }}
+            isMulti={false}
+            isClearable={false}
+            className={`settings--shipping-manager__input-group--${type}`}
+            classNamePrefix="select"
+            styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
+            onChange={this.createOnChangeHandler(field)}
+            value={value}
+            options={options}
+          />
+        )}
       </div>
     );
   }
@@ -160,7 +219,7 @@ export class ShippingManagerPrimitive extends Component {
     }
     let shippingSiteValue = null;
     if (site) {
-      accountFieldsDisabled = !site.auth;
+      accountFieldsDisabled = !site.auth && site.auth !== undefined;
       if (site.name) {
         shippingSiteValue = {
           value: site.url,
