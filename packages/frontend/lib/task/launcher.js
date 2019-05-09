@@ -198,7 +198,7 @@ class TaskLauncher {
     }
     await new Promise(resolve => {
       this._context.ipc.once(IPCKeys.RequestAbortAllTasksForClose, ev => {
-        if (this._launcherWindow.webContents === ev.sender) {
+        if (this._launcherWindow && this._launcherWindow.webContents === ev.sender) {
           resolve();
         }
       });
