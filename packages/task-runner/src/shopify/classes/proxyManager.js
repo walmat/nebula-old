@@ -82,7 +82,7 @@ class ProxyManager {
    * @param {String} wait whether or not this method should wait for an open proxy
    * @param {Number} timeout the recursive call limit on proxy reservations
    */
-  reserve(id, site, wait = false, timeout = 5) {
+  async reserve(id, site, wait = false, timeout = 5) {
     let newTimeout = timeout;
     if (!timeout || Number.isNaN(timeout) || timeout < 0) {
       // Force wait limit to be 0 if we have an invalid parameter value passed in

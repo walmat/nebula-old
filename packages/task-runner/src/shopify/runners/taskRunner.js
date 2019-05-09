@@ -392,15 +392,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.patchCheckout();
+    const { message, shouldBan, nextState } = await this._checkout.patchCheckout();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    if (res.nextState === States.SwapProxies) {
-      this.shouldBanProxy = res.shouldBan; // Set a flag to ban the proxy if necessary
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
-    return res.nextState;
+    return nextState;
   }
 
   async _handlePollQueue() {
@@ -410,16 +408,18 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.pollQueue();
+    const {
+      nextState: pollState,
+      shouldBan: pollShouldBan,
+      message: pollMessage,
+    } = await this._checkout.pollQueue();
 
-    if (res.nextState === States.SwapProxies) {
-      this.shouldBanProxy = res.shouldBan; // Set a flag to ban the proxy if necessary
+    if (pollState === States.SwapProxies) {
+      this.shouldBanProxy = pollShouldBan; // Set a flag to ban the proxy if necessary
     }
-    if (res.nextState) {
-      this._emitTaskEvent({
-        message: res.message,
-      });
-      return res.nextState;
+    if (pollState) {
+      this._emitTaskEvent({ message: pollMessage });
+      return pollState;
     }
 
     // poll queue map should be used to determine where to go next

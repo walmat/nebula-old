@@ -396,7 +396,7 @@ describe('Custom Select', () => {
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',
-          fontSize: '9px',
+          fontSize: '9.5px',
           color: '#6D6E70',
           letterSpacing: 0,
           cursor: 'pointer',
@@ -413,7 +413,7 @@ describe('Custom Select', () => {
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',
-          fontSize: '9px',
+          fontSize: '9.5px',
           color: '#161318',
           letterSpacing: 0,
           cursor: 'pointer',
@@ -428,7 +428,7 @@ describe('Custom Select', () => {
         expect(actualStyle).toEqual({
           fontFamily: 'AvenirNext-Medium',
           textTransform: 'capitalize',
-          fontSize: '9px',
+          fontSize: '9.5px',
           color: '#efefef',
           letterSpacing: 0,
           cursor: 'pointer',

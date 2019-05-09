@@ -21,7 +21,7 @@ export class LogTaskPrimitive extends Component {
   static renderOutputLogRow(msg, i) {
     const outputColorMap = {
       'Waiting for captcha': 'warning',
-      'Payment successful!': 'success',
+      'Payment successful': 'success',
       'Payment failed': 'failed',
     };
     const match = /Waiting for captcha|Payment successful|Payment failed/.exec(msg);

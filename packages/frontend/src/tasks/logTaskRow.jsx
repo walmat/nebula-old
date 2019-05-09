@@ -28,7 +28,7 @@ const LogTaskRow = ({
 
   const outputColorMap = {
     'Waiting for captcha': 'warning',
-    'Payment successful!': 'success',
+    'Payment successful': 'success',
     'Payment failed': 'failed',
   };
 
