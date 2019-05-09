@@ -662,10 +662,8 @@ class Checkout {
 
         if (redirectUrl.indexOf('stock_problems') > -1) {
           if (this._checkoutType === CheckoutTypes.fe) {
-            if (size.includes('Random')) {
-              return { message: 'Running for restocks', nextState: States.Monitor };
-            }
-            return { message: 'Running for restocks', nextState: States.GetCheckout };
+            const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
+            return { message: 'Running for restocks', nextState };
           }
           return { message: 'Running for restocks', nextState: States.Restocking };
         }
@@ -777,10 +775,8 @@ class Checkout {
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           if (this._checkoutType === CheckoutTypes.fe) {
-            if (size.includes('Random')) {
-              return { message: 'Running for restocks', nextState: States.Monitor };
-            }
-            return { message: 'Running for restocks', nextState: States.GetCheckout };
+            const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
+            return { message: 'Running for restocks', nextState };
           }
           return { message: 'Running for restocks', nextState: States.Restocking };
         }
