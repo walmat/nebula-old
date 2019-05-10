@@ -33,9 +33,10 @@ class Checkout {
       preFetchedShippingRates &&
       preFetchedShippingRates.selectedRate
     ) {
-      const { name, rate } = preFetchedShippingRates.selectedRate;
+      const { name, price, rate } = preFetchedShippingRates.selectedRate;
       this.chosenShippingMethod = {
         name,
+        price,
         id: rate,
       };
     } else {

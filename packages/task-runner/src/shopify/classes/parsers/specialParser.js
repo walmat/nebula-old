@@ -35,7 +35,7 @@ class SpecialParser extends Parser {
       response = await this._request({
         method: 'GET',
         uri: initialUrl,
-        proxy: formatProxy(this._proxy) || undefined,
+        proxy: formatProxy(this._proxy),
         json: false,
         simple: true,
         followRedirect: false,
@@ -66,7 +66,13 @@ class SpecialParser extends Parser {
         throw rethrow;
       }
       // Handle other error responses
-      this._logger.error('%s: ERROR making request! %s', this._name, error.messsage, error.stack);
+      this._logger.error(
+        '%s: %d ERROR making request! %s',
+        this._name,
+        error.statusCode,
+        error.messsage,
+        error.stack,
+      );
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;

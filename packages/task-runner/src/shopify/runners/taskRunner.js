@@ -30,6 +30,10 @@ class TaskRunner {
     return this._state;
   }
 
+  get checkoutType() {
+    return this._checkoutType;
+  }
+
   constructor(id, task, proxy, loggerPath, type = Types.Normal) {
     // Add Ids to object
     this.id = id;
@@ -56,11 +60,6 @@ class TaskRunner {
      * Internal Task Runner State
      */
     this._state = States.PaymentToken;
-
-    /**
-     * Type of Checkout Process to be used
-     */
-    this._checkoutType = null;
 
     this._captchaQueue = null;
     this._timers = {

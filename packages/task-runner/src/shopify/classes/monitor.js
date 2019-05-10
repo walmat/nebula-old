@@ -122,6 +122,12 @@ class Monitor {
           nextState: States.Stopped,
         };
       }
+      if (err.code === ErrorCodes.VariantsNotAvailable && this._parseType === ParseType.Special) {
+        return {
+          message: 'Running for restocks',
+          nextState: States.Monitor,
+        };
+      }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
         return {
           message: 'Running for restocks',
@@ -255,12 +261,17 @@ class Monitor {
     try {
       parsed = await parser.run();
     } catch (error) {
-      this._logger.error('MONITOR: Error with special parsing! %j %j', error.message, error.stack);
+      this._logger.error(
+        'MONITOR: %d Error with special parsing! %j %j',
+        error.status,
+        error.message,
+        error.stack,
+      );
       // Check for a product not found error
       if (error.status === ErrorCodes.ProductNotFound) {
         return { message: 'Error: Product Not Found!', nextState: States.Errored };
       }
-      return this._delay(error.status);
+      return this._handleParsingErrors([error]);
     }
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.silly('MONITOR: Generating variant lists now...');

@@ -190,9 +190,20 @@ const validateVariantSize = (variant, expectedSize, url) =>
   variant[urlToVariantOption[url]].trim().includes(expectedSize.trim()) ||
   urlToVariantOption[url].trim().includes(expectedSize.trim());
 
+const clothingRegexMap = {
+  XXS: 'xxs|xxsm|xxsml|xx-small|extra extra small',
+  XS: 'xs|xsm|xsml|x-small|extra small',
+  S: 's|sm|sml|small',
+  M: 'm|md|med|medium',
+  L: 'l|lg|lrg|large',
+  XL: 'xl|xlg|xlrg|x-large|extra large',
+  XXL: 'xxl|xxlg|xxlrg|xx-large|extra extra large',
+};
+
 module.exports = {
   urlToOptionIndex,
   urlToTitleSegment,
   urlToVariantOption,
   validateVariantSize,
+  clothingRegexMap,
 };

@@ -265,17 +265,17 @@ class APICheckout extends Checkout {
         }
       }
 
-      if (errors && errors.line_items[0]) {
-        const error = errors.line_items[0];
+      if (errors && errors.line_items) {
+        const [error] = errors.line_items;
         this._logger.silly('Error adding to cart: %j', error);
-        if (error.quantity) {
+        if (error && error.quantity) {
           if (monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }
           await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState: States.Restocking };
         }
-        if (error.variant_id && error.variant_id[0]) {
+        if (error && error.variant_id && error.variant_id[0]) {
           if (type === Types.ShippingRates) {
             return { message: 'Invalid variant', nextState: States.Errored };
           }
@@ -288,7 +288,7 @@ class APICheckout extends Checkout {
         return { message: `(${statusCode}) Failed: Add to cart`, nextState: States.Errored };
       }
 
-      if (checkout && checkout.line_items.length > 0) {
+      if (checkout && checkout.line_items && checkout.line_items.length) {
         const { total_price: totalPrice } = checkout;
 
         this._context.task.product.name = checkout.line_items[0].title;
@@ -300,11 +300,12 @@ class APICheckout extends Checkout {
         checkoutTimer.start();
 
         this.prices.item = parseFloat(totalPrice).toFixed(2);
-        this.prices.total = (
-          parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
-        ).toFixed(2);
+
         if (this.chosenShippingMethod.id) {
           this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
+          this.prices.total = (
+            parseFloat(this.prices.item) + parseFloat(this.chosenShippingMethod.price)
+          ).toFixed(2);
           return { message: `Posting payment`, nextState: States.PostPayment };
         }
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
@@ -409,6 +410,9 @@ class APICheckout extends Checkout {
 
         // set shipping price for cart
         this.prices.shipping = parseFloat(cheapest.price).toFixed(2);
+        this.prices.total = (
+          parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
+        ).toFixed(2);
         this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
         return { message: `Posting payment`, nextState: States.PostPayment };
       }
