@@ -228,7 +228,7 @@ class WindowManager {
     // Store the winId in the upper scope so we don't throw an exception when
     // Trying to access win (which could already be destroyed)
     const winId = win.id;
-    return () => {
+    return async () => {
       if (nebulaEnv.isDevelopment()) {
         console.log(`Window was closed, id = ${winId}`);
       }
@@ -238,11 +238,13 @@ class WindowManager {
       if (this._aboutDialog && winId === this._aboutDialog.id) {
         this._aboutDialog = null;
       } else if (this._main && winId === this._main.id) {
-        this._main = null;
+        // Stop the task launcher when the main window closes
+        await this._context.taskLauncher.stop();
+
         // Always close captcha windows when the main window closes
         this._captchaWindowManager.closeAllCaptchaWindows();
-        // Stop the task launcher when the main window closes
-        this._context.taskLauncher.stop();
+
+        this._main = null;
       } else if (this._auth && winId === this._auth.id) {
         this._auth = null;
       }
