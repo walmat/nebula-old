@@ -201,6 +201,7 @@ class APICheckout extends Checkout {
     const {
       task: {
         site: { url, apiKey },
+        size,
         product: { variants },
         monitorDelay,
         username,
@@ -272,8 +273,8 @@ class APICheckout extends Checkout {
           if (monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }
-          await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.Restocking };
+          const nextState = size.includes('Random') ? States.Monitor : States.AddToCart;
+          return { message: 'Running for restocks', nextState };
         }
         if (error && error.variant_id && error.variant_id[0]) {
           if (type === Types.ShippingRates) {

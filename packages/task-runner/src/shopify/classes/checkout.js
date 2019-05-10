@@ -370,10 +370,6 @@ class Checkout {
         return { message: 'Account required', nextState: States.Errored };
       }
 
-      if (redirectUrl.indexOf('stock_problems') > -1) {
-        return { message: 'Running for restocks', nextState: States.Restocking };
-      }
-
       if (redirectUrl.indexOf('password') > -1) {
         await waitForDelay(monitorDelay);
         return { message: 'Password page', nextState: States.CreateCheckout };
@@ -666,7 +662,8 @@ class Checkout {
             const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
             return { message: 'Running for restocks', nextState };
           }
-          return { message: 'Running for restocks', nextState: States.Restocking };
+          const nextState = size.includes('Random') ? States.Restocking : States.PostPayment;
+          return { message: 'Running for restocks', nextState };
         }
       }
 
@@ -779,7 +776,8 @@ class Checkout {
             const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
             return { message: 'Running for restocks', nextState };
           }
-          return { message: 'Running for restocks', nextState: States.Restocking };
+          const nextState = size.includes('Random') ? States.Restocking : States.PostPayment;
+          return { message: 'Running for restocks', nextState };
         }
 
         // login needed
