@@ -35,7 +35,7 @@ class SpecialParser extends Parser {
       response = await this._request({
         method: 'GET',
         uri: initialUrl,
-        proxy: formatProxy(this._proxy) || undefined,
+        proxy: formatProxy(this._proxy),
         json: false,
         simple: true,
         followRedirect: false,
@@ -55,13 +55,24 @@ class SpecialParser extends Parser {
       // Handle Redirect response (wait for refresh delay)
       if (error.statusCode === 302) {
         this._logger.error('%s: Redirect Detected!', this._name);
+        if (`${error}`.indexOf('password') > -1) {
+          const rethrow = new Error('PasswordPage');
+          rethrow.status = 601; // Use a 601 to trigger a password page message
+          throw rethrow;
+        }
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('RedirectDetected');
         rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay
         throw rethrow;
       }
       // Handle other error responses
-      this._logger.error('%s: ERROR making request! %s', this._name, error.messsage, error.stack);
+      this._logger.error(
+        '%s: %d ERROR making request! %s',
+        this._name,
+        error.statusCode,
+        error.messsage,
+        error.stack,
+      );
       const rethrow = new Error('unable to make request');
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;

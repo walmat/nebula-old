@@ -36,9 +36,14 @@ class Monitor {
   // delay and start the monitor again...
   async _delay(status) {
     let delay = this._waitForRefreshDelay;
+    let message = 'Monitoring for product';
     switch (status || 404) {
       case 401: {
         delay = this._waitForErrorDelay;
+        break;
+      }
+      case 601: {
+        message = 'Password page';
         break;
       }
       default:
@@ -46,7 +51,7 @@ class Monitor {
     }
     await delay.call(this);
     this._logger.silly('Monitoring not complete, remonitoring...');
-    return { message: 'Monitoring for product', nextState: States.Monitor };
+    return { message, nextState: States.Monitor };
   }
 
   async _handleParsingErrors(errors) {
@@ -118,9 +123,11 @@ class Monitor {
         };
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
+        const nextState =
+          this._parseType === ParseType.Special ? States.Monitor : States.Restocking;
         return {
           message: 'Running for restocks',
-          nextState: States.Restocking,
+          nextState,
         };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
@@ -250,12 +257,17 @@ class Monitor {
     try {
       parsed = await parser.run();
     } catch (error) {
-      this._logger.error('MONITOR: Error with special parsing! %j %j', error.message, error.stack);
+      this._logger.error(
+        'MONITOR: %s Error with special parsing! %j %j',
+        error.status,
+        error.message,
+        error.stack,
+      );
       // Check for a product not found error
       if (error.status === ErrorCodes.ProductNotFound) {
         return { message: 'Error: Product Not Found!', nextState: States.Errored };
       }
-      return this._delay(error.status);
+      return this._handleParsingErrors([error]);
     }
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.silly('MONITOR: Generating variant lists now...');
@@ -270,6 +282,9 @@ class Monitor {
       ({ variants, sizes, nextState, message } = this._generateVariants(parsed));
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
+        if (nextState === States.Monitor) {
+          await this._waitForRefreshDelay();
+        }
         return { nextState, message };
       }
     }

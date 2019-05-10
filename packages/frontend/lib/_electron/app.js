@@ -155,13 +155,11 @@ class App {
     if (!nebulaEnv.isDevelopment()) {
       // attach an interval to check for any logging applications
       setInterval(async () => {
-        const isRunning = await this._securityManager.isRunning();
-        console.log(`[DEBUG]: Logger running?: %j`, isRunning);
+        const isRunning = await this._securityManager.isHTTPLoggerRunning();
         if (isRunning) {
-          await this.onBeforeQuit();
-          Electron.app.quit();
+          this.onWindowAllClosed();
         }
-      }, 1000); // TODO: is 1 second too short/long?
+      }, 1500);
     }
 
     // create the window
