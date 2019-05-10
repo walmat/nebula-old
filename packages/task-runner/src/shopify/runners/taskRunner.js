@@ -30,10 +30,6 @@ class TaskRunner {
     return this._state;
   }
 
-  get checkoutType() {
-    return this._checkoutType;
-  }
-
   constructor(id, task, proxy, loggerPath, type = Types.Normal) {
     // Add Ids to object
     this.id = id;
