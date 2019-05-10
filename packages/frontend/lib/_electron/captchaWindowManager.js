@@ -416,7 +416,10 @@ class CaptchaWindowManager {
       ...this._captchaThemeOpts,
       options,
     };
-    // TODO: Update currently opened windows
+    // Update currently opened windows
+    this._captchaWindows.forEach(win => {
+      win.webContents.send(IPCKeys.ChangeTheme, this._captchaThemeOpts);
+    });
   }
 
   /**
