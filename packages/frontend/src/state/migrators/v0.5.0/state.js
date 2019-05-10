@@ -33,17 +33,15 @@ const updateProfile = profile => {
           },
         ];
 
-  return {
-    ...profile,
-    rates: newRates,
-  };
+  return { ...profile, rates: newRates };
 };
 
 const updateTask = task => {
-  if (!task.profile || !task.profile.shipping.country) {
+  if (!task.profile.id) {
     return task;
   }
 
+  // task.profile.shipping.country will default to US, so this should always be defined at least
   const rate = dsmlRates[task.profile.shipping.country.value];
 
   if (!rate) {
@@ -89,6 +87,13 @@ const newState = {
   tasks: prevState.tasks.map(updateTask),
   newTask: updateTask(prevState.newTask),
   selectedTask: updateTask(prevState.selectedTask),
+  settings: {
+    ...prevState.settings,
+    shipping: {
+      ...prevState.settings.shipping,
+      profile: updateProfile(prevState.settings.shipping.profile),
+    },
+  },
 };
 
 export default newState;

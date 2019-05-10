@@ -36,10 +36,7 @@ const updateProfile = profile => {
         ];
 
   // we're safe to push it onto the array, because even if it's empty it will be the first index
-  return {
-    ...profile,
-    rates: newRates,
-  };
+  return { ...profile, rates: newRates };
 };
 
 const updateTask = task => {
@@ -107,5 +104,12 @@ export default (state = initialState) => {
     tasks: state.tasks.map(updateTask),
     newTask: updateTask(state.newTask),
     selectedTask: updateTask(state.selectedTask),
+    settings: {
+      ...state.settings,
+      shipping: {
+        ...state.settings.shipping,
+        profile: updateProfile(state.settings.shipping.profile),
+      },
+    },
   };
 };
