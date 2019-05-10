@@ -55,6 +55,11 @@ class SpecialParser extends Parser {
       // Handle Redirect response (wait for refresh delay)
       if (error.statusCode === 302) {
         this._logger.error('%s: Redirect Detected!', this._name);
+        if (`${error}`.indexOf('password') > -1) {
+          const rethrow = new Error('PasswordPage');
+          rethrow.status = 601; // Use a 601 to trigger a password page message
+          throw rethrow;
+        }
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('RedirectDetected');
         rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay

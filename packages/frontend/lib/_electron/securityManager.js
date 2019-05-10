@@ -2,11 +2,14 @@
 const psList = require('ps-list');
 
 class SecurityManager {
-  async isRunning() {
+  async isHTTPLoggerRunning() {
+    const processList = JSON.stringify(await psList()).toUpperCase();
+
     return (
-      JSON.stringify(await psList())
-        .toUpperCase()
-        .indexOf('CHARLES') > -1
+      processList.indexOf('CHARLES') > -1 ||
+      processList.indexOf('PROXYMAN') > -1 ||
+      processList.indexOf('FIDDLER') > -1 ||
+      processList.indexOf('HTTPFOX') > -1
     );
   }
 }

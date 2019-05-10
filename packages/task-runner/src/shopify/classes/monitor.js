@@ -36,9 +36,14 @@ class Monitor {
   // delay and start the monitor again...
   async _delay(status) {
     let delay = this._waitForRefreshDelay;
+    let message = 'Monitoring for product';
     switch (status || 404) {
       case 401: {
         delay = this._waitForErrorDelay;
+        break;
+      }
+      case 601: {
+        message = 'Password page';
         break;
       }
       default:
@@ -46,7 +51,7 @@ class Monitor {
     }
     await delay.call(this);
     this._logger.silly('Monitoring not complete, remonitoring...');
-    return { message: 'Monitoring for product', nextState: States.Monitor };
+    return { message, nextState: States.Monitor };
   }
 
   async _handleParsingErrors(errors) {

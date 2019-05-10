@@ -112,6 +112,12 @@ class TaskRunner {
       suspendHarvestCaptcha: this.suspendHarvestCaptcha.bind(this),
     });
 
+    // add in the checkout type once we create the checkout module
+    this._context = {
+      ...this._context,
+      checkoutType: this._checkoutType,
+    };
+
     /**
      * Create a new event emitter to handle all IPC communication
      *

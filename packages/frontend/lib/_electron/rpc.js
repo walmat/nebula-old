@@ -1,3 +1,6 @@
+const {
+  app: { getVersion },
+} = require('electron');
 const DiscordRPC = require('discord-rpc');
 
 class RPC {
@@ -5,6 +8,7 @@ class RPC {
     this._context = context;
     this.clientId = '571372290994864146';
     this.startTimestamp = new Date();
+    this.version = getVersion();
 
     try {
       DiscordRPC.register(this.clientId);
@@ -21,7 +25,7 @@ class RPC {
     }
 
     this.rpc.setActivity({
-      state: `v1.0.0`,
+      state: `v${this.version}`,
       startTimestamp: this.startTimestamp,
       largeImageKey: 'logo',
       largeImageText: 'Nebula Orion',
