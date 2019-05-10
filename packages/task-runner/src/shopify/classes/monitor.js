@@ -286,6 +286,9 @@ class Monitor {
       ({ variants, sizes, nextState, message } = this._generateVariants(parsed));
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
+        if (nextState === States.Monitor) {
+          await this._waitForRefreshDelay();
+        }
         return { nextState, message };
       }
     }
