@@ -8,17 +8,75 @@ const updateProfile = profile => {
 
   const rate = dsmlRates[profile.shipping.country.value];
 
-  // we're safe to push it onto the array, because even if it's empty it will be the first index
+  if (!rate) {
+    return profile;
+  }
+
+  const newRates =
+    profile.rates && profile.rates.length
+      ? profile.rates.push({
+          site: {
+            name: 'DSM UK',
+            url: 'https://eflash.doverstreetmarket.com',
+          },
+          rates: [rate],
+          selectedRate: rate,
+        })
+      : [
+          {
+            site: {
+              name: 'DSM UK',
+              url: 'https://eflash.doverstreetmarket.com',
+            },
+            rates: [rate],
+            selectedRate: rate,
+          },
+        ];
+
   return {
     ...profile,
-    rates: profile.rates.push({
-      site: {
-        name: 'DSM UK',
-        url: 'https://eflash.doverstreetmarket.com',
-      },
-      rates: [rate],
-      selectedRate: rate,
-    }),
+    rates: newRates,
+  };
+};
+
+const updateTask = task => {
+  if (!task.profile || !task.profile.shipping.country) {
+    return task;
+  }
+
+  const rate = dsmlRates[task.profile.shipping.country.value];
+
+  if (!rate) {
+    return task;
+  }
+
+  const newRates =
+    task.profile.rates && task.profile.rates.length
+      ? task.profile.rates.push({
+          site: {
+            name: 'DSM UK',
+            url: 'https://eflash.doverstreetmarket.com',
+          },
+          rates: [rate],
+          selectedRate: rate,
+        })
+      : [
+          {
+            site: {
+              name: 'DSM UK',
+              url: 'https://eflash.doverstreetmarket.com',
+            },
+            rates: [rate],
+            selectedRate: rate,
+          },
+        ];
+
+  return {
+    ...task,
+    profile: {
+      ...task.profile,
+      rates: newRates,
+    },
   };
 };
 
@@ -28,7 +86,9 @@ const newState = {
   profiles: prevState.profiles.map(updateProfile),
   selectedProfile: updateProfile(prevState.selectedProfile),
   currentProfile: updateProfile(prevState.currentProfile),
-  // TODO: update tasks profile references as well
+  tasks: prevState.tasks.map(updateTask),
+  newTask: updateTask(prevState.newTask),
+  selectedTask: updateTask(prevState.selectedTask),
 };
 
 export default newState;

@@ -6,7 +6,7 @@ export default {
     name: 'Express 1-3 Working Days From Dispatch',
   },
   // EU
-  UK: {
+  GB: {
     rate: 'shopify-Express%201-2%20working%20days%20from%20dispatch-5.00',
     price: '5.00',
     name: 'Express 1-2 Working Days From Dispatch',

@@ -3,6 +3,7 @@ import uuidv4 from 'uuid/v4';
 import { PROFILE_ACTIONS, SETTINGS_ACTIONS } from '../../actions';
 import { profileReducer } from './profileReducer';
 import initialProfileStates from '../../initial/profiles';
+import dsmlRates from '../../../constants/dsmlRates';
 
 export default function profileListReducer(state = initialProfileStates.list, action) {
   // perform deep copy of given state
@@ -28,9 +29,24 @@ export default function profileListReducer(state = initialProfileStates.list, ac
         newId = uuidv4();
       } while (nextState.some(idCheck));
 
+      const rate = dsmlRates[newProfile.shipping.country.value];
+      if (rate) {
+        newProfile.rates = [
+          {
+            site: {
+              name: 'DSM UK',
+              url: 'https://eflash.doverstreetmarket.com',
+            },
+            rates: [rate],
+            selectedRate: rate,
+          },
+        ];
+      } else {
+        newProfile.rates = initialProfileStates.rates;
+      }
+
       // add new profile
       newProfile.id = newId;
-      newProfile.rates = initialProfileStates.rates;
       nextState.push(newProfile);
       break;
     }
