@@ -26,6 +26,11 @@ class CaptchaWindowManager {
     this._context = context;
 
     /**
+     * Window options related to the theme of the captcha windows
+     */
+    this._captchaThemeOpts = {};
+
+    /**
      * Array of created captcha windows
      */
     this._captchaWindows = [];
@@ -261,6 +266,10 @@ class CaptchaWindowManager {
         this._sessions.set(session.id, session);
         break;
       }
+    }
+    // Store background color if it is passed so we get the latest background color passed
+    if (options.backgroundColor) {
+      this._captchaThemeOpts.backgroundColor = options.backgroundColor;
     }
     console.log(`[DEBUG]: Session for captcha window: %j`, session);
     const win = createCaptchaWindow(options, { session: session.session });
