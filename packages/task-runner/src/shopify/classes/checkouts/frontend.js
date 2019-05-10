@@ -272,11 +272,9 @@ class FrontendCheckout extends Checkout {
         }
 
         if (redirectUrl.indexOf('stock_problems') > -1) {
-          if (size.includes('Random')) {
-            return { message: 'Running for restocks', nextState: States.Monitor };
-          }
+          const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
           await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.GetCheckout };
+          return { message: 'Running for restocks', nextState };
         }
 
         if (redirectUrl.indexOf('password') > -1) {
@@ -389,6 +387,11 @@ class FrontendCheckout extends Checkout {
 
         if (redirectUrl.indexOf('password') > -1) {
           return { message: 'Password page', nextState: States.CreateCheckout };
+        }
+
+        if (redirectUrl.indexOf('stock_problems') > -1) {
+          // we can maybe find shipping rates meanwhile (if not found already) here
+          return { message: 'Running for restocks', nextState: States.GetCheckout };
         }
 
         if (redirectUrl.indexOf('throttle') > -1) {

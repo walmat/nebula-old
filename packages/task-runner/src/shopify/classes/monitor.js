@@ -122,16 +122,12 @@ class Monitor {
           nextState: States.Stopped,
         };
       }
-      if (err.code === ErrorCodes.VariantsNotAvailable && this._parseType === ParseType.Special) {
-        return {
-          message: 'Running for restocks',
-          nextState: States.Monitor,
-        };
-      }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
+        const nextState =
+          this._parseType === ParseType.Special ? States.Monitor : States.Restocking;
         return {
           message: 'Running for restocks',
-          nextState: States.Restocking,
+          nextState,
         };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
@@ -262,7 +258,7 @@ class Monitor {
       parsed = await parser.run();
     } catch (error) {
       this._logger.error(
-        'MONITOR: %d Error with special parsing! %j %j',
+        'MONITOR: %s Error with special parsing! %j %j',
         error.status,
         error.message,
         error.stack,
