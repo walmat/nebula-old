@@ -409,6 +409,17 @@ class CaptchaWindowManager {
   }
 
   /**
+   * Change the theme of captcha windows
+   */
+  changeTheme(options) {
+    this._captchaThemeOpts = {
+      ...this._captchaThemeOpts,
+      options,
+    };
+    // TODO: Update currently opened windows
+  }
+
+  /**
    * Clears the storage data and cache for the session
    */
   _onRequestEndSession(ev) {
