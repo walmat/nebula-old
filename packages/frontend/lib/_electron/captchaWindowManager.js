@@ -272,7 +272,10 @@ class CaptchaWindowManager {
       this._captchaThemeOpts.backgroundColor = options.backgroundColor;
     }
     console.log(`[DEBUG]: Session for captcha window: %j`, session);
-    const win = createCaptchaWindow(options, { session: session.session });
+    const win = createCaptchaWindow(
+      { ...options, ...this._captchaThemeOpts },
+      { session: session.session },
+    );
     win.webContents.session.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
       '*/*',
