@@ -414,7 +414,7 @@ class CaptchaWindowManager {
   changeTheme(options) {
     this._captchaThemeOpts = {
       ...this._captchaThemeOpts,
-      options,
+      ...options,
     };
     // Update currently opened windows
     this._captchaWindows.forEach(win => {
