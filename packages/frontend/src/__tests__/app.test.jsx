@@ -108,6 +108,20 @@ describe('Top Level App', () => {
         expect(store.dispatch.mock.calls[0][0]).toEqual(globalActions.setTheme(nextTheme));
         expect(Bridge.setTheme).toHaveBeenCalledWith({ backgroundColor });
       });
+
+      test('should call window.Bridge.setTheme initially if it is defined', () => {
+        Bridge = {
+          setTheme: jest.fn(),
+          registerForTaskEvents: jest.fn(),
+        };
+        window.Bridge = Bridge;
+        const wrapper = appProvider();
+        const { store } = wrapper.instance().props;
+        const { theme } = store;
+        const backgroundColor = mapThemeToColor[theme];
+        expect(Bridge.setTheme).toHaveBeenCalledTimes(1);
+        expect(Bridge.setTheme).toHaveBeenCalledWith({ backgroundColor });
+      });
     });
 
     describe('Deactivate Button', () => {
@@ -274,6 +288,7 @@ describe('Top Level App', () => {
         Bridge = {
           registerForTaskEvents: jest.fn(),
           deregisterForTaskEvents: jest.fn(),
+          setTheme: jest.fn(),
         };
         global.window.Bridge = Bridge;
       });

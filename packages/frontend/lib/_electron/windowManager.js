@@ -112,8 +112,7 @@ class WindowManager {
       IPCKeys.RequestCheckForUpdates,
       WindowManager._onRequestCheckForUpdates.bind(this),
     );
-    // TODO: Add this back in #350 (https://github.com/walmat/nebula/issues/350)
-    // context.ipc.on(IPCKeys.ChangeTheme, this.onRequestChangeTheme.bind(this));
+    context.ipc.on(IPCKeys.ChangeTheme, this.onChangeTheme.bind(this));
   }
 
   /**
@@ -228,7 +227,7 @@ class WindowManager {
     // Store the winId in the upper scope so we don't throw an exception when
     // Trying to access win (which could already be destroyed)
     const winId = win.id;
-    return () => {
+    return async () => {
       if (nebulaEnv.isDevelopment()) {
         console.log(`Window was closed, id = ${winId}`);
       }
@@ -238,11 +237,13 @@ class WindowManager {
       if (this._aboutDialog && winId === this._aboutDialog.id) {
         this._aboutDialog = null;
       } else if (this._main && winId === this._main.id) {
-        this._main = null;
+        // Stop the task launcher when the main window closes
+        await this._context.taskLauncher.stop();
+
         // Always close captcha windows when the main window closes
         this._captchaWindowManager.closeAllCaptchaWindows();
-        // Stop the task launcher when the main window closes
-        this._context.taskLauncher.stop();
+
+        this._main = null;
       } else if (this._auth && winId === this._auth.id) {
         this._auth = null;
       }
@@ -419,19 +420,15 @@ class WindowManager {
     return this._captchaWindowManager.getNextCaptcha();
   }
 
-  // // TODO: Add this back in #350 (https://github.com/walmat/nebula/issues/350)
-  // onRequestChangeTheme(_, opts) {
-  //   const { backgroundColor } = opts;
-  //   // TODO: Use captcha window manager in this case...
-  //   this._captchas.forEach((__, windowId) => {
-  //     const win = this._windows.get(windowId);
-  //     /**
-  //      * I've tried:
-  //      * 1. win.setBackgroundColor(backgroundColor);
-  //      * 2. win.webContents.browserWindowOptions.backgroundColor = backgroundColor;
-  //      */
-  //   });
-  // }
+  /**
+   * Change Theme
+   *
+   * Adjust the window theme
+   */
+  onChangeTheme(_, opts) {
+    // For now we only need to worry about the captcha windows, so defer to the captcha window manager
+    this._captchaWindowManager.changeTheme(opts);
+  }
 }
 
 module.exports = WindowManager;

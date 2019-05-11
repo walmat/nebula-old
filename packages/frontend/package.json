@@ -1,6 +1,6 @@
 {
   "name": "@nebula/orion",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "main": "./dist/_electron/electron.js",
   "homepage": "./",
@@ -57,6 +57,7 @@
     "lodash": "^4.17.11",
     "node-fetch": "^2.2.0",
     "prop-types": "^15.6.2",
+    "ps-list": "^6.3.0",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
     "react-number-format": "^3.6.0",

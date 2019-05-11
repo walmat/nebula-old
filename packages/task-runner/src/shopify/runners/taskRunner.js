@@ -57,11 +57,6 @@ class TaskRunner {
      */
     this._state = States.PaymentToken;
 
-    /**
-     * Type of Checkout Process to be used
-     */
-    this._checkoutType = null;
-
     this._captchaQueue = null;
     this._timers = {
       checkout: new Timer(),
@@ -111,6 +106,12 @@ class TaskRunner {
       stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
       suspendHarvestCaptcha: this.suspendHarvestCaptcha.bind(this),
     });
+
+    // add in the checkout type once we create the checkout module
+    this._context = {
+      ...this._context,
+      checkoutType: this._checkoutType,
+    };
 
     /**
      * Create a new event emitter to handle all IPC communication
@@ -344,7 +345,7 @@ class TaskRunner {
     }
 
     const { message, shouldBan, nextState } = await this._checkout.createCheckout();
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, checkout: this._checkout.checkoutToken });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -392,15 +393,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.patchCheckout();
+    const { message, shouldBan, nextState } = await this._checkout.patchCheckout();
 
-    this._emitTaskEvent({
-      message: res.message,
-    });
-    if (res.nextState === States.SwapProxies) {
-      this.shouldBanProxy = res.shouldBan; // Set a flag to ban the proxy if necessary
+    this._emitTaskEvent({ message });
+    if (nextState === States.SwapProxies) {
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
-    return res.nextState;
+    return nextState;
   }
 
   async _handlePollQueue() {
@@ -410,16 +409,18 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const res = await this._checkout.pollQueue();
+    const {
+      nextState: pollState,
+      shouldBan: pollShouldBan,
+      message: pollMessage,
+    } = await this._checkout.pollQueue();
 
-    if (res.nextState === States.SwapProxies) {
-      this.shouldBanProxy = res.shouldBan; // Set a flag to ban the proxy if necessary
+    if (pollState === States.SwapProxies) {
+      this.shouldBanProxy = pollShouldBan; // Set a flag to ban the proxy if necessary
     }
-    if (res.nextState) {
-      this._emitTaskEvent({
-        message: res.message,
-      });
-      return res.nextState;
+    if (pollState) {
+      this._emitTaskEvent({ message: pollMessage });
+      return pollState;
     }
 
     // poll queue map should be used to determine where to go next

@@ -10,7 +10,7 @@ const {
   waitForDelay,
 } = require('./utils');
 const { isSpecialSite } = require('./utils/siteOptions');
-const { States, Types } = require('./utils/constants').TaskRunner;
+const { States, Types, CheckoutTypes } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   get context() {
@@ -21,6 +21,7 @@ class Checkout {
     this._context = context;
     this._logger = this._context.logger;
     this._request = this._context.request;
+    this._checkoutType = this._context.checkoutType;
 
     this.shippingMethods = [];
     const preFetchedShippingRates = this._context.task.profile.rates.find(
@@ -32,9 +33,10 @@ class Checkout {
       preFetchedShippingRates &&
       preFetchedShippingRates.selectedRate
     ) {
-      const { name, rate } = preFetchedShippingRates.selectedRate;
+      const { name, price, rate } = preFetchedShippingRates.selectedRate;
       this.chosenShippingMethod = {
         name,
+        price,
         id: rate,
       };
     } else {
@@ -337,8 +339,6 @@ class Checkout {
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
-      // TODO - test this more.
-      // On stores with password page it makes sense, but idk if it will mess with anything else..
       if (statusCode === 401) {
         await waitForDelay(monitorDelay);
         return { message: 'Password page', nextState: States.CreateCheckout };
@@ -347,6 +347,7 @@ class Checkout {
       if (!location) {
         return { message: `(${statusCode}) Failed: Creating checkout`, nextState: States.Errored };
       }
+
       const [redirectUrl, qs] = location.split('?');
       this._logger.silly('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
@@ -367,10 +368,6 @@ class Checkout {
           return { message: 'Logging in', nextState: States.Login };
         }
         return { message: 'Account required', nextState: States.Errored };
-      }
-
-      if (redirectUrl.indexOf('stock_problems') > -1) {
-        return { message: 'Running for restocks', nextState: States.Restocking };
       }
 
       if (redirectUrl.indexOf('password') > -1) {
@@ -563,6 +560,10 @@ class Checkout {
         if (redirectUrl.indexOf('password') > -1) {
           return { message: 'Password page', nextState: States.CreateCheckout };
         }
+
+        if (redirectUrl.indexOf('throttle') > -1) {
+          return { message: 'Waiting in queue', nextState: States.PollQueue };
+        }
       }
 
       // start the monitor timer again...
@@ -593,6 +594,7 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey, localCheckout = false },
+        size,
       },
       timers: { checkout },
       proxy,
@@ -656,7 +658,12 @@ class Checkout {
         }
 
         if (redirectUrl.indexOf('stock_problems') > -1) {
-          return { message: 'Running for restocks', nextState: States.Restocking };
+          if (this._checkoutType === CheckoutTypes.fe) {
+            const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
+            return { message: 'Running for restocks', nextState };
+          }
+          const nextState = size.includes('Random') ? States.Restocking : States.PostPayment;
+          return { message: 'Running for restocks', nextState };
         }
       }
 
@@ -703,7 +710,7 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey, localCheckout = false },
-        monitorDelay,
+        size,
         username,
         password,
       },
@@ -765,8 +772,12 @@ class Checkout {
 
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
-          await waitForDelay(monitorDelay);
-          return { message: 'Running for restocks', nextState: States.Restocking };
+          if (this._checkoutType === CheckoutTypes.fe) {
+            const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
+            return { message: 'Running for restocks', nextState };
+          }
+          const nextState = size.includes('Random') ? States.Restocking : States.PostPayment;
+          return { message: 'Running for restocks', nextState };
         }
 
         // login needed

@@ -24,6 +24,11 @@ const Checkout = require('../checkout');
  * 7. POST CHECKOUT
  */
 class FrontendCheckout extends Checkout {
+  constructor(context) {
+    super(context);
+    this._hasPatched = false;
+  }
+
   async getPaymentToken() {
     const {
       task: {
@@ -145,7 +150,7 @@ class FrontendCheckout extends Checkout {
 
       if (redirectUrl) {
         if (redirectUrl.indexOf('stock_problems') > -1) {
-          return { message: 'Running for restocks', nextState: States.Restocking };
+          return { message: 'Running for restocks', nextState: States.AddToCart };
         }
 
         if (redirectUrl.indexOf('account') > -1) {
@@ -173,9 +178,12 @@ class FrontendCheckout extends Checkout {
       }
 
       if (body && body.status === 404) {
-        return { message: 'Running for restocks', nextState: States.Restocking };
+        return { message: 'Running for restocks', nextState: States.Monitor };
       }
 
+      if (this.chosenShippingMethod.id && this._hasPatched) {
+        return { message: 'Posting payment', nextState: States.PostPayment };
+      }
       return { message: 'Creating checkout', nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.error(
@@ -211,8 +219,10 @@ class FrontendCheckout extends Checkout {
     const {
       task: {
         site: { url, apiKey },
+        monitorDelay,
         username,
         password,
+        size,
       },
       proxy,
     } = this._context;
@@ -262,7 +272,9 @@ class FrontendCheckout extends Checkout {
         }
 
         if (redirectUrl.indexOf('stock_problems') > -1) {
-          return { message: 'Running for restocks', nextState: States.Restocking };
+          const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
+          await waitForDelay(monitorDelay);
+          return { message: 'Running for restocks', nextState };
         }
 
         if (redirectUrl.indexOf('password') > -1) {
@@ -355,6 +367,10 @@ class FrontendCheckout extends Checkout {
       this._logger.silly('FRONTEND CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         if (statusCode >= 200 && statusCode < 310) {
+          this._hasPatched = true;
+          if (this.chosenShippingMethod.id) {
+            return { message: 'Posting payment', nextState: States.PostPayment };
+          }
           return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
         }
         return { message: 'Failed: Submitting information', nextState: States.Errored };
@@ -371,6 +387,11 @@ class FrontendCheckout extends Checkout {
 
         if (redirectUrl.indexOf('password') > -1) {
           return { message: 'Password page', nextState: States.CreateCheckout };
+        }
+
+        if (redirectUrl.indexOf('stock_problems') > -1) {
+          // we can maybe find shipping rates meanwhile (if not found already) here
+          return { message: 'Running for restocks', nextState: States.GetCheckout };
         }
 
         if (redirectUrl.indexOf('throttle') > -1) {
@@ -453,6 +474,7 @@ class FrontendCheckout extends Checkout {
 
       if (errors) {
         this._logger.silly('FRONTEND CHECKOUT: Error getting shipping rates: %j', errors);
+        await waitForDelay(2000);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
@@ -471,10 +493,7 @@ class FrontendCheckout extends Checkout {
         this.prices.shipping = price;
         this._logger.silly('FRONTEND CHECKOUT: Shipping cost: %s', this.prices.shipping);
 
-        return {
-          message: 'Posting payment',
-          nextState: States.PostPayment,
-        };
+        return { message: 'Posting payment', nextState: States.PostPayment };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
       await waitForDelay(monitorDelay);

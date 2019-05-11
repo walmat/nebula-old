@@ -90,7 +90,7 @@ export class CreateTaskPrimitive extends Component {
       this.setState({
         isLoading: false,
       });
-    }, 100);
+    }, 500);
   }
 
   createOnChangeHandler(field) {

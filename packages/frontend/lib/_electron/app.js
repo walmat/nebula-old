@@ -3,6 +3,7 @@ const Electron = require('electron');
 const RPC = require('./rpc');
 const CaptchaServerManager = require('./captchaServerManager');
 const MainMenu = require('./mainMenu');
+const SecurityManager = require('./securityManager');
 const DialogManager = require('./dialogManager');
 const WindowManager = require('./windowManager');
 const AuthManager = require('./authManager');
@@ -45,6 +46,8 @@ class App {
      * @type {WindowManager}
      */
     this._windowManager = new WindowManager(this);
+
+    this._securityManager = new SecurityManager(this);
 
     /**
      * Manage the native dialog.
@@ -148,6 +151,17 @@ class App {
     if (nebulaEnv.isDevelopment()) {
       await App.installExtensions();
     }
+
+    if (!nebulaEnv.isDevelopment()) {
+      // attach an interval to check for any logging applications
+      setInterval(async () => {
+        const isRunning = await this._securityManager.isHTTPLoggerRunning();
+        if (isRunning) {
+          this.onWindowAllClosed();
+        }
+      }, 1500);
+    }
+
     // create the window
     await this._windowManager.createNewWindow('main');
     // set the menu
