@@ -594,7 +594,7 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey, localCheckout = false },
-        size,
+        sizes,
       },
       timers: { checkout },
       proxy,
@@ -659,10 +659,10 @@ class Checkout {
 
         if (redirectUrl.indexOf('stock_problems') > -1) {
           if (this._checkoutType === CheckoutTypes.fe) {
-            const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
+            const nextState = sizes.includes('Random') ? States.Monitor : States.GetCheckout;
             return { message: 'Running for restocks', nextState };
           }
-          const nextState = size.includes('Random') ? States.Restocking : States.PostPayment;
+          const nextState = sizes.includes('Random') ? States.Restocking : States.PostPayment;
           return { message: 'Running for restocks', nextState };
         }
       }
@@ -710,7 +710,7 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey, localCheckout = false },
-        size,
+        sizes,
         username,
         password,
       },
@@ -773,10 +773,10 @@ class Checkout {
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           if (this._checkoutType === CheckoutTypes.fe) {
-            const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
+            const nextState = sizes.includes('Random') ? States.Monitor : States.GetCheckout;
             return { message: 'Running for restocks', nextState };
           }
-          const nextState = size.includes('Random') ? States.Restocking : States.PostPayment;
+          const nextState = sizes.includes('Random') ? States.Restocking : States.PostPayment;
           return { message: 'Running for restocks', nextState };
         }
 

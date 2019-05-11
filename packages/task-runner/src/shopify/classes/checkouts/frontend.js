@@ -222,7 +222,7 @@ class FrontendCheckout extends Checkout {
         monitorDelay,
         username,
         password,
-        size,
+        sizes,
       },
       proxy,
     } = this._context;
@@ -272,7 +272,7 @@ class FrontendCheckout extends Checkout {
         }
 
         if (redirectUrl.indexOf('stock_problems') > -1) {
-          const nextState = size.includes('Random') ? States.Monitor : States.GetCheckout;
+          const nextState = sizes.includes('Random') ? States.Monitor : States.GetCheckout;
           await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState };
         }
