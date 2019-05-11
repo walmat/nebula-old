@@ -106,7 +106,7 @@ process.once('loaded', () => {
       change: {
         register: _registerForThemeChange,
         deregister: _deregisterForThemeChange,
-      }
-    }
+      },
+    },
   };
 });

@@ -229,7 +229,7 @@ function _onSaveProxy() {
   window.Bridge.saveProxyForCaptchaWindow(proxy);
 }
 
-function _onThemeChange(options) {
+function _onThemeChange(_, options) {
   const { backgroundColor } = options;
   document.body.style['background-color'] = backgroundColor;
 }
