@@ -92,6 +92,22 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       // find the index of the old object
       const idx = nextState.indexOf(found);
 
+      const rate = dsmlRates[action.profile.shipping.country.value];
+      const newRates = action.profile.rates || [];
+      if (rate) {
+        const existingRateIdx = newRates.findIndex(r => r.site.name === 'DSM UK');
+        if (existingRateIdx !== -1) {
+          newRates[existingRateIdx] = {
+            site: {
+              name: 'DSM UK',
+              url: 'https://eflash.doverstreetmarket.com',
+            },
+            rates: [rate],
+            selectedRate: rate,
+          };
+        }
+      }
+
       // Update the profile value with the one that was given to us
       nextState[idx] = Object.assign({}, action.profile, { id: action.id });
       break;
