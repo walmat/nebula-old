@@ -55,6 +55,10 @@ export class App extends PureComponent {
 
   componentDidMount() {
     if (window.Bridge) {
+      const { store } = this.props;
+      const { theme } = store.getState();
+      const backgroundColor = mapThemeToColor[theme];
+      window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
     }
     window.addEventListener('beforeunload', this._cleanup);
