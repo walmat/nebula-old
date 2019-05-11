@@ -28,6 +28,20 @@ const _getPosition = () => {
 };
 
 /**
+ * Registers a callback when Change theme event is sent
+ */
+const _registerForThemeChange = callback => {
+  util.handleEvent(IPCKeys.ChangeTheme, callback);
+};
+
+/**
+ * deregisters a callback for the Change theme
+ */
+const _deregisterForThemeChange = callback => {
+  util.removeEvent(IPCKeys.ChangeTheme, callback);
+};
+
+/**
  * Sends the end session trigger to windowManager.js
  */
 const _endCaptchaSession = () => {
@@ -88,5 +102,11 @@ process.once('loaded', () => {
       getPosition: _getPosition,
     },
     endCaptchaSession: _endCaptchaSession,
+    Theme: {
+      change: {
+        register: _registerForThemeChange,
+        deregister: _deregisterForThemeChange,
+      },
+    },
   };
 });
