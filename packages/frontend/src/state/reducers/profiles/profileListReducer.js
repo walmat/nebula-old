@@ -3,6 +3,7 @@ import uuidv4 from 'uuid/v4';
 import { PROFILE_ACTIONS, SETTINGS_ACTIONS } from '../../actions';
 import { profileReducer } from './profileReducer';
 import initialProfileStates from '../../initial/profiles';
+import dsmlRates from '../../../constants/dsmlRates';
 
 export default function profileListReducer(state = initialProfileStates.list, action) {
   // perform deep copy of given state
@@ -28,9 +29,24 @@ export default function profileListReducer(state = initialProfileStates.list, ac
         newId = uuidv4();
       } while (nextState.some(idCheck));
 
+      const rate = dsmlRates[newProfile.shipping.country.value];
+      if (rate) {
+        newProfile.rates = [
+          {
+            site: {
+              name: 'DSM UK',
+              url: 'https://eflash.doverstreetmarket.com',
+            },
+            rates: [rate],
+            selectedRate: rate,
+          },
+        ];
+      } else {
+        newProfile.rates = initialProfileStates.rates;
+      }
+
       // add new profile
       newProfile.id = newId;
-      newProfile.rates = initialProfileStates.rates;
       nextState.push(newProfile);
       break;
     }
@@ -75,6 +91,30 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       }
       // find the index of the old object
       const idx = nextState.indexOf(found);
+
+      const newRates = [...action.profile.rates];
+      // Calculate new dsml rate based on country
+      const rate = dsmlRates[action.profile.shipping.country.value];
+      // check for existing dsml rate
+      const existingRateIdx = newRates.findIndex(r => r.site.name === 'DSM UK');
+      if (existingRateIdx !== -1) {
+        // we have an existing dsml rate
+        if (rate) {
+          // we have a supported country, update the existing dsml rate to the new one
+          newRates[existingRateIdx] = {
+            site: {
+              name: 'DSM UK',
+              url: 'https://eflash.doverstreetmarket.com',
+            },
+            rates: [rate],
+            selectedRate: rate,
+          };
+        } else {
+          // we don't have a supported country, remove the existing rate, so we don't use
+          // the old country's rate
+          newRates.splice(existingRateIdx, 1);
+        }
+      }
 
       // Update the profile value with the one that was given to us
       nextState[idx] = Object.assign({}, action.profile, { id: action.id });

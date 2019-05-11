@@ -12,6 +12,8 @@ import initialProfileStates from '../../state/initial/profiles';
 import { initialState } from '../../state/migrators';
 import { RATES_FIELDS } from '../../state/actions/profiles/profileActions';
 
+import getByTestId from '../../__testUtils__/getByTestId';
+
 describe('<ShippingRates />', () => {
   let defaultProps;
 
@@ -45,10 +47,11 @@ describe('<ShippingRates />', () => {
   it('should render with required props', () => {
     const wrapper = renderShallowWithProps();
     expect(wrapper).toBeDefined();
-    expect(wrapper.find('.profiles-rates__input-group--site')).toHaveLength(0);
-    expect(wrapper.find('.profiles-rates__input-group--name')).toHaveLength(0);
-    expect(wrapper.find('.profiles-rates__input-group--rate')).toHaveLength(0);
-    expect(wrapper.find('.profiles-rates__input-group--delete')).toHaveLength(0);
+    expect(getByTestId(wrapper, 'ShippingRates.input.site')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.input.name')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.input.rate')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.input.price')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.button.delete')).toHaveLength(1);
   });
 
   it('should render with custom props', () => {
@@ -75,10 +78,11 @@ describe('<ShippingRates />', () => {
     };
     const wrapper = renderShallowWithProps(customProps);
     expect(wrapper).toBeDefined();
-    expect(wrapper.find('.profiles-rates__input-group--rate')).toHaveLength(1);
-    expect(wrapper.find('.profiles-rates__input-group--site')).toHaveLength(1);
-    expect(wrapper.find('.profiles-rates__input-group--name')).toHaveLength(1);
-    expect(wrapper.find('.profiles-rates__input-group--delete')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.input.site')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.input.name')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.input.rate')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.input.price')).toHaveLength(1);
+    expect(getByTestId(wrapper, 'ShippingRates.button.delete')).toHaveLength(1);
   });
 
   describe('should render rate fields', () => {
@@ -107,10 +111,10 @@ describe('<ShippingRates />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       expect(wrapper).toBeDefined();
-      const rate = wrapper.find('.profiles-rates__input-group--rate');
-      const site = wrapper.find('.profiles-rates__input-group--site');
-      const name = wrapper.find('.profiles-rates__input-group--name');
-      const deleteButton = wrapper.find('.profiles-rates__input-group--delete');
+      const rate = getByTestId(wrapper, 'ShippingRates.input.rate');
+      const site = getByTestId(wrapper, 'ShippingRates.input.site');
+      const name = getByTestId(wrapper, 'ShippingRates.input.name');
+      const deleteButton = getByTestId(wrapper, 'ShippingRates.button.delete');
 
       expect(rate).toHaveLength(1);
       expect(site).toHaveLength(1);
@@ -149,10 +153,10 @@ describe('<ShippingRates />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       expect(wrapper).toBeDefined();
-      const rate = wrapper.find('.profiles-rates__input-group--rate');
-      const site = wrapper.find('.profiles-rates__input-group--site');
-      const name = wrapper.find('.profiles-rates__input-group--name');
-      const deleteButton = wrapper.find('.profiles-rates__input-group--delete');
+      const rate = getByTestId(wrapper, 'ShippingRates.input.rate');
+      const site = getByTestId(wrapper, 'ShippingRates.input.site');
+      const name = getByTestId(wrapper, 'ShippingRates.input.name');
+      const deleteButton = getByTestId(wrapper, 'ShippingRates.button.delete');
 
       expect(rate).toHaveLength(1);
       expect(site).toHaveLength(1);
@@ -197,10 +201,10 @@ describe('<ShippingRates />', () => {
       };
       const wrapper = renderShallowWithProps(customProps);
       expect(wrapper).toBeDefined();
-      const rate = wrapper.find('.profiles-rates__input-group--rate');
-      const site = wrapper.find('.profiles-rates__input-group--site');
-      const name = wrapper.find('.profiles-rates__input-group--name');
-      const deleteButton = wrapper.find('.profiles-rates__input-group--delete');
+      const rate = getByTestId(wrapper, 'ShippingRates.input.rate');
+      const site = getByTestId(wrapper, 'ShippingRates.input.site');
+      const name = getByTestId(wrapper, 'ShippingRates.input.name');
+      const deleteButton = getByTestId(wrapper, 'ShippingRates.button.delete');
 
       expect(rate).toHaveLength(1);
       expect(site).toHaveLength(1);
@@ -248,7 +252,7 @@ describe('<ShippingRates />', () => {
       };
 
       const wrapper = renderShallowWithProps(customProps);
-      const site = wrapper.find('.profiles-rates__input-group--site');
+      const site = getByTestId(wrapper, 'ShippingRates.input.site');
       site.simulate('change', {
         name: 'Kith',
         url: 'https://kith.com',
@@ -297,7 +301,7 @@ describe('<ShippingRates />', () => {
       };
 
       const wrapper = renderShallowWithProps(customProps);
-      const name = wrapper.find('.profiles-rates__input-group--name');
+      const name = getByTestId(wrapper, 'ShippingRates.input.name');
       name.simulate('change', {
         label: '5-7 Business Days',
         value: 'shopify-UPS%20GROUND%20(5-7%20business%20days)-10.00',
@@ -346,7 +350,7 @@ describe('<ShippingRates />', () => {
       };
 
       const wrapper = renderShallowWithProps(customProps);
-      const deleteButton = wrapper.find('.profiles-rates__input-group--delete');
+      const deleteButton = getByTestId(wrapper, 'ShippingRates.button.delete');
       deleteButton.simulate('click');
       expect(customProps.onDeleteShippingRate).not.toHaveBeenCalled();
     });
@@ -383,7 +387,7 @@ describe('<ShippingRates />', () => {
       };
 
       const wrapper = renderShallowWithProps(customProps);
-      const deleteButton = wrapper.find('.profiles-rates__input-group--delete');
+      const deleteButton = getByTestId(wrapper, 'ShippingRates.button.delete');
       deleteButton.simulate('click');
       expect(customProps.onDeleteShippingRate).toHaveBeenCalledWith(
         {
@@ -426,7 +430,7 @@ describe('<ShippingRates />', () => {
       };
 
       const wrapper = renderShallowWithProps(customProps);
-      const deleteButton = wrapper.find('.profiles-rates__input-group--delete');
+      const deleteButton = getByTestId(wrapper, 'ShippingRates.button.delete');
       deleteButton.simulate('click');
       expect(customProps.onDeleteShippingRate).not.toHaveBeenCalled();
     });

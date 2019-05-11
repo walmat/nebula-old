@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import addTestId from '../utils/addTestId';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../state/actions';
@@ -11,12 +12,13 @@ import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../state/actions';
 import './profiles.css';
 
 export class ShippingRatesPrimitive extends Component {
-  static renderButton(className, onClick, label) {
+  static renderButton(type, onClick, label) {
     return (
       <button
         type="button"
-        className={`profiles-rates__input-group--${className}`}
+        className={`profiles-rates__input-group--${type}`}
         onClick={onClick}
+        data-testid={addTestId(`ShippingRates.button.${type}`)}
       >
         {label}
       </button>
@@ -86,6 +88,7 @@ export class ShippingRatesPrimitive extends Component {
           onChange={this.createOnChangeHandler(field)}
           value={value}
           options={options}
+          data-testid={addTestId(`ShippingRates.input.${type}`)}
         />
       </div>
     );
@@ -131,6 +134,7 @@ export class ShippingRatesPrimitive extends Component {
               value={rateValue ? rateValue.value : ''}
               style={validationStatus(false)}
               placeholder=""
+              data-testid={addTestId('ShippingRates.input.rate')}
             />
           </div>
           <div className="col col--no-gutter">
@@ -141,6 +145,7 @@ export class ShippingRatesPrimitive extends Component {
               value={rateValue ? rateValue.price : ''}
               style={validationStatus(false)}
               placeholder=""
+              data-testid={addTestId('ShippingRates.input.price')}
             />
           </div>
         </div>
