@@ -4,36 +4,21 @@ import initialState from './state';
 import dsmlRates from '../../../constants/dsmlRates';
 
 const updateProfile = profile => {
-  if (!profile.shipping || !profile.shipping.country) {
-    return profile;
-  }
-
   const rate = dsmlRates[profile.shipping.country.value];
 
   if (!rate) {
     return profile;
   }
 
-  const newRates =
-    profile.rates && profile.rates.length
-      ? profile.rates.push({
-          site: {
-            name: 'DSM UK',
-            url: 'https://eflash.doverstreetmarket.com',
-          },
-          rates: [rate],
-          selectedRate: rate,
-        })
-      : [
-          {
-            site: {
-              name: 'DSM UK',
-              url: 'https://eflash.doverstreetmarket.com',
-            },
-            rates: [rate],
-            selectedRate: rate,
-          },
-        ];
+  const newRates = profile.rates || [];
+  newRates.push({
+    site: {
+      name: 'DSM UK',
+      url: 'https://eflash.doverstreetmarket.com',
+    },
+    rates: [rate],
+    selectedRate: rate,
+  });
 
   // we're safe to push it onto the array, because even if it's empty it will be the first index
   return { ...profile, rates: newRates };
@@ -44,40 +29,9 @@ const updateTask = task => {
     return task;
   }
 
-  // country will default to US so we don't have to check here
-  const rate = dsmlRates[task.profile.shipping.country.value];
-
-  if (!rate) {
-    return task;
-  }
-
-  const newRates =
-    task.profile.rates && task.profile.rates.length
-      ? task.profile.rates.push({
-          site: {
-            name: 'DSM UK',
-            url: 'https://eflash.doverstreetmarket.com',
-          },
-          rates: [rate],
-          selectedRate: rate,
-        })
-      : [
-          {
-            site: {
-              name: 'DSM UK',
-              url: 'https://eflash.doverstreetmarket.com',
-            },
-            rates: [rate],
-            selectedRate: rate,
-          },
-        ];
-
   return {
     ...task,
-    profile: {
-      ...task.profile,
-      rates: newRates,
-    },
+    profile: updateProfile(task.profile),
   };
 };
 

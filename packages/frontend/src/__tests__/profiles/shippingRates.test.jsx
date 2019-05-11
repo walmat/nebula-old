@@ -45,10 +45,10 @@ describe('<ShippingRates />', () => {
   it('should render with required props', () => {
     const wrapper = renderShallowWithProps();
     expect(wrapper).toBeDefined();
-    expect(wrapper.find('.profiles-rates__input-group--site')).toHaveLength(0);
-    expect(wrapper.find('.profiles-rates__input-group--name')).toHaveLength(0);
-    expect(wrapper.find('.profiles-rates__input-group--rate')).toHaveLength(0);
-    expect(wrapper.find('.profiles-rates__input-group--delete')).toHaveLength(0);
+    expect(wrapper.find('.profiles-rates__input-group--site')).toHaveLength(1);
+    expect(wrapper.find('.profiles-rates__input-group--name')).toHaveLength(1);
+    expect(wrapper.find('.profiles-rates__input-group--rate')).toHaveLength(1);
+    expect(wrapper.find('.profiles-rates__input-group--delete')).toHaveLength(1);
   });
 
   it('should render with custom props', () => {
