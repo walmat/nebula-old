@@ -229,9 +229,15 @@ function _onSaveProxy() {
   window.Bridge.saveProxyForCaptchaWindow(proxy);
 }
 
+function _onThemeChange(options) {
+  const { backgroundColor } = options;
+  document.body.style['background-color'] = backgroundColor;
+}
+
 function _onLoad() {
   window.Bridge.Captcha.start.register(_registerStartHandler);
   window.Bridge.Captcha.stop.register(_registerStopHandler);
+  window.Bridge.Theme.change.register(_onThemeChange);
 
   // trick to make it seem like the document is always in focus
   Object.defineProperty(document, 'hidden', {
@@ -247,6 +253,7 @@ function _onLoad() {
 function _onClose() {
   window.Bridge.Captcha.start.deregister(_registerStartHandler);
   window.Bridge.Captcha.stop.deregister(_registerStopHandler);
+  window.Bridge.Theme.change.deregister(_onThemeChange);
 }
 
 function setupWindowHandler(event, func) {
