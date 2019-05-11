@@ -92,11 +92,15 @@ export default function profileListReducer(state = initialProfileStates.list, ac
       // find the index of the old object
       const idx = nextState.indexOf(found);
 
+      const newRates = [...action.profile.rates];
+      // Calculate new dsml rate based on country
       const rate = dsmlRates[action.profile.shipping.country.value];
-      const newRates = action.profile.rates || [];
-      if (rate) {
-        const existingRateIdx = newRates.findIndex(r => r.site.name === 'DSM UK');
-        if (existingRateIdx !== -1) {
+      // check for existing dsml rate
+      const existingRateIdx = newRates.findIndex(r => r.site.name === 'DSM UK');
+      if (existingRateIdx !== -1) {
+        // we have an existing dsml rate
+        if (rate) {
+          // we have a supported country, update the existing dsml rate to the new one
           newRates[existingRateIdx] = {
             site: {
               name: 'DSM UK',
@@ -105,6 +109,10 @@ export default function profileListReducer(state = initialProfileStates.list, ac
             rates: [rate],
             selectedRate: rate,
           };
+        } else {
+          // we don't have a supported country, remove the existing rate, so we don't use
+          // the old country's rate
+          newRates.splice(existingRateIdx, 1);
         }
       }
 
