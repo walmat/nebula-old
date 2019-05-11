@@ -94,7 +94,7 @@ export default function profileListReducer(state = initialProfileStates.list, ac
 
       const rate = dsmlRates[action.profile.shipping.country.value];
       const newRates = action.profile.rates || [];
-      if (rate) {
+      if (rate && !newRates.find(r => r.site.name === 'DSM UK')) {
         newRates.push({
           site: {
             name: 'DSM UK',

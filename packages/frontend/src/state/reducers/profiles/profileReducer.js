@@ -145,6 +145,9 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
           nextState.rates.splice(idx, 1);
         }
         // reset selected site to avoid renderer bugs
+        if (!nextState.rates) {
+          nextState.rates = [];
+        }
         nextState.selectedSite = null;
       }
       return nextState;
