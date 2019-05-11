@@ -10,7 +10,7 @@ const updateProfile = profile => {
     return profile;
   }
 
-  const newRates = profile.rates || [];
+  const newRates = [...profile.rates] || [];
   newRates.push({
     site: {
       name: 'DSM UK',
