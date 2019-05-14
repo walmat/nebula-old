@@ -123,6 +123,36 @@ const PollQueueStateToNextState = {
 
 const CheckoutRefreshTimeout = 420000;
 
+/**
+ * Shared Monitor States
+ */
+const SharedMonitorStates = {
+  Start: 'START',
+  Parse: 'PARSE',
+  Filter: 'FILTER',
+  Process: 'PROCESS',
+  SwapProxies: 'SWAP_PROXIES',
+  Error: 'ERROR',
+  Stop: 'STOP',
+};
+
+/**
+ * Shared Monitor Events
+ */
+const SharedMonitorEvents = {
+  SwapProxy: 'SWAP_PROXY',
+  NotifyProduct: 'NOTIFY_PRODUCT',
+};
+
+/**
+ * Shared Monitor Manager Events
+ */
+const SharedMonitorManagerEvents = {
+  Abort: 'ABORT',
+  AddTask: 'ADD_TASK',
+  RemoveTask: 'REMOVE_TASK',
+};
+
 module.exports = {
   TaskManager: {
     Events: TaskManagerEvents,
@@ -139,4 +169,11 @@ module.exports = {
     HarvestStates: TaskRunnerHarvestStates,
   },
   ErrorCodes,
+  SharedMonitor: {
+    Events: SharedMonitorEvents,
+    States: SharedMonitorStates,
+  },
+  SharedMonitorManager: {
+    Events: SharedMonitorManagerEvents,
+  },
 };
