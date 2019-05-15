@@ -9,7 +9,7 @@ const userAgent =
 
 const waitForDelay = delay => new Promise(resolve => setTimeout(resolve, delay));
 
-const stateForError = ({ statusCode, code }, currentState) => {
+const stateForError = ({ statusCode, code }, { message, nextState }) => {
   // Look for errors in cause
   const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT)/.exec(code);
 
@@ -43,45 +43,24 @@ const stateForError = ({ statusCode, code }, currentState) => {
     case 430: {
       shouldBan = statusCode === 403 ? 2 : 1;
       return {
-        message: 'Swapping proxy',
+        message: `Swapping proxy - (${statusCode})`,
         shouldBan,
         nextState: States.SwapProxies,
       };
     }
     case 303: {
       return {
-        message: 'Waiting in queue',
+        message: 'Waiting in queue - (303)',
         nextState: States.PollQueue,
       };
     }
     default: {
-      return statusCode >= 500 ? currentState : null;
-    }
-  }
-};
-
-const stateForStatusCode = statusCode => {
-  // Check request status code
-  let shouldBan = 0;
-  switch (statusCode) {
-    case 403:
-    case 429:
-    case 430: {
-      shouldBan = statusCode === 403 ? 2 : 1;
-      return {
-        message: 'Swapping proxy',
-        shouldBan,
-        nextState: States.SwapProxies,
-      };
-    }
-    case 303: {
-      return {
-        message: 'Waiting in queue',
-        nextState: States.PollQueue,
-      };
-    }
-    default: {
-      return null;
+      return statusCode >= 500
+        ? {
+            message: `${message} - (${statusCode})`,
+            nextState,
+          }
+        : null;
     }
   }
 };
@@ -184,7 +163,6 @@ module.exports = {
   now,
   waitForDelay,
   stateForError,
-  stateForStatusCode,
   getHeaders,
   formatProxy,
   autoParse,

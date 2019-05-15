@@ -1,20 +1,18 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
-const {
-  formatProxy,
-  getHeaders,
-  stateForError,
-  stateForStatusCode,
-  userAgent,
-  waitForDelay,
-} = require('./utils');
+const { formatProxy, getHeaders, stateForError, userAgent, waitForDelay } = require('./utils');
+const { buildPaymentForm } = require('./utils/forms');
 const { isSpecialSite } = require('./utils/siteOptions');
 const { States, Types, CheckoutTypes } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   get context() {
     return this._context;
+  }
+
+  get checkoutType() {
+    return this._checkoutType;
   }
 
   constructor(context) {
@@ -59,12 +57,9 @@ class Checkout {
     this.selectedShippingRate = null;
     this.captchaToken = '';
     this.needsCaptcha = false;
+    this.needsLogin = (this._context.task.username && this._context.task.password) || false;
+    this.needsPatched = true;
     this.captchaTokenRequest = null;
-  }
-
-  // MARK : Methods defined in subclasses
-  async paymentToken() {
-    throw new Error('Should be defined in subclasses');
   }
 
   async addToCart() {
@@ -75,6 +70,72 @@ class Checkout {
     throw new Error('Should be defined in subclasses');
   }
 
+  async getPaymentToken() {
+    const {
+      task: {
+        site: { apiKey },
+        profile: { payment, billing },
+      },
+      proxy,
+    } = this._context;
+
+    try {
+      const { id } = await this._request({
+        uri: `https://elb.deposit.shopifycs.com/sessions`,
+        method: 'POST',
+        proxy: formatProxy(proxy),
+        followAllRedirects: true,
+        rejectUnauthorized: false,
+        resolveWithFullResponse: false,
+        simple: true,
+        json: false,
+        headers: {
+          'User-Agent': userAgent,
+          'Content-Type': 'application/json',
+          Connection: 'Keep-Alive',
+        },
+        body: JSON.stringify(buildPaymentForm(payment, billing)),
+        transform2xxOnly: true,
+        transform: body => JSON.parse(body),
+      });
+
+      if (id) {
+        this._logger.silly('Payment token: %s', id);
+        this.paymentToken = id;
+        if (!apiKey) {
+          return { message: 'Parsing Access Token', nextState: States.ParseAccessToken };
+        }
+        this._logger.debug('CHECKOUT TYPE %j', this._checkoutType);
+        if (this._checkoutType === CheckoutTypes.fe) {
+          return { message: 'Monitoring for product', nextState: States.Monitor };
+        }
+        return { message: 'Creating checkout', nextState: States.CreateCheckout };
+      }
+      return {
+        message: 'Creating payment token',
+        nextState: States.PaymentToken,
+      };
+    } catch (err) {
+      this._logger.error(
+        'API CHECKOUT: %s Request Error..\n Step: Payment Token.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Creating payment token',
+        nextState: States.PaymentToken,
+      });
+
+      const message = err.statusCode
+        ? `Creating payment token - (${err.statusCode})`
+        : 'Creating payment token';
+
+      return nextState || { message, nextState: States.PaymentToken };
+    }
+  }
+
   // MARK : Shared super class methods
   async login() {
     const {
@@ -82,7 +143,6 @@ class Checkout {
         site: { url },
         username,
         password,
-        monitorDelay,
       },
       proxy,
     } = this._context;
@@ -118,10 +178,7 @@ class Checkout {
     this.captchaToken = '';
 
     try {
-      const {
-        statusCode,
-        headers: { location },
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/account/login`,
         method: 'POST',
         proxy: formatProxy(proxy),
@@ -133,23 +190,27 @@ class Checkout {
         formData: form,
       });
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, headers } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Starting task setup',
+          nextState: States.Login,
+        },
+      );
+
       if (checkStatus) {
         return checkStatus;
       }
 
-      // check server error
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Starting task setup', nextState: States.Login };
-      }
-
-      const redirectUrl = location;
+      const redirectUrl = headers.location;
       this._logger.silly('CHECKOUT: Login redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         // password page
         if (redirectUrl.indexOf('password') > -1) {
-          await waitForDelay(monitorDelay);
+          // we'll do this later, let's continue...
           return { message: 'Password page', nextState: States.Login };
         }
 
@@ -169,7 +230,14 @@ class Checkout {
         if (redirectUrl.indexOf('account') > -1) {
           this._logger.silly('CHECKOUT: Logged in');
           // check to see if we already have the storeId and checkoutToken.
+          this.needsLogin = false;
           if (this.storeId && this.checkoutToken) {
+            if (!this.needsPatched) {
+              if (this.chosenShippingMethod.id) {
+                return { message: 'Posting payment', nextState: States.PostPayment };
+              }
+              return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+            }
             return { message: 'Submitting information', nextState: States.PatchCheckout };
           }
           return { message: 'Fetching payment token', nextState: States.PaymentToken };
@@ -179,7 +247,7 @@ class Checkout {
       return { message: `(${statusCode}) Failed: Logging in`, nextState: States.Errored };
     } catch (err) {
       this._logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Login.\n\n %j %j',
+        'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
         err.statusCode,
         err.message,
         err.stack,
@@ -190,12 +258,8 @@ class Checkout {
         nextState: States.Login,
       });
 
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Logging in`,
-          nextState: States.Errored,
-        }
-      );
+      const message = err.statusCode ? `Logging in - (${err.statusCode})` : 'Logging in';
+      return nextState || { message, nextState: States.Login };
     }
   }
 
@@ -210,11 +274,7 @@ class Checkout {
 
     this._logger.silly('API CHECKOUT: Parsing access token');
     try {
-      const {
-        statusCode,
-        body,
-        headers: { location },
-      } = await this._request({
+      const res = await this._request({
         uri: url,
         method: 'GET',
         proxy: formatProxy(proxy),
@@ -229,23 +289,34 @@ class Checkout {
         },
       });
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, body, headers } = res;
+
+      const checkStatus = stateForError(
+        {
+          statusCode,
+        },
+        {
+          message: 'Parsing access token',
+          nextState: States.ParseAccessToken,
+        },
+      );
       if (checkStatus) {
         return checkStatus;
       }
 
-      const redirectUrl = location;
+      const redirectUrl = headers.location;
       this._logger.silly('API CHECKOUT: Parse access token redirect url: %s', redirectUrl);
       if (redirectUrl) {
         if (redirectUrl.indexOf('password') > -1) {
           await waitForDelay(monitorDelay);
           return { message: 'Password page', nextState: States.ParseAccessToken };
         }
-        // TODO - do more checks to see if we can parse the access token on other pages (aka account, login, etc.)
-        return {
-          message: `(${statusCode}) Failed: Parsing access token`,
-          nextState: States.Stopped,
-        };
+
+        const message = statusCode
+          ? `Parsing access token - (${statusCode})`
+          : 'Parsing access token';
+
+        return { message, nextState: States.Stopped };
       }
 
       const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
@@ -291,12 +362,11 @@ class Checkout {
         nextState: States.ParseAccessToken,
       });
 
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Parsing access token`,
-          nextState: States.Errored,
-        }
-      );
+      const message = err.statusCode
+        ? `Parsing access token - (${err.statusCode})`
+        : 'Parsing access token';
+
+      return nextState || { message, nextState: States.ParseAccessToken };
     }
   }
 
@@ -313,10 +383,7 @@ class Checkout {
     } = this._context;
 
     try {
-      const {
-        headers: { location },
-        statusCode,
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/checkout`,
         method: 'POST',
         proxy: !localCheckout ? formatProxy(proxy) : undefined,
@@ -329,14 +396,17 @@ class Checkout {
         body: JSON.stringify({}),
       });
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, headers } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Creating checkout',
+          nextState: States.CreateCheckout,
+        },
+      );
       if (checkStatus) {
         return checkStatus;
-      }
-
-      // check server error
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
 
       if (statusCode === 401) {
@@ -344,14 +414,16 @@ class Checkout {
         return { message: 'Password page', nextState: States.CreateCheckout };
       }
 
-      if (!location) {
-        return { message: `(${statusCode}) Failed: Creating checkout`, nextState: States.Errored };
+      if (!headers || !headers.location) {
+        const message = statusCode ? `Creating checkout - (${statusCode})` : 'Creating checkout';
+        return { message, nextState: States.CreateCheckout };
       }
 
-      const [redirectUrl, qs] = location.split('?');
+      const [redirectUrl, qs] = headers.location.split('?');
       this._logger.silly('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
-        return { message: `(${statusCode}) Failed: Creating checkout`, nextState: States.Errored };
+        const message = statusCode ? `Creating checkout - (${statusCode})` : 'Creating checkout';
+        return { message, nextState: States.CreateCheckout };
       }
 
       // account (e.g. – https://www.hanon-shop.com/account/login?checkout_url=https%3A%2F%2Fwww.hanon-shop.com%2F20316995%2Fcheckouts%2Fb92b2aa215abfde741a8cf0e99eeee01)
@@ -387,7 +459,8 @@ class Checkout {
       }
 
       // not sure where we are, error out...
-      return { message: `(${statusCode}) Failed: Creating checkout`, nextState: States.Errored };
+      const message = statusCode ? `Creating checkout - (${statusCode})` : 'Creating checkout';
+      return { message, nextState: States.Errored };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
@@ -400,12 +473,12 @@ class Checkout {
         message: 'Creating checkout',
         nextState: States.CreateCheckout,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Creating checkout`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode
+        ? `Creating checkout - (${err.statusCode})`
+        : 'Creating checkout';
+
+      return nextState || { message, nextState: States.Errored };
     }
   }
 
@@ -428,11 +501,7 @@ class Checkout {
     } = this._context;
 
     try {
-      const {
-        statusCode,
-        body,
-        headers: { location },
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/checkout/poll`,
         method: 'GET',
         proxy: formatProxy(proxy),
@@ -448,27 +517,31 @@ class Checkout {
         },
       });
 
+      const { statusCode, body, headers } = res;
+
       this._logger.silly('Checkout: poll response %d', statusCode);
-      const checkStatus = stateForStatusCode(statusCode);
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Waiting in queue',
+          nextState: States.PollQueue,
+        },
+      );
+
       if (checkStatus) {
         return checkStatus;
       }
 
       // check server error
       if (statusCode === 400) {
-        return { message: `(${statusCode}) Failed: Polling Queue`, nextState: States.Errored };
-      }
-
-      // check server error
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Polling queue', nextState: States.PollQueue };
+        return { message: `(${statusCode}) Failed: Polling Queue`, nextState: States.PollQueue };
       }
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
       let redirectUrl = null;
       if (statusCode === 302) {
-        [redirectUrl] = location.split('?');
+        [redirectUrl] = headers.location.split('?');
       } else if (statusCode === 200) {
         const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
         [redirectUrl] = $('input[name="checkout_url"]')
@@ -483,10 +556,11 @@ class Checkout {
       }
       this._logger.silly('CHECKOUT: Not passed queue, delaying 2000 ms');
       await waitForDelay(2000);
-      return { message: `(${statusCode}) Waiting in queue`, nextState: States.PollQueue };
+      const message = statusCode ? `Waiting in queue - (${statusCode})` : 'Waiting in queue';
+      return { message, nextState: States.PollQueue };
     } catch (err) {
       this._logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Poll Queue.\n\n %j %j',
+        'CHECKOUT: %s Request Error..\n Step: Poll Queue.\n\n %j %j',
         err.statusCode,
         err.message,
         err.stack,
@@ -495,12 +569,12 @@ class Checkout {
         message: 'Waiting in queue',
         nextState: States.PollQueue,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Polling queue`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode
+        ? `Waiting in queue - (${err.statusCode})`
+        : 'Waiting in queue';
+
+      return nextState || { message, nextState: States.PollQueue };
     }
   }
 
@@ -518,10 +592,7 @@ class Checkout {
     monitor.reset();
 
     try {
-      const {
-        statusCode,
-        headers: { location },
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'GET',
         proxy: formatProxy(proxy),
@@ -542,16 +613,20 @@ class Checkout {
         },
       });
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, headers } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Pinging checkout',
+          nextState: States.PingCheckout,
+        },
+      );
       if (checkStatus) {
         return checkStatus;
       }
 
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Pinging checkout', nextState: States.PingCheckout };
-      }
-
-      const redirectUrl = location;
+      const redirectUrl = headers.location;
       this._logger.silly('CHECKOUT: Pinging checkout redirect url: %s', redirectUrl);
 
       // check if redirected
@@ -571,7 +646,7 @@ class Checkout {
       return { message: 'Monitoring for product' };
     } catch (err) {
       this._logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Ping Checkout.\n\n %j %j',
+        'CHECKOUT: %s Request Error..\n Step: Ping Checkout.\n\n %j %j',
         err.statusCode,
         err.message,
         err.stack,
@@ -581,12 +656,12 @@ class Checkout {
         message: 'Pinging checkout',
         nextState: States.PingCheckout,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Pinging checkout`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode
+        ? `Pinging checkout - (${err.statusCode})`
+        : 'Pinging checkout';
+
+      return nextState || { message, nextState: States.PingCheckout };
     }
   }
 
@@ -602,11 +677,7 @@ class Checkout {
     const { id } = this.chosenShippingMethod;
 
     try {
-      const {
-        statusCode,
-        body,
-        headers: { location },
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
         proxy: !localCheckout ? formatProxy(proxy) : undefined,
@@ -636,16 +707,21 @@ class Checkout {
         }),
       });
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, body, headers } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Posting payment',
+          nextState: States.PostPayment,
+        },
+      );
+
       if (checkStatus) {
         return checkStatus;
       }
 
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Posting payment', nextState: States.PostPayment };
-      }
-
-      const redirectUrl = location;
+      const redirectUrl = headers.location;
       this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       // check if redirected
@@ -687,7 +763,7 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.CompletePayment };
     } catch (err) {
       this._logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Post Payment.\n\n %j %j',
+        'CHECKOUT: %s Request Error..\n Step: Post Payment.\n\n %j %j',
         err.statusCode,
         err.message,
         err.stack,
@@ -697,12 +773,10 @@ class Checkout {
         message: 'Posting payment',
         nextState: States.PostPayment,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Posting payment`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode ? `Posting payment - (${err.statusCode})` : 'Posting payment';
+
+      return nextState || { message, nextState: States.PostPayment };
     }
   }
 
@@ -719,10 +793,7 @@ class Checkout {
     } = this._context;
 
     try {
-      const {
-        statusCode,
-        headers: { location },
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
         proxy: !localCheckout ? formatProxy(proxy) : undefined,
@@ -749,17 +820,21 @@ class Checkout {
       // Reset captcha token so we don't use it twice
       this.captchaToken = '';
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, headers } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Processing payment',
+          nextState: States.CompletePayment,
+        },
+      );
+
       if (checkStatus) {
         return checkStatus;
       }
 
-      // check server error
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Processing payment', nextState: States.CompletePayment };
-      }
-
-      const redirectUrl = location;
+      const redirectUrl = headers.location;
       this._logger.silly('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
@@ -799,7 +874,7 @@ class Checkout {
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Complete Payment.\n\n %j %j',
+        'CHECKOUT: %s Request Error..\n Step: Complete Payment.\n\n %j %j',
         err.statusCode,
         err.message,
         err.stack,
@@ -809,12 +884,12 @@ class Checkout {
         message: 'Processing payment',
         nextState: States.CompletePayment,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Completing payment`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode
+        ? `Processing payment - (${err.statusCode})`
+        : 'Processing payment';
+
+      return nextState || { message, nextState: States.Errored };
     }
   }
 
@@ -838,7 +913,7 @@ class Checkout {
     }
 
     try {
-      const { statusCode, body } = await this._request({
+      const res = await this._request({
         uri: `${url}/api/checkouts/${this.checkoutToken}/payments`,
         method: 'GET',
         proxy: formatProxy(proxy),
@@ -858,14 +933,18 @@ class Checkout {
         },
       });
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, body } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Processing payment',
+          nextState: States.PaymentProcess,
+        },
+      );
+
       if (checkStatus) {
         return checkStatus;
-      }
-
-      // check server error
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Processing payment', nextState: States.PaymentProcess };
       }
 
       const { payments } = body;
@@ -904,12 +983,7 @@ class Checkout {
               image,
             });
           } catch (err) {
-            this._logger.error(
-              'CHECKOUT: %d Request Error..\n Step: Send Webhooks.\n\n %j %j',
-              err.statusCode,
-              err.message,
-              err.stack,
-            );
+            // fail silently...
           }
 
           return { message: 'Payment successful', nextState: States.Finished };
@@ -924,9 +998,11 @@ class Checkout {
           }
 
           if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
+            // TODO : restock mode...
             return { message: 'Payment failed (OOS)', nextState: States.Stopped };
           }
 
+          // TODO : restock mode...
           return { message: 'Payment failed', nextState: States.Stopped };
         }
       }
@@ -945,12 +1021,12 @@ class Checkout {
         message: 'Processing payment',
         nextState: States.PaymentProcess,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Processing payment`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode
+        ? `Processing payment - (${err.statusCode})`
+        : 'Processing payment';
+
+      return nextState || { message, nextState: States.Errored };
     }
   }
 }

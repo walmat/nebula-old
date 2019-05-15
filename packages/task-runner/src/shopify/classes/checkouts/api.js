@@ -1,15 +1,8 @@
 const { min } = require('underscore');
 
-const {
-  formatProxy,
-  getHeaders,
-  stateForError,
-  stateForStatusCode,
-  userAgent,
-  waitForDelay,
-} = require('../utils');
+const { formatProxy, getHeaders, stateForError, waitForDelay } = require('../utils');
 const { patchCheckoutForm } = require('../utils/forms');
-const { buildPaymentForm, patchToCart } = require('../utils/forms');
+const { patchToCart } = require('../utils/forms');
 const { Types, States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
 const Checkout = require('../checkout');
 
@@ -27,78 +20,6 @@ const Checkout = require('../checkout');
  * 10. PROCESSING...
  */
 class APICheckout extends Checkout {
-  async getPaymentToken() {
-    const {
-      task: {
-        site: { apiKey },
-        profile: { payment, billing },
-      },
-      proxy,
-    } = this._context;
-
-    try {
-      const { statusCode, body } = await this._request({
-        uri: `https://elb.deposit.shopifycs.com/sessions`,
-        followAllRedirects: true,
-        proxy: formatProxy(proxy),
-        rejectUnauthorized: false,
-        method: 'post',
-        resolveWithFullResponse: true,
-        headers: {
-          'User-Agent': userAgent,
-          'Content-Type': 'application/json',
-          Connection: 'Keep-Alive',
-        },
-        body: JSON.stringify(buildPaymentForm(payment, billing)),
-      });
-
-      const checkStatus = stateForStatusCode(statusCode);
-      if (checkStatus) {
-        return checkStatus;
-      }
-
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Starting task setup', nextState: States.PaymentToken };
-      }
-      let id = null;
-      try {
-        ({ id } = JSON.parse(body));
-      } catch (e) {
-        return { message: 'Failed: Creating payment token', nextState: States.Errored };
-      }
-      if (id) {
-        this._logger.silly('Payment token: %s', id);
-        this.paymentToken = id;
-        if (!apiKey) {
-          return { message: 'Parsing Access Token', nextState: States.ParseAccessToken };
-        }
-        return { message: 'Creating checkout', nextState: States.CreateCheckout };
-      }
-      return {
-        message: `(${statusCode}) Failed: Creating payment token`,
-        nextState: States.Errored,
-      };
-    } catch (err) {
-      this._logger.error(
-        'API CHECKOUT: %d Request Error..\n Step: Payment Token.\n\n %j %j',
-        err.statusCode,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Creating payment token',
-        nextState: States.PaymentToken,
-      });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Creating payment token`,
-          nextState: States.Errored,
-        }
-      );
-    }
-  }
-
   async patchCheckout() {
     const {
       task: {
@@ -111,10 +32,7 @@ class APICheckout extends Checkout {
     } = this._context;
 
     try {
-      const {
-        statusCode,
-        headers: { location },
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
         proxy: formatProxy(proxy),
@@ -136,25 +54,33 @@ class APICheckout extends Checkout {
       });
       this.captchaToken = '';
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, headers } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Submitting information',
+          nextState: States.PatchCheckout,
+        },
+      );
+
       if (checkStatus) {
         return checkStatus;
       }
 
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Submitting information', nextState: States.PatchCheckout };
-      }
-
-      const redirectUrl = location;
+      const redirectUrl = headers.location;
       this._logger.silly('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
-      if (!redirectUrl || redirectUrl.indexOf('checkouts') > -1) {
+      if (!redirectUrl || /checkouts/.test(redirectUrl)) {
         if (statusCode === 200 || statusCode === 302) {
+          this.needsPatched = false;
           return { message: 'Monitoring for product', nextState: States.Monitor };
         }
-        return {
-          message: `(${statusCode}) Failed: Submitting information`,
-          nextState: States.Errored,
-        };
+
+        const message = statusCode
+          ? `Submitting information – (${statusCode})`
+          : 'Submitting information';
+
+        return { message, nextState: States.PatchCheckout };
       }
 
       if (redirectUrl.indexOf('account') > -1) {
@@ -172,13 +98,14 @@ class APICheckout extends Checkout {
         return { message: 'Waiting in queue', nextState: States.PollQueue };
       }
 
-      return {
-        message: `(${statusCode}) Failed: Submitting information`,
-        nextState: States.Errored,
-      };
+      const message = statusCode
+        ? `Submitting information – (${statusCode})`
+        : 'Submitting information';
+
+      return { message, nextState: States.PatchCheckout };
     } catch (err) {
       this._logger.error(
-        'API CHECKOUT: %d Request Error..\n Step: Submitting Information.\n\n %j %j',
+        'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
         err.statusCode,
         err.message,
         err.stack,
@@ -188,12 +115,12 @@ class APICheckout extends Checkout {
         message: 'Submitting information',
         nextState: States.PatchCheckout,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Submitting information`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode
+        ? `Submitting information – (${err.statusCode})`
+        : 'Submitting information';
+
+      return nextState || { message, nextState: States.Errored };
     }
   }
 
@@ -213,11 +140,7 @@ class APICheckout extends Checkout {
     } = this._context;
 
     try {
-      const {
-        statusCode,
-        body: { errors, checkout },
-        headers: { location },
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/api/checkouts/${this.checkoutToken}.json`,
         method: 'PATCH',
         proxy: formatProxy(proxy),
@@ -234,17 +157,21 @@ class APICheckout extends Checkout {
         body: patchToCart(variants[0]),
       });
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, body, headers } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Adding to cart',
+          nextState: States.AddToCart,
+        },
+      );
+
       if (checkStatus) {
         return checkStatus;
       }
 
-      // server error
-      if (statusCode === 500 || statusCode === 503) {
-        return { message: 'Adding to cart', nextState: States.AddToCart };
-      }
-
-      const redirectUrl = location;
+      const redirectUrl = headers.location;
       this._logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       // check redirects
@@ -266,8 +193,8 @@ class APICheckout extends Checkout {
         }
       }
 
-      if (errors && errors.line_items) {
-        const [error] = errors.line_items;
+      if (body.errors && body.errors.line_items) {
+        const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
           if (monitor.getRunTime() > CheckoutRefresh) {
@@ -276,7 +203,7 @@ class APICheckout extends Checkout {
           const nextState = sizes.includes('Random') ? States.Monitor : States.AddToCart;
           return { message: 'Running for restocks', nextState };
         }
-        if (error && error.variant_id && error.variant_id[0]) {
+        if (error && error.variant_id[0]) {
           if (type === Types.ShippingRates) {
             return { message: 'Invalid variant', nextState: States.Errored };
           }
@@ -286,16 +213,18 @@ class APICheckout extends Checkout {
           await waitForDelay(monitorDelay);
           return { message: 'Monitoring for product', nextState: States.AddToCart };
         }
-        return { message: `(${statusCode}) Failed: Add to cart`, nextState: States.Errored };
+
+        const message = statusCode ? `Adding to cart – (${statusCode})` : 'Adding to cart';
+        return { message, nextState: States.AddToCart };
       }
 
-      if (checkout && checkout.line_items && checkout.line_items.length) {
-        const { total_price: totalPrice } = checkout;
+      if (body.checkout && body.checkout.line_items) {
+        const { total_price: totalPrice } = body.checkout;
 
-        this._context.task.product.name = checkout.line_items[0].title;
-        this._context.task.product.image = checkout.line_items[0].image_url.startsWith('http')
-          ? checkout.line_items[0].image_url
-          : `http:${checkout.line_items[0].image_url}`;
+        this._context.task.product.name = body.checkout.line_items[0].title;
+        this._context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
+          ? body.checkout.line_items[0].image_url
+          : `http:${body.checkout.line_items[0].image_url}`;
 
         checkoutTimer.reset();
         checkoutTimer.start();
@@ -311,10 +240,11 @@ class APICheckout extends Checkout {
         }
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
-      return { message: `(${statusCode}) Failed: Add to cart`, nextState: States.Errored };
+      const message = statusCode ? `Adding to cart – (${statusCode})` : 'Adding to cart';
+      return { message, nextState: States.AddToCart };
     } catch (err) {
       this._logger.error(
-        'API CHECKOUT: %d Request Error..\n Step: Add to Cart.\n\n %j %j',
+        'API CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
         err.statusCode,
         err.message,
         err.stack,
@@ -323,12 +253,9 @@ class APICheckout extends Checkout {
         message: 'Adding to cart',
         nextState: States.AddToCart,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Add to cart`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode ? `Adding to cart – (${err.statusCode})` : 'Adding to cart';
+      return nextState || { message, nextState: States.AddToCart };
     }
   }
 
@@ -337,16 +264,12 @@ class APICheckout extends Checkout {
       task: {
         site: { url, apiKey },
         monitorDelay,
-        errorDelay,
       },
       proxy,
     } = this._context;
 
     try {
-      const {
-        statusCode,
-        body: { errors, shipping_rates: shippingRates },
-      } = await this._request({
+      const res = await this._request({
         uri: `${url}/api/checkouts/${this.checkoutToken}/shipping_rates.json`,
         method: 'GET',
         proxy: formatProxy(proxy),
@@ -363,14 +286,18 @@ class APICheckout extends Checkout {
         },
       });
 
-      const checkStatus = stateForStatusCode(statusCode);
+      const { statusCode, body } = res;
+
+      const checkStatus = stateForError(
+        { statusCode },
+        {
+          message: 'Fetching shipping rates',
+          nextState: States.ShippingRates,
+        },
+      );
+
       if (checkStatus) {
         return checkStatus;
-      }
-
-      if (statusCode === 500 || statusCode === 503) {
-        await waitForDelay(errorDelay);
-        return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
 
       // extra check for country not supported
@@ -378,9 +305,9 @@ class APICheckout extends Checkout {
         return { message: 'Country not supported', nextState: States.Errored };
       }
 
-      if (errors) {
+      if (body && body.errors) {
         this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', errors);
-        const { checkout } = errors;
+        const { checkout } = body.errors;
         if (checkout) {
           const errorMessage = JSON.stringify(checkout);
           if (errorMessage.indexOf('does_not_require_shipping') > -1) {
@@ -397,7 +324,8 @@ class APICheckout extends Checkout {
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
-      if (shippingRates && shippingRates.length > 0) {
+      if (body && body.shipping_rates && body.shipping_rates.length > 0) {
+        const { shipping_rates: shippingRates } = body;
         shippingRates.forEach(rate => {
           this.shippingMethods.push(rate);
         });
@@ -415,14 +343,14 @@ class APICheckout extends Checkout {
           parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
         ).toFixed(2);
         this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
-        return { message: `Posting payment`, nextState: States.PostPayment };
+        return { message: 'Posting payment', nextState: States.PostPayment };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
       await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.error(
-        'API CHECKOUT: %d Request Error..\n Step: Shipping Rates.\n\n %j %j',
+        'API CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
         err.statusCode,
         err.message,
         err.stack,
@@ -432,12 +360,12 @@ class APICheckout extends Checkout {
         message: 'Fetching shipping rates',
         nextState: States.ShippingRates,
       });
-      return (
-        nextState || {
-          message: `(${err.statusCode}) Failed: Fetching shipping rates`,
-          nextState: States.Errored,
-        }
-      );
+
+      const message = err.statusCode
+        ? `Fetching shipping rates – (${err.statusCode})`
+        : 'Fetching shipping rates';
+
+      return nextState || { message, nextState: States.Errored };
     }
   }
 }
