@@ -8,19 +8,14 @@ const Checkout = require('../checkout');
 
 /**
  * CHECKOUT STEPS:
- * 1. PAYMENT TOKEN
- * 2. MONITOR
- * 3. ADD TO CART (POLL QUEUE – PROCEEDS TO #5)
- * 4. CREATE CHECKOUT (POLL QUEUE – PROCEEDS TO #5)
- * 5. PATCH CHECKOUT (POLL QUEUE – PROCEEDS TO #6)
- * 6. SHIPPING RATES
- * 7. POST CHECKOUT
+ * 1. MONITOR
+ * 2. ADD TO CART (POLL QUEUE – PROCEEDS TO #5)
+ * 3. CREATE CHECKOUT (POLL QUEUE – PROCEEDS TO #5)
+ * 4. PATCH CHECKOUT (POLL QUEUE – PROCEEDS TO #6)
+ * 5. SHIPPING RATES
+ * 6. POST CHECKOUT
  */
 class FrontendCheckout extends Checkout {
-  constructor(context) {
-    super(context);
-  }
-
   async addToCart() {
     const {
       task: {
