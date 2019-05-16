@@ -1,6 +1,6 @@
 const Parser = require('./parser');
 const { ParseType, convertToJson } = require('../utils/parse');
-const { formatProxy, userAgent } = require('../utils');
+const { userAgent } = require('../utils');
 
 class XmlParser extends Parser {
   /**
@@ -29,7 +29,7 @@ class XmlParser extends Parser {
       const response = await this._request({
         method: 'GET',
         uri: `${this._task.site.url}/sitemap_products_1.xml?from=1&to=299999999999999999`,
-        proxy: formatProxy(this._proxy) || undefined,
+        proxy: this._proxy,
         rejectUnauthorized: false,
         json: false,
         simple: true,

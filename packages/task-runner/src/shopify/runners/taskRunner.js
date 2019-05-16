@@ -77,6 +77,7 @@ class TaskRunner {
       task,
       status: null,
       proxy: proxy ? proxy.proxy : null,
+      rawProxy: proxy ? proxy.raw : null,
       request: this._request,
       timers: this._timers,
       discord: this._discord,
@@ -107,11 +108,8 @@ class TaskRunner {
       suspendHarvestCaptcha: this.suspendHarvestCaptcha.bind(this),
     });
 
-    // add in the checkout type once we create the checkout module
-    this._context = {
-      ...this._context,
-      checkoutType: this._checkoutType,
-    };
+    // Add in the checkout type once we create the checkout module
+    this._checkout._checkoutType = this._checkoutType;
 
     /**
      * Create a new event emitter to handle all IPC communication
@@ -298,7 +296,7 @@ class TaskRunner {
 
     const { message, shouldBan, nextState } = await this._checkout.login();
 
-    this._emitTaskEvent({ message, proxy: this._context.proxy });
+    this._emitTaskEvent({ message, proxy: this._context.rawProxy });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -314,7 +312,7 @@ class TaskRunner {
 
     const { message, shouldBan, nextState } = await this._checkout.getPaymentToken();
 
-    this._emitTaskEvent({ message, proxy: this._context.proxy });
+    this._emitTaskEvent({ message, proxy: this._context.rawProxy });
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -671,12 +669,13 @@ class TaskRunner {
       if (proxy) {
         this.proxy = proxy;
         this._context.proxy = proxy.proxy;
+        this._context.rawProxy = proxy.raw;
         this._checkout.context.proxy = proxy.proxy;
         this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
         this._emitTaskEvent({
-          message: `Swapped proxy to: ${proxy.proxy}`,
-          proxy: proxy.proxy,
+          message: `Swapped proxy to: ${proxy.raw}`,
+          proxy: proxy.raw,
         });
         return this._prevState;
       }

@@ -1,4 +1,4 @@
-const { formatProxy, userAgent } = require('../utils');
+const { userAgent } = require('../utils');
 const Parser = require('./parser');
 
 class JsonParser extends Parser {
@@ -21,7 +21,7 @@ class JsonParser extends Parser {
       const response = await this._request({
         method: 'GET',
         uri: `${url}/products.json`,
-        proxy: formatProxy(this._proxy) || undefined,
+        proxy: this._proxy,
         rejectUnauthorized: false,
         json: false,
         simple: true,
