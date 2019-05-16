@@ -1,4 +1,4 @@
-const _ = require('underscore');
+const { sortBy, map, find, flatten, filter, every, some } = require('underscore');
 const { parseString } = require('xml2js');
 const { isSpecialSite } = require('./siteOptions');
 
@@ -84,7 +84,7 @@ function filterAndLimit(list, sorter, limit, logger) {
   let sorted = list;
   if (sorter) {
     _logger.log('silly', 'Sorter detected, sorting...');
-    sorted = _.sortBy(list, sorter);
+    sorted = sortBy(list, sorter);
   }
 
   const _limit = limit || 0;
@@ -147,8 +147,8 @@ function matchVariant(products, variantId, logger) {
   // Step 1: Map products list to a list of variant lists
   // Step 2: flatten the list of lists, so we only have one total list of all variants
   // Step 3: Search for the variant in the resulting variant list
-  const matchedVariant = _.find(
-    _.flatten(_.map(transformedProducts, p => p.variants)),
+  const matchedVariant = find(
+    flatten(map(transformedProducts, p => p.variants)),
     v => v.id.toString() === variantId,
   );
   if (matchedVariant) {
@@ -159,7 +159,7 @@ function matchVariant(products, variantId, logger) {
       variantId,
     );
     _logger.log('silly', 'Returning product associated with this variant...');
-    return _.find(transformedProducts, p => p.id === matchedVariant.product_id);
+    return find(transformedProducts, p => p.id === matchedVariant.product_id);
   }
   _logger.log(
     'silly',
@@ -191,7 +191,7 @@ module.exports.matchVariant = matchVariant;
  * @param {Object} keywords an object containing two arrays of strings (`pos` and `neg`)
  * @see filterAndLimit
  */
-function matchKeywords(products, keywords, filter, logger, returnAll) {
+function matchKeywords(products, keywords, _filter, logger, returnAll) {
   const _logger = logger || { log: () => {} };
   _logger.log(
     'silly',
@@ -212,7 +212,7 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
     return null;
   }
 
-  const matches = _.filter(products, product => {
+  const matches = filter(products, product => {
     const title = product.title.toUpperCase();
     const rawHandle = product.handle || '';
     const handle = rawHandle.replace(new RegExp('-', 'g'), ' ').toUpperCase();
@@ -223,7 +223,7 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
 
     // match every keyword in the positive array
     if (keywords.pos.length > 0) {
-      pos = _.every(
+      pos = every(
         keywords.pos.map(k => k.toUpperCase()),
         keyword => title.indexOf(keyword.toUpperCase()) > -1 || handle.indexOf(keyword) > -1,
       );
@@ -231,7 +231,7 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
 
     // match none of the keywords in the negative array
     if (keywords.neg.length > 0) {
-      neg = _.some(
+      neg = some(
         keywords.neg.map(k => k.toUpperCase()),
         keyword => title.indexOf(keyword) > -1 || handle.indexOf(keyword) > -1,
       );
@@ -252,14 +252,14 @@ function matchKeywords(products, keywords, filter, logger, returnAll) {
       matches.length,
       JSON.stringify(matches.map(({ title }) => title), null, 2),
     );
-    if (filter && filter.sorter && filter.limit) {
+    if (_filter && _filter.sorter && _filter.limit) {
       _logger.log('silly', 'Using given filtering heuristic on the products...');
-      let { limit } = filter;
+      let { limit } = _filter;
       if (returnAll) {
         _logger.log('silly', "Overriding filter's limit and returning all products...");
         limit = 0;
       }
-      filtered = filterAndLimit(matches, filter.sorter, limit, this._logger);
+      filtered = filterAndLimit(matches, _filter.sorter, limit, this._logger);
       if (!returnAll) {
         _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
         return filtered[0];

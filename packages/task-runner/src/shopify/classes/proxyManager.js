@@ -10,6 +10,30 @@ class ProxyManager {
     this.retry = 100; // retry delay for swapping
   }
 
+  format(rawData) {
+    this._logger.silly('Formatting proxy data %s...', rawData);
+    if (!rawData || /^(127.*|localhost)/.test(rawData)) {
+      return null;
+    }
+
+    // subnet proxies
+    if (/^http/.test(rawData)) {
+      const [schema, subnet, port, user, pass] = rawData.split(':');
+      const sub = subnet.replace(/\//g, '');
+      if (user && pass) {
+        return `${schema}://${user}:${pass}@${sub}:${port}`;
+      }
+      return `${schema}://${sub}:${port}`;
+    }
+
+    const [ip, port, user, pass] = rawData.split(':');
+
+    if (user && pass) {
+      return `http://${user}:${pass}@${ip}:${port}`;
+    }
+    return `http://${ip}:${port}`;
+  }
+
   /**
    * Register a Proxy
    *
@@ -34,10 +58,14 @@ class ProxyManager {
       id = shortid.generate();
     } while (this._proxies.get(id));
 
+    const formattedProxy = this.format(proxy);
+
+    this._logger.debug('Adding proxy: %s', formattedProxy);
+
     this._proxies.set(id, {
       id,
       hash: proxyHash,
-      proxy,
+      proxy: formattedProxy,
       ban: {},
       use: {},
     });

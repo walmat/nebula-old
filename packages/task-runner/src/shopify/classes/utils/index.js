@@ -27,7 +27,7 @@ const stateForError = ({ statusCode, code }, { message, nextState }) => {
       // request timeout or socket freeze timeout
       case 'ETIMEDOUT':
       case 'ESOCKETTIMEDOUT': {
-        return currentState;
+        return { message, nextState };
       }
       default: {
         break;
@@ -76,41 +76,6 @@ const getHeaders = ({ url, apiKey }) => ({
   host: `${url.split('/')[2]}`,
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });
-
-/**
- * Formats the proxy correctly to be used in a request
- * @param {*} input - IP:PORT:USER:PASS || IP:PORT
- * @returns - http://USER:PASS@IP:PORT || http://IP:PORT
- */
-const formatProxy = input => {
-  // safeguard for if it's already formatted or in a format we can't handle
-  if (!input) {
-    return input;
-  }
-
-  if (input.startsWith('127') || input.indexOf('localhost') > -1) {
-    return null;
-  }
-
-  const data = input.split(':');
-  if (input.startsWith('http')) {
-    if (data.length === 3) {
-      return `${data[0]}:${data[1]}:${data[2]}`;
-    }
-
-    if (data.length === 5) {
-      return `${data[0]}://${data[3]}:${data[4]}@${data[1].slice(2)}:${data[2]}`;
-    }
-  }
-
-  if (data.length === 2) {
-    return `http://${data[0]}:${data[1]}`;
-  }
-  if (data.length === 4) {
-    return `http://${data[2]}:${data[3]}@${data[0]}:${data[1]}`;
-  }
-  return null;
-};
 
 const autoParse = (body, response) => {
   // FIXME: The content type string could contain additional values like the charset.
@@ -164,7 +129,6 @@ module.exports = {
   waitForDelay,
   stateForError,
   getHeaders,
-  formatProxy,
   autoParse,
   trimKeywords,
   capitalizeFirstLetter,

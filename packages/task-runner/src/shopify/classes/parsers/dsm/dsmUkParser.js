@@ -1,7 +1,7 @@
 const cheerio = require('cheerio');
 
 const DsmParser = require('./dsmParser');
-const { formatProxy, userAgent } = require('../../utils');
+const { userAgent } = require('../../utils');
 
 class DsmUkParser extends DsmParser {
   constructor(request, task, proxy, logger) {
@@ -50,7 +50,7 @@ class DsmUkParser extends DsmParser {
     return this._request({
       method: 'GET',
       uri,
-      proxy: formatProxy(this._proxy) || undefined,
+      proxy: this._proxy,
       rejectUnauthorized: false,
       resolveWithFullResponse: false,
       json: false,

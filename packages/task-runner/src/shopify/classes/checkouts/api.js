@@ -1,6 +1,6 @@
 const { min } = require('underscore');
 
-const { formatProxy, getHeaders, stateForError, waitForDelay } = require('../utils');
+const { getHeaders, stateForError, waitForDelay } = require('../utils');
 const { patchCheckoutForm } = require('../utils/forms');
 const { patchToCart } = require('../utils/forms');
 const { Types, States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
@@ -35,7 +35,7 @@ class APICheckout extends Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -143,7 +143,7 @@ class APICheckout extends Checkout {
       const res = await this._request({
         uri: `${url}/api/checkouts/${this.checkoutToken}.json`,
         method: 'PATCH',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -272,7 +272,7 @@ class APICheckout extends Checkout {
       const res = await this._request({
         uri: `${url}/api/checkouts/${this.checkoutToken}/shipping_rates.json`,
         method: 'GET',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -306,7 +306,7 @@ class APICheckout extends Checkout {
       }
 
       if (body && body.errors) {
-        this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', errors);
+        this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', body.errors);
         const { checkout } = body.errors;
         if (checkout) {
           const errorMessage = JSON.stringify(checkout);

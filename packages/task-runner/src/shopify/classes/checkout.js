@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
-const { formatProxy, getHeaders, stateForError, userAgent, waitForDelay } = require('./utils');
+const { getHeaders, stateForError, userAgent, waitForDelay } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
 const { isSpecialSite } = require('./utils/siteOptions');
 const { States, Types, CheckoutTypes } = require('./utils/constants').TaskRunner;
@@ -83,7 +83,7 @@ class Checkout {
       const { id } = await this._request({
         uri: `https://elb.deposit.shopifycs.com/sessions`,
         method: 'POST',
-        proxy: formatProxy(proxy),
+        proxy,
         followAllRedirects: true,
         rejectUnauthorized: false,
         resolveWithFullResponse: false,
@@ -181,7 +181,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/account/login`,
         method: 'POST',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -277,7 +277,7 @@ class Checkout {
       const res = await this._request({
         uri: url,
         method: 'GET',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: false,
         followRedirect: false,
@@ -386,7 +386,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/checkout`,
         method: 'POST',
-        proxy: !localCheckout ? formatProxy(proxy) : undefined,
+        proxy: !localCheckout ? proxy : undefined,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -504,7 +504,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/checkout/poll`,
         method: 'GET',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followRedirect: false,
         resolveWithFullResponse: true,
@@ -595,7 +595,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'GET',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -680,7 +680,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: !localCheckout ? formatProxy(proxy) : undefined,
+        proxy: !localCheckout ? proxy : undefined,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -796,7 +796,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: !localCheckout ? formatProxy(proxy) : undefined,
+        proxy: !localCheckout ? proxy : undefined,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -916,7 +916,7 @@ class Checkout {
       const res = await this._request({
         uri: `${url}/api/checkouts/${this.checkoutToken}/payments`,
         method: 'GET',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         simple: false,

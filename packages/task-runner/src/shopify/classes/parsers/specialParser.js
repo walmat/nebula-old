@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const Parser = require('./parser');
 const { ParseType } = require('../utils/parse');
 const { ErrorCodes } = require('../utils/constants');
-const { formatProxy, userAgent } = require('../utils');
+const { userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
   constructor(request, task, proxy, logger, name) {
@@ -35,7 +35,7 @@ class SpecialParser extends Parser {
       response = await this._request({
         method: 'GET',
         uri: initialUrl,
-        proxy: formatProxy(this._proxy),
+        proxy: this._proxy,
         json: false,
         simple: true,
         followRedirect: false,
@@ -257,7 +257,7 @@ class SpecialParser extends Parser {
     return this._request({
       method: 'GET',
       uri: productUrl,
-      proxy: formatProxy(this._proxy) || undefined,
+      proxy: this._proxy,
       rejectUnauthorized: false,
       json: false,
       simple: true,

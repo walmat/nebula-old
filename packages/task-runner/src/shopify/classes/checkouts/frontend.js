@@ -1,7 +1,7 @@
 const { min } = require('underscore');
 const cheerio = require('cheerio');
 
-const { formatProxy, getHeaders, stateForError, userAgent, waitForDelay } = require('../utils');
+const { getHeaders, stateForError, userAgent, waitForDelay } = require('../utils');
 const { addToCart, patchCheckoutForm } = require('../utils/forms');
 const { States } = require('../utils/constants').TaskRunner;
 const Checkout = require('../checkout');
@@ -38,7 +38,7 @@ class FrontendCheckout extends Checkout {
       const res = await this._request({
         uri: `${url}/cart/add`,
         method: 'POST',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -155,7 +155,7 @@ class FrontendCheckout extends Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'GET',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: true,
         resolveWithFullResponse: true,
@@ -256,7 +256,7 @@ class FrontendCheckout extends Checkout {
       const res = await this._request({
         uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
         method: 'PATCH',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: false,
         resolveWithFullResponse: true,
@@ -367,7 +367,7 @@ class FrontendCheckout extends Checkout {
       const res = await this._request({
         uri: `${url}/cart/shipping_rates.json`,
         method: 'GET',
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         resolveWithFullResponse: true,
         simple: false,

@@ -1,5 +1,5 @@
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
-const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
+const { userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
 const { Types, States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
@@ -175,11 +175,12 @@ class Monitor {
 
   async _monitorUrl() {
     const [url] = this._context.task.product.url.split('?');
+    const { proxy } = this._context;
     try {
       const response = await this._request({
         method: 'GET',
         uri: url,
-        proxy: formatProxy(this._context.proxy),
+        proxy,
         rejectUnauthorized: false,
         followAllRedirects: true,
         resolveWithFullResponse: true,

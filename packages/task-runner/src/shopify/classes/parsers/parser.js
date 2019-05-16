@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
-const { formatProxy, userAgent, rfrl } = require('../utils');
+const { userAgent, rfrl } = require('../utils');
 const { ErrorCodes } = require('../utils/constants');
 
 class Parser {
@@ -24,7 +24,7 @@ class Parser {
       request({
         method: 'GET',
         uri,
-        proxy: formatProxy(proxy),
+        proxy,
         rejectUnauthorized: false,
         json: false,
         simple: true,

@@ -1,5 +1,5 @@
 // Split out into separate file for clarity
-const _ = require('underscore');
+const { forEach } = require('underscore');
 
 /**
  * Resolve the first Promise, Reject when all have failed
@@ -28,7 +28,7 @@ function resolveFirstRejectLast(promises, tag, logger) {
       errors: new Array(promises.length),
     };
     _logger.log('silly', '[ASYNC] RFRL%s: Attaching Handlers...', tagStr);
-    _.forEach(promises, (p, idx) => {
+    forEach(promises, (p, idx) => {
       p.then(
         resolved => {
           _logger.log('silly', '[ASYNC] RFRL%s - %d: RESOLVE', tagStr, idx, resolved);
