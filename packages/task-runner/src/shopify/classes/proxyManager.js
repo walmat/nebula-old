@@ -65,6 +65,7 @@ class ProxyManager {
     this._proxies.set(id, {
       id,
       hash: proxyHash,
+      raw: proxy,
       proxy: formattedProxy,
       ban: {},
       use: {},
