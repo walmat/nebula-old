@@ -120,7 +120,7 @@ class APICheckout extends Checkout {
         ? `Submitting information – (${err.statusCode})`
         : 'Submitting information';
 
-      return nextState || { message, nextState: States.Errored };
+      return nextState || { message, nextState: States.PatchCheckout };
     }
   }
 
@@ -365,7 +365,7 @@ class APICheckout extends Checkout {
         ? `Fetching shipping rates – (${err.statusCode})`
         : 'Fetching shipping rates';
 
-      return nextState || { message, nextState: States.Errored };
+      return nextState || { message, nextState: States.ShippingRates };
     }
   }
 }

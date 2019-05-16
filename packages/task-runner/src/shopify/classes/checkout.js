@@ -460,7 +460,7 @@ class Checkout {
 
       // not sure where we are, error out...
       const message = statusCode ? `Creating checkout - (${statusCode})` : 'Creating checkout';
-      return { message, nextState: States.Errored };
+      return { message, nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
@@ -478,7 +478,7 @@ class Checkout {
         ? `Creating checkout - (${err.statusCode})`
         : 'Creating checkout';
 
-      return nextState || { message, nextState: States.Errored };
+      return nextState || { message, nextState: States.CreateCheckout };
     }
   }
 
@@ -534,7 +534,7 @@ class Checkout {
 
       // check server error
       if (statusCode === 400) {
-        return { message: `(${statusCode}) Failed: Polling Queue`, nextState: States.PollQueue };
+        return { message: `Polling Queue - (${statusCode})`, nextState: States.PollQueue };
       }
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
@@ -889,7 +889,7 @@ class Checkout {
         ? `Processing payment - (${err.statusCode})`
         : 'Processing payment';
 
-      return nextState || { message, nextState: States.Errored };
+      return nextState || { message, nextState: States.CompletePayment };
     }
   }
 
@@ -1026,7 +1026,7 @@ class Checkout {
         ? `Processing payment - (${err.statusCode})`
         : 'Processing payment';
 
-      return nextState || { message, nextState: States.Errored };
+      return nextState || { message, nextState: States.PaymentProcess };
     }
   }
 }
