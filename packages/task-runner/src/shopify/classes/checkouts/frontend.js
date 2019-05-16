@@ -445,7 +445,7 @@ class FrontendCheckout extends Checkout {
         ? `Fetching shipping rates - (${err.statusCode})`
         : 'Fetching shipping rates';
 
-      return nextState || { message, nextState: States.Errored };
+      return nextState || { message, nextState: States.ShippingRates };
     }
   }
 }
