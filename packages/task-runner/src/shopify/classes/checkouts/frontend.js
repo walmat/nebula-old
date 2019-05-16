@@ -19,7 +19,6 @@ const Checkout = require('../checkout');
 class FrontendCheckout extends Checkout {
   constructor(context) {
     super(context);
-    this._hasPatched = false;
   }
 
   async addToCart() {
@@ -125,7 +124,7 @@ class FrontendCheckout extends Checkout {
 
       const message = err.statusCode ? `Adding to cart - (${err.statusCode})` : 'Adding to cart';
 
-      return nextState || { message, nextState: States.Errored };
+      return nextState || { message, nextState: States.AddToCart };
     }
   }
 
@@ -347,7 +346,7 @@ class FrontendCheckout extends Checkout {
         ? `Submitting information - (${err.statusCode})`
         : 'Submitting information';
 
-      return nextState || { message, nextState: States.Errored };
+      return nextState || { message, nextState: States.PatchCheckout };
     }
   }
 
