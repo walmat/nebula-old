@@ -100,6 +100,10 @@ class Parser {
     return false;
   }
 
+  async fetch() {
+    throw new Error('Not Implemented! This should be implemented by subclasses!');
+  }
+
   async run() {
     throw new Error('Not Implemented! This should be implemented by subclasses!');
   }

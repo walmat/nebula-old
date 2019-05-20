@@ -14,21 +14,13 @@ class AtomParser extends Parser {
     super(request, task, proxy, logger, 'AtomParser');
   }
 
-  async run() {
-    this._logger.silly('%s: starting run...', this._name);
-    if (this._type !== ParseType.Keywords) {
-      throw new Error('Atom parsing is only supported for keyword searching');
-    }
+  async fetch(url) {
     let responseJson;
     try {
-      this._logger.silly(
-        '%s: Making request for %s/collections/all.atom ...',
-        this._name,
-        this._task.site.url,
-      );
+      this._logger.silly('%s: Making request for %s/collections/all.atom ...', this._name, url);
       const response = await this._request({
         method: 'GET',
-        uri: `${this._task.site.url}/collections/all.atom`,
+        uri: `${url}/collections/all.atom`,
         proxy: formatProxy(this._proxy) || undefined,
         rejectUnauthorized: false,
         json: false,
@@ -50,10 +42,9 @@ class AtomParser extends Parser {
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
-
     this._logger.silly('%s: Received Response, attempting to translate structure...', this._name);
     const responseItems = responseJson.feed.entry;
-    const products = responseItems.map(item => ({
+    return responseItems.map(item => ({
       id_raw: item.id[0],
       id: item.id[0].substring(item.id[0].lastIndexOf('/') + 1),
       url: item.link[0].$.href,
@@ -61,6 +52,14 @@ class AtomParser extends Parser {
       title: item.title[0],
       handle: '-', // put an empty placeholder since we only have the title provided
     }));
+  }
+
+  async run() {
+    this._logger.silly('%s: starting run...', this._name);
+    if (this._type !== ParseType.Keywords) {
+      throw new Error('Atom parsing is only supported for keyword searching');
+    }
+    const products = await this.fetch(this._task.site.url);
     this._logger.silly('%s: Translated Structure, attempting to match', this._name);
     const matchedProduct = super.match(products);
 

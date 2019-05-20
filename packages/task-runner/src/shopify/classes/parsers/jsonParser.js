@@ -12,9 +12,7 @@ class JsonParser extends Parser {
     super(request, task, proxy, logger, 'JsonParser');
   }
 
-  async run() {
-    this._logger.silly('%s: Starting run...', this._name);
-    const { url } = this._task.site;
+  async fetch(url) {
     let products;
     try {
       this._logger.silly('%s: Making request for %s/products.json ...', this._name, url);
@@ -42,6 +40,13 @@ class JsonParser extends Parser {
       rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
       throw rethrow;
     }
+
+    return products;
+  }
+
+  async run() {
+    this._logger.silly('%s: Starting run...', this._name);
+    const products = await this.fetch(this._task.site.url);
     this._logger.silly('%s: Received Response, Attempting to match...', this._name);
     const matchedProduct = super.match(products);
 
