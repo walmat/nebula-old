@@ -85,8 +85,12 @@ class Parser {
     this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
     this._request = request;
-    this._task = task;
-    this._type = getParseType(task.product);
+    // TODO: remove this when all uses have been replaced
+    this._task = task; // deprecated
+    this._type = getParseType(task.product); // deprecated
+
+    this._products = [];
+    this._productTypes = [];
     this._logger.log('silly', '%s: constructed', this._name);
   }
 
@@ -104,12 +108,15 @@ class Parser {
   /**
    * Perform Product Matching based on the parse type
    */
-  match(products) {
+  match(products, matchInput, type) {
+    // Fall back to old data if inputs are not given
+    const _matchInput = matchInput || this._task.product;
+    const _type = type || this._type;
     this._logger.silly('%s: starting parse...', this._name);
-    switch (this._type) {
+    switch (_type) {
       case ParseType.Variant: {
-        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
-        const product = matchVariant(products, this._task.product.variant, this._logger);
+        this._logger.silly('%s: parsing type %s detected', this._name, _type);
+        const product = matchVariant(products, _matchInput.variant, this._logger);
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?
@@ -121,10 +128,10 @@ class Parser {
         return product;
       }
       case ParseType.Keywords: {
-        this._logger.silly('%s: parsing type %s detected', this._name, this._type);
+        this._logger.silly('%s: parsing type %s detected', this._name, _type);
         const keywords = {
-          pos: this._task.product.pos_keywords,
-          neg: this._task.product.neg_keywords,
+          pos: _matchInput.pos_keywords,
+          neg: _matchInput.neg_keywords,
         };
         const product = matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
         if (!product) {
@@ -137,8 +144,12 @@ class Parser {
         this._logger.silly('%s: Matching Product found!', this._name);
         return product;
       }
+      // TODO: Add this case in (if necessary)
+      // case ParseType.Url: {
+      //   break;
+      // }
       default: {
-        this._logger.silly('%s: Invalid parsing type %s! throwing error', this._name, this._type);
+        this._logger.silly('%s: Invalid parsing type %s! throwing error', this._name, _type);
         // TODO: Create an ErrorCode for this
         throw new Error('InvalidParseType');
       }
