@@ -90,7 +90,6 @@ class Parser {
     this._type = getParseType(task.product); // deprecated
 
     this._products = [];
-    this._productTypes = [];
     this._logger.log('silly', '%s: constructed', this._name);
   }
 
@@ -103,6 +102,23 @@ class Parser {
 
   async run() {
     throw new Error('Not Implemented! This should be implemented by subclasses!');
+  }
+
+  /**
+   * Perform Product Matching for all tracked product inputs
+   */
+  matchAll(products) {
+    this._logger.silly('%s: starting parse...', this._name);
+    // Return map to matched products
+    return this._products.map(productInput => {
+      const type = getParseType(productInput);
+      try {
+        const product = this.match(products, productInput, type);
+        return product;
+      } catch (err) {
+        return err;
+      }
+    });
   }
 
   /**
