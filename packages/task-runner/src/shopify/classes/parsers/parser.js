@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
+const { ParseType, getParseType, matchVariants, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
 const { ErrorCodes } = require('../utils/constants');
 
@@ -136,7 +136,7 @@ class Parser {
     switch (_type) {
       case ParseType.Variant: {
         this._logger.silly('%s: parsing type %s detected', this._name, _type);
-        const product = matchVariant(products, _matchInput.variant, this._logger);
+        const [product] = matchVariants(products, [_matchInput.variant], this._logger);
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?

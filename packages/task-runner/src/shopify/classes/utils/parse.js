@@ -103,73 +103,89 @@ function filterAndLimit(list, sorter, limit, logger) {
 module.exports.filterAndLimit = filterAndLimit;
 
 /**
- * Match a variant id to a product
+ * Match a list of variant ids to products
  *
- * Take the given list of products and find the product
- * that contains the given varient id. If no product is
- * found, this method returns `null`.
+ * Take the given list of products and match a product to each variant id
+ * given. If no product is found, null will be added to the list.
  *
  * NOTE:
  * This method assumes the following:
  * - The products list contains objects that have a "variants" list of
  *   variants associated with the product
- * - The variant objects contain an id for the variant and a "product_id" key
+ * - THe variant objects contain an id for the variant and a "product_id" key
  *   that maps it back to the associated product
  *
- * @param {List} products list of products to search
- * @param {String} variantId the variant id to match
+ * @param {List<Product>} products list of products to search
+ * @param {List<String>} variantIds the variant ids to match
  */
-function matchVariant(products, variantId, logger) {
+function matchVariants(products, variantIds, logger) {
   const _logger = logger || { log: () => {} };
-  _logger.log('silly', 'Starting variant matching for variant: %s', variantId);
+  _logger.log('silly', 'Starting variant matching for %d variants', variantIds.length);
   if (!products) {
-    _logger.log('silly', 'No product list given! Returning null');
-    return null;
+    _logger.log('silly', 'No product list given! Returning empty list');
+    return [];
   }
-  if (!variantId) {
-    _logger.log('silly', 'No variant id given! Returning null');
-    return null;
-  }
-  // Sometimes the objects in the variants list don't include a product_id hook back to the associated product.
-  // In order to counteract this, we first add this hook in (if it doesn't exist)
-  const transformedProducts = products.map(({ id, variants, ...otherProductData }) => {
-    const transformedVariants = variants.map(({ product_id: productId, ...otherVariantData }) => ({
-      ...otherVariantData,
-      product_id: productId || id,
-    }));
-    return {
-      ...otherProductData,
-      id,
-      variants: transformedVariants,
-    };
-  });
 
-  // Step 1: Map products list to a list of variant lists
-  // Step 2: flatten the list of lists, so we only have one total list of all variants
-  // Step 3: Search for the variant in the resulting variant list
-  const matchedVariant = _.find(
-    _.flatten(_.map(transformedProducts, p => p.variants)),
-    v => v.id.toString() === variantId,
-  );
-  if (matchedVariant) {
+  if (!variantIds) {
+    _logger.log('silly', 'No variant ids given! Returning empty list');
+    return [];
+  }
+
+  // Step 1: Add all variants to a single map (keyed by variant id) from the
+  //         list of products
+  // Step 2: Search for the variantIds in the resulting variant map
+  const trackedProducts = {};
+  const trackedVariants = {};
+  products.forEach(({ id, variants, ...otherProductData }) => {
+    // Sometimes the objects in the variants list don't include a product_id hook
+    // back to the associated product. In order to counteract this, we first add
+    // this hook in (if it doesn't exist)
+    const transformedVariants = variants.map(
+      ({ id: variantId, product_id: productId, ...otherVariantData }) => {
+        const transformed = {
+          ...otherVariantData,
+          id,
+          product_id: productId || id,
+        };
+        trackedVariants[variantId] = transformed;
+        return transformed;
+      },
+    );
+    trackedProducts[id] = { ...otherProductData, id, variants: transformedVariants };
+  });
+  let matchedCount = 0;
+  const matchedVariants = variantIds.map(vId => {
+    const match = trackedVariants[vId];
+    if (match) {
+      matchedCount += 1;
+      return match;
+    }
+    return null;
+  });
+  if (matchedCount > 0) {
     _logger.log(
       'silly',
-      'Searched %d products. Found variant %s}',
-      transformedProducts.length,
-      variantId,
+      'Searched %d products. Matched %d/%d variants}',
+      products.length,
+      matchedCount,
+      variantIds.length,
     );
-    _logger.log('silly', 'Returning product associated with this variant...');
-    return _.find(transformedProducts, p => p.id === matchedVariant.product_id);
+    _logger.log('silly', 'Returning products associated with variants...');
+    return matchedVariants.map(v => {
+      if (!v) {
+        return null;
+      }
+      return trackedProducts[v.product_id] || null;
+    });
   }
   _logger.log(
     'silly',
-    'Searched %d products. Variant %s was not found! Returning null',
+    'Searched %d products. No matching variants were found! returning empty list...',
     products.length,
-    variantId,
   );
-  return null;
+  return [];
 }
-module.exports.matchVariant = matchVariant;
+module.exports.matchVariants = matchVariants;
 
 /**
  * Match a set of keywords to a product
