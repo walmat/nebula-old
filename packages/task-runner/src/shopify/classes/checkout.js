@@ -432,8 +432,8 @@ class Checkout {
     }
   }
 
-  async getCtdCookie() {
-    this._request.jar._jar.store.getAllCookies((_, cookies) => {
+  async getCtdCookie(jar) {
+    jar._jar.store.getAllCookies((_, cookies) => {
       for (let i = 0; i < cookies.length; i += 1) {
         const cookie = cookies[i];
         if (cookie.key.indexOf('ctd') > -1) {
@@ -473,9 +473,8 @@ class Checkout {
         simple: false,
         json: false,
         headers: {
-          ...getHeaders({ url, apiKey }),
-          'Upgrade-Insecure-Requests': 1,
-          'x-barba': 'yes',
+          'User-Agent': userAgent,
+          Connection: 'Keep-Alive',
         },
       });
 
@@ -499,15 +498,55 @@ class Checkout {
         return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
       }
 
-      const ctd = await this.getCtdCookie();
+      this._logger.debug(this._request.jar);
+
+      const ctd = await this.getCtdCookie(this._request.jar());
+
+      this._logger.debug('CTD COOKIE: %s', ctd);
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
       let redirectUrl = null;
       if (statusCode === 302) {
-        [redirectUrl] = headers.location.split('?');
+        redirectUrl = headers.location;
         if (redirectUrl && redirectUrl.indexOf('throttle') > -1) {
           return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
+        }
+        if (redirectUrl && redirectUrl.indexOf('_ctd') > -1) {
+          this._logger.debug('CTD COOKIE: %s', ctd);
+          try {
+            const response = await this._request({
+              uri: redirectUrl,
+              method: 'GET',
+              proxy,
+              rejectUnauthorized: false,
+              followRedirect: false,
+              resolveWithFullResponse: false,
+              simple: false,
+              json: false,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+
+            this._logger.debug('NEW QUEUE BODY: %j', response);
+
+            const regex = new RegExp('href=\"(.*)\">');
+            const [, checkoutUrl] = response.match(regex);
+
+            this._logger.debug('NEW CHECKOUT URL: %s', checkoutUrl);
+
+            if (checkoutUrl && /checkouts/.test(checkoutUrl)) {
+              [, , , this.storeId] = checkoutUrl.split('/');
+              [, , , , , this.checkoutToken] = checkoutUrl.split('/');
+              monitor.start();
+              return { queue: 'done' };
+            }
+          } catch (error) {
+            this._logger.error(error);
+          }
         }
         this._logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);
       } else if (statusCode === 200) {
@@ -523,9 +562,9 @@ class Checkout {
               simple: false,
               json: false,
               headers: {
-                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
-                'x-barba': 'yes',
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
               },
             });
 
@@ -547,8 +586,11 @@ class Checkout {
           .split('?');
       }
       if (redirectUrl) {
-        [, , , this.storeId] = redirectUrl.split('/');
-        [, , , , , this.checkoutToken] = redirectUrl.split('/');
+        const [redirectNoQs] = redirectUrl.split('?');
+        [, , , this.storeId] = redirectNoQs.split('/');
+        [, , , , , this.checkoutToken] = redirectNoQs.split('/');
+
+        this._logger.verbose('CHECKOUT HASH: %s', this.checkoutToken);
         monitor.start();
         return { queue: 'done' };
       }

@@ -15,6 +15,7 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import { addTestId, renderSvgIcon } from '../utils';
 
 import { ReactComponent as BillingMatchesShippingIcon } from '../_assets/Check_icons-01.svg';
+import { ReactComponent as CopyShippingInfoToBilling } from '../_assets/transfer.svg';
 import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../_assets/Check_icons-02.svg';
 
 import './profiles.css';
@@ -81,28 +82,50 @@ export class LocationFieldsPrimitive extends Component {
     return disabled;
   }
 
-  renderBillingMatchesShipping() {
-    const { id, onClickBillingMatchesShipping, onKeyPress, currentProfile } = this.props;
+  renderButtons() {
+    const {
+      id,
+      onClickBillingMatchesShipping,
+      onClickTransferShippingInformation,
+      onKeyPress,
+      currentProfile,
+    } = this.props;
     if (id === 'shipping') {
       return (
         <div className="row">
-          <div
-            role="button"
-            tabIndex={0}
-            onKeyPress={onKeyPress}
-            onClick={onClickBillingMatchesShipping}
-          >
-            {currentProfile.billingMatchesShipping
-              ? renderSvgIcon(BillingMatchesShippingIcon, {
-                  title: 'Billing Matches Shipping',
-                  alt: 'Billing Matches Shipping',
-                  className: 'profiles__fields--matches',
-                })
-              : renderSvgIcon(BillingDoesNotMatchShippingIcon, {
-                  title: "Billing Doesn't Match Shipping",
-                  alt: "Billing Doesn't Match Shipping",
-                  className: 'profiles__fields--matches',
-                })}
+          <div className="col col--no-gutter-right">
+            <div
+              role="button"
+              tabIndex={0}
+              onKeyPress={onKeyPress}
+              onClick={onClickBillingMatchesShipping}
+            >
+              {currentProfile.billingMatchesShipping
+                ? renderSvgIcon(BillingMatchesShippingIcon, {
+                    title: 'Billing Matches Shipping',
+                    alt: 'Billing Matches Shipping',
+                    className: 'profiles__fields--matches',
+                  })
+                : renderSvgIcon(BillingDoesNotMatchShippingIcon, {
+                    title: "Billing Doesn't Match Shipping",
+                    alt: "Billing Doesn't Match Shipping",
+                    className: 'profiles__fields--matches',
+                  })}
+            </div>
+          </div>
+          <div className="col col--no-gutter-left">
+            <div
+              role="button"
+              tabIndex={0}
+              onKeyPress={onKeyPress}
+              onClick={onClickTransferShippingInformation}
+            >
+              {renderSvgIcon(CopyShippingInfoToBilling, {
+                title: 'Transfer Shipping Information',
+                alt: '',
+                className: 'profiles__fields--transfer',
+              })}
+            </div>
           </div>
         </div>
       );
@@ -248,9 +271,7 @@ export class LocationFieldsPrimitive extends Component {
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-phone`)}
                       />
                     </div>
-                    <div className="col col--gutter col--expand">
-                      {this.renderBillingMatchesShipping()}
-                    </div>
+                    <div className="col col--gutter col--expand">{this.renderButtons()}</div>
                   </div>
                 </div>
               </div>
@@ -273,6 +294,7 @@ LocationFieldsPrimitive.propTypes = {
   theme: PropTypes.string.isRequired,
   value: defns.locationState.isRequired,
   onClickBillingMatchesShipping: PropTypes.func.isRequired,
+  onClickTransferShippingInformation: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
 
@@ -301,6 +323,9 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
         changes.field,
       ),
     );
+  },
+  onClickTransferShippingInformation: () => {
+    dispatch(profileActions.transfer());
   },
   onClickBillingMatchesShipping: () => {
     dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''));

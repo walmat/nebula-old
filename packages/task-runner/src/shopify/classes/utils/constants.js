@@ -112,7 +112,7 @@ const PollQueueStateToNextState = {
     }
     return {
       message: 'Submitting information',
-      nextState: TaskRunnerStates.GetCheckout,
+      nextState: TaskRunnerStates.PatchCheckout,
     };
   },
   [TaskRunnerStates.PatchCheckout]: () => ({

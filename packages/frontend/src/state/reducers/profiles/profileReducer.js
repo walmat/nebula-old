@@ -95,6 +95,14 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       // If adding a new profile, we should reset the current profile to default values
       return Object.assign({}, initialProfileStates.profile);
     }
+    case PROFILE_ACTIONS.TRANSFER: {
+      const nextState = JSON.parse(JSON.stringify(state));
+      if (JSON.stringify(nextState.billing) === JSON.stringify(nextState.shipping)) {
+        return state;
+      }
+      nextState.billing = nextState.shipping;
+      return nextState;
+    }
     case PROFILE_ACTIONS.LOAD: {
       // If we have no profile, or the profile doesn't have an id, do nothing
       if (!action.profile || (action.profile && !action.profile.id)) {
