@@ -71,6 +71,21 @@
       align-self: flex-end;
     }
 
+    &__amount {
+      width: 44px;
+      height: 29px;
+      cursor: pointer;
+      border-width: 1px;
+      border-style: solid;
+      border-radius: 3px;
+      font-family: AvenirNext-Medium;
+      text-align: center;
+      @include themify($themes) {
+        border-color: themed('tableBorderColor');
+        background: themed('inputBackground');
+      }
+    }
+
     &__submit {
       margin-right: -1px;
       width: 83px;

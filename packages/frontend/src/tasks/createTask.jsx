@@ -59,8 +59,12 @@ export class CreateTaskPrimitive extends Component {
 
   saveTask(e) {
     const { task, onAddNewTask } = this.props;
+
+    const amount = task.amount ? parseInt(task.amount, 10) : 1;
+
     e.preventDefault();
     const prevSizes = task.sizes;
+    console.log(task.sizes);
     const fsrMap = {
       FSR: "US/UK Men's",
       'CL FSR': 'Clothing',
@@ -71,11 +75,18 @@ export class CreateTaskPrimitive extends Component {
       const sizes = getAllSizes.buildSizesForCategory(fsrCategory);
       sizes.forEach(s => {
         task.sizes = [s.value];
-        onAddNewTask(task);
+        [...Array(amount)].forEach(() => onAddNewTask(task));
+      });
+      task.sizes = prevSizes;
+    } else if (task.sizes.find(s => s === 'BS')) {
+      const sizes = ['4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5'];
+      sizes.forEach(s => {
+        task.sizes = [s];
+        [...Array(amount)].forEach(() => onAddNewTask(task));
       });
       task.sizes = prevSizes;
     } else {
-      onAddNewTask(task);
+      [...Array(amount)].forEach(() => onAddNewTask(task));
     }
   }
 
@@ -138,6 +149,25 @@ export class CreateTaskPrimitive extends Component {
           onFieldChange({ field, value: event.target.value });
         };
     }
+  }
+
+  shouldComponentUpdate(nextProps) {
+    const {
+      task: { site, product, profile, username, password, amount },
+      theme,
+    } = this.props;
+    if (
+      site.url === nextProps.task.site.url &&
+      product.raw === nextProps.task.product.raw &&
+      profile.id === nextProps.task.profile.id &&
+      username === nextProps.task.username &&
+      password === nextProps.task.password &&
+      amount === nextProps.task.amount &&
+      theme === nextProps.theme
+    ) {
+      return false;
+    }
+    return true;
   }
 
   render() {
@@ -287,6 +317,21 @@ export class CreateTaskPrimitive extends Component {
           </div>
         </div>
         <div className="row row--end row--expand row--gutter">
+          <div className="col">
+            <input
+              type="number"
+              className="tasks-create__amount"
+              onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_AMOUNT)}
+              value={task.amount || 1}
+              style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_AMOUNT]])}
+              tabIndex={0}
+              onKeyPress={onKeyPress}
+              data-testid={addTestId('CreateTask.amountInput')}
+            />
+          </div>
+          <div className="col col--no-gutter">
+            <span>x</span>
+          </div>
           <div className="col">
             <button
               type="button"

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 import TaskRow from './taskRow';
 
@@ -12,7 +13,13 @@ export class ViewTaskPrimitive extends Component {
 
   createTable() {
     const { tasks } = this.props;
-    return tasks.map(task => <TaskRow key={task.id} task={task} />);
+    return (
+      <ScrollableFeed>
+        {tasks.map(task => (
+          <TaskRow key={task.id} task={task} />
+        ))}
+      </ScrollableFeed>
+    );
   }
 
   render() {

@@ -147,6 +147,24 @@
 .tasks .tasks-create__submit-row {
   align-self: flex-end;
 }
+.tasks .tasks-create__amount {
+  width: 44px;
+  height: 29px;
+  cursor: pointer;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 3px;
+  font-family: AvenirNext-Medium;
+  text-align: center;
+}
+.theme-light .tasks .tasks-create__amount {
+  border-color: #f0405e;
+  background: #f4f4f4;
+}
+.theme-dark .tasks .tasks-create__amount {
+  border-color: #f0405e;
+  background: #393c3f;
+}
 .tasks .tasks-create__submit {
   margin-right: -1px;
   width: 83px;
