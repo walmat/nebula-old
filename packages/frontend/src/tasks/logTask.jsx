@@ -151,7 +151,6 @@ export class LogTaskPrimitive extends Component {
   // }
 
   render() {
-    console.log('re-rendering log...');
     const { fullscreen, selected, focused } = this.state;
     const classMap = {
       sectionHeader: [

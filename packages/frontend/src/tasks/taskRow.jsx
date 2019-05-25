@@ -49,24 +49,6 @@ export class TaskRowPrimitive extends Component {
     };
   }
 
-  shouldComponentUpdate(nextProps) {
-    const {
-      task: { site, product, profile, username, password, amount, status },
-    } = this.props;
-    if (
-      site.url === nextProps.task.site.url &&
-      product.raw === nextProps.task.product.raw &&
-      profile.id === nextProps.task.profile.id &&
-      username === nextProps.task.username &&
-      password === nextProps.task.password &&
-      amount === nextProps.task.amount &&
-      status === nextProps.task.status
-    ) {
-      return false;
-    }
-    return true;
-  }
-
   createOnChangeHandler(field) {
     const { onEditTask, task } = this.props;
     switch (field) {

@@ -82,7 +82,6 @@ export class TasksPrimitive extends Component {
   }
 
   render() {
-    console.log('re-rendering tasks...');
     const { newTask, errorDelay, monitorDelay, onKeyPress } = this.props;
     return (
       <div className="container tasks">
