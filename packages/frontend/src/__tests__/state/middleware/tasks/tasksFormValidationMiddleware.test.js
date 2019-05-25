@@ -109,6 +109,7 @@ describe('task form validation middleware', () => {
       task: {
         ...initialTaskStates.task,
         id: type === TASK_ACTIONS.ADD ? null : '1',
+        amount: testValid ? '' : '1',
         product: testValid
           ? {
               ...initialTaskStates.task.product,
@@ -176,6 +177,7 @@ describe('task form validation middleware', () => {
         password: testValid ? '' : 'test',
         edits: {
           ...initialTaskStates.task.edits,
+          amount: testValid ? '' : '1',
           product:
             type === TASK_ACTIONS.UPDATE
               ? testValid
@@ -264,6 +266,7 @@ describe('task form validation middleware', () => {
           type === TASK_ACTIONS.ADD
             ? {
                 ...actionBase.task.errors,
+                amount: false,
                 product: testValid,
                 site: testValid,
                 profile: testValid,
@@ -303,6 +306,7 @@ describe('task form validation middleware', () => {
                 }
               : {
                   ...actionBase.task.edits.errors,
+                  amount: false,
                   product: testValid,
                   profile: testValid,
                   site: testValid,
