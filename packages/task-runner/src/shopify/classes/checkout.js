@@ -436,7 +436,7 @@ class Checkout {
     jar._jar.store.getAllCookies((_, cookies) => {
       for (let i = 0; i < cookies.length; i += 1) {
         const cookie = cookies[i];
-        if (cookie.key.indexOf('ctd') > -1) {
+        if (cookie.key.indexOf('_ctd') > -1) {
           return cookie;
         }
       }
@@ -498,11 +498,9 @@ class Checkout {
         return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
       }
 
-      this._logger.debug(this._request.jar);
 
       const ctd = await this.getCtdCookie(this._request.jar());
 
-      this._logger.debug('CTD COOKIE: %s', ctd);
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
@@ -590,7 +588,6 @@ class Checkout {
         [, , , this.storeId] = redirectNoQs.split('/');
         [, , , , , this.checkoutToken] = redirectNoQs.split('/');
 
-        this._logger.verbose('CHECKOUT HASH: %s', this.checkoutToken);
         monitor.start();
         return { queue: 'done' };
       }
