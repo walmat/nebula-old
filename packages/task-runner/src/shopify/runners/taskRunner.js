@@ -38,9 +38,12 @@ class TaskRunner {
     this._type = type;
 
     this._jar = request.jar();
+
     this._request = request.defaults({
       timeout: 20000,
       jar: this._jar,
+      pool: { maxSockets: Infinity },
+      agent: false,
     });
 
     /**

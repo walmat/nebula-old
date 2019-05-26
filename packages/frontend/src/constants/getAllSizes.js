@@ -20,6 +20,7 @@ const sizes = [
     label: "US/UK Men's",
     options: [
       { value: 'FSR', label: 'Full Size Run' },
+      { value: 'BS', label: 'Bae Sizes' },
       { value: '4', label: '4.0' },
       { value: '4.5', label: '4.5' },
       { value: '5', label: '5.0' },
@@ -155,7 +156,7 @@ export function getCategory(category) {
 
 export function buildSizesForCategory(category) {
   return getCategory(category).options.filter(
-    size => size.label !== 'Random' && size.label !== 'Full Size Run',
+    size => size.label !== 'Random' && size.label !== 'Full Size Run' && size.label !== 'Bae Sizes',
   );
 }
 

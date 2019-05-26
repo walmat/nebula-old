@@ -10,6 +10,7 @@ export const PROFILE_ACTIONS = {
   SELECT: 'SELECT_PROFILE',
   LOAD: 'LOAD_PROFILE',
   UPDATE: 'UPDATE_PROFILE',
+  TRANSFER: 'TRANSFER_SHIPPING',
 };
 
 // Private API Requests
@@ -151,6 +152,7 @@ const _updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE, 'id', 'profile'
 
 // Public Actions
 const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
+const transferProfile = makeActionCreator(PROFILE_ACTIONS.TRANSFER);
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
 const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
@@ -184,6 +186,7 @@ export const profileActions = {
   update: updateProfile,
   error: handleError,
   deleteRate,
+  transfer: transferProfile,
 };
 
 // Field Edits

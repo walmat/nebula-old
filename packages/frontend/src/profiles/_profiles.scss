@@ -23,6 +23,15 @@
         opacity: 0.8333;
       }
     }
+
+    &--transfer {
+      cursor: pointer;
+      margin-right: 10px;
+      &:hover {
+        opacity: 0.8333;
+      }
+    }
+
     &--name {
       width: 164px;
       height: 29px;

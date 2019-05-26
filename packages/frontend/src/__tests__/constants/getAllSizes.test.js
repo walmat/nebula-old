@@ -31,6 +31,7 @@ describe('getAllSizes', () => {
         label: "US/UK Men's",
         options: [
           { value: 'FSR', label: 'Full Size Run' },
+          { value: 'BS', label: 'Bae Sizes' },
           { value: '4', label: '4.0' },
           { value: '4.5', label: '4.5' },
           { value: '5', label: '5.0' },
@@ -168,7 +169,7 @@ describe('getAllSizes', () => {
   it('should lookup correct size categories', () => {
     expectedSizes.forEach(category => {
       const expectedSizeGroups = category.options.filter(
-        ({ label }) => label !== 'Random' && label !== 'Full Size Run',
+        ({ label }) => label !== 'Random' && label !== 'Full Size Run' && label !== 'Bae Sizes',
       );
       expect(buildSizesForCategory(category.label)).toEqual(expectedSizeGroups);
     });
@@ -186,7 +187,7 @@ describe('getAllSizes', () => {
     const category = "US/UK Men's";
 
     const expected = expectedSizes[2].options.filter(
-      s => s.label !== 'Random' && s.label !== 'Full Size Run',
+      s => s.label !== 'Random' && s.label !== 'Full Size Run' && s.label !== 'Bae Sizes',
     );
     const actual = buildSizesForCategory(category);
     expect(actual).toEqual(expected);

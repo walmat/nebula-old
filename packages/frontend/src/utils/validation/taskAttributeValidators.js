@@ -71,6 +71,7 @@ const taskAttributeValidators = {
   [TASK_FIELDS.EDIT_SIZES]: validateSizes,
   [TASK_FIELDS.EDIT_USERNAME]: validateAccountInformation,
   [TASK_FIELDS.EDIT_PASSWORD]: validateAccountInformation,
+  [TASK_FIELDS.EDIT_AMOUNT]: () => true,
 };
 
 export default taskAttributeValidators;
