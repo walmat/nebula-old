@@ -49,6 +49,25 @@ export class CreateTaskPrimitive extends Component {
     };
   }
 
+  shouldComponentUpdate(nextProps) {
+    const {
+      task: { site, product, profile, username, password, amount },
+      theme,
+    } = this.props;
+    if (
+      site.url === nextProps.task.site.url &&
+      product.raw === nextProps.task.product.raw &&
+      profile.id === nextProps.task.profile.id &&
+      username === nextProps.task.username &&
+      password === nextProps.task.password &&
+      amount === nextProps.task.amount &&
+      theme === nextProps.theme
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   buildProfileOptions() {
     // eslint-disable-next-line react/destructuring-assignment
     return this.props.profiles.map(profile => ({
@@ -149,25 +168,6 @@ export class CreateTaskPrimitive extends Component {
           onFieldChange({ field, value: event.target.value });
         };
     }
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const {
-      task: { site, product, profile, username, password, amount },
-      theme,
-    } = this.props;
-    if (
-      site.url === nextProps.task.site.url &&
-      product.raw === nextProps.task.product.raw &&
-      profile.id === nextProps.task.profile.id &&
-      username === nextProps.task.username &&
-      password === nextProps.task.password &&
-      amount === nextProps.task.amount &&
-      theme === nextProps.theme
-    ) {
-      return false;
-    }
-    return true;
   }
 
   render() {
