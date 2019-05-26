@@ -83,7 +83,6 @@ export class CreateTaskPrimitive extends Component {
 
     e.preventDefault();
     const prevSizes = task.sizes;
-    console.log(task.sizes);
     const fsrMap = {
       FSR: "US/UK Men's",
       'CL FSR': 'Clothing',

@@ -456,7 +456,7 @@ class Checkout {
   async pollQueue() {
     const {
       task: {
-        site: { url, apiKey },
+        site: { url },
       },
       proxy,
       timers: { monitor },
@@ -498,9 +498,7 @@ class Checkout {
         return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
       }
 
-
       const ctd = await this.getCtdCookie(this._request.jar());
-
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
@@ -511,7 +509,7 @@ class Checkout {
           return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
         }
         if (redirectUrl && redirectUrl.indexOf('_ctd') > -1) {
-          this._logger.debug('CTD COOKIE: %s', ctd);
+          this._logger.silly('CTD COOKIE: %s', ctd);
           try {
             const response = await this._request({
               uri: redirectUrl,
@@ -529,12 +527,9 @@ class Checkout {
               },
             });
 
-            this._logger.debug('NEW QUEUE BODY: %j', response);
+            this._logger.silly('NEW QUEUE BODY: %j', response);
 
-            const regex = new RegExp('href=\"(.*)\">');
-            const [, checkoutUrl] = response.match(regex);
-
-            this._logger.debug('NEW CHECKOUT URL: %s', checkoutUrl);
+            const [, checkoutUrl] = response.match(new RegExp('href=\\"(.*)\\"'));
 
             if (checkoutUrl && /checkouts/.test(checkoutUrl)) {
               [, , , this.storeId] = checkoutUrl.split('/');
@@ -542,8 +537,8 @@ class Checkout {
               monitor.start();
               return { queue: 'done' };
             }
-          } catch (error) {
-            this._logger.error(error);
+          } catch (e) {
+            this._logger.error('Error with getting cookied checkout: %j', e);
           }
         }
         this._logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);

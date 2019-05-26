@@ -150,17 +150,19 @@ class TaskLauncher {
       this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
     });
 
-    this._launcherWindow.webContents.on('destroyed', async () => {
-      // Remove launcher window reference if it gets destroyed by an outside source
-      if (this._launcherWindow) {
-        await this.abortAllTasks();
-        this._launcherWindow.close();
-      }
-      this._launcherWindow = null;
+    if (this._launcherWindow) {
+      this._launcherWindow.webContents.on('destroyed', async () => {
+        // Remove launcher window reference if it gets destroyed by an outside source
+        if (this._launcherWindow) {
+          await this.abortAllTasks();
+          this._launcherWindow.close();
+        }
+        this._launcherWindow = null;
 
-      // Remove the handler for listening to task event statuses
-      this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
-    });
+        // Remove the handler for listening to task event statuses
+        this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
+      });
+    }
 
     this._launcherWindow.on('close', () => {
       if (nebulaEnv.isDevelopment()) {

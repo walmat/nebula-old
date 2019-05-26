@@ -16,7 +16,7 @@
     "ci": "cross-env CI=true yarn run test",
     "coverage": "yarn run test --coverage",
     "dev-server": "cross-env HTTPS=true react-app-rewired start",
-    "dev": "cross-env NODE_OPTIONS='--v8-pool-size=10000' NODE_ENV=development electron ./lib/_electron/electron.js",
+    "dev": "cross-env NODE_ENV=development electron ./lib/_electron/electron.js",
     "eject": "react-app-rewired eject",
     "lint": "eslint --ext js,jsx src/",
     "pack:linux": "run-s afterinstall private:clean private:compile private:build:linux",
