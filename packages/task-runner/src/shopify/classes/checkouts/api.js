@@ -104,7 +104,6 @@ class APICheckout extends Checkout {
 
       return { message, nextState: States.PatchCheckout };
     } catch (err) {
-      this._logger.debug(err);
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
         err.statusCode,

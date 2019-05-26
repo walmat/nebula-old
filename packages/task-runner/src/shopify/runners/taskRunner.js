@@ -1,6 +1,5 @@
 const EventEmitter = require('eventemitter3');
 const request = require('request-promise');
-const https = require('https');
 
 const Timer = require('../classes/timer');
 const Monitor = require('../classes/monitor');
@@ -38,12 +37,10 @@ class TaskRunner {
     this.proxy = proxy;
     this._type = type;
 
-    const pool = new https.Agent({ keepAlive: true });
     this._jar = request.jar();
     this._request = request.defaults({
       timeout: 20000,
       jar: this._jar,
-      agent: pool,
     });
 
     /**
