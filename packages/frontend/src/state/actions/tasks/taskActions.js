@@ -12,6 +12,7 @@ export const TASK_ACTIONS = {
   COPY: 'COPY_TASK',
   STATUS: 'UPDATE_STATUS',
   START: 'START_TASK',
+  START_ALL: 'START_ALL_TASKS',
   STOP: 'STOP_TASK',
   ERROR: 'TASK_HANDLE_ERROR',
 };
@@ -108,6 +109,17 @@ const _startTaskRequest = async (task, proxies = []) => {
   }
 };
 
+const _startAllTasksRequest = async (tasks, proxies = []) => {
+  const newTasks = tasks.filter(t => t.status !== 'running');
+
+  if (window.Bridge) {
+    window.Bridge.addProxies(proxies);
+    window.Bridge.startTasks(newTasks, {});
+  }
+
+  return { tasks: newTasks };
+};
+
 const _copyTaskRequest = async task => {
   if (!task) {
     throw new Error('Invalid task structure!');
@@ -132,6 +144,7 @@ const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
 const _copyTask = makeActionCreator(TASK_ACTIONS.COPY, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
+const _startAllTasks = makeActionCreator(TASK_ACTIONS.START_ALL, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 
 // Public Actions
@@ -194,6 +207,12 @@ const startTask = (task, proxies) => dispatch =>
     error => dispatch(handleError(TASK_ACTIONS.START, error)),
   );
 
+const startAllTasks = (tasks, proxies) => dispatch =>
+  _startAllTasksRequest(tasks, proxies).then(
+    response => dispatch(_startAllTasks(response)),
+    error => dispatch(handleError(TASK_ACTIONS.START_ALL, error)),
+  );
+
 const stopTask = task => dispatch =>
   _stopTaskRequest(task).then(
     response => dispatch(_stopTask(response)),
@@ -221,6 +240,7 @@ export const taskActions = {
   status: statusTask,
   copy: copyTask,
   start: startTask,
+  startAll: startAllTasks,
   stop: stopTask,
   error: handleError,
 };

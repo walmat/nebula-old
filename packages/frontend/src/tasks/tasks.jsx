@@ -50,8 +50,8 @@ export class TasksPrimitive extends Component {
   }
 
   startAllTasks() {
-    const { tasks, proxies, onStartTask } = this.props;
-    tasks.forEach(t => onStartTask(t, proxies));
+    const { tasks, proxies, onStartAllTasks } = this.props;
+    onStartAllTasks(tasks, proxies);
   }
 
   stopAllTasks() {
@@ -219,7 +219,7 @@ TasksPrimitive.propTypes = {
   proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
   onSettingsChange: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,
-  onStartTask: PropTypes.func.isRequired,
+  onStartAllTasks: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
@@ -243,8 +243,8 @@ export const mapDispatchToProps = dispatch => ({
   onDestroyTask: task => {
     dispatch(taskActions.destroy(task, 'all'));
   },
-  onStartTask: (task, proxies) => {
-    dispatch(taskActions.start(task, proxies));
+  onStartAllTasks: (tasks, proxies) => {
+    dispatch(taskActions.startAll(tasks, proxies));
   },
   onStopTask: task => {
     dispatch(taskActions.stop(task));

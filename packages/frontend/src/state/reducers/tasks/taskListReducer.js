@@ -323,6 +323,24 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       }
       break;
     }
+    case TASK_ACTIONS.START_ALL: {
+      if (!action.response || (action.response && !action.response.tasks)) {
+        break;
+      }
+
+      const { tasks } = action.response;
+
+      tasks.forEach(task => {
+        const found = nextState.find(t => t.id === task.id);
+        if (found === undefined) {
+          return;
+        }
+        const idx = nextState.indexOf(found);
+        nextState[idx].status = 'running';
+        nextState[idx].output = 'Starting task!';
+      });
+      break;
+    }
     case TASK_ACTIONS.STOP: {
       if (!action.response || (action.response && !action.response.task)) {
         break;
