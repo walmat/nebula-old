@@ -188,122 +188,134 @@ function matchVariants(products, variantIds, logger) {
 module.exports.matchVariants = matchVariants;
 
 /**
- * Match a set of keywords to a product
+ * Match a list of keyword pairs to a specific product from a given list.
  *
- * Given a list of products, use a set of keywords to find a
- * single product that matches the following criteria:
- * - the product's title/handle contains ALL of the positive keywords (`keywords.pos`)
- * - the product's title/handle DOES NOT contain ANY of the negative keywords (`keywords.neg`)
+ * Given a list of products, use a set of keywords to find a single product
+ * that matches the following criteria:
+ * - the product's title/handle contains ALL of the positive keywords
+ *   (`keywordPairs[*].pos`)
+ * - the product's title/handle DOES NOT contain ANY of the negative keywords
+ *   (`keywordPairs[*].neg`)
  *
- * If no product is found, `null` is returned. If multiple products are found,
- * the products are filtered using the given `filter.sorter` and `filter.limit`.
- * and the first product is returned.
+ * If no product is found, `null` is placed in the returning array at the same
+ * index as the keyword pair that could not be matched. If multiple products
+ * are found, the products are filtered using the given `filter.sorter` and
+ * `filter.limit` options, then the first product is returned.
  *
- * If no filter is given, this method returns the most recent product.
+ * If no filter is given, this method defaults to the most recent product.
  *
- * See `filterAndLimit` for more details on `sorter` and `limit`.
+ * See `filterAndLimit` for more details on `filter.sorter` and `filter.limit`.
  *
- * @param {List} products list of products to search
- * @param {Object} keywords an object containing two arrays of strings (`pos` and `neg`)
- * @see filterAndLimit
+ * @param {List<Product>} products list of products to search
+ * @param {List<KeywordPair>} keywordPairs list of keyword pairs (an object
+ *                                         containing two arrays of strings,
+ *                                         `pos` and `neg`)
+ * @param {Object} filter an object containing `sorter` and `limit` options to
+ *                        pass to `filterAndLimit`
+ * @param {Logger} logger an optional logger for debugging purposes
  */
-function matchKeywords(products, keywords, filter, logger, returnAll) {
+function matchKeywords(products, keywordPairs = [], filter = {}, logger, returnAll = false) {
+  // TODO: Remove the use of returnAll -- this option is already available via the filter option
   const _logger = logger || { log: () => {} };
-  _logger.log(
-    'silly',
-    'Starting keyword matching for keywords: %s',
-    JSON.stringify(keywords, null, 2),
-    keywords,
-  );
+  _logger.log('silly', 'Starting keyword matching for %d keyword pairs', keywordPairs.length);
   if (!products) {
-    _logger.log('silly', 'No product list given! Returning null');
-    return null;
+    _logger.log('silly', 'No product list given! Returning empty list');
+    return [];
   }
-  if (!keywords) {
-    _logger.log('silly', 'No keywords object given! Returning null');
-    return null;
+  if (!keywordPairs || keywordPairs.length === 0) {
+    _logger.log('silly', 'No Keyword pairs given! Returning empty list');
+    return [];
   }
-  if (!keywords.pos || !keywords.neg) {
-    _logger.log('silly', 'Malformed keywords object! Returning null');
-    return null;
-  }
-
-  const matches = _.filter(products, product => {
-    const title = product.title.toUpperCase();
-    const rawHandle = product.handle || '';
-    const handle = rawHandle.replace(new RegExp('-', 'g'), ' ').toUpperCase();
-
-    // defaults
-    let pos = true;
-    let neg = false;
-
-    // match every keyword in the positive array
-    if (keywords.pos.length > 0) {
-      pos = _.every(
-        keywords.pos.map(k => k.toUpperCase()),
-        keyword => title.indexOf(keyword.toUpperCase()) > -1 || handle.indexOf(keyword) > -1,
-      );
+  const matchedProducts = [];
+  // TODO: Refactor this to be more efficient!
+  keywordPairs.forEach(pair => {
+    _logger.log('silly', 'Performing matching for pair: %j', pair);
+    if (!pair.pos || !pair.neg) {
+      _logger.log('silly', 'Pair does not contain correct format (pos/neg properties), skipping');
+      matchedProducts.push(null);
+      return;
     }
 
-    // match none of the keywords in the negative array
-    if (keywords.neg.length > 0) {
-      neg = _.some(
-        keywords.neg.map(k => k.toUpperCase()),
-        keyword => title.indexOf(keyword) > -1 || handle.indexOf(keyword) > -1,
-      );
-    }
-    return pos && !neg;
-  });
+    const matches = _.filter(products, product => {
+      // Get details for product (assign a default handle in case it doesn't exist on the product)
+      const { title, handle: rawHandle } = { handle: '', ...product };
+      const handle = rawHandle.replace(new RegExp('-', 'g'), ' ');
 
-  if (!matches.length) {
-    _logger.log('silly', 'Searched %d products. No matches found! Returning null', products.length);
-    return null;
-  }
-  if (matches.length > 1) {
-    let filtered;
-    _logger.log(
-      'silly',
-      'Searched %d products. %d Products Found',
-      products.length,
-      matches.length,
-      JSON.stringify(matches.map(({ title }) => title), null, 2),
-    );
-    if (filter && filter.sorter && filter.limit) {
-      _logger.log('silly', 'Using given filtering heuristic on the products...');
-      let { limit } = filter;
-      if (returnAll) {
-        _logger.log('silly', "Overriding filter's limit and returning all products...");
-        limit = 0;
+      // defaults
+      let pos = true;
+      let neg = false;
+
+      // match every keyword in the positive array
+      if (pair.pos.length > 0) {
+        pos = _.every(pair.pos, keyword => {
+          const kwRegex = new RegExp(`${keyword}`, 'i');
+          return title.match(kwRegex) || handle.match(kwRegex);
+        });
       }
-      filtered = filterAndLimit(matches, filter.sorter, limit, this._logger);
-      if (!returnAll) {
+
+      // match none of the keywords in the negative array
+      if (pair.neg.length > 0) {
+        neg = _.some(pair.neg, keyword => {
+          const kwRegex = new RegExp(`${keyword}`, 'i');
+          return title.match(kwRegex) || handle.match(kwRegex);
+        });
+      }
+      return pos && !neg;
+    });
+
+    if (!matches.length) {
+      _logger.log('silly', 'Searched %d products. No matches found!', products.length);
+      matchedProducts.push(null);
+      return;
+    }
+    if (matches.length > 1) {
+      let filtered;
+      _logger.log(
+        'silly',
+        'Searched %d products. %d Products Found',
+        products.length,
+        matches.length,
+        JSON.stringify(matches.map(({ title }) => title), null, 2),
+      );
+      if (filter.sorter && filter.limit) {
+        _logger.log('silly', 'Using given filtering heuristic on the products...');
+        if (returnAll) {
+          _logger.log('silly', "Overriding filter's limit and returning all products...");
+          filtered = filterAndLimit(matches, filter.sorter, 0, this._logger);
+          _logger.log('silly', 'Returning %d Matched Products', filtered.length);
+          matchedProducts.push(filtered);
+          return;
+        }
+        filtered = filterAndLimit(matches, filter.sorter, filter.limit, this._logger);
         _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
-        return filtered[0];
+        matchedProducts.push(filtered[0]);
+        return;
       }
-      _logger.log('silly', 'Returning %d Matched Products', filtered.length);
-      return filtered;
+      _logger.log(
+        'silly',
+        'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...',
+      );
+      if (returnAll) {
+        _logger.log('silly', 'Returning all products...');
+        filtered = filterAndLimit(matches, 'updated_at', 0, this._logger);
+        _logger.log('silly', 'Returning %d Matched Products', filtered);
+        matchedProducts.push(filtered);
+        return;
+      }
+      filtered = filterAndLimit(matches, 'updated_at', -1, this._logger);
+      _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
+      matchedProducts.push(filtered[0]);
+      return;
     }
     _logger.log(
       'silly',
-      'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...',
+      'Searched %d products. Matching Product Found: %s',
+      products.length,
+      matches[0].title,
     );
-    if (returnAll) {
-      _logger.log('silly', 'Returning all products...');
-      filtered = filterAndLimit(matches, 'updated_at', 0, this._logger);
-      _logger.log('silly', 'Returning %d Matched Products', filtered);
-      return filtered;
-    }
-    filtered = filterAndLimit(matches, 'updated_at', -1, this._logger);
-    _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
-    return filtered[0];
-  }
-  _logger.log(
-    'silly',
-    'Searched %d products. Matching Product Found: %s',
-    products.length,
-    matches[0].title,
-  );
-  return returnAll ? matches : matches[0];
+    matchedProducts.push(returnAll ? matches : matches[0]);
+  });
+  return matchedProducts;
 }
 module.exports.matchKeywords = matchKeywords;
 

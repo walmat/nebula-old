@@ -153,7 +153,7 @@ class Parser {
           pos: _matchInput.pos_keywords,
           neg: _matchInput.neg_keywords,
         };
-        const product = matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
+        const [product] = matchKeywords(products, [keywords], this._logger); // no need to use a custom filter at this point...
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?

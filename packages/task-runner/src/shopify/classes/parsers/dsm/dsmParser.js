@@ -53,7 +53,7 @@ class DsmParser extends SpecialParser {
         pos: this._task.product.pos_keywords,
         neg: this._task.product.neg_keywords,
       };
-      items = matchKeywords(parsedItems, keywords, null, null, true) || [];
+      [items] = matchKeywords(parsedItems, [keywords], null, null, true) || [[]];
     }
     this._logger.silly('%s: parsing initial page, found %d items', this._name, items.length);
 
