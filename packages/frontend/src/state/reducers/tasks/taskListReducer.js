@@ -343,11 +343,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       const { tasks } = action.response;
 
       tasks.forEach(task => {
-        const found = nextState.find(t => t.id === task.id);
-        if (found === undefined) {
+        const idx = nextState.findIndex(t => t.id === task.id);
+        if (idx === -1) {
           return;
         }
-        const idx = nextState.indexOf(found);
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
       });
