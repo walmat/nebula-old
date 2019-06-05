@@ -64,8 +64,8 @@ export class App extends PureComponent {
     window.addEventListener('beforeunload', this._cleanup);
   }
 
-  componentWillUnmount() {
-    this._cleanup();
+  async componentWillUnmount() {
+    await this._cleanup();
     window.removeEventListener('beforeunload', this._cleanup);
   }
 
@@ -85,7 +85,7 @@ export class App extends PureComponent {
     store.dispatch(taskActions.status(statusMessageBuffer));
   }
 
-  _cleanup() {
+  async _cleanup() {
     this._cleanupTaskLog();
     this._cleanupTaskEvents();
   }
@@ -94,7 +94,7 @@ export class App extends PureComponent {
     const { store } = this.props;
     const { tasks } = store.getState();
     tasks.forEach(t => {
-      if (t.status !== 'stopped' || t.status !== 'idle') {
+      if (t.status === 'running') {
         store.dispatch(taskActions.stop(t));
       }
     });

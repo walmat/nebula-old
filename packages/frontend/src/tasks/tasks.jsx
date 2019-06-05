@@ -39,6 +39,15 @@ export class TasksPrimitive extends Component {
     };
   }
 
+  shouldComponentUpdate(nextProps) {
+    const { tasks } = this.props;
+
+    if (JSON.stringify(tasks) !== JSON.stringify(nextProps.tasks)) {
+      return true;
+    }
+    return false;
+  }
+
   createOnChangeHandler(field) {
     const { onSettingsChange } = this.props;
     return event => {
@@ -55,13 +64,17 @@ export class TasksPrimitive extends Component {
   }
 
   stopAllTasks() {
-    const { tasks, onStopTask } = this.props;
-    tasks.forEach(t => onStopTask(t));
+    const { tasks, onStopAllTasks } = this.props;
+    if (tasks.length) {
+      onStopAllTasks(tasks);
+    }
   }
 
   destroyAllTasks() {
-    const { tasks, onDestroyTask } = this.props;
-    tasks.forEach(t => onDestroyTask(t));
+    const { tasks, onDestroyAllTasks } = this.props;
+    if (tasks.length) {
+      onDestroyAllTasks(tasks);
+    }
   }
 
   renderDelay(field, value) {
@@ -82,7 +95,7 @@ export class TasksPrimitive extends Component {
   }
 
   render() {
-    const { newTask, errorDelay, monitorDelay, onKeyPress } = this.props;
+    const { errorDelay, monitorDelay, onKeyPress } = this.props;
     return (
       <div className="container tasks">
         <div className="row">
@@ -101,7 +114,7 @@ export class TasksPrimitive extends Component {
                 </div>
                 <div className="row">
                   <div className="col col--no-gutter-left">
-                    <CreateTask taskToEdit={newTask} />
+                    <CreateTask />
                   </div>
                 </div>
               </div>
@@ -212,15 +225,14 @@ export class TasksPrimitive extends Component {
 }
 
 TasksPrimitive.propTypes = {
-  newTask: tDefns.task.isRequired,
   monitorDelay: PropTypes.number.isRequired,
   errorDelay: PropTypes.number.isRequired,
   tasks: tDefns.taskList.isRequired,
   proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
   onSettingsChange: PropTypes.func.isRequired,
-  onDestroyTask: PropTypes.func.isRequired,
+  onDestroyAllTasks: PropTypes.func.isRequired,
   onStartAllTasks: PropTypes.func.isRequired,
-  onStopTask: PropTypes.func.isRequired,
+  onStopAllTasks: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
 
@@ -229,7 +241,6 @@ TasksPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  newTask: state.newTask,
   monitorDelay: state.settings.monitorDelay,
   errorDelay: state.settings.errorDelay,
   tasks: state.tasks,
@@ -240,14 +251,14 @@ export const mapDispatchToProps = dispatch => ({
   onSettingsChange: changes => {
     dispatch(settingsActions.edit(changes.field, changes.value));
   },
-  onDestroyTask: task => {
-    dispatch(taskActions.destroy(task, 'all'));
+  onDestroyAllTasks: tasks => {
+    dispatch(taskActions.destroyAll(tasks));
   },
   onStartAllTasks: (tasks, proxies) => {
     dispatch(taskActions.startAll(tasks, proxies));
   },
-  onStopTask: task => {
-    dispatch(taskActions.stop(task));
+  onStopAllTasks: tasks => {
+    dispatch(taskActions.stopAll(tasks));
   },
 });
 

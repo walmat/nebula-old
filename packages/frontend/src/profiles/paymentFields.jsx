@@ -12,6 +12,22 @@ import { ReactComponent as CVVInfoIcon } from '../_assets/info.svg';
 import './profiles.css';
 
 export class PaymentFieldsPrimitive extends Component {
+  shouldComponentUpdate(nextProps) {
+    const {
+      value: { email, cardNumber, exp, cvv },
+    } = this.props;
+
+    if (
+      email !== nextProps.value.email ||
+      cardNumber !== nextProps.value.cardNumber ||
+      exp !== nextProps.value.exp ||
+      cvv !== nextProps.value.cvv
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   createOnChangeHandler(field) {
     const { onChange } = this.props;
     if (field === PAYMENT_FIELDS.CARD_NUMBER) {

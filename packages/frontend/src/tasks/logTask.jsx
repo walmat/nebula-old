@@ -57,7 +57,7 @@ export class LogTaskPrimitive extends Component {
 
   selectRow(e, taskId) {
     // let { selected } = this.state;
-    const { fullscreen } = this.state;
+    const { fullscreen, focused } = this.state;
     if (!fullscreen) {
       return;
     }
@@ -71,7 +71,11 @@ export class LogTaskPrimitive extends Component {
     //   selected = selected.filter(t => t !== taskId);
     //   this.setState({ focused: selected[selected.length - 1] });
     // }
-    this.setState({ focused: taskId, selected: [taskId] });
+    if (taskId === focused) {
+      this.setState({ focused: '', selected: [] });
+    } else {
+      this.setState({ focused: taskId, selected: [taskId] });
+    }
   }
 
   showLiveLog() {

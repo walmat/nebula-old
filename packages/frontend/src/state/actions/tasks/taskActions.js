@@ -6,6 +6,7 @@ import parseProductType from '../../../utils/parseProductType';
 export const TASK_ACTIONS = {
   ADD: 'ADD_TASK',
   REMOVE: 'REMOVE_TASK',
+  REMOVE_ALL: 'REMOVE_ALL_TASKS',
   EDIT: 'EDIT_TASK',
   SELECT: 'SELECT_TASK',
   UPDATE: 'UPDATE_TASK',
@@ -14,17 +15,18 @@ export const TASK_ACTIONS = {
   START: 'START_TASK',
   START_ALL: 'START_ALL_TASKS',
   STOP: 'STOP_TASK',
+  STOP_ALL: 'STOP_ALL_TASKS',
   ERROR: 'TASK_HANDLE_ERROR',
 };
 
 // Private API Requests
-const _addTaskRequest = async task => {
+const _addTaskRequest = async (task, amount) => {
   const copy = JSON.parse(JSON.stringify(task));
   const parsedProduct = parseProductType(copy.product);
 
   if (parsedProduct) {
     copy.product = parsedProduct;
-    return { task: copy };
+    return { task: copy, amount };
   }
   throw new Error('Invalid Task');
 };
@@ -97,6 +99,18 @@ const _destroyTaskRequest = async (task, type) => {
   };
 };
 
+const _destroyAllTasksRequest = async tasks => {
+  if (!tasks.length) {
+    throw new Error('No tasks given');
+  }
+
+  if (window.Bridge) {
+    window.Bridge.stopTasks(tasks);
+  }
+
+  return { tasks };
+};
+
 const _startTaskRequest = async (task, proxies = []) => {
   if (task.status === 'running') {
     throw new Error('Already running');
@@ -128,7 +142,7 @@ const _copyTaskRequest = async task => {
 };
 
 const _stopTaskRequest = async task => {
-  if (task.status === 'stopped' || task.status === 'idle') {
+  if (task.status !== 'running') {
     throw new Error('Already stopped');
   } else {
     if (window.Bridge) {
@@ -138,14 +152,28 @@ const _stopTaskRequest = async task => {
   }
 };
 
+const _stopAllTasksRequest = async tasks => {
+  if (!tasks.length) {
+    throw new Error('No tasks running');
+  }
+
+  if (window.Bridge) {
+    window.Bridge.stopTasks(tasks);
+  }
+
+  return { tasks };
+};
+
 // Private Actions
 const _addTask = makeActionCreator(TASK_ACTIONS.ADD, 'response');
 const _destroyTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
+const _destroyAllTasks = makeActionCreator(TASK_ACTIONS.REMOVE_ALL, 'response');
 const _updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'response');
 const _copyTask = makeActionCreator(TASK_ACTIONS.COPY, 'response');
 const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
 const _startAllTasks = makeActionCreator(TASK_ACTIONS.START_ALL, 'response');
 const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
+const _stopAllTasks = makeActionCreator(TASK_ACTIONS.STOP_ALL, 'response');
 
 // Public Actions
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
@@ -154,8 +182,8 @@ const statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'messageBuffer');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
-const addTask = task => dispatch =>
-  _addTaskRequest(task).then(
+const addTask = (task, amount) => dispatch =>
+  _addTaskRequest(task, amount).then(
     response => dispatch(_addTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
@@ -164,6 +192,12 @@ const destroyTask = (task, type) => dispatch =>
   _destroyTaskRequest(task, type).then(
     response => dispatch(_destroyTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.REMOVE, error)),
+  );
+
+const destroyAllTasks = tasks => dispatch =>
+  _destroyAllTasksRequest(tasks).then(
+    response => dispatch(_destroyAllTasks(response)),
+    error => dispatch(handleError(TASK_ACTIONS.REMOVE_ALL, error)),
   );
 
 const updateTask = (id, task) => (dispatch, getState) =>
@@ -219,6 +253,12 @@ const stopTask = task => dispatch =>
     error => dispatch(handleError(TASK_ACTIONS.STOP, error)),
   );
 
+const stopAllTasks = tasks => dispatch =>
+  _stopAllTasksRequest(tasks).then(
+    response => dispatch(_stopAllTasks(response)),
+    error => dispatch(handleError(TASK_ACTIONS.STOP_ALL, error)),
+  );
+
 // Field Edits
 export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
@@ -233,6 +273,7 @@ export const TASK_FIELDS = {
 export const taskActions = {
   add: addTask,
   destroy: destroyTask,
+  destroyAll: destroyAllTasks,
   edit: editTask,
   clearEdits,
   select: selectTask,
@@ -242,6 +283,7 @@ export const taskActions = {
   start: startTask,
   startAll: startAllTasks,
   stop: stopTask,
+  stopAll: stopAllTasks,
   error: handleError,
 };
 

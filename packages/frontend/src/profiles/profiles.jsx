@@ -19,6 +19,18 @@ export class ProfilesPrimitive extends Component {
     this.saveProfile = this.saveProfile.bind(this);
   }
 
+  shouldComponentUpdate(nextProps) {
+    const { currentProfile, profiles } = this.props;
+
+    if (
+      JSON.stringify(currentProfile) !== JSON.stringify(nextProps.currentProfile) ||
+      profiles.length !== nextProps.profiles.length
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * store the profile in the database for the user
    * @param e

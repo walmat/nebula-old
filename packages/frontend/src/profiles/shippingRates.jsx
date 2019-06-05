@@ -43,6 +43,24 @@ export class ShippingRatesPrimitive extends Component {
     this.deleteShippingRate = this.deleteShippingRate.bind(this);
   }
 
+  shouldComponentUpdate(nextProps) {
+    const {
+      value: { rates, selectedSite },
+      theme,
+    } = this.props;
+
+    if (
+      rates.length !== nextProps.value.rates.length ||
+      selectedSite !== nextProps.value.selectedSite ||
+      JSON.stringify(rates) !== JSON.stringify(nextProps.value.rates) ||
+      theme !== nextProps.theme
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   deleteShippingRate() {
     const { onDeleteShippingRate, value } = this.props;
     let siteObject = [];

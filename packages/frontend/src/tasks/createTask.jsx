@@ -49,23 +49,35 @@ export class CreateTaskPrimitive extends Component {
     };
   }
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps, nextState) {
     const {
-      task: { site, product, profile, username, password, amount },
+      task: {
+        site: { url },
+        product: { raw },
+        profile: { id },
+        sizes,
+        username,
+        password,
+        amount,
+      },
       theme,
     } = this.props;
+    const { isLoading } = this.state;
+
     if (
-      site.url === nextProps.task.site.url &&
-      product.raw === nextProps.task.product.raw &&
-      profile.id === nextProps.task.profile.id &&
-      username === nextProps.task.username &&
-      password === nextProps.task.password &&
-      amount === nextProps.task.amount &&
-      theme === nextProps.theme
+      url !== nextProps.task.site.url ||
+      raw !== nextProps.task.product.raw ||
+      id !== nextProps.task.profile.id ||
+      sizes !== nextProps.task.sizes ||
+      username !== nextProps.task.username ||
+      password !== nextProps.task.password ||
+      amount !== nextProps.task.amount ||
+      theme !== nextProps.theme ||
+      isLoading !== nextState.isLoading
     ) {
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   buildProfileOptions() {
@@ -93,18 +105,18 @@ export class CreateTaskPrimitive extends Component {
       const sizes = getAllSizes.buildSizesForCategory(fsrCategory);
       sizes.forEach(s => {
         task.sizes = [s.value];
-        [...Array(amount)].forEach(() => onAddNewTask(task));
+        onAddNewTask(task, amount);
       });
       task.sizes = prevSizes;
     } else if (task.sizes.find(s => s === 'BS')) {
       const sizes = ['4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5'];
       sizes.forEach(s => {
         task.sizes = [s];
-        [...Array(amount)].forEach(() => onAddNewTask(task));
+        onAddNewTask(task, amount);
       });
       task.sizes = prevSizes;
     } else {
-      [...Array(amount)].forEach(() => onAddNewTask(task));
+      onAddNewTask(task, amount);
     }
   }
 
@@ -363,19 +375,19 @@ CreateTaskPrimitive.defaultProps = {
   onKeyPress: () => {},
 };
 
-export const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   profiles: state.profiles,
-  task: ownProps.taskToEdit,
+  task: state.newTask,
   theme: state.theme,
-  errors: ownProps.taskToEdit.errors,
+  errors: state.newTask.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
-  onAddNewTask: newTask => {
-    dispatch(taskActions.add(newTask));
+  onAddNewTask: (newTask, amount) => {
+    dispatch(taskActions.add(newTask, amount));
   },
 });
 

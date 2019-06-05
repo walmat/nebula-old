@@ -135,6 +135,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
+      const { amount } = action.response;
+
       // perform a deep copy of given task
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
@@ -149,10 +151,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         password: newTask.password,
       };
 
-      // add new task
-      newTask.id = shortId.generate();
-      newTask.index = _getIndex(nextState);
-      nextState.push(newTask);
+      [...Array(amount)].forEach(() => {
+        // add new task
+        const id = shortId.generate();
+        const index = _getIndex(nextState);
+        nextState.push({ ...newTask, id, index });
+      });
       break;
     }
     case TASK_ACTIONS.REMOVE: {
@@ -179,6 +183,14 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
           nextState[i].index -= 1;
         }
       }
+      break;
+    }
+    case TASK_ACTIONS.REMOVE_ALL: {
+      if (!action.response || (action.response && !action.response.tasks)) {
+        break;
+      }
+
+      nextState = [];
       break;
     }
     case TASK_ACTIONS.UPDATE: {
@@ -357,12 +369,36 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       } else {
         nextState[idx].status = 'stopped';
-        nextState[idx].output = 'Stopping task...';
+        nextState[idx].output = '';
         nextState[idx].chosenSizes = nextState[idx].sizes;
         nextState[idx].proxy = null;
         nextState[idx].product.found = null;
         nextState[idx].log = [];
       }
+      break;
+    }
+
+    case TASK_ACTIONS.STOP_ALL: {
+      if (!action.response || (action.response && !action.response.tasks)) {
+        break;
+      }
+
+      const { tasks } = action.response;
+
+      tasks.forEach(task => {
+        const idx = nextState.findIndex(t => t.id === task.id);
+
+        if (idx === -1) {
+          return;
+        }
+
+        nextState[idx].status = 'stopped';
+        nextState[idx].output = '';
+        nextState[idx].chosenSizes = nextState[idx].sizes;
+        nextState[idx].proxy = null;
+        nextState[idx].product.found = null;
+        nextState[idx].log = [];
+      });
       break;
     }
     case TASK_ACTIONS.ERROR: {

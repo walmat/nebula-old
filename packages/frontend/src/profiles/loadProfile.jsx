@@ -16,6 +16,19 @@ export class LoadProfilePrimitive extends Component {
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
   }
 
+  shouldComponentUpdate(nextProps) {
+    const { profiles, selectedProfile, theme } = this.props;
+
+    if (
+      profiles.length !== nextProps.profiles.length ||
+      selectedProfile.id !== nextProps.selectedProfile.id ||
+      theme !== nextProps.theme
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   onProfileChange(event) {
     const id = event.value;
     const { profiles, onSelectProfile } = this.props;
