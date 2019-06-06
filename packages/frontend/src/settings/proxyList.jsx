@@ -36,19 +36,22 @@ export class ProxyListPrimitive extends Component {
     const { reduxUpdate, editing } = this.state;
     // If we are re-rendering due to the proxy action being invoked, update the state and re-render
     if (reduxUpdate && !nextState.reduxUpdate) {
+      console.log('UPDATING!');
       this.setState({
         proxies: nextProps.proxies,
       });
       return true;
     }
 
-    // re-render only if we are not editing or are changing are editing state
+    // re-render only if we are not editing or are changing our editing state
     return !(editing && nextState.editing);
   }
 
   blur() {
+    console.log('handling blur');
     const { onUpdateProxies } = this.props;
     const { reduxUpdate, proxies } = this.state;
+    console.log('SHOULD REDUX UPDATE IN BLUR? %s', reduxUpdate);
     // Check if we need to call a redux update
     if (reduxUpdate) {
       onUpdateProxies(proxies.map(proxy => proxy.trim()));
@@ -68,6 +71,8 @@ export class ProxyListPrimitive extends Component {
   }
 
   paste(e) {
+
+    console.log('handling paste');
     // Prevent default and event propagation
     e.preventDefault();
     e.stopPropagation();
@@ -85,12 +90,16 @@ export class ProxyListPrimitive extends Component {
     }
 
     // Force an update
-    this.handleUpdate(null);
+    this.handleUpdate();
   }
 
   handleUpdate() {
+
+    console.log('handling update');
     // If we don't have the dom node, there's nothing to do here.
     if (!this.domNode.current) return;
+
+    console.log('has a reference');
 
     // TODO: Figure out a better way to do this without using innerText
     // Get the new proxies from the domNodes innerText,
@@ -105,6 +114,7 @@ export class ProxyListPrimitive extends Component {
     // Update the component state with newProxies and set the reduxUpdate flag
     this.setState({
       proxies: newProxies,
+      editing: true,
       reduxUpdate: true,
     });
   }
