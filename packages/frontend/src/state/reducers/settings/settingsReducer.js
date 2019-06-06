@@ -63,11 +63,11 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         const validIncomingProxies = action.value.filter(
           (_, idx) => !action.errors.proxies || !action.errors.proxies.includes(idx),
         );
+
         // Get a list of valid removed proxies (proxies that aren't in the incoming valid proxies)
         const removedProxies = validCurrentProxies.filter(p => !validIncomingProxies.includes(p));
-        const addedProxies = validCurrentProxies.filter(p => validIncomingProxies.includes(p));
-        console.log('REMOVING PROXIES: %j', removedProxies);
-        console.log('ADDING PROXIES: %j', addedProxies);
+        const addedProxies = validIncomingProxies.filter(p => !validCurrentProxies.includes(p));
+
         // Remove these proxies (if we can)
         if (window.Bridge && removedProxies.length) {
           window.Bridge.removeProxies(removedProxies);
