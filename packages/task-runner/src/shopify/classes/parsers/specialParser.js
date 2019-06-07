@@ -1,8 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const cheerio = require('cheerio');
 const Parser = require('./parser');
-const { ParseType } = require('../utils/parse');
-const { ErrorCodes } = require('../utils/constants');
+const { ErrorCodes, ProductInputType } = require('../utils/constants');
 const { formatProxy, userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
@@ -24,7 +23,7 @@ class SpecialParser extends Parser {
     // If parse type is url, use the product's url, otherwise use the site url
     const { url: siteUrl } = this._task.site;
     let initialUrl = siteUrl;
-    if (this._type === ParseType.Url) {
+    if (this._productInputType === ProductInputType.Url) {
       initialUrl = this._task.product.url;
     }
 
@@ -81,7 +80,7 @@ class SpecialParser extends Parser {
     // Check if we need to parse the response as an initial page, or if we should treat is as
     // a direct link (when the parse type is url)
     let matchedProduct;
-    if (this._type !== ParseType.Url) {
+    if (this._productInputType !== ProductInputType.Url) {
       this._logger.silly(
         '%s: Received Response, Generating Product Info Pages to visit...',
         this._name,

@@ -1,9 +1,11 @@
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
 const { formatProxy, userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
-const { Types, States } = require('./utils/constants').TaskRunner;
+const { ProductInputType, TaskRunner: TaskRunnerConstants } = require('./utils/constants');
 const { ErrorCodes } = require('./utils/constants');
-const { ParseType, getParseType } = require('./utils/parse');
+const { getProductInputType } = require('./utils/parse');
 const generateVariants = require('./utils/generateVariants');
+
+const { Types, States } = TaskRunnerConstants;
 
 class Monitor {
   constructor(context) {
@@ -19,7 +21,7 @@ class Monitor {
     this._context = context;
     this._logger = this._context.logger;
     this._request = this._context.request;
-    this._parseType = null;
+    this._productInputType = null;
   }
 
   _waitForRefreshDelay() {
@@ -124,7 +126,7 @@ class Monitor {
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
         const nextState =
-          this._parseType === ParseType.Special ? States.Monitor : States.Restocking;
+          this._productInputType === ProductInputType.Special ? States.Monitor : States.Restocking;
         return {
           message: 'Running for restocks',
           nextState,
@@ -305,32 +307,32 @@ class Monitor {
       return { nextState: States.Aborted };
     }
 
-    this._parseType = getParseType(
+    this._productInputType = getProductInputType(
       this._context.task.product,
       this._logger,
       this._context.task.site,
     );
 
     let result;
-    switch (this._parseType) {
-      case ParseType.Variant: {
+    switch (this._productInputType) {
+      case ProductInputType.Variant: {
         // TODO: Add a way to determine if variant is correct
         this._logger.silly('MONITOR: Variant Parsing Detected');
         this._context.task.product.variants = [this._context.task.product.variant];
         result = { message: 'Adding to cart', nextState: States.AddToCart };
         break;
       }
-      case ParseType.Url: {
+      case ProductInputType.Url: {
         this._logger.silly('MONITOR: Url Parsing Detected');
         result = await this._monitorUrl();
         break;
       }
-      case ParseType.Keywords: {
+      case ProductInputType.Keywords: {
         this._logger.silly('MONITOR: Keyword Parsing Detected');
         result = await this._monitorKeywords();
         break;
       }
-      case ParseType.Special: {
+      case ProductInputType.Special: {
         this._logger.silly('MONITOR: Special Parsing Detected');
         result = await this._monitorSpecial();
         break;
@@ -338,7 +340,7 @@ class Monitor {
       default: {
         this._logger.error(
           'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...',
-          this._parseType,
+          this._productInputType,
         );
         return { message: 'Invalid Product Input given!', nextState: States.Errored };
       }

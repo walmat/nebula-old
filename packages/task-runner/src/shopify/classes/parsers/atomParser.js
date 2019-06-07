@@ -1,5 +1,6 @@
 const Parser = require('./parser');
-const { ParseType, convertToJson } = require('../utils/parse');
+const { ProductInputType } = require('../utils/constants');
+const { convertToJson } = require('../utils/parse');
 const { formatProxy, userAgent } = require('../utils');
 
 class AtomParser extends Parser {
@@ -56,7 +57,7 @@ class AtomParser extends Parser {
 
   async run() {
     this._logger.silly('%s: starting run...', this._name);
-    if (this._type !== ParseType.Keywords) {
+    if (this._productInputType !== ProductInputType.Keywords) {
       throw new Error('Atom parsing is only supported for keyword searching');
     }
     const products = await this.fetch(this._task.site.url);

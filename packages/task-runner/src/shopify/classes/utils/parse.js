@@ -1,17 +1,10 @@
 const _ = require('underscore');
 const { parseString } = require('xml2js');
+
+const { ProductInputType } = require('./constants');
 const { isSpecialSite } = require('./siteOptions');
 
 module.exports = {};
-
-const ParseType = {
-  Unknown: 'UNKNOWN',
-  Variant: 'VARIANT',
-  Url: 'URL',
-  Keywords: 'KEYWORDS',
-  Special: 'SPECIAL',
-};
-module.exports.ParseType = ParseType;
 
 /**
  * Determine the type of parsing we need to
@@ -20,38 +13,43 @@ module.exports.ParseType = ParseType;
  *
  * @param {TaskProduct} product
  */
-function getParseType(product, logger, site) {
+function getProductInputType(product, logger, site) {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Determining Parse Type for Product...', product);
   if (!product) {
-    _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
-    return ParseType.Unknown;
+    _logger.log('silly', 'Product is not defined, returning: %s', ProductInputType.Unknown);
+    return ProductInputType.Unknown;
   }
 
   if (site && isSpecialSite(site)) {
-    _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
-    return ParseType.Special;
+    _logger.log(
+      'silly',
+      'Special Site found: %s, returning %s',
+      site.name,
+      ProductInputType.Special,
+    );
+    return ProductInputType.Special;
   }
 
   if (product.variant) {
-    _logger.log('silly', 'Parse Type determined as %s', ParseType.Variant);
-    return ParseType.Variant;
+    _logger.log('silly', 'Parse Type determined as %s', ProductInputType.Variant);
+    return ProductInputType.Variant;
   }
 
   if (product.url) {
-    _logger.log('silly', 'Parse Type determined as %s', ParseType.Url);
-    return ParseType.Url;
+    _logger.log('silly', 'Parse Type determined as %s', ProductInputType.Url);
+    return ProductInputType.Url;
   }
 
   if (product.pos_keywords && product.neg_keywords) {
-    _logger.log('silly', 'Parse Type Determined as %s', ParseType.Keywords);
-    return ParseType.Keywords;
+    _logger.log('silly', 'Parse Type Determined as %s', ProductInputType.Keywords);
+    return ProductInputType.Keywords;
   }
 
   _logger.log('silly', 'Parse Type could not be determined!');
-  return ParseType.Unknown;
+  return ProductInputType.Unknown;
 }
-module.exports.getParseType = getParseType;
+module.exports.getProductInputType = getProductInputType;
 
 /**
  * Filter a list using a sorter and limit

@@ -1,6 +1,6 @@
 const SpecialParser = require('../specialParser');
-const { ParseType, matchKeywords } = require('../../utils/parse');
-const { ErrorCodes } = require('../../utils/constants');
+const { matchKeywords } = require('../../utils/parse');
+const { ErrorCodes, ProductInputType } = require('../../utils/constants');
 
 /**
  * Base Special Parser for all DSM Sites
@@ -48,7 +48,7 @@ class DsmParser extends SpecialParser {
 
     let items = parsedItems;
     // If parsing keywords, reduce the number of pages to search by matching the title
-    if (this._type === ParseType.Keywords && items.length !== 0) {
+    if (this._productInputType === ProductInputType.Keywords && items.length !== 0) {
       const keywords = {
         pos: this._task.product.pos_keywords,
         neg: this._task.product.neg_keywords,

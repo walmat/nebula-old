@@ -153,6 +153,17 @@ const SharedMonitorManagerEvents = {
   RemoveTask: 'REMOVE_TASK',
 };
 
+/**
+ * Enumeration of the type of product input to parse
+ */
+const ProductInputType = {
+  Unknown: 'UNKNOWN',
+  Variant: 'VARIANT',
+  Url: 'URL',
+  Keywords: 'KEYWORDS',
+  Special: 'SPECIAL',
+};
+
 module.exports = {
   TaskManager: {
     Events: TaskManagerEvents,
@@ -176,4 +187,5 @@ module.exports = {
   SharedMonitorManager: {
     Events: SharedMonitorManagerEvents,
   },
+  ProductInputType,
 };

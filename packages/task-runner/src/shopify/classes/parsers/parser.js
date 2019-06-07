@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
-const { ParseType, getParseType, matchVariants, matchKeywords } = require('../utils/parse');
+const { getProductInputType, matchVariants, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
-const { ErrorCodes } = require('../utils/constants');
+const { ErrorCodes, ProductInputType } = require('../utils/constants');
 
 class Parser {
   /**
@@ -87,7 +87,7 @@ class Parser {
     this._request = request;
     // TODO: remove this when all uses have been replaced
     this._task = task; // deprecated
-    this._type = getParseType(task.product); // deprecated
+    this._productInputType = getProductInputType(task.product); // deprecated
 
     this._products = [];
     this._logger.log('silly', '%s: constructed', this._name);
@@ -115,7 +115,7 @@ class Parser {
     this._logger.silly('%s: starting parse...', this._name);
     // Return map to matched products
     return this._products.map(productInput => {
-      const type = getParseType(productInput);
+      const type = getProductInputType(productInput);
       try {
         const product = this.match(products, productInput, type);
         return product;
@@ -131,10 +131,10 @@ class Parser {
   match(products, matchInput, type) {
     // Fall back to old data if inputs are not given
     const _matchInput = matchInput || this._task.product;
-    const _type = type || this._type;
+    const _type = type || this._productInputType;
     this._logger.silly('%s: starting parse...', this._name);
     switch (_type) {
-      case ParseType.Variant: {
+      case ProductInputType.Variant: {
         this._logger.silly('%s: parsing type %s detected', this._name, _type);
         const [product] = matchVariants(products, [_matchInput.variant], this._logger);
         if (!product) {
@@ -147,7 +147,7 @@ class Parser {
         this._logger.silly('%s: Product found!', this._name);
         return product;
       }
-      case ParseType.Keywords: {
+      case ProductInputType.Keywords: {
         this._logger.silly('%s: parsing type %s detected', this._name, _type);
         const keywords = {
           pos: _matchInput.pos_keywords,
@@ -165,7 +165,7 @@ class Parser {
         return product;
       }
       // TODO: Add this case in (if necessary)
-      // case ParseType.Url: {
+      // case ProductInputType.Url: {
       //   break;
       // }
       default: {
