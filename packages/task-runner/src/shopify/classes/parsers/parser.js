@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 const { getProductInputType, matchVariants, matchKeywords } = require('../utils/parse');
 const { formatProxy, userAgent, rfrl } = require('../utils');
-const { ErrorCodes, ProductInputType } = require('../utils/constants');
+const { ErrorCodes, ParserType, ProductInputType } = require('../utils/constants');
 
 class Parser {
   /**
@@ -39,7 +39,10 @@ class Parser {
         genRequestPromise(`${productUrl}.js`).then(
           res =>
             // {productUrl}.js contains the format we need -- just return it
-            JSON.parse(res),
+            ({
+              ...JSON.parse(res),
+              __type: ParserType.Json, // Include a tag for the type of parser used to generate this product
+            }),
           error => {
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
@@ -62,6 +65,7 @@ class Parser {
                 price: `${offer.price}`,
                 available: offer.in_stock || false,
               })),
+              __type: ParserType.Oembed, // Include a tag for the type of parser used to generate this product
             };
           },
           error => {
@@ -79,18 +83,26 @@ class Parser {
   /**
    * Construct a new parser
    */
-  constructor(request, task, proxy, logger, name) {
+  constructor(request, task, proxy, logger, name, type) {
     this._logger = logger || { log: () => {} };
     this._name = name || 'Parser';
     this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
     this._request = request;
+    this._type = type || ParserType.Unknown;
     // TODO: remove this when all uses have been replaced
     this._task = task; // deprecated
     this._productInputType = getProductInputType(task.product); // deprecated
 
     this._products = [];
     this._logger.log('silly', '%s: constructed', this._name);
+  }
+
+  /**
+   * Getter to determine what type of parser this is
+   */
+  get type() {
+    return this._type;
   }
 
   /**

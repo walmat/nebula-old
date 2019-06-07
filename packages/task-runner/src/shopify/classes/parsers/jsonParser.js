@@ -1,4 +1,5 @@
 const { formatProxy, userAgent } = require('../utils');
+const { ParserType } = require('../utils/constants');
 const Parser = require('./parser');
 
 class JsonParser extends Parser {
@@ -9,7 +10,7 @@ class JsonParser extends Parser {
    * @param {Proxy} the proxy to use when making requests
    */
   constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'JsonParser');
+    super(request, task, proxy, logger, 'JsonParser', ParserType.Json);
   }
 
   async fetch(url) {
@@ -41,7 +42,10 @@ class JsonParser extends Parser {
       throw rethrow;
     }
 
-    return products;
+    return products.map(p => ({
+      ...p,
+      __type: this._type, // Include a tag for the type of parser used to generate this product
+    }));
   }
 
   async run() {

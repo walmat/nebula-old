@@ -154,6 +154,18 @@ const SharedMonitorManagerEvents = {
 };
 
 /**
+ * Enumeration of the type of Parser used
+ */
+const ParserType = {
+  Atom: 'ATOM',
+  Json: 'JSON',
+  Oembed: 'OEMBED',
+  Xml: 'XML',
+  Special: 'SPECIAL',
+  Unknown: 'UNKNOWN',
+};
+
+/**
  * Enumeration of the type of product input to parse
  */
 const ProductInputType = {
@@ -187,5 +199,6 @@ module.exports = {
   SharedMonitorManager: {
     Events: SharedMonitorManagerEvents,
   },
+  ParserType,
   ProductInputType,
 };

@@ -1,5 +1,5 @@
 const Parser = require('./parser');
-const { ProductInputType } = require('../utils/constants');
+const { ParserType, ProductInputType } = require('../utils/constants');
 const { convertToJson } = require('../utils/parse');
 const { formatProxy, userAgent } = require('../utils');
 
@@ -12,7 +12,7 @@ class AtomParser extends Parser {
    * @param {Logger} (optional) A logger to log messages to
    */
   constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'AtomParser');
+    super(request, task, proxy, logger, 'AtomParser', ParserType.Atom);
   }
 
   async fetch(url) {
@@ -52,6 +52,7 @@ class AtomParser extends Parser {
       updated_at: item.updated[0],
       title: item.title[0],
       handle: '-', // put an empty placeholder since we only have the title provided
+      __type: this._type, // Include a tag for the type of parser used to generate this product
     }));
   }
 

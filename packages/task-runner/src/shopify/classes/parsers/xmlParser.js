@@ -1,5 +1,5 @@
 const Parser = require('./parser');
-const { ProductInputType } = require('../utils/constants');
+const { ParserType, ProductInputType } = require('../utils/constants');
 const { convertToJson } = require('../utils/parse');
 const { formatProxy, userAgent } = require('../utils');
 
@@ -11,7 +11,7 @@ class XmlParser extends Parser {
    * @param {Proxy} the proxy to use when making requests
    */
   constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'XmlParser');
+    super(request, task, proxy, logger, 'XmlParser', ParserType.Xml);
     this._request = request;
   }
 
@@ -54,6 +54,7 @@ class XmlParser extends Parser {
       updated_at: item.lastmod[0],
       title: item['image:image'][0]['image:title'][0],
       handle: item.loc[0].substring(item.loc[0].lastIndexOf('/')),
+      __type: this._type, // Include a tag for the type of parser used to generate this product
     }));
   }
 
