@@ -54,6 +54,7 @@ export class PaymentFieldsPrimitive extends Component {
               <div className="col profiles-payment__input-group">
                 <div className="row row--gutter">
                   <input
+                    data-private
                     required
                     className="profiles-payment__input-group--email"
                     placeholder="Email Address"
@@ -65,6 +66,7 @@ export class PaymentFieldsPrimitive extends Component {
                 </div>
                 <div className="row row--gutter">
                   <NumberFormat
+                    data-private
                     format="#### #### #### #### ##"
                     placeholder="XXXX XXXX XXXX XXXX"
                     className="profiles-payment__input-group--card-number"
@@ -77,6 +79,7 @@ export class PaymentFieldsPrimitive extends Component {
                 <div className="row row--start row--gutter">
                   <div className="col col--no-gutter-left">
                     <NumberFormat
+                      data-private
                       format="##/##"
                       className="profiles-payment__input-group--expiration"
                       placeholder="MM/YY"
@@ -90,6 +93,7 @@ export class PaymentFieldsPrimitive extends Component {
                   <div className="row row--start row--no-gutter-left">
                     <div className="col col--no-gutter">
                       <input
+                        data-private
                         required
                         className="profiles-payment__input-group--cvv"
                         placeholder="CVV"
@@ -98,12 +102,6 @@ export class PaymentFieldsPrimitive extends Component {
                         style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
                         data-testid={addTestId(`PaymentFieldsPrimitive.cvv`)}
                       />
-                    </div>
-                    <div className="col col--no-gutter">
-                      {renderSvgIcon(CVVInfoIcon, {
-                        alt: 'payment info',
-                        className: 'profiles-payment__input-group--payment-info-btn',
-                      })}
                     </div>
                   </div>
                 </div>
