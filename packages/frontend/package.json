@@ -55,6 +55,8 @@
     "electron-updater": "^4.0.6",
     "express": "^4.16.3",
     "lodash": "^4.17.11",
+    "logrocket": "^1.0.0",
+    "logrocket-react": "^3.0.0",
     "node-fetch": "^2.2.0",
     "prop-types": "^15.6.2",
     "ps-list": "^6.3.0",

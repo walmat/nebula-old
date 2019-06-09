@@ -1,4 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux';
+import LogRocket from 'logrocket';
 import thunk from 'redux-thunk';
 import persistState from 'redux-localstorage';
 import topLevelReducer from './reducers';
@@ -26,6 +27,7 @@ export default function configureStore() {
         settingsAttributeValidationMiddleware,
         shippingFormAttributeValidationMiddleware,
         thunk,
+        LogRocket.reduxMiddleware(),
       ),
       persistState(),
     ),
