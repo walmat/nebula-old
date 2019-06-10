@@ -87,12 +87,6 @@
   margin-top: 9px;
   padding-left: 0.5px;
 }
-.theme-light .server .server-credentials__label {
-  color: #161318;
-}
-.theme-dark .server .server-credentials__label {
-  color: #efefef;
-}
 .server .server-credentials__input-group {
   margin: 0 11.5px !important;
   padding-top: -1px;
@@ -102,12 +96,6 @@
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
-}
-.theme-light .server .server-credentials__input {
-  color: #161318;
-}
-.theme-dark .server .server-credentials__input {
-  color: #efefef;
 }
 .server .server-credentials__input--bordered {
   border: 1px solid #f0405e;
@@ -161,12 +149,6 @@
   margin-top: 9px;
   padding-left: 0.5px;
 }
-.theme-light .server .server-options__label {
-  color: #161318;
-}
-.theme-dark .server .server-options__label {
-  color: #efefef;
-}
 .server .server-options__input-group {
   margin: 0 11.5px !important;
   padding-bottom: 2px;
@@ -175,12 +157,6 @@
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
-}
-.theme-light .server .server-options__input {
-  color: #161318;
-}
-.theme-dark .server .server-options__input {
-  color: #efefef;
 }
 .server .server-options__input--bordered {
   border: 1px solid #f0405e;
@@ -283,12 +259,6 @@
   margin-top: 9px;
   padding-left: 0.5px;
 }
-.theme-light .server .proxy-options__label {
-  color: #161318;
-}
-.theme-dark .server .proxy-options__label {
-  color: #efefef;
-}
 .server .proxy-options__input-group {
   margin: 0 11.5px !important;
   padding-bottom: 2px;
@@ -297,12 +267,6 @@
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
-}
-.theme-light .server .proxy-options__input {
-  color: #161318;
-}
-.theme-dark .server .proxy-options__input {
-  color: #efefef;
 }
 .server .proxy-options__input--bordered {
   border: 1px solid #f0405e;
