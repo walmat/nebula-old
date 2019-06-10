@@ -4,7 +4,7 @@
 /*
  * Implementation of themes
  */
-.navbar__icon--settings, .navbar__icon--servers, .navbar__icon--profiles, .navbar__icon--tasks {
+.navbar__icon--settings, .navbar__icon--server, .navbar__icon--profiles, .navbar__icon--tasks {
   cursor: pointer;
 }
 .navbar__button--close-captcha, .navbar__button--open-captcha {
@@ -63,20 +63,17 @@
 .navbar__icon--tasks {
   margin-left: 13px;
   width: 61px;
-  height: 49px;
 }
 .navbar__icon--profiles {
   width: 44px;
-  height: 43px;
 }
-.navbar__icon--servers {
+.navbar__icon--server {
+  margin-left: 2px;
   width: 42px;
-  height: 46px;
 }
 .navbar__icon--settings {
-  margin-left: -2px;
+  margin-left: -5px;
   width: 40px;
-  height: 60px;
 }
 .navbar__button--open-captcha {
   margin-top: 19px;

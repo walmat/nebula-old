@@ -56,23 +56,20 @@
       @extend %icons-base;
       margin-left: 13px;
       width: 61px;
-      height: 49px;
     }
     &--profiles {
       @extend %icons-base;
       width: 44px;
-      height: 43px;
     }
-    &--servers {
+    &--server {
       @extend %icons-base;
+      margin-left: 2px;
       width: 42px;
-      height: 46px;
     }
     &--settings {
       @extend %icons-base;
-      margin-left: -2px;
+      margin-left: -5px;
       width: 40px;
-      height: 60px;
     }
   }
 
