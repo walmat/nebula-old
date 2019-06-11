@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import ServerRow from './serverRow';
+// import ServerRow from './serverRow';
 import defns from '../utils/definitions/serverDefinitions';
 
 export class ViewLogPrimitive extends Component {
@@ -11,9 +11,8 @@ export class ViewLogPrimitive extends Component {
   }
 
   createTable() {
-    const { servers } = this.props;
-    const table = servers.map(server => <ServerRow key={server.id} server={server} />);
-    return table;
+    // const table = servers.map(server => <ServerRow key={server.id} server={server} />);
+    return [];
   }
 
   render() {
@@ -22,11 +21,7 @@ export class ViewLogPrimitive extends Component {
 }
 
 export const mapStateToProps = state => ({
-  servers: state.servers,
+  proxies: state.servers.proxies,
 });
-
-ViewLogPrimitive.propTypes = {
-  servers: defns.serverList.isRequired,
-};
 
 export default connect(mapStateToProps)(ViewLogPrimitive);

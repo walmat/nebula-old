@@ -5,12 +5,12 @@
   .proxy-options {
     margin-left: -10px;
     height: 219px;
-    width: 258px;
+    width: 277px;
     border: 1px solid #f0405e;
     border-radius: 3px;
 
     &__section-header {
-      padding-top: 71px;
+      padding-top: 21px;
     }
 
     &__label {
@@ -23,7 +23,6 @@
 
     &__input-group {
       margin: 0 11.5px !important;
-      padding-top: -1px;
       padding-bottom: 2px;
     }
 
@@ -35,17 +34,22 @@
       }
 
       &--number {
-        width: 56px;
+        width: 60px;
+        height: 29px;
+      }
+
+      &--credentials {
+        width: 176px;
         height: 29px;
       }
 
       &--location {
-        width: 162px;
+        width: 252px;
         height: 29px;
       }
 
       &--field {
-        width: 234px;
+        width: 118.3px;
         height: 29px;
         @include themify($themes) {
           background: themed('inputBackground');
@@ -64,8 +68,7 @@
     }
 
     &__generate {
-      margin-right: -3px;
-      width: 110px;
+      width: 83px;
       height: 29px;
       cursor: pointer;
       background: #f0405e;
@@ -79,11 +82,14 @@
       &:hover {
         opacity: 0.8333;
       }
+
+      &:disabled {
+        cursor: not-allowed;
+      }
     }
 
     &__destroy {
-      margin-right: -17px;
-      width: 110px;
+      width: 83px;
       height: 29px;
       cursor: pointer;
       background: #46adb4;
@@ -96,6 +102,10 @@
 
       &:hover {
         opacity: 0.8333;
+      }
+
+      &:disabled {
+        cursor: not-allowed;
       }
     }
   }

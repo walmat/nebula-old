@@ -19,8 +19,11 @@ export const SERVER_ACTIONS = {
   GEN_PROXIES: 'GENERATE_PROXIES',
   DESTROY_PROXIES: 'DESTROY_PROXIES',
   VALIDATE_AWS: 'VALIDATE_AWS_CREDENTIALS',
+  CLEANUP_STATUS: 'CLEANUP_STATUS',
   LOGOUT_AWS: 'LOGOUT_AWS',
 };
+
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const _buildDestroyServerPromises = (servers, awsCredentials) =>
   servers.map(server => {
@@ -347,6 +350,7 @@ const _destroyAllServers = makeActionCreator(SERVER_ACTIONS.DESTROY_ALL, 'instan
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxyInfo');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'instances');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'token');
+const _cleanupStatus = makeActionCreator(SERVER_ACTIONS.CLEANUP_STATUS, 'field');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS);
 
 // Public Actions
@@ -405,7 +409,11 @@ const destroyProxies = (options, proxies, awsCredentials) => dispatch =>
 const validateAws = awsCredentials => dispatch =>
   _validateAwsRequest(awsCredentials).then(
     token => dispatch(_validateAws(token)),
-    error => dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error)),
+    async error => {
+      dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error));
+      await wait(750);
+      dispatch(_cleanupStatus(SERVER_ACTIONS.VALIDATE_AWS));
+    },
   );
 
 const logoutAws = (servers, proxies, awsCredentials) => dispatch =>

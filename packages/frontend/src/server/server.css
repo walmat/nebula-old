@@ -73,7 +73,7 @@
  */
 .server .server-credentials {
   margin-top: 1px;
-  height: 167px;
+  height: 219px;
   width: 277px;
   border: 1px solid #f0405e;
   border-radius: 3px;
@@ -81,12 +81,17 @@
 .server .server-credentials__label {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
   margin-top: 9px;
   padding-left: 0.5px;
+}
+.theme-light .server .server-credentials__label {
+  color: #161318;
+}
+.theme-dark .server .server-credentials__label {
+  color: #efefef;
 }
 .server .server-credentials__input-group {
   margin: 0 11.5px !important;
@@ -96,8 +101,13 @@
 .server .server-credentials__input {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .server-credentials__input {
+  color: #161318;
+}
+.theme-dark .server .server-credentials__input {
+  color: #efefef;
 }
 .server .server-credentials__input--bordered {
   border: 1px solid #f0405e;
@@ -145,12 +155,17 @@
 .server .server-options__label {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
   margin-top: 9px;
   padding-left: 0.5px;
+}
+.theme-light .server .server-options__label {
+  color: #161318;
+}
+.theme-dark .server .server-options__label {
+  color: #efefef;
 }
 .server .server-options__input-group {
   margin: 0 11.5px !important;
@@ -159,8 +174,13 @@
 .server .server-options__input {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .server-options__input {
+  color: #161318;
+}
+.theme-dark .server .server-options__input {
+  color: #efefef;
 }
 .server .server-options__input--bordered {
   border: 1px solid #f0405e;
@@ -200,6 +220,10 @@
 .server .server-options__create:hover {
   opacity: 0.8333;
 }
+.server .server-options__create:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 .theme-light .server .server-options__create {
   background: #f0405e;
 }
@@ -226,6 +250,10 @@
 .server .server-options__destroy:hover {
   opacity: 0.8333;
 }
+.server .server-options__destroy:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 .theme-light .server .server-options__destroy {
   background: #46adb4;
 }
@@ -239,47 +267,60 @@
 .server .proxy-options {
   margin-left: -10px;
   height: 219px;
-  width: 258px;
+  width: 277px;
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
 .server .proxy-options__section-header {
-  padding-top: 71px;
+  padding-top: 21px;
 }
 .server .proxy-options__label {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
   margin-top: 9px;
   padding-left: 0.5px;
 }
+.theme-light .server .proxy-options__label {
+  color: #161318;
+}
+.theme-dark .server .proxy-options__label {
+  color: #efefef;
+}
 .server .proxy-options__input-group {
   margin: 0 11.5px !important;
-  padding-top: -1px;
   padding-bottom: 2px;
 }
 .server .proxy-options__input {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .proxy-options__input {
+  color: #161318;
+}
+.theme-dark .server .proxy-options__input {
+  color: #efefef;
 }
 .server .proxy-options__input--bordered {
   border: 1px solid #f0405e;
 }
 .server .proxy-options__input--number {
-  width: 56px;
+  width: 60px;
+  height: 29px;
+}
+.server .proxy-options__input--credentials {
+  width: 176px;
   height: 29px;
 }
 .server .proxy-options__input--location {
-  width: 162px;
+  width: 252px;
   height: 29px;
 }
 .server .proxy-options__input--field {
-  width: 234px;
+  width: 118.3px;
   height: 29px;
 }
 .theme-light .server .proxy-options__input--field {
@@ -301,8 +342,7 @@
   align-self: flex-end;
 }
 .server .proxy-options__generate {
-  margin-right: -3px;
-  width: 110px;
+  width: 83px;
   height: 29px;
   cursor: pointer;
   background: #f0405e;
@@ -316,9 +356,11 @@
 .server .proxy-options__generate:hover {
   opacity: 0.8333;
 }
+.server .proxy-options__generate:disabled {
+  cursor: not-allowed;
+}
 .server .proxy-options__destroy {
-  margin-right: -17px;
-  width: 110px;
+  width: 83px;
   height: 29px;
   cursor: pointer;
   background: #46adb4;
@@ -332,6 +374,9 @@
 .server .proxy-options__destroy:hover {
   opacity: 0.8333;
 }
+.server .proxy-options__destroy:disabled {
+  cursor: not-allowed;
+}
 
 /*
  * Implementation of themes
@@ -343,25 +388,25 @@
   text-overflow: ellipsis;
 }
 
-.server .server-table-container .server-table__header .server-table__header__actions, .server .server-table-container .server-table__header .server-table__header__status, .server .server-table-container .server-table__header .server-table__header__charges, .server .server-table-container .server-table__header .server-table__header__location, .server .server-table-container .server-table__header .server-table__header__size, .server .server-table-container .server-table__header .server-table__header__type {
+.server .server-table-container .server-table__header--actions, .server .server-table-container .server-table__header--charges, .server .server-table-container .server-table__header--ip, .server .server-table-container .server-table__header--location {
   margin: 0;
 }
-.server .server-table-container .server-table__header .server-table__header__actions > p, .server .server-table-container .server-table__header .server-table__header__status > p, .server .server-table-container .server-table__header .server-table__header__charges > p, .server .server-table-container .server-table__header .server-table__header__location > p, .server .server-table-container .server-table__header .server-table__header__size > p, .server .server-table-container .server-table__header .server-table__header__type > p {
+.server .server-table-container .server-table__header--actions > p, .server .server-table-container .server-table__header--charges > p, .server .server-table-container .server-table__header--ip > p, .server .server-table-container .server-table__header--location > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   letter-spacing: 0;
   margin: 5px 0;
 }
-.theme-light .server .server-table-container .server-table__header .server-table__header__actions > p, .server .server-table-container .server-table__header .theme-light .server-table__header__actions > p, .theme-light .server .server-table-container .server-table__header .server-table__header__status > p, .server .server-table-container .server-table__header .theme-light .server-table__header__status > p, .theme-light .server .server-table-container .server-table__header .server-table__header__charges > p, .server .server-table-container .server-table__header .theme-light .server-table__header__charges > p, .theme-light .server .server-table-container .server-table__header .server-table__header__location > p, .server .server-table-container .server-table__header .theme-light .server-table__header__location > p, .theme-light .server .server-table-container .server-table__header .server-table__header__size > p, .server .server-table-container .server-table__header .theme-light .server-table__header__size > p, .theme-light .server .server-table-container .server-table__header .server-table__header__type > p, .server .server-table-container .server-table__header .theme-light .server-table__header__type > p {
+.theme-light .server .server-table-container .server-table__header--actions > p, .server .server-table-container .theme-light .server-table__header--actions > p, .theme-light .server .server-table-container .server-table__header--charges > p, .server .server-table-container .theme-light .server-table__header--charges > p, .theme-light .server .server-table-container .server-table__header--ip > p, .server .server-table-container .theme-light .server-table__header--ip > p, .theme-light .server .server-table-container .server-table__header--location > p, .server .server-table-container .theme-light .server-table__header--location > p {
   color: #161318;
 }
-.theme-dark .server .server-table-container .server-table__header .server-table__header__actions > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__actions > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__status > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__status > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__charges > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__charges > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__location > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__location > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__size > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__size > p, .theme-dark .server .server-table-container .server-table__header .server-table__header__type > p, .server .server-table-container .server-table__header .theme-dark .server-table__header__type > p {
+.theme-dark .server .server-table-container .server-table__header--actions > p, .server .server-table-container .theme-dark .server-table__header--actions > p, .theme-dark .server .server-table-container .server-table__header--charges > p, .server .server-table-container .theme-dark .server-table__header--charges > p, .theme-dark .server .server-table-container .server-table__header--ip > p, .server .server-table-container .theme-dark .server-table__header--ip > p, .theme-dark .server .server-table-container .server-table__header--location > p, .server .server-table-container .theme-dark .server-table__header--location > p {
   color: #efefef;
 }
 
 .server .server-table-container {
-  width: 823px;
-  height: 323px;
+  width: 523px;
+  height: 531px;
   margin-left: -1px !important;
   border: 1px solid #f0405e;
   border-radius: 3px;
@@ -379,24 +424,20 @@
   height: 26px;
   min-height: 26px;
 }
-.server .server-table-container .server-table__header .server-table__header__type {
-  margin-left: -20px;
-  width: 99px;
-}
-.server .server-table-container .server-table__header .server-table__header__size {
-  width: 45px;
-}
-.server .server-table-container .server-table__header .server-table__header__location {
+.server .server-table-container .server-table__header--location {
   width: 55px;
 }
-.server .server-table-container .server-table__header .server-table__header__charges {
-  width: 15px;
+.server .server-table-container .server-table__header--ip {
+  width: 55px;
 }
-.server .server-table-container .server-table__header .server-table__header__status {
-  width: 35px;
+.server .server-table-container .server-table__header--charges {
+  width: 55px;
 }
-.server .server-table-container .server-table__header .server-table__header__actions {
-  width: 50px;
+.server .server-table-container .server-table__header--actions {
+  width: 55px;
+}
+.server .server-log {
+  margin-top: 50px;
 }
 .server .server-table {
   border-collapse: collapse;

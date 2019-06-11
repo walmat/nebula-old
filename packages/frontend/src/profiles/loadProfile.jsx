@@ -101,7 +101,7 @@ export class LoadProfilePrimitive extends Component {
                           components={{ DropdownIndicator }}
                           className="profiles-load__input-group--select"
                           classNamePrefix="select"
-                          styles={colourStyles(theme, buildStyle(false, true))}
+                          styles={colourStyles(theme, buildStyle(false, null))}
                           onChange={this.onProfileChange}
                           value={selectProfileValue}
                           options={this.buildProfileOptions()}

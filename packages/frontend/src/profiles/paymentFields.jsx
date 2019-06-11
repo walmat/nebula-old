@@ -5,9 +5,7 @@ import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
-import { addTestId, renderSvgIcon } from '../utils';
-
-import { ReactComponent as CVVInfoIcon } from '../_assets/info.svg';
+import { addTestId } from '../utils';
 
 import './profiles.css';
 

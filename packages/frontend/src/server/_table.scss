@@ -22,8 +22,8 @@
 
 .server {
   .server-table-container {
-    width: 823px;
-    height: 323px;
+    width: 523px;
+    height: 531px;
     margin-left: -1px !important;
     border: 1px solid #f0405e;
     border-radius: 3px;
@@ -42,37 +42,30 @@
       height: 26px;
       min-height: 26px;
 
-      .server-table__header__type {
-        @extend %server-table__header__field;
-        margin-left: -20px;
-        width: 99px;
-      }
-
-      .server-table__header__size {
-        @extend %server-table__header__field;
-        width: 45px;
-      }
-
-      .server-table__header__location {
+      &--location {
         @extend %server-table__header__field;
         width: 55px;
       }
 
-      .server-table__header__charges {
+      &--ip {
         @extend %server-table__header__field;
-        width: 15px;
+        width: 55px;
       }
 
-      .server-table__header__status {
+      &--charges {
         @extend %server-table__header__field;
-        width: 35px;
+        width: 55px;
       }
 
-      .server-table__header__actions {
+      &--actions {
         @extend %server-table__header__field;
-        width: 50px;
+        width: 55px;
       }
     }
+  }
+
+  .server-log {
+    margin-top: 50px;
   }
 
   .server-table {

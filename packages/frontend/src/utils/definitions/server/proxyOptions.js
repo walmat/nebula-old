@@ -1,7 +1,10 @@
 import PropTypes from 'prop-types';
 
+import { credentials } from './credentials';
+
 const proxyOptions = PropTypes.shape({
-  numProxies: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  number: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  credentials,
   location: PropTypes.shape({
     id: PropTypes.number,
     label: PropTypes.string,

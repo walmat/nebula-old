@@ -1,7 +1,7 @@
 import { SERVER_FIELDS, SERVER_ACTIONS, mapServerFieldToKey, subMapToKey } from '../../actions';
 import initialServerStates from '../../initial/servers';
 
-export function serverReducer(state = initialServerStates.serverInfo, action) {
+export function serverReducer(state = initialServerStates, action) {
   // initialize change object
   let change = {};
   // Deep copy the current state
@@ -20,11 +20,39 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
         break;
       }
       case SERVER_FIELDS.EDIT_PROXY_NUMBER: {
+        if (!action || action.errors) {
+          break;
+        }
         const intValue = action.value === '' ? 0 : parseInt(action.value, 10);
-        change = {
-          numProxies: Number.isNaN(intValue)
-            ? initialServerStates.proxyOptions.numProxies
-            : intValue,
+        nextState.proxyOptions = {
+          ...nextState.proxyOptions,
+          number: intValue,
+        };
+        break;
+      }
+      case SERVER_FIELDS.EDIT_AWS_ACCESS_KEY: {
+        if (!action || action.errors) {
+          break;
+        }
+        nextState.credentials = {
+          ...nextState.credentials,
+          current: {
+            ...nextState.credentials.current,
+            AWSAccessKey: action.value,
+          },
+        };
+        break;
+      }
+      case SERVER_FIELDS.EDIT_AWS_SECRET_KEY: {
+        if (!action || action.errors) {
+          break;
+        }
+        nextState.credentials = {
+          ...nextState.credentials,
+          current: {
+            ...nextState.credentials.current,
+            AWSSecretKey: action.value,
+          },
         };
         break;
       }
@@ -35,22 +63,37 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
         break;
       }
     }
-
-    // Update the correct errors map
-    change.errors = Object.assign(
-      {},
-      state[mapServerFieldToKey[action.field]].errors,
-      action.errors,
-    );
-
-    // Edit the correct part of the next state based on the given field
-    nextState[mapServerFieldToKey[action.field]] = Object.assign(
-      {},
-      nextState[mapServerFieldToKey[action.field]],
-      change,
-    );
   } else if (action.type === SERVER_ACTIONS.ERROR) {
-    console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
+    if (!action || (action && !action.action)) {
+      return nextState;
+    }
+
+    switch (action.action) {
+      case SERVER_ACTIONS.VALIDATE_AWS: {
+        if (action.error && action.error.message) {
+          nextState.credentials.status = action.error.message;
+        } else {
+          nextState.credentials.status = 'Invalid action';
+        }
+        break;
+      }
+      default:
+        console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
+        break;
+    }
+  } else if (action.type === SERVER_ACTIONS.CLEANUP_STATUS) {
+    if (!action || (action && !action.field)) {
+      return nextState;
+    }
+
+    switch (action.field) {
+      case SERVER_ACTIONS.VALIDATE_AWS: {
+        nextState.credentials.status = '';
+        break;
+      }
+      default:
+        break;
+    }
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
     console.log(action, nextState);
     if (!action || !action.proxyInfo) {
@@ -86,7 +129,7 @@ export function serverReducer(state = initialServerStates.serverInfo, action) {
   return nextState;
 }
 
-export function serverListReducer(state = initialServerStates.serverList, action) {
+export function serverListReducer(state = initialServerStates, action) {
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {

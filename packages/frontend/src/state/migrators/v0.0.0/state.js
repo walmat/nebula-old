@@ -1,4 +1,4 @@
-import serverListOptions from '../../../utils/servers'; // TODO: should we make a copy to reference this?
+import serverListOptions from '../../../constants/servers'; // TODO: should we make a copy to reference this?
 import { THEMES } from '../../../constants/themes';
 
 // Source: locationState.js @ v1.0.0-beta.6.2
@@ -173,44 +173,24 @@ export default {
   },
   selectedTask: initialTaskState,
   settings: initialSettingsState,
-  // Source serverInfo.js @ v1.0.0-beta.6.2
-  serverInfo: {
-    // Source: awsCrednetials.js @ v1.0.0-beta.6.2
+  // Source: serverList.js @ v1.0.0-beta.6.2
+  servers: {
     credentials: {
-      AWSAccessKey: '',
-      AWSSecretKey: '',
-      accessToken: null,
-      errors: {},
+      selected: null,
+      current: null,
+      list: [],
     },
-    // Source proxyOptions.js @ v1.0.0-beta.6.2
+    proxies: [],
+    serverListOptions,
     proxyOptions: {
-      numProxies: 0,
+      number: '',
+      credentials: [],
       location: null,
       username: '',
       password: '',
-      errors: {},
+      errors: null,
     },
-    // Source: coreServer.js @ v1.0.0-beta.6.2
-    coreServer: {
-      path: null,
-      serverOptions: null,
-      awsCredentials: null,
-      errors: {},
-    },
-    proxies: [],
-    // Source: serverOptions.js @ v1.0.0-beta.6.2
-    serverOptions: {
-      type: null,
-      size: null,
-      location: null,
-      errors: {},
-    },
-    errors: {},
   },
-  // Source: serverList.js @ v1.0.0-beta.6.2
-  servers: [],
-  // Source: utils/servers.js @ v1.0.0-beta.6.2
-  serverListOptions,
   // Source: constants/themes.js @ v1.0.0-beta.6.2
   theme: THEMES.LIGHT,
 };

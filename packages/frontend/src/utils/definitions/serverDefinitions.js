@@ -1,20 +1,12 @@
-import awsCredentials from './server/awsCredentials';
+// eslint-disable-next-line import/no-named-as-default
+import credentials from './server/credentials';
 import proxyOptions from './server/proxyOptions';
-import serverInfo from './server/serverInfo';
-import coreServer from './server/coreServer';
-import { serverList, server } from './server/serverList';
+import proxyList from './server/proxyList';
 import serverListOptions from './server/serverListOptions';
-import serverProperty from './server/serverProperty';
-import serverOptions from './server/serverOptions';
 
 export default {
-  awsCredentials,
-  coreServer,
+  credentials,
   proxyOptions,
-  serverInfo,
-  serverList,
+  proxyList,
   serverListOptions,
-  serverProperty,
-  serverOptions,
-  server,
 };

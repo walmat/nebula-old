@@ -9,7 +9,9 @@
 @mixin server-select-font() {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
+  @include themify($themes) {
+    color: themed('textColor');
+  }
   letter-spacing: 0;
 }
 
@@ -28,5 +30,10 @@
 
   &:hover {
     opacity: 0.8333;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 }
