@@ -10,16 +10,62 @@ import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
 export class CreateProxiesPrimitive extends Component {
-  createServerInfoChangeHandler(field) {
-    const { onEditServerInfo } = this.props;
-    return event => onEditServerInfo(field, event.target.value);
+  static maskInput(input) {
+    if (!input) {
+      return '';
+    }
+    return '*'.repeat(input.length);
   }
 
-  createProxyLocationChangeHandle(field) {
-    const { onEditServerInfo } = this.props;
-    return event => {
-      onEditServerInfo(field, event);
+  constructor(props) {
+    super(props);
+
+    this.fieldMap = {
+      [SERVER_FIELDS.EDIT_PROXY_USERNAME]: 'isEditingUsername',
+      [SERVER_FIELDS.EDIT_PROXY_PASSWORD]: 'isEditingPassword',
     };
+
+    this.state = {
+      isEditingUsername: false,
+      isEditingPassword: false,
+    };
+
+    this.onBlurHandler = this.onBlurHandler.bind(this);
+    this.onFocusHandler = this.onFocusHandler.bind(this);
+  }
+
+  onChangeHandler(field) {
+    const { onEditServerInfo } = this.props;
+
+    switch (field) {
+      case SERVER_FIELDS.EDIT_PROXY_CREDENTIALS:
+      case SERVER_FIELDS.EDIT_PROXY_LOCATION: {
+        return event => onEditServerInfo(field, event);
+      }
+      default: {
+        return event => onEditServerInfo(field, event.target.value);
+      }
+    }
+  }
+
+  onBlurHandler(field) {
+    const stateVal = this.fieldMap[field];
+
+    if (!stateVal) {
+      return;
+    }
+
+    this.setState({ [stateVal]: false });
+  }
+
+  onFocusHandler(field) {
+    const stateVal = this.fieldMap[field];
+
+    if (!stateVal) {
+      return;
+    }
+
+    this.setState({ [stateVal]: true });
   }
 
   buildCredentialsOptions() {
@@ -27,7 +73,9 @@ export class CreateProxiesPrimitive extends Component {
       credentials: { list },
     } = this.props;
     const opts = [];
-    list.forEach(cred => opts.push({ value: cred.AWSSecretKey, label: cred.AWSAccessKey }));
+    list.forEach(cred =>
+      opts.push({ value: cred.AWSSecretKey, label: cred.AWSAccessKey, loggedIn: cred.loggedIn }),
+    );
     return opts;
   }
 
@@ -41,10 +89,14 @@ export class CreateProxiesPrimitive extends Component {
       onDestroyProxies,
       onGenerateProxies,
     } = this.props;
+
+    const { isEditingUsername, isEditingPassword } = this.state;
+
     let loggedIn = false;
     if (credentials) {
       ({ loggedIn } = credentials);
     }
+    console.log(loggedIn);
     return (
       <div className="proxy-options col col--start col--no-gutter">
         <div className="row row--start row--gutter">
@@ -57,9 +109,9 @@ export class CreateProxiesPrimitive extends Component {
                   placeholder="1-10"
                   style={buildStyle(false, null)}
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
+                  onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
                   required
-                  data-testid={addTestId('CreateProxies.numProxiesInput')}
+                  data-testid={addTestId('CreateProxies.number')}
                 />
               </div>
               <div className="col">
@@ -71,10 +123,10 @@ export class CreateProxiesPrimitive extends Component {
                   classNamePrefix="select"
                   className="proxy-options__input--credentials"
                   styles={colourStyles(theme, buildStyle(false, null))}
-                  value={location}
+                  value={credentials}
                   options={this.buildCredentialsOptions()}
-                  data-testid={addTestId('CreateProxies.location')}
-                  onChange={this.createProxyLocationChangeHandle(SERVER_FIELDS.EDIT_PROXY_LOCATION)}
+                  data-testid={addTestId('CreateProxies.credentials')}
+                  onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_CREDENTIALS)}
                 />
               </div>
             </div>
@@ -95,7 +147,7 @@ export class CreateProxiesPrimitive extends Component {
                   value={location}
                   options={serverListOptions.locations}
                   data-testid={addTestId('CreateProxies.location')}
-                  onChange={this.createProxyLocationChangeHandle(SERVER_FIELDS.EDIT_PROXY_LOCATION)}
+                  onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_LOCATION)}
                 />
               </div>
             </div>
@@ -111,10 +163,12 @@ export class CreateProxiesPrimitive extends Component {
                   type="text"
                   placeholder="Desired Username"
                   style={buildStyle(false, null)}
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
-                  value={username}
+                  onFocus={() => this.onFocusHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
+                  onBlur={() => this.onBlurHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
+                  onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
+                  value={isEditingUsername ? username : CreateProxiesPrimitive.maskInput(username)}
                   required
-                  data-testid={addTestId('CreateProxies.usernameInput')}
+                  data-testid={addTestId('CreateProxies.username')}
                 />
               </div>
               <div className="col col--no-gutter-left">
@@ -124,10 +178,12 @@ export class CreateProxiesPrimitive extends Component {
                   type="text"
                   placeholder="Desired Password"
                   style={buildStyle(false, null)}
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
-                  value={password}
+                  onFocus={() => this.onFocusHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
+                  onBlur={() => this.onBlurHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
+                  onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
+                  value={isEditingPassword ? password : CreateProxiesPrimitive.maskInput(password)}
                   required
-                  data-testid={addTestId('CreateProxies.passwordInput')}
+                  data-testid={addTestId('CreateProxies.password')}
                 />
               </div>
             </div>
@@ -139,15 +195,13 @@ export class CreateProxiesPrimitive extends Component {
               type="button"
               className="proxy-options__destroy"
               tabIndex={0}
-              disabled={loggedIn}
-              title={!loggedIn ? 'Login Required' : ''}
               onKeyPress={onKeyPress}
               onClick={() => {
                 if (loggedIn) {
                   onDestroyProxies({ location }, proxies, credentials);
                 }
               }}
-              data-testid={addTestId('CreateProxies.destroyProxiesButton')}
+              data-testid={addTestId('CreateProxies.destroy')}
             >
               Destroy All
             </button>
@@ -158,14 +212,13 @@ export class CreateProxiesPrimitive extends Component {
               className="proxy-options__generate"
               tabIndex={0}
               disabled={!loggedIn}
-              title={!loggedIn ? 'Login Required' : ''}
               onKeyPress={onKeyPress}
               onClick={() => {
                 if (loggedIn) {
                   onGenerateProxies({ number, location, username, password }, credentials);
                 }
               }}
-              data-testid={addTestId('CreateProxies.generateProxiesButton')}
+              data-testid={addTestId('CreateProxies.generate')}
             >
               Generate
             </button>

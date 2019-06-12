@@ -5,7 +5,7 @@ const initialServersState = {
   proxies: [],
   proxyOptions: {
     number: '',
-    credentials: [],
+    credentials: null,
     location: null,
     username: '',
     password: '',

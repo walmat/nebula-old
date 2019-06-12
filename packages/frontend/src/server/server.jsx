@@ -52,8 +52,8 @@ const Server = () => (
                   <div className="col col--no-gutter server-table__header--location">
                     <p>Location</p>
                   </div>
-                  <div className="col server-table__header--ip">
-                    <p>IP</p>
+                  <div className="col server-table__header--status">
+                    <p>Status</p>
                   </div>
                   <div className="col server-table__header--charges">
                     <p>Charges</p>

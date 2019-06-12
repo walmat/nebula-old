@@ -1,13 +1,13 @@
 #!/bin/bash
 
-apt-get update
+yum update -y
 
 sleep 15
 
 clear
 
-apt-get install squid -y
-apt-get install apache2-utils -y
+yum install squid -y
+yum install apache2-utils -y
 
 rm -rf /etc/squid/squid.conf
 
@@ -22,7 +22,7 @@ auth_param basic realm proxy
 acl authenticated proxy_auth REQUIRED
 http_access allow authenticated
 
-http_port 80
+http_port 65096
 
 request_header_access Allow allow all
 request_header_access Authorization allow all
@@ -53,9 +53,6 @@ request_header_access Proxy-Connection allow all
 request_header_access User-Agent allow all
 request_header_access Cookie allow all
 request_header_access All deny all" >> /etc/squid/squid.conf
-
-
-
 
 service squid restart
 

@@ -105,7 +105,6 @@
   height: 29px;
 }
 .server .server-credentials__input--field:disabled {
-  background: #e5e5e5;
   cursor: not-allowed;
 }
 .server .server-credentials__submit-row {
@@ -196,10 +195,6 @@
 .server .server-options__create:hover {
   opacity: 0.8333;
 }
-.server .server-options__create:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
 .theme-light .server .server-options__create {
   background: #f0405e;
 }
@@ -225,10 +220,6 @@
 }
 .server .server-options__destroy:hover {
   opacity: 0.8333;
-}
-.server .server-options__destroy:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
 }
 .theme-light .server .server-options__destroy {
   background: #46adb4;
@@ -352,19 +343,19 @@
   text-overflow: ellipsis;
 }
 
-.server .server-table-container .server-table__header--actions, .server .server-table-container .server-table__header--charges, .server .server-table-container .server-table__header--ip, .server .server-table-container .server-table__header--location {
+.server .server-table-container .server-table__header--actions, .server .server-table-container .server-table__header--charges, .server .server-table-container .server-table__header--status, .server .server-table-container .server-table__header--location {
   margin: 0;
 }
-.server .server-table-container .server-table__header--actions > p, .server .server-table-container .server-table__header--charges > p, .server .server-table-container .server-table__header--ip > p, .server .server-table-container .server-table__header--location > p {
+.server .server-table-container .server-table__header--actions > p, .server .server-table-container .server-table__header--charges > p, .server .server-table-container .server-table__header--status > p, .server .server-table-container .server-table__header--location > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   letter-spacing: 0;
   margin: 5px 0;
 }
-.theme-light .server .server-table-container .server-table__header--actions > p, .server .server-table-container .theme-light .server-table__header--actions > p, .theme-light .server .server-table-container .server-table__header--charges > p, .server .server-table-container .theme-light .server-table__header--charges > p, .theme-light .server .server-table-container .server-table__header--ip > p, .server .server-table-container .theme-light .server-table__header--ip > p, .theme-light .server .server-table-container .server-table__header--location > p, .server .server-table-container .theme-light .server-table__header--location > p {
+.theme-light .server .server-table-container .server-table__header--actions > p, .server .server-table-container .theme-light .server-table__header--actions > p, .theme-light .server .server-table-container .server-table__header--charges > p, .server .server-table-container .theme-light .server-table__header--charges > p, .theme-light .server .server-table-container .server-table__header--status > p, .server .server-table-container .theme-light .server-table__header--status > p, .theme-light .server .server-table-container .server-table__header--location > p, .server .server-table-container .theme-light .server-table__header--location > p {
   color: #161318;
 }
-.theme-dark .server .server-table-container .server-table__header--actions > p, .server .server-table-container .theme-dark .server-table__header--actions > p, .theme-dark .server .server-table-container .server-table__header--charges > p, .server .server-table-container .theme-dark .server-table__header--charges > p, .theme-dark .server .server-table-container .server-table__header--ip > p, .server .server-table-container .theme-dark .server-table__header--ip > p, .theme-dark .server .server-table-container .server-table__header--location > p, .server .server-table-container .theme-dark .server-table__header--location > p {
+.theme-dark .server .server-table-container .server-table__header--actions > p, .server .server-table-container .theme-dark .server-table__header--actions > p, .theme-dark .server .server-table-container .server-table__header--charges > p, .server .server-table-container .theme-dark .server-table__header--charges > p, .theme-dark .server .server-table-container .server-table__header--status > p, .server .server-table-container .theme-dark .server-table__header--status > p, .theme-dark .server .server-table-container .server-table__header--location > p, .server .server-table-container .theme-dark .server-table__header--location > p {
   color: #efefef;
 }
 
@@ -391,7 +382,7 @@
 .server .server-table-container .server-table__header--location {
   width: 55px;
 }
-.server .server-table-container .server-table__header--ip {
+.server .server-table-container .server-table__header--status {
   width: 55px;
 }
 .server .server-table-container .server-table__header--charges {

@@ -7,9 +7,13 @@ import { SERVER_FIELDS, mapServerFieldToKey, serverActions } from '../state/acti
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
+import { SERVER_ACTIONS } from '../state/actions/server/serverActions';
 
 export class AWSCredentialsPrimitive extends Component {
   static maskInput(input) {
+    if (!input) {
+      return '';
+    }
     return '*'.repeat(input.length);
   }
 
@@ -19,22 +23,91 @@ export class AWSCredentialsPrimitive extends Component {
     this.validateAws = this.validateAws.bind(this);
     this.buildCredentialsOptions = this.buildCredentialsOptions.bind(this);
 
+    this.fieldMap = {
+      [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'isEditingAccess',
+      [SERVER_FIELDS.EDIT_AWS_SECRET_KEY]: 'isEditingSecret',
+    };
+
     this.state = {
       isEditingAccess: false,
       isEditingSecret: false,
     };
+
+    this.onBlurHandler = this.onBlurHandler.bind(this);
+    this.onFocusHandler = this.onFocusHandler.bind(this);
+    this.onChangeHandler = this.onChangeHandler.bind(this);
+    this.onCredentialsChange = this.onCredentialsChange.bind(this);
   }
 
-  logoutAws(e) {
+  onBlurHandler(field) {
+    const stateVal = this.fieldMap[field];
+
+    if (!stateVal) {
+      return;
+    }
+
+    this.setState({ [stateVal]: false });
+  }
+
+  onFocusHandler(field) {
+    const stateVal = this.fieldMap[field];
+
+    if (!stateVal) {
+      return;
+    }
+
+    this.setState({ [stateVal]: true });
+  }
+
+  onChangeHandler(field) {
+    const { onEditServerInfo } = this.props;
+
+    switch (field) {
+      default: {
+        return event => onEditServerInfo(field, event.target.value);
+      }
+    }
+  }
+
+  onCredentialsChange(credentials) {
+    const {
+      credentials: { list },
+      onSelectCredentials,
+    } = this.props;
+
+    if (!credentials) {
+      onSelectCredentials(null);
+      return;
+    }
+
+    const { AWSAccessKey, AWSSecretKey } = credentials;
+
+    const selected = list.find(
+      creds => creds.label === AWSAccessKey && creds.value === AWSSecretKey,
+    );
+    onSelectCredentials(selected);
+  }
+
+  async logoutAws(e) {
     e.preventDefault();
     const message =
-      'Are you sure you want to log out of AWS? Logging out will stop any currently running tasks and destroy any generated proxies.';
-    const { onLogoutAws, proxies, credentials } = this.props;
-    window.Bridge.confirmDialog(message).then(logout => {
-      if (logout) {
-        onLogoutAws(proxies, credentials);
-      }
-    });
+      'Are you sure you want to log out? Doing so will stop any currently running tasks associated with the proxies, as well as destroy those generated proxies.';
+    const {
+      onLogoutAws,
+      proxies,
+      credentials: { current },
+    } = this.props;
+
+    const confirm = await window.Bridge.showDialog(
+      message,
+      'question',
+      ['Okay', 'Cancel'],
+      'AWS - Log out',
+    );
+
+    if (confirm) {
+      onLogoutAws(proxies, current);
+    }
   }
 
   buildCredentialsOptions() {
@@ -46,48 +119,27 @@ export class AWSCredentialsPrimitive extends Component {
     return opts;
   }
 
-  createServerInfoChangeHandler(field) {
-    const { onEditServerInfo } = this.props;
-    return event => onEditServerInfo(field, event.target.value);
-  }
-
   validateAws(e) {
     e.preventDefault();
     const {
       onValidateAws,
-      credentials: { current },
+      onHandleError,
+      credentials: {
+        current: { AWSAccessKey, AWSSecretKey },
+        list,
+      },
     } = this.props;
-    onValidateAws(current);
-  }
 
-  handleOnBlur(field) {
-    switch (field) {
-      case SERVER_FIELDS.EDIT_AWS_ACCESS_KEY: {
-        this.setState({ isEditingAccess: false });
-        break;
-      }
-      case SERVER_FIELDS.EDIT_AWS_SECRET_KEY: {
-        this.setState({ isEditingSecret: false });
-        break;
-      }
-      default:
-        break;
-    }
-  }
+    const exists = list.find(
+      creds => creds.AWSAccessKey === AWSAccessKey && creds.AWSSecretKey === AWSSecretKey,
+    );
 
-  handleOnFocus(field) {
-    switch (field) {
-      case SERVER_FIELDS.EDIT_AWS_ACCESS_KEY: {
-        this.setState({ isEditingAccess: true });
-        break;
-      }
-      case SERVER_FIELDS.EDIT_AWS_SECRET_KEY: {
-        this.setState({ isEditingSecret: true });
-        break;
-      }
-      default:
-        break;
+    if (exists) {
+      onHandleError(SERVER_ACTIONS.VALIDATE_AWS, new Error('Keys already exists'));
+      return;
     }
+
+    onValidateAws({ AWSAccessKey, AWSSecretKey });
   }
 
   render() {
@@ -117,16 +169,17 @@ export class AWSCredentialsPrimitive extends Component {
           <div className="col server-credentials__input-group">
             <div className="row row--gutter">
               <div className="col col--no-gutter">
-                <p className="server-credentials__label">Select Credentials</p>
+                <p className="server-credentials__label">AWS IAM Profile</p>
                 <Select
                   required
                   isClearable
-                  placeholder="IAM User Access Key"
+                  placeholder="Choose Credentials"
                   components={{ DropdownIndicator }}
                   className="server-credentials__input server-credentials__input--field"
                   classNamePrefix="select"
                   styles={colourStyles(theme, buildStyle(false, null))}
-                  onChange={this.buildCredentialsOptions()}
+                  options={this.buildCredentialsOptions()}
+                  onChange={this.onCredentialsChange}
                   value={selectedValue}
                   data-testid={addTestId('AWSCredentials.accessKeyInput')}
                 />
@@ -148,9 +201,9 @@ export class AWSCredentialsPrimitive extends Component {
                     false,
                     errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]],
                   )}
-                  onFocus={() => this.handleOnFocus(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
-                  onBlur={() => this.handleOnBlur(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
+                  onFocus={() => this.onFocusHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
+                  onBlur={() => this.onBlurHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
+                  onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={
                     isEditingAccess
                       ? AWSAccessKey || ''
@@ -177,9 +230,9 @@ export class AWSCredentialsPrimitive extends Component {
                     false,
                     errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_SECRET_KEY]],
                   )}
-                  onFocus={() => this.handleOnFocus(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
-                  onBlur={() => this.handleOnBlur(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
-                  onChange={this.createServerInfoChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
+                  onFocus={() => this.onFocusHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
+                  onBlur={() => this.onBlurHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
+                  onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                   value={
                     isEditingSecret
                       ? AWSSecretKey || ''
@@ -216,10 +269,12 @@ export class AWSCredentialsPrimitive extends Component {
 
 AWSCredentialsPrimitive.propTypes = {
   onEditServerInfo: PropTypes.func.isRequired,
+  onSelectCredentials: PropTypes.func.isRequired,
   proxies: defns.proxyList.isRequired,
   credentials: defns.credentials.isRequired,
   onValidateAws: PropTypes.func.isRequired,
   onLogoutAws: PropTypes.func.isRequired,
+  onHandleError: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
   errors: PropTypes.objectOf(PropTypes.any),
@@ -238,6 +293,9 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
+  onSelectCredentials: credentials => {
+    dispatch(serverActions.select(credentials));
+  },
   onEditServerInfo: (field, value) => {
     dispatch(serverActions.edit(null, field, value));
   },
@@ -246,6 +304,9 @@ export const mapDispatchToProps = dispatch => ({
   },
   onLogoutAws: (servers, proxies, credentials) => {
     dispatch(serverActions.logoutAws(servers, proxies, credentials));
+  },
+  onHandleError: (action, error) => {
+    dispatch(serverActions.error(action, error));
   },
 });
 
