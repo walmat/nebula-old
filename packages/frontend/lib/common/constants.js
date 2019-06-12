@@ -52,6 +52,15 @@ const IPCKeys = {
   RequestRemoveProxies: 'RequestRemoveProxies',
   RequestAbortAllTasksForClose: 'RequestAbortAllTasksForClose',
 
+  RequestRegisterProxyEventHandler: 'RequestRegisterProxyEventHandler',
+  RegisterProxyEventHandler: 'RegisterProxyEventHandler',
+  RequestDeregisterProxyEventHandler: 'RequestDeregisterProxyEventHandler',
+  DeregisterProxyEventHandler: 'DeregisterProxyEventHandler',
+  RequestStartGenerate: 'RequestStartGenerate',
+  RequestStopGenerate: 'RequestStopGenerate',
+  RequestDestroyProxies: 'RequestDestroyProxies',
+  RequestAbortAllGeneratorsForClose: 'RequestAbortAllGeneratorsForClose',
+
   RequestChangeDelay: 'RequestChangeDelay',
   RequestWebhookUpdate: 'RequestWebhookUpdate',
   RequestWebhookTest: 'RequestWebhookTest',

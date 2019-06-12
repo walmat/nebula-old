@@ -54,7 +54,7 @@ const _getAppData = () => {
   if (nebulaEnv.isDevelopment()) {
     return { name: 'Nebula Orion', version: 'Dev build' };
   }
-  
+
   const name = app
     .getName()
     .replace('/', ' ')

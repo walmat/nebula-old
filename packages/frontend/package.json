@@ -42,6 +42,7 @@
   "dependencies": {
     "@babel/runtime": "^7.4.3",
     "@nebula/task-runner-built": "^0.1.0",
+    "@nebula/proxy-management-service-built": "^0.1.0",
     "aws-sdk": "^2.315.0",
     "body-parser": "^1.18.3",
     "bodymovin": "^4.13.0",

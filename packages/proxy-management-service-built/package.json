@@ -1,0 +1,24 @@
+{
+  "name": "@nebula/proxy-management-service-built",
+  "version": "0.1.0",
+  "description": "built code of proxy-management-service",
+  "private": true,
+  "main": "dist/build/index.js",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "yarn workspace @nebula/proxy-management-service run build",
+    "ci": "exit 0",
+    "lint": "exit 0",
+    "test": "exit 0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.373.0",
+    "@babel/runtime": "^7.4.3",
+    "eventemitter3": "^3.1.0",
+    "shortid": "^2.2.14",
+    "ssh2": "^0.6.1",
+    "underscore": "^1.9.1"
+  }
+}

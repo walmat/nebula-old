@@ -9,10 +9,12 @@ const { base, util } = require('./index');
 nebulaEnv.setUpEnvironment();
 
 let srrRequest = null;
-let handlers = [];
+let taskHandlers = [];
+let proxyHandlers = [];
 const SRR_ID = 1000;
 
-const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
+const taskEventHandler = (...params) => taskHandlers.forEach(h => h(...params));
+const proxyEventHandler = (...params) => proxyHandlers.forEach(h => h(...params));
 
 const _checkForUpdates = () => {
   util.sendEvent(IPCKeys.RequestCheckForUpdates);
@@ -40,17 +42,34 @@ const _launchCaptchaHarvester = opts => {
  * Sends a listener for task events to launcher.js
  */
 const _registerForTaskEvents = handler => {
-  if (handlers.length > 0) {
-    handlers.push(handler);
+  if (taskHandlers.length > 0) {
+    taskHandlers.push(handler);
   } else {
     util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
     ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
       // Check and make sure we have a key to listen on
       if (eventKey) {
-        handlers.push(handler);
+        taskHandlers.push(handler);
         util.handleEvent(eventKey, taskEventHandler);
       } else {
         console.error('Unable to Register for Task Events!');
+      }
+    });
+  }
+};
+
+const _registerForProxyManagementServiceEvents = handler => {
+  if (proxyHandlers.length > 0) {
+    proxyHandlers.push(handler);
+  } else {
+    util.sendEvent(IPCKeys.RequestRegisterProxyManagementEventHandler);
+    ipcRenderer.once(IPCKeys.RequestRegisterProxyManagementEventHandler, (event, key) => {
+      // Check and make sure we have a key to listen on
+      if (key) {
+        proxyHandlers.push(handler);
+        util.handleEvent(key, proxyEventHandler);
+      } else {
+        console.error('Unable to Register for proxy management service events!');
       }
     });
   }
@@ -60,27 +79,51 @@ const _registerForTaskEvents = handler => {
  * Removes a listener for task events to launcher.js
  */
 const _deregisterForTaskEvents = handler => {
-  if (handlers.length === 1) {
+  if (taskHandlers.length === 1) {
     util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
     ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
       // Check and make sure we have a key to deregister from
       if (eventKey) {
         util.removeEvent(eventKey, taskEventHandler);
-        handlers = [];
+        taskHandlers = [];
       } else {
         console.error('Unable to Deregister from Task Events!');
       }
     });
   }
-  handlers = handlers.filter(h => h !== handler);
+  taskHandlers = taskHandlers.filter(h => h !== handler);
+};
+
+const _deregisterForProxyManagementServiceEvents = handler => {
+  if (proxyHandlers.length === 1) {
+    util.sendEvent(IPCKeys.RequestDeregisterProxyManagementEventHandler);
+    ipcRenderer.on(IPCKeys.RequestDeregisterProxyManagementEventHandler, (event, key) => {
+      if (key) {
+        util.removeEvent(key, proxyEventHandler);
+        proxyHandlers = [];
+      } else {
+        console.log('Unable to deregister from proxy management events');
+      }
+    });
+  }
+  proxyHandlers = proxyHandlers.filter(h => h !== handler);
 };
 
 /**
  * Removes all listeners if the window was closed
  */
 window.onbeforeunload = () => {
-  handlers.forEach(h => _deregisterForTaskEvents(h));
+  taskHandlers.forEach(h => _deregisterForTaskEvents(h));
+  proxyHandlers.forEach(h => _deregisterForProxyManagementServiceEvents(h));
 };
+
+const _startGenerator = (data, options) => {
+  util.sendEvent(IPCKeys.RequestStartGenerate, data, options);
+};
+
+const _stopGenerator = data => util.sendEvent(IPCKeys.RequestStopGenerate, data);
+
+const _destroyProxies = data => util.sendEvent(IPCKeys.RequestDestroyProxies, data);
 
 /**
  * Sends task(s) that should be started to launcher.js
@@ -204,8 +247,13 @@ process.once('loaded', () => {
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,
     deregisterForTaskEvents: _deregisterForTaskEvents,
+    registerForProxyManagementServiceEvents: _registerForProxyManagementServiceEvents,
+    deregisterForProxyManagementServiceEvents: _deregisterForProxyManagementServiceEvents,
     startTasks: _startTasks,
     stopTasks: _stopTasks,
+    startGenerator: _startGenerator,
+    stopGenerator: _stopGenerator,
+    destroyProxies: _destroyProxies,
     addProxies: _addProxies,
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,

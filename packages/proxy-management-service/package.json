@@ -1,21 +1,26 @@
 {
-  "name": "@nebula/aws-service",
-  "version": "0.0.0",
-  "description": "For Handling aws commands",
+  "name": "@nebula/proxy-management-service",
+  "version": "0.1.0",
   "private": true,
   "main": "build/index.js",
   "scripts": {
-    "build": "babel --root-mode upward --no-comments -d build src/",
+    "build": "run-s build:babel build:obfuscate",
+    "build:babel": "babel --root-mode upward --no-comments -d build src/",
+    "build:obfuscate": "javascript-obfuscator ./build --config ./.jsobfrc.js --output ../proxy-management-service-built/dist",
     "ci": "exit 0",
-    "lint-fix": "eslint --fix src",
     "lint": "echo \"Warning: eslint temporarily disabled for this package\" && exit 0; # eslint src/ # TODO: add this back when we start using this project again",
-    "prestart": "yarn run build",
-    "start": "node build/index.js",
+    "postinstall": "yarn run build",
     "test": "echo \"Warning: no test specified\" && exit 0"
   },
   "dependencies": {
     "aws-sdk": "^2.373.0",
+    "@babel/runtime": "^7.4.3",
+    "eventemitter3": "^3.1.0",
     "shortid": "^2.2.14",
-    "ssh2": "^0.6.1"
+    "ssh2": "^0.6.1",
+    "underscore": "^1.9.1"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^0.18.1"
   }
 }

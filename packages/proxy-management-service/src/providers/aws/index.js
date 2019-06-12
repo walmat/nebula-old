@@ -190,7 +190,9 @@ class AWS extends Provider {
     }
   }
 
-  start() {}
+  start() {
+    console.log('starting...');
+  }
 
   stop() {}
 

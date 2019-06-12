@@ -170,6 +170,7 @@ class WindowManager {
           w = createMainWindow();
           this._main = w;
           this._context.taskLauncher.start();
+          this._context.generatorLauncher.start();
           break;
         }
         default: {
@@ -239,6 +240,7 @@ class WindowManager {
       } else if (this._main && winId === this._main.id) {
         // Stop the task launcher when the main window closes
         await this._context.taskLauncher.stop();
+        await this._context.generatorLauncher.stop();
 
         // Always close captcha windows when the main window closes
         this._captchaWindowManager.closeAllCaptchaWindows();
@@ -271,6 +273,7 @@ class WindowManager {
       }
     });
     this._context.taskLauncher.stop();
+    this._context.generatorLauncher.stop();
     return this._auth;
   }
 
@@ -284,6 +287,7 @@ class WindowManager {
     }
     this._main = await createMainWindow();
     this._context.taskLauncher.start();
+    this._context.generatorLauncher.start();
     const winUrl = urls.get('main');
     this._main.loadURL(winUrl);
 
@@ -385,6 +389,7 @@ class WindowManager {
         w.close();
       });
       this._context.taskLauncher.stop();
+      this._context.generatorLauncher.stop();
     } else if (this._auth && this._auth.id === id) {
       this._captchaWindowManager.closeAllCaptchaWindows();
       this._windows.forEach(w => {

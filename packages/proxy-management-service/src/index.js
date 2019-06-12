@@ -1,31 +1,45 @@
 const ProxyManager = require('./proxyManager');
-const aws = require('./providers/aws');
-const gcloud = require('./providers/gcloud');
-const vultr = require('./providers/vultr');
-const dgOcean = require('./providers/dgOcean');
-const upcloud = require('./providers/upcloud');
-const linode = require('./providers/linode');
-const atlantic = require('./providers/atlantic');
+const AWS = require('./providers/aws');
+const Gcloud = require('./providers/gcloud');
+const Vultr = require('./providers/vultr');
+const Dgocean = require('./providers/dgOcean');
+const Upcloud = require('./providers/upcloud');
+const Linode = require('./providers/linode');
+const Atlantic = require('./providers/atlantic');
 const oneHundredTB = require('./providers/oneHundredTB');
-const vpsie = require('./providers/vpsie');
+const Vpsie = require('./providers/vpsie');
 
 const Events = {
-  StartGenerate: 'START_GENERATE',
-  StopGenerate: 'STOP_GENERATE',
+  START: 'START',
+  STOP: 'STOP',
+  ABORT: 'ABORT',
+};
+
+const Types = {
+  AWS: 'AWS',
+  ATL: 'ATLANTIC',
+  DGO: 'DIGITAL_OCEAN',
+  GCP: 'GOOGLE_CLOUD_PROXY',
+  LIN: 'LINODE',
+  OHT: 'ONE_HUNDRED_TB',
+  UPC: 'UPCLOUD',
+  VPS: 'VPSIE',
+  VUL: 'VULTR',
 };
 
 module.exports = {
-  providers: {
-    atlantic,
-    aws,
-    dgOcean,
-    gcloud,
-    linode,
+  Providers: {
+    Atlantic,
+    AWS,
+    Dgocean,
+    Gcloud,
+    Linode,
     oneHundredTB,
-    upcloud,
-    vpsie,
-    vultr,
+    Upcloud,
+    Vpsie,
+    Vultr,
   },
   ProxyManager,
   Events,
+  Types,
 };
