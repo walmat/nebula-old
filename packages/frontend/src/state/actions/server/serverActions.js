@@ -132,8 +132,6 @@ const _createInstances = async (
   });
   const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
 
-  let instances;
-
   try {
     const ImageId = amiMapping[region];
 
@@ -142,12 +140,9 @@ const _createInstances = async (
     }
 
     const UserData = Buffer.from(
-      `
-#!/bin/bash
+      `#!/bin/bash
 
 apt-get update
-
-sleep 15
 
 apt-get install squid -y
 apt-get install apache2-utils -y
@@ -199,8 +194,7 @@ request_header_access All deny all' > /etc/squid/squid.conf
 
 htpasswd -b -c /etc/squid/squid_passwd ${username} ${password}
 
-service squid restart
-    `,
+service squid restart`,
     ).toString('base64');
 
     // create instances
@@ -212,7 +206,7 @@ service squid restart
         EbsOptimized: false,
         InstanceInitiatedShutdownBehavior: 'terminate',
         CreditSpecification: { CpuCredits: 'Unlimited' },
-        KeyName: keyPair.KeyName,
+        KeyName: 'proxy',
         MinCount: 1,
         MaxCount: number,
         Monitoring: {
@@ -228,9 +222,7 @@ service squid restart
 
     const InstanceIds = createdInstances.Instances.map(i => i.InstanceId);
 
-    // wait a few seconds to let the instances start up..
-
-    const availableInstances = await ec2.waitFor('instanceExists', { InstanceIds }).promise();
+    const availableInstances = await ec2.waitFor('instanceRunning', { InstanceIds }).promise();
 
     if (!availableInstances.Reservations.length) {
       throw new Error('Instances not reserved');

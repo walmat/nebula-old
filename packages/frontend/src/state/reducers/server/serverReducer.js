@@ -128,16 +128,18 @@ export function serverReducer(state = initialServerStates, action) {
         break;
     }
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
+    console.log(action);
     if (!action || !action.response) {
       return nextState;
     }
-    const { proxies } = action.response;
-    if (!proxies) {
+    const { response } = action;
+
+    if (!response || !response.length) {
       return nextState;
     }
 
-    console.log(proxies);
-    nextState.proxies.push(proxies);
+    console.log('PROXIES: %j', response);
+    nextState.proxies.push(...response);
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
     console.log(action);
     const proxyGroups = nextState.proxies.map(p => p.proxies);
