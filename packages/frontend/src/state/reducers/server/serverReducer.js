@@ -108,6 +108,12 @@ export function serverReducer(state = initialServerStates, action) {
       return nextState;
     }
 
+    if (action.cleanup) {
+      nextState.credentials.status = '';
+      return nextState;
+      // TODO: Add more statuses here when the come up
+    }
+
     switch (action.action) {
       case SERVER_ACTIONS.VALIDATE_AWS: {
         if (action.error && action.error.message) {
@@ -121,28 +127,17 @@ export function serverReducer(state = initialServerStates, action) {
         console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
         break;
     }
-  } else if (action.type === SERVER_ACTIONS.CLEANUP_STATUS) {
-    if (!action || (action && !action.field)) {
+  } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
+    if (!action || !action.response) {
+      return nextState;
+    }
+    const { proxies } = action.response;
+    if (!proxies) {
       return nextState;
     }
 
-    switch (action.field) {
-      case SERVER_ACTIONS.VALIDATE_AWS: {
-        nextState.credentials.status = '';
-        break;
-      }
-      default:
-        break;
-    }
-  } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
-    if (!action || !action.proxyInfo) {
-      return nextState;
-    }
-    const { region, proxies } = action.proxyInfo;
-    if (!region || !proxies) {
-      return nextState;
-    }
-    nextState.proxies.push({ region, proxies });
+    console.log(proxies);
+    nextState.proxies.push(proxies);
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
     console.log(action);
     const proxyGroups = nextState.proxies.map(p => p.proxies);

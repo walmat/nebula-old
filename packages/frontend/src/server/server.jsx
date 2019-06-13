@@ -1,7 +1,7 @@
 import React from 'react';
 
 // components
-import ViewLog from './viewLog';
+import ProxyLog from './proxyLog';
 import Credentials from './credentials';
 import CreateProxies from './createProxies';
 
@@ -69,7 +69,7 @@ const Server = () => (
                 </div>
                 <div className="row row--expand row--start">
                   <div className="col server-table__wrapper">
-                    <ViewLog />
+                    <ProxyLog />
                   </div>
                 </div>
               </div>

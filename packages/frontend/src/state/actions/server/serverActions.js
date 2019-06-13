@@ -2,9 +2,7 @@ import AWS from 'aws-sdk';
 
 import makeActionCreator from '../actionCreator';
 import regexes from '../../../utils/validation';
-
-const sleep = delay => new Promise(resolve => setTimeout(resolve, delay));
-const rand = (min, max) => Math.random() * (max - min) + min;
+import amiMapping from '../../../constants/amiMapping';
 
 // Top level Actions
 export const SERVER_ACTIONS = {
@@ -14,155 +12,300 @@ export const SERVER_ACTIONS = {
   GEN_PROXIES: 'GENERATE_PROXIES',
   DESTROY_PROXIES: 'DESTROY_PROXIES',
   VALIDATE_AWS: 'VALIDATE_AWS_CREDENTIALS',
-  CLEANUP_STATUS: 'CLEANUP_STATUS',
   LOGOUT_AWS: 'LOGOUT_AWS',
 };
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-const _buildDestroyProxiesPromises = (options, proxyList, awsCredentials) =>
-  proxyList.map(proxies => {
-    console.log('SERVER: proxy object: %j', proxies);
-    if (!options || proxies.region === options.location.value) {
+const _buildDestroyProxiesPromises = (options, proxies, credentials) =>
+  proxies.map(proxy => {
+    console.log('SERVER: proxy object: %j', proxy);
+    if (!options || proxy.region === options.location.value) {
+      console.log(credentials);
       AWS.config = new AWS.Config({
-        accessKeyId: awsCredentials.AWSAccessKey,
-        secretAccessKey: awsCredentials.AWSSecretKey,
-        region: proxies.region,
+        accessKeyId: credentials.label,
+        secretAccessKey: credentials.value,
+        region: proxy.region,
       });
-      const ec2 = new AWS.EC2();
-      const InstanceIds = proxies.proxies.map(p => p.id);
+      const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+      const InstanceIds = proxy.proxies.map(p => p.id);
       console.log('SERVER: proxy instanceIds: %j', InstanceIds);
-      return ec2.terminateInstances({ InstanceIds }).promise();
+      return { InstanceIds, promises: ec2.terminateInstances({ InstanceIds }).promise() };
     }
-    return new Promise((resolve, reject) => reject(new Error('No Proxies For Region')));
+    return {
+      promises: [new Promise((_, reject) => reject(new Error('No Proxies For Region')))],
+    };
   });
+
+const _getKeyPair = async (access, secret, region) => {
+  AWS.config = new AWS.Config({
+    accessKeyId: access,
+    secretAccessKey: secret,
+    region,
+  });
+  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+
+  let keyPair;
+  try {
+    const keyPairs = await ec2.describeKeyPairs({ KeyNames: ['nebula'] }).promise();
+    keyPair = keyPairs.KeyPairs.find(kp => kp.KeyName === 'nebula');
+    if (!keyPair) {
+      keyPair = await ec2.createKeyPair({ KeyName: 'nebula' }).promise();
+    }
+    return keyPair;
+  } catch (error) {
+    throw new Error('Unable to create key pair');
+  }
+};
+
+const _getSecurityGroup = async (access, secret, region, name) => {
+  AWS.config = new AWS.Config({
+    accessKeyId: access,
+    secretAccessKey: secret,
+    region,
+  });
+  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+
+  let securityGroup;
+  try {
+    const securityGroups = await ec2.describeSecurityGroups({ GroupNames: [name] }).promise();
+
+    console.log(securityGroups);
+    securityGroup = securityGroups.SecurityGroups.find(sg => sg.GroupName === name);
+    console.log(securityGroup);
+    if (!securityGroup) {
+      const error = new Error('Security group not found');
+      error.status = 404;
+      throw error;
+    }
+    return securityGroup;
+  } catch (error) {
+    console.log(error);
+    if (error.status !== 404 && !/not found/i.test(error)) {
+      throw new Error('Unable to create security group');
+    }
+
+    // create security group (if it doesn't exist)
+    securityGroup = await ec2
+      .createSecurityGroup({ GroupName: name, Description: 'Nebula Orion' })
+      .promise();
+
+    const securityGroups = await ec2.describeSecurityGroups({ GroupNames: [name] }).promise();
+
+    securityGroup = securityGroups.SecurityGroups.find(sg => sg.GroupName === name);
+
+    if (!securityGroup) {
+      throw new Error('Unable to create security group');
+    }
+
+    await ec2
+      .authorizeSecurityGroupIngress({
+        GroupName: name,
+        IpPermissions: [
+          {
+            IpProtocol: 'tcp',
+            FromPort: 65096,
+            ToPort: 65096,
+            IpRanges: [{ CidrIp: '0.0.0.0/0' }],
+          },
+        ],
+      })
+      .promise();
+    return securityGroup;
+  }
+};
+
+const _createInstances = async (
+  access,
+  secret,
+  number,
+  region,
+  username,
+  password,
+  keyPair,
+  securityGroup,
+) => {
+  AWS.config = new AWS.Config({
+    accessKeyId: access,
+    secretAccessKey: secret,
+    region,
+  });
+  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+
+  let instances;
+
+  try {
+    const ImageId = amiMapping[region];
+
+    if (!ImageId) {
+      throw new Error('Region not supported!');
+    }
+
+    const UserData = Buffer.from(
+      `
+#!/bin/bash
+
+apt-get update
+
+sleep 15
+
+apt-get install squid -y
+apt-get install apache2-utils -y
+
+rm -rf /etc/squid/squid.conf
+touch /etc/squid/squid.conf
+
+echo -e '
+forwarded_for off
+visible_hostname squid.server.commm
+
+auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/squid_passwd
+auth_param basic realm proxy
+acl authenticated proxy_auth REQUIRED
+http_access allow authenticated
+
+# Choose the port you want. Below we set it to default 3128.
+http_port 65096
+
+request_header_access Allow allow all
+request_header_access Authorization allow all
+request_header_access WWW-Authenticate allow all
+request_header_access Proxy-Authorization allow all
+request_header_access Proxy-Authenticate allow all
+request_header_access Cache-Control allow all
+request_header_access Content-Encoding allow all
+request_header_access Content-Length allow all
+request_header_access Content-Type allow all
+request_header_access Date allow all
+request_header_access Expires allow all
+request_header_access Host allow all
+request_header_access If-Modified-Since allow all
+request_header_access Last-Modified allow all
+request_header_access Location allow all
+request_header_access Pragma allow all
+request_header_access Accept allow all
+request_header_access Accept-Charset allow all
+request_header_access Accept-Encoding allow all
+request_header_access Accept-Language allow all
+request_header_access Content-Language allow all
+request_header_access Mime-Version allow all
+request_header_access Retry-After allow all
+request_header_access Title allow all
+request_header_access Connection allow all
+request_header_access Proxy-Connection allow all
+request_header_access User-Agent allow all
+request_header_access Cookie allow all
+request_header_access All deny all' > /etc/squid/squid.conf
+
+htpasswd -b -c /etc/squid/squid_passwd ${username} ${password}
+
+service squid restart
+    `,
+    ).toString('base64');
+
+    // create instances
+    const createdInstances = await ec2
+      .runInstances({
+        ImageId,
+        InstanceType: 't2.nano',
+        DryRun: false,
+        EbsOptimized: false,
+        InstanceInitiatedShutdownBehavior: 'terminate',
+        CreditSpecification: { CpuCredits: 'Unlimited' },
+        KeyName: keyPair.KeyName,
+        MinCount: 1,
+        MaxCount: number,
+        Monitoring: {
+          Enabled: false,
+        },
+        SecurityGroups: [securityGroup.GroupName],
+        UserData,
+      })
+      .promise();
+    if (!createdInstances.Instances.length) {
+      throw new Error('No new instances launched!');
+    }
+
+    const InstanceIds = createdInstances.Instances.map(i => i.InstanceId);
+
+    // wait a few seconds to let the instances start up..
+
+    const availableInstances = await ec2.waitFor('instanceExists', { InstanceIds }).promise();
+
+    if (!availableInstances.Reservations.length) {
+      throw new Error('Instances not reserved');
+    }
+
+    const proxyInstances = await ec2.describeInstances({ InstanceIds }).promise();
+
+    if (!proxyInstances.Reservations.length) {
+      throw new Error('Instances not reserved');
+    }
+    const proxies = await proxyInstances.Reservations[0].Instances.map(i => ({
+      id: i.InstanceId,
+      proxy: `${i.PublicIpAddress}:65096:${username}:${password}`,
+      credentials: { AWSAccessKey: access, AWSSecretKey: secret },
+      region,
+    }));
+
+    console.log(proxies);
+
+    return proxies;
+  } catch (err) {
+    throw new Error(err.message || 'No instances available');
+  }
+};
 
 const _generateProxiesRequest = async (proxyOptions, credentials) =>
   new Promise(async (resolve, reject) => {
-    if (!credentials) {
+    if (
+      !credentials ||
+      ((credentials && !credentials.label) || (credentials && !credentials.value))
+    ) {
       reject(new Error('No credentials provided!'));
     }
 
     const { label, value } = credentials;
+
     const { number, location, username, password } = proxyOptions;
     // setup & config
-    AWS.config = new AWS.Config({
-      accessKeyId: label,
-      secretAccessKey: value,
-      region: location.value,
-    });
-    const ec2 = new AWS.EC2();
-
     let keyPair;
     try {
-      const keyPairs = await ec2.describeKeyPairs({ KeyNames: ['nebula'] }).promise();
-      keyPair = keyPairs.KeyPairs.find(kp => kp.KeyName === 'nebula');
-      if (!keyPair) {
-        keyPair = await ec2.createKeyPair({ KeyName: 'nebula' }).promise();
-      }
-    } catch (error) {
-      reject(new Error('Unable to create key pair'));
+      keyPair = await _getKeyPair(label, value, location.value);
+    } catch (err) {
+      throw new Error(err.message || 'Unable to create keypair');
     }
 
     let securityGroup;
     try {
-      const securityGroups = await ec2.describeSecurityGroups({ GroupNames: ['nebula'] }).promise();
-
-      console.log(securityGroups);
-      securityGroup = securityGroups.SecurityGroups.find(sg => sg.GroupName === 'nebula');
-      console.log(securityGroup);
-      if (!securityGroup) {
-        const error = new Error('Security group not found');
-        error.status = 404;
-        throw error;
-      }
-    } catch (error) {
-      console.log(error);
-      if (error.status !== 404 && !/not found/i.test(error)) {
-        reject(new Error('Unable to create security group'));
-      }
-
-      // create security group (if it doesn't exist)
-      securityGroup = await ec2
-        .createSecurityGroup({ GroupName: 'nebula', Description: 'Nebula Orion' })
-        .promise();
-
-      const securityGroups = await ec2.describeSecurityGroups({ GroupNames: ['nebula'] }).promise();
-
-      securityGroup = securityGroups.SecurityGroups.find(sg => sg.GroupName === 'nebula');
-
-      if (!securityGroup) {
-        reject(new Error('Unable to create security group'));
-      }
-
-      await ec2
-        .authorizeSecurityGroupIngress({
-          GroupName: 'nebula',
-          IpPermissions: [
-            {
-              IpProtocol: 'tcp',
-              FromPort: 65096,
-              ToPort: 65096,
-              IpRanges: [{ CidrIp: '0.0.0.0/0' }],
-            },
-          ],
-        })
-        .promise();
-    }
-
-    try {
-      // create instances
-      const instances = await ec2
-        .runInstances({
-          ImageId: 'ami-04169656fea786776', // linux 16.04 LTS (we need to create a mapping of this, cause it changes based on region)
-          InstanceType: 't2.nano',
-          DryRun: false,
-          EbsOptimized: false,
-          InstanceInitiatedShutdownBehavior: 'terminate',
-          CreditSpecification: { CpuCredits: 'Unlimited' },
-          T2T3Unlmited: true,
-          KeyName: 'nebula',
-          MinCount: proxyOptions.numProxies,
-          MaxCount: proxyOptions.numProxies,
-          // base64 encoded `bash_script.txt`
-          UserData:
-            'IyEvYmluL2Jhc2gNCg0KYXB0LWdldCB1cGRhdGUNCg0Kc2xlZXAgMTUNCg0KY2xlYXINCg0KYXB0LWdldCBpbnN0YWxsIHNxdWlkIC15DQphcHQtZ2V0IGluc3RhbGwgYXBhY2hlMi11dGlscyAteQ0KDQpybSAtcmYgL2V0Yy9zcXVpZC9zcXVpZC5jb25mDQoNCnRvdWNoIC9ldGMvc3F1aWQvc3F1aWQuY29uZg0KDQplY2hvIC1lICINCmZvcndhcmRlZF9mb3Igb2ZmDQp2aXNpYmxlX2hvc3RuYW1lIHNxdWlkLnNlcnZlci5jb21tbQ0KDQphdXRoX3BhcmFtIGJhc2ljIHByb2dyYW0gL3Vzci9saWIvc3F1aWQzL2Jhc2ljX25jc2FfYXV0aCAvZXRjL3NxdWlkL3NxdWlkX3Bhc3N3ZA0KYXV0aF9wYXJhbSBiYXNpYyByZWFsbSBwcm94eQ0KYWNsIGF1dGhlbnRpY2F0ZWQgcHJveHlfYXV0aCBSRVFVSVJFRA0KaHR0cF9hY2Nlc3MgYWxsb3cgYXV0aGVudGljYXRlZA0KDQojIENob29zZSB0aGUgcG9ydCB5b3Ugd2FudC4gQmVsb3cgd2Ugc2V0IGl0IHRvIGRlZmF1bHQgMzEyOC4NCmh0dHBfcG9ydCA4MA0KDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQWxsb3cgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQXV0aG9yaXphdGlvbiBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBXV1ctQXV0aGVudGljYXRlIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIFByb3h5LUF1dGhvcml6YXRpb24gYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgUHJveHktQXV0aGVudGljYXRlIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIENhY2hlLUNvbnRyb2wgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQ29udGVudC1FbmNvZGluZyBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBDb250ZW50LUxlbmd0aCBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBDb250ZW50LVR5cGUgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgRGF0ZSBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBFeHBpcmVzIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIEhvc3QgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgSWYtTW9kaWZpZWQtU2luY2UgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgTGFzdC1Nb2RpZmllZCBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBMb2NhdGlvbiBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBQcmFnbWEgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQWNjZXB0IGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIEFjY2VwdC1DaGFyc2V0IGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIEFjY2VwdC1FbmNvZGluZyBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBBY2NlcHQtTGFuZ3VhZ2UgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQ29udGVudC1MYW5ndWFnZSBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBNaW1lLVZlcnNpb24gYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgUmV0cnktQWZ0ZXIgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgVGl0bGUgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQ29ubmVjdGlvbiBhbGxvdyBhbGwNCnJlcXVlc3RfaGVhZGVyX2FjY2VzcyBQcm94eS1Db25uZWN0aW9uIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIFVzZXItQWdlbnQgYWxsb3cgYWxsDQpyZXF1ZXN0X2hlYWRlcl9hY2Nlc3MgQ29va2llIGFsbG93IGFsbA0KcmVxdWVzdF9oZWFkZXJfYWNjZXNzIEFsbCBkZW55IGFsbCIgPj4gL2V0Yy9zcXVpZC9zcXVpZC5jb25mDQoNCmh0cGFzc3dkIC1iIC1jIC9ldGMvc3F1aWQvc3F1aWRfcGFzc3dkIG5lYnVsYSBuZWJ1bGEgDQoNCnNlcnZpY2Ugc3F1aWQgcmVzdGFydA0KDQpjbGVhcg==',
-        })
-        .promise();
-      if (!instances.Instances.length) {
-        reject(new Error('Instances not launched!'));
-      }
-
-      const InstanceIds = instances.Instances.map(i => i.InstanceId);
-
-      // wait a few seconds to let the instances start up..
-
-      const availableInstances = await ec2.waitFor('instanceExists', { InstanceIds }).promise();
-
-      if (!availableInstances.Reservations.length) {
-        reject(new Error('Instances failed starting'));
-      }
-
-      const proxyInstances = await ec2.describeInstances({ InstanceIds }).promise();
-
-      if (!proxyInstances.Reservations.length) {
-        reject(new Error('Reservations Not Ready!'));
-      }
-      const proxies = await proxyInstances.Reservations[0].Instances.map(i => ({
-        id: i.InstanceId,
-        ip: `${i.PublicIpAddress}:65096`,
-      }));
-      console.log('SERVER: proxies: %j', proxies);
-      resolve({ region: proxyOptions.location.value, proxies });
+      securityGroup = await _getSecurityGroup(label, value, location.value, 'nebula');
     } catch (err) {
-      reject(new Error(err));
+      throw new Error(err.message || 'Unable to create security group');
     }
+
+    let instances;
+    try {
+      instances = await _createInstances(
+        label,
+        value,
+        number,
+        location.value,
+        username,
+        password,
+        keyPair,
+        securityGroup,
+      );
+    } catch (err) {
+      throw new Error(err.message || 'Unable to create instances');
+    }
+    resolve(instances);
   });
 
-const _destroyProxiesRequest = async (options, proxyList, awsCredentials) => {
-  const promises = _buildDestroyProxiesPromises(options, proxyList, awsCredentials);
+const _destroyProxiesRequest = async (options, proxies, credentials) => {
+  const { InstanceIds, promises } = _buildDestroyProxiesPromises(options, proxies, credentials);
+  console.log(promises);
   return new Promise(async (resolve, reject) => {
-    if (!promises.length) {
+    if (!promises || !promises.length) {
       reject(new Error('No Proxy Instances Running!'));
     }
     Promise.all(promises).then(
@@ -173,6 +316,9 @@ const _destroyProxiesRequest = async (options, proxyList, awsCredentials) => {
         resolve(instances);
       },
       err => {
+        if (/not exist/i.test(err)) {
+          resolve(InstanceIds);
+        }
         reject(err);
       },
     );
@@ -197,28 +343,31 @@ const _validateAwsRequest = async awsCredentials =>
   });
 
 // Private Actions
-const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'proxyInfo');
+const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'response');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'instances');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'response');
-const _cleanupStatus = makeActionCreator(SERVER_ACTIONS.CLEANUP_STATUS, 'field');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS, 'credentials');
 
 // Public Actions
 const selectCredentials = makeActionCreator(SERVER_ACTIONS.SELECT, 'credentials');
-const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error');
+const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error', 'cleanup');
 const editServer = makeActionCreator(SERVER_ACTIONS.EDIT, 'id', 'field', 'value');
 
 const _handleError = (action, error) => async dispatch => {
-  dispatch(handleError(action, error));
+  dispatch(handleError(action, error, false));
   await wait(750);
-  dispatch(_cleanupStatus(action));
+  dispatch(handleError(action, error, true));
 };
 
 // Public Thunks
 const generateProxies = (proxyOptions, credentials) => dispatch =>
   _generateProxiesRequest(proxyOptions, credentials).then(
     proxies => dispatch(_generateProxies(proxies)),
-    error => dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error)),
+    async error => {
+      dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error, false));
+      await wait(750);
+      dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error, true));
+    },
   );
 
 const destroyProxies = (options, proxies, credentials) => dispatch =>
@@ -231,22 +380,20 @@ const validateAws = awsCredentials => dispatch =>
   _validateAwsRequest(awsCredentials).then(
     response => dispatch(_validateAws(response)),
     async error => {
-      dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error));
+      dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error, false));
       await wait(750);
-      dispatch(_cleanupStatus(SERVER_ACTIONS.VALIDATE_AWS));
+      dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error, true));
     },
   );
 
 const logoutAws = (proxies, credentials) => dispatch =>
   dispatch(destroyProxies(null, proxies, credentials))
     .catch(async error => {
-      console.log('handling error');
-      dispatch(handleError(SERVER_ACTIONS.LOGOUT_AWS, error));
+      dispatch(handleError(SERVER_ACTIONS.LOGOUT_AWS, error, false));
       await wait(750);
-      dispatch(_cleanupStatus(SERVER_ACTIONS.VALIDATE_AWS));
+      dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error, true));
     })
     .then(() => {
-      console.log('logging out...');
       dispatch(_logoutAws(credentials));
     });
 

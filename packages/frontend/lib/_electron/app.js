@@ -8,7 +8,6 @@ const DialogManager = require('./dialogManager');
 const WindowManager = require('./windowManager');
 const AuthManager = require('./authManager');
 const TaskLauncher = require('../task/launcher');
-const GeneratorLauncher = require('../proxy/launcher');
 const nebulaEnv = require('./env');
 const { bindDebugEvents } = require('./debug');
 
@@ -67,8 +66,6 @@ class App {
      * @type {TaskLauncher}
      */
     this._taskLauncher = new TaskLauncher(this);
-
-    this._generatorLauncher = new GeneratorLauncher(this);
 
     /**
      * Manage the captcha server

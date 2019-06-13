@@ -34,6 +34,38 @@ export class CreateProxiesPrimitive extends Component {
     this.onFocusHandler = this.onFocusHandler.bind(this);
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    const {
+      theme,
+      proxies,
+      proxyOptions: {
+        number,
+        credentials,
+        location: { id },
+        username,
+        password,
+      },
+      credentials: { list },
+    } = this.props;
+
+    const { isEditingPassword, isEditingUsername } = this.state;
+    if (
+      theme !== nextProps.theme ||
+      proxies.length !== nextProps.proxies.length ||
+      number !== nextProps.proxyOptions.number ||
+      JSON.stringify(credentials) !== JSON.stringify(nextProps.proxyOptions.credentials) ||
+      id !== nextProps.proxyOptions.location.id ||
+      username !== nextProps.proxyOptions.username ||
+      password !== nextProps.proxyOptions.password ||
+      isEditingPassword !== nextState.isEditingPassword ||
+      isEditingUsername !== nextState.isEditingUsername ||
+      list.length !== nextProps.credentials.list.length
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   onChangeHandler(field) {
     const { onEditServerInfo } = this.props;
 
@@ -96,7 +128,9 @@ export class CreateProxiesPrimitive extends Component {
     if (credentials) {
       ({ loggedIn } = credentials);
     }
-    console.log(loggedIn);
+
+    console.log('updating create proxies component');
+
     return (
       <div className="proxy-options col col--start col--no-gutter">
         <div className="row row--start row--gutter">

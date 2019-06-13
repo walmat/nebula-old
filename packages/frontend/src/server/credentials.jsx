@@ -39,6 +39,30 @@ export class AWSCredentialsPrimitive extends Component {
     this.onCredentialsChange = this.onCredentialsChange.bind(this);
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    const {
+      credentials: { current, selected, list, status },
+      theme,
+    } = this.props;
+    const { isEditingAccess, isEditingSecret } = this.state;
+
+    if (
+      theme !== nextProps.theme ||
+      status !== nextProps.credentials.status ||
+      current.AWSAccessKey !== nextProps.credentials.current.AWSAccessKey ||
+      current.AWSSecretKey !== nextProps.credentials.current.AWSSecretKey ||
+      selected.AWSAccessKey !== nextProps.credentials.selected.AWSAccessKey ||
+      selected.AWSSecretKey !== nextProps.credentials.selected.AWSSecretKey ||
+      list.length !== nextProps.credentials.list.length ||
+      isEditingAccess !== nextState.isEditingAccess ||
+      isEditingSecret !== nextState.isEditingSecret
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   onBlurHandler(field) {
     const stateVal = this.fieldMap[field];
 
@@ -163,6 +187,8 @@ export class AWSCredentialsPrimitive extends Component {
     if (current) {
       ({ loggedIn, AWSAccessKey, AWSSecretKey } = current);
     }
+
+    console.log('updating credentials component');
     return (
       <div className="server-credentials col col--start col--no-gutter">
         <div className="row row--start row--gutter">
