@@ -246,6 +246,9 @@ service squid restart
       proxy: `${i.PublicIpAddress}:65096:${username}:${password}`,
       credentials: { AWSAccessKey: access, AWSSecretKey: secret },
       region,
+      charges: 0,
+      status: i.State.Name,
+      speed: null,
     }));
 
     console.log(proxies);
