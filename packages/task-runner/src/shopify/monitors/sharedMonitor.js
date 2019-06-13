@@ -2,10 +2,14 @@ import EventEmitter from 'eventemitter3';
 import request from 'request-promise';
 
 import {
+  ErrorCodes,
   SharedMonitorManager as ManagerConstants,
   SharedMonitor as MonitorConstants,
+  ProductInputType,
+  ParserType,
 } from '../classes/utils/constants';
-import { waitForDelay, reflect } from '../classes/utils';
+import { waitForDelay } from '../classes/utils';
+import { getProductInputType } from '../classes/utils/parse';
 import { AtomParser, JsonParser, XmlParser, Parser } from '../classes/parsers';
 import ProxyManager from '../classes/proxyManager';
 
@@ -190,10 +194,157 @@ class SharedMonitor {
     // 4. There maybe some optimizations to parsing if we can fetch full product info asynchronously from the
     //    full product indexing -- this comes at the cost of increased proxy usage since mutiple requests
     //    could be happening at the same time instead of getting spread out.
+
+    // Step 1: group tasks by product input type
+    const grouped = {};
+    this._tasks.forEach(t => {
+      const inputType = getProductInputType(t.product);
+      if (!grouped[inputType]) {
+        grouped[inputType] = [t];
+      } else {
+        grouped[inputType].push(t);
+      }
+    });
+
+    // Step 2a/3a: Fetch and merge (if applicable) products from sitewide endpoints
+    let mergedResults = {};
+    if (grouped[ProductInputType.Keywords]) {
+      // Fetch data from all endpoints:
+      const results = await Promise.all(
+        [
+          new JsonParser(this._request, null, this._proxy, null),
+          new AtomParser(this._request, null, this._proxy, null),
+          new XmlParser(this._request, null, this._proxy, null),
+        ].map(parser => parser.run().then(products => ({ products }), err => ({ err }))),
+      );
+
+      // Merge product data:
+      mergedResults = results.reduce((accum, result) => {
+        if (result.err) {
+          // Skip because we received an error
+          // TODO: Handle this error!
+          return accum;
+        }
+        const newResults = {};
+        result.products.forEach(prod => {
+          if (!accum[prod.url]) {
+            newResults[prod.url] = prod;
+          } else {
+            // TODO: overwrite existing result if newer updated_at tag
+          }
+        });
+        return {
+          ...accum,
+          ...newResults,
+        };
+      }, {});
+      if (Object.keys(mergedResults).length === 0) {
+        // All were errors, so we need to handle them
+        // TODO: handle errors
+      }
+    } else if (grouped[ProductInputType.Url]) {
+      const result = await new JsonParser(this._request, null, this._proxy, null)
+        .run()
+        .then(products => ({ products }), err => ({ err }));
+      if (result.err) {
+        // Skip because we received an error
+        // TODO: Handle this error!
+      } else {
+        // Store results in shared merged results
+        result.products.forEach(prod => {
+          mergedResults[prod.url] = prod;
+        });
+      }
+    }
+
+    // We should now have merged results if we have either keywords or product
+    // urls, so perform the various matching techniques with that dataset to
+    // determine which matches are done and which matches need an extra request
+
+    // Step 2b/3b: Match fetched dataset and determine full matches and partial ones.
+    const keywordFullMatches = [];
+    const keywordPartialMatches = [];
+    if (grouped[ProductInputType.Keywords]) {
+      // Matching for keywords on the mergedResults dataset
+      const parser = new JsonParser(this._request, null, this._proxy, null);
+      // TODO: update parser to allow setting products without accessing internal variable
+      parser._products = grouped[ProductInputType.Keywords];
+
+      const keywordMatches = parser.matchAll(Object.values(mergedResults));
+      keywordMatches.forEach(match => {
+        if (match.__type === ParserType.Json) {
+          keywordFullMatches.push(match);
+        } else if (!(match instanceof Error)) {
+          keywordPartialMatches.push(match);
+        } else {
+          // TODO: Handle this error!
+        }
+      });
+    }
+    const urlFullMatches = [];
+    const urlPartialMatches = [];
+    if (grouped[ProductInputType.Url]) {
+      // Matching for urls on the mergedResults dataset
+      const parser = new JsonParser(this._request, null, this._proxy, null);
+      // TODO: update parser to allow setting products without accessing internal variable
+      parser._products = grouped[ProductInputType.Url];
+
+      const urlMatches = parser.matchAll(Object.values(mergedResults));
+      urlMatches.forEach(match => {
+        if (match.__type === ParserType.Json) {
+          urlFullMatches.push(match);
+        } else if (!(match instanceof Error)) {
+          urlPartialMatches.push(match);
+        } else {
+          // TODO: Handle this error!
+        }
+      });
+    }
+
+    // TODO: Include a check to make sure we still need to fetch the full product info
+    // Step 4: Fetch full data from partial endpoints
+    const keywordPartialResolvedMatches = [];
+    const urlPartialResolvedMatches = [];
+    const fetchFullData = async (partial, array) => {
+      let product;
+      try {
+        // TODO: Include a timed wait in between each link to prevent soft bans...
+        product = await Parser.getFullProductInfo(partial.url, this._proxy, this._request, null);
+      } catch (err) {
+        // TODO: Handle this error!
+        product = null; // use null to keep the same index
+      }
+      array.push(product);
+    };
+    // Setup a chain on requests to get full data for partial keyword matches
+    await keywordPartialMatches.reduce(
+      (chain, partial) => chain.then(() => fetchFullData(partial, keywordPartialResolvedMatches)),
+      Promise.resolve(),
+    );
+
+    // Setup a chain on requests to get full data for partial url matches
+    await urlPartialMatches.reduce(
+      (chain, partial) => chain.then(() => fetchFullData(partial, urlPartialResolvedMatches)),
+      Promise.resolve(),
+    );
+
+    // Step 5a: Match fully resolved products back to task product inputs
+    // TODO: Implement this! Need to do an audit on data structures used above and
+    // add in a mapping from resolved product info back to task id.
+
+    // Step 5b: Match fetched products back to variants based on size
+    // TODO: Implement this! on hold until we complete step 5a.
+
+    // Step 6: Notify manager of product matches
+    // TODO: Need to decide on preferred method of notification
+    // Likely will be event emission.
   }
 
   async _handleParse() {
     // TODO: Implement
+    // Fetch the latest product data
+    // (handle errors)
+    // Merge product data together with each other AND existing product data
   }
 
   async _handleFilter() {

@@ -176,7 +176,7 @@ class Parser {
         this._logger.silly('%s: Matching Product found!', this._name);
         return product;
       }
-      // TODO: Add this case in (if necessary)
+      // TODO: Add this case in! (It's necessary!)
       // case ProductInputType.Url: {
       //   break;
       // }
