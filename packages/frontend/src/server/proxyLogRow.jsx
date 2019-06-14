@@ -68,7 +68,10 @@ const ProxyLogRow = ({
         className="col col--no-gutter proxy-log__row--actions"
         data-testid={addTestId('ProxyLogRow.actions')}
       >
-        {/* TODO: ACTIONS HERE */}
+        <div className="col col--no-gutter proxy-log__row--actions__button">
+          {renderSvgIcon()}
+        </div>
+        {/* TODO: ACTIONS HERE, test, stop, start, terminate */}
       </div>
     </div>
   </div>

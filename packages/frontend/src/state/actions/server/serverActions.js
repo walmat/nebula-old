@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk';
 
+import { Agent } from 'https';
 import makeActionCreator from '../actionCreator';
 import regexes from '../../../utils/validation';
 import amiMapping from '../../../constants/amiMapping';
@@ -8,6 +9,8 @@ import amiMapping from '../../../constants/amiMapping';
 export const SERVER_ACTIONS = {
   EDIT: 'EDIT',
   SELECT: 'SELECT',
+  TEST_PROXY: 'TEST_PROXY',
+  TEST_PROXIES: 'TEST_PROXIES',
   ERROR: 'SERVER_HANDLE_ERROR',
   GEN_PROXIES: 'GENERATE_PROXIES',
   DESTROY_PROXIES: 'DESTROY_PROXIES',
@@ -282,6 +285,56 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
     resolve(instances);
   });
 
+const _stopProxyRequest = async (options, proxy, credentials) =>
+  new Promise(async (resolve, reject) => {
+    AWS.config = new AWS.Config({
+      accessKeyId: credentials.label,
+      secretAccessKey: credentials.value,
+      region: options.location.value,
+    });
+    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+
+    try {
+      const InstanceIds = [proxy.id];
+      await ec2.stopInstances({ InstanceIds }).promise();
+      resolve({ InstanceIds });
+    } catch (error) {
+      reject(new Error('Unable to stop proxy'));
+    }
+  });
+
+const _testProxyRequest = async (options, proxy) =>
+  new Promise(async (resolve, reject) => {
+    const { url } = options;
+    const start = performance.now();
+    const [ip, port, user, pass] = proxy.split(':');
+    const res = await fetch(url, { agent: new Agent(`http://${user}:${pass}@${ip}:${port}`) });
+    const stop = performance.now();
+    if (!res.ok) {
+      reject(new Error('Unable to connect'));
+    }
+
+    resolve({ speed: stop - start, proxy });
+  });
+
+const _testProxiesRequest = async (options, proxies) =>
+  new Promise(async resolve => {
+    const { url } = options;
+    const results = await Promise.all(
+      proxies.map(async p => {
+        const [ip, port, user, pass] = p.split(':');
+        const start = performance.now();
+        const res = await fetch(url, { agent: new Agent(`http://${user}:${pass}@${ip}:${port}`) });
+        const stop = performance.now();
+        if (!res.ok) {
+          throw new Error('Unable to connect');
+        }
+        return { speed: stop - start, proxy: p };
+      }),
+    );
+    resolve(results);
+  });
+
 const _destroyProxiesRequest = async (options, proxies, credentials) =>
   new Promise(async (resolve, reject) => {
     AWS.config = new AWS.Config({
@@ -312,7 +365,6 @@ const _destroyProxiesRequest = async (options, proxies, credentials) =>
   });
 
 const _validateAwsRequest = async awsCredentials =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     const { AWSAccessKey, AWSSecretKey } = awsCredentials;
 
@@ -331,6 +383,8 @@ const _validateAwsRequest = async awsCredentials =>
 // Private Actions
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'response');
 const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'response');
+const _testProxy = makeActionCreator(SERVER_ACTIONS.TEST_PROXY, 'response');
+const _testProxies = makeActionCreator(SERVER_ACTIONS.TEST_PROXIES, 'response');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'response');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS, 'credentials');
 
@@ -362,6 +416,18 @@ const destroyProxies = (options, proxies, credentials) => dispatch =>
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error)),
   );
 
+const testProxy = (options, proxy) => dispatch =>
+  _testProxyRequest(options, proxy).then(
+    response => dispatch(_testProxy(response)),
+    error => dispatch(handleError(SERVER_ACTIONS.TEST_PROXIES, error)),
+  );
+
+const testProxies = (options, proxies) => dispatch =>
+  _testProxiesRequest(options, proxies).then(
+    response => dispatch(_testProxies(response)),
+    error => dispatch(handleError(SERVER_ACTIONS.TEST_PROXIES, error)),
+  );
+
 const validateAws = awsCredentials => dispatch =>
   _validateAwsRequest(awsCredentials).then(
     response => dispatch(_validateAws(response)),
@@ -387,6 +453,8 @@ export const serverActions = {
   edit: editServer,
   select: selectCredentials,
   error: _handleError,
+  testProxy,
+  testProxies,
   generateProxies,
   destroyProxies,
   validateAws,
