@@ -110,17 +110,19 @@ export function serverReducer(state = initialServerStates, action) {
 
     if (action.cleanup) {
       nextState.credentials.status = '';
+      nextState.proxyOptions.status = '';
       return nextState;
       // TODO: Add more statuses here when the come up
     }
 
     switch (action.action) {
       case SERVER_ACTIONS.VALIDATE_AWS: {
-        if (action.error && action.error.message) {
-          nextState.credentials.status = action.error.message;
-        } else {
-          nextState.credentials.status = 'Invalid action';
-        }
+        nextState.credentials.status = action.error.message || 'Invalid action';
+        break;
+      }
+      case SERVER_ACTIONS.GEN_PROXIES: {
+        console.log(action.error);
+        nextState.proxyOptions.status = action.error.message || 'Unable to generate';
         break;
       }
       default:
@@ -128,7 +130,6 @@ export function serverReducer(state = initialServerStates, action) {
         break;
     }
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
-    console.log(action);
     if (!action || !action.response) {
       return nextState;
     }
@@ -138,12 +139,13 @@ export function serverReducer(state = initialServerStates, action) {
       return nextState;
     }
 
-    console.log('PROXIES: %j', response);
     nextState.proxies.push(...response);
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
-    console.log(action);
-    const proxyGroups = nextState.proxies.map(p => p.proxies);
-    nextState.proxies = nextState.proxies.filter(p => proxyGroups.some(i => i.id !== p.proxies.id));
+    if (!action || !action.response) {
+      return nextState;
+    }
+    const { InstanceIds } = action.response;
+    nextState.proxies = nextState.proxies.filter(p => InstanceIds.includes(p));
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     if (
       !action ||
@@ -158,7 +160,6 @@ export function serverReducer(state = initialServerStates, action) {
     nextState.credentials.list.push({ AWSAccessKey, AWSSecretKey, loggedIn: true });
     nextState.credentials.current = initialServerStates.credentials.current;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
-    console.log(action);
     if (
       !action ||
       !action.credentials ||

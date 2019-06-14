@@ -38,13 +38,7 @@ export class CreateProxiesPrimitive extends Component {
     const {
       theme,
       proxies,
-      proxyOptions: {
-        number,
-        credentials,
-        location: { id },
-        username,
-        password,
-      },
+      proxyOptions: { number, credentials, location, username, password, status },
       credentials: { list },
     } = this.props;
 
@@ -54,9 +48,10 @@ export class CreateProxiesPrimitive extends Component {
       proxies.length !== nextProps.proxies.length ||
       number !== nextProps.proxyOptions.number ||
       JSON.stringify(credentials) !== JSON.stringify(nextProps.proxyOptions.credentials) ||
-      id !== nextProps.proxyOptions.location.id ||
+      (location && location.id !== nextProps.proxyOptions.location.id) ||
       username !== nextProps.proxyOptions.username ||
       password !== nextProps.proxyOptions.password ||
+      status !== nextProps.proxyOptions.status ||
       isEditingPassword !== nextState.isEditingPassword ||
       isEditingUsername !== nextState.isEditingUsername ||
       list.length !== nextProps.credentials.list.length
@@ -115,7 +110,7 @@ export class CreateProxiesPrimitive extends Component {
     const {
       theme,
       proxies,
-      proxyOptions: { number, credentials, location, username, password },
+      proxyOptions: { number, credentials, location, username, password, status },
       serverListOptions,
       onKeyPress,
       onDestroyProxies,
@@ -220,6 +215,13 @@ export class CreateProxiesPrimitive extends Component {
                   data-testid={addTestId('CreateProxies.password')}
                 />
               </div>
+            </div>
+          </div>
+        </div>
+        <div className="row row--start row--gutter">
+          <div className="col proxy-options__input-group">
+            <div className="row row--gutter">
+              <div className="col col--no-gutter-left">{status}</div>
             </div>
           </div>
         </div>

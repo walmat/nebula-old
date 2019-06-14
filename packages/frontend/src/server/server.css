@@ -339,57 +339,35 @@
 /*
  * Implementation of themes
  */
-.server .server-table .server-row-container .server-row__status, .server .server-table .server-row-container .server-row__charges, .server .server-table .server-row-container .server-row__size {
-  text-overflow: ellipsis;
-}
-
-.server .server-table-container .server-table__header--actions, .server .server-table-container .server-table__header--charges, .server .server-table-container .server-table__header--status, .server .server-table-container .server-table__header--location {
+.server .server-table__header--actions, .server .server-table__header--speed, .server .server-table__header--proxy, .server .server-table__header--region, .server .server-table__header--account {
   margin: 0;
 }
-.server .server-table-container .server-table__header--actions > p, .server .server-table-container .server-table__header--charges > p, .server .server-table-container .server-table__header--status > p, .server .server-table-container .server-table__header--location > p {
+.server .server-table__header--actions > p, .server .server-table__header--speed > p, .server .server-table__header--proxy > p, .server .server-table__header--region > p, .server .server-table__header--account > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   letter-spacing: 0;
   margin: 5px 0;
 }
-.theme-light .server .server-table-container .server-table__header--actions > p, .server .server-table-container .theme-light .server-table__header--actions > p, .theme-light .server .server-table-container .server-table__header--charges > p, .server .server-table-container .theme-light .server-table__header--charges > p, .theme-light .server .server-table-container .server-table__header--status > p, .server .server-table-container .theme-light .server-table__header--status > p, .theme-light .server .server-table-container .server-table__header--location > p, .server .server-table-container .theme-light .server-table__header--location > p {
+.theme-light .server .server-table__header--actions > p, .server .theme-light .server-table__header--actions > p, .theme-light .server .server-table__header--speed > p, .server .theme-light .server-table__header--speed > p, .theme-light .server .server-table__header--proxy > p, .server .theme-light .server-table__header--proxy > p, .theme-light .server .server-table__header--region > p, .server .theme-light .server-table__header--region > p, .theme-light .server .server-table__header--account > p, .server .theme-light .server-table__header--account > p {
   color: #161318;
 }
-.theme-dark .server .server-table-container .server-table__header--actions > p, .server .server-table-container .theme-dark .server-table__header--actions > p, .theme-dark .server .server-table-container .server-table__header--charges > p, .server .server-table-container .theme-dark .server-table__header--charges > p, .theme-dark .server .server-table-container .server-table__header--status > p, .server .server-table-container .theme-dark .server-table__header--status > p, .theme-dark .server .server-table-container .server-table__header--location > p, .server .server-table-container .theme-dark .server-table__header--location > p {
+.theme-dark .server .server-table__header--actions > p, .server .theme-dark .server-table__header--actions > p, .theme-dark .server .server-table__header--speed > p, .server .theme-dark .server-table__header--speed > p, .theme-dark .server .server-table__header--proxy > p, .server .theme-dark .server-table__header--proxy > p, .theme-dark .server .server-table__header--region > p, .server .theme-dark .server-table__header--region > p, .theme-dark .server .server-table__header--account > p, .server .theme-dark .server-table__header--account > p {
   color: #efefef;
 }
 
 .server .server-table-container {
   width: 523px;
   height: 531px;
-  margin-left: -1px !important;
-  border: 1px solid #f0405e;
+  border-style: solid;
+  border-width: 1px;
   border-radius: 3px;
   margin: 0 !important;
 }
-.server .server-table-container .server-table__wrapper {
-  min-width: 0;
-  width: 100%;
-  overflow: hidden;
-  display: block;
+.theme-light .server .server-table-container {
+  border-color: #f0405e;
 }
-.server .server-table-container .server-table__header {
-  margin: 0;
-  padding-bottom: 1px;
-  height: 26px;
-  min-height: 26px;
-}
-.server .server-table-container .server-table__header--location {
-  width: 55px;
-}
-.server .server-table-container .server-table__header--status {
-  width: 55px;
-}
-.server .server-table-container .server-table__header--charges {
-  width: 55px;
-}
-.server .server-table-container .server-table__header--actions {
-  width: 55px;
+.theme-dark .server .server-table-container {
+  border-color: #f0405e;
 }
 .server .server-log {
   margin-top: 50px;
@@ -401,9 +379,37 @@
   overflow-y: scroll;
   overflow-x: hidden;
 }
+.server .server-table__wrapper {
+  padding: 5px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  display: block;
+}
 .server .server-table__section-header {
   margin-top: -9px;
   margin-left: -1px !important;
+}
+.server .server-table__header {
+  margin: 0;
+  padding-bottom: 1px;
+  height: 26px;
+  min-height: 26px;
+}
+.server .server-table__header--account {
+  width: 45px;
+}
+.server .server-table__header--region {
+  width: 55px;
+}
+.server .server-table__header--proxy {
+  width: 35px;
+}
+.server .server-table__header--speed {
+  width: 55px;
+}
+.server .server-table__header--actions {
+  width: 55px;
 }
 .server .server-table .blank {
   padding-left: 10px;
@@ -415,57 +421,49 @@
   padding-left: 5px;
   padding-bottom: 0;
 }
-.server .server-table .server-row-container {
+.server .server-table .proxy-row-container {
   border-bottom-style: solid;
   border-bottom-width: 1px;
 }
-.theme-light .server .server-table .server-row-container {
+.theme-light .server .server-table .proxy-row-container {
   border-bottom-color: #cbcbcb;
 }
-.theme-dark .server .server-table .server-row-container {
+.theme-dark .server .server-table .proxy-row-container {
   border-bottom-color: #6d6e70;
 }
-.server .server-table .server-row-container .server-row {
+.server .server-table .proxy-row-container .proxy-log {
   display: flex;
   height: 30px;
 }
-.server .server-table .server-row-container .server-row img {
-  cursor: pointer;
-  vertical-align: middle;
+.server .server-table .proxy-row-container .proxy-log__row--status, .server .server-table .proxy-row-container .proxy-log__row > * {
+  width: 10px;
+  height: 10px;
 }
-.server .server-table .server-row-container .server-row__type {
-  margin-left: -2px;
-  width: 135px;
+.server .server-table .proxy-row-container .proxy-log__row--account {
+  width: 15px;
+  text-overflow: ellipse;
 }
-.server .server-table .server-row-container .server-row__size {
-  width: 80px;
+.server .server-table .proxy-row-container .proxy-log__row--region {
+  width: 25px;
 }
-.server .server-table .server-row-container .server-row__location {
-  text-overflow: ellipsis;
-  width: 100px;
+.server .server-table .proxy-row-container .proxy-log__row--proxy {
+  width: 55px;
 }
-.server .server-table .server-row-container .server-row__charges {
-  margin-left: 8px;
-  width: 30px;
+.server .server-table .proxy-row-container .proxy-log__row--speed {
+  width: 20px;
 }
-.server .server-table .server-row-container .server-row__charges > p {
-  text-align: center;
+.server .server-table .proxy-row-container .proxy-log__row--actions {
+  width: 55px;
 }
-.server .server-table .server-row-container .server-row__status {
-  width: 67px;
-}
-.server .server-table .server-row-container .server-row__actions {
-  width: 50px;
-}
-.server .server-table .server-row-container .server-row__actions__button {
+.server .server-table .proxy-row-container .proxy-log__row--actions__button {
   padding-bottom: 2px;
   margin-right: 4px;
   width: 16px;
 }
-.server .server-table .server-row-container .server-row__actions__button:nth-child(1) {
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:nth-child(1) {
   margin-left: 2px;
 }
-.server .server-table .server-row-container .server-row__actions__button:nth-child(2) {
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:nth-child(2) {
   margin-bottom: 2px;
 }
 

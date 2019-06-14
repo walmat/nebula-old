@@ -17,26 +17,6 @@ export const SERVER_ACTIONS = {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-const _buildDestroyProxiesPromises = (options, proxies, credentials) =>
-  proxies.map(proxy => {
-    console.log('SERVER: proxy object: %j', proxy);
-    if (!options || proxy.region === options.location.value) {
-      console.log(credentials);
-      AWS.config = new AWS.Config({
-        accessKeyId: credentials.label,
-        secretAccessKey: credentials.value,
-        region: proxy.region,
-      });
-      const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
-      const InstanceIds = proxy.proxies.map(p => p.id);
-      console.log('SERVER: proxy instanceIds: %j', InstanceIds);
-      return { InstanceIds, promises: ec2.terminateInstances({ InstanceIds }).promise() };
-    }
-    return {
-      promises: [new Promise((_, reject) => reject(new Error('No Proxies For Region')))],
-    };
-  });
-
 const _getKeyPair = async (access, secret, region) => {
   AWS.config = new AWS.Config({
     accessKeyId: access,
@@ -54,6 +34,16 @@ const _getKeyPair = async (access, secret, region) => {
     }
     return keyPair;
   } catch (error) {
+    if (error.status !== 404 && !/not exist/i.test(error)) {
+      throw new Error('Unable to create key pair');
+    }
+
+    keyPair = await ec2.createKeyPair({ KeyName: 'nebula' }).promise();
+
+    if (keyPair) {
+      return keyPair;
+    }
+
     throw new Error('Unable to create key pair');
   }
 };
@@ -70,9 +60,7 @@ const _getSecurityGroup = async (access, secret, region, name) => {
   try {
     const securityGroups = await ec2.describeSecurityGroups({ GroupNames: [name] }).promise();
 
-    console.log(securityGroups);
     securityGroup = securityGroups.SecurityGroups.find(sg => sg.GroupName === name);
-    console.log(securityGroup);
     if (!securityGroup) {
       const error = new Error('Security group not found');
       error.status = 404;
@@ -80,8 +68,7 @@ const _getSecurityGroup = async (access, secret, region, name) => {
     }
     return securityGroup;
   } catch (error) {
-    console.log(error);
-    if (error.status !== 404 && !/not found/i.test(error)) {
+    if (error.status !== 404 && !/not exist/i.test(error)) {
       throw new Error('Unable to create security group');
     }
 
@@ -206,7 +193,7 @@ service squid restart`,
         EbsOptimized: false,
         InstanceInitiatedShutdownBehavior: 'terminate',
         CreditSpecification: { CpuCredits: 'Unlimited' },
-        KeyName: 'proxy',
+        KeyName: keyPair.KeyName,
         MinCount: 1,
         MaxCount: number,
         Monitoring: {
@@ -216,6 +203,7 @@ service squid restart`,
         UserData,
       })
       .promise();
+
     if (!createdInstances.Instances.length) {
       throw new Error('No new instances launched!');
     }
@@ -243,8 +231,6 @@ service squid restart`,
       speed: null,
     }));
 
-    console.log(proxies);
-
     return proxies;
   } catch (err) {
     throw new Error(err.message || 'No instances available');
@@ -268,14 +254,14 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
     try {
       keyPair = await _getKeyPair(label, value, location.value);
     } catch (err) {
-      throw new Error(err.message || 'Unable to create keypair');
+      reject(new Error(err.message || 'Unable to create keypair'));
     }
 
     let securityGroup;
     try {
       securityGroup = await _getSecurityGroup(label, value, location.value, 'nebula');
     } catch (err) {
-      throw new Error(err.message || 'Unable to create security group');
+      reject(new Error(err.message || 'Unable to create security group'));
     }
 
     let instances;
@@ -291,34 +277,39 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
         securityGroup,
       );
     } catch (err) {
-      throw new Error(err.message || 'Unable to create instances');
+      reject(new Error(err.message || 'Unable to create instances'));
     }
     resolve(instances);
   });
 
-const _destroyProxiesRequest = async (options, proxies, credentials) => {
-  const { InstanceIds, promises } = _buildDestroyProxiesPromises(options, proxies, credentials);
-  console.log(promises);
-  return new Promise(async (resolve, reject) => {
-    if (!promises || !promises.length) {
-      reject(new Error('No Proxy Instances Running!'));
-    }
-    Promise.all(promises).then(
-      data => {
-        console.log(data);
-        const instances = data.map(i => ({ id: i.TerminatingInstances[0].InstanceId }));
-        console.log(instances);
-        resolve(instances);
-      },
-      err => {
-        if (/not exist/i.test(err)) {
-          resolve(InstanceIds);
-        }
-        reject(err);
-      },
+const _destroyProxiesRequest = async (options, proxies, credentials) =>
+  new Promise(async (resolve, reject) => {
+    AWS.config = new AWS.Config({
+      accessKeyId: credentials.label,
+      secretAccessKey: credentials.value,
+      region: options.location.value,
+    });
+    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+
+    const proxiesToTerminate = proxies.filter(
+      p =>
+        p.region === options.location.value &&
+        p.credentials.AWSAccessKey === credentials.label &&
+        p.credentials.AWSSecretKey === credentials.value,
     );
+
+    if (!proxiesToTerminate || !proxiesToTerminate.length) {
+      reject(new Error('No proxies awaiting termniation'));
+    }
+
+    try {
+      const InstanceIds = proxiesToTerminate.map(p => p.id);
+      await ec2.terminateInstances({ InstanceIds }).promise();
+      resolve({ InstanceIds, proxies: proxiesToTerminate.map(p => p.proxy) });
+    } catch (error) {
+      reject(new Error('Unable to terminate proxies'));
+    }
   });
-};
 
 const _validateAwsRequest = async awsCredentials =>
   // TODO: Replace this with an actual API call
@@ -339,7 +330,7 @@ const _validateAwsRequest = async awsCredentials =>
 
 // Private Actions
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'response');
-const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'instances');
+const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'response');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'response');
 const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS, 'credentials');
 
@@ -360,7 +351,7 @@ const generateProxies = (proxyOptions, credentials) => dispatch =>
     proxies => dispatch(_generateProxies(proxies)),
     async error => {
       dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error, false));
-      await wait(750);
+      await wait(1500);
       dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error, true));
     },
   );

@@ -24,44 +24,13 @@
   .server-table-container {
     width: 523px;
     height: 531px;
-    margin-left: -1px !important;
-    border: 1px solid #f0405e;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-style: solid;
+    border-width: 1px;
     border-radius: 3px;
     margin: 0 !important;
-
-    .server-table__wrapper {
-      min-width: 0;
-      width: 100%;
-      overflow: hidden;
-      display: block;
-    }
-
-    .server-table__header {
-      margin: 0;
-      padding-bottom: 1px;
-      height: 26px;
-      min-height: 26px;
-
-      &--location {
-        @extend %server-table__header__field;
-        width: 55px;
-      }
-
-      &--status {
-        @extend %server-table__header__field;
-        width: 55px;
-      }
-
-      &--charges {
-        @extend %server-table__header__field;
-        width: 55px;
-      }
-
-      &--actions {
-        @extend %server-table__header__field;
-        width: 55px;
-      }
-    }
   }
 
   .server-log {
@@ -75,9 +44,49 @@
     overflow-y: scroll;
     overflow-x: hidden;
 
+    &__wrapper {
+      padding: 5px;
+      min-width: 0;
+      width: 100%;
+      overflow: hidden;
+      display: block;
+    }
+
     &__section-header {
       margin-top: -9px;
       margin-left: -1px !important;
+    }
+
+    &__header {
+      margin: 0;
+      padding-bottom: 1px;
+      height: 26px;
+      min-height: 26px;
+
+      &--account {
+        @extend %server-table__header__field;
+        width: 45px;
+      }
+
+      &--region {
+        @extend %server-table__header__field;
+        width: 55px;
+      }
+
+      &--proxy {
+        @extend %server-table__header__field;
+        width: 35px;
+      }
+
+      &--speed {
+        @extend %server-table__header__field;
+        width: 55px;
+      }
+
+      &--actions {
+        @extend %server-table__header__field;
+        width: 55px;
+      }
     }
 
     .blank {
@@ -93,65 +102,57 @@
       padding-bottom: 0;
     }
 
-    .server-row-container {
+    .proxy-row-container {
       border-bottom-style: solid;
       border-bottom-width: 1px;
       @include themify($themes) {
         border-bottom-color: themed('tableRowBottomBorderColow');
       }
 
-      .server-row {
+      .proxy-log {
         display: flex;
         height: 30px;
 
-        img {
-          @include image();
-        }
-
-        &__type {
-          margin-left: -2px;
-          width: 135px;
-        }
-
-        &__size {
-          @extend %server-table__text-field;
-          width: 80px;
-        }
-
-        &__location {
-          text-overflow: ellipsis;
-          width: 100px;
-        }
-
-        &__charges {
-          @extend %server-table__text-field;
-          margin-left: 8px;
-          width: 30px;
-          & > p {
-            text-align: center;
-          }
-        }
-
-        &__status {
-          @extend %server-table__text-field;
-          width: 67px;
-        }
-
-        &__actions {
-          width: 50px;
-
-          &__button {
-            padding-bottom: 2px;
-            margin-right: 4px;
-            width: 16px;
+        &__row {
+          &--status,
+          > * {
+            width: 10px;
+            height: 10px;
           }
 
-          &__button:nth-child(1) {
-            margin-left: 2px;
+          &--account {
+            width: 15px;
+            text-overflow: ellipse;
           }
 
-          &__button:nth-child(2) {
-            margin-bottom: 2px;
+          &--region {
+            width: 25px;
+          }
+
+          &--proxy {
+            width: 55px;
+          }
+
+          &--speed {
+            width: 20px;
+          }
+
+          &--actions {
+            width: 55px;
+
+            &__button {
+              padding-bottom: 2px;
+              margin-right: 4px;
+              width: 16px;
+            }
+
+            &__button:nth-child(1) {
+              margin-left: 2px;
+            }
+
+            &__button:nth-child(2) {
+              margin-bottom: 2px;
+            }
           }
         }
       }

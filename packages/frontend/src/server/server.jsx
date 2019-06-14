@@ -40,43 +40,7 @@ const Server = () => (
           </div>
         </div>
       </div>
-      <div className="col col--gutter col--expand server-log">
-        <div className="row row--gutter row--start">
-          <div className="col col--expand col--start">
-            <div className="row row--start">
-              <p className="body-text section-header server-table__section-header">Log</p>
-            </div>
-            <div className="row row--expand">
-              <div className="col col--start server-table-container">
-                <div className="row server-table__header">
-                  <div className="col col--no-gutter server-table__header--location">
-                    <p>Location</p>
-                  </div>
-                  <div className="col server-table__header--status">
-                    <p>Status</p>
-                  </div>
-                  <div className="col server-table__header--charges">
-                    <p>Charges</p>
-                  </div>
-                  <div className="col server-table__header--actions">
-                    <p>Actions</p>
-                  </div>
-                </div>
-                <div className="row row--start">
-                  <div className="col col--expand">
-                    <hr className="view-line" />
-                  </div>
-                </div>
-                <div className="row row--expand row--start">
-                  <div className="col server-table__wrapper">
-                    <ProxyLog />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProxyLog />
     </div>
   </div>
 );

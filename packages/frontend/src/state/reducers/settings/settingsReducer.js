@@ -170,22 +170,28 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     // TODO: Handle error
     console.error(`Error trying to perform: ${action.action}! ${action.error}`);
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
-    if (
-      !action ||
-      !action.proxyInfo ||
-      (!action.proxyInfo.proxies || !action.proxyInfo.proxies.length)
-    ) {
+    if (!action || !action.response) {
       return Object.assign({}, state, change);
     }
-    const proxies = action.proxyInfo.proxies.map(i => i.ip);
+    const proxies = action.response.map(i => i.proxy);
+
+    if (window.Bridge) {
+      window.Bridge.addProxies(proxies);
+    }
+
     change.proxies = proxies.concat(state.proxies);
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
-    console.log(action, state);
-    if (!action || !action.instances) {
+    if (!action || !action.response) {
       return Object.assign({}, state, change);
     }
-    // TODO - remove proxies when they're destroyed
-    // change.proxies = state.proxies.filter(p => p)
+
+    const { proxies } = action.response;
+
+    if (window.Bridge) {
+      window.Bridge.removeProxies(proxies);
+    }
+
+    change.proxies = state.proxies.filter(p => !proxies.includes(p));
   }
   return Object.assign({}, state, change);
 }

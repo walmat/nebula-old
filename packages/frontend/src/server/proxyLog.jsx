@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 
 import ProxyLogRow from './proxyLogRow';
@@ -15,10 +16,13 @@ export class ProxyLogPrimitive extends Component {
   shouldComponentUpdate(nextProps) {
     const { proxies } = this.props;
 
-    if (!proxies.length || proxies.length === nextProps.proxies.length) {
-      return false;
+    if (
+      proxies.length !== nextProps.proxies.length ||
+      JSON.stringify(proxies) !== JSON.stringify(nextProps.proxies)
+    ) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   createTable() {
@@ -28,12 +32,57 @@ export class ProxyLogPrimitive extends Component {
       return [];
     }
 
-    return proxies.map(p => <ProxyLogRow key={p.InstanceId} proxy={p} />);
+    return (
+      <ScrollableFeed>
+        {proxies.map(p => <ProxyLogRow key={p.id} proxy={p} />)}
+      </ScrollableFeed>
+    );
   }
 
   render() {
     console.log('updating proxy log component');
-    return <div className="server-table">{this.createTable()}</div>;
+    return (
+      <div className="col col--gutter col--expand server-log">
+        <div className="row row--gutter row--start">
+          <div className="col col--expand col--start">
+            <div className="row row--start">
+              <p className="body-text section-header server-table__section-header">Log</p>
+            </div>
+            <div className="row row--expand">
+              <div className="col col--start server-table-container">
+                <div className="row server-table__header">
+                  <div className="col col--no-gutter server-table__header--account">
+                    <p>Account</p>
+                  </div>
+                  <div className="col server-table__header--region">
+                    <p>Region</p>
+                  </div>
+                  <div className="col server-table__header--proxy">
+                    <p>Proxy</p>
+                  </div>
+                  <div className="col server-table__header--speed">
+                    <p>Speed</p>
+                  </div>
+                  <div className="col server-table__header--actions">
+                    <p>Actions</p>
+                  </div>
+                </div>
+                <div className="row row--start">
+                  <div className="col col--expand">
+                    <hr className="view-line" />
+                  </div>
+                </div>
+                <div className="row row--expand row--start">
+                  <div className="col server-table__wrapper">
+                    <div className="server-table">{this.createTable()}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 }
 
