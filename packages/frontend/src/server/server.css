@@ -339,19 +339,26 @@
 /*
  * Implementation of themes
  */
-.server .server-table__header--actions, .server .server-table__header--speed, .server .server-table__header--proxy, .server .server-table__header--region, .server .server-table__header--account {
+.server .server-table .proxy-row-container .proxy-log__row--actions, .server .server-table .proxy-row-container .proxy-log__row--speed, .server .server-table .proxy-row-container .proxy-log__row--ip, .server .server-table .proxy-row-container .proxy-log__row--region, .server .server-table .proxy-row-container .proxy-log__row--account, .server .server-table .proxy-row-container .proxy-log__row--status {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  vertical-align: middle;
+}
+
+.server .server-table__header--actions, .server .server-table__header--speed, .server .server-table__header--ip, .server .server-table__header--region, .server .server-table__header--account {
   margin: 0;
 }
-.server .server-table__header--actions > p, .server .server-table__header--speed > p, .server .server-table__header--proxy > p, .server .server-table__header--region > p, .server .server-table__header--account > p {
+.server .server-table__header--actions > p, .server .server-table__header--speed > p, .server .server-table__header--ip > p, .server .server-table__header--region > p, .server .server-table__header--account > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   letter-spacing: 0;
   margin: 5px 0;
 }
-.theme-light .server .server-table__header--actions > p, .server .theme-light .server-table__header--actions > p, .theme-light .server .server-table__header--speed > p, .server .theme-light .server-table__header--speed > p, .theme-light .server .server-table__header--proxy > p, .server .theme-light .server-table__header--proxy > p, .theme-light .server .server-table__header--region > p, .server .theme-light .server-table__header--region > p, .theme-light .server .server-table__header--account > p, .server .theme-light .server-table__header--account > p {
+.theme-light .server .server-table__header--actions > p, .server .theme-light .server-table__header--actions > p, .theme-light .server .server-table__header--speed > p, .server .theme-light .server-table__header--speed > p, .theme-light .server .server-table__header--ip > p, .server .theme-light .server-table__header--ip > p, .theme-light .server .server-table__header--region > p, .server .theme-light .server-table__header--region > p, .theme-light .server .server-table__header--account > p, .server .theme-light .server-table__header--account > p {
   color: #161318;
 }
-.theme-dark .server .server-table__header--actions > p, .server .theme-dark .server-table__header--actions > p, .theme-dark .server .server-table__header--speed > p, .server .theme-dark .server-table__header--speed > p, .theme-dark .server .server-table__header--proxy > p, .server .theme-dark .server-table__header--proxy > p, .theme-dark .server .server-table__header--region > p, .server .theme-dark .server-table__header--region > p, .theme-dark .server .server-table__header--account > p, .server .theme-dark .server-table__header--account > p {
+.theme-dark .server .server-table__header--actions > p, .server .theme-dark .server-table__header--actions > p, .theme-dark .server .server-table__header--speed > p, .server .theme-dark .server-table__header--speed > p, .theme-dark .server .server-table__header--ip > p, .server .theme-dark .server-table__header--ip > p, .theme-dark .server .server-table__header--region > p, .server .theme-dark .server-table__header--region > p, .theme-dark .server .server-table__header--account > p, .server .theme-dark .server-table__header--account > p {
   color: #efefef;
 }
 
@@ -397,12 +404,12 @@
   min-height: 26px;
 }
 .server .server-table__header--account {
-  width: 45px;
+  width: 95px;
 }
 .server .server-table__header--region {
   width: 55px;
 }
-.server .server-table__header--proxy {
+.server .server-table__header--ip {
   width: 35px;
 }
 .server .server-table__header--speed {
@@ -434,26 +441,33 @@
 .server .server-table .proxy-row-container .proxy-log {
   display: flex;
   height: 30px;
+  margin-top: -2px;
 }
-.server .server-table .proxy-row-container .proxy-log__row--status, .server .server-table .proxy-row-container .proxy-log__row > * {
-  width: 10px;
-  height: 10px;
+.server .server-table .proxy-row-container .proxy-log__row {
+  margin-top: -2px;
+  padding-bottom: 2px;
+}
+.server .server-table .proxy-row-container .proxy-log__row--status {
+  margin-left: 14.5px !important;
+  margin-right: 6.5px !important;
+}
+.server .server-table .proxy-row-container .proxy-log__row--status > svg, .server .server-table .proxy-row-container .proxy-log__row--status * {
+  width: 9px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--account {
-  width: 15px;
-  text-overflow: ellipse;
+  width: 145px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--region {
-  width: 25px;
+  width: 80px;
 }
-.server .server-table .proxy-row-container .proxy-log__row--proxy {
-  width: 55px;
+.server .server-table .proxy-row-container .proxy-log__row--ip {
+  width: 105px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--speed {
-  width: 20px;
+  width: 88px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions {
-  width: 55px;
+  width: 105px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions__button {
   padding-bottom: 2px;

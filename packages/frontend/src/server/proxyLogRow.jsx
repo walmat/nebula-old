@@ -40,16 +40,16 @@ const ProxyLogRow = ({
         {AWSAccessKey}
       </div>
       <div
-        className="col col--no-gutter proxy-log__row--proxy"
+        className="col col--no-gutter proxy-log__row--region"
         data-testid={addTestId('ProxyLogRow.region')}
       >
         {region}
       </div>
       <div
-        className="col col--no-gutter proxy-log__row--proxy"
-        data-testid={addTestId('ProxyLogRow.proxy')}
+        className="col col--no-gutter proxy-log__row--ip"
+        data-testid={addTestId('ProxyLogRow.ip')}
       >
-        {proxy}
+        {proxy ? `${proxy.split(':')[0]}` : 'Unassigned'}
       </div>
       {/* TODO: Add this in later... */}
       {/* <div

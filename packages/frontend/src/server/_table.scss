@@ -2,8 +2,22 @@
 @import '_mixins';
 @import '../themes';
 
-%server-table__text-field {
+%proxy-log__field {
+  white-space: nowrap;
   text-overflow: ellipsis;
+  overflow-x: hidden;
+  vertical-align: middle;
+}
+
+%proxy-log__button {
+  font-family: AvenirNext-Medium;
+  font-size: 9.5px;
+  letter-spacing: 0;
+  width: 64px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
 }
 
 %server-table__header__field {
@@ -65,7 +79,7 @@
 
       &--account {
         @extend %server-table__header__field;
-        width: 45px;
+        width: 95px;
       }
 
       &--region {
@@ -73,7 +87,7 @@
         width: 55px;
       }
 
-      &--proxy {
+      &--ip {
         @extend %server-table__header__field;
         width: 35px;
       }
@@ -112,33 +126,44 @@
       .proxy-log {
         display: flex;
         height: 30px;
+        margin-top: -2px;
 
         &__row {
-          &--status,
-          > * {
-            width: 10px;
-            height: 10px;
+          margin-top: -2px;
+          padding-bottom: 2px;
+          &--status {
+            @extend %proxy-log__field;
+            margin-left: 14.5px !important;
+            margin-right: 6.5px !important;
+            & > svg,
+            * {
+              width: 9px;
+            }
           }
 
           &--account {
-            width: 15px;
-            text-overflow: ellipse;
+            @extend %proxy-log__field;
+            width: 145px;
           }
 
           &--region {
-            width: 25px;
+            @extend %proxy-log__field;
+            width: 80px;
           }
 
-          &--proxy {
-            width: 55px;
+          &--ip {
+            @extend %proxy-log__field;
+            width: 105px;
           }
 
           &--speed {
-            width: 20px;
+            @extend %proxy-log__field;
+            width: 88px;
           }
 
           &--actions {
-            width: 55px;
+            @extend %proxy-log__field;
+            width: 105px;
 
             &__button {
               padding-bottom: 2px;

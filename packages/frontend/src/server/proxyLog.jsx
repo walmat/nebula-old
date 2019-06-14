@@ -57,8 +57,8 @@ export class ProxyLogPrimitive extends Component {
                   <div className="col server-table__header--region">
                     <p>Region</p>
                   </div>
-                  <div className="col server-table__header--proxy">
-                    <p>Proxy</p>
+                  <div className="col server-table__header--ip">
+                    <p>IP</p>
                   </div>
                   <div className="col server-table__header--speed">
                     <p>Speed</p>
