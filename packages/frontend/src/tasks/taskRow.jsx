@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { connect } from 'react-redux';
@@ -47,6 +47,17 @@ export class TaskRowPrimitive extends Component {
     this.state = {
       isLoading: false,
     };
+  }
+
+  shouldComponentUpdate(nextProps) {
+    const { task, isEditing } = this.props;
+    const { isLoading } = this.state;
+
+    if (task.status !== nextProps.task.status || isEditing || isLoading) {
+      return true;
+    }
+
+    return false;
   }
 
   createOnChangeHandler(field) {
@@ -436,8 +447,9 @@ export class TaskRowPrimitive extends Component {
   }
 
   render() {
+    const { style } = this.props;
     return (
-      <div className="tasks-row-container col">
+      <div style={style} className="tasks-row-container col">
         {this.renderTableRow()}
         {this.renderEditMenu()}
       </div>
@@ -461,6 +473,7 @@ TaskRowPrimitive.propTypes = {
   onCancelEdits: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
+  style: PropTypes.objectOf(PropTypes.any).isRequired,
   errors: tDefns.taskEditErrors.isRequired,
 };
 
@@ -472,6 +485,7 @@ export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   proxies: state.settings.proxies.filter((_, idx) => !state.settings.errors.proxies.includes(idx)), // Only get the valid proxies
   task: ownProps.task,
+  style: ownProps.style,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
   theme: state.theme,
@@ -508,7 +522,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(TaskRowPrimitive);
+export default memo(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(TaskRowPrimitive),
+);

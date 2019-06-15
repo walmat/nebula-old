@@ -112,7 +112,6 @@ const _createInstances = async (
   region,
   username,
   password,
-  keyPair,
   securityGroup,
 ) => {
   AWS.config = new AWS.Config({
@@ -196,7 +195,6 @@ service squid restart`,
         EbsOptimized: false,
         InstanceInitiatedShutdownBehavior: 'terminate',
         CreditSpecification: { CpuCredits: 'Unlimited' },
-        KeyName: keyPair.KeyName,
         MinCount: 1,
         MaxCount: number,
         Monitoring: {
@@ -213,7 +211,7 @@ service squid restart`,
 
     const InstanceIds = createdInstances.Instances.map(i => i.InstanceId);
 
-    const availableInstances = await ec2.waitFor('instanceRunning', { InstanceIds }).promise();
+    const availableInstances = await ec2.waitFor('instanceExists', { InstanceIds }).promise();
 
     if (!availableInstances.Reservations.length) {
       throw new Error('Instances not reserved');
@@ -226,7 +224,7 @@ service squid restart`,
     }
     const proxies = await proxyInstances.Reservations[0].Instances.map(i => ({
       id: i.InstanceId,
-      proxy: `${i.PublicIpAddress}:65096:${username}:${password}`,
+      proxy: i.PublicIpAddress ? `${i.PublicIpAddress}:65096:${username}:${password}` : null,
       credentials: { AWSAccessKey: access, AWSSecretKey: secret },
       region,
       charges: 0,
@@ -252,13 +250,6 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
     const { label, value } = credentials;
 
     const { number, location, username, password } = proxyOptions;
-    // setup & config
-    let keyPair;
-    try {
-      keyPair = await _getKeyPair(label, value, location.value);
-    } catch (err) {
-      reject(new Error(err.message || 'Unable to create keypair'));
-    }
 
     let securityGroup;
     try {
@@ -276,13 +267,50 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
         location.value,
         username,
         password,
-        keyPair,
         securityGroup,
       );
     } catch (err) {
       reject(new Error(err.message || 'Unable to create instances'));
     }
     resolve(instances);
+  });
+
+const _waitUntilRunning = async (options, instances, credentials) =>
+  new Promise(async (resolve, reject) => {
+    const { label: accessKeyId, value: secretAccessKey } = credentials;
+
+    const {
+      location: { value: region },
+      username,
+      password,
+    } = options;
+
+    AWS.config = new AWS.Config({
+      accessKeyId,
+      secretAccessKey,
+      region,
+    });
+    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+
+    const InstanceIds = instances.map(i => i.id);
+
+    const proxyInstances = await ec2.waitFor('instanceRunning', { InstanceIds }).promise();
+
+    if (!proxyInstances.Reservations.length) {
+      reject(new Error('Instances not reserved'));
+    }
+
+    const proxies = await proxyInstances.Reservations[0].Instances.map(i => ({
+      id: i.InstanceId,
+      proxy: i.PublicIpAddress ? `${i.PublicIpAddress}:65096:${username}:${password}` : null,
+      credentials: { AWSAccessKey: accessKeyId, AWSSecretKey: secretAccessKey },
+      region: options.location.value,
+      charges: 0,
+      status: i.State.Name,
+      speed: null,
+    }));
+
+    resolve(proxies);
   });
 
 const _stopProxyRequest = async (options, proxy, credentials) =>
@@ -401,7 +429,11 @@ const _handleError = (action, error) => async dispatch => {
 // Public Thunks
 const generateProxies = (proxyOptions, credentials) => dispatch =>
   _generateProxiesRequest(proxyOptions, credentials).then(
-    proxies => dispatch(_generateProxies(proxies)),
+    async proxies => {
+      dispatch(_generateProxies(proxies));
+      const instances = await _waitUntilRunning(proxyOptions, proxies, credentials);
+      dispatch(_generateProxies(instances));
+    },
     async error => {
       dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error, false));
       await wait(1500);

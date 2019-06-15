@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
@@ -39,15 +39,6 @@ export class TasksPrimitive extends Component {
     };
   }
 
-  shouldComponentUpdate(nextProps) {
-    const { tasks } = this.props;
-
-    if (JSON.stringify(tasks) !== JSON.stringify(nextProps.tasks)) {
-      return true;
-    }
-    return false;
-  }
-
   createOnChangeHandler(field) {
     const { onSettingsChange } = this.props;
     return event => {
@@ -60,12 +51,14 @@ export class TasksPrimitive extends Component {
 
   startAllTasks() {
     const { tasks, proxies, onStartAllTasks } = this.props;
-    onStartAllTasks(tasks, proxies);
+    if (tasks.length && tasks.some(t => t.status !== 'running')) {
+      onStartAllTasks(tasks, proxies);
+    }
   }
 
   stopAllTasks() {
     const { tasks, onStopAllTasks } = this.props;
-    if (tasks.length) {
+    if (tasks.length && tasks.some(t => t.status === 'running')) {
       onStopAllTasks(tasks);
     }
   }
@@ -262,7 +255,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(TasksPrimitive);
+export default memo(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(TasksPrimitive),
+);

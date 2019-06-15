@@ -2,7 +2,7 @@ import ReactDOM from 'react-dom';
 import LogRocket from 'logrocket';
 import setupLogRocketReact from 'logrocket-react';
 import createApp from './app';
-// import registerServiceWorker from './registerServiceWorker';
+import registerServiceWorker from './registerServiceWorker';
 import configureStore from './state/configureStore';
 import { globalActions } from './state/actions';
 
@@ -12,8 +12,5 @@ setupLogRocketReact(LogRocket);
 store.dispatch(globalActions.migrateState());
 
 ReactDOM.render(createApp(store), document.getElementById('root'));
-// registerServiceWorker();
+registerServiceWorker();
 
-/**
- * do some research whether or not we need a service worker
- */

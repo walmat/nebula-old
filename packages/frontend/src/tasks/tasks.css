@@ -422,6 +422,7 @@
   border-bottom-color: #6d6e70;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row {
+  width: 100% !important;
   display: flex;
   height: 30px;
 }
@@ -586,6 +587,7 @@
   padding-bottom: 0;
 }
 .tasks .tasks-table .tasks-row-container {
+  width: calc(100% - 30px) !important;
   border-bottom-style: solid;
   border-bottom-width: 1px;
 }

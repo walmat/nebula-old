@@ -138,7 +138,20 @@ export function serverReducer(state = initialServerStates, action) {
       return nextState;
     }
 
-    nextState.proxies.push(...response);
+    console.log(response);
+
+    response.forEach(instance => {
+      console.log(instance);
+      const index = nextState.proxies.findIndex(i => i.id === instance.id);
+
+      console.log(index);
+      if (index === -1) {
+        nextState.proxies.push(instance);
+        return;
+      }
+
+      nextState.proxies[index] = instance;
+    });
   } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
     if (!action || !action.response) {
       return nextState;

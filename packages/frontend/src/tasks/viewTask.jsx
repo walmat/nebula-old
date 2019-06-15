@@ -1,25 +1,37 @@
-import React, { Component } from 'react';
-import ScrollableFeed from 'react-scrollable-feed';
+import React, { Component, memo } from 'react';
+import { List, AutoSizer } from 'react-virtualized';
 import { connect } from 'react-redux';
 import TaskRow from './taskRow';
-
 import defns from '../utils/definitions/taskDefinitions';
 
 export class ViewTaskPrimitive extends Component {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
+    this.renderRow = this.renderRow.bind(this);
   }
 
   createTable() {
     const { tasks } = this.props;
     return (
-      <ScrollableFeed>
-        {tasks.map(task => (
-          <TaskRow key={task.id} task={task} />
-        ))}
-      </ScrollableFeed>
+      <AutoSizer>
+        {({ width, height }) => (
+          <List
+            width={width}
+            height={height}
+            rowHeight={30}
+            rowRenderer={this.renderRow}
+            rowCount={tasks.length}
+            overscanRowsCount={10}
+          />
+        )}
+      </AutoSizer>
     );
+  }
+
+  renderRow({ index, key, style }) {
+    const { tasks } = this.props;
+    return <TaskRow key={key} task={tasks[index]} style={style} />;
   }
 
   render() {
@@ -35,4 +47,4 @@ export const mapStateToProps = state => ({
   tasks: state.tasks,
 });
 
-export default connect(mapStateToProps)(ViewTaskPrimitive);
+export default memo(connect(mapStateToProps)(ViewTaskPrimitive));

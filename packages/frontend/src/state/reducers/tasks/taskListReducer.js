@@ -15,7 +15,7 @@ import { SETTINGS_ACTIONS } from '../../actions/settings/settingsActions';
 
 let _num = 1;
 
-function _getIndex(taskList) {
+function _getIndexAndId(taskList) {
   // if the tasksList is empty, reset the numbering
   if (taskList.length === 0) {
     _num = 1;
@@ -31,7 +31,7 @@ function _getIndex(taskList) {
     newIndex = _num;
   }
 
-  return newIndex;
+  return { index: newIndex, id: shortId.generate() };
 }
 
 export default function taskListReducer(state = initialTaskStates.list, action) {
@@ -179,10 +179,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
       [...Array(amount)].forEach(() => {
         // add new task
-        const id = shortId.generate();
-        const index = _getIndex(nextState);
+        const { index, id } = _getIndexAndId(nextState);
         nextState.push({ ...newTask, id, index });
       });
+
       break;
     }
     case TASK_ACTIONS.REMOVE: {
@@ -334,8 +334,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
       // get new task id
-      newTask.id = shortId.generate();
-      newTask.index = _getIndex(nextState);
+      const { index, id } = _getIndexAndId(nextState);
+      newTask.id = id;
+      newTask.index = index;
       // reset new task status
       newTask.status = 'idle';
       nextState.push(newTask);

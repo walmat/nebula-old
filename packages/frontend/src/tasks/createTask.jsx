@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { connect } from 'react-redux';
@@ -391,7 +391,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(CreateTaskPrimitive);
+export default memo(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(CreateTaskPrimitive),
+);

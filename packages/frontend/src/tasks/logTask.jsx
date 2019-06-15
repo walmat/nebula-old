@@ -1,4 +1,5 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
+import { List, AutoSizer } from 'react-virtualized';
 import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
@@ -36,23 +37,24 @@ export class LogTaskPrimitive extends Component {
   constructor(props) {
     super(props);
 
+    this.createTable = this.createTable.bind(this);
+    this.renderRow = this.renderRow.bind(this);
+
     this.state = {
       fullscreen: false, // fullscreen toggle
       selected: [], // list of selected tasks
       focused: '', // task in focused (used for showing the log data)
+      tasks: [],
     };
   }
 
-  shouldComponentUpdate(_, nextState) {
-    const { tasks } = this.props;
-    const { fullscreen } = this.state;
-    const runningTasks = tasks.filter(
-      task => task.status === 'running' || task.status === 'finished',
-    );
-    if (runningTasks.length || fullscreen !== nextState.fullscreen) {
-      return true;
+  componentWillReceiveProps(nextProps) {
+    const { tasks } = this.state;
+    const running = nextProps.tasks.filter(t => t.status === 'running');
+
+    if (tasks !== running) {
+      this.setState({ tasks: running });
     }
-    return false;
   }
 
   selectRow(e, taskId) {
@@ -100,32 +102,29 @@ export class LogTaskPrimitive extends Component {
   }
 
   createTable() {
-    const { tasks } = this.props;
-    const { fullscreen, focused, selected } = this.state;
-    const runningTasks = tasks.filter(
-      task => task.status === 'running' || task.status === 'finished',
-    );
+    const { focused, selected, tasks } = this.state;
 
-    if (!runningTasks.length && (focused || selected.length)) {
+    if (!tasks.length && (focused || selected.length)) {
       this.setState({
         selected: [],
         focused: '',
       });
     }
 
-    const selectedMap = {};
-    selected.forEach(id => {
-      selectedMap[id] = id;
-    });
-    const table = runningTasks.map(t => (
-      <LogTaskRow
-        onClick={e => this.selectRow(e, t.id)}
-        selected={!!selectedMap[t.id]}
-        task={t}
-        fullscreen={fullscreen}
-      />
-    ));
-    return table;
+    return (
+      <AutoSizer>
+        {({ width, height }) => (
+          <List
+            width={width}
+            height={height}
+            rowHeight={30}
+            rowRenderer={this.renderRow}
+            rowCount={tasks.length}
+            overscanRowCount={10}
+          />
+        )}
+      </AutoSizer>
+    );
   }
 
   // renderMassChangeOptions() {
@@ -153,6 +152,27 @@ export class LogTaskPrimitive extends Component {
   //   }
   //   return null;
   // }
+
+  renderRow({ index, key, style }) {
+    const { tasks } = this.state;
+    const { fullscreen, selected } = this.state;
+
+    const selectedMap = {};
+    selected.forEach(id => {
+      selectedMap[id] = id;
+    });
+
+    return (
+      <LogTaskRow
+        key={key}
+        onClick={e => this.selectRow(e, tasks[index].id)}
+        selected={!!selectedMap[tasks[index].id]}
+        style={style}
+        task={tasks[index]}
+        fullscreen={fullscreen}
+      />
+    );
+  }
 
   render() {
     const { fullscreen, selected, focused } = this.state;
@@ -271,4 +291,4 @@ export const mapStateToProps = state => ({
   tasks: state.tasks,
 });
 
-export default connect(mapStateToProps)(LogTaskPrimitive);
+export default memo(connect(mapStateToProps)(LogTaskPrimitive));

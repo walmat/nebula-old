@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { addTestId, renderSvgIcon } from '../utils';
@@ -14,10 +14,36 @@ import { ReactComponent as Start } from '../_assets/start.svg';
 import { ReactComponent as Stop } from '../_assets/stop.svg';
 import { ReactComponent as Terminate } from '../_assets/destroy.svg';
 
-export class ProxyLogRowPrimitive extends PureComponent {
+export class ProxyLogRowPrimitive extends Component {
+  shouldComponentUpdate(nextProps) {
+    const {
+      proxy: {
+        id,
+        proxy,
+        credentials: { AWSAccessKey, AWSSecretKey },
+        region,
+        status,
+        speed,
+      },
+    } = this.props;
+
+    if (
+      id !== nextProps.proxy.id ||
+      proxy !== nextProps.proxy.proxy ||
+      AWSAccessKey !== nextProps.proxy.credentials.AWSAccessKey ||
+      AWSSecretKey !== nextProps.proxy.credentials.AWSSecretKey ||
+      region !== nextProps.proxy.region ||
+      status !== nextProps.proxy.status ||
+      speed !== nextProps.proxy.speed
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   render() {
     const {
-      key,
       proxy: {
         id,
         proxy,
@@ -34,7 +60,7 @@ export class ProxyLogRowPrimitive extends PureComponent {
 
     return (
       <div
-        key={key}
+        key={id}
         className="proxy-row-container col col--no-gutter"
         data-testid={addTestId('ProxyLowRow.container')}
       >
@@ -65,15 +91,8 @@ export class ProxyLogRowPrimitive extends PureComponent {
             className="col col--no-gutter proxy-log__row--ip"
             data-testid={addTestId('ProxyLogRow.ip')}
           >
-            {proxy ? `${proxy.split(':')[0]}` : 'Unassigned'}
+            {proxy ? `${proxy.split(':')[0]}` : 'Not assigned'}
           </div>
-          {/* TODO: Add this in later... */}
-          {/* <div
-        className="col col--no-gutter proxy-log__row--charges"
-        data-testid={addTestId('ProxyLogRow.charges')}
-      >
-        {charges}
-      </div> */}
           <div
             className="col col--no-gutter proxy-log__row--speed"
             data-testid={addTestId('ProxyLogRow.speed')}
