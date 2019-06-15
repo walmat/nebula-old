@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 
 import {
   TASK_ACTIONS,
+  SERVER_ACTIONS,
   PROFILE_ACTIONS,
   SETTINGS_FIELDS,
   mapSettingsFieldToKey,
@@ -37,6 +38,31 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
+    case SERVER_ACTIONS.DESTROY_PROXIES: {
+      if (!action || !action.response) {
+        break;
+      }
+
+      if (!window.Bridge) {
+        break;
+      }
+
+      const { proxies } = action.response;
+      const tasksToStop = [];
+      nextState.forEach(task => {
+        if (proxies.includes(task.proxy)) {
+          tasksToStop.push(task);
+        }
+      });
+
+      if (!tasksToStop.length) {
+        break;
+      }
+
+      window.Bridge.stopTasks(tasksToStop);
+      nextState = nextState.filter(t => !tasksToStop.includes(t));
+      break;
+    }
     // patch to check for settings updates
     case SETTINGS_ACTIONS.FETCH_SHIPPING: {
       if (

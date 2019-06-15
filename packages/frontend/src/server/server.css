@@ -387,7 +387,8 @@
   overflow-x: hidden;
 }
 .server .server-table__wrapper {
-  padding: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
   min-width: 0;
   width: 100%;
   overflow: hidden;
@@ -441,7 +442,6 @@
 .server .server-table .proxy-row-container .proxy-log {
   display: flex;
   height: 30px;
-  margin-top: -2px;
 }
 .server .server-table .proxy-row-container .proxy-log__row {
   margin-top: -2px;
@@ -451,7 +451,8 @@
   margin-left: 14.5px !important;
   margin-right: 6.5px !important;
 }
-.server .server-table .proxy-row-container .proxy-log__row--status > svg, .server .server-table .proxy-row-container .proxy-log__row--status * {
+.server .server-table .proxy-row-container .proxy-log__row--status > svg,
+.server .server-table .proxy-row-container .proxy-log__row--status * {
   width: 9px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--account {
@@ -464,21 +465,28 @@
   width: 105px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--speed {
-  width: 88px;
+  width: 70px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions {
+  margin-right: 18px !important;
   width: 105px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions__button {
   padding-bottom: 2px;
-  margin-right: 4px;
   width: 16px;
 }
-.server .server-table .proxy-row-container .proxy-log__row--actions__button:nth-child(1) {
-  margin-left: 2px;
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:first-child {
+  margin-top: 1px;
+  margin-right: 3.5px !important;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions__button:nth-child(2) {
-  margin-bottom: 2px;
+  margin-top: 1px;
+}
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:nth-child(3) {
+  margin-top: 1px;
+}
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:last-child {
+  margin-top: 1px;
 }
 
 .view-line {

@@ -34,13 +34,14 @@ export class ProxyLogPrimitive extends Component {
 
     return (
       <ScrollableFeed>
-        {proxies.map(p => <ProxyLogRow key={p.id} proxy={p} />)}
+        {proxies.map(p => (
+          <ProxyLogRow key={p.id} proxy={p} />
+        ))}
       </ScrollableFeed>
     );
   }
 
   render() {
-    console.log('updating proxy log component');
     return (
       <div className="col col--gutter col--expand server-log">
         <div className="row row--gutter row--start">

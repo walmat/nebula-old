@@ -188,7 +188,6 @@ export class AWSCredentialsPrimitive extends Component {
       ({ loggedIn, AWSAccessKey, AWSSecretKey } = current);
     }
 
-    console.log('updating credentials component');
     return (
       <div className="server-credentials col col--start col--no-gutter">
         <div className="row row--start row--gutter">

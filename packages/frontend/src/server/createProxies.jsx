@@ -124,8 +124,6 @@ export class CreateProxiesPrimitive extends Component {
       ({ loggedIn } = credentials);
     }
 
-    console.log('updating create proxies component');
-
     return (
       <div className="proxy-options col col--start col--no-gutter">
         <div className="row row--start row--gutter">

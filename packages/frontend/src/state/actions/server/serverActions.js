@@ -303,9 +303,8 @@ const _stopProxyRequest = async (options, proxy, credentials) =>
     }
   });
 
-const _testProxyRequest = async (options, proxy) =>
+const _testProxyRequest = async (url, proxy) =>
   new Promise(async (resolve, reject) => {
-    const { url } = options;
     const start = performance.now();
     const [ip, port, user, pass] = proxy.split(':');
     const res = await fetch(url, { agent: new Agent(`http://${user}:${pass}@${ip}:${port}`) });
@@ -314,7 +313,7 @@ const _testProxyRequest = async (options, proxy) =>
       reject(new Error('Unable to connect'));
     }
 
-    resolve({ speed: stop - start, proxy });
+    resolve({ speed: (stop - start).toFixed(2), proxy });
   });
 
 const _testProxiesRequest = async (options, proxies) =>
@@ -416,8 +415,8 @@ const destroyProxies = (options, proxies, credentials) => dispatch =>
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error)),
   );
 
-const testProxy = (options, proxy) => dispatch =>
-  _testProxyRequest(options, proxy).then(
+const testProxy = (url, proxy) => dispatch =>
+  _testProxyRequest(url, proxy).then(
     response => dispatch(_testProxy(response)),
     error => dispatch(handleError(SERVER_ACTIONS.TEST_PROXIES, error)),
   );

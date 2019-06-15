@@ -121,7 +121,6 @@ export function serverReducer(state = initialServerStates, action) {
         break;
       }
       case SERVER_ACTIONS.GEN_PROXIES: {
-        console.log(action.error);
         nextState.proxyOptions.status = action.error.message || 'Unable to generate';
         break;
       }
@@ -146,6 +145,25 @@ export function serverReducer(state = initialServerStates, action) {
     }
     const { InstanceIds } = action.response;
     nextState.proxies = nextState.proxies.filter(p => InstanceIds.includes(p));
+  } else if (action.type === SERVER_ACTIONS.TEST_PROXY) {
+    if (
+      !action ||
+      !action.response ||
+      (action.response && !action.response.speed) ||
+      (action.response && !action.response.proxy)
+    ) {
+      return nextState;
+    }
+
+    const { speed, proxy } = action.response;
+
+    const index = nextState.proxies.findIndex(p => p.proxy === proxy);
+
+    if (index === -1) {
+      return nextState;
+    }
+
+    nextState.proxies[index].speed = speed;
   } else if (action.type === SERVER_ACTIONS.VALIDATE_AWS) {
     if (
       !action ||
