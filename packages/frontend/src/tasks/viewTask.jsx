@@ -1,3 +1,4 @@
+/* eslint-disable no-return-assign */
 import React, { Component, memo } from 'react';
 import { List, AutoSizer } from 'react-virtualized';
 import { connect } from 'react-redux';
@@ -11,12 +12,19 @@ export class ViewTaskPrimitive extends Component {
     this.renderRow = this.renderRow.bind(this);
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps !== this.props) {
+      this.tasks.forceUpdateGrid();
+    }
+  }
+
   createTable() {
     const { tasks } = this.props;
     return (
       <AutoSizer>
         {({ width, height }) => (
           <List
+            ref={r => (this.tasks = r)}
             width={width}
             height={height}
             rowHeight={30}

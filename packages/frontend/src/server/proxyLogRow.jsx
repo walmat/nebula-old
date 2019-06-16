@@ -103,7 +103,7 @@ export class ProxyLogRowPrimitive extends Component {
             className="col col--no-gutter proxy-log__row--actions"
             data-testid={addTestId('ProxyLogRow.actions')}
           >
-            <div className="row row--gutter">
+            <div className="row row--gutter proxy-log__row--actions__margin">
               <div
                 className="col col--no-gutter proxy-log__row--actions__button"
                 onClick={() => onTestProxy('https://kith.com', proxy)}
@@ -112,24 +112,6 @@ export class ProxyLogRowPrimitive extends Component {
                 onKeyPress={() => {}}
               >
                 {renderSvgIcon(Test)}
-              </div>
-              <div
-                className="col col--no-gutter proxy-log__row--actions__button"
-                onClick={() => onStartProxy({ id }, { AWSAccessKey, AWSSecretKey })}
-                role="button"
-                tabIndex={0}
-                onKeyPress={() => {}}
-              >
-                {renderSvgIcon(Start)}
-              </div>
-              <div
-                className="col col--no-gutter proxy-log__row--actions__button"
-                onClick={() => onStopProxy({ id }, { AWSAccessKey, AWSSecretKey })}
-                role="button"
-                tabIndex={0}
-                onKeyPress={() => {}}
-              >
-                {renderSvgIcon(Stop)}
               </div>
               <div
                 className="col col--no-gutter proxy-log__row--actions__button"

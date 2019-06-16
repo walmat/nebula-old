@@ -465,11 +465,14 @@
   width: 105px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--speed {
-  width: 70px;
+  width: 72px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions {
-  margin-right: 18px !important;
+  margin-right: 15px !important;
   width: 105px;
+}
+.server .server-table .proxy-row-container .proxy-log__row--actions__margin {
+  margin: 0 25px 0 25px !important;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions__button {
   padding-bottom: 2px;

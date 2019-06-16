@@ -13,4 +13,3 @@ store.dispatch(globalActions.migrateState());
 
 ReactDOM.render(createApp(store), document.getElementById('root'));
 // registerServiceWorker();
-

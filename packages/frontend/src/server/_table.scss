@@ -158,13 +158,17 @@
 
           &--speed {
             @extend %proxy-log__field;
-            width: 70px;
+            width: 72px;
           }
 
           &--actions {
             @extend %proxy-log__field;
-            margin-right: 18px !important;
+            margin-right: 15px !important;
             width: 105px;
+
+            &__margin {
+              margin: 0 25px 0 25px !important;
+            }
 
             &__button {
               padding-bottom: 2px;

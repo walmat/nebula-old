@@ -34,7 +34,7 @@ export class App extends PureComponent {
       e.preventDefault();
       if (window.Bridge) {
         const confirm = await window.Bridge.showDialog(
-          'Are you sure you want to deactivate Orion? Doing so will erase all data!',
+          'Are you sure you want to deactivate? Doing so will erase all data!',
           'question',
           ['Okay', 'Cancel'],
           'Confirm',

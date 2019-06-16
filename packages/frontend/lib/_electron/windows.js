@@ -33,7 +33,7 @@ const _createWindow = options => {
   const win = new Electron.BrowserWindow(browserWindowOptions);
 
   const filter = {
-    urls: ['https://*.amazonaws.com'],
+    urls: ['https://*.amazonaws.com', 'https://*.kith.com'],
   };
 
   // Attach CSP Header by Default

@@ -6,7 +6,7 @@ import { newTaskReducer, selectedTaskReducer } from './reducers/tasks/taskReduce
 import taskListReducer from './reducers/tasks/taskListReducer';
 import { currentProfileReducer, selectedProfileReducer } from './reducers/profiles/profileReducer';
 import profileListReducer from './reducers/profiles/profileListReducer';
-import { serverReducer, serverListReducer } from './reducers/server/serverReducer';
+import { serverReducer } from './reducers/server/serverReducer';
 import settingsReducer from './reducers/settings/settingsReducer';
 import navbarReducer from './reducers/navbar/navbarReducer';
 import { GLOBAL_ACTIONS } from './actions';

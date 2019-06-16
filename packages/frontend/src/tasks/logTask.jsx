@@ -7,18 +7,6 @@ import tDefns from '../utils/definitions/taskDefinitions';
 import { addTestId } from '../utils';
 
 export class LogTaskPrimitive extends Component {
-  // static massLinkChange() {
-  //   if (window.Bridge) {
-  //     // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
-  //   }
-  // }
-
-  // static massPasswordChange() {
-  //   if (window.Bridge) {
-  //     // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
-  //   }
-  // }
-
   static renderOutputLogRow(msg, i) {
     const outputColorMap = {
       'Waiting for captcha': 'warning',
@@ -44,16 +32,13 @@ export class LogTaskPrimitive extends Component {
       fullscreen: false, // fullscreen toggle
       selected: [], // list of selected tasks
       focused: '', // task in focused (used for showing the log data)
-      tasks: [],
     };
   }
 
   componentWillReceiveProps(nextProps) {
-    const { tasks } = this.state;
-    const running = nextProps.tasks.filter(t => t.status === 'running');
-
-    if (tasks.length !== running.length) {
-      this.setState({ tasks: running });
+    if (this.props !== nextProps) {
+      console.log(nextProps);
+      this.props = nextProps;
       this.list.forceUpdateGrid();
     }
   }
@@ -103,9 +88,12 @@ export class LogTaskPrimitive extends Component {
   }
 
   createTable() {
-    const { focused, selected, tasks } = this.state;
+    const { tasks } = this.props;
+    const { focused, selected } = this.state;
 
-    if (!tasks.length && (focused || selected.length)) {
+    console.log(tasks, selected);
+
+    if (!tasks || (!tasks.length && (focused || selected.length))) {
       this.setState({
         selected: [],
         focused: '',
@@ -117,7 +105,7 @@ export class LogTaskPrimitive extends Component {
         {({ width, height }) => (
           <List
             // eslint-disable-next-line no-return-assign
-            ref={ref => (this.list = ref)}
+            ref={r => (this.list = r)}
             width={width}
             height={height}
             rowHeight={30}
@@ -130,34 +118,8 @@ export class LogTaskPrimitive extends Component {
     );
   }
 
-  // renderMassChangeOptions() {
-  //   const { selected, focused } = this.state;
-
-  //   if (focused || selected.length) {
-  //     return (
-  //       <div>
-  //         <button
-  //           type="button"
-  //           className="tasks-log__button--links"
-  //           onClick={() => LogTaskPrimitive.massLinkChange()}
-  //         >
-  //           Mass Link
-  //         </button>
-  //         <button
-  //           type="button"
-  //           className="tasks-log__button--password"
-  //           onClick={() => LogTaskPrimitive.massPasswordChange()}
-  //         >
-  //           Password
-  //         </button>
-  //       </div>
-  //     );
-  //   }
-  //   return null;
-  // }
-
   renderRow({ index, key, style }) {
-    const { tasks } = this.state;
+    const { tasks } = this.props;
     const { fullscreen, selected } = this.state;
 
     const selectedMap = {};
@@ -291,7 +253,7 @@ LogTaskPrimitive.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  tasks: state.tasks,
+  tasks: state.tasks.filter(t => t.status === 'running'),
 });
 
 export default memo(connect(mapStateToProps)(LogTaskPrimitive));

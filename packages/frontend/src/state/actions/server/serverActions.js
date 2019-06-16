@@ -305,24 +305,6 @@ const _waitUntilTerminated = async (options, { InstanceIds, proxies }, credentia
     resolve({ InstanceIds, proxies });
   });
 
-const _stopProxyRequest = async (options, proxy, credentials) =>
-  new Promise(async (resolve, reject) => {
-    AWS.config = new AWS.Config({
-      accessKeyId: credentials.label,
-      secretAccessKey: credentials.value,
-      region: options.location.value,
-    });
-    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
-
-    try {
-      const InstanceIds = [proxy.id];
-      await ec2.stopInstances({ InstanceIds }).promise();
-      resolve({ InstanceIds });
-    } catch (error) {
-      reject(new Error('Unable to stop proxy'));
-    }
-  });
-
 const _testProxyRequest = async (url, proxy) =>
   new Promise(async (resolve, reject) => {
     const start = performance.now();
@@ -368,7 +350,6 @@ const _destroyProxiesRequest = async (options, proxies, credentials) =>
       await ec2.terminateInstances({ InstanceIds }).promise();
       resolve({ InstanceIds, proxies: proxies.map(p => p.proxy) });
     } catch (error) {
-      console.log(error);
       if (/not exist/i.test(error)) {
         resolve({ InstanceIds, proxies: proxies.map(p => p.proxy) });
       }

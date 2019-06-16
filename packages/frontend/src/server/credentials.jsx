@@ -133,16 +133,14 @@ export class AWSCredentialsPrimitive extends Component {
     );
 
     if (confirm) {
-
       const proxiesToDestroy = groupBy(proxies, 'region');
 
       if (Object.values(proxiesToDestroy).length) {
-        Object.entries(proxiesToDestroy).forEach(([region, proxies]) => {
-          onDestroyProxies(
-            { location: { value: region }},
-            proxies,
-            { label: current.AWSAccessKey, value: current.AWSSecretKey },
-          );
+        Object.entries(proxiesToDestroy).forEach(([region, running]) => {
+          onDestroyProxies({ location: { value: region } }, running, {
+            label: current.AWSAccessKey,
+            value: current.AWSSecretKey,
+          });
         });
       }
 
@@ -315,6 +313,7 @@ AWSCredentialsPrimitive.propTypes = {
   credentials: defns.credentials.isRequired,
   onValidateAws: PropTypes.func.isRequired,
   onLogoutAws: PropTypes.func.isRequired,
+  onDestroyProxies: PropTypes.func.isRequired,
   onHandleError: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
@@ -354,7 +353,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default memo(connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(AWSCredentialsPrimitive));
+export default memo(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(AWSCredentialsPrimitive),
+);
