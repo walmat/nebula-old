@@ -1,8 +1,8 @@
 export default {
   'us-east-1': 'ami-024a64a6685d05041',
-  'us-east-2': 'ami-04768381bf606e2b3',
-  'us-west-1': 'ami-063dd30adbb186909',
-  'us-west-2': 'ami-07a0c6e669965bb7c',
+  'us-east-2': 'ami-0c55b159cbfafe1f0',
+  'us-west-1': 'ami-06397100adf427136',
+  'us-west-2': 'ami-005bdb005fb00e791',
   'ap-south-1': '',
   'ap-northeast-2': '',
   'ap-northeast-3': '',

@@ -138,13 +138,8 @@ export function serverReducer(state = initialServerStates, action) {
       return nextState;
     }
 
-    console.log(response);
-
     response.forEach(instance => {
-      console.log(instance);
       const index = nextState.proxies.findIndex(i => i.id === instance.id);
-
-      console.log(index);
       if (index === -1) {
         nextState.proxies.push(instance);
         return;
@@ -157,7 +152,16 @@ export function serverReducer(state = initialServerStates, action) {
       return nextState;
     }
     const { InstanceIds } = action.response;
-    nextState.proxies = nextState.proxies.filter(p => InstanceIds.includes(p));
+
+    if (!action.done) {
+      nextState.proxies.forEach(p => {
+        if (InstanceIds.some(i => i === p.id)) {
+          p.status = 'pending';
+        }
+      });
+      return nextState;
+    }
+    nextState.proxies = nextState.proxies.filter(p => !InstanceIds.some(i => i === p.id));
   } else if (action.type === SERVER_ACTIONS.TEST_PROXY) {
     if (
       !action ||

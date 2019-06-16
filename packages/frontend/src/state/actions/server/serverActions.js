@@ -20,37 +20,6 @@ export const SERVER_ACTIONS = {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-const _getKeyPair = async (access, secret, region) => {
-  AWS.config = new AWS.Config({
-    accessKeyId: access,
-    secretAccessKey: secret,
-    region,
-  });
-  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
-
-  let keyPair;
-  try {
-    const keyPairs = await ec2.describeKeyPairs({ KeyNames: ['nebula'] }).promise();
-    keyPair = keyPairs.KeyPairs.find(kp => kp.KeyName === 'nebula');
-    if (!keyPair) {
-      keyPair = await ec2.createKeyPair({ KeyName: 'nebula' }).promise();
-    }
-    return keyPair;
-  } catch (error) {
-    if (error.status !== 404 && !/not exist/i.test(error)) {
-      throw new Error('Unable to create key pair');
-    }
-
-    keyPair = await ec2.createKeyPair({ KeyName: 'nebula' }).promise();
-
-    if (keyPair) {
-      return keyPair;
-    }
-
-    throw new Error('Unable to create key pair');
-  }
-};
-
 const _getSecurityGroup = async (access, secret, region, name) => {
   AWS.config = new AWS.Config({
     accessKeyId: access,
@@ -313,6 +282,30 @@ const _waitUntilRunning = async (options, instances, credentials) =>
     resolve(proxies);
   });
 
+const _waitUntilTerminated = async (options, { InstanceIds, proxies }, credentials) =>
+  new Promise(async (resolve, reject) => {
+    const { label: accessKeyId, value: secretAccessKey } = credentials;
+
+    const {
+      location: { value: region },
+    } = options;
+
+    AWS.config = new AWS.Config({
+      accessKeyId,
+      secretAccessKey,
+      region,
+    });
+    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+    console.log(InstanceIds);
+    const proxyInstances = await ec2.waitFor('instanceTerminated', { InstanceIds }).promise();
+
+    if (!proxyInstances.Reservations.length) {
+      reject(new Error('Instances not reserved'));
+    }
+
+    resolve({ InstanceIds, proxies });
+  });
+
 const _stopProxyRequest = async (options, proxy, credentials) =>
   new Promise(async (resolve, reject) => {
     AWS.config = new AWS.Config({
@@ -408,8 +401,8 @@ const _validateAwsRequest = async awsCredentials =>
   });
 
 // Private Actions
-const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'response');
-const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'response');
+const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'response', 'done');
+const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'response', 'done');
 const _testProxy = makeActionCreator(SERVER_ACTIONS.TEST_PROXY, 'response');
 const _testProxies = makeActionCreator(SERVER_ACTIONS.TEST_PROXIES, 'response');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'response');
@@ -430,9 +423,9 @@ const _handleError = (action, error) => async dispatch => {
 const generateProxies = (proxyOptions, credentials) => dispatch =>
   _generateProxiesRequest(proxyOptions, credentials).then(
     async proxies => {
-      dispatch(_generateProxies(proxies));
+      dispatch(_generateProxies(proxies, false));
       const instances = await _waitUntilRunning(proxyOptions, proxies, credentials);
-      dispatch(_generateProxies(instances));
+      dispatch(_generateProxies(instances, true));
     },
     async error => {
       dispatch(handleError(SERVER_ACTIONS.GEN_PROXIES, error, false));
@@ -443,7 +436,11 @@ const generateProxies = (proxyOptions, credentials) => dispatch =>
 
 const destroyProxies = (options, proxies, credentials) => dispatch =>
   _destroyProxiesRequest(options, proxies, credentials).then(
-    instances => dispatch(_destroyProxies(instances)),
+    async instances => {
+      dispatch(_destroyProxies(instances, false));
+      const data = await _waitUntilTerminated(options, instances, credentials);
+      dispatch(_destroyProxies(data, true));
+    },
     error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error)),
   );
 

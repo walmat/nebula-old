@@ -32,6 +32,14 @@ export class ProxyListPrimitive extends Component {
     };
   }
 
+  componentWillReceiveProps(nextProps) {
+    const { proxies } = this.props;
+
+    if (proxies !== nextProps.proxies) {
+      this.setState({ proxies });
+    }
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const { reduxUpdate, editing } = this.state;
 

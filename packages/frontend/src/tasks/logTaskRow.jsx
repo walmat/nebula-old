@@ -87,4 +87,4 @@ LogTaskRow.propTypes = {
   fullscreen: PropTypes.bool.isRequired,
 };
 
-export default LogTaskRow;
+export default memo(LogTaskRow);

@@ -54,6 +54,7 @@ export class LogTaskPrimitive extends Component {
 
     if (tasks !== running) {
       this.setState({ tasks: running });
+      this.list.forceUpdateGrid();
     }
   }
 
@@ -115,6 +116,8 @@ export class LogTaskPrimitive extends Component {
       <AutoSizer>
         {({ width, height }) => (
           <List
+            // eslint-disable-next-line no-return-assign
+            ref={ref => (this.list = ref)}
             width={width}
             height={height}
             rowHeight={30}

@@ -170,10 +170,13 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     // TODO: Handle error
     console.error(`Error trying to perform: ${action.action}! ${action.error}`);
   } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
-    if (!action || !action.response) {
+    if (!action || !action.response || !action.done) {
       return Object.assign({}, state, change);
     }
-    const proxies = action.response.map(i => i.proxy);
+
+    const { response } = action;
+
+    const proxies = response.map(i => i.proxy);
 
     if (window.Bridge) {
       window.Bridge.addProxies(proxies);
