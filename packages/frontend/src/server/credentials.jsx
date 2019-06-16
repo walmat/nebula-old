@@ -1,7 +1,9 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { groupBy } from 'underscore';
+
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, mapServerFieldToKey, serverActions } from '../state/actions';
 import { DropdownIndicator, colourStyles } from '../utils/styles/select';
@@ -19,9 +21,6 @@ export class AWSCredentialsPrimitive extends Component {
 
   constructor(props) {
     super(props);
-    this.logoutAws = this.logoutAws.bind(this);
-    this.validateAws = this.validateAws.bind(this);
-    this.buildCredentialsOptions = this.buildCredentialsOptions.bind(this);
 
     this.fieldMap = {
       [SERVER_FIELDS.EDIT_AWS_ACCESS_KEY]: 'isEditingAccess',
@@ -33,6 +32,9 @@ export class AWSCredentialsPrimitive extends Component {
       isEditingSecret: false,
     };
 
+    this.logoutAws = this.logoutAws.bind(this);
+    this.validateAws = this.validateAws.bind(this);
+    this.buildCredentialsOptions = this.buildCredentialsOptions.bind(this);
     this.onBlurHandler = this.onBlurHandler.bind(this);
     this.onFocusHandler = this.onFocusHandler.bind(this);
     this.onChangeHandler = this.onChangeHandler.bind(this);
@@ -118,6 +120,7 @@ export class AWSCredentialsPrimitive extends Component {
       'Are you sure you want to log out? Doing so will stop any currently running tasks associated with the proxies, as well as destroy those generated proxies.';
     const {
       onLogoutAws,
+      onDestroyProxies,
       proxies,
       credentials: { current },
     } = this.props;
@@ -130,7 +133,21 @@ export class AWSCredentialsPrimitive extends Component {
     );
 
     if (confirm) {
-      onLogoutAws(proxies, current);
+
+      const proxiesToDestroy = groupBy(proxies, 'region');
+
+      if (Object.values(proxiesToDestroy).length) {
+        Object.entries(proxiesToDestroy).forEach(([region, proxies]) => {
+          console.log(region, proxies);
+          onDestroyProxies(
+            { location: { value: region }},
+            proxies,
+            { label: current.AWSAccessKey, value: current.AWSSecretKey },
+          );
+        });
+      }
+
+      onLogoutAws(current);
     }
   }
 
@@ -327,6 +344,9 @@ export const mapDispatchToProps = dispatch => ({
   onValidateAws: credentials => {
     dispatch(serverActions.validateAws(credentials));
   },
+  onDestroyProxies: (options, proxies, credentials) => {
+    dispatch(serverActions.destroyProxies(options, proxies, credentials));
+  },
   onLogoutAws: (servers, proxies, credentials) => {
     dispatch(serverActions.logoutAws(servers, proxies, credentials));
   },
@@ -335,7 +355,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
+export default memo(connect(
   mapStateToProps,
   mapDispatchToProps,
-)(AWSCredentialsPrimitive);
+)(AWSCredentialsPrimitive));

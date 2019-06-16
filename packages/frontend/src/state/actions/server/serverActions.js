@@ -1,6 +1,6 @@
 import AWS from 'aws-sdk';
-
 import { Agent } from 'https';
+
 import makeActionCreator from '../actionCreator';
 import regexes from '../../../utils/validation';
 import amiMapping from '../../../constants/amiMapping';
@@ -355,7 +355,7 @@ const _testProxiesRequest = async (options, proxies) =>
     resolve(results);
   });
 
-const _destroyProxiesRequest = async (options, proxies, credentials) =>
+const _destroyProxiesRequest = async (options, proxies, credentials) =>  
   new Promise(async (resolve, reject) => {
     AWS.config = new AWS.Config({
       accessKeyId: credentials.label,
@@ -406,9 +406,9 @@ const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'respo
 const _testProxy = makeActionCreator(SERVER_ACTIONS.TEST_PROXY, 'response');
 const _testProxies = makeActionCreator(SERVER_ACTIONS.TEST_PROXIES, 'response');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'response');
-const _logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS, 'credentials');
 
 // Public Actions
+const logoutAws = makeActionCreator(SERVER_ACTIONS.LOGOUT_AWS, 'credentials');
 const selectCredentials = makeActionCreator(SERVER_ACTIONS.SELECT, 'credentials');
 const handleError = makeActionCreator(SERVER_ACTIONS.ERROR, 'action', 'error', 'cleanup');
 const editServer = makeActionCreator(SERVER_ACTIONS.EDIT, 'id', 'field', 'value');
@@ -465,17 +465,6 @@ const validateAws = awsCredentials => dispatch =>
       dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error, true));
     },
   );
-
-const logoutAws = (proxies, credentials) => dispatch =>
-  dispatch(destroyProxies(null, proxies, credentials))
-    .catch(async error => {
-      dispatch(handleError(SERVER_ACTIONS.LOGOUT_AWS, error, false));
-      await wait(750);
-      dispatch(handleError(SERVER_ACTIONS.VALIDATE_AWS, error, true));
-    })
-    .then(() => {
-      dispatch(_logoutAws(credentials));
-    });
 
 export const serverActions = {
   edit: editServer,

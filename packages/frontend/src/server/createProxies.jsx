@@ -30,6 +30,8 @@ export class CreateProxiesPrimitive extends Component {
       isEditingPassword: false,
     };
 
+    this.generate = this.generate.bind(this);
+    this.destroyAll = this.destroyAll.bind(this);
     this.onBlurHandler = this.onBlurHandler.bind(this);
     this.onFocusHandler = this.onFocusHandler.bind(this);
   }
@@ -106,15 +108,45 @@ export class CreateProxiesPrimitive extends Component {
     return opts;
   }
 
+  async destroyAll() {
+    const { proxyOptions: { location, credentials }, onDestroyProxies, proxies } = this.props;
+    
+    let loggedIn = false;
+    if (credentials) {
+      ({ loggedIn } = credentials);
+    }
+
+    const confirm = await window.Bridge.showDialog(
+      `Are you sure you want to destroy all proxies in ${location.label}?`,
+      'question',
+      ['Yes', 'Cancel'],
+      'AWS - Destroy All'
+    );
+
+    if (confirm && loggedIn) {
+      onDestroyProxies({ location }, proxies, credentials);
+    }
+  }
+
+  async generate() {
+    const { proxyOptions: { number, credentials, location, username, password }, onGenerateProxies } = this.props;
+
+    let loggedIn = false;
+    if (credentials) {
+      ({ loggedIn } = credentials);
+    }
+
+    if (loggedIn) {
+      onGenerateProxies({ number, location, username, password }, credentials);
+    }
+  }
+
   render() {
     const {
       theme,
-      proxies,
       proxyOptions: { number, credentials, location, username, password, status },
       serverListOptions,
       onKeyPress,
-      onDestroyProxies,
-      onGenerateProxies,
     } = this.props;
 
     const { isEditingUsername, isEditingPassword } = this.state;
@@ -230,11 +262,7 @@ export class CreateProxiesPrimitive extends Component {
               className="proxy-options__destroy"
               tabIndex={0}
               onKeyPress={onKeyPress}
-              onClick={() => {
-                if (loggedIn) {
-                  onDestroyProxies({ location }, proxies, credentials);
-                }
-              }}
+              onClick={this.destroyAll}
               data-testid={addTestId('CreateProxies.destroy')}
             >
               Destroy All
@@ -247,11 +275,7 @@ export class CreateProxiesPrimitive extends Component {
               tabIndex={0}
               disabled={!loggedIn}
               onKeyPress={onKeyPress}
-              onClick={() => {
-                if (loggedIn) {
-                  onGenerateProxies({ number, location, username, password }, credentials);
-                }
-              }}
+              onClick={this.generate}
               data-testid={addTestId('CreateProxies.generate')}
             >
               Generate

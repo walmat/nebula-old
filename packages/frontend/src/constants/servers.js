@@ -422,7 +422,7 @@ const sizes = [
 const locations = [
   { id: 1, value: 'us-east-1', label: 'US East (N. Virginia)' },
   { id: 2, value: 'us-east-2', label: 'US East (Ohio)' },
-  { id: 3, value: 'us-west-1', label: 'US West (N. California' },
+  { id: 3, value: 'us-west-1', label: 'US West (N. California)' },
   { id: 4, value: 'us-west-2', label: 'US West (Oregon)' },
   { id: 5, value: 'ap-south-1', label: 'Asia Pacific (Mumbai)' },
   { id: 6, value: 'ap-northeast-2', label: 'Asia Pacific (Seoul)' },
