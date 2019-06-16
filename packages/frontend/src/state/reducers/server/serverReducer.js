@@ -124,6 +124,9 @@ export function serverReducer(state = initialServerStates, action) {
         nextState.proxyOptions.status = action.error.message || 'Unable to generate';
         break;
       }
+      case SERVER_ACTIONS.DESTROY_PROXIES: {
+        nextState.proxyOptions.status = action.error.message || 'Unable to destroy';
+      }
       default:
         console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
         break;

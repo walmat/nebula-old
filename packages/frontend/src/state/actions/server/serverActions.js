@@ -296,7 +296,6 @@ const _waitUntilTerminated = async (options, { InstanceIds, proxies }, credentia
       region,
     });
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
-    console.log(InstanceIds);
     const proxyInstances = await ec2.waitFor('instanceTerminated', { InstanceIds }).promise();
 
     if (!proxyInstances.Reservations.length) {
@@ -441,7 +440,11 @@ const destroyProxies = (options, proxies, credentials) => dispatch =>
       const data = await _waitUntilTerminated(options, instances, credentials);
       dispatch(_destroyProxies(data, true));
     },
-    error => dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error)),
+    async error => {
+      dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error, false));
+      await wait(1500);
+      dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error, true));
+    },
   );
 
 const testProxy = (url, proxy) => dispatch =>

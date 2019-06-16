@@ -138,7 +138,6 @@ export class AWSCredentialsPrimitive extends Component {
 
       if (Object.values(proxiesToDestroy).length) {
         Object.entries(proxiesToDestroy).forEach(([region, proxies]) => {
-          console.log(region, proxies);
           onDestroyProxies(
             { location: { value: region }},
             proxies,

@@ -50,7 +50,7 @@ export class CreateProxiesPrimitive extends Component {
       proxies.length !== nextProps.proxies.length ||
       number !== nextProps.proxyOptions.number ||
       JSON.stringify(credentials) !== JSON.stringify(nextProps.proxyOptions.credentials) ||
-      (location && location.id !== nextProps.proxyOptions.location.id) ||
+      location.id !== nextProps.proxyOptions.location.id ||
       username !== nextProps.proxyOptions.username ||
       password !== nextProps.proxyOptions.password ||
       status !== nextProps.proxyOptions.status ||

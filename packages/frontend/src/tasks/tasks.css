@@ -454,10 +454,11 @@
   margin-right: 9.5px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store {
-  width: 116px;
+  width: 106px;
+  margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store--fullscreen {
-  width: 122px;
+  width: 112px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product {
   visibility: hidden;
@@ -465,13 +466,15 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product--fullscreen {
   visibility: visible;
-  width: 126px;
+  width: 116px;
+  margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size {
-  width: 84px;
+  width: 74px;
+  margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size--fullscreen {
-  width: 64px;
+  width: 54px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy {
   visibility: hidden;
@@ -479,10 +482,12 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy--fullscreen {
   visibility: visible;
-  width: 142px;
+  width: 132px;
+  margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
-  width: 241px;
+  width: 231px;
+  margin-right: 10px !important;
 }
 
 /*
