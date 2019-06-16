@@ -52,7 +52,7 @@ export class LogTaskPrimitive extends Component {
     const { tasks } = this.state;
     const running = nextProps.tasks.filter(t => t.status === 'running');
 
-    if (tasks !== running) {
+    if (tasks.length !== running.length) {
       this.setState({ tasks: running });
       this.list.forceUpdateGrid();
     }

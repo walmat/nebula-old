@@ -32,6 +32,10 @@ const _createWindow = options => {
   // Create new window instance
   const win = new Electron.BrowserWindow(browserWindowOptions);
 
+  const filter = {
+    urls: ['https://*.amazonaws.com'],
+  };
+
   // Attach CSP Header by Default
   win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     // The majority of styling is currently inlne, so we have to allow this!
@@ -53,13 +57,14 @@ const _createWindow = options => {
     });
   });
 
-  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+  win.webContents.session.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
     callback({
       requestHeaders: {
         ...details.requestHeaders,
         DNT: 1,
+        origin: 'http://localhost:3000',
         'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) @nebula/orion/1.0.0-beta.6.1 Chrome/66.0.3359.181 Electron/3.1.4 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
         'Content-Language': 'en-US,en;q=0.9',
       },
     });

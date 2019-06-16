@@ -32,7 +32,7 @@
     "private:compile": "yarn run build",
     "private:serve": "babel-node scripts/serve.js",
     "private:watch": "yarn run private:compile -- --source-maps true --watch --skip-initial-build",
-    "private:publish": "build --mac --win -p always",
+    "private:publish": "build --win -p always",
     "publish": "run-s private:clean private:compile private:publish",
     "prod": "cross-env NODE_ENV=production electron .",
     "compile-sass": "./tool/compile_css.sh",

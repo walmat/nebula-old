@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
@@ -50,7 +50,7 @@ export class CreateProxiesPrimitive extends Component {
       proxies.length !== nextProps.proxies.length ||
       number !== nextProps.proxyOptions.number ||
       JSON.stringify(credentials) !== JSON.stringify(nextProps.proxyOptions.credentials) ||
-      location.id !== nextProps.proxyOptions.location.id ||
+      JSON.stringify(location) !== JSON.stringify(nextProps.proxyOptions.location) ||
       username !== nextProps.proxyOptions.username ||
       password !== nextProps.proxyOptions.password ||
       status !== nextProps.proxyOptions.status ||
@@ -109,8 +109,12 @@ export class CreateProxiesPrimitive extends Component {
   }
 
   async destroyAll() {
-    const { proxyOptions: { location, credentials }, onDestroyProxies, proxies } = this.props;
-    
+    const {
+      proxyOptions: { location, credentials },
+      onDestroyProxies,
+      proxies,
+    } = this.props;
+
     let loggedIn = false;
     if (credentials) {
       ({ loggedIn } = credentials);
@@ -120,16 +124,30 @@ export class CreateProxiesPrimitive extends Component {
       `Are you sure you want to destroy all proxies in ${location.label}?`,
       'question',
       ['Yes', 'Cancel'],
-      'AWS - Destroy All'
+      'AWS - Destroy All',
     );
 
     if (confirm && loggedIn) {
-      onDestroyProxies({ location }, proxies, credentials);
+      const proxiesToDestroy = proxies.filter(
+        p =>
+          p.region === location.value &&
+          p.credentials.AWSAccessKey === credentials.label &&
+          p.credentials.AWSSecretKey === credentials.value,
+      );
+
+      if (!proxiesToDestroy.length) {
+        return;
+      }
+
+      onDestroyProxies({ location }, proxiesToDestroy, credentials);
     }
   }
 
   async generate() {
-    const { proxyOptions: { number, credentials, location, username, password }, onGenerateProxies } = this.props;
+    const {
+      proxyOptions: { number, credentials, location, username, password },
+      onGenerateProxies,
+    } = this.props;
 
     let loggedIn = false;
     if (credentials) {
@@ -325,7 +343,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(CreateProxiesPrimitive);
+export default memo(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(CreateProxiesPrimitive),
+);

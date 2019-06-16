@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { addTestId, renderSvgIcon } from '../utils';
@@ -149,7 +149,6 @@ export class ProxyLogRowPrimitive extends Component {
 }
 
 ProxyLogRowPrimitive.propTypes = {
-  key: PropTypes.string.isRequired,
   proxy: sDefns.proxy.isRequired,
   onTestProxy: PropTypes.func.isRequired,
   onStartProxy: PropTypes.func.isRequired,
@@ -158,7 +157,6 @@ ProxyLogRowPrimitive.propTypes = {
 };
 
 export const mapStateToProps = (state, ownProps) => ({
-  key: ownProps.key,
   proxy: ownProps.proxy,
   site: ownProps.site,
 });
@@ -184,7 +182,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ProxyLogRowPrimitive);
+export default memo(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(ProxyLogRowPrimitive),
+);

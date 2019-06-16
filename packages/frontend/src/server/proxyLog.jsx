@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 
@@ -100,4 +100,4 @@ export const mapStateToProps = state => ({
   proxies: state.servers.proxies,
 });
 
-export default connect(mapStateToProps)(ProxyLogPrimitive);
+export default memo(connect(mapStateToProps)(ProxyLogPrimitive));

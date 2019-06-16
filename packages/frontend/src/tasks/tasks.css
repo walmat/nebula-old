@@ -254,12 +254,10 @@
   overflow: hidden;
   display: block;
 }
-.tasks .table--upper {
-  flex-grow: 1;
-}
 .tasks .table--lower {
   flex-grow: 0 !important;
   height: 175px;
+  min-height: 175px;
   width: calc(100% - 16px);
   padding-left: 15px;
   padding-top: 15px;
@@ -427,6 +425,7 @@
   height: 30px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row--selected {
+  width: 100% !important;
   display: flex;
   height: 30px;
 }

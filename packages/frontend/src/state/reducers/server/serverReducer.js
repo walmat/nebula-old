@@ -126,6 +126,7 @@ export function serverReducer(state = initialServerStates, action) {
       }
       case SERVER_ACTIONS.DESTROY_PROXIES: {
         nextState.proxyOptions.status = action.error.message || 'Unable to destroy';
+        break;
       }
       default:
         console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
@@ -222,19 +223,6 @@ export function serverReducer(state = initialServerStates, action) {
     );
     nextState.credentials.current = initialServerStates.credentials.current;
     nextState.credentials.selected = initialServerStates.credentials.selected;
-  } else if (action.type === SERVER_ACTIONS.CONNECT) {
-    nextState.coreServer = {
-      serverOptions: {
-        type: action.serverInfo.type,
-        size: action.serverInfo.size,
-        location: action.serverInfo.location,
-      },
-      awsCredentials: {
-        AWSAccessKey: action.credentials.AWSAccessKey,
-        AWSSecretKey: action.credentials.AWSSecretKey,
-        accessToken: action.credentials.accessToken,
-      },
-    };
   }
 
   return nextState;

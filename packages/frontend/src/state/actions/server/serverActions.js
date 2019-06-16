@@ -354,7 +354,7 @@ const _testProxiesRequest = async (options, proxies) =>
     resolve(results);
   });
 
-const _destroyProxiesRequest = async (options, proxies, credentials) =>  
+const _destroyProxiesRequest = async (options, proxies, credentials) =>
   new Promise(async (resolve, reject) => {
     AWS.config = new AWS.Config({
       accessKeyId: credentials.label,
@@ -362,23 +362,16 @@ const _destroyProxiesRequest = async (options, proxies, credentials) =>
       region: options.location.value,
     });
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
-
-    const proxiesToTerminate = proxies.filter(
-      p =>
-        p.region === options.location.value &&
-        p.credentials.AWSAccessKey === credentials.label &&
-        p.credentials.AWSSecretKey === credentials.value,
-    );
-
-    if (!proxiesToTerminate || !proxiesToTerminate.length) {
-      reject(new Error('No proxies awaiting termniation'));
-    }
+    const InstanceIds = proxies.map(p => p.id);
 
     try {
-      const InstanceIds = proxiesToTerminate.map(p => p.id);
       await ec2.terminateInstances({ InstanceIds }).promise();
-      resolve({ InstanceIds, proxies: proxiesToTerminate.map(p => p.proxy) });
+      resolve({ InstanceIds, proxies: proxies.map(p => p.proxy) });
     } catch (error) {
+      console.log(error);
+      if (/not exist/i.test(error)) {
+        resolve({ InstanceIds, proxies: proxies.map(p => p.proxy) });
+      }
       reject(new Error('Unable to terminate proxies'));
     }
   });

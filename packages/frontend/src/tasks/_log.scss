@@ -64,13 +64,10 @@
     display: block;
   }
 
-  .table--upper {
-    flex-grow: 1;
-  }
-
   .table--lower {
     flex-grow: 0 !important;
     height: 175px;
+    min-height: 175px;
     width: calc(100% - 16px);
     padding-left: 15px;
     padding-top: 15px;
@@ -259,6 +256,7 @@
           @include themify($themes) {
             background-color: themed('liveLogtableRowSelected');
           }
+          width: 100% !important;
           display: flex;
           height: 30px;
         }
