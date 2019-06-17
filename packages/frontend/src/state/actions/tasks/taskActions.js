@@ -208,6 +208,7 @@ export const TASK_FIELDS = {
   EDIT_SITE: 'EDIT_SITE',
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
+  EDIT_AMOUNT: 'EDIT_AMOUNT',
 };
 
 export const taskActions = {
@@ -231,4 +232,5 @@ export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZES]: 'sizes',
+  [TASK_FIELDS.EDIT_AMOUNT]: 'amount',
 };

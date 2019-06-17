@@ -267,88 +267,38 @@ class Checkout {
     const {
       task: {
         site: { url },
-        monitorDelay,
       },
       proxy,
     } = this._context;
 
     this._logger.silly('API CHECKOUT: Parsing access token');
     try {
-      const res = await this._request({
+      const body = await this._request({
         uri: url,
         method: 'GET',
         proxy,
         rejectUnauthorized: false,
-        followAllRedirects: false,
+        followAllRedirects: true, // if we're redirected to the /password page, we can still parse it
         followRedirect: false,
-        resolveWithFullResponse: true,
-        simple: false,
+        resolveWithFullResponse: false,
+        simple: true,
         json: false,
+        gzip: true,
         headers: {
           'User-Agent': userAgent,
         },
       });
 
-      const { statusCode, body, headers } = res;
-
-      const checkStatus = stateForError(
-        {
-          statusCode,
-        },
-        {
-          message: 'Parsing access token',
-          nextState: States.ParseAccessToken,
-        },
+      const [, accessToken] = body.match(
+        /<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/,
       );
-      if (checkStatus) {
-        return checkStatus;
-      }
 
-      const redirectUrl = headers.location;
-      this._logger.silly('API CHECKOUT: Parse access token redirect url: %s', redirectUrl);
-      if (redirectUrl) {
-        if (redirectUrl.indexOf('password') > -1) {
-          await waitForDelay(monitorDelay);
-          return { message: 'Password page', nextState: States.ParseAccessToken };
-        }
-
-        const message = statusCode
-          ? `Parsing access token - (${statusCode})`
-          : 'Parsing access token';
-
-        return { message, nextState: States.Stopped };
-      }
-
-      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      const scriptTags = $('script#shopify-features');
-      this._logger.silly(
-        'CHECKOUT: Parsing %d script tags: %j',
-        scriptTags.length,
-        scriptTags.html(),
-      );
-      if (!scriptTags.length) {
+      if (!accessToken) {
         return { message: 'Invalid Shopify Site', nextState: States.Stopped };
       }
 
-      if (scriptTags.length > 1) {
-        // TODO - maybe try to parse if more than one tag element matches?
-        return { message: 'Invalid Shopify Site', nextState: States.Stopped };
-      }
-
-      let jsonScriptElement;
-      try {
-        jsonScriptElement = JSON.parse(scriptTags.html());
-      } catch (err) {
-        return { message: 'Invalid Shopify Site', nextState: States.Stopped };
-      }
-
-      const { accessToken } = jsonScriptElement;
-      this._logger.silly('CHECKOUT: Parsed access token: %s', accessToken);
-      if (accessToken) {
-        this._context.task.site.apiKey = accessToken;
-        return { message: 'Creating checkout', nextState: States.CreateCheckout };
-      }
-      return { message: 'Invalid Shopify Site', nextState: States.Stopped };
+      this._context.task.site.apiKey = accessToken;
+      return { message: 'Creating checkout', nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Parse Access Token.\n\n %j %j',
@@ -482,6 +432,18 @@ class Checkout {
     }
   }
 
+  async getCtdCookie(jar) {
+    jar._jar.store.getAllCookies((_, cookies) => {
+      for (let i = 0; i < cookies.length; i += 1) {
+        const cookie = cookies[i];
+        if (cookie.key.indexOf('_ctd') > -1) {
+          return cookie;
+        }
+      }
+      return null;
+    });
+  }
+
   /**
    * Handles polling a checkout queue for Shopify
    *
@@ -494,7 +456,7 @@ class Checkout {
   async pollQueue() {
     const {
       task: {
-        site: { url, apiKey },
+        site: { url },
       },
       proxy,
       timers: { monitor },
@@ -511,9 +473,8 @@ class Checkout {
         simple: false,
         json: false,
         headers: {
-          ...getHeaders({ url, apiKey }),
-          'Upgrade-Insecure-Requests': 1,
-          'x-barba': 'yes',
+          'User-Agent': userAgent,
+          Connection: 'Keep-Alive',
         },
       });
 
@@ -534,23 +495,94 @@ class Checkout {
 
       // check server error
       if (statusCode === 400) {
-        return { message: `Polling Queue - (${statusCode})`, nextState: States.PollQueue };
+        return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
       }
+
+      const ctd = await this.getCtdCookie(this._request.jar());
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
       let redirectUrl = null;
       if (statusCode === 302) {
-        [redirectUrl] = headers.location.split('?');
+        redirectUrl = headers.location;
+        if (redirectUrl && redirectUrl.indexOf('throttle') > -1) {
+          return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
+        }
+        if (redirectUrl && redirectUrl.indexOf('_ctd') > -1) {
+          this._logger.silly('CTD COOKIE: %s', ctd);
+          try {
+            const response = await this._request({
+              uri: redirectUrl,
+              method: 'GET',
+              proxy,
+              rejectUnauthorized: false,
+              followRedirect: false,
+              resolveWithFullResponse: false,
+              simple: false,
+              json: false,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+
+            this._logger.silly('NEW QUEUE BODY: %j', response);
+
+            const [, checkoutUrl] = response.match(new RegExp('href=\\"(.*)\\"'));
+
+            if (checkoutUrl && /checkouts/.test(checkoutUrl)) {
+              [, , , this.storeId] = checkoutUrl.split('/');
+              [, , , , , this.checkoutToken] = checkoutUrl.split('/');
+              monitor.start();
+              return { queue: 'done' };
+            }
+          } catch (e) {
+            this._logger.error('Error with getting cookied checkout: %j', e);
+          }
+        }
+        this._logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);
       } else if (statusCode === 200) {
+        if (body === '' || (body && body.length < 2 && ctd)) {
+          try {
+            const response = await this._request({
+              uri: `https://${url}/throttle/queue?_ctd=${ctd}`,
+              method: 'GET',
+              proxy,
+              rejectUnauthorized: false,
+              followRedirect: false,
+              resolveWithFullResponse: false,
+              simple: false,
+              json: false,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+
+            const [, checkoutUrl] = response.match(/href="(.*)>"/);
+
+            if (checkoutUrl) {
+              [, , , this.storeId] = checkoutUrl.split('/');
+              [, , , , , this.checkoutToken] = checkoutUrl.split('/');
+              monitor.start();
+              return { queue: 'done' };
+            }
+          } catch (error) {
+            // fail silently...
+          }
+        }
         const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
         [redirectUrl] = $('input[name="checkout_url"]')
           .val()
           .split('?');
       }
       if (redirectUrl) {
-        [, , , this.storeId] = redirectUrl.split('/');
-        [, , , , , this.checkoutToken] = redirectUrl.split('/');
+        const [redirectNoQs] = redirectUrl.split('?');
+        [, , , this.storeId] = redirectNoQs.split('/');
+        [, , , , , this.checkoutToken] = redirectNoQs.split('/');
+
         monitor.start();
         return { queue: 'done' };
       }

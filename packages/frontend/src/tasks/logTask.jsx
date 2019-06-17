@@ -43,6 +43,18 @@ export class LogTaskPrimitive extends Component {
     };
   }
 
+  shouldComponentUpdate(_, nextState) {
+    const { tasks } = this.props;
+    const { fullscreen } = this.state;
+    const runningTasks = tasks.filter(
+      task => task.status === 'running' || task.status === 'finished',
+    );
+    if (runningTasks.length || fullscreen !== nextState.fullscreen) {
+      return true;
+    }
+    return false;
+  }
+
   selectRow(e, taskId) {
     // let { selected } = this.state;
     const { fullscreen } = this.state;
