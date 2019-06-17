@@ -5,6 +5,14 @@
   "private": true,
   "scripts": {
     "build": "yarn workspaces run build",
+    "ship": "concurrently 'yarn run build:task' 'yarn run pack'",
+    "build:task": "yarn workspace @nebula/task-runner run build",
+    "pack": "yarn workspace @nebula/orion run publish",
+    "start:dev": "concurrently  'yarn start:frontend:dev' 'yarn start:dev-server'",
+    "start:dev-server": "yarn workspace @nebula/orion run dev-server",
+    "start:frontend:dev": "wait-on tcp:3000 && yarn workspace @nebula/orion run dev",
+    "start:frontend:prod": "yarn workspace @nebula/orion run prod",
+    "start:prod": "concurrently 'yarn start:frontend:prod'",
     "ci": "yarn workspaces run ci",
     "lint": "yarn workspaces run lint",
     "test": "yarn workspaces run test",
@@ -25,6 +33,7 @@
     "@babel/preset-react": "^7.0.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^23.6.0",
+    "concurrently": "^4.1.0",
     "cross-env": "^5.2.0",
     "eslint": "5.12.0",
     "eslint-config-airbnb": "^17.1.0",
@@ -42,6 +51,7 @@
     "replace": "^1.1.0",
     "rimraf": "^2.6.3",
     "sass": "^1.17.4",
+    "wait-on": "^3.2.0",
     "yarn": "^1.12.3"
   },
   "resolutions": {
