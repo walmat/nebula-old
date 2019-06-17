@@ -144,10 +144,6 @@ class App {
     return this._taskLauncher;
   }
 
-  get generatorLauncher() {
-    return this._generatorLauncher;
-  }
-
   /**
    * Occurs when a application launched.
    */
