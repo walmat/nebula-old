@@ -37,8 +37,6 @@ export class LogTaskPrimitive extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (this.props !== nextProps) {
-      console.log(nextProps);
-      this.props = nextProps;
       this.list.forceUpdateGrid();
     }
   }
@@ -50,15 +48,6 @@ export class LogTaskPrimitive extends Component {
       return;
     }
 
-    // console.log(e.shiftKey);
-    // TODO: batch select/deselect (issue: #414)
-    // if (taskId && !selected.includes(taskId)) {
-    //   selected.push(taskId);
-    //   this.setState({ focused: taskId });
-    // } else {
-    //   selected = selected.filter(t => t !== taskId);
-    //   this.setState({ focused: selected[selected.length - 1] });
-    // }
     if (taskId === focused) {
       this.setState({ focused: '', selected: [] });
     } else {
@@ -90,8 +79,6 @@ export class LogTaskPrimitive extends Component {
   createTable() {
     const { tasks } = this.props;
     const { focused, selected } = this.state;
-
-    console.log(tasks, selected);
 
     if (!tasks || (!tasks.length && (focused || selected.length))) {
       this.setState({

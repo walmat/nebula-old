@@ -343,7 +343,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(serverActions.validateAws(credentials));
   },
   onDestroyProxies: (options, proxies, credentials) => {
-    dispatch(serverActions.destroyProxies(options, proxies, credentials));
+    dispatch(serverActions.terminateProxies(options, proxies, credentials));
   },
   onLogoutAws: (servers, proxies, credentials) => {
     dispatch(serverActions.logoutAws(servers, proxies, credentials));

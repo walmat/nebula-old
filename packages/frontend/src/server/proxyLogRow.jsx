@@ -10,11 +10,16 @@ import { ReactComponent as Running } from '../_assets/running.svg';
 import { ReactComponent as Pending } from '../_assets/pending.svg';
 import { ReactComponent as Stopped } from '../_assets/stopped.svg';
 import { ReactComponent as Test } from '../_assets/test.svg';
-import { ReactComponent as Start } from '../_assets/start.svg';
-import { ReactComponent as Stop } from '../_assets/stop.svg';
 import { ReactComponent as Terminate } from '../_assets/destroy.svg';
 
 export class ProxyLogRowPrimitive extends Component {
+  constructor(props) {
+    super(props);
+
+    this.test = this.test.bind(this);
+    this.terminate = this.terminate.bind(this);
+  }
+
   shouldComponentUpdate(nextProps) {
     const {
       proxy: {
@@ -42,20 +47,45 @@ export class ProxyLogRowPrimitive extends Component {
     return false;
   }
 
+  test() {
+    const {
+      proxy: { proxy, status },
+      onTestProxy,
+    } = this.props;
+
+    if (status === 'running') {
+      onTestProxy('https://kith.com', proxy);
+    }
+  }
+
+  terminate() {
+    const {
+      proxy: {
+        id,
+        proxy,
+        region,
+        credentials: { AWSAccessKey, AWSSecretKey },
+      },
+      onTerminateProxy,
+    } = this.props;
+
+    onTerminateProxy(
+      { location: { value: region } },
+      { id, proxy },
+      { label: AWSAccessKey, value: AWSSecretKey },
+    );
+  }
+
   render() {
     const {
       proxy: {
         id,
         proxy,
-        credentials: { AWSAccessKey, AWSSecretKey },
+        credentials: { AWSAccessKey },
         region,
         status,
         speed,
       },
-      onTestProxy,
-      onStopProxy,
-      onStartProxy,
-      onTerminateProxy,
     } = this.props;
 
     return (
@@ -106,7 +136,7 @@ export class ProxyLogRowPrimitive extends Component {
             <div className="row row--gutter proxy-log__row--actions__margin">
               <div
                 className="col col--no-gutter proxy-log__row--actions__button"
-                onClick={() => onTestProxy('https://kith.com', proxy)}
+                onClick={this.test}
                 role="button"
                 tabIndex={0}
                 onKeyPress={() => {}}
@@ -115,7 +145,7 @@ export class ProxyLogRowPrimitive extends Component {
               </div>
               <div
                 className="col col--no-gutter proxy-log__row--actions__button"
-                onClick={() => onTerminateProxy({ id }, { AWSAccessKey, AWSSecretKey })}
+                onClick={this.terminate}
                 role="button"
                 tabIndex={0}
                 onKeyPress={() => {}}
@@ -133,8 +163,6 @@ export class ProxyLogRowPrimitive extends Component {
 ProxyLogRowPrimitive.propTypes = {
   proxy: sDefns.proxy.isRequired,
   onTestProxy: PropTypes.func.isRequired,
-  onStartProxy: PropTypes.func.isRequired,
-  onStopProxy: PropTypes.func.isRequired,
   onTerminateProxy: PropTypes.func.isRequired,
 };
 
@@ -147,20 +175,11 @@ export const mapDispatchToProps = dispatch => ({
   onTestProxy: (url, proxy) => {
     dispatch(serverActions.testProxy({ url }, proxy));
   },
-  onStartProxy: (proxy, credentials) => {
-    dispatch(serverActions.start(proxy, credentials));
-  },
-  onStopProxy: (proxy, credentials) => {
-    dispatch(serverActions.stop(proxy, credentials));
-  },
-  onTerminateProxy: (proxy, credentials) => {
-    dispatch(serverActions.terminate(proxy, credentials));
-  },
   onGenerateProxies: (options, credentials) => {
     dispatch(serverActions.generateProxies(options, credentials));
   },
-  onDestroyProxies: (options, proxies, credentials) => {
-    dispatch(serverActions.destroyProxies(options, proxies, credentials));
+  onTerminateProxy: (options, proxy, credentials) => {
+    dispatch(serverActions.terminateProxy(options, proxy, credentials));
   },
 });
 

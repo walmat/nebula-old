@@ -339,7 +339,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(serverActions.generateProxies(options, credentials));
   },
   onDestroyProxies: (options, proxies, credentials) => {
-    dispatch(serverActions.destroyProxies(options, proxies, credentials));
+    dispatch(serverActions.terminateProxies(options, proxies, credentials));
   },
 });
 

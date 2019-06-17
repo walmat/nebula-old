@@ -151,21 +151,34 @@ export function serverReducer(state = initialServerStates, action) {
 
       nextState.proxies[index] = instance;
     });
-  } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
+  } else if (action.type === SERVER_ACTIONS.TERMINATE_PROXIES) {
     if (!action || !action.response) {
       return nextState;
     }
-    const { InstanceIds } = action.response;
+    const { response, done } = action;
 
-    if (!action.done) {
+    if (!done) {
       nextState.proxies.forEach(p => {
-        if (InstanceIds.some(i => i === p.id)) {
+        if (response.some(i => i.id === p.id)) {
           p.status = 'pending';
         }
       });
       return nextState;
     }
-    nextState.proxies = nextState.proxies.filter(p => !InstanceIds.some(i => i === p.id));
+    nextState.proxies = nextState.proxies.filter(p => !response.some(i => i.id === p.id));
+  } else if (action.type === SERVER_ACTIONS.TERMINATE_PROXY) {
+    if (!action || !action.response) {
+      return nextState;
+    }
+
+    const { response, done } = action;
+
+    if (!done) {
+      const proxy = nextState.proxies.find(p => p.id === response.id);
+      proxy.status = 'pending';
+      return nextState;
+    }
+    nextState.proxies = nextState.proxies.filter(p => !response.some(i => i.id === p.id));
   } else if (action.type === SERVER_ACTIONS.TEST_PROXY) {
     if (
       !action ||

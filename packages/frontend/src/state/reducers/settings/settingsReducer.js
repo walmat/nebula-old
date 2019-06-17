@@ -183,18 +183,34 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     }
 
     change.proxies = proxies.concat(state.proxies);
-  } else if (action.type === SERVER_ACTIONS.DESTROY_PROXIES) {
+  } else if (action.type === SERVER_ACTIONS.TERMINATE_PROXIES) {
     if (!action || !action.response) {
       return Object.assign({}, state, change);
     }
 
-    const { proxies } = action.response;
+    const { response } = action;
+
+    const proxies = response.map(p => p.proxy);
 
     if (window.Bridge) {
       window.Bridge.removeProxies(proxies);
     }
 
     change.proxies = state.proxies.filter(p => !proxies.includes(p));
+  } else if (action.type === SERVER_ACTIONS.TERMINATE_PROXY) {
+    if (!action || !action.response) {
+      return Object.assign({}, state, change);
+    }
+
+    const {
+      response: { proxy },
+    } = action;
+
+    if (window.Bridge) {
+      window.Bridge.removeProxies(proxy);
+    }
+
+    change.proxies = state.proxies.filter(p => p !== proxy);
   }
   return Object.assign({}, state, change);
 }

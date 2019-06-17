@@ -13,7 +13,8 @@ export const SERVER_ACTIONS = {
   TEST_PROXIES: 'TEST_PROXIES',
   ERROR: 'SERVER_HANDLE_ERROR',
   GEN_PROXIES: 'GENERATE_PROXIES',
-  DESTROY_PROXIES: 'DESTROY_PROXIES',
+  TERMINATE_PROXY: 'TERMINATE_PROXY',
+  TERMINATE_PROXIES: 'TERMINATE_PROXIES',
   VALIDATE_AWS: 'VALIDATE_AWS_CREDENTIALS',
   LOGOUT_AWS: 'LOGOUT_AWS',
 };
@@ -282,7 +283,7 @@ const _waitUntilRunning = async (options, instances, credentials) =>
     resolve(proxies);
   });
 
-const _waitUntilTerminated = async (options, { InstanceIds, proxies }, credentials) =>
+const _waitUntilTerminated = async (options, instances, credentials) =>
   new Promise(async (resolve, reject) => {
     const { label: accessKeyId, value: secretAccessKey } = credentials;
 
@@ -295,6 +296,9 @@ const _waitUntilTerminated = async (options, { InstanceIds, proxies }, credentia
       secretAccessKey,
       region,
     });
+
+    const InstanceIds = instances.map(i => i.id);
+
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
     const proxyInstances = await ec2.waitFor('instanceTerminated', { InstanceIds }).promise();
 
@@ -302,7 +306,7 @@ const _waitUntilTerminated = async (options, { InstanceIds, proxies }, credentia
       reject(new Error('Instances not reserved'));
     }
 
-    resolve({ InstanceIds, proxies });
+    resolve(instances);
   });
 
 const _testProxyRequest = async (url, proxy) =>
@@ -336,7 +340,7 @@ const _testProxiesRequest = async (options, proxies) =>
     resolve(results);
   });
 
-const _destroyProxiesRequest = async (options, proxies, credentials) =>
+const _terminateProxiesRequest = async (options, proxies, credentials) =>
   new Promise(async (resolve, reject) => {
     AWS.config = new AWS.Config({
       accessKeyId: credentials.label,
@@ -348,12 +352,32 @@ const _destroyProxiesRequest = async (options, proxies, credentials) =>
 
     try {
       await ec2.terminateInstances({ InstanceIds }).promise();
-      resolve({ InstanceIds, proxies: proxies.map(p => p.proxy) });
+      resolve(proxies.map(p => ({ proxy: p.proxy, id: p.id })));
     } catch (error) {
       if (/not exist/i.test(error)) {
-        resolve({ InstanceIds, proxies: proxies.map(p => p.proxy) });
+        resolve(proxies.map(p => ({ proxy: p.proxy, id: p.id })));
       }
       reject(new Error('Unable to terminate proxies'));
+    }
+  });
+
+const _terminateProxyRequest = async (options, proxy, credentials) =>
+  new Promise(async (resolve, reject) => {
+    AWS.config = new AWS.Config({
+      accessKeyId: credentials.label,
+      secretAccessKey: credentials.value,
+      region: options.location.value,
+    });
+    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+
+    try {
+      await ec2.terminateInstances({ InstanceIds: [proxy.id] }).promise();
+      resolve(proxy);
+    } catch (error) {
+      if (/not exist/i.test(error)) {
+        resolve(proxy);
+      }
+      reject(new Error('Unable to terminate proxy'));
     }
   });
 
@@ -375,7 +399,8 @@ const _validateAwsRequest = async awsCredentials =>
 
 // Private Actions
 const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'response', 'done');
-const _destroyProxies = makeActionCreator(SERVER_ACTIONS.DESTROY_PROXIES, 'response', 'done');
+const _terminateProxies = makeActionCreator(SERVER_ACTIONS.TERMINATE_PROXIES, 'response', 'done');
+const _terminateProxy = makeActionCreator(SERVER_ACTIONS.TERMINATE_PROXY, 'response', 'done');
 const _testProxy = makeActionCreator(SERVER_ACTIONS.TEST_PROXY, 'response');
 const _testProxies = makeActionCreator(SERVER_ACTIONS.TEST_PROXIES, 'response');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'response');
@@ -407,17 +432,31 @@ const generateProxies = (proxyOptions, credentials) => dispatch =>
     },
   );
 
-const destroyProxies = (options, proxies, credentials) => dispatch =>
-  _destroyProxiesRequest(options, proxies, credentials).then(
+const terminateProxies = (options, proxies, credentials) => dispatch =>
+  _terminateProxiesRequest(options, proxies, credentials).then(
     async instances => {
-      dispatch(_destroyProxies(instances, false));
+      dispatch(_terminateProxies(instances, false));
       const data = await _waitUntilTerminated(options, instances, credentials);
-      dispatch(_destroyProxies(data, true));
+      dispatch(_terminateProxies(data, true));
     },
     async error => {
-      dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error, false));
+      dispatch(handleError(SERVER_ACTIONS.TERMINATE_PROXIES, error, false));
       await wait(1500);
-      dispatch(handleError(SERVER_ACTIONS.DESTROY_PROXIES, error, true));
+      dispatch(handleError(SERVER_ACTIONS.TERMINATE_PROXIES, error, true));
+    },
+  );
+
+const terminateProxy = (options, proxy, credentials) => dispatch =>
+  _terminateProxyRequest(options, proxy, credentials).then(
+    async instance => {
+      dispatch(_terminateProxy(instance, false));
+      const data = await _waitUntilTerminated(options, [instance], credentials);
+      dispatch(_terminateProxy(data, true));
+    },
+    async error => {
+      dispatch(handleError(SERVER_ACTIONS.TERMINATE_PROXY, error, false));
+      await wait(1500);
+      dispatch(handleError(SERVER_ACTIONS.TERMINATE_PROXY, error, true));
     },
   );
 
@@ -450,7 +489,8 @@ export const serverActions = {
   testProxy,
   testProxies,
   generateProxies,
-  destroyProxies,
+  terminateProxy,
+  terminateProxies,
   validateAws,
   logoutAws,
 };
