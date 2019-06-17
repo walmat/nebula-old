@@ -82,7 +82,6 @@ window.onbeforeunload = () => {
   handlers.forEach(h => _deregisterForTaskEvents(h));
 };
 
-
 /**
  * Sends task(s) that should be started to launcher.js
  */

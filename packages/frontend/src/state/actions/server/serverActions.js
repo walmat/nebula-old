@@ -300,10 +300,17 @@ const _waitUntilTerminated = async (options, instances, credentials) =>
     const InstanceIds = instances.map(i => i.id);
 
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
-    const proxyInstances = await ec2.waitFor('instanceTerminated', { InstanceIds }).promise();
+    let proxyInstances;
+    try {
+      proxyInstances = await ec2.waitFor('instanceTerminated', { InstanceIds }).promise();
+    } catch (error) {
+      if (/not in state/i.test(error)) {
+        resolve(instances);
+      }
+    }
 
     if (!proxyInstances.Reservations.length) {
-      reject(new Error('Instances not reserved'));
+      reject(new Error('Instances not terminated'));
     }
 
     resolve(instances);

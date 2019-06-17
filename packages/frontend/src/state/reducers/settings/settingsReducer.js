@@ -207,7 +207,7 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
     } = action;
 
     if (window.Bridge) {
-      window.Bridge.removeProxies(proxy);
+      window.Bridge.removeProxies([proxy]);
     }
 
     change.proxies = state.proxies.filter(p => p !== proxy);
