@@ -92,7 +92,7 @@ export class LogTaskPrimitive extends Component {
         {({ width, height }) => (
           <List
             // eslint-disable-next-line no-return-assign
-            ref={r => (this.list = r)}
+            ref={r => { this.list = r }}
             width={width}
             height={height}
             rowHeight={30}
