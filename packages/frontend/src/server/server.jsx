@@ -1,6 +1,5 @@
 import React from 'react';
 
-// components
 import ProxyLog from './proxyLog';
 import Credentials from './credentials';
 import CreateProxies from './createProxies';

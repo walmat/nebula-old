@@ -25,11 +25,30 @@ const initialServersState = {
   },
 };
 
+const {
+  currentProfile,
+  navbar,
+  newTask,
+  profiles,
+  selectedProfile,
+  selectedTask,
+  settings,
+  tasks,
+  theme,
+} = prevState;
+
 const newState = {
-  ...prevState,
+  currentProfile,
+  navbar,
+  newTask,
+  profiles,
+  selectedProfile,
+  selectedTask,
+  settings,
+  tasks,
+  theme,
   version: '0.6.0',
   servers: initialServersState,
 };
 
-delete newState.serverInfo;
 export default newState;

@@ -283,7 +283,7 @@ CreateProxiesPrimitive.propTypes = {
   serverListOptions: defns.serverListOptions.isRequired,
   proxies: defns.proxyList.isRequired,
   proxyOptions: defns.proxyOptions.isRequired,
-  credentials: defns.credentials.isRequired,
+  credentials: defns.awsCredential.isRequired,
   onEditServerInfo: PropTypes.func.isRequired,
   onGenerateProxies: PropTypes.func.isRequired,
   onDestroyProxies: PropTypes.func.isRequired,

@@ -286,7 +286,7 @@ AWSCredentialsPrimitive.propTypes = {
   onEditServerInfo: PropTypes.func.isRequired,
   onSelectCredentials: PropTypes.func.isRequired,
   proxies: defns.proxyList.isRequired,
-  credentials: defns.credentials.isRequired,
+  credentials: defns.awsCredential.isRequired,
   onValidateAws: PropTypes.func.isRequired,
   onLogoutAws: PropTypes.func.isRequired,
   onDestroyProxies: PropTypes.func.isRequired,
