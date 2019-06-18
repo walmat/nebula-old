@@ -35,8 +35,7 @@ export const colourStyles = (theme, provided) => ({
     const backgroundColor = mapThemeToColor[key];
     return {
       ...styles,
-      border: '1px solid',
-      'border-color': (provided && provided.borderColor) || '#46ADB4',
+      borderColor: (provided && provided.borderColor) || '#46ADB4',
       height: '29px',
       minHeight: '29px',
       borderRadius: '3px',
@@ -44,7 +43,7 @@ export const colourStyles = (theme, provided) => ({
       cursor: isDisabled ? 'not-allowed' : 'pointer',
       boxShadow: 'none',
       ':hover': {
-        'border-color': (provided && provided.borderColor) || '#46ADB4',
+        borderColor: (provided && provided.borderColor) || '#46ADB4',
         cursor: 'pointer',
       },
       backgroundColor,
@@ -98,9 +97,9 @@ export const colourStyles = (theme, provided) => ({
     if (isMulti) {
       return {
         ...ret,
-        'overflow-x': 'scroll',
-        'overflow-y': 'hidden',
-        'flex-wrap': 'nowrap',
+        overflowX: 'scroll',
+        overflowY: 'hidden',
+        flexWrap: 'nowrap',
         '::-webkit-scrollbar': {
           width: '0px',
           height: '0px',
