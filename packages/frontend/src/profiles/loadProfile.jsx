@@ -1,4 +1,4 @@
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -7,7 +7,7 @@ import { profileActions } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 import defns from '../utils/definitions/profileDefinitions';
 
-export class LoadProfilePrimitive extends Component {
+export class LoadProfilePrimitive extends PureComponent {
   constructor(props) {
     super(props);
     this.onProfileChange = this.onProfileChange.bind(this);
@@ -137,9 +137,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default memo(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(LoadProfilePrimitive),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(LoadProfilePrimitive);

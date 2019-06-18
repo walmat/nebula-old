@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import NumberFormat from 'react-number-format';
 import PropTypes from 'prop-types';
@@ -9,23 +9,7 @@ import { addTestId } from '../utils';
 
 import './profiles.css';
 
-export class PaymentFieldsPrimitive extends Component {
-  shouldComponentUpdate(nextProps) {
-    const {
-      value: { email, cardNumber, exp, cvv },
-    } = this.props;
-
-    if (
-      email !== nextProps.value.email ||
-      cardNumber !== nextProps.value.cardNumber ||
-      exp !== nextProps.value.exp ||
-      cvv !== nextProps.value.cvv
-    ) {
-      return true;
-    }
-    return false;
-  }
-
+export class PaymentFieldsPrimitive extends PureComponent {
   createOnChangeHandler(field) {
     const { onChange } = this.props;
     if (field === PAYMENT_FIELDS.CARD_NUMBER) {

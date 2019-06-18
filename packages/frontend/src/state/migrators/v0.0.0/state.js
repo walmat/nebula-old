@@ -173,24 +173,44 @@ export default {
   },
   selectedTask: initialTaskState,
   settings: initialSettingsState,
-  // Source: serverList.js @ v1.0.0-beta.6.2
-  servers: {
+  // Source serverInfo.js @ v1.0.0-beta.6.2
+  serverInfo: {
+    // Source: awsCrednetials.js @ v1.0.0-beta.6.2
     credentials: {
-      selected: null,
-      current: null,
-      list: [],
+      AWSAccessKey: '',
+      AWSSecretKey: '',
+      accessToken: null,
+      errors: {},
     },
-    proxies: [],
-    serverListOptions,
+    // Source proxyOptions.js @ v1.0.0-beta.6.2
     proxyOptions: {
-      number: '',
-      credentials: [],
+      numProxies: 0,
       location: null,
       username: '',
       password: '',
-      errors: null,
+      errors: {},
     },
+    // Source: coreServer.js @ v1.0.0-beta.6.2
+    coreServer: {
+      path: null,
+      serverOptions: null,
+      awsCredentials: null,
+      errors: {},
+    },
+    proxies: [],
+    // Source: serverOptions.js @ v1.0.0-beta.6.2
+    serverOptions: {
+      type: null,
+      size: null,
+      location: null,
+      errors: {},
+    },
+    errors: {},
   },
+  // Source: serverList.js @ v1.0.0-beta.6.2
+  servers: [],
+  // Source: utils/servers.js @ v1.0.0-beta.6.2
+  serverListOptions,
   // Source: constants/themes.js @ v1.0.0-beta.6.2
   theme: THEMES.LIGHT,
 };

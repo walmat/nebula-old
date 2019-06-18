@@ -29,19 +29,11 @@ const initialServersState = {
 export default (state = initialState) => {
   const newVersion = semver.gt(state.version, '0.6.0') ? state.version : '0.6.0';
   const newState = {
-    ...state.currentProfile,
-    ...state.navbar,
-    ...state.newTask,
-    ...state.profiles,
-    ...state.selectedProfile,
-    ...state.selectedTask,
-    ...state.servers,
-    ...state.settings,
-    ...state.tasks,
-    ...state.theme,
+    ...state,
     version: newVersion,
     servers: initialServersState,
   };
 
+  delete newState.serverInfo;
   return newState;
 };

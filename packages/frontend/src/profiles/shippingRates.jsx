@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -11,7 +11,7 @@ import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../state/actions';
 
 import './profiles.css';
 
-export class ShippingRatesPrimitive extends Component {
+export class ShippingRatesPrimitive extends PureComponent {
   static renderButton(type, onClick, label) {
     return (
       <button
@@ -41,24 +41,6 @@ export class ShippingRatesPrimitive extends Component {
     };
 
     this.deleteShippingRate = this.deleteShippingRate.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const {
-      value: { rates, selectedSite },
-      theme,
-    } = this.props;
-
-    if (
-      rates.length !== nextProps.value.rates.length ||
-      selectedSite !== nextProps.value.selectedSite ||
-      JSON.stringify(rates) !== JSON.stringify(nextProps.value.rates) ||
-      theme !== nextProps.theme
-    ) {
-      return true;
-    }
-
-    return false;
   }
 
   deleteShippingRate() {

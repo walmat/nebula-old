@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -20,7 +20,7 @@ import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../_assets/Ch
 
 import './profiles.css';
 
-export class LocationFieldsPrimitive extends Component {
+export class LocationFieldsPrimitive extends PureComponent {
   static buildCountryOptions() {
     return getAllCountries().map(country => ({
       value: country.code,
@@ -36,31 +36,6 @@ export class LocationFieldsPrimitive extends Component {
       }));
     }
     return null;
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const {
-      value: { firstName, lastName, address, apt, city, province, zipCode, country, phone },
-      currentProfile: { billingMatchesShipping },
-      theme,
-    } = this.props;
-
-    if (
-      firstName !== nextProps.value.firstName ||
-      lastName !== nextProps.value.lastName ||
-      address !== nextProps.value.address ||
-      apt !== nextProps.value.apt ||
-      city !== nextProps.value.city ||
-      province !== nextProps.value.province ||
-      zipCode !== nextProps.value.zipCode ||
-      country !== nextProps.value.country ||
-      phone !== nextProps.value.phone ||
-      billingMatchesShipping !== nextProps.currentProfile.billingMatchesShipping ||
-      theme !== nextProps.theme
-    ) {
-      return true;
-    }
-    return false;
   }
 
   createOnChangeHandler(field) {

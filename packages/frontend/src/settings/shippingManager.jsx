@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { connect } from 'react-redux';
@@ -13,7 +13,7 @@ import getAllSupportedSitesSorted from '../constants/getAllSites';
 
 import addTestId from '../utils/addTestId';
 
-export class ShippingManagerPrimitive extends Component {
+export class ShippingManagerPrimitive extends PureComponent {
   static createOption(value) {
     const sites = getAllSupportedSitesSorted();
     const exists = sites.find(s => s.value.indexOf(value) > -1);
