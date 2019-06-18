@@ -1,16 +1,16 @@
 import PropTypes from 'prop-types';
 
-export const credential = PropTypes.shape({
+export const awsCredential = PropTypes.shape({
   loggedIn: PropTypes.bool,
   AWSAccessKey: PropTypes.string,
   AWSSecretKey: PropTypes.string,
 });
 
-export const credentials = PropTypes.arrayOf(credential);
+export const credentials = PropTypes.arrayOf(awsCredential);
 
 export default PropTypes.shape({
-  selected: credential,
-  current: credential,
+  selected: awsCredential,
+  current: awsCredential,
   list: credentials,
   errors: PropTypes.objectOf(PropTypes.any), // TODO: define this!
 });

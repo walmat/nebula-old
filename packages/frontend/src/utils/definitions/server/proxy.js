@@ -1,12 +1,12 @@
 import PropTypes from 'prop-types';
-import { credential } from './credentials';
+import { awsCredential } from './awsCredentials';
 
 export default PropTypes.shape({
   id: PropTypes.String,
   proxy: PropTypes.String,
   region: PropTypes.String,
   speed: PropTypes.String,
-  credentials: credential,
+  awsCredential,
   status: PropTypes.String,
   charges: PropTypes.String,
 });

@@ -1,7 +1,7 @@
 import { SERVER_FIELDS, SERVER_ACTIONS } from '../../actions';
 import initialServerStates from '../../initial/servers';
 
-export function serverReducer(state = initialServerStates, action) {
+export default function serverReducer(state = initialServerStates, action) {
   // Deep copy the current state
   const nextState = JSON.parse(JSON.stringify(state));
   // Check if we are performing an edit
@@ -159,8 +159,9 @@ export function serverReducer(state = initialServerStates, action) {
 
     if (!done) {
       nextState.proxies.forEach(p => {
-        if (response.some(i => i.id === p.id)) {
-          p.status = 'pending';
+        const proxy = response.find(i => i.id === p.id);
+        if (proxy) {
+          proxy.status = 'pending';
         }
       });
       return nextState;
@@ -238,50 +239,5 @@ export function serverReducer(state = initialServerStates, action) {
     nextState.credentials.selected = initialServerStates.credentials.selected;
   }
 
-  return nextState;
-}
-
-export function serverListReducer(state = initialServerStates, action) {
-  let nextState = JSON.parse(JSON.stringify(state));
-
-  switch (action.type) {
-    case SERVER_ACTIONS.CONNECT: {
-      const server = nextState.find(s => s.id === action.id);
-      if (server) {
-        server.status = 'Connected';
-      }
-      break;
-    }
-    case SERVER_ACTIONS.CREATE: {
-      const serverOptions = JSON.parse(JSON.stringify(action.serverInfo.serverOptions));
-      const newServer = {
-        id: action.serverInfo.path,
-        type: serverOptions.type,
-        size: serverOptions.size,
-        location: serverOptions.location,
-        charges: '0',
-        status: 'Initializing...',
-      };
-      nextState.push(newServer);
-      break;
-    }
-    case SERVER_ACTIONS.DESTROY: {
-      if (!action || !action.instance) {
-        break;
-      }
-      nextState = nextState.filter(s => action.instance.some(i => i.id !== s.id));
-      break;
-    }
-    case SERVER_ACTIONS.DESTROY_ALL: {
-      if (!action || !action.instances) {
-        break;
-      }
-      nextState = nextState.filter(i => action.instances.some(instance => instance.id !== i.id));
-      break;
-    }
-    default: {
-      break;
-    }
-  }
   return nextState;
 }

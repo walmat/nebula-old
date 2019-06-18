@@ -26,10 +26,18 @@ const initialServersState = {
 };
 
 const newState = {
-  ...prevState,
+  ...prevState.currentProfile,
+  ...prevState.navbar,
+  ...prevState.newTask,
+  ...prevState.profiles,
+  ...prevState.selectedProfile,
+  ...prevState.selectedTask,
+  ...prevState.servers,
+  ...prevState.settings,
+  ...prevState.tasks,
+  ...prevState.theme,
   version: '0.6.0',
   servers: initialServersState,
 };
 
-delete newState.serverInfo;
 export default newState;

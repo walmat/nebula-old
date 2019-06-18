@@ -1,11 +1,10 @@
-/* eslint-disable no-return-assign */
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import { List, AutoSizer } from 'react-virtualized';
 import { connect } from 'react-redux';
 import TaskRow from './taskRow';
 import defns from '../utils/definitions/taskDefinitions';
 
-export class ViewTaskPrimitive extends Component {
+export class ViewTaskPrimitive extends PureComponent {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
@@ -24,7 +23,9 @@ export class ViewTaskPrimitive extends Component {
       <AutoSizer>
         {({ width, height }) => (
           <List
-            ref={r => (this.tasks = r)}
+            ref={r => {
+              this.tasks = r;
+            }}
             width={width}
             height={height}
             rowHeight={30}
@@ -55,4 +56,4 @@ export const mapStateToProps = state => ({
   tasks: state.tasks,
 });
 
-export default memo(connect(mapStateToProps)(ViewTaskPrimitive));
+export default connect(mapStateToProps)(ViewTaskPrimitive);

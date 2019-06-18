@@ -1,4 +1,4 @@
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -11,7 +11,7 @@ import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 import { SERVER_ACTIONS } from '../state/actions/server/serverActions';
 
-export class AWSCredentialsPrimitive extends Component {
+export class AWSCredentialsPrimitive extends PureComponent {
   static maskInput(input) {
     if (!input) {
       return '';
@@ -39,30 +39,6 @@ export class AWSCredentialsPrimitive extends Component {
     this.onFocusHandler = this.onFocusHandler.bind(this);
     this.onChangeHandler = this.onChangeHandler.bind(this);
     this.onCredentialsChange = this.onCredentialsChange.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const {
-      credentials: { current, selected, list, status },
-      theme,
-    } = this.props;
-    const { isEditingAccess, isEditingSecret } = this.state;
-
-    if (
-      theme !== nextProps.theme ||
-      status !== nextProps.credentials.status ||
-      current.AWSAccessKey !== nextProps.credentials.current.AWSAccessKey ||
-      current.AWSSecretKey !== nextProps.credentials.current.AWSSecretKey ||
-      selected.AWSAccessKey !== nextProps.credentials.selected.AWSAccessKey ||
-      selected.AWSSecretKey !== nextProps.credentials.selected.AWSSecretKey ||
-      list.length !== nextProps.credentials.list.length ||
-      isEditingAccess !== nextState.isEditingAccess ||
-      isEditingSecret !== nextState.isEditingSecret
-    ) {
-      return true;
-    }
-
-    return false;
   }
 
   onBlurHandler(field) {
@@ -353,9 +329,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default memo(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(AWSCredentialsPrimitive),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(AWSCredentialsPrimitive);

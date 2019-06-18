@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -14,19 +14,6 @@ export class LoadProfilePrimitive extends Component {
     this.deleteProfile = this.deleteProfile.bind(this);
     this.loadProfile = this.loadProfile.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const { profiles, selectedProfile, theme } = this.props;
-
-    if (
-      profiles.length !== nextProps.profiles.length ||
-      selectedProfile.id !== nextProps.selectedProfile.id ||
-      theme !== nextProps.theme
-    ) {
-      return true;
-    }
-    return false;
   }
 
   onProfileChange(event) {
@@ -150,7 +137,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(LoadProfilePrimitive);
+export default memo(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(LoadProfilePrimitive),
+);

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, memo } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
@@ -17,18 +17,6 @@ export class ProfilesPrimitive extends Component {
   constructor(props) {
     super(props);
     this.saveProfile = this.saveProfile.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const { currentProfile, profiles } = this.props;
-
-    if (
-      JSON.stringify(currentProfile) !== JSON.stringify(nextProps.currentProfile) ||
-      profiles.length !== nextProps.profiles.length
-    ) {
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -174,7 +162,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ProfilesPrimitive);
+export default memo(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(ProfilesPrimitive),
+);

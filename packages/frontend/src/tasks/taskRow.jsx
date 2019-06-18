@@ -1,4 +1,4 @@
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { connect } from 'react-redux';
@@ -19,7 +19,7 @@ import { ReactComponent as DestroyIcon } from '../_assets/destroy.svg';
 import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 
-export class TaskRowPrimitive extends Component {
+export class TaskRowPrimitive extends PureComponent {
   static createOption(value) {
     const sites = getAllSites();
     const exists = sites.find(s => s.value.indexOf(value) > -1);
@@ -47,17 +47,6 @@ export class TaskRowPrimitive extends Component {
     this.state = {
       isLoading: false,
     };
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const { task, isEditing } = this.props;
-    const { isLoading } = this.state;
-
-    if (task.status !== nextProps.task.status || isEditing || isLoading) {
-      return true;
-    }
-
-    return false;
   }
 
   createOnChangeHandler(field) {
@@ -522,9 +511,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default memo(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(TaskRowPrimitive),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(TaskRowPrimitive);

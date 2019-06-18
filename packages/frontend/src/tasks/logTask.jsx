@@ -1,4 +1,4 @@
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import { List, AutoSizer } from 'react-virtualized';
 import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
@@ -6,7 +6,7 @@ import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
 import { addTestId } from '../utils';
 
-export class LogTaskPrimitive extends Component {
+export class LogTaskPrimitive extends PureComponent {
   static renderOutputLogRow(msg, i) {
     const outputColorMap = {
       'Waiting for captcha': 'warning',
@@ -91,8 +91,9 @@ export class LogTaskPrimitive extends Component {
       <AutoSizer>
         {({ width, height }) => (
           <List
-            // eslint-disable-next-line no-return-assign
-            ref={r => { this.list = r }}
+            ref={r => {
+              this.list = r;
+            }}
             width={width}
             height={height}
             rowHeight={30}
@@ -243,4 +244,4 @@ export const mapStateToProps = state => ({
   tasks: state.tasks.filter(t => t.status === 'running'),
 });
 
-export default memo(connect(mapStateToProps)(LogTaskPrimitive));
+export default connect(mapStateToProps)(LogTaskPrimitive);

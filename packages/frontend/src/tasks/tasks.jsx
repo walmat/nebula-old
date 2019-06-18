@@ -1,4 +1,4 @@
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
@@ -20,7 +20,7 @@ import { ReactComponent as DestroyAllIcon } from '../_assets/destroy-all.svg';
 import '../app.css';
 import './tasks.css';
 
-export class TasksPrimitive extends Component {
+export class TasksPrimitive extends PureComponent {
   constructor(props) {
     super(props);
     this.delays = {
@@ -255,9 +255,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default memo(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(TasksPrimitive),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(TasksPrimitive);
