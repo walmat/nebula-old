@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
@@ -13,7 +13,7 @@ import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/a
 
 import './profiles.css';
 
-export class ProfilesPrimitive extends PureComponent {
+export class ProfilesPrimitive extends Component {
   constructor(props) {
     super(props);
     this.saveProfile = this.saveProfile.bind(this);

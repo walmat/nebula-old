@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React from 'react';
 import ProxyList from './proxyList';
 import Webhooks from './webhooks';
 import Defaults from './defaults';
@@ -31,4 +31,4 @@ export const SettingsPrimitive = () => (
   </div>
 );
 
-export default memo(SettingsPrimitive);
+export default SettingsPrimitive;
