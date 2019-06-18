@@ -1,4 +1,4 @@
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
@@ -16,7 +16,7 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
-export class CreateTaskPrimitive extends Component {
+export class CreateTaskPrimitive extends PureComponent {
   static createOption(value) {
     const sites = getAllSupportedSitesSorted();
     const exists = sites.find(s => s.value.indexOf(value) > -1);
@@ -47,37 +47,6 @@ export class CreateTaskPrimitive extends Component {
     this.state = {
       isLoading: false,
     };
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const {
-      task: {
-        site: { url },
-        product: { raw },
-        profile: { id },
-        sizes,
-        username,
-        password,
-        amount,
-      },
-      theme,
-    } = this.props;
-    const { isLoading } = this.state;
-
-    if (
-      url !== nextProps.task.site.url ||
-      raw !== nextProps.task.product.raw ||
-      id !== nextProps.task.profile.id ||
-      sizes !== nextProps.task.sizes ||
-      username !== nextProps.task.username ||
-      password !== nextProps.task.password ||
-      amount !== nextProps.task.amount ||
-      theme !== nextProps.theme ||
-      isLoading !== nextState.isLoading
-    ) {
-      return true;
-    }
-    return false;
   }
 
   buildProfileOptions() {
@@ -391,9 +360,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default memo(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(CreateTaskPrimitive),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CreateTaskPrimitive);

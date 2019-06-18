@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -9,7 +9,7 @@ import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
 
-export class DefaultsPrimitive extends Component {
+export class DefaultsPrimitive extends PureComponent {
   static buildSizeOptions() {
     return getAllSizes();
   }

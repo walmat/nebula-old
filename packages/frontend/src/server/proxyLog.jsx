@@ -1,28 +1,14 @@
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 
 import ProxyLogRow from './proxyLogRow';
-
-// import ServerRow from './serverRow';
 import defns from '../utils/definitions/serverDefinitions';
 
-export class ProxyLogPrimitive extends Component {
+export class ProxyLogPrimitive extends PureComponent {
   constructor(props) {
     super(props);
     this.createTable = this.createTable.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const { proxies } = this.props;
-
-    if (
-      proxies.length !== nextProps.proxies.length ||
-      JSON.stringify(proxies) !== JSON.stringify(nextProps.proxies)
-    ) {
-      return true;
-    }
-    return false;
   }
 
   createTable() {
@@ -91,13 +77,8 @@ ProxyLogPrimitive.propTypes = {
   proxies: defns.proxyList.isRequired,
 };
 
-ProxyLogPrimitive.defaultProps = {
-  // eslint-disable-next-line react/default-props-match-prop-types
-  errors: {}, // TODO - add proper error object
-};
-
 export const mapStateToProps = state => ({
   proxies: state.servers.proxies,
 });
 
-export default memo(connect(mapStateToProps)(ProxyLogPrimitive));
+export default connect(mapStateToProps)(ProxyLogPrimitive);

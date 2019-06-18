@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
@@ -13,22 +13,10 @@ import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/a
 
 import './profiles.css';
 
-export class ProfilesPrimitive extends Component {
+export class ProfilesPrimitive extends PureComponent {
   constructor(props) {
     super(props);
     this.saveProfile = this.saveProfile.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const { currentProfile, profiles } = this.props;
-
-    if (
-      JSON.stringify(currentProfile) !== JSON.stringify(nextProps.currentProfile) ||
-      profiles.length !== nextProps.profiles.length
-    ) {
-      return true;
-    }
-    return false;
   }
 
   /**

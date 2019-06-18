@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -7,26 +7,13 @@ import { profileActions } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 import defns from '../utils/definitions/profileDefinitions';
 
-export class LoadProfilePrimitive extends Component {
+export class LoadProfilePrimitive extends PureComponent {
   constructor(props) {
     super(props);
     this.onProfileChange = this.onProfileChange.bind(this);
     this.deleteProfile = this.deleteProfile.bind(this);
     this.loadProfile = this.loadProfile.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const { profiles, selectedProfile, theme } = this.props;
-
-    if (
-      profiles.length !== nextProps.profiles.length ||
-      selectedProfile.id !== nextProps.selectedProfile.id ||
-      theme !== nextProps.theme
-    ) {
-      return true;
-    }
-    return false;
   }
 
   onProfileChange(event) {

@@ -10,7 +10,6 @@ module.exports = {
   },
   plugins: ['prettier', 'react', 'import', 'jsx-a11y'],
   rules: {
-    'no-param-reassign': 0,
     'prettier/prettier': 'error',
     'no-underscore-dangle': 'off',
     'camelcase': 'warn',

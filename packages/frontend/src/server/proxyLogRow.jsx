@@ -1,5 +1,4 @@
-/* eslint-disable no-nested-ternary */
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { addTestId, renderSvgIcon } from '../utils';
@@ -12,39 +11,12 @@ import { ReactComponent as Stopped } from '../_assets/stopped.svg';
 import { ReactComponent as Test } from '../_assets/test.svg';
 import { ReactComponent as Terminate } from '../_assets/destroy.svg';
 
-export class ProxyLogRowPrimitive extends Component {
+export class ProxyLogRowPrimitive extends PureComponent {
   constructor(props) {
     super(props);
 
     this.test = this.test.bind(this);
     this.terminate = this.terminate.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps) {
-    const {
-      proxy: {
-        id,
-        proxy,
-        credentials: { AWSAccessKey, AWSSecretKey },
-        region,
-        status,
-        speed,
-      },
-    } = this.props;
-
-    if (
-      id !== nextProps.proxy.id ||
-      proxy !== nextProps.proxy.proxy ||
-      AWSAccessKey !== nextProps.proxy.credentials.AWSAccessKey ||
-      AWSSecretKey !== nextProps.proxy.credentials.AWSSecretKey ||
-      region !== nextProps.proxy.region ||
-      status !== nextProps.proxy.status ||
-      speed !== nextProps.proxy.speed
-    ) {
-      return true;
-    }
-
-    return false;
   }
 
   test() {
@@ -88,6 +60,22 @@ export class ProxyLogRowPrimitive extends Component {
       },
     } = this.props;
 
+    let Icon = null;
+    switch (status) {
+      case status === 'running': {
+        Icon = Running;
+        break;
+      }
+      case status === 'stopped': {
+        Icon = Stopped;
+        break;
+      }
+      default: {
+        Icon = Pending;
+        break;
+      }
+    }
+
     return (
       <div
         key={id}
@@ -99,11 +87,7 @@ export class ProxyLogRowPrimitive extends Component {
             className="col col--no-gutter proxy-log__row--status"
             data-testid={addTestId('ProxyLogRow.status')}
           >
-            {status === 'running'
-              ? renderSvgIcon(Running)
-              : status === 'stopped'
-              ? renderSvgIcon(Stopped)
-              : renderSvgIcon(Pending)}
+            {renderSvgIcon(Icon)}
           </div>
           <div
             className="col col--no-gutter proxy-log__row--account"
@@ -183,9 +167,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default memo(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(ProxyLogRowPrimitive),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ProxyLogRowPrimitive);

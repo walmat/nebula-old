@@ -1,4 +1,4 @@
-import React, { PureComponent, memo } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -221,9 +221,7 @@ export const mapDispatchToProps = dispatch => ({
   onRoute: (route, history) => dispatch(navbarActions.route(route, history)),
 });
 
-export default memo(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(withRouter(NavbarPrimitive)),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withRouter(NavbarPrimitive));

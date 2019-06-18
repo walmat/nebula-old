@@ -64,8 +64,8 @@ export class App extends PureComponent {
     window.addEventListener('beforeunload', this._cleanup);
   }
 
-  async componentWillUnmount() {
-    await this._cleanup();
+  componentWillUnmount() {
+    this._cleanup();
     window.removeEventListener('beforeunload', this._cleanup);
   }
 
@@ -85,7 +85,7 @@ export class App extends PureComponent {
     store.dispatch(taskActions.status(statusMessageBuffer));
   }
 
-  async _cleanup() {
+  _cleanup() {
     this._cleanupTaskLog();
     this._cleanupTaskEvents();
   }

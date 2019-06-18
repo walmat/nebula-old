@@ -1,4 +1,4 @@
-import React, { Component, memo } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
@@ -9,7 +9,7 @@ import { SERVER_FIELDS, serverActions } from '../state/actions';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
-export class CreateProxiesPrimitive extends Component {
+export class CreateProxiesPrimitive extends PureComponent {
   static maskInput(input) {
     if (!input) {
       return '';
@@ -34,33 +34,6 @@ export class CreateProxiesPrimitive extends Component {
     this.destroyAll = this.destroyAll.bind(this);
     this.onBlurHandler = this.onBlurHandler.bind(this);
     this.onFocusHandler = this.onFocusHandler.bind(this);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const {
-      theme,
-      proxies,
-      proxyOptions: { number, credentials, location, username, password, status },
-      credentials: { list },
-    } = this.props;
-
-    const { isEditingPassword, isEditingUsername } = this.state;
-    if (
-      theme !== nextProps.theme ||
-      proxies.length !== nextProps.proxies.length ||
-      number !== nextProps.proxyOptions.number ||
-      JSON.stringify(credentials) !== JSON.stringify(nextProps.proxyOptions.credentials) ||
-      JSON.stringify(location) !== JSON.stringify(nextProps.proxyOptions.location) ||
-      username !== nextProps.proxyOptions.username ||
-      password !== nextProps.proxyOptions.password ||
-      status !== nextProps.proxyOptions.status ||
-      isEditingPassword !== nextState.isEditingPassword ||
-      isEditingUsername !== nextState.isEditingUsername ||
-      list.length !== nextProps.credentials.list.length
-    ) {
-      return true;
-    }
-    return false;
   }
 
   onChangeHandler(field) {
@@ -343,9 +316,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default memo(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(CreateProxiesPrimitive),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CreateProxiesPrimitive);
