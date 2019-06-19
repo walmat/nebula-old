@@ -59,7 +59,7 @@ export const _getSecurityGroup = async (access, secret, region, name) => {
 
 export const _waitUntilRunning = async (options, instances, credentials) =>
   new Promise(async (resolve, reject) => {
-    const { AWSAccessKey: accessKeyId, AWSSecretKey: secretAccessKey } = credentials;
+    const { AWSAccessKey: accessKeyId, AWSSecretKey: secretAccessKey, name } = credentials;
 
     const {
       location: { value: region },
@@ -85,7 +85,7 @@ export const _waitUntilRunning = async (options, instances, credentials) =>
     const proxies = await proxyInstances.Reservations[0].Instances.map(i => ({
       id: i.InstanceId,
       proxy: i.PublicIpAddress ? `${i.PublicIpAddress}:65096:${username}:${password}` : null,
-      credentials: { AWSAccessKey: accessKeyId, AWSSecretKey: secretAccessKey },
+      credentials: { AWSAccessKey: accessKeyId, AWSSecretKey: secretAccessKey, name },
       region: options.location.value,
       charges: 0,
       status: i.State.Name,
@@ -116,7 +116,6 @@ export const _waitUntilTerminated = async (options, instances, credentials) =>
     try {
       proxyInstances = await ec2.waitFor('instanceTerminated', { InstanceIds }).promise();
     } catch (error) {
-      console.log(error);
       if (/not in state/i.test(error)) {
         return resolve(instances);
       }
@@ -136,6 +135,7 @@ export const _waitUntilTerminated = async (options, instances, credentials) =>
 export const _createInstances = async (
   access,
   secret,
+  name,
   number,
   region,
   username,
@@ -253,7 +253,7 @@ export const _createInstances = async (
     const proxies = await proxyInstances.Reservations[0].Instances.map(i => ({
       id: i.InstanceId,
       proxy: i.PublicIpAddress ? `${i.PublicIpAddress}:65096:${username}:${password}` : null,
-      credentials: { AWSAccessKey: access, AWSSecretKey: secret },
+      credentials: { AWSAccessKey: access, AWSSecretKey: secret, name },
       region,
       charges: 0,
       status: i.State.Name,

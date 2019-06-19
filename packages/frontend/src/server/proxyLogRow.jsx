@@ -77,7 +77,7 @@ export class ProxyLogRowPrimitive extends PureComponent {
       proxy: {
         id,
         proxy,
-        credentials: { AWSAccessKey },
+        credentials: { name },
         region,
         speed,
       },
@@ -100,7 +100,7 @@ export class ProxyLogRowPrimitive extends PureComponent {
             className="col col--no-gutter proxy-log__row--account"
             data-testid={addTestId('ProxyLogRow.account')}
           >
-            {AWSAccessKey}
+            {name}
           </div>
           <div
             className="col col--no-gutter proxy-log__row--region"

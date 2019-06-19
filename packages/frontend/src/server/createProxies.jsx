@@ -158,7 +158,10 @@ export class CreateProxiesPrimitive extends PureComponent {
     }
 
     if (loggedIn) {
-      onGenerateProxies({ number, location, username, password }, value);
+      onGenerateProxies(
+        { number, location, username, password },
+        { ...value, name: credentials.label },
+      );
     }
   }
 

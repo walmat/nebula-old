@@ -34,7 +34,7 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
       return reject(new Error('No credentials provided!'));
     }
 
-    const { AWSAccessKey, AWSSecretKey } = credentials;
+    const { AWSAccessKey, AWSSecretKey, name } = credentials;
 
     const { number, location, username, password } = proxyOptions;
 
@@ -60,6 +60,7 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
       instances = await _createInstances(
         AWSAccessKey,
         AWSSecretKey,
+        name,
         number,
         location.value,
         username,
@@ -88,10 +89,10 @@ const _testProxyRequest = async (url, proxy) =>
     const res = await fetch(url, data);
     const stop = performance.now();
     if (!res.ok) {
-      reject(new Error('Unable to connect'));
+      return reject(new Error('Unable to connect'));
     }
 
-    resolve({ speed: (stop - start).toFixed(2), proxy });
+    return resolve({ speed: (stop - start).toFixed(2), proxy });
   });
 
 const _terminateProxiesRequest = async (options, proxies, credentials) =>
@@ -141,14 +142,18 @@ const _validateAwsRequest = async awsCredentials =>
     const { AWSAccessKey, AWSSecretKey, name } = awsCredentials;
 
     if (!regexes.aws_access_key.test(AWSAccessKey)) {
-      reject(new Error('Invalid Access Key'));
-    } else if (!regexes.aws_secret_key.test(AWSSecretKey)) {
-      reject(new Error('Invalid Secret Key'));
-    } else if (!name) {
-      reject(new Error('Please specify a pairing name'));
+      return reject(new Error('Invalid Access Key'));
     }
 
-    resolve({ AWSAccessKey, AWSSecretKey, name });
+    if (!regexes.aws_secret_key.test(AWSSecretKey)) {
+      return reject(new Error('Invalid Secret Key'));
+    }
+
+    if (!name) {
+      return reject(new Error('Please specify a pairing name'));
+    }
+
+    return resolve({ AWSAccessKey, AWSSecretKey, name });
   });
 
 // Private Actions
