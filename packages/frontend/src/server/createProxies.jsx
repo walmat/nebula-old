@@ -211,7 +211,6 @@ export class CreateProxiesPrimitive extends PureComponent {
                   options={this.buildCredentialsOptions()}
                   data-testid={addTestId('CreateProxies.credentials')}
                   onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_CREDENTIALS)}
-                  data-private
                 />
               </div>
             </div>
