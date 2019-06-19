@@ -6,7 +6,14 @@ import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 import getAllSizes from '../constants/getAllSizes';
 import getAllSites from '../constants/getAllSites';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 import pDefns from '../utils/definitions/profileDefinitions';
@@ -241,7 +248,7 @@ export class TaskRowPrimitive extends PureComponent {
                 classNamePrefix="select"
                 className="edit-field__select"
                 placeholder="Choose Profile"
-                components={{ DropdownIndicator }}
+                components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                 styles={colourStyles(
                   theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),

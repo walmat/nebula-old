@@ -5,7 +5,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 import { buildStyle } from '../utils/styles';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
@@ -191,7 +198,7 @@ export class ShippingManagerPrimitive extends PureComponent {
           <Select
             required
             placeholder={placeholder}
-            components={{ DropdownIndicator }}
+            components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
             isMulti={false}
             isClearable={false}
             className={`settings--shipping-manager__input-group--${type}`}

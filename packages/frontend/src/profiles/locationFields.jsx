@@ -11,7 +11,14 @@ import {
   PROFILE_FIELDS,
 } from '../state/actions';
 import { buildStyle } from '../utils/styles';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import { addTestId, renderSvgIcon } from '../utils';
 
 import { ReactComponent as BillingMatchesShippingIcon } from '../_assets/Check_icons-01.svg';
@@ -214,7 +221,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       <Select
                         required
                         placeholder="Province"
-                        components={{ DropdownIndicator }}
+                        components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                         className={`${id}-profiles-location__input-group--province`}
                         classNamePrefix="select"
                         options={
@@ -250,7 +257,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       <Select
                         required
                         placeholder="Country"
-                        components={{ DropdownIndicator }}
+                        components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                         className={`${id}-profiles-location__input-group--country`}
                         classNamePrefix="select"
                         options={LocationFieldsPrimitive.buildCountryOptions()}

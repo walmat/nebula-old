@@ -3,7 +3,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
 import Select from 'react-select';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, serverActions } from '../state/actions';
 import addTestId from '../utils/addTestId';
@@ -203,7 +210,7 @@ export class CreateProxiesPrimitive extends PureComponent {
                   required
                   data-private
                   placeholder="Choose Credentials"
-                  components={{ DropdownIndicator }}
+                  components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                   classNamePrefix="select"
                   className="proxy-options__input--credentials"
                   styles={colourStyles(theme, buildStyle(false, null))}

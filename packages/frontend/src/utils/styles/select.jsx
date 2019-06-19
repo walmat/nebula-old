@@ -29,6 +29,14 @@ DropdownIndicator.propTypes = {
   selectProps: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
+export const Control = props => <components.Control {...props} data-private />;
+
+export const Option = props => <components.Option {...props} data-private />;
+
+export const Menu = props => <components.Menu {...props} data-private />;
+
+export const MenuList = props => <components.MenuList {...props} data-private />;
+
 export const colourStyles = (theme, provided) => ({
   control: (styles, { isDisabled }) => {
     const key = `${theme}${isDisabled ? '--disabled' : ''}`;

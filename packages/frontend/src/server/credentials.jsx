@@ -6,7 +6,14 @@ import { groupBy } from 'underscore';
 
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, mapServerFieldToKey, serverActions } from '../state/actions';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  Option,
+  MenuList,
+  colourStyles,
+} from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 import { SERVER_ACTIONS } from '../state/actions/server/serverActions';
@@ -261,7 +268,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
                   data-private
                   isClearable
                   placeholder="Choose Credentials"
-                  components={{ DropdownIndicator }}
+                  components={{ DropdownIndicator, Control, MenuList, Menu, Option }}
                   className="server-credentials__input server-credentials__input--field"
                   classNamePrefix="select"
                   styles={colourStyles(theme, buildStyle(false, null))}

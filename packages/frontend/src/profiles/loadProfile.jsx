@@ -2,7 +2,14 @@ import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import { profileActions } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 import defns from '../utils/definitions/profileDefinitions';
@@ -85,7 +92,7 @@ export class LoadProfilePrimitive extends PureComponent {
                         <Select
                           required
                           placeholder="Load Profile"
-                          components={{ DropdownIndicator }}
+                          components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                           className="profiles-load__input-group--select"
                           classNamePrefix="select"
                           styles={colourStyles(theme, buildStyle(false, null))}
