@@ -446,9 +446,9 @@ export class TaskRowPrimitive extends PureComponent {
   }
 
   render() {
-    const { style } = this.props;
+    const { style, isEditing } = this.props;
     return (
-      <div style={style} className="tasks-row-container col">
+      <div style={style} className="col tasks-row-container">
         {this.renderTableRow()}
         {this.renderEditMenu()}
       </div>

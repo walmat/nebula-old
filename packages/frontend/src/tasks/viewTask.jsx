@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { List, AutoSizer } from 'react-virtualized';
+import { List, AutoSizer, CellMeasurer, CellMeasurerCache } from 'react-virtualized';
 import { connect } from 'react-redux';
 import TaskRow from './taskRow';
 import defns from '../utils/definitions/taskDefinitions';
@@ -9,11 +9,22 @@ export class ViewTaskPrimitive extends PureComponent {
     super(props);
     this.createTable = this.createTable.bind(this);
     this.renderRow = this.renderRow.bind(this);
+
+    this.cache = new CellMeasurerCache({
+      fixedWidth: true,
+      defaultHeight: 31,
+    });
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps !== this.props) {
-      this.tasks.forceUpdateGrid();
+      // clear the cache (maybe we can just do .clear() on the changed index somehow?)
+      this.cache.clearAll();
+      // recalculate the row that changed (pass index in as param when we figure that out)
+      this.tasks.recomputeRowHeights();
+
+      // lastly, force an update to the entire grid to shift it
+      // this.tasks.forceUpdateGrid();
     }
   }
 
@@ -28,7 +39,8 @@ export class ViewTaskPrimitive extends PureComponent {
             }}
             width={width}
             height={height}
-            rowHeight={30}
+            deferredMeasurementCache={this.cache}
+            rowHeight={this.cache.rowHeight}
             rowRenderer={this.renderRow}
             rowCount={tasks.length}
             overscanRowsCount={10}
@@ -38,9 +50,13 @@ export class ViewTaskPrimitive extends PureComponent {
     );
   }
 
-  renderRow({ index, key, style }) {
+  renderRow({ index, key, style, parent }) {
     const { tasks } = this.props;
-    return <TaskRow key={key} task={tasks[index]} style={style} />;
+    return (
+      <CellMeasurer key={key} cache={this.cache} parent={parent} columnIndex={0} rowIndex={index}>
+        <TaskRow task={tasks[index]} style={style} />
+      </CellMeasurer>
+    );
   }
 
   render() {
