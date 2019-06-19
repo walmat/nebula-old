@@ -233,6 +233,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 value={newTaskProfileValue}
                 options={this.buildProfileOptions()}
                 data-testid={addTestId('CreateTask.profileSelect')}
+                data-private
               />
             </div>
             <div className="col col--no-gutter tasks-create__input-group--site">
@@ -274,6 +275,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]],
                   )}
                   data-testid={addTestId('CreateTask.usernameInput')}
+                  data-private
                 />
               </div>
               <div className="col col--no-gutter tasks-create__input-group--site">
@@ -291,6 +293,7 @@ export class CreateTaskPrimitive extends PureComponent {
                   required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
                   data-testid={addTestId('CreateTask.passwordInput')}
+                  data-private
                 />
               </div>
             </div>

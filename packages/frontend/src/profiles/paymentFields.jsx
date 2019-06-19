@@ -36,7 +36,6 @@ export class PaymentFieldsPrimitive extends PureComponent {
               <div className="col profiles-payment__input-group">
                 <div className="row row--gutter">
                   <input
-                    data-private
                     required
                     className="profiles-payment__input-group--email"
                     placeholder="Email Address"
@@ -44,11 +43,11 @@ export class PaymentFieldsPrimitive extends PureComponent {
                     value={value.email}
                     style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])}
                     data-testid={addTestId(`PaymentFieldsPrimitive.email`)}
+                    data-private
                   />
                 </div>
                 <div className="row row--gutter">
                   <NumberFormat
-                    data-private
                     format="#### #### #### #### ##"
                     placeholder="XXXX XXXX XXXX XXXX"
                     className="profiles-payment__input-group--card-number"
@@ -56,12 +55,12 @@ export class PaymentFieldsPrimitive extends PureComponent {
                     value={value.cardNumber}
                     style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])}
                     data-testid={addTestId(`PaymentFieldsPrimitive.card-number`)}
+                    data-private
                   />
                 </div>
                 <div className="row row--start row--gutter">
                   <div className="col col--no-gutter-left">
                     <NumberFormat
-                      data-private
                       format="##/##"
                       className="profiles-payment__input-group--expiration"
                       placeholder="MM/YY"
@@ -70,12 +69,12 @@ export class PaymentFieldsPrimitive extends PureComponent {
                       style={validationStatus(errors[PAYMENT_FIELDS.EXP])}
                       mask={['M', 'M', 'Y', 'Y']}
                       data-testid={addTestId(`PaymentFieldsPrimitive.expiration`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--start row--no-gutter-left">
                     <div className="col col--no-gutter">
                       <input
-                        data-private
                         required
                         className="profiles-payment__input-group--cvv"
                         placeholder="CVV"
@@ -83,6 +82,7 @@ export class PaymentFieldsPrimitive extends PureComponent {
                         value={value.cvv}
                         style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
                         data-testid={addTestId(`PaymentFieldsPrimitive.cvv`)}
+                        data-private
                       />
                     </div>
                   </div>

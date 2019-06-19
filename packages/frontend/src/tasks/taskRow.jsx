@@ -250,6 +250,7 @@ export class TaskRowPrimitive extends PureComponent {
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 options={this.buildProfileOptions()}
                 data-testid={addTestId(`${testIdBase}.profileSelect`)}
+                data-private
               />
             </div>
             <div className="col edit-field">
@@ -286,6 +287,7 @@ export class TaskRowPrimitive extends PureComponent {
                 required={!editAccountFieldDisabled}
                 disabled={editAccountFieldDisabled}
                 data-testid={addTestId(`${testIdBase}.usernameInput`)}
+                data-private
               />
             </div>
             <div className="col edit-field">
@@ -303,6 +305,7 @@ export class TaskRowPrimitive extends PureComponent {
                 required={!editAccountFieldDisabled}
                 disabled={editAccountFieldDisabled}
                 data-testid={addTestId(`${testIdBase}.passwordInput`)}
+                data-private
               />
             </div>
           </div>

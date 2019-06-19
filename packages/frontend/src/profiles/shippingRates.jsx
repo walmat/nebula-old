@@ -89,6 +89,7 @@ export class ShippingRatesPrimitive extends PureComponent {
           value={value}
           options={options}
           data-testid={addTestId(`ShippingRates.input.${type}`)}
+          data-private
         />
       </div>
     );
@@ -135,6 +136,7 @@ export class ShippingRatesPrimitive extends PureComponent {
               style={validationStatus(false)}
               placeholder=""
               data-testid={addTestId('ShippingRates.input.rate')}
+              data-private
             />
           </div>
           <div className="col col--no-gutter">
@@ -146,6 +148,7 @@ export class ShippingRatesPrimitive extends PureComponent {
               style={validationStatus(false)}
               placeholder=""
               data-testid={addTestId('ShippingRates.input.price')}
+              data-private
             />
           </div>
         </div>

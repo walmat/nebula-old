@@ -177,6 +177,7 @@ export class CreateProxiesPrimitive extends PureComponent {
                   options={this.buildCredentialsOptions()}
                   data-testid={addTestId('CreateProxies.credentials')}
                   onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_CREDENTIALS)}
+                  data-private
                 />
               </div>
             </div>
@@ -219,6 +220,7 @@ export class CreateProxiesPrimitive extends PureComponent {
                   value={isEditingUsername ? username : CreateProxiesPrimitive.maskInput(username)}
                   required
                   data-testid={addTestId('CreateProxies.username')}
+                  data-private
                 />
               </div>
               <div className="col col--no-gutter-left">
@@ -234,6 +236,7 @@ export class CreateProxiesPrimitive extends PureComponent {
                   value={isEditingPassword ? password : CreateProxiesPrimitive.maskInput(password)}
                   required
                   data-testid={addTestId('CreateProxies.password')}
+                  data-private
                 />
               </div>
             </div>

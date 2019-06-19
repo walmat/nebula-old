@@ -65,7 +65,11 @@ const LogTaskRow = ({
         <div className={classMap.size.join(' ')} data-testid={addTestId('LogTaskRow.size')}>
           {chosenSizes || sizes}
         </div>
-        <div className={classMap.proxy.join(' ')} data-testid={addTestId('LogTaskRow.proxy')}>
+        <div
+          className={classMap.proxy.join(' ')}
+          data-testid={addTestId('LogTaskRow.proxy')}
+          data-private
+        >
           {proxy || 'None'}
         </div>
         <div

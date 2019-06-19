@@ -155,6 +155,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-firstName`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--gutter">
@@ -167,6 +168,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-lastName`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--gutter">
@@ -179,6 +181,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-address`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--gutter">
@@ -190,6 +193,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-apt`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--start row--gutter">
@@ -203,6 +207,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-city`)}
+                        data-private
                       />
                     </div>
                     <div className="col col--no-gutter">
@@ -223,6 +228,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         )}
                         isDisabled={this.isProvinceFieldDisabled()}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-province`)}
+                        data-private
                       />
                     </div>
                   </div>
@@ -237,6 +243,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-zipCode`)}
+                        data-private
                       />
                     </div>
                     <div className="col col--no-gutter">
@@ -255,6 +262,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         )}
                         isDisabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-country`)}
+                        data-private
                       />
                     </div>
                   </div>
@@ -269,6 +277,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-phone`)}
+                        data-private
                       />
                     </div>
                     <div className="col col--gutter col--expand">{this.renderButtons()}</div>

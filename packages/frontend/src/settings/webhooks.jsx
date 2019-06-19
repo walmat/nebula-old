@@ -64,6 +64,7 @@ export class WebhooksPrimitive extends PureComponent {
               onChange={this.createOnChangeHandler(field)}
               style={buildStyle(false, errors[mapSettingsFieldToKey[field]])}
               value={value}
+              data-private
             />
           </div>
           {WebhooksPrimitive.renderWebhookButton(type, onClick, onKeyPress)}
