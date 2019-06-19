@@ -59,7 +59,7 @@ export const _getSecurityGroup = async (access, secret, region, name) => {
 
 export const _waitUntilRunning = async (options, instances, credentials) =>
   new Promise(async (resolve, reject) => {
-    const { label: accessKeyId, value: secretAccessKey } = credentials;
+    const { AWSAccessKey: accessKeyId, AWSSecretKey: secretAccessKey } = credentials;
 
     const {
       location: { value: region },
@@ -79,7 +79,7 @@ export const _waitUntilRunning = async (options, instances, credentials) =>
     const proxyInstances = await ec2.waitFor('instanceRunning', { InstanceIds }).promise();
 
     if (!proxyInstances.Reservations.length) {
-      reject(new Error('Instances not reserved'));
+      return reject(new Error('Instances not reserved'));
     }
 
     const proxies = await proxyInstances.Reservations[0].Instances.map(i => ({
@@ -92,12 +92,12 @@ export const _waitUntilRunning = async (options, instances, credentials) =>
       speed: null,
     }));
 
-    resolve(proxies);
+    return resolve(proxies);
   });
 
 export const _waitUntilTerminated = async (options, instances, credentials) =>
   new Promise(async (resolve, reject) => {
-    const { label: accessKeyId, value: secretAccessKey } = credentials;
+    const { AWSAccessKey: accessKeyId, AWSSecretKey: secretAccessKey } = credentials;
 
     const {
       location: { value: region },
@@ -112,20 +112,25 @@ export const _waitUntilTerminated = async (options, instances, credentials) =>
     const InstanceIds = instances.map(i => i.id);
 
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
-    let proxyInstances;
+    let proxyInstances = null;
     try {
       proxyInstances = await ec2.waitFor('instanceTerminated', { InstanceIds }).promise();
     } catch (error) {
+      console.log(error);
       if (/not in state/i.test(error)) {
-        resolve(instances);
+        return resolve(instances);
       }
     }
 
-    if (!proxyInstances.Reservations.length) {
-      reject(new Error('Instances not terminated'));
+    if (!proxyInstances) {
+      return resolve(instances);
     }
 
-    resolve(instances);
+    if (!proxyInstances.Reservations.length) {
+      return reject(new Error('Instances not terminated'));
+    }
+
+    return resolve(instances);
   });
 
 export const _createInstances = async (

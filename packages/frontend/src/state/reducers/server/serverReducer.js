@@ -45,6 +45,19 @@ export default function serverReducer(state = initialServerStates, action) {
         };
         break;
       }
+      case SERVER_FIELDS.EDIT_AWS_PAIRING_NAME: {
+        if (!action || action.errors) {
+          break;
+        }
+        nextState.credentials = {
+          ...nextState.credentials,
+          current: {
+            ...nextState.credentials.current,
+            name: action.value,
+          },
+        };
+        break;
+      }
       case SERVER_FIELDS.EDIT_PROXY_CREDENTIALS: {
         if (!action || action.errors) {
           break;
@@ -128,6 +141,14 @@ export default function serverReducer(state = initialServerStates, action) {
         nextState.proxyOptions.status = action.error.message || 'Unable to destroy';
         break;
       }
+      case SERVER_ACTIONS.TEST_PROXY: {
+        const { proxy: ip } = action.error;
+        const proxy = nextState.proxies.find(p => p.proxy === ip);
+        if (proxy) {
+          proxy.speed = 'Dead';
+        }
+        break;
+      }
       default:
         console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
         break;
@@ -158,11 +179,14 @@ export default function serverReducer(state = initialServerStates, action) {
     const { response, done } = action;
 
     if (!done) {
-      nextState.proxies.forEach(p => {
-        const proxy = response.find(i => i.id === p.id);
-        if (proxy) {
-          proxy.status = 'pending';
+      response.forEach(p => {
+        const index = nextState.proxies.findIndex(i => i.id === p.id);
+
+        if (index === -1) {
+          return;
         }
+
+        nextState.proxies[index].status = 'shutting-down';
       });
       return nextState;
     }
@@ -176,7 +200,7 @@ export default function serverReducer(state = initialServerStates, action) {
 
     if (!done) {
       const proxy = nextState.proxies.find(p => p.id === response.id);
-      proxy.status = 'pending';
+      proxy.status = 'shutting-down';
       return nextState;
     }
     nextState.proxies = nextState.proxies.filter(p => !response.some(i => i.id === p.id));
@@ -209,8 +233,8 @@ export default function serverReducer(state = initialServerStates, action) {
       return nextState;
     }
 
-    const { AWSAccessKey, AWSSecretKey } = action.response;
-    nextState.credentials.list.push({ AWSAccessKey, AWSSecretKey, loggedIn: true });
+    const { AWSAccessKey, AWSSecretKey, name } = action.response;
+    nextState.credentials.list.push({ AWSAccessKey, AWSSecretKey, name, loggedIn: true });
     nextState.credentials.current = initialServerStates.credentials.current;
   } else if (action.type === SERVER_ACTIONS.LOGOUT_AWS) {
     if (
@@ -222,13 +246,14 @@ export default function serverReducer(state = initialServerStates, action) {
       return nextState;
     }
     const {
-      credentials: { AWSAccessKey, AWSSecretKey },
+      credentials: { AWSAccessKey, AWSSecretKey, name },
     } = action;
 
     if (
       nextState.proxyOptions.credentials &&
-      nextState.proxyOptions.credentials.label === nextState.credentials.current.AWSAccessKey &&
-      nextState.proxyOptions.credentials.value === nextState.credentials.current.AWSSecretKey
+      nextState.proxyOptions.credentials.label === name &&
+      nextState.proxyOptions.credentials.value.AWSAccessKey === AWSAccessKey &&
+      nextState.proxyOptions.credentials.value.AWSSecretKey === AWSSecretKey
     ) {
       nextState.proxyOptions.credentials = initialServerStates.proxyOptions.credentials;
     }
