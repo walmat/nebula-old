@@ -24,7 +24,7 @@ export class ViewTaskPrimitive extends PureComponent {
       this.tasks.recomputeRowHeights();
 
       // lastly, force an update to the entire grid to shift it
-      // this.tasks.forceUpdateGrid();
+      this.tasks.forceUpdateGrid();
     }
   }
 
