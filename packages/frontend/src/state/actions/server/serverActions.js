@@ -29,27 +29,37 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
   new Promise(async (resolve, reject) => {
     if (
       !credentials ||
-      ((credentials && !credentials.label) || (credentials && !credentials.value))
+      ((credentials && !credentials.AWSAccessKey) || (credentials && !credentials.AWSSecretKey))
     ) {
-      reject(new Error('No credentials provided!'));
+      return reject(new Error('No credentials provided!'));
     }
 
-    const { label, value } = credentials;
+    const { AWSAccessKey, AWSSecretKey } = credentials;
 
     const { number, location, username, password } = proxyOptions;
 
+    if (!number) {
+      return reject(new Error('Invalid number'));
+    }
+    if (!username) {
+      return reject(new Error('Please specify a username'));
+    }
+    if (!password) {
+      return reject(new Error('Please specify a password'));
+    }
+
     let securityGroup;
     try {
-      securityGroup = await _getSecurityGroup(label, value, location.value, 'nebula');
+      securityGroup = await _getSecurityGroup(AWSAccessKey, AWSSecretKey, location.value, 'nebula');
     } catch (err) {
-      reject(new Error(err.message || 'Unable to create security group'));
+      return reject(new Error(err.message || 'Unable to create security group'));
     }
 
     let instances;
     try {
       instances = await _createInstances(
-        label,
-        value,
+        AWSAccessKey,
+        AWSSecretKey,
         number,
         location.value,
         username,
@@ -57,16 +67,25 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
         securityGroup,
       );
     } catch (err) {
-      reject(new Error(err.message || 'Unable to create instances'));
+      return reject(new Error(err.message || 'Unable to create instances'));
     }
-    resolve(instances);
+    return resolve(instances);
   });
 
 const _testProxyRequest = async (url, proxy) =>
   new Promise(async (resolve, reject) => {
-    const start = performance.now();
+    const headers = new Headers({
+      'Access-Control-Allow-Origin': '*',
+    });
     const [ip, port, user, pass] = proxy.split(':');
-    const res = await fetch(url, { agent: new Agent(`http://${user}:${pass}@${ip}:${port}`) });
+    const data = {
+      headers,
+      method: 'GET',
+      mode: 'no-cors',
+      agent: new Agent(`http://${user}:${pass}@${ip}:${port}`),
+    };
+    const start = performance.now();
+    const res = await fetch(url, data);
     const stop = performance.now();
     if (!res.ok) {
       reject(new Error('Unable to connect'));
@@ -75,29 +94,11 @@ const _testProxyRequest = async (url, proxy) =>
     resolve({ speed: (stop - start).toFixed(2), proxy });
   });
 
-const _testProxiesRequest = async (options, proxies) =>
-  new Promise(async resolve => {
-    const { url } = options;
-    const results = await Promise.all(
-      proxies.map(async p => {
-        const [ip, port, user, pass] = p.split(':');
-        const start = performance.now();
-        const res = await fetch(url, { agent: new Agent(`http://${user}:${pass}@${ip}:${port}`) });
-        const stop = performance.now();
-        if (!res.ok) {
-          throw new Error('Unable to connect');
-        }
-        return { speed: stop - start, proxy: p };
-      }),
-    );
-    resolve(results);
-  });
-
 const _terminateProxiesRequest = async (options, proxies, credentials) =>
   new Promise(async (resolve, reject) => {
     AWS.config = new AWS.Config({
-      accessKeyId: credentials.label,
-      secretAccessKey: credentials.value,
+      accessKeyId: credentials.AWSAccessKey,
+      secretAccessKey: credentials.AWSSecretKey,
       region: options.location.value,
     });
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
@@ -105,49 +106,49 @@ const _terminateProxiesRequest = async (options, proxies, credentials) =>
 
     try {
       await ec2.terminateInstances({ InstanceIds }).promise();
-      resolve(proxies.map(p => ({ proxy: p.proxy, id: p.id })));
+      return resolve(proxies.map(p => ({ proxy: p.proxy, id: p.id })));
     } catch (error) {
       if (/not exist/i.test(error)) {
-        resolve(proxies.map(p => ({ proxy: p.proxy, id: p.id })));
+        return resolve(proxies.map(p => ({ proxy: p.proxy, id: p.id })));
       }
-      reject(new Error('Unable to terminate proxies'));
+      return reject(new Error('Unable to terminate proxies'));
     }
   });
 
 const _terminateProxyRequest = async (options, proxy, credentials) =>
   new Promise(async (resolve, reject) => {
     AWS.config = new AWS.Config({
-      accessKeyId: credentials.label,
-      secretAccessKey: credentials.value,
+      accessKeyId: credentials.AWSAccessKey,
+      secretAccessKey: credentials.AWSSecretKey,
       region: options.location.value,
     });
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
 
     try {
       await ec2.terminateInstances({ InstanceIds: [proxy.id] }).promise();
-      resolve(proxy);
+      return resolve(proxy);
     } catch (error) {
+      console.log(error);
       if (/not exist/i.test(error)) {
-        resolve(proxy);
+        return resolve(proxy);
       }
-      reject(new Error('Unable to terminate proxy'));
+      return reject(new Error('Unable to terminate proxy'));
     }
   });
 
 const _validateAwsRequest = async awsCredentials =>
   new Promise((resolve, reject) => {
-    const { AWSAccessKey, AWSSecretKey } = awsCredentials;
+    const { AWSAccessKey, AWSSecretKey, name } = awsCredentials;
 
-    if (!AWSAccessKey || !AWSSecretKey) {
-      reject(new Error('Invalid Keys'));
+    if (!regexes.aws_access_key.test(AWSAccessKey)) {
+      reject(new Error('Invalid Access Key'));
+    } else if (!regexes.aws_secret_key.test(AWSSecretKey)) {
+      reject(new Error('Invalid Secret Key'));
+    } else if (!name) {
+      reject(new Error('Please specify a pairing name'));
     }
 
-    // test the string inputs
-    if (regexes.aws_access_key.test(AWSAccessKey) && regexes.aws_secret_key.test(AWSSecretKey)) {
-      resolve({ AWSAccessKey, AWSSecretKey });
-    } else {
-      reject(new Error('Keys should be valid!'));
-    }
+    resolve({ AWSAccessKey, AWSSecretKey, name });
   });
 
 // Private Actions
@@ -155,7 +156,6 @@ const _generateProxies = makeActionCreator(SERVER_ACTIONS.GEN_PROXIES, 'response
 const _terminateProxies = makeActionCreator(SERVER_ACTIONS.TERMINATE_PROXIES, 'response', 'done');
 const _terminateProxy = makeActionCreator(SERVER_ACTIONS.TERMINATE_PROXY, 'response', 'done');
 const _testProxy = makeActionCreator(SERVER_ACTIONS.TEST_PROXY, 'response');
-const _testProxies = makeActionCreator(SERVER_ACTIONS.TEST_PROXIES, 'response');
 const _validateAws = makeActionCreator(SERVER_ACTIONS.VALIDATE_AWS, 'response');
 
 // Public Actions
@@ -216,13 +216,7 @@ const terminateProxy = (options, proxy, credentials) => dispatch =>
 const testProxy = (url, proxy) => dispatch =>
   _testProxyRequest(url, proxy).then(
     response => dispatch(_testProxy(response)),
-    error => dispatch(handleError(SERVER_ACTIONS.TEST_PROXIES, error)),
-  );
-
-const testProxies = (options, proxies) => dispatch =>
-  _testProxiesRequest(options, proxies).then(
-    response => dispatch(_testProxies(response)),
-    error => dispatch(handleError(SERVER_ACTIONS.TEST_PROXIES, error)),
+    error => dispatch(handleError(SERVER_ACTIONS.TEST_PROXY, { error, proxy })),
   );
 
 const validateAws = awsCredentials => dispatch =>
@@ -240,7 +234,6 @@ export const serverActions = {
   select: selectCredentials,
   error: _handleError,
   testProxy,
-  testProxies,
   generateProxies,
   terminateProxy,
   terminateProxies,
@@ -260,6 +253,7 @@ export const SERVER_FIELDS = {
   EDIT_PROXY_PASSWORD: 'EDIT_PROXY_PASSWORD',
   EDIT_AWS_ACCESS_KEY: 'EDIT_AWS_ACCESS_KEY',
   EDIT_AWS_SECRET_KEY: 'EDIT_AWS_SECRET_KEY',
+  EDIT_AWS_PAIRING_NAME: 'EDIT_AWS_PAIRING_NAME',
 };
 
 export const mapServerFieldToKey = {

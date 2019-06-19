@@ -70,13 +70,37 @@ export class CreateProxiesPrimitive extends PureComponent {
     this.setState({ [stateVal]: true });
   }
 
+  onMouseEnter(field) {
+    const stateVal = this.fieldMap[field];
+
+    if (!stateVal) {
+      return;
+    }
+
+    this.setState({ [stateVal]: true });
+  }
+
+  onMouseLeave(field) {
+    const stateVal = this.fieldMap[field];
+
+    if (!stateVal) {
+      return;
+    }
+
+    this.setState({ [stateVal]: false });
+  }
+
   buildCredentialsOptions() {
     const {
       credentials: { list },
     } = this.props;
     const opts = [];
     list.forEach(cred =>
-      opts.push({ value: cred.AWSSecretKey, label: cred.AWSAccessKey, loggedIn: cred.loggedIn }),
+      opts.push({
+        value: { AWSAccessKey: cred.AWSAccessKey, AWSSecretKey: cred.AWSSecretKey },
+        label: cred.name,
+        loggedIn: cred.loggedIn,
+      }),
     );
     return opts;
   }
@@ -89,8 +113,13 @@ export class CreateProxiesPrimitive extends PureComponent {
     } = this.props;
 
     let loggedIn = false;
+    let AWSAccessKey = null;
+    let AWSSecretKey = null;
     if (credentials) {
-      ({ loggedIn } = credentials);
+      ({
+        loggedIn,
+        value: { AWSAccessKey, AWSSecretKey },
+      } = credentials);
     }
 
     const confirm = await window.Bridge.showDialog(
@@ -104,15 +133,15 @@ export class CreateProxiesPrimitive extends PureComponent {
       const proxiesToDestroy = proxies.filter(
         p =>
           p.region === location.value &&
-          p.credentials.AWSAccessKey === credentials.label &&
-          p.credentials.AWSSecretKey === credentials.value,
+          p.credentials.AWSAccessKey === AWSAccessKey &&
+          p.credentials.AWSSecretKey === AWSSecretKey,
       );
 
       if (!proxiesToDestroy.length) {
         return;
       }
 
-      onDestroyProxies({ location }, proxiesToDestroy, credentials);
+      onDestroyProxies({ location }, proxiesToDestroy, { AWSAccessKey, AWSSecretKey });
     }
   }
 
@@ -123,12 +152,13 @@ export class CreateProxiesPrimitive extends PureComponent {
     } = this.props;
 
     let loggedIn = false;
+    let value = null;
     if (credentials) {
-      ({ loggedIn } = credentials);
+      ({ loggedIn, value } = credentials);
     }
 
     if (loggedIn) {
-      onGenerateProxies({ number, location, username, password }, credentials);
+      onGenerateProxies({ number, location, username, password }, value);
     }
   }
 
@@ -168,6 +198,7 @@ export class CreateProxiesPrimitive extends PureComponent {
                 <p className="proxy-options__label">Credentials</p>
                 <Select
                   required
+                  data-private
                   placeholder="Choose Credentials"
                   components={{ DropdownIndicator }}
                   classNamePrefix="select"
@@ -215,6 +246,8 @@ export class CreateProxiesPrimitive extends PureComponent {
                   style={buildStyle(false, null)}
                   onFocus={() => this.onFocusHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
                   onBlur={() => this.onBlurHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
+                  onMouseEnter={() => this.onMouseEnter(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
+                  onMouseLeave={() => this.onMouseLeave(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
                   onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_USERNAME)}
                   value={isEditingUsername ? username : CreateProxiesPrimitive.maskInput(username)}
                   required
@@ -230,6 +263,8 @@ export class CreateProxiesPrimitive extends PureComponent {
                   style={buildStyle(false, null)}
                   onFocus={() => this.onFocusHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
                   onBlur={() => this.onBlurHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
+                  onMouseEnter={() => this.onMouseEnter(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
+                  onMouseLeave={() => this.onMouseLeave(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
                   onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_PASSWORD)}
                   value={isEditingPassword ? password : CreateProxiesPrimitive.maskInput(password)}
                   required

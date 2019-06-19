@@ -61,6 +61,26 @@ export class AWSCredentialsPrimitive extends PureComponent {
     this.setState({ [stateVal]: true });
   }
 
+  onMouseEnter(field) {
+    const stateVal = this.fieldMap[field];
+
+    if (!stateVal) {
+      return;
+    }
+
+    this.setState({ [stateVal]: true });
+  }
+
+  onMouseLeave(field) {
+    const stateVal = this.fieldMap[field];
+
+    if (!stateVal) {
+      return;
+    }
+
+    this.setState({ [stateVal]: false });
+  }
+
   onChangeHandler(field) {
     const { onEditServerInfo } = this.props;
 
@@ -111,11 +131,13 @@ export class AWSCredentialsPrimitive extends PureComponent {
     if (confirm) {
       const proxiesToDestroy = groupBy(proxies, 'region');
 
+      const { AWSAccessKey, AWSSecretKey } = current;
+
       if (Object.values(proxiesToDestroy).length) {
         Object.entries(proxiesToDestroy).forEach(([region, running]) => {
           onDestroyProxies({ location: { value: region } }, running, {
-            label: current.AWSAccessKey,
-            value: current.AWSSecretKey,
+            AWSAccessKey,
+            AWSSecretKey,
           });
         });
       }
@@ -129,7 +151,12 @@ export class AWSCredentialsPrimitive extends PureComponent {
       credentials: { list },
     } = this.props;
     const opts = [];
-    list.forEach(cred => opts.push({ value: cred.AWSSecretKey, label: cred.AWSAccessKey }));
+    list.forEach(cred =>
+      opts.push({
+        value: { AWSAccessKey: cred.AWSAccessKey, AWSSecretKey: cred.AWSSecretKey },
+        label: cred.name,
+      }),
+    );
     return opts;
   }
 
@@ -139,7 +166,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
       onValidateAws,
       onHandleError,
       credentials: {
-        current: { AWSAccessKey, AWSSecretKey },
+        current: { AWSAccessKey, AWSSecretKey, name },
         list,
       },
     } = this.props;
@@ -153,12 +180,56 @@ export class AWSCredentialsPrimitive extends PureComponent {
       return;
     }
 
-    onValidateAws({ AWSAccessKey, AWSSecretKey });
+    onValidateAws({ AWSAccessKey, AWSSecretKey, name });
+  }
+
+  renderStatusRow() {
+    const {
+      credentials: { status },
+    } = this.props;
+
+    if (status) {
+      return (
+        <div className="row row--gutter">
+          <div className="col col--gutter">
+            <p>{status}</p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  renderNameInput() {
+    const {
+      credentials: { current },
+      errors,
+    } = this.props;
+
+    let loggedIn = false;
+    let name = '';
+    if (current) {
+      ({ loggedIn, name } = current);
+    }
+
+    return (
+      <input
+        className="server-credentials__input server-credentials__input--bordered server-credentials__input--name"
+        type="text"
+        placeholder="Pairing name"
+        disabled={loggedIn}
+        style={buildStyle(false, errors[mapServerFieldToKey[SERVER_FIELDS.EDIT_AWS_PAIRING_NAME]])}
+        onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_AWS_PAIRING_NAME)}
+        value={name || ''}
+        required
+        data-testid={addTestId('AWSCredentials.secretKeyInput')}
+      />
+    );
   }
 
   render() {
     const {
-      credentials: { selected, current, status },
+      credentials: { selected, current },
       errors,
       onKeyPress,
       theme,
@@ -167,8 +238,8 @@ export class AWSCredentialsPrimitive extends PureComponent {
     let selectedValue = null;
     if (selected && selected.AWSAccessKey) {
       selectedValue = {
-        value: selected.AWSSecretKey,
-        label: selected.AWSAccessKey,
+        value: { AWSAccessKey: selected.AWSAccessKey, AWSSecretKey: selected.AWSSecretKey },
+        label: selected.name,
       };
     }
     let loggedIn = false;
@@ -187,6 +258,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
                 <p className="server-credentials__label">AWS IAM Profile</p>
                 <Select
                   required
+                  data-private
                   isClearable
                   placeholder="Choose Credentials"
                   components={{ DropdownIndicator }}
@@ -210,6 +282,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
                 <input
                   className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                   type="text"
+                  data-private
                   placeholder="IAM User Access"
                   disabled={loggedIn}
                   style={buildStyle(
@@ -218,6 +291,8 @@ export class AWSCredentialsPrimitive extends PureComponent {
                   )}
                   onFocus={() => this.onFocusHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   onBlur={() => this.onBlurHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
+                  onMouseEnter={() => this.onMouseEnter(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
+                  onMouseLeave={() => this.onMouseLeave(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_AWS_ACCESS_KEY)}
                   value={
                     isEditingAccess
@@ -239,6 +314,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
                 <input
                   className="server-credentials__input server-credentials__input--bordered server-credentials__input--field"
                   type="text"
+                  data-private
                   placeholder="IAM User Secret"
                   disabled={loggedIn}
                   style={buildStyle(
@@ -247,6 +323,8 @@ export class AWSCredentialsPrimitive extends PureComponent {
                   )}
                   onFocus={() => this.onFocusHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                   onBlur={() => this.onBlurHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
+                  onMouseEnter={() => this.onMouseEnter(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
+                  onMouseLeave={() => this.onMouseLeave(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                   onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_AWS_SECRET_KEY)}
                   value={
                     isEditingSecret
@@ -260,21 +338,24 @@ export class AWSCredentialsPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        <div className="row row--end row--expand row--gutter">
-          <div className="col">
-            <p>{status || ''}</p>
-          </div>
-          <div className="col">
-            <button
-              type="button"
-              className="server-credentials__submit"
-              tabIndex={0}
-              onKeyPress={onKeyPress}
-              onClick={loggedIn ? this.logoutAws : this.validateAws}
-              data-testid={addTestId('AWSCredentials.submitButton')}
-            >
-              {loggedIn ? 'Log out' : 'Validate'}
-            </button>
+        <div className="row row--end row--gutter">
+          <div className="col server-credentials__input-group">
+            <div className="row row--gutter">
+              <div className="col col--no-gutter-left">{this.renderNameInput()}</div>
+              <div className="col col--no-gutter">
+                <button
+                  type="button"
+                  className="server-credentials__submit"
+                  tabIndex={0}
+                  onKeyPress={onKeyPress}
+                  onClick={loggedIn ? this.logoutAws : this.validateAws}
+                  data-testid={addTestId('AWSCredentials.submitButton')}
+                >
+                  {loggedIn ? 'Log out' : 'Validate'}
+                </button>
+              </div>
+            </div>
+            {this.renderStatusRow()}
           </div>
         </div>
       </div>

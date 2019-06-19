@@ -1,17 +1,20 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import Loader from 'react-loader-spinner';
 import { addTestId, renderSvgIcon } from '../utils';
 import { serverActions } from '../state/actions';
 import sDefns from '../utils/definitions/serverDefinitions';
 
 import { ReactComponent as Running } from '../_assets/running.svg';
-import { ReactComponent as Pending } from '../_assets/pending.svg';
-import { ReactComponent as Stopped } from '../_assets/stopped.svg';
 import { ReactComponent as Test } from '../_assets/test.svg';
 import { ReactComponent as Terminate } from '../_assets/destroy.svg';
 
 export class ProxyLogRowPrimitive extends PureComponent {
+  static renderLoader(color) {
+    return <Loader type="ThreeDots" color={color} height="11" width="11" />;
+  }
+
   constructor(props) {
     super(props);
 
@@ -44,8 +47,29 @@ export class ProxyLogRowPrimitive extends PureComponent {
     onTerminateProxy(
       { location: { value: region } },
       { id, proxy },
-      { label: AWSAccessKey, value: AWSSecretKey },
+      { AWSAccessKey, AWSSecretKey },
     );
+  }
+
+  renderIcon() {
+    const {
+      proxy: { status },
+    } = this.props;
+
+    switch (status) {
+      case 'running': {
+        return renderSvgIcon(Running);
+      }
+      case 'pending': {
+        return ProxyLogRowPrimitive.renderLoader('#E1AD01');
+      }
+      case 'shutting-down': {
+        return ProxyLogRowPrimitive.renderLoader('#f0405e');
+      }
+      default: {
+        return ProxyLogRowPrimitive.renderLoader('#E1AD01');
+      }
+    }
   }
 
   render() {
@@ -55,26 +79,9 @@ export class ProxyLogRowPrimitive extends PureComponent {
         proxy,
         credentials: { AWSAccessKey },
         region,
-        status,
         speed,
       },
     } = this.props;
-
-    let Icon = null;
-    switch (status) {
-      case status === 'running': {
-        Icon = Running;
-        break;
-      }
-      case status === 'stopped': {
-        Icon = Stopped;
-        break;
-      }
-      default: {
-        Icon = Pending;
-        break;
-      }
-    }
 
     return (
       <div
@@ -87,7 +94,7 @@ export class ProxyLogRowPrimitive extends PureComponent {
             className="col col--no-gutter proxy-log__row--status"
             data-testid={addTestId('ProxyLogRow.status')}
           >
-            {renderSvgIcon(Icon)}
+            {this.renderIcon()}
           </div>
           <div
             className="col col--no-gutter proxy-log__row--account"
@@ -157,7 +164,7 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = dispatch => ({
   onTestProxy: (url, proxy) => {
-    dispatch(serverActions.testProxy({ url }, proxy));
+    dispatch(serverActions.testProxy(url, proxy));
   },
   onGenerateProxies: (options, credentials) => {
     dispatch(serverActions.generateProxies(options, credentials));
