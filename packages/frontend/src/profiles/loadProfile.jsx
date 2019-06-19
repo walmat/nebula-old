@@ -92,6 +92,7 @@ export class LoadProfilePrimitive extends PureComponent {
                           onChange={this.onProfileChange}
                           value={selectProfileValue}
                           options={this.buildProfileOptions()}
+                          data-private
                         />
                       </div>
                     </div>

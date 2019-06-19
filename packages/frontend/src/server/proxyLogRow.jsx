@@ -99,24 +99,28 @@ export class ProxyLogRowPrimitive extends PureComponent {
           <div
             className="col col--no-gutter proxy-log__row--account"
             data-testid={addTestId('ProxyLogRow.account')}
+            data-private
           >
             {name}
           </div>
           <div
             className="col col--no-gutter proxy-log__row--region"
             data-testid={addTestId('ProxyLogRow.region')}
+            data-private
           >
             {region}
           </div>
           <div
             className="col col--no-gutter proxy-log__row--ip"
             data-testid={addTestId('ProxyLogRow.ip')}
+            data-private
           >
             {proxy ? `${proxy.split(':')[0]}` : 'Not assigned'}
           </div>
           <div
             className="col col--no-gutter proxy-log__row--speed"
             data-testid={addTestId('ProxyLogRow.speed')}
+            data-private
           >
             {speed || 'N/A'}
           </div>

@@ -269,6 +269,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
                   onChange={this.onCredentialsChange}
                   value={selectedValue}
                   data-testid={addTestId('AWSCredentials.accessKeyInput')}
+                  data-private
                 />
               </div>
             </div>
@@ -301,6 +302,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
                   }
                   required
                   data-testid={addTestId('AWSCredentials.accessKeyInput')}
+                  data-private
                 />
               </div>
             </div>
@@ -333,6 +335,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
                   }
                   required
                   data-testid={addTestId('AWSCredentials.secretKeyInput')}
+                  data-private
                 />
               </div>
             </div>

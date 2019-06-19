@@ -200,6 +200,7 @@ export class ShippingManagerPrimitive extends PureComponent {
             onChange={this.createOnChangeHandler(field)}
             value={value}
             options={options}
+            data-private
           />
         )}
       </div>
@@ -275,6 +276,7 @@ export class ShippingManagerPrimitive extends PureComponent {
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME]],
                           )}
                           required
+                          data-private
                         />
                       </div>
                     </div>
@@ -307,6 +309,7 @@ export class ShippingManagerPrimitive extends PureComponent {
                           )}
                           required={!accountFieldsDisabled}
                           disabled={accountFieldsDisabled}
+                          data-private
                         />
                       </div>
                       <div className="col col--gutter-right">
@@ -325,6 +328,7 @@ export class ShippingManagerPrimitive extends PureComponent {
                           )}
                           required={!accountFieldsDisabled}
                           disabled={accountFieldsDisabled}
+                          data-private
                         />
                       </div>
                     </div>

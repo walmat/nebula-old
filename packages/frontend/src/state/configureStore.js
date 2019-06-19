@@ -11,6 +11,8 @@ import proxyAttributeValidationMiddlware from './middleware/settings/proxyAttrib
 import shippingFormAttributeValidationMiddleware from './middleware/settings/shippingFormAttributeValidationMiddleware';
 import settingsAttributeValidationMiddleware from './middleware/settings/settingsAttributeValidationMiddleware';
 
+import stateSanitizer from '../utils/state/redactState';
+
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 export default function configureStore() {
@@ -27,7 +29,10 @@ export default function configureStore() {
         settingsAttributeValidationMiddleware,
         shippingFormAttributeValidationMiddleware,
         thunk,
-        LogRocket.reduxMiddleware(),
+        LogRocket.reduxMiddleware({
+          stateSanitizer,
+          actionSanitizer: ({ type }) => ({ type }),
+        }),
       ),
       persistState(),
     ),

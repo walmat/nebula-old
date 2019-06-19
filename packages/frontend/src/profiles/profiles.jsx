@@ -117,6 +117,7 @@ export class ProfilesPrimitive extends Component {
                     currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
                   )}
                   placeholder="Profile Name"
+                  data-private
                 />
               </div>
             </div>

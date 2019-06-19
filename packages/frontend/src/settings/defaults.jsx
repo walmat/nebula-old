@@ -22,12 +22,14 @@ export class DefaultsPrimitive extends PureComponent {
         placeholder: 'Choose Sizes',
         className: 'select__sizes',
         colStyling: 'col col--end col--gutter-left',
+        dataPrivate: false,
       },
       [SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]: {
         label: 'Profile',
         placeholder: 'Choose Profile',
         className: 'select__profile',
         colStyling: 'col col--no-gutter-right',
+        dataPrivate: true,
       },
     };
     this.defaultsButtons = {
@@ -93,7 +95,7 @@ export class DefaultsPrimitive extends PureComponent {
 
   renderDefaultsSelect(field, value, options) {
     const { errors, theme } = this.props;
-    const { label, placeholder, className, colStyling } = this.defaultsSelects[field];
+    const { label, placeholder, className, colStyling, dataPrivate } = this.defaultsSelects[field];
     return (
       <div className={colStyling}>
         <p className="settings-defaults__input-group--label">{label}</p>
@@ -109,6 +111,7 @@ export class DefaultsPrimitive extends PureComponent {
           onChange={this.createOnChangeHandler(field)}
           value={value}
           options={options}
+          data-private={dataPrivate}
         />
       </div>
     );
