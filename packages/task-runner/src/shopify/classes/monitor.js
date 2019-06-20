@@ -116,6 +116,7 @@ class Monitor {
     try {
       ({ variants, sizes: chosenSizes } = generateVariants(product, sizes, site, this._logger));
     } catch (err) {
+      this._logger.debug('ERROR:::: %j', err);
       if (err.code === ErrorCodes.VariantsNotMatched) {
         return {
           message: 'Unable to match variants',

@@ -389,6 +389,13 @@
 .profiles .profiles__fields--matches:hover {
   opacity: 0.8333;
 }
+.profiles .profiles__fields--transfer {
+  cursor: pointer;
+  margin-right: 10px;
+}
+.profiles .profiles__fields--transfer:hover {
+  opacity: 0.8333;
+}
 .profiles .profiles__fields--name {
   width: 164px;
   height: 29px;

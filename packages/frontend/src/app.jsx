@@ -34,7 +34,7 @@ export class App extends PureComponent {
       e.preventDefault();
       if (window.Bridge) {
         const confirm = await window.Bridge.showDialog(
-          'Are you sure you want to deactivate Orion? Doing so will erase all data!',
+          'Are you sure you want to deactivate? Doing so will erase all data!',
           'question',
           ['Okay', 'Cancel'],
           'Confirm',
@@ -94,7 +94,7 @@ export class App extends PureComponent {
     const { store } = this.props;
     const { tasks } = store.getState();
     tasks.forEach(t => {
-      if (t.status !== 'stopped' || t.status !== 'idle') {
+      if (t.status === 'running') {
         store.dispatch(taskActions.stop(t));
       }
     });

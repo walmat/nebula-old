@@ -7,10 +7,9 @@ import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../state/actions';
 import { renderSvgIcon } from '../utils';
 import logoAnimation from './nebula.json';
 import Bodymovin from './bodymovin';
-// import server from '../_assets/server.svg'; // TODO - when server page is finished
 import { ReactComponent as TasksIcon } from '../_assets/tasks.svg';
 import { ReactComponent as ProfilesIcon } from '../_assets/profiles.svg';
-import { ReactComponent as ServersIcon } from '../_assets/server-disabled.svg';
+import { ReactComponent as ServerIcon } from '../_assets/server.svg';
 import { ReactComponent as SettingsIcon } from '../_assets/settings.svg';
 import { mapThemeToColor } from '../constants/themes';
 import './navbar.css';
@@ -54,7 +53,7 @@ export class NavbarPrimitive extends PureComponent {
                 title={iconName}
                 onKeyPress={onKeyPress}
                 className={className}
-                onClick={iconName === 'servers' ? () => {} : onClick} // TODO - undo this once server functionality is complete #290  (maybe #45?)
+                onClick={onClick}
               >
                 {renderSvgIcon(Icon, { alt: iconName })}
               </div>
@@ -99,8 +98,8 @@ export class NavbarPrimitive extends PureComponent {
         classNameGenerator: classNameCalc(ROUTES.PROFILES),
       },
       [NAVBAR_ACTIONS.ROUTE_SERVER]: {
-        Icon: ServersIcon,
-        iconName: 'servers',
+        Icon: ServerIcon,
+        iconName: 'server',
         classNameGenerator: classNameCalc(ROUTES.SERVER),
       },
       [NAVBAR_ACTIONS.ROUTE_SETTINGS]: {

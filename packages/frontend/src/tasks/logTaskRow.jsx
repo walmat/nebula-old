@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import PropTypes from 'prop-types';
 import tDefns from '../utils/definitions/taskDefinitions';
 import { addTestId } from '../utils';
@@ -15,6 +15,7 @@ const LogTaskRow = ({
     proxy,
     output,
   },
+  style,
   fullscreen,
 }) => {
   const classMap = {
@@ -43,6 +44,7 @@ const LogTaskRow = ({
   return (
     <div
       key={index}
+      style={style}
       className="tasks-row-container col"
       data-testid={addTestId('LogTaskRow.container')}
       role="button"
@@ -63,7 +65,11 @@ const LogTaskRow = ({
         <div className={classMap.size.join(' ')} data-testid={addTestId('LogTaskRow.size')}>
           {chosenSizes || sizes}
         </div>
-        <div className={classMap.proxy.join(' ')} data-testid={addTestId('LogTaskRow.proxy')}>
+        <div
+          className={classMap.proxy.join(' ')}
+          data-testid={addTestId('LogTaskRow.proxy')}
+          data-private
+        >
           {proxy || 'None'}
         </div>
         <div
@@ -79,9 +85,10 @@ const LogTaskRow = ({
 
 LogTaskRow.propTypes = {
   task: tDefns.taskLog.isRequired,
+  style: PropTypes.objectOf(PropTypes.any).isRequired,
   onClick: PropTypes.func.isRequired,
   selected: PropTypes.bool.isRequired,
   fullscreen: PropTypes.bool.isRequired,
 };
 
-export default LogTaskRow;
+export default memo(LogTaskRow);

@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
-import CreatableSelect from 'react-select/lib/Creatable';
+import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
@@ -16,7 +16,7 @@ import { DropdownIndicator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
-export class CreateTaskPrimitive extends Component {
+export class CreateTaskPrimitive extends PureComponent {
   static createOption(value) {
     const sites = getAllSupportedSitesSorted();
     const exists = sites.find(s => s.value.indexOf(value) > -1);
@@ -49,25 +49,6 @@ export class CreateTaskPrimitive extends Component {
     };
   }
 
-  shouldComponentUpdate(nextProps) {
-    const {
-      task: { site, product, profile, username, password, amount },
-      theme,
-    } = this.props;
-    if (
-      site.url === nextProps.task.site.url &&
-      product.raw === nextProps.task.product.raw &&
-      profile.id === nextProps.task.profile.id &&
-      username === nextProps.task.username &&
-      password === nextProps.task.password &&
-      amount === nextProps.task.amount &&
-      theme === nextProps.theme
-    ) {
-      return false;
-    }
-    return true;
-  }
-
   buildProfileOptions() {
     // eslint-disable-next-line react/destructuring-assignment
     return this.props.profiles.map(profile => ({
@@ -93,18 +74,18 @@ export class CreateTaskPrimitive extends Component {
       const sizes = getAllSizes.buildSizesForCategory(fsrCategory);
       sizes.forEach(s => {
         task.sizes = [s.value];
-        [...Array(amount)].forEach(() => onAddNewTask(task));
+        onAddNewTask(task, amount);
       });
       task.sizes = prevSizes;
     } else if (task.sizes.find(s => s === 'BS')) {
       const sizes = ['4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5'];
       sizes.forEach(s => {
         task.sizes = [s];
-        [...Array(amount)].forEach(() => onAddNewTask(task));
+        onAddNewTask(task, amount);
       });
       task.sizes = prevSizes;
     } else {
-      [...Array(amount)].forEach(() => onAddNewTask(task));
+      onAddNewTask(task, amount);
     }
   }
 
@@ -252,6 +233,7 @@ export class CreateTaskPrimitive extends Component {
                 value={newTaskProfileValue}
                 options={this.buildProfileOptions()}
                 data-testid={addTestId('CreateTask.profileSelect')}
+                data-private
               />
             </div>
             <div className="col col--no-gutter tasks-create__input-group--site">
@@ -293,6 +275,7 @@ export class CreateTaskPrimitive extends Component {
                     errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]],
                   )}
                   data-testid={addTestId('CreateTask.usernameInput')}
+                  data-private
                 />
               </div>
               <div className="col col--no-gutter tasks-create__input-group--site">
@@ -310,6 +293,7 @@ export class CreateTaskPrimitive extends Component {
                   required={!accountFieldsDisabled}
                   disabled={accountFieldsDisabled}
                   data-testid={addTestId('CreateTask.passwordInput')}
+                  data-private
                 />
               </div>
             </div>
@@ -363,19 +347,19 @@ CreateTaskPrimitive.defaultProps = {
   onKeyPress: () => {},
 };
 
-export const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   profiles: state.profiles,
-  task: ownProps.taskToEdit,
+  task: state.newTask,
   theme: state.theme,
-  errors: ownProps.taskToEdit.errors,
+  errors: state.newTask.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
-  onAddNewTask: newTask => {
-    dispatch(taskActions.add(newTask));
+  onAddNewTask: (newTask, amount) => {
+    dispatch(taskActions.add(newTask, amount));
   },
 });
 

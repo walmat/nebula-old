@@ -3,6 +3,10 @@ const hash = require('object-hash');
 const shortid = require('shortid');
 
 class ProxyManager {
+  get proxies() {
+    return this._proxies;
+  }
+
   constructor(logger) {
     this._logger = logger;
     this._proxies = new Map();

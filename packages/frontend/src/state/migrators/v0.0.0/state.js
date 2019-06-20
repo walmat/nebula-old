@@ -1,4 +1,4 @@
-import serverListOptions from '../../../utils/servers'; // TODO: should we make a copy to reference this?
+import serverListOptions from '../../../constants/servers'; // TODO: should we make a copy to reference this?
 import { THEMES } from '../../../constants/themes';
 
 // Source: locationState.js @ v1.0.0-beta.6.2

@@ -132,7 +132,7 @@ class TaskManagerAdapter {
 
   _onStopTasksRequest(_, tasks) {
     if (tasks instanceof Array) {
-      this._taskManager.stopAll(tasks);
+      this._taskManager.stopAll(tasks, {});
     } else {
       this._taskManager.stop(tasks);
     }

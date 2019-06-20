@@ -1,17 +1,15 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import NumberFormat from 'react-number-format';
 import PropTypes from 'prop-types';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../state/actions';
-import { addTestId, renderSvgIcon } from '../utils';
-
-import { ReactComponent as CVVInfoIcon } from '../_assets/info.svg';
+import { addTestId } from '../utils';
 
 import './profiles.css';
 
-export class PaymentFieldsPrimitive extends Component {
+export class PaymentFieldsPrimitive extends PureComponent {
   createOnChangeHandler(field) {
     const { onChange } = this.props;
     if (field === PAYMENT_FIELDS.CARD_NUMBER) {
@@ -45,6 +43,7 @@ export class PaymentFieldsPrimitive extends Component {
                     value={value.email}
                     style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])}
                     data-testid={addTestId(`PaymentFieldsPrimitive.email`)}
+                    data-private
                   />
                 </div>
                 <div className="row row--gutter">
@@ -56,6 +55,7 @@ export class PaymentFieldsPrimitive extends Component {
                     value={value.cardNumber}
                     style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])}
                     data-testid={addTestId(`PaymentFieldsPrimitive.card-number`)}
+                    data-private
                   />
                 </div>
                 <div className="row row--start row--gutter">
@@ -69,6 +69,7 @@ export class PaymentFieldsPrimitive extends Component {
                       style={validationStatus(errors[PAYMENT_FIELDS.EXP])}
                       mask={['M', 'M', 'Y', 'Y']}
                       data-testid={addTestId(`PaymentFieldsPrimitive.expiration`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--start row--no-gutter-left">
@@ -81,13 +82,8 @@ export class PaymentFieldsPrimitive extends Component {
                         value={value.cvv}
                         style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
                         data-testid={addTestId(`PaymentFieldsPrimitive.cvv`)}
+                        data-private
                       />
-                    </div>
-                    <div className="col col--no-gutter">
-                      {renderSvgIcon(CVVInfoIcon, {
-                        alt: 'payment info',
-                        className: 'profiles-payment__input-group--payment-info-btn',
-                      })}
                     </div>
                   </div>
                 </div>

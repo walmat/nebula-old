@@ -32,8 +32,17 @@ export class ProxyListPrimitive extends Component {
     };
   }
 
+  componentWillReceiveProps(nextProps) {
+    const { proxies } = this.props;
+
+    if (proxies !== nextProps.proxies) {
+      this.setState({ proxies });
+    }
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const { reduxUpdate, editing } = this.state;
+
     // If we are re-rendering due to the proxy action being invoked, update the state and re-render
     if (reduxUpdate && !nextState.reduxUpdate) {
       this.setState({
@@ -42,7 +51,7 @@ export class ProxyListPrimitive extends Component {
       return true;
     }
 
-    // re-render only if we are not editing or are changing are editing state
+    // re-render only if we are not editing or are changing our editing state
     return !(editing && nextState.editing);
   }
 
@@ -85,7 +94,7 @@ export class ProxyListPrimitive extends Component {
     }
 
     // Force an update
-    this.handleUpdate(null);
+    this.handleUpdate();
   }
 
   handleUpdate() {
@@ -105,6 +114,7 @@ export class ProxyListPrimitive extends Component {
     // Update the component state with newProxies and set the reduxUpdate flag
     this.setState({
       proxies: newProxies,
+      // editing: false,
       reduxUpdate: true,
     });
   }
@@ -136,6 +146,7 @@ export class ProxyListPrimitive extends Component {
     const { className } = this.props;
     return React.createElement('div', {
       'data-testid': addTestId('ProxyListPrimitive.proxyInputDiv'),
+      'data-private': true,
       ref: this.domNode,
       className,
       onInput: this.handleUpdate,

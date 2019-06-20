@@ -1,13 +1,20 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import { profileActions } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 import defns from '../utils/definitions/profileDefinitions';
 
-export class LoadProfilePrimitive extends Component {
+export class LoadProfilePrimitive extends PureComponent {
   constructor(props) {
     super(props);
     this.onProfileChange = this.onProfileChange.bind(this);
@@ -85,13 +92,14 @@ export class LoadProfilePrimitive extends Component {
                         <Select
                           required
                           placeholder="Load Profile"
-                          components={{ DropdownIndicator }}
+                          components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                           className="profiles-load__input-group--select"
                           classNamePrefix="select"
-                          styles={colourStyles(theme, buildStyle(false, true))}
+                          styles={colourStyles(theme, buildStyle(false, null))}
                           onChange={this.onProfileChange}
                           value={selectProfileValue}
                           options={this.buildProfileOptions()}
+                          data-private
                         />
                       </div>
                     </div>

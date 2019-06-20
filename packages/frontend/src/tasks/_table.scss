@@ -118,6 +118,7 @@
     }
 
     .tasks-row-container {
+      width: calc(100% - 30px) !important;
       @include themify($themes) {
         border-bottom-color: themed('tableRowBottomBorderColow');
       }
@@ -126,7 +127,7 @@
 
       .tasks-row {
         display: flex;
-        height: 30px;
+        height: 31px;
 
         &.tasks-row--edit {
           padding: 10px;

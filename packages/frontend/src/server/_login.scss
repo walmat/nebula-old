@@ -4,7 +4,7 @@
 .server {
   .server-credentials {
     margin-top: 1px;
-    height: 167px;
+    height: 249px;
     width: 277px;
     border: 1px solid #f0405e;
     border-radius: 3px;
@@ -34,7 +34,15 @@
         width: 252px;
         height: 29px;
         &:disabled {
-          background: rgb(229, 229, 229);
+          cursor: not-allowed;
+        }
+      }
+
+      &--name {
+        width: 119px;
+        height: 29px;
+        margin-top: 12px;
+        &:disabled {
           cursor: not-allowed;
         }
       }
@@ -45,7 +53,8 @@
     }
 
     &__submit {
-      margin-right: -1px;
+      margin-top: 12px;
+      margin-right: 3.5px;
       width: 83px;
       height: 29px;
       cursor: pointer;

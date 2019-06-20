@@ -254,12 +254,10 @@
   overflow: hidden;
   display: block;
 }
-.tasks .table--upper {
-  flex-grow: 1;
-}
 .tasks .table--lower {
   flex-grow: 0 !important;
   height: 175px;
+  min-height: 175px;
   width: calc(100% - 16px);
   padding-left: 15px;
   padding-top: 15px;
@@ -422,10 +420,12 @@
   border-bottom-color: #6d6e70;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row {
+  width: 100% !important;
   display: flex;
   height: 30px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row--selected {
+  width: 100% !important;
   display: flex;
   height: 30px;
 }
@@ -453,10 +453,11 @@
   margin-right: 9.5px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store {
-  width: 116px;
+  width: 106px;
+  margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store--fullscreen {
-  width: 122px;
+  width: 112px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product {
   visibility: hidden;
@@ -464,13 +465,15 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product--fullscreen {
   visibility: visible;
-  width: 126px;
+  width: 116px;
+  margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size {
-  width: 84px;
+  width: 74px;
+  margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size--fullscreen {
-  width: 64px;
+  width: 54px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy {
   visibility: hidden;
@@ -478,10 +481,12 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy--fullscreen {
   visibility: visible;
-  width: 142px;
+  width: 132px;
+  margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
-  width: 241px;
+  width: 231px;
+  margin-right: 10px !important;
 }
 
 /*
@@ -586,6 +591,7 @@
   padding-bottom: 0;
 }
 .tasks .tasks-table .tasks-row-container {
+  width: calc(100% - 30px) !important;
   border-bottom-style: solid;
   border-bottom-width: 1px;
 }
@@ -597,7 +603,7 @@
 }
 .tasks .tasks-table .tasks-row-container .tasks-row {
   display: flex;
-  height: 30px;
+  height: 31px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
   padding: 10px;

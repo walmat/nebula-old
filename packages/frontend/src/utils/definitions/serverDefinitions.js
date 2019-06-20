@@ -1,20 +1,13 @@
-import awsCredentials from './server/awsCredentials';
+import awsCredential from './server/awsCredentials';
 import proxyOptions from './server/proxyOptions';
-import serverInfo from './server/serverInfo';
-import coreServer from './server/coreServer';
-import { serverList, server } from './server/serverList';
+import proxyList from './server/proxyList';
+import proxy from './server/proxy';
 import serverListOptions from './server/serverListOptions';
-import serverProperty from './server/serverProperty';
-import serverOptions from './server/serverOptions';
 
 export default {
-  awsCredentials,
-  coreServer,
+  awsCredential,
   proxyOptions,
-  serverInfo,
-  serverList,
+  proxyList,
+  proxy,
   serverListOptions,
-  serverProperty,
-  serverOptions,
-  server,
 };

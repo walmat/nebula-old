@@ -68,9 +68,12 @@
   margin-right: 0 !important;
 }
 
+/*
+ * Implementation of themes
+ */
 .server .server-credentials {
   margin-top: 1px;
-  height: 167px;
+  height: 249px;
   width: 277px;
   border: 1px solid #f0405e;
   border-radius: 3px;
@@ -78,12 +81,17 @@
 .server .server-credentials__label {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
   margin-top: 9px;
   padding-left: 0.5px;
+}
+.theme-light .server .server-credentials__label {
+  color: #161318;
+}
+.theme-dark .server .server-credentials__label {
+  color: #efefef;
 }
 .server .server-credentials__input-group {
   margin: 0 11.5px !important;
@@ -93,8 +101,13 @@
 .server .server-credentials__input {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .server-credentials__input {
+  color: #161318;
+}
+.theme-dark .server .server-credentials__input {
+  color: #efefef;
 }
 .server .server-credentials__input--bordered {
   border: 1px solid #f0405e;
@@ -104,14 +117,22 @@
   height: 29px;
 }
 .server .server-credentials__input--field:disabled {
-  background: #e5e5e5;
+  cursor: not-allowed;
+}
+.server .server-credentials__input--name {
+  width: 119px;
+  height: 29px;
+  margin-top: 12px;
+}
+.server .server-credentials__input--name:disabled {
   cursor: not-allowed;
 }
 .server .server-credentials__submit-row {
   align-self: flex-end;
 }
 .server .server-credentials__submit {
-  margin-right: -1px;
+  margin-top: 12px;
+  margin-right: 3.5px;
   width: 83px;
   height: 29px;
   cursor: pointer;
@@ -124,6 +145,12 @@
   letter-spacing: 0;
 }
 
+/*
+ * Implementation of themes
+ */
+/*
+ * Implementation of themes
+ */
 .server .server-options {
   height: 219px;
   width: 258px;
@@ -136,12 +163,17 @@
 .server .server-options__label {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
   margin-top: 9px;
   padding-left: 0.5px;
+}
+.theme-light .server .server-options__label {
+  color: #161318;
+}
+.theme-dark .server .server-options__label {
+  color: #efefef;
 }
 .server .server-options__input-group {
   margin: 0 11.5px !important;
@@ -150,8 +182,13 @@
 .server .server-options__input {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .server-options__input {
+  color: #161318;
+}
+.theme-dark .server .server-options__input {
+  color: #efefef;
 }
 .server .server-options__input--bordered {
   border: 1px solid #f0405e;
@@ -172,88 +209,140 @@
   align-self: flex-end;
 }
 .server .server-options__create {
-  margin-right: -3px;
   width: 110px;
   height: 29px;
   cursor: pointer;
-  background: #f0405e;
   border: none;
   border-radius: 3px;
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #efefef;
   letter-spacing: 0;
+  margin-right: -3px;
+}
+.theme-light .server .server-options__create {
+  color: #f4f4f4;
+}
+.theme-dark .server .server-options__create {
+  color: #f4f4f4;
+}
+.server .server-options__create:hover {
+  opacity: 0.8333;
+}
+.theme-light .server .server-options__create {
+  background: #f0405e;
+}
+.theme-dark .server .server-options__create {
+  background: #f0405e;
 }
 .server .server-options__destroy {
-  margin-right: -17px;
   width: 110px;
   height: 29px;
   cursor: pointer;
-  background: #46adb4;
   border: none;
   border-radius: 3px;
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #efefef;
   letter-spacing: 0;
+  margin-right: -17px;
+}
+.theme-light .server .server-options__destroy {
+  color: #f4f4f4;
+}
+.theme-dark .server .server-options__destroy {
+  color: #f4f4f4;
+}
+.server .server-options__destroy:hover {
+  opacity: 0.8333;
+}
+.theme-light .server .server-options__destroy {
+  background: #46adb4;
+}
+.theme-dark .server .server-options__destroy {
+  background: #46adb4;
 }
 
+/*
+ * Implementation of themes
+ */
 .server .proxy-options {
   margin-left: -10px;
   height: 219px;
-  width: 258px;
+  width: 277px;
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
 .server .proxy-options__section-header {
-  padding-top: 71px;
+  padding-top: 21px;
 }
 .server .proxy-options__label {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
   height: 12px;
   margin-bottom: 3px;
   margin-top: 9px;
   padding-left: 0.5px;
 }
+.theme-light .server .proxy-options__label {
+  color: #161318;
+}
+.theme-dark .server .proxy-options__label {
+  color: #efefef;
+}
 .server .proxy-options__input-group {
   margin: 0 11.5px !important;
-  padding-top: -1px;
   padding-bottom: 2px;
 }
 .server .proxy-options__input {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
-  color: #161318;
   letter-spacing: 0;
+}
+.theme-light .server .proxy-options__input {
+  color: #161318;
+}
+.theme-dark .server .proxy-options__input {
+  color: #efefef;
 }
 .server .proxy-options__input--bordered {
   border: 1px solid #f0405e;
 }
 .server .proxy-options__input--number {
-  width: 56px;
+  width: 60px;
+  height: 29px;
+}
+.server .proxy-options__input--credentials {
+  width: 176px;
   height: 29px;
 }
 .server .proxy-options__input--location {
-  width: 162px;
+  width: 252px;
   height: 29px;
 }
 .server .proxy-options__input--field {
-  width: 234px;
+  width: 118.3px;
   height: 29px;
 }
+.theme-light .server .proxy-options__input--field {
+  background: #f4f4f4;
+}
+.theme-dark .server .proxy-options__input--field {
+  background: #393c3f;
+}
 .server .proxy-options__input--field:disabled {
-  background: #e5e5e5;
   cursor: not-allowed;
+}
+.theme-light .server .proxy-options__input--field:disabled {
+  background: #dcdcdc;
+}
+.theme-dark .server .proxy-options__input--field:disabled {
+  background: #262626;
 }
 .server .proxy-options__submit-row {
   align-self: flex-end;
 }
 .server .proxy-options__generate {
-  margin-right: -3px;
-  width: 110px;
+  width: 83px;
   height: 29px;
   cursor: pointer;
   background: #f0405e;
@@ -264,9 +353,14 @@
   color: #efefef;
   letter-spacing: 0;
 }
+.server .proxy-options__generate:hover {
+  opacity: 0.8333;
+}
+.server .proxy-options__generate:disabled {
+  cursor: not-allowed;
+}
 .server .proxy-options__destroy {
-  margin-right: -17px;
-  width: 110px;
+  width: 83px;
   height: 29px;
   cursor: pointer;
   background: #46adb4;
@@ -277,60 +371,58 @@
   color: #efefef;
   letter-spacing: 0;
 }
-
-.server .server-table .server-row-container .server-row__status, .server .server-table .server-row-container .server-row__charges, .server .server-table .server-row-container .server-row__size {
-  text-overflow: ellipsis;
+.server .proxy-options__destroy:hover {
+  opacity: 0.8333;
+}
+.server .proxy-options__destroy:disabled {
+  cursor: not-allowed;
 }
 
-.server .server-table-container .server-table__header .server-table__header__actions, .server .server-table-container .server-table__header .server-table__header__status, .server .server-table-container .server-table__header .server-table__header__charges, .server .server-table-container .server-table__header .server-table__header__location, .server .server-table-container .server-table__header .server-table__header__size, .server .server-table-container .server-table__header .server-table__header__type {
+/*
+ * Implementation of themes
+ */
+/*
+ * Implementation of themes
+ */
+.server .server-table .proxy-row-container .proxy-log__row--actions, .server .server-table .proxy-row-container .proxy-log__row--speed, .server .server-table .proxy-row-container .proxy-log__row--ip, .server .server-table .proxy-row-container .proxy-log__row--region, .server .server-table .proxy-row-container .proxy-log__row--account, .server .server-table .proxy-row-container .proxy-log__row--status {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  vertical-align: middle;
+}
+
+.server .server-table__header--actions, .server .server-table__header--speed, .server .server-table__header--ip, .server .server-table__header--region, .server .server-table__header--account {
   margin: 0;
 }
-.server .server-table-container .server-table__header .server-table__header__actions > p, .server .server-table-container .server-table__header .server-table__header__status > p, .server .server-table-container .server-table__header .server-table__header__charges > p, .server .server-table-container .server-table__header .server-table__header__location > p, .server .server-table-container .server-table__header .server-table__header__size > p, .server .server-table-container .server-table__header .server-table__header__type > p {
+.server .server-table__header--actions > p, .server .server-table__header--speed > p, .server .server-table__header--ip > p, .server .server-table__header--region > p, .server .server-table__header--account > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
-  color: #161318;
   letter-spacing: 0;
   margin: 5px 0;
 }
+.theme-light .server .server-table__header--actions > p, .server .theme-light .server-table__header--actions > p, .theme-light .server .server-table__header--speed > p, .server .theme-light .server-table__header--speed > p, .theme-light .server .server-table__header--ip > p, .server .theme-light .server-table__header--ip > p, .theme-light .server .server-table__header--region > p, .server .theme-light .server-table__header--region > p, .theme-light .server .server-table__header--account > p, .server .theme-light .server-table__header--account > p {
+  color: #161318;
+}
+.theme-dark .server .server-table__header--actions > p, .server .theme-dark .server-table__header--actions > p, .theme-dark .server .server-table__header--speed > p, .server .theme-dark .server-table__header--speed > p, .theme-dark .server .server-table__header--ip > p, .server .theme-dark .server-table__header--ip > p, .theme-dark .server .server-table__header--region > p, .server .theme-dark .server-table__header--region > p, .theme-dark .server .server-table__header--account > p, .server .theme-dark .server-table__header--account > p {
+  color: #efefef;
+}
 
 .server .server-table-container {
-  width: 823px;
-  height: 323px;
-  margin-left: -1px !important;
-  border: 1px solid #f0405e;
+  width: 523px;
+  height: 531px;
+  border-style: solid;
+  border-width: 1px;
   border-radius: 3px;
   margin: 0 !important;
 }
-.server .server-table-container .server-table__wrapper {
-  min-width: 0;
-  width: 100%;
-  overflow: hidden;
-  display: block;
+.theme-light .server .server-table-container {
+  border-color: #f0405e;
 }
-.server .server-table-container .server-table__header {
-  margin: 0;
-  padding-bottom: 1px;
-  height: 26px;
-  min-height: 26px;
+.theme-dark .server .server-table-container {
+  border-color: #f0405e;
 }
-.server .server-table-container .server-table__header .server-table__header__type {
-  margin-left: -20px;
-  width: 99px;
-}
-.server .server-table-container .server-table__header .server-table__header__size {
-  width: 45px;
-}
-.server .server-table-container .server-table__header .server-table__header__location {
-  width: 55px;
-}
-.server .server-table-container .server-table__header .server-table__header__charges {
-  width: 15px;
-}
-.server .server-table-container .server-table__header .server-table__header__status {
-  width: 35px;
-}
-.server .server-table-container .server-table__header .server-table__header__actions {
-  width: 50px;
+.server .server-log {
+  margin-top: 50px;
 }
 .server .server-table {
   border-collapse: collapse;
@@ -339,9 +431,38 @@
   overflow-y: scroll;
   overflow-x: hidden;
 }
+.server .server-table__wrapper {
+  padding-left: 5px;
+  padding-right: 5px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  display: block;
+}
 .server .server-table__section-header {
   margin-top: -9px;
   margin-left: -1px !important;
+}
+.server .server-table__header {
+  margin: 0;
+  padding-bottom: 1px;
+  height: 26px;
+  min-height: 26px;
+}
+.server .server-table__header--account {
+  width: 95px;
+}
+.server .server-table__header--region {
+  width: 55px;
+}
+.server .server-table__header--ip {
+  width: 35px;
+}
+.server .server-table__header--speed {
+  width: 55px;
+}
+.server .server-table__header--actions {
+  width: 55px;
 }
 .server .server-table .blank {
   padding-left: 10px;
@@ -353,51 +474,67 @@
   padding-left: 5px;
   padding-bottom: 0;
 }
-.server .server-table .server-row-container {
-  border-bottom: #dfdfdf solid 1px;
+.server .server-table .proxy-row-container {
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
 }
-.server .server-table .server-row-container .server-row {
+.theme-light .server .server-table .proxy-row-container {
+  border-bottom-color: #cbcbcb;
+}
+.theme-dark .server .server-table .proxy-row-container {
+  border-bottom-color: #6d6e70;
+}
+.server .server-table .proxy-row-container .proxy-log {
   display: flex;
   height: 30px;
 }
-.server .server-table .server-row-container .server-row img {
-  cursor: pointer;
-  vertical-align: middle;
+.server .server-table .proxy-row-container .proxy-log__row {
+  margin-top: -2px;
+  padding-bottom: 2px;
 }
-.server .server-table .server-row-container .server-row__type {
-  margin-left: -2px;
-  width: 135px;
+.server .server-table .proxy-row-container .proxy-log__row--status {
+  margin-left: 14.5px !important;
+  margin-right: 6.5px !important;
 }
-.server .server-table .server-row-container .server-row__size {
+.server .server-table .proxy-row-container .proxy-log__row--status > svg,
+.server .server-table .proxy-row-container .proxy-log__row--status * {
+  width: 9px;
+}
+.server .server-table .proxy-row-container .proxy-log__row--account {
+  width: 145px;
+}
+.server .server-table .proxy-row-container .proxy-log__row--region {
   width: 80px;
 }
-.server .server-table .server-row-container .server-row__location {
-  text-overflow: ellipsis;
-  width: 100px;
+.server .server-table .proxy-row-container .proxy-log__row--ip {
+  width: 105px;
 }
-.server .server-table .server-row-container .server-row__charges {
-  margin-left: 8px;
-  width: 30px;
+.server .server-table .proxy-row-container .proxy-log__row--speed {
+  width: 72px;
 }
-.server .server-table .server-row-container .server-row__charges > p {
-  text-align: center;
+.server .server-table .proxy-row-container .proxy-log__row--actions {
+  margin-right: 15px !important;
+  width: 105px;
 }
-.server .server-table .server-row-container .server-row__status {
-  width: 67px;
+.server .server-table .proxy-row-container .proxy-log__row--actions__margin {
+  margin: 0 25px 0 25px !important;
 }
-.server .server-table .server-row-container .server-row__actions {
-  width: 50px;
-}
-.server .server-table .server-row-container .server-row__actions__button {
+.server .server-table .proxy-row-container .proxy-log__row--actions__button {
   padding-bottom: 2px;
-  margin-right: 4px;
   width: 16px;
 }
-.server .server-table .server-row-container .server-row__actions__button:nth-child(1) {
-  margin-left: 2px;
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:first-child {
+  margin-top: 1px;
+  margin-right: 3.5px !important;
 }
-.server .server-table .server-row-container .server-row__actions__button:nth-child(2) {
-  margin-bottom: 2px;
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:nth-child(2) {
+  margin-top: 1px;
+}
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:nth-child(3) {
+  margin-top: 1px;
+}
+.server .server-table .proxy-row-container .proxy-log__row--actions__button:last-child {
+  margin-top: 1px;
 }
 
 .view-line {

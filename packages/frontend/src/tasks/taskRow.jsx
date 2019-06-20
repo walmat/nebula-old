@@ -1,12 +1,19 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
-import CreatableSelect from 'react-select/lib/Creatable';
+import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 import getAllSizes from '../constants/getAllSizes';
 import getAllSites from '../constants/getAllSites';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 import pDefns from '../utils/definitions/profileDefinitions';
@@ -19,7 +26,7 @@ import { ReactComponent as DestroyIcon } from '../_assets/destroy.svg';
 import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../state/actions';
 import { buildStyle } from '../utils/styles';
 
-export class TaskRowPrimitive extends Component {
+export class TaskRowPrimitive extends PureComponent {
   static createOption(value) {
     const sites = getAllSites();
     const exists = sites.find(s => s.value.indexOf(value) > -1);
@@ -241,7 +248,7 @@ export class TaskRowPrimitive extends Component {
                 classNamePrefix="select"
                 className="edit-field__select"
                 placeholder="Choose Profile"
-                components={{ DropdownIndicator }}
+                components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                 styles={colourStyles(
                   theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
@@ -250,6 +257,7 @@ export class TaskRowPrimitive extends Component {
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
                 options={this.buildProfileOptions()}
                 data-testid={addTestId(`${testIdBase}.profileSelect`)}
+                data-private
               />
             </div>
             <div className="col edit-field">
@@ -286,6 +294,7 @@ export class TaskRowPrimitive extends Component {
                 required={!editAccountFieldDisabled}
                 disabled={editAccountFieldDisabled}
                 data-testid={addTestId(`${testIdBase}.usernameInput`)}
+                data-private
               />
             </div>
             <div className="col edit-field">
@@ -303,6 +312,7 @@ export class TaskRowPrimitive extends Component {
                 required={!editAccountFieldDisabled}
                 disabled={editAccountFieldDisabled}
                 data-testid={addTestId(`${testIdBase}.passwordInput`)}
+                data-private
               />
             </div>
           </div>
@@ -436,8 +446,9 @@ export class TaskRowPrimitive extends Component {
   }
 
   render() {
+    const { style } = this.props;
     return (
-      <div className="tasks-row-container col">
+      <div style={style} className="col tasks-row-container">
         {this.renderTableRow()}
         {this.renderEditMenu()}
       </div>
@@ -461,6 +472,7 @@ TaskRowPrimitive.propTypes = {
   onCancelEdits: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
+  style: PropTypes.objectOf(PropTypes.any).isRequired,
   errors: tDefns.taskEditErrors.isRequired,
 };
 
@@ -472,6 +484,7 @@ export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   proxies: state.settings.proxies.filter((_, idx) => !state.settings.errors.proxies.includes(idx)), // Only get the valid proxies
   task: ownProps.task,
+  style: ownProps.style,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
   theme: state.theme,

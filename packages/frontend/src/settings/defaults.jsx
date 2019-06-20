@@ -1,15 +1,22 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { buildStyle } from '../utils/styles';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 import getAllSizes from '../constants/getAllSizes';
 
-export class DefaultsPrimitive extends Component {
+export class DefaultsPrimitive extends PureComponent {
   static buildSizeOptions() {
     return getAllSizes();
   }
@@ -22,12 +29,14 @@ export class DefaultsPrimitive extends Component {
         placeholder: 'Choose Sizes',
         className: 'select__sizes',
         colStyling: 'col col--end col--gutter-left',
+        dataPrivate: false,
       },
       [SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]: {
         label: 'Profile',
         placeholder: 'Choose Profile',
         className: 'select__profile',
         colStyling: 'col col--no-gutter-right',
+        dataPrivate: true,
       },
     };
     this.defaultsButtons = {
@@ -93,14 +102,14 @@ export class DefaultsPrimitive extends Component {
 
   renderDefaultsSelect(field, value, options) {
     const { errors, theme } = this.props;
-    const { label, placeholder, className, colStyling } = this.defaultsSelects[field];
+    const { label, placeholder, className, colStyling, dataPrivate } = this.defaultsSelects[field];
     return (
       <div className={colStyling}>
         <p className="settings-defaults__input-group--label">{label}</p>
         <Select
           required
           placeholder={placeholder}
-          components={{ DropdownIndicator }}
+          components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
           isMulti={field === SETTINGS_FIELDS.EDIT_DEFAULT_SIZES}
           isClearable={false}
           className={`settings-defaults__input-group--${className}`}
@@ -109,6 +118,7 @@ export class DefaultsPrimitive extends Component {
           onChange={this.createOnChangeHandler(field)}
           value={value}
           options={options}
+          data-private={dataPrivate}
         />
       </div>
     );

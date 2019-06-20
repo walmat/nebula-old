@@ -1,11 +1,18 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
-import CreatableSelect from 'react-select/lib/Creatable';
+import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 import { buildStyle } from '../utils/styles';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
@@ -13,7 +20,7 @@ import getAllSupportedSitesSorted from '../constants/getAllSites';
 
 import addTestId from '../utils/addTestId';
 
-export class ShippingManagerPrimitive extends Component {
+export class ShippingManagerPrimitive extends PureComponent {
   static createOption(value) {
     const sites = getAllSupportedSitesSorted();
     const exists = sites.find(s => s.value.indexOf(value) > -1);
@@ -191,7 +198,7 @@ export class ShippingManagerPrimitive extends Component {
           <Select
             required
             placeholder={placeholder}
-            components={{ DropdownIndicator }}
+            components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
             isMulti={false}
             isClearable={false}
             className={`settings--shipping-manager__input-group--${type}`}
@@ -200,6 +207,7 @@ export class ShippingManagerPrimitive extends Component {
             onChange={this.createOnChangeHandler(field)}
             value={value}
             options={options}
+            data-private
           />
         )}
       </div>
@@ -275,6 +283,7 @@ export class ShippingManagerPrimitive extends Component {
                             errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME]],
                           )}
                           required
+                          data-private
                         />
                       </div>
                     </div>
@@ -307,6 +316,7 @@ export class ShippingManagerPrimitive extends Component {
                           )}
                           required={!accountFieldsDisabled}
                           disabled={accountFieldsDisabled}
+                          data-private
                         />
                       </div>
                       <div className="col col--gutter-right">
@@ -325,6 +335,7 @@ export class ShippingManagerPrimitive extends Component {
                           )}
                           required={!accountFieldsDisabled}
                           disabled={accountFieldsDisabled}
+                          data-private
                         />
                       </div>
                     </div>
