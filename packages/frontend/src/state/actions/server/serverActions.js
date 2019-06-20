@@ -1,5 +1,4 @@
 import AWS from 'aws-sdk';
-import { Agent } from 'https';
 
 import makeActionCreator from '../actionCreator';
 import regexes from '../../../utils/validation';
@@ -75,24 +74,11 @@ const _generateProxiesRequest = async (proxyOptions, credentials) =>
 
 const _testProxyRequest = async (url, proxy) =>
   new Promise(async (resolve, reject) => {
-    const headers = new Headers({
-      'Access-Control-Allow-Origin': '*',
-    });
-    const [ip, port, user, pass] = proxy.split(':');
-    const data = {
-      headers,
-      method: 'GET',
-      mode: 'no-cors',
-      agent: new Agent(`http://${user}:${pass}@${ip}:${port}`),
-    };
-    const start = performance.now();
-    const res = await fetch(url, data);
-    const stop = performance.now();
-    if (!res.ok) {
+    const speed = await window.Bridge.testProxy(url, proxy);
+    if (!speed) {
       return reject(new Error('Unable to connect'));
     }
-
-    return resolve({ speed: (stop - start).toFixed(2), proxy });
+    return resolve({ speed, proxy });
   });
 
 const _terminateProxiesRequest = async (options, proxies, credentials) =>

@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
+const axios = require('axios');
+const httpsProxyAgent = require('https-proxy-agent');
 const { TaskRunnerTypes } = require('@nebula/task-runner-built').shopify;
 
 const IPCKeys = require('../constants');
@@ -188,6 +190,25 @@ const _setTheme = opts => {
   util.sendEvent(IPCKeys.ChangeTheme, opts);
 };
 
+const _testProxy = async (url, proxy) => {
+  let start;
+  let stop;
+  const [host, port, username, password] = proxy.split(':');
+  const agent = new httpsProxyAgent(`http://${username}:${password}@${host}:${port}`);
+  try {
+    start = performance.now();
+      await axios.get(url, {
+        withCredentials: true,
+        httpsAgent: agent,
+        httpAgent: agent,
+      });
+    stop = performance.now();
+    return (stop - start).toFixed(0);
+  } catch (err) {
+    return null;
+  }
+}
+
 /**
  * On process load, create the Bridge
  */
@@ -210,6 +231,7 @@ process.once('loaded', () => {
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,
     updateHook: _updateHook,
+    testProxy: _testProxy,
     sendWebhookTestMessage: _sendWebhookTestMessage,
   };
 });
