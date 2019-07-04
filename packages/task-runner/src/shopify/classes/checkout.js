@@ -103,7 +103,7 @@ class Checkout {
         if (!apiKey) {
           return { message: 'Parsing Access Token', nextState: States.ParseAccessToken };
         }
-        this._logger.debug('CHECKOUT TYPE %j', this._checkoutType);
+
         if (this._checkoutType === CheckoutTypes.fe) {
           return { message: 'Monitoring for product', nextState: States.Monitor };
         }
@@ -312,25 +312,19 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey },
-        monitorDelay,
       },
       proxy,
       timers: { monitor },
     } = this._context;
 
     try {
-      const res = await this._request(`$${url}/checkout`, {
+      const res = await this._request(`${url}/checkout`, {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
         redirect: 'manual',
         headers: getHeaders({ url, apiKey }),
         body: JSON.stringify({}),
       });
-
-      const body = await res.text();
-      console.log(JSON.stringify(body, null, 2));
-
-      console.log(JSON.stringify(res, null, 2));
 
       const checkStatus = stateForError(
         { statusCode: res.status },
@@ -344,18 +338,13 @@ class Checkout {
         return checkStatus;
       }
 
-      if (res.redirected) {
-        const redirectUrl = res.headers.get('location');
+      const redirectUrl = res.headers.get('location');
+
+      if (redirectUrl) {
 
         this._logger.silly('Create checkout redirect url: %j', redirectUrl);
 
-        if (!redirectUrl) {
-          const message = res.status ? `Creating checkout - (${res.status})` : 'Creating checkout';
-          return { message, nextState: States.CreateCheckout };
-        }
-
         if (redirectUrl.indexOf('password') > -1) {
-          await waitForDelay(monitorDelay);
           return { message: 'Password page', nextState: States.CreateCheckout };
         }
 
@@ -664,11 +653,6 @@ class Checkout {
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
@@ -682,8 +666,6 @@ class Checkout {
           },
         }),
       });
-
-      const body = await res.text();
 
       const { statusCode, headers } = res;
 
@@ -721,24 +703,25 @@ class Checkout {
         }
       }
 
-      // check if captcha is present
-      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      const recaptcha = $('.g-recaptcha');
-      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
-      if (
-        recaptcha.length > 0 ||
-        url.indexOf('socialstatus') > -1 ||
-        url.indexOf('hbo') > -1 ||
-        this.needsCaptcha
-      ) {
+      const body = await res.text();
+      this._logger.debug(body);
+
+      if (this.needsCaptcha || /captcha/i.test(body)) {
         this._context.task.checkoutSpeed = checkout.getRunTime();
+        checkout.stop();
         checkout.reset();
         return { message: 'Waiting for captcha', nextState: States.RequestCaptcha };
       }
 
+      const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
+      if (match && /review/.test(match)) {
+        return { message: 'Completing payment', nextState: States.CompletePayment };
+      }
+
       this._context.task.checkoutSpeed = checkout.getRunTime();
+      checkout.stop();
       checkout.reset();
-      return { message: 'Processing payment', nextState: States.CompletePayment };
+      return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Post Payment.\n\n %j %j',

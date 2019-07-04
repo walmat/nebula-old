@@ -27,22 +27,17 @@ class APICheckout extends Checkout {
       task: {
         site: { url, apiKey },
         profile: { shipping, billing, payment, billingMatchesShipping },
-        username,
-        password,
       },
       proxy,
     } = this._context;
 
     try {
-      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
+      const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
         agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
-        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
-          'Accept-Language': 'en-US,en;q=0.8',
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
         },
         body: JSON.stringify(
@@ -50,9 +45,10 @@ class APICheckout extends Checkout {
         ),
       });
 
+      this._logger.silly('API CHECKOUT: Patch checkout status: %s', res.status);
       this.captchaToken = '';
 
-      const { statusCode, headers } = res;
+      const { status: statusCode } = res;
 
       const checkStatus = stateForError(
         { statusCode },
@@ -66,41 +62,19 @@ class APICheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.get('location');
-      this._logger.silly('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
-      if (!redirectUrl || /checkouts/.test(redirectUrl)) {
-        if (statusCode === 200 || statusCode === 302) {
-          this.needsPatched = false;
-          return { message: 'Monitoring for product', nextState: States.Monitor };
-        }
+      const body = await res.json();
 
+      this._logger.debug(body);
+
+      if (body && body.checkout && !body.checkout.shipping_address && !body.checkout.billing_address) {
         const message = statusCode
           ? `Submitting information – (${statusCode})`
           : 'Submitting information';
-
         return { message, nextState: States.PatchCheckout };
       }
 
-      if (redirectUrl.indexOf('account') > -1) {
-        if (username && password) {
-          return { message: 'Logging in', nextState: States.Login };
-        }
-        return { message: 'Account required', nextState: States.Errored };
-      }
-
-      if (redirectUrl.indexOf('password') > -1) {
-        return { message: 'Password page', nextState: States.CreateCheckout };
-      }
-
-      if (redirectUrl.indexOf('throttle') > -1) {
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
-
-      const message = statusCode
-        ? `Submitting information – (${statusCode})`
-        : 'Submitting information';
-
-      return { message, nextState: States.PatchCheckout };
+      this.needsPatched = false;
+      return { message: 'Monitoring for product', nextState: States.Monitor };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
@@ -129,8 +103,6 @@ class APICheckout extends Checkout {
         sizes,
         product: { variants },
         monitorDelay,
-        username,
-        password,
       },
       proxy,
       timers: { monitor, checkout: checkoutTimer },
@@ -138,18 +110,15 @@ class APICheckout extends Checkout {
     } = this._context;
 
     try {
-      const res = await this._request(`${url}/api/checkouts/${this.checkoutToken}.json`, {
+      const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
         agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
-        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
-          'Accept-Encoding': 'gzip, deflate, br',
+          'Content-Type': 'application/json',
         },
-        body: patchToCart(variants[0]),
+        body: JSON.stringify(patchToCart(variants[0])),
       });
-
-      const body = await res.json();
 
       const { statusCode, headers } = res;
 
@@ -170,13 +139,6 @@ class APICheckout extends Checkout {
 
       // check redirects
       if (redirectUrl) {
-        if (redirectUrl.indexOf('account') > -1) {
-          if (username && password) {
-            return { message: 'Logging in', nextState: States.Login };
-          }
-          return { message: 'Account required', nextState: States.Errored };
-        }
-
         if (redirectUrl.indexOf('password') > -1) {
           return { message: 'Password page', nextState: States.CreateCheckout };
         }
@@ -185,6 +147,8 @@ class APICheckout extends Checkout {
           return { message: 'Waiting in queue', nextState: States.PollQueue };
         }
       }
+
+      const body = await res.json();
 
       if (body.errors && body.errors.line_items) {
         const error = body.errors.line_items[0];
@@ -263,16 +227,11 @@ class APICheckout extends Checkout {
 
     try {
       const res = await this._request(
-        `${url}/api/checkouts/${this.checkoutToken}/shipping_rates.json`,
+        `/api/checkouts/${this.checkoutToken}/shipping_rates.json`,
         {
           method: 'GET',
           agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
-          redirect: 'manual',
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-GB, en-US; en; q=0.8',
-          },
+          headers: getHeaders({ url, apiKey }),
         },
       );
 
@@ -296,6 +255,8 @@ class APICheckout extends Checkout {
       }
 
       const body = await res.json();
+
+      this._logger.debug(body);
       if (body && body.errors) {
         this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', body.errors);
         const { checkout } = body.errors;

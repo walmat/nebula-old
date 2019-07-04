@@ -133,11 +133,6 @@ class TaskRunner {
     this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
   }
 
-  _waitForErrorDelay() {
-    this._logger.silly('Waiting for error delay...');
-    return waitForDelay(this._context.task.errorDelay);
-  }
-
   _handleAbort(id) {
     if (id === this._context.id) {
       this._context.aborted = true;
@@ -363,6 +358,7 @@ class TaskRunner {
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
+
     return nextState;
   }
 
@@ -462,7 +458,6 @@ class TaskRunner {
         message: 'Error monitoring product...',
         errors,
       });
-      await this._waitForErrorDelay();
     }
     const { chosenSizes, name } = this._context.task.product;
     this._emitTaskEvent({
@@ -790,6 +785,9 @@ class TaskRunner {
     if (this._state !== nextState) {
       this._prevState = this._state;
       this._state = nextState;
+    } else {
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return false;

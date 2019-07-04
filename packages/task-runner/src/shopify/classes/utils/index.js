@@ -68,9 +68,6 @@ const stateForError = ({ statusCode, code }, { message, nextState }) => {
 };
 
 const getHeaders = ({ url, apiKey }) => ({
-  Accept: 'application/json',
-  'Content-Type': 'application/json',
-  Connection: 'keep-alive',
   'X-Shopify-Checkout-Version': '2019-10-06',
   'X-Shopify-Access-Token': `${apiKey}`,
   'x-barba': 'yes',
