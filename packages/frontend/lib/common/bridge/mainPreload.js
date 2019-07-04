@@ -120,6 +120,7 @@ const _startShippingRatesRunner = task => {
         response.rates = payload[SRR_ID].rates || response.rates; // update rates if it exists
         response.selectedRate = payload[SRR_ID].selected || response.selectedRate; // update selected if it exists
 
+        console.log(response);
         if (payload[SRR_ID].done) {
           // SRR is done
           _deregisterForTaskEvents(srrMessageHandler);

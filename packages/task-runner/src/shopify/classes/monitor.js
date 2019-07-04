@@ -1,5 +1,5 @@
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
-const { userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
+const { rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
 const { Types, States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
@@ -19,27 +19,29 @@ class Monitor {
     this._context = context;
     this._logger = this._context.logger;
     this._request = this._context.request;
+    this._delayer = this._context.delayer;
+    this._signal = this._context.signal;
     this._parseType = null;
   }
 
   _waitForRefreshDelay() {
     this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.monitorDelay);
-    return waitForDelay(this._context.task.monitorDelay);
+    return waitForDelay(this._context.task.monitorDelay, this._signal);
   }
 
   _waitForErrorDelay() {
     this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.errorDelay);
-    return waitForDelay(this._context.task.errorDelay);
+    return waitForDelay(this._context.task.errorDelay, this._signal);
   }
 
   // ASSUMPTION: this method is only called when we know we have to
   // delay and start the monitor again...
   async _delay(status) {
-    let delay = this._waitForRefreshDelay;
+    this._delayer = this._waitForRefreshDelay;
     let message = 'Monitoring for product';
     switch (status || 404) {
       case 401: {
-        delay = this._waitForErrorDelay;
+        this._delayer = this._waitForErrorDelay;
         break;
       }
       case 601: {
@@ -49,7 +51,7 @@ class Monitor {
       default:
         break;
     }
-    await delay.call(this);
+    await this._delayer;
     this._logger.silly('Monitoring not complete, remonitoring...');
     return { message, nextState: States.Monitor };
   }
@@ -176,45 +178,16 @@ class Monitor {
 
   async _monitorUrl() {
     const [url] = this._context.task.product.url.split('?');
-    const { proxy } = this._context;
-    try {
-      const response = await this._request({
-        method: 'GET',
-        uri: url,
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        simple: true,
-        gzip: true,
-        headers: {
-          'User-Agent': userAgent,
-        },
-      });
 
-      // Response Succeeded -- Get Product Info
-      this._logger.silly(
-        'MONITOR: Url %s responded with status code %s. Getting full info',
+    try {
+      // Try getting full product info
+      const fullProductInfo = await Parser.getFullProductInfo(
         url,
-        response.statusCode,
+        this._context.proxy,
+        this._request,
+        this._logger,
       );
-      let fullProductInfo;
-      try {
-        // Try getting full product info
-        fullProductInfo = await Parser.getFullProductInfo(
-          url,
-          this._context.proxy,
-          this._request,
-          this._logger,
-        );
-      } catch (errors) {
-        this._logger.error('MONITOR: All request errored out! %j', errors);
-        if (this._context.type === Types.ShippingRates) {
-          return { message: 'Product not found!', nextState: States.Errored };
-        }
-        // handle parsing errors
-        return this._handleParsingErrors(errors);
-      }
+
       // Generate Variants
       this._logger.silly(
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',
@@ -237,14 +210,10 @@ class Monitor {
         message: `Found product: ${this._context.task.product.name}`,
         nextState: States.AddToCart,
       };
-    } catch (error) {
-      // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
-      this._logger.error(
-        'MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...',
-        url,
-        error.statusCode,
-      );
-      return this._delay(error.statusCode);
+    } catch (errors) {
+      // handle parsing errors
+      this._logger.error('MONITOR: All request errored out! %j', errors);
+      return this._handleParsingErrors(errors);
     }
   }
 

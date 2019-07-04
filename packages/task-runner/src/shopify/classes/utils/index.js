@@ -1,5 +1,7 @@
-const $ = require('cheerio');
+const delay = require('delay');
 const now = require('performance-now');
+
+const $ = require('cheerio');
 
 const rfrl = require('./rfrl');
 const { States } = require('./constants').TaskRunner;
@@ -7,7 +9,7 @@ const { States } = require('./constants').TaskRunner;
 const userAgent =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 
-const waitForDelay = delay => new Promise(resolve => setTimeout(resolve, delay));
+const waitForDelay = (time, signal) => delay(time, { signal });
 
 const stateForError = ({ statusCode, code }, { message, nextState }) => {
   // Look for errors in cause

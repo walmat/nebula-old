@@ -1,4 +1,6 @@
 /* eslint-disable class-methods-use-this */
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
 const { userAgent, rfrl } = require('../utils');
 const { ErrorCodes } = require('../utils/constants');
@@ -21,14 +23,9 @@ class Parser {
     _logger.log('silly', 'Parser: Getting Full Product Info...');
     _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', productUrl);
     const genRequestPromise = uri =>
-      request({
+      request(uri, {
         method: 'GET',
-        uri,
-        proxy,
-        rejectUnauthorized: false,
-        json: false,
-        simple: true,
-        gzip: true,
+        agent: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
@@ -37,9 +34,8 @@ class Parser {
     return rfrl(
       [
         genRequestPromise(`${productUrl}.js`).then(
-          res =>
-            // {productUrl}.js contains the format we need -- just return it
-            JSON.parse(res),
+          // {productUrl}.js contains the format we need -- just return it
+          async res => res.json(),
           error => {
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
@@ -48,9 +44,9 @@ class Parser {
           },
         ),
         genRequestPromise(`${productUrl}.oembed`).then(
-          res => {
+          async res => {
             // {productUrl}.oembed requires a little transformation before returning:
-            const json = JSON.parse(res);
+            const json = await res.json();
 
             return {
               title: json.title,

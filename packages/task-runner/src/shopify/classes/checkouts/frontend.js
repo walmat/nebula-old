@@ -1,5 +1,6 @@
-const { min } = require('underscore');
-const cheerio = require('cheerio');
+import HttpsProxyAgent from 'https-proxy-agent';
+
+const { min } = require('lodash');
 
 const { getHeaders, stateForError, userAgent, waitForDelay } = require('../utils');
 const { addToCart, patchCheckoutForm } = require('../utils/forms');
@@ -19,39 +20,25 @@ class FrontendCheckout extends Checkout {
   async addToCart() {
     const {
       task: {
-        site: { url, name },
+        site: { name },
         product: { variants, hash },
         monitorDelay,
-        username,
-        password,
       },
       proxy,
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/cart/add`,
+      const res = await this._request('/cart/add.js', {
         method: 'POST',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: false,
-        gzip: true,
         headers: {
           'User-Agent': userAgent,
-          'Upgrade-Insecure-Requests': '1',
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
         },
-        formData: addToCart(variants[0], name, hash),
+        body: JSON.stringify(addToCart(variants[0], name, hash)),
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
       });
 
-      const { statusCode, body, headers } = res;
+      const { statusCode, headers } = res;
 
       const checkStatus = stateForError(
         { statusCode },
@@ -65,7 +52,7 @@ class FrontendCheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.location;
+      const redirectUrl = headers.get('location');
       this._logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
@@ -73,15 +60,8 @@ class FrontendCheckout extends Checkout {
           return { message: 'Running for restocks', nextState: States.AddToCart };
         }
 
-        if (redirectUrl.indexOf('account') > -1) {
-          if (username && password) {
-            return { message: 'Logging in', nextState: States.Login };
-          }
-          return { message: 'Account required', nextState: States.Errored };
-        }
-
         if (redirectUrl.indexOf('password') > -1) {
-          await waitForDelay(monitorDelay);
+          this._delayer = await waitForDelay(monitorDelay);
           return { message: 'Password page', nextState: States.AddToCart };
         }
 
@@ -90,15 +70,11 @@ class FrontendCheckout extends Checkout {
         }
       }
 
-      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      const cartError = $('.content--desc').text();
-      if (cartError && cartError.indexOf('Cannot find variant') > -1) {
-        await waitForDelay(monitorDelay);
-        return { message: 'Monitoring for product', nextState: States.AddToCart };
-      }
+      const body = await res.text();
 
-      if (body && body.status === 404) {
-        return { message: 'Running for restocks', nextState: States.Monitor };
+      if (/cannot find variant/i.test(body)) {
+        this._delayer = await waitForDelay(monitorDelay);
+        return { message: 'Monitoring for product', nextState: States.AddToCart };
       }
 
       if (this.chosenShippingMethod.id && !this.needsPatched) {
@@ -146,15 +122,10 @@ class FrontendCheckout extends Checkout {
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: false,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
           'Accept-Language': 'en-US,en;q=0.8',
@@ -164,7 +135,7 @@ class FrontendCheckout extends Checkout {
         },
       });
 
-      const { statusCode, body, headers } = res;
+      const { statusCode, headers } = res;
 
       const checkStatus = stateForError(
         { statusCode },
@@ -178,7 +149,7 @@ class FrontendCheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.location;
+      const redirectUrl = headers.get('location');
       this._logger.silly('FRONTEND CHECKOUT: Get checkout redirect url: %s', redirectUrl);
 
       // check for redirects
@@ -192,7 +163,7 @@ class FrontendCheckout extends Checkout {
 
         if (redirectUrl.indexOf('stock_problems') > -1) {
           const nextState = sizes.includes('Random') ? States.Monitor : States.GetCheckout;
-          await waitForDelay(monitorDelay);
+          this._delayer = await waitForDelay(monitorDelay);
           return { message: 'Running for restocks', nextState };
         }
 
@@ -206,10 +177,9 @@ class FrontendCheckout extends Checkout {
       }
 
       // check if captcha is present
-      const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-      const recaptcha = $('.g-recaptcha');
-      this._logger.silly('CHECKOUT: Recaptcha frame present: %s', recaptcha.length > 0);
-      if (recaptcha.length > 0) {
+      const body = await res.text();
+
+      if (/captcha/.test(body)) {
         this.needsCaptcha = true;
       }
 
@@ -247,15 +217,10 @@ class FrontendCheckout extends Checkout {
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: false,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
           'Accept-Language': 'en-US,en;q=0.8',
@@ -267,6 +232,7 @@ class FrontendCheckout extends Checkout {
           patchCheckoutForm(billingMatchesShipping, shipping, billing, payment, this.captchaToken),
         ),
       });
+
       // Reset captcha token so we don't use it again
       this.captchaToken = '';
 
@@ -283,7 +249,7 @@ class FrontendCheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.location;
+      const redirectUrl = headers.get('location');
       this._logger.silly('FRONTEND CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
       if (!redirectUrl) {
         if (statusCode >= 200 && statusCode < 310) {
@@ -358,26 +324,21 @@ class FrontendCheckout extends Checkout {
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/cart/shipping_rates.json`,
-        method: 'GET',
-        proxy,
-        rejectUnauthorized: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: true,
-        headers: {
-          Origin: url,
-          'User-Agent': userAgent,
+      const res = await this._request(
+        `/cart/shipping_rates.json?shipping_address[zip]=${zipCode}&shipping_address[country]=${
+          country.value
+        }&shipping_address[province]=${province ? province.value : ''}`,
+        {
+          method: 'GET',
+          agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+          headers: {
+            Origin: url,
+            'User-Agent': userAgent,
+          },
         },
-        qs: {
-          'shipping_address[zip]': zipCode,
-          'shipping_address[country]': country.value,
-          'shipping_address[province]': province ? province.value : '',
-        },
-      });
+      );
 
-      const { statusCode, body } = res;
+      const { statusCode } = res;
 
       if (statusCode === 422) {
         return { message: 'Country not supported', nextState: States.Errored };
@@ -395,9 +356,11 @@ class FrontendCheckout extends Checkout {
         return checkStatus;
       }
 
+      const body = await res.json();
+
       if (body && body.errors) {
         this._logger.silly('FRONTEND CHECKOUT: Error getting shipping rates: %j', body.errors);
-        await waitForDelay(1500);
+        this._delayer = await waitForDelay(1500);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
@@ -420,7 +383,7 @@ class FrontendCheckout extends Checkout {
         return { message: 'Posting payment', nextState: States.PostPayment };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
-      await waitForDelay(monitorDelay);
+      this._delayer = await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.error(

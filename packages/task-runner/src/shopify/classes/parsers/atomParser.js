@@ -1,3 +1,5 @@
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const Parser = require('./parser');
 const { ParseType, convertToJson } = require('../utils/parse');
 const { userAgent } = require('../utils');
@@ -26,19 +28,16 @@ class AtomParser extends Parser {
         this._name,
         this._task.site.url,
       );
-      const response = await this._request({
+      const res = await this._request('/collections/all.atom', {
         method: 'GET',
-        uri: `${this._task.site.url}/collections/all.atom`,
-        proxy: this._proxy,
-        rejectUnauthorized: false,
-        json: false,
-        simple: true,
-        gzip: true,
         headers: {
           'User-Agent': userAgent,
         },
+        agent: this._proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
       });
-      responseJson = await convertToJson(response);
+
+      const body = await res.text();
+      responseJson = await convertToJson(body);
     } catch (error) {
       this._logger.silly(
         '%s: ERROR making request! %s %d',

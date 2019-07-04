@@ -1,4 +1,6 @@
 /* eslint-disable class-methods-use-this */
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
 const { getHeaders, stateForError, userAgent, waitForDelay } = require('./utils');
@@ -19,6 +21,8 @@ class Checkout {
     this._context = context;
     this._logger = this._context.logger;
     this._request = this._context.request;
+    this._delayer = this._context.delayer;
+    this._signal = this._context.signal;
     this._checkoutType = this._context.checkoutType;
 
     this.shippingMethods = [];
@@ -80,24 +84,18 @@ class Checkout {
     } = this._context;
 
     try {
-      const { id } = await this._request({
-        uri: `https://elb.deposit.shopifycs.com/sessions`,
+      const res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
         method: 'POST',
-        proxy,
-        followAllRedirects: true,
-        rejectUnauthorized: false,
-        resolveWithFullResponse: false,
-        simple: true,
-        json: false,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
           Connection: 'Keep-Alive',
         },
         body: JSON.stringify(buildPaymentForm(payment, billing)),
-        transform2xxOnly: true,
-        transform: body => JSON.parse(body),
       });
+
+      const { id } = await res.json();
 
       if (id) {
         this._logger.silly('Payment token: %s', id);
@@ -178,73 +176,68 @@ class Checkout {
     this.captchaToken = '';
 
     try {
-      const res = await this._request({
-        uri: `${url}/account/login`,
+      const res = await this._request('/account/login', {
         method: 'POST',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: heads,
-        formData: form,
+        body: form,
       });
 
-      const { statusCode, headers } = res;
+      if (res.redirected) {
+        const redirectUrl = res.headers.get('location');
 
-      const checkStatus = stateForError(
-        { statusCode },
-        {
-          message: 'Starting task setup',
-          nextState: States.Login,
-        },
-      );
-
-      if (checkStatus) {
-        return checkStatus;
-      }
-
-      const redirectUrl = headers.location;
-      this._logger.silly('CHECKOUT: Login redirect url: %s', redirectUrl);
-
-      if (redirectUrl) {
-        // password page
-        if (redirectUrl.indexOf('password') > -1) {
-          // we'll do this later, let's continue...
-          return { message: 'Password page', nextState: States.Login };
-        }
-
-        // challenge page
-        if (redirectUrl.indexOf('challenge') > -1) {
-          this._logger.silly('CHECKOUT: Login needs captcha');
-          return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
-        }
-
-        // still at login page
-        if (redirectUrl.indexOf('login') > -1) {
-          this._logger.silly('CHECKOUT: Invalid login credentials');
-          return { message: 'Invalid login credentials', nextState: States.Errored };
-        }
-
-        // since we're here, we can assume `account/login` === false
-        if (redirectUrl.indexOf('account') > -1) {
-          this._logger.silly('CHECKOUT: Logged in');
-          // check to see if we already have the storeId and checkoutToken.
-          this.needsLogin = false;
-          if (this.storeId && this.checkoutToken) {
-            if (!this.needsPatched) {
-              if (this.chosenShippingMethod.id) {
-                return { message: 'Posting payment', nextState: States.PostPayment };
-              }
-              return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
-            }
-            return { message: 'Submitting information', nextState: States.PatchCheckout };
+        this._logger.silly('Login redirected to: %j', redirectUrl);
+        if (redirectUrl) {
+          // password page
+          if (redirectUrl.indexOf('password') > -1) {
+            // we'll do this later, let's continue...
+            return { message: 'Password page', nextState: States.Login };
           }
-          return { message: 'Fetching payment token', nextState: States.PaymentToken };
+
+          // challenge page
+          if (redirectUrl.indexOf('challenge') > -1) {
+            this._logger.silly('CHECKOUT: Login needs captcha');
+            return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
+          }
+
+          // still at login page
+          if (redirectUrl.indexOf('login') > -1) {
+            this._logger.silly('CHECKOUT: Invalid login credentials');
+            return { message: 'Invalid login credentials', nextState: States.Errored };
+          }
+
+          // since we're here, we can assume `account/login` === false
+          if (redirectUrl.indexOf('account') > -1) {
+            this._logger.silly('CHECKOUT: Logged in');
+            // check to see if we already have the storeId and checkoutToken.
+            this.needsLogin = false;
+            if (this.storeId && this.checkoutToken) {
+              if (!this.needsPatched) {
+                if (this.chosenShippingMethod.id) {
+                  return { message: 'Posting payment', nextState: States.PostPayment };
+                }
+                return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+              }
+              return { message: 'Submitting information', nextState: States.PatchCheckout };
+            }
+            return { message: 'Fetching payment token', nextState: States.PaymentToken };
+          }
+        }
+
+        const checkStatus = stateForError(
+          { statusCode: res.status },
+          {
+            message: 'Starting task setup',
+            nextState: States.Login,
+          },
+        );
+
+        if (checkStatus) {
+          return checkStatus;
         }
       }
-
-      return { message: `(${statusCode}) Failed: Logging in`, nextState: States.Errored };
+      return { message: `Failed: Logging in (${res.status || 500})`, nextState: States.Errored };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
@@ -273,21 +266,16 @@ class Checkout {
 
     this._logger.silly('API CHECKOUT: Parsing access token');
     try {
-      const body = await this._request({
-        uri: url,
+      const res = await this._request(url, {
         method: 'GET',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: true, // if we're redirected to the /password page, we can still parse it
-        followRedirect: false,
-        resolveWithFullResponse: false,
-        simple: true,
-        json: false,
-        gzip: true,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'follow',
         headers: {
           'User-Agent': userAgent,
         },
       });
+
+      const body = await res.text();
 
       const [, accessToken] = body.match(
         /<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/,
@@ -323,93 +311,68 @@ class Checkout {
   async createCheckout() {
     const {
       task: {
-        site: { url, localCheckout = false, apiKey },
+        site: { url, apiKey },
         monitorDelay,
-        username,
-        password,
       },
       proxy,
       timers: { monitor },
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/checkout`,
+      const res = await this._request(`$${url}/checkout`, {
         method: 'POST',
-        proxy: !localCheckout ? proxy : undefined,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: false,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: getHeaders({ url, apiKey }),
         body: JSON.stringify({}),
       });
 
-      const { statusCode, headers } = res;
+      const body = await res.text();
+      console.log(JSON.stringify(body, null, 2));
+
+      console.log(JSON.stringify(res, null, 2));
 
       const checkStatus = stateForError(
-        { statusCode },
+        { statusCode: res.status },
         {
           message: 'Creating checkout',
           nextState: States.CreateCheckout,
         },
       );
+
       if (checkStatus) {
         return checkStatus;
       }
 
-      if (statusCode === 401) {
-        await waitForDelay(monitorDelay);
-        return { message: 'Password page', nextState: States.CreateCheckout };
-      }
+      if (res.redirected) {
+        const redirectUrl = res.headers.get('location');
 
-      if (!headers || !headers.location) {
-        const message = statusCode ? `Creating checkout - (${statusCode})` : 'Creating checkout';
-        return { message, nextState: States.CreateCheckout };
-      }
+        this._logger.silly('Create checkout redirect url: %j', redirectUrl);
 
-      const [redirectUrl, qs] = headers.location.split('?');
-      this._logger.silly('CHECKOUT: Create checkout redirect url: %s', redirectUrl);
-      if (!redirectUrl) {
-        const message = statusCode ? `Creating checkout - (${statusCode})` : 'Creating checkout';
-        return { message, nextState: States.CreateCheckout };
-      }
-
-      // account (e.g. – https://www.hanon-shop.com/account/login?checkout_url=https%3A%2F%2Fwww.hanon-shop.com%2F20316995%2Fcheckouts%2Fb92b2aa215abfde741a8cf0e99eeee01)
-      if (redirectUrl.indexOf('account') > -1) {
-        // try to parse out the query string
-        if (qs && qs.indexOf('checkout_url') > -1) {
-          const [, checkoutUrl] = qs.split('=');
-          const decodedCheckoutUrl = decodeURIComponent(checkoutUrl);
-          [, , , this.storeId] = decodedCheckoutUrl.split('/');
-          [, , , , , this.checkoutToken] = decodedCheckoutUrl.split('/');
+        if (!redirectUrl) {
+          const message = res.status ? `Creating checkout - (${res.status})` : 'Creating checkout';
+          return { message, nextState: States.CreateCheckout };
         }
 
-        if (username && password) {
-          return { message: 'Logging in', nextState: States.Login };
+        if (redirectUrl.indexOf('password') > -1) {
+          await waitForDelay(monitorDelay);
+          return { message: 'Password page', nextState: States.CreateCheckout };
         }
-        return { message: 'Account required', nextState: States.Errored };
-      }
 
-      if (redirectUrl.indexOf('password') > -1) {
-        await waitForDelay(monitorDelay);
-        return { message: 'Password page', nextState: States.CreateCheckout };
-      }
+        if (redirectUrl.indexOf('throttle') > -1) {
+          return { message: 'Waiting in queue', nextState: States.PollQueue };
+        }
 
-      if (redirectUrl.indexOf('throttle') > -1) {
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
-
-      if (redirectUrl.indexOf('checkouts') > -1) {
-        [, , , this.storeId] = redirectUrl.split('/');
-        [, , , , , this.checkoutToken] = redirectUrl.split('/');
-        monitor.start();
-        return { message: 'Submitting information', nextState: States.PatchCheckout };
+        if (redirectUrl.indexOf('checkouts') > -1) {
+          [, , , this.storeId] = redirectUrl.split('/');
+          [, , , , , this.checkoutToken] = redirectUrl.split('/');
+          monitor.start();
+          return { message: 'Submitting information', nextState: States.PatchCheckout };
+        }
       }
 
       // not sure where we are, error out...
-      const message = statusCode ? `Creating checkout - (${statusCode})` : 'Creating checkout';
+      const message = res.status ? `Creating checkout - (${res.status})` : 'Creating checkout';
       return { message, nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.error(
@@ -463,22 +426,19 @@ class Checkout {
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/checkout/poll`,
+      const res = await this._request('/checkout/poll', {
         method: 'GET',
-        proxy,
-        rejectUnauthorized: false,
-        followRedirect: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: false,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: {
           'User-Agent': userAgent,
           Connection: 'Keep-Alive',
         },
       });
 
-      const { statusCode, body, headers } = res;
+      const body = await res.text();
+
+      const { statusCode, headers } = res;
 
       this._logger.silly('Checkout: poll response %d', statusCode);
       const checkStatus = stateForError(
@@ -504,22 +464,17 @@ class Checkout {
 
       let redirectUrl = null;
       if (statusCode === 302) {
-        redirectUrl = headers.location;
+        redirectUrl = headers.get('location');
         if (redirectUrl && redirectUrl.indexOf('throttle') > -1) {
           return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
         }
         if (redirectUrl && redirectUrl.indexOf('_ctd') > -1) {
           this._logger.silly('CTD COOKIE: %s', ctd);
           try {
-            const response = await this._request({
-              uri: redirectUrl,
+            const response = await this._request(redirectUrl, {
               method: 'GET',
-              proxy,
-              rejectUnauthorized: false,
-              followRedirect: false,
-              resolveWithFullResponse: false,
-              simple: false,
-              json: false,
+              agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+              redirect: 'manual',
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
@@ -527,9 +482,11 @@ class Checkout {
               },
             });
 
-            this._logger.silly('NEW QUEUE BODY: %j', response);
+            const respBody = await response.text();
 
-            const [, checkoutUrl] = response.match(new RegExp('href=\\"(.*)\\"'));
+            this._logger.silly('NEW QUEUE BODY: %j', respBody);
+
+            const [, checkoutUrl] = respBody.match(new RegExp('href=\\"(.*)\\"'));
 
             if (checkoutUrl && /checkouts/.test(checkoutUrl)) {
               [, , , this.storeId] = checkoutUrl.split('/');
@@ -545,15 +502,10 @@ class Checkout {
       } else if (statusCode === 200) {
         if (body === '' || (body && body.length < 2 && ctd)) {
           try {
-            const response = await this._request({
-              uri: `https://${url}/throttle/queue?_ctd=${ctd}`,
+            const response = await this._request(`https://${url}/throttle/queue?_ctd=${ctd}`, {
               method: 'GET',
-              proxy,
-              rejectUnauthorized: false,
-              followRedirect: false,
-              resolveWithFullResponse: false,
-              simple: false,
-              json: false,
+              agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+              redirect: 'manual',
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
@@ -561,7 +513,9 @@ class Checkout {
               },
             });
 
-            const [, checkoutUrl] = response.match(/href="(.*)>"/);
+            const respBody = await response.text();
+
+            const [, checkoutUrl] = respBody.match(/href="(.*)>"/);
 
             if (checkoutUrl) {
               [, , , this.storeId] = checkoutUrl.split('/');
@@ -624,15 +578,10 @@ class Checkout {
     monitor.reset();
 
     try {
-      const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        gzip: true,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
           Accept:
@@ -658,7 +607,7 @@ class Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.location;
+      const redirectUrl = headers.get('location');
       this._logger.silly('CHECKOUT: Pinging checkout redirect url: %s', redirectUrl);
 
       // check if redirected
@@ -700,7 +649,7 @@ class Checkout {
   async postPayment() {
     const {
       task: {
-        site: { url, apiKey, localCheckout = false },
+        site: { url, apiKey },
         sizes,
       },
       timers: { checkout },
@@ -709,15 +658,10 @@ class Checkout {
     const { id } = this.chosenShippingMethod;
 
     try {
-      const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
-        proxy: !localCheckout ? proxy : undefined,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        gzip: true,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
           Accept:
@@ -739,7 +683,9 @@ class Checkout {
         }),
       });
 
-      const { statusCode, body, headers } = res;
+      const body = await res.text();
+
+      const { statusCode, headers } = res;
 
       const checkStatus = stateForError(
         { statusCode },
@@ -753,7 +699,7 @@ class Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.location;
+      const redirectUrl = headers.get('location');
       this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       // check if redirected
@@ -815,7 +761,7 @@ class Checkout {
   async completePayment() {
     const {
       task: {
-        site: { url, apiKey, localCheckout = false },
+        site: { url, apiKey },
         sizes,
         username,
         password,
@@ -825,15 +771,10 @@ class Checkout {
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
-        proxy: !localCheckout ? proxy : undefined,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        gzip: true,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
           Accept:
@@ -849,6 +790,7 @@ class Checkout {
           'g-recaptcha-response': this.captchaToken,
         }),
       });
+
       // Reset captcha token so we don't use it twice
       this.captchaToken = '';
 
@@ -866,7 +808,7 @@ class Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.location;
+      const redirectUrl = headers.get('location');
       this._logger.silly('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
@@ -945,15 +887,10 @@ class Checkout {
     }
 
     try {
-      const res = await this._request({
-        uri: `${url}/api/checkouts/${this.checkoutToken}/payments`,
+      const res = await this._request(`${url}/api/checkouts/${this.checkoutToken}/payments`, {
         method: 'GET',
-        proxy,
-        rejectUnauthorized: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: true,
-        gzip: true,
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
           'Accept-Encoding': 'gzip, deflate',
@@ -965,7 +902,9 @@ class Checkout {
         },
       });
 
-      const { statusCode, body } = res;
+      const body = await res.json();
+
+      const { statusCode } = res;
 
       const checkStatus = stateForError(
         { statusCode },

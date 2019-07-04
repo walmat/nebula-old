@@ -90,7 +90,7 @@ class TaskManagerAdapter {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
-          this._messageInterval = setInterval(this._taskEventMessageSender, 1500);
+          this._messageInterval = setInterval(this._taskEventMessageSender, 250);
         }
       }
     });

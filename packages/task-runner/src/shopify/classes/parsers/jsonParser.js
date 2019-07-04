@@ -1,3 +1,5 @@
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const { userAgent } = require('../utils');
 const Parser = require('./parser');
 
@@ -18,19 +20,16 @@ class JsonParser extends Parser {
     let products;
     try {
       this._logger.silly('%s: Making request for %s/products.json ...', this._name, url);
-      const response = await this._request({
+
+      const res = await this._request('/products.json', {
         method: 'GET',
-        uri: `${url}/products.json`,
-        proxy: this._proxy,
-        rejectUnauthorized: false,
-        json: false,
-        simple: true,
-        gzip: true,
         headers: {
           'User-Agent': userAgent,
         },
+        agent: this._proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
       });
-      ({ products } = JSON.parse(response));
+
+      ({ products } = await res.json());
     } catch (error) {
       this._logger.silly(
         '%s: ERROR making request! %s %d',

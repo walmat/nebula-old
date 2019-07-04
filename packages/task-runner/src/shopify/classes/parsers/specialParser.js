@@ -1,4 +1,6 @@
 /* eslint-disable class-methods-use-this */
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const cheerio = require('cheerio');
 const Parser = require('./parser');
 const { ParseType } = require('../utils/parse');
@@ -32,24 +34,20 @@ class SpecialParser extends Parser {
     let response;
     try {
       this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
-      response = await this._request({
+
+      const res = await this._request(initialUrl, {
         method: 'GET',
-        uri: initialUrl,
-        proxy: this._proxy,
-        json: false,
-        simple: true,
-        followRedirect: false,
-        rejectUnauthorized: false,
-        gzip: true,
+        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : undefined,
         headers: {
           'User-Agent': userAgent,
         },
-        transform2xxOnly: true,
-        transform: body =>
-          cheerio.load(body, {
-            normalizeWhitespace: true,
-            xmlMode: true,
-          }),
+      });
+
+      const body = await res.text();
+
+      response = cheerio.load(body, {
+        normalizeWhitespace: true,
+        xmlMode: true,
       });
     } catch (error) {
       // Handle Redirect response (wait for refresh delay)
@@ -252,26 +250,28 @@ class SpecialParser extends Parser {
     throw new Error('Not Implemented! This should be implemented by subclasses!');
   }
 
-  getProductInfoPage(productUrl) {
+  async getProductInfoPage(productUrl) {
     this._logger.log('silly', '%s: Getting Full Product Info... %s', this._name, productUrl);
-    return this._request({
-      method: 'GET',
-      uri: productUrl,
-      proxy: this._proxy,
-      rejectUnauthorized: false,
-      json: false,
-      simple: true,
-      transform2xxOnly: true,
-      gzip: true,
-      headers: {
-        'User-Agent': userAgent,
-      },
-      transform: body =>
-        cheerio.load(body, {
-          normalizeWhitespace: true,
-          xmlMode: true,
-        }),
-    });
+
+    try {
+      const res = await this._request(productUrl, {
+        method: 'GET',
+        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : undefined,
+        headers: {
+          'User-Agent': userAgent,
+        },
+      });
+
+      const body = await res.text();
+      const response = cheerio.load(body, {
+        normalizeWhitespace: true,
+        xmlMode: true,
+      });
+
+      return response;
+    } catch (e) {
+      throw e;
+    }
   }
 }
 

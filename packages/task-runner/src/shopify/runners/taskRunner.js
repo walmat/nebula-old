@@ -1,5 +1,10 @@
-const EventEmitter = require('eventemitter3');
-const request = require('request-promise');
+import EventEmitter from 'eventemitter3';
+import AbortController from 'abort-controller';
+import fetch from 'node-fetch';
+import defaults from 'fetch-defaults';
+import { CookieJar } from 'tough-cookie';
+
+const request = require('fetch-cookie')(fetch, new CookieJar());
 
 const Timer = require('../classes/timer');
 const Monitor = require('../classes/monitor');
@@ -37,13 +42,12 @@ class TaskRunner {
     this.proxy = proxy;
     this._type = type;
 
-    this._jar = request.jar();
+    this._delayer = null;
+    this._aborter = new AbortController();
 
-    this._request = request.defaults({
-      timeout: 20000,
-      jar: this._jar,
-      pool: { maxSockets: Infinity },
-      agent: false,
+    this._request = defaults(request, task.site.url, {
+      timeout: 10000, // to be overridden as necessary
+      signal: this._aborter.signal, // generic abort signal
     });
 
     /**
@@ -81,6 +85,8 @@ class TaskRunner {
       status: null,
       proxy: proxy ? proxy.proxy : null,
       rawProxy: proxy ? proxy.raw : null,
+      delayer: this._delayer,
+      signal: this._aborter.signal,
       request: this._request,
       timers: this._timers,
       discord: this._discord,
@@ -135,6 +141,10 @@ class TaskRunner {
   _handleAbort(id) {
     if (id === this._context.id) {
       this._context.aborted = true;
+      if (this._delayer) {
+        this._delayer.clear();
+      }
+      this._aborter.abort();
     }
   }
 
@@ -150,6 +160,9 @@ class TaskRunner {
         this._context.task.errorDelay = delay;
       } else if (type === DelayTypes.monitor) {
         this._context.task.monitorDelay = delay;
+      }
+      if (this._delayer) {
+        this._delayer.clear();
       }
     }
   }

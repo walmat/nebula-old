@@ -1,3 +1,5 @@
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const Parser = require('./parser');
 const { ParseType, convertToJson } = require('../utils/parse');
 const { userAgent } = require('../utils');
@@ -26,19 +28,17 @@ class XmlParser extends Parser {
         this._name,
         this._task.site.url,
       );
-      const response = await this._request({
+
+      const res = await this._request('/sitemap_products_1.xml?from=1&to=299999999999999999', {
         method: 'GET',
-        uri: `${this._task.site.url}/sitemap_products_1.xml?from=1&to=299999999999999999`,
-        proxy: this._proxy,
-        rejectUnauthorized: false,
-        json: false,
-        simple: true,
-        gzip: true,
         headers: {
           'User-Agent': userAgent,
         },
+        agent: this._proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
       });
-      responseJson = await convertToJson(response);
+
+      const body = await res.text();
+      responseJson = await convertToJson(body);
     } catch (error) {
       this._logger.silly(
         '%s: ERROR making request! %s %d',
