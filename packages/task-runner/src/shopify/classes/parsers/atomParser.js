@@ -12,8 +12,8 @@ class AtomParser extends Parser {
    * @param {Proxy} the proxy to use when making requests
    * @param {Logger} (optional) A logger to log messages to
    */
-  constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'AtomParser');
+  constructor(request, task, proxy, aborter, logger) {
+    super(request, task, proxy, aborter, logger, 'AtomParser');
   }
 
   async run() {
@@ -79,6 +79,7 @@ class AtomParser extends Parser {
         this._logger,
       );
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
+      this._aborter.abort();
       return {
         ...matchedProduct,
         ...fullProductInfo,

@@ -63,18 +63,20 @@ class APICheckout extends Checkout {
       }
 
       const body = await res.json();
-
       this._logger.debug(body);
 
-      if (body && body.checkout && !body.checkout.shipping_address && !body.checkout.billing_address) {
-        const message = status
-          ? `Submitting information – (${status})`
-          : 'Submitting information';
+      if (
+        body &&
+        body.checkout &&
+        !body.checkout.shipping_address &&
+        !body.checkout.billing_address
+      ) {
+        const message = status ? `Submitting information – (${status})` : 'Submitting information';
         return { message, nextState: States.PatchCheckout };
       }
 
       this.needsPatched = false;
-      return { message: 'Monitoring for product', nextState: States.Monitor };
+      return { message: 'Fetching checkout', nextState: States.PingCheckout };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
@@ -122,6 +124,9 @@ class APICheckout extends Checkout {
 
       const { status, headers } = res;
 
+      const body = await res.json();
+      this._logger.debug(body);
+
       const checkStatus = stateForError(
         { status },
         {
@@ -148,8 +153,7 @@ class APICheckout extends Checkout {
         }
       }
 
-      const body = await res.json();
-
+      // const body = await res.json();
       if (body.errors && body.errors.line_items) {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
@@ -226,16 +230,16 @@ class APICheckout extends Checkout {
     } = this._context;
 
     try {
-      const res = await this._request(
-        `/api/checkouts/${this.checkoutToken}/shipping_rates.json`,
-        {
-          method: 'GET',
-          agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
-          headers: getHeaders({ url, apiKey }),
-        },
-      );
+      const res = await this._request(`/api/checkouts/${this.checkoutToken}/shipping_rates.json`, {
+        method: 'GET',
+        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        headers: getHeaders({ url, apiKey }),
+      });
 
       const { status } = res;
+
+      const body = await res.json();
+      this._logger.debug(body);
 
       const checkStatus = stateForError(
         { status },
@@ -254,8 +258,7 @@ class APICheckout extends Checkout {
         return { message: 'Country not supported', nextState: States.Errored };
       }
 
-      const body = await res.json();
-
+      // const body = await res.json();
       this._logger.debug(body);
       if (body && body.errors) {
         this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', body.errors);
@@ -272,7 +275,6 @@ class APICheckout extends Checkout {
             return { message: 'Country not supported', nextState: States.Errored };
           }
         }
-        this._delayer = await waitForDelay(500);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
@@ -298,7 +300,6 @@ class APICheckout extends Checkout {
         return { message: 'Posting payment', nextState: States.PostPayment };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
-      this._delayer = await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.error(

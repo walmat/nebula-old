@@ -1,11 +1,22 @@
+import AbortController from 'abort-controller';
+import fetch from 'node-fetch';
+import defaults from 'fetch-defaults';
+import { CookieJar } from 'tough-cookie';
+
+const _request = require('fetch-cookie')(fetch, new CookieJar());
+
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
-const { rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
-const { Types, States } = require('./utils/constants').TaskRunner;
+const { rfrl, capitalizeFirstLetter } = require('./utils');
+const { States } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
 const generateVariants = require('./utils/generateVariants');
 
 class Monitor {
+  get aborter() {
+    return this._aborter;
+  }
+
   constructor(context) {
     /**
      * All data needed for monitor to run
@@ -18,48 +29,21 @@ class Monitor {
      */
     this._context = context;
     this._logger = this._context.logger;
-    this._request = this._context.request;
+    this._aborter = new AbortController();
+    this._request = defaults(_request, context.task.site.url, {
+      timeout: 10000, // to be overridden as necessary
+      signal: this._aborter.signal, // generic abort signal
+    });
     this._delayer = this._context.delayer;
     this._signal = this._context.signal;
     this._parseType = null;
-  }
-
-  _waitForRefreshDelay() {
-    this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.monitorDelay);
-    return waitForDelay(this._context.task.monitorDelay, this._signal);
-  }
-
-  _waitForErrorDelay() {
-    this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.errorDelay);
-    return waitForDelay(this._context.task.errorDelay, this._signal);
-  }
-
-  // ASSUMPTION: this method is only called when we know we have to
-  // delay and start the monitor again...
-  async _delay(status) {
-    this._delayer = this._waitForRefreshDelay;
-    let message = 'Monitoring for product';
-    switch (status || 404) {
-      case 401: {
-        this._delayer = this._waitForErrorDelay;
-        break;
-      }
-      case 601: {
-        message = 'Password page';
-        break;
-      }
-      default:
-        break;
-    }
-    await this._delayer;
-    this._logger.silly('Monitoring not complete, remonitoring...');
-    return { message, nextState: States.Monitor };
   }
 
   async _handleParsingErrors(errors) {
     let delayStatus;
     let ban = true; // assume we have a softban
     let hardBan = false; // assume we don't have a hardban
+
     errors.forEach(({ status }) => {
       if (status === 403) {
         // ban is a strict hardban, so set the flag
@@ -72,6 +56,7 @@ class Monitor {
         delayStatus = status; // find the first error that is either a product not found or 4xx response
       }
     });
+
     if (ban || hardBan) {
       this._logger.silly('Proxy was banned, swapping proxies...');
       // we can assume that it's a soft ban by default since it's either ban || hardBan
@@ -82,28 +67,33 @@ class Monitor {
         nextState: States.SwapProxies,
       };
     }
-    return this._delay(delayStatus || 404);
+
+    const message = delayStatus === 601 ? 'Password page' : 'Monitoring for product';
+    return { message, nextState: States.Monitor };
   }
 
   _parseAll() {
     // Create the parsers and start the async run methods
     const parsers = [
       new AtomParser(
-        this._context.request,
+        this._request,
         this._context.task,
         this._context.proxy,
+        this._aborter,
         this._context.logger,
       ),
       new JsonParser(
-        this._context.request,
+        this._request,
         this._context.task,
         this._context.proxy,
+        this._aborter,
         this._context.logger,
       ),
       new XmlParser(
-        this._context.request,
+        this._request,
         this._context.task,
         this._context.proxy,
+        this._aborter,
         this._context.logger,
       ),
     ].map(p => p.run());
@@ -150,9 +140,6 @@ class Monitor {
     } catch (errors) {
       this._logger.silly('MONITOR: All request errored out! %j', errors);
       // handle parsing errors
-      if (this._context.type === Types.ShippingRates) {
-        return { message: 'Product not found!', nextState: States.Errored };
-      }
       return this._handleParsingErrors(errors);
     }
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
@@ -185,6 +172,7 @@ class Monitor {
         url,
         this._context.proxy,
         this._request,
+        this._aborter,
         this._logger,
       );
 
@@ -253,9 +241,6 @@ class Monitor {
       ({ variants, sizes, nextState, message } = this._generateVariants(parsed));
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
-        if (nextState === States.Monitor) {
-          await this._waitForRefreshDelay();
-        }
         return { nextState, message };
       }
     }

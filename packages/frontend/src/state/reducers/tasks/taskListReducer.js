@@ -286,7 +286,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
           const task = taskMap[taskId];
           const { log } = task;
           if (task) {
-            const { message, size, proxy, found, apiKey } = msg;
+            const { message, size, proxy, found, apiKey, checkout } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
@@ -299,6 +299,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             }
             if (apiKey) {
               task.site.apiKey = apiKey;
+            }
+            if (checkout) {
+              task.checkout = checkout;
             }
             if (log) {
               log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);

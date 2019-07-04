@@ -50,6 +50,7 @@ class Checkout {
 
     this.paymentToken = null;
     this.checkoutToken = null;
+    this.checkoutKey = null;
 
     this.storeId = null;
     this.prices = {
@@ -373,7 +374,6 @@ class Checkout {
       this._logger.silly('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
-
         if (redirectUrl.indexOf('password') > -1) {
           return { message: 'Password page', nextState: States.CreateCheckout };
         }
@@ -476,10 +476,9 @@ class Checkout {
       }
 
       const ctd = await this.getCtdCookie(this._request.jar());
-
-      this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
-
       const body = await res.text();
+
+      this._logger.silly('CHECKOUT: %d: Queue response body: %j', status, body);
 
       let redirectUrl = null;
       if (status === 302) {
@@ -518,7 +517,7 @@ class Checkout {
           }
         }
         this._logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);
-      } else if (statusCode === 200) {
+      } else if (status === 200) {
         if (body === '' || (body && body.length < 2 && ctd)) {
           try {
             const response = await this._request(`https://${url}/throttle/queue?_ctd=${ctd}`, {
@@ -560,7 +559,7 @@ class Checkout {
         return { queue: 'done' };
       }
       this._logger.silly('CHECKOUT: Not passed queue, delaying 2000 ms');
-      const message = statusCode ? `Waiting in queue - (${statusCode})` : 'Waiting in queue';
+      const message = status ? `Waiting in queue - (${status})` : 'Waiting in queue';
       return { message, nextState: States.PollQueue };
     } catch (err) {
       this._logger.error(
@@ -596,31 +595,32 @@ class Checkout {
     monitor.reset();
 
     try {
-      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
         redirect: 'manual',
+        follow: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
           Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
       });
 
-      const { statusCode, headers } = res;
+      const body = await res.text();
+      this._logger.debug(body);
+
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Pinging checkout',
           nextState: States.PingCheckout,
         },
       );
+
       if (checkStatus) {
         return checkStatus;
       }
@@ -640,9 +640,21 @@ class Checkout {
         }
       }
 
+      if (!this.checkoutKey) {
+        const body = await res.text();
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this.checkoutKey] = match;
+          this._logger.debug('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
+        }
+      }
+
       // start the monitor timer again...
       monitor.start();
-      return { message: 'Monitoring for product' };
+      return { nextState: States.Monitor, message: 'Monitoring for product' };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Ping Checkout.\n\n %j %j',
@@ -676,10 +688,10 @@ class Checkout {
     const { id } = this.chosenShippingMethod;
 
     try {
-      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
         agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
-        redirect: 'manual',
+        follow: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Upgrade-Insecure-Requests': '1',
@@ -697,6 +709,9 @@ class Checkout {
       });
 
       const { statusCode, headers } = res;
+
+      const body = await res.text();
+      this._logger.debug(body);
 
       const checkStatus = stateForError(
         { statusCode },
@@ -731,9 +746,6 @@ class Checkout {
           return { message: 'Running for restocks', nextState };
         }
       }
-
-      const body = await res.text();
-      this._logger.debug(body);
 
       if (this.needsCaptcha || /captcha/i.test(body)) {
         this._context.task.checkoutSpeed = checkout.getRunTime();
@@ -789,11 +801,6 @@ class Checkout {
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
@@ -905,9 +912,6 @@ class Checkout {
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
-          'Accept-Encoding': 'gzip, deflate',
-          'Accept-Language': 'en-GB,en-US;en;q=0.8',
-          Connection: 'keep-alive',
           'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,

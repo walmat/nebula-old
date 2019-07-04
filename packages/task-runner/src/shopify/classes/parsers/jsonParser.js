@@ -10,8 +10,8 @@ class JsonParser extends Parser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'JsonParser');
+  constructor(request, task, proxy, aborter, logger) {
+    super(request, task, proxy, aborter, logger, 'JsonParser');
   }
 
   async run() {
@@ -49,6 +49,7 @@ class JsonParser extends Parser {
       throw new Error('unable to match the product');
     }
     this._logger.silly('%s: Product Found!', this._name);
+    this._aborter.abort();
     return {
       ...matchedProduct,
       // insert generated product url (for restocking purposes)

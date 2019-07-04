@@ -11,9 +11,8 @@ class XmlParser extends Parser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'XmlParser');
-    this._request = request;
+  constructor(request, task, proxy, aborter, logger) {
+    super(request, task, proxy, aborter, logger, 'XmlParser');
   }
 
   async run() {
@@ -75,6 +74,7 @@ class XmlParser extends Parser {
         this._logger,
       );
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
+      this._aborter.abort();
       return {
         ...matchedProduct,
         ...fullProductInfo,
