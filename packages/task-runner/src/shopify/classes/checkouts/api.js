@@ -48,10 +48,10 @@ class APICheckout extends Checkout {
       this._logger.silly('API CHECKOUT: Patch checkout status: %s', res.status);
       this.captchaToken = '';
 
-      const { status: statusCode } = res;
+      const { status } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Submitting information',
           nextState: States.PatchCheckout,
@@ -67,8 +67,8 @@ class APICheckout extends Checkout {
       this._logger.debug(body);
 
       if (body && body.checkout && !body.checkout.shipping_address && !body.checkout.billing_address) {
-        const message = statusCode
-          ? `Submitting information – (${statusCode})`
+        const message = status
+          ? `Submitting information – (${status})`
           : 'Submitting information';
         return { message, nextState: States.PatchCheckout };
       }
@@ -120,10 +120,10 @@ class APICheckout extends Checkout {
         body: JSON.stringify(patchToCart(variants[0])),
       });
 
-      const { statusCode, headers } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Adding to cart',
           nextState: States.AddToCart,
@@ -171,7 +171,7 @@ class APICheckout extends Checkout {
           return { message: 'Monitoring for product', nextState: States.AddToCart };
         }
 
-        const message = statusCode ? `Adding to cart – (${statusCode})` : 'Adding to cart';
+        const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
         return { message, nextState: States.AddToCart };
       }
 
@@ -197,7 +197,7 @@ class APICheckout extends Checkout {
         }
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
-      const message = statusCode ? `Adding to cart – (${statusCode})` : 'Adding to cart';
+      const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
       return { message, nextState: States.AddToCart };
     } catch (err) {
       this._logger.error(
@@ -235,10 +235,10 @@ class APICheckout extends Checkout {
         },
       );
 
-      const { statusCode } = res;
+      const { status } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Fetching shipping rates',
           nextState: States.ShippingRates,
@@ -250,7 +250,7 @@ class APICheckout extends Checkout {
       }
 
       // extra check for country not supported
-      if (statusCode === 422) {
+      if (status === 422) {
         return { message: 'Country not supported', nextState: States.Errored };
       }
 

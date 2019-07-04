@@ -11,9 +11,13 @@ const userAgent =
 
 const waitForDelay = (time, signal) => delay(time, { signal });
 
-const stateForError = ({ statusCode, code }, { message, nextState }) => {
+const stateForError = ({ status, name, code }, { message, nextState }) => {
   // Look for errors in cause
   const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT)/.exec(code);
+
+  if (/aborterror/i.test(name)) {
+    return { nextState: States.Aborted };
+  }
 
   if (match) {
     // Check capturing group
@@ -39,13 +43,13 @@ const stateForError = ({ statusCode, code }, { message, nextState }) => {
 
   // Check request status code
   let shouldBan = 0;
-  switch (statusCode) {
+  switch (status) {
     case 403:
     case 429:
     case 430: {
-      shouldBan = statusCode === 403 ? 2 : 1;
+      shouldBan = status === 403 ? 2 : 1;
       return {
-        message: `Swapping proxy - (${statusCode})`,
+        message: `Swapping proxy - (${status})`,
         shouldBan,
         nextState: States.SwapProxies,
       };
@@ -57,9 +61,9 @@ const stateForError = ({ statusCode, code }, { message, nextState }) => {
       };
     }
     default: {
-      return statusCode >= 500
+      return status >= 500
         ? {
-            message: `${message} - (${statusCode})`,
+            message: `${message} - (${status})`,
             nextState,
           }
         : null;

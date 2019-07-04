@@ -3,7 +3,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
-const { getHeaders, stateForError, userAgent, waitForDelay } = require('./utils');
+const { getHeaders, stateForError, userAgent } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
 const { isSpecialSite } = require('./utils/siteOptions');
 const { States, Types, CheckoutTypes } = require('./utils/constants').TaskRunner;
@@ -95,6 +95,20 @@ class Checkout {
         body: JSON.stringify(buildPaymentForm(payment, billing)),
       });
 
+      const { status } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Fetching shipping rates',
+          nextState: States.ShippingRates,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
       const { id } = await res.json();
 
       if (id) {
@@ -184,60 +198,61 @@ class Checkout {
         body: form,
       });
 
-      if (res.redirected) {
-        const redirectUrl = res.headers.get('location');
+      const { status } = res;
 
-        this._logger.silly('Login redirected to: %j', redirectUrl);
-        if (redirectUrl) {
-          // password page
-          if (redirectUrl.indexOf('password') > -1) {
-            // we'll do this later, let's continue...
-            return { message: 'Password page', nextState: States.Login };
-          }
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Starting task setup',
+          nextState: States.Login,
+        },
+      );
 
-          // challenge page
-          if (redirectUrl.indexOf('challenge') > -1) {
-            this._logger.silly('CHECKOUT: Login needs captcha');
-            return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
-          }
+      if (checkStatus) {
+        return checkStatus;
+      }
 
-          // still at login page
-          if (redirectUrl.indexOf('login') > -1) {
-            this._logger.silly('CHECKOUT: Invalid login credentials');
-            return { message: 'Invalid login credentials', nextState: States.Errored };
-          }
+      const redirectUrl = res.headers.get('location');
+      this._logger.silly('Login redirected to: %j', redirectUrl);
 
-          // since we're here, we can assume `account/login` === false
-          if (redirectUrl.indexOf('account') > -1) {
-            this._logger.silly('CHECKOUT: Logged in');
-            // check to see if we already have the storeId and checkoutToken.
-            this.needsLogin = false;
-            if (this.storeId && this.checkoutToken) {
-              if (!this.needsPatched) {
-                if (this.chosenShippingMethod.id) {
-                  return { message: 'Posting payment', nextState: States.PostPayment };
-                }
-                return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
-              }
-              return { message: 'Submitting information', nextState: States.PatchCheckout };
-            }
-            return { message: 'Fetching payment token', nextState: States.PaymentToken };
-          }
+      if (redirectUrl) {
+        // password page
+        if (redirectUrl.indexOf('password') > -1) {
+          // we'll do this later, let's continue...
+          return { message: 'Password page', nextState: States.Login };
         }
 
-        const checkStatus = stateForError(
-          { statusCode: res.status },
-          {
-            message: 'Starting task setup',
-            nextState: States.Login,
-          },
-        );
+        // challenge page
+        if (redirectUrl.indexOf('challenge') > -1) {
+          this._logger.silly('CHECKOUT: Login needs captcha');
+          return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
+        }
 
-        if (checkStatus) {
-          return checkStatus;
+        // still at login page
+        if (redirectUrl.indexOf('login') > -1) {
+          this._logger.silly('CHECKOUT: Invalid login credentials');
+          return { message: 'Invalid login credentials', nextState: States.Errored };
+        }
+
+        // since we're here, we can assume `account/login` === false
+        if (redirectUrl.indexOf('account') > -1) {
+          this._logger.silly('CHECKOUT: Logged in');
+          // check to see if we already have the storeId and checkoutToken.
+          this.needsLogin = false;
+          if (this.storeId && this.checkoutToken) {
+            if (!this.needsPatched) {
+              if (this.chosenShippingMethod.id) {
+                return { message: 'Posting payment', nextState: States.PostPayment };
+              }
+              return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+            }
+            return { message: 'Submitting information', nextState: States.PatchCheckout };
+          }
+          return { message: 'Fetching payment token', nextState: States.PaymentToken };
         }
       }
-      return { message: `Failed: Logging in (${res.status || 500})`, nextState: States.Errored };
+
+      return { message: `Logging in (${status || 500})`, nextState: States.Login };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
@@ -274,6 +289,20 @@ class Checkout {
           'User-Agent': userAgent,
         },
       });
+
+      const { status } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Starting task setup',
+          nextState: States.Login,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
 
       const body = await res.text();
 
@@ -326,8 +355,10 @@ class Checkout {
         body: JSON.stringify({}),
       });
 
+      const { status } = res;
+
       const checkStatus = stateForError(
-        { statusCode: res.status },
+        { status },
         {
           message: 'Creating checkout',
           nextState: States.CreateCheckout,
@@ -339,10 +370,9 @@ class Checkout {
       }
 
       const redirectUrl = res.headers.get('location');
+      this._logger.silly('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
-
-        this._logger.silly('Create checkout redirect url: %j', redirectUrl);
 
         if (redirectUrl.indexOf('password') > -1) {
           return { message: 'Password page', nextState: States.CreateCheckout };
@@ -361,7 +391,7 @@ class Checkout {
       }
 
       // not sure where we are, error out...
-      const message = res.status ? `Creating checkout - (${res.status})` : 'Creating checkout';
+      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
       return { message, nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.error(
@@ -425,13 +455,11 @@ class Checkout {
         },
       });
 
-      const body = await res.text();
+      const { status, headers } = res;
 
-      const { statusCode, headers } = res;
-
-      this._logger.silly('Checkout: poll response %d', statusCode);
+      this._logger.silly('Checkout: poll response %d', status);
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Waiting in queue',
           nextState: States.PollQueue,
@@ -443,19 +471,21 @@ class Checkout {
       }
 
       // check server error
-      if (statusCode === 400) {
-        return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
+      if (status === 400) {
+        return { message: `Waiting in queue - (${status})`, nextState: States.PollQueue };
       }
 
       const ctd = await this.getCtdCookie(this._request.jar());
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', statusCode, body);
 
+      const body = await res.text();
+
       let redirectUrl = null;
-      if (statusCode === 302) {
+      if (status === 302) {
         redirectUrl = headers.get('location');
         if (redirectUrl && redirectUrl.indexOf('throttle') > -1) {
-          return { message: `Waiting in queue - (${statusCode})`, nextState: States.PollQueue };
+          return { message: `Waiting in queue - (${status})`, nextState: States.PollQueue };
         }
         if (redirectUrl && redirectUrl.indexOf('_ctd') > -1) {
           this._logger.silly('CTD COOKIE: %s', ctd);
@@ -530,7 +560,6 @@ class Checkout {
         return { queue: 'done' };
       }
       this._logger.silly('CHECKOUT: Not passed queue, delaying 2000 ms');
-      await waitForDelay(2000);
       const message = statusCode ? `Waiting in queue - (${statusCode})` : 'Waiting in queue';
       return { message, nextState: States.PollQueue };
     } catch (err) {
@@ -754,7 +783,7 @@ class Checkout {
     } = this._context;
 
     try {
-      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
         agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
         redirect: 'manual',
@@ -887,10 +916,10 @@ class Checkout {
 
       const body = await res.json();
 
-      const { statusCode } = res;
+      const { status } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Processing payment',
           nextState: States.PaymentProcess,
@@ -961,7 +990,6 @@ class Checkout {
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');
-      await waitForDelay(2000);
       return { message: 'Processing payment', nextState: States.PaymentProcess };
     } catch (err) {
       this._logger.error(
