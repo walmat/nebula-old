@@ -80,6 +80,7 @@ const TaskRunnerHarvestStates = {
  * Error Codes
  */
 const ErrorCodes = {
+  PasswordPage: 'PASSWORD_PAGE',
   ProductNotFound: 'PRODUCT_MISSING',
   ProductNotLive: 'PRODUCT_NOT_LIVE',
   VariantsNotAvailable: 'VARIANTS_NOT_AVAILABLE',

@@ -2,10 +2,10 @@ import HttpsProxyAgent from 'https-proxy-agent';
 
 const { min } = require('lodash');
 
-const { getHeaders, stateForError, waitForDelay } = require('../utils');
+const { getHeaders, stateForError } = require('../utils');
 const { patchCheckoutForm } = require('../utils/forms');
 const { patchToCart } = require('../utils/forms');
-const { Types, States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
+const { States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
 const Checkout = require('../checkout');
 
 /**
@@ -34,7 +34,7 @@ class APICheckout extends Checkout {
     try {
       const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
@@ -76,11 +76,11 @@ class APICheckout extends Checkout {
       }
 
       this.needsPatched = false;
-      return { message: 'Fetching checkout', nextState: States.PingCheckout };
+      return { message: 'Monitoring for product', nextState: States.Monitor };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
-        err.statusCode,
+        err.status,
         err.message,
         err.stack,
       );
@@ -90,8 +90,8 @@ class APICheckout extends Checkout {
         nextState: States.PatchCheckout,
       });
 
-      const message = err.statusCode
-        ? `Submitting information – (${err.statusCode})`
+      const message = err.status
+        ? `Submitting information – (${err.status})`
         : 'Submitting information';
 
       return nextState || { message, nextState: States.PatchCheckout };
@@ -104,17 +104,15 @@ class APICheckout extends Checkout {
         site: { url, apiKey },
         sizes,
         product: { variants },
-        monitorDelay,
       },
       proxy,
       timers: { monitor, checkout: checkoutTimer },
-      type,
     } = this._context;
 
     try {
       const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
@@ -123,9 +121,6 @@ class APICheckout extends Checkout {
       });
 
       const { status, headers } = res;
-
-      const body = await res.json();
-      this._logger.debug(body);
 
       const checkStatus = stateForError(
         { status },
@@ -153,7 +148,7 @@ class APICheckout extends Checkout {
         }
       }
 
-      // const body = await res.json();
+      const body = await res.json();
       if (body.errors && body.errors.line_items) {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
@@ -161,17 +156,13 @@ class APICheckout extends Checkout {
           if (monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }
-          const nextState = sizes.includes('Random') ? States.Monitor : States.AddToCart;
+          const nextState = sizes.includes('Random') ? States.Restocking : States.AddToCart;
           return { message: 'Running for restocks', nextState };
         }
         if (error && error.variant_id[0]) {
-          if (type === Types.ShippingRates) {
-            return { message: 'Invalid variant', nextState: States.Errored };
-          }
           if (monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }
-          this._delayer = await waitForDelay(monitorDelay);
           return { message: 'Monitoring for product', nextState: States.AddToCart };
         }
 
@@ -197,7 +188,7 @@ class APICheckout extends Checkout {
           this.prices.total = (
             parseFloat(this.prices.item) + parseFloat(this.chosenShippingMethod.price)
           ).toFixed(2);
-          return { message: `Posting payment`, nextState: States.PostPayment };
+          return { message: `Fetching checkout`, nextState: States.PingCheckout };
         }
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
@@ -206,7 +197,7 @@ class APICheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
-        err.statusCode,
+        err.status,
         err.message,
         err.stack,
       );
@@ -215,7 +206,7 @@ class APICheckout extends Checkout {
         nextState: States.AddToCart,
       });
 
-      const message = err.statusCode ? `Adding to cart – (${err.statusCode})` : 'Adding to cart';
+      const message = err.status ? `Adding to cart – (${err.status})` : 'Adding to cart';
       return nextState || { message, nextState: States.AddToCart };
     }
   }
@@ -232,7 +223,7 @@ class APICheckout extends Checkout {
     try {
       const res = await this._request(`/api/checkouts/${this.checkoutToken}/shipping_rates.json`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: getHeaders({ url, apiKey }),
       });
 
@@ -297,14 +288,14 @@ class APICheckout extends Checkout {
           parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
         ).toFixed(2);
         this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
-        return { message: 'Posting payment', nextState: States.PostPayment };
+        return { message: `Fetching checkout`, nextState: States.PingCheckout };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
-        err.statusCode,
+        err.status,
         err.message,
         err.stack,
       );
@@ -314,8 +305,8 @@ class APICheckout extends Checkout {
         nextState: States.ShippingRates,
       });
 
-      const message = err.statusCode
-        ? `Fetching shipping rates – (${err.statusCode})`
+      const message = err.status
+        ? `Fetching shipping rates – (${err.status})`
         : 'Fetching shipping rates';
 
       return nextState || { message, nextState: States.ShippingRates };

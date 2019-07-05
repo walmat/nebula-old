@@ -137,13 +137,11 @@ class TaskRunner {
   _handleAbort(id) {
     if (id === this._context.id) {
       this._context.aborted = true;
+      this._aborter.abort();
       if (this._delayer) {
         this._delayer.clear();
       }
-      this._aborter.abort();
-      if (this._monitor.aborter) {
-        this._monitor.aborter.abort();
-      }
+      this._monitor.aborter.abort();
     }
   }
 
@@ -318,7 +316,8 @@ class TaskRunner {
     }
 
     if (nextState === States.Login) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -340,7 +339,8 @@ class TaskRunner {
     }
 
     if (nextState === States.PaymentToken) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -362,7 +362,8 @@ class TaskRunner {
     }
 
     if (nextState === States.ParseAccessToken) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -392,7 +393,8 @@ class TaskRunner {
     }
 
     if (nextState === States.CreateCheckout) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -423,7 +425,8 @@ class TaskRunner {
     }
 
     if (nextState === States.GetCheckout) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -444,7 +447,8 @@ class TaskRunner {
     }
 
     if (nextState === States.PatchCheckout) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -478,7 +482,8 @@ class TaskRunner {
     this._emitTaskEvent({ message });
 
     if (nextState === States.PollQueue) {
-      this._delayer = await waitForDelay(2000);
+      this._delayer = waitForDelay(2000, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -512,7 +517,8 @@ class TaskRunner {
     });
 
     if (nextState === States.Monitor) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
     // reset the abort controller
     this._aborter = new AbortController();
@@ -557,7 +563,8 @@ class TaskRunner {
     }
 
     if (nextState === States.Restocking) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
     // Restock Monitor will be in charge of choosing the next state
     return nextState;
@@ -578,8 +585,9 @@ class TaskRunner {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
 
-    if (nextState === States.AddToCart) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+    if (nextState === States.AddToCart || nextState === States.Restocking) {
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -601,7 +609,8 @@ class TaskRunner {
     }
 
     if (nextState === States.ShippingRates) {
-      this._delayer = await waitForDelay(500);
+      this._delayer = waitForDelay(500, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -641,9 +650,6 @@ class TaskRunner {
           return States.CompletePayment;
         }
 
-        if (this._prevState === States.GetCheckout) {
-          return States.PatchCheckout;
-        }
         // return to the previous state
         return this._prevState;
       }
@@ -686,7 +692,8 @@ class TaskRunner {
     }
 
     if (nextState === States.PostPayment) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -708,7 +715,8 @@ class TaskRunner {
     }
 
     if (nextState === States.CompletePayment) {
-      this._delayer = await waitForDelay(this._context.task.monitorDelay);
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -730,7 +738,8 @@ class TaskRunner {
     }
 
     if (nextState === States.PaymentProcess) {
-      this._delayer = await waitForDelay(1000);
+      this._delayer = waitForDelay(1000, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -768,7 +777,8 @@ class TaskRunner {
         message: `No open proxies! Waiting ${errorDelay} ms`,
       });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
-      this._delayer = await waitForDelay(errorDelay);
+      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
+      await this._delayer;
     } catch (err) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitTaskEvent({
@@ -851,9 +861,11 @@ class TaskRunner {
     try {
       nextState = await this._handleStepLogic(this._state);
     } catch (e) {
-      this._logger.verbose('Run loop errored out! %s', e);
-      nextState = States.Errored;
-      return true;
+      if (!/aborterror/i.test(e.name)) {
+        this._logger.verbose('Run loop errored out! %s', e);
+        nextState = States.Errored;
+        return true;
+      }
     }
     this._logger.silly('Run Loop finished, state transitioned to: %s', nextState);
 

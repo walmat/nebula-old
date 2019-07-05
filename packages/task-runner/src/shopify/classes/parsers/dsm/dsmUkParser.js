@@ -6,8 +6,8 @@ const DsmParser = require('./dsmParser');
 const { userAgent } = require('../../utils');
 
 class DsmUkParser extends DsmParser {
-  constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'DsmUkParser');
+  constructor(request, task, proxy, aborter, logger) {
+    super(request, task, proxy, aborter, logger, 'DsmUkParser');
   }
 
   _parseForCustomJsLink($) {

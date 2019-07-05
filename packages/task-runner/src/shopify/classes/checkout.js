@@ -193,7 +193,7 @@ class Checkout {
     try {
       const res = await this._request('/account/login', {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
         headers: heads,
         body: form,
@@ -284,7 +284,7 @@ class Checkout {
     try {
       const res = await this._request(url, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'follow',
         headers: {
           'User-Agent': userAgent,
@@ -350,7 +350,7 @@ class Checkout {
     try {
       const res = await this._request(`${url}/checkout`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
         headers: getHeaders({ url, apiKey }),
         body: JSON.stringify({}),
@@ -447,7 +447,7 @@ class Checkout {
     try {
       const res = await this._request('/checkout/poll', {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
         headers: {
           'User-Agent': userAgent,
@@ -491,7 +491,7 @@ class Checkout {
           try {
             const response = await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
               headers: {
                 'Upgrade-Insecure-Requests': 1,
@@ -522,7 +522,7 @@ class Checkout {
           try {
             const response = await this._request(`https://${url}/throttle/queue?_ctd=${ctd}`, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
               headers: {
                 'Upgrade-Insecure-Requests': 1,
@@ -597,7 +597,7 @@ class Checkout {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -607,9 +607,6 @@ class Checkout {
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
       });
-
-      const body = await res.text();
-      this._logger.debug(body);
 
       const { status, headers } = res;
 
@@ -640,21 +637,30 @@ class Checkout {
         }
       }
 
+      const body = await res.text();
+
       if (!this.checkoutKey) {
-        const body = await res.text();
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
         if (match) {
           [, this.checkoutKey] = match;
-          this._logger.debug('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
         }
+      }
+
+      if (/captcha/.test(body)) {
+        this.needsCaptcha = true;
+      }
+
+      if (this.checkoutType === CheckoutTypes.fe) {
+        return { message: 'Submitting information', nextState: States.PatchCheckout };
       }
 
       // start the monitor timer again...
       monitor.start();
-      return { nextState: States.Monitor, message: 'Monitoring for product' };
+      return { message: 'Posting payment', nextState: States.PostPayment };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Ping Checkout.\n\n %j %j',
@@ -687,13 +693,19 @@ class Checkout {
     } = this._context;
     const { id } = this.chosenShippingMethod;
 
+    const checkoutUrl = this.checkoutKey
+      ? `/${this.storeId}/checkouts/${this.checkoutToken}?key=${this.checkoutKey}`
+      : `/${this.storeId}/checkouts/${this.checkoutToken}`;
+
     try {
-      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
+      const res = await this._request(checkoutUrl, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         follow: 0,
+        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
+          'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
@@ -709,9 +721,6 @@ class Checkout {
       });
 
       const { statusCode, headers } = res;
-
-      const body = await res.text();
-      this._logger.debug(body);
 
       const checkStatus = stateForError(
         { statusCode },
@@ -747,6 +756,7 @@ class Checkout {
         }
       }
 
+      const body = await res.text();
       if (this.needsCaptcha || /captcha/i.test(body)) {
         this._context.task.checkoutSpeed = checkout.getRunTime();
         checkout.stop();
@@ -797,10 +807,11 @@ class Checkout {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
+          'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
@@ -908,7 +919,7 @@ class Checkout {
     try {
       const res = await this._request(`${url}/api/checkouts/${this.checkoutToken}/payments`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : undefined,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
@@ -973,7 +984,7 @@ class Checkout {
             // fail silently...
           }
 
-          return { message: 'Payment successful', nextState: States.Finished };
+          return { message: `Payment successful! Order ${orderName}`, nextState: States.Finished };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];

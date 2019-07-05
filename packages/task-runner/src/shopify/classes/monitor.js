@@ -17,6 +17,10 @@ class Monitor {
     return this._aborter;
   }
 
+  get delayer() {
+    return this._delayer;
+  }
+
   constructor(context) {
     /**
      * All data needed for monitor to run
@@ -172,7 +176,6 @@ class Monitor {
         url,
         this._context.proxy,
         this._request,
-        this._aborter,
         this._logger,
       );
 
@@ -206,11 +209,11 @@ class Monitor {
   }
 
   async _monitorSpecial() {
-    const { task, request, proxy, logger } = this._context;
+    const { task, proxy, logger } = this._context;
     const { product, site } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
-    const parser = ParserCreator(request, task, proxy, logger);
+    const parser = ParserCreator(this._request, task, proxy, this._aborter, logger);
 
     let parsed;
     try {
@@ -222,10 +225,7 @@ class Monitor {
         error.message,
         error.stack,
       );
-      // Check for a product not found error
-      if (error.status === ErrorCodes.ProductNotFound) {
-        return { message: 'Error: Product Not Found!', nextState: States.Errored };
-      }
+
       return this._handleParsingErrors([error]);
     }
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);

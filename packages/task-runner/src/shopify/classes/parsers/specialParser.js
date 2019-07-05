@@ -8,9 +8,8 @@ const { ErrorCodes } = require('../utils/constants');
 const { userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
-  constructor(request, task, proxy, logger, name) {
-    super(request, task, proxy, logger, name || 'SpecialParser');
-    this._request = request;
+  constructor(request, task, proxy, aborter, logger, name) {
+    super(request, task, proxy, aborter, logger, name || 'SpecialParser');
   }
 
   /**
@@ -37,42 +36,44 @@ class SpecialParser extends Parser {
 
       const res = await this._request(initialUrl, {
         method: 'GET',
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : undefined,
+        redirect: 'manual',
+        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
       });
 
-      const body = await res.text();
+      if (res.status === 302) {
+        const redirectUrl = res.headers.get('location');
 
-      response = cheerio.load(body, {
-        normalizeWhitespace: true,
-        xmlMode: true,
-      });
-    } catch (error) {
-      // Handle Redirect response (wait for refresh delay)
-      if (error.statusCode === 302) {
-        this._logger.error('%s: Redirect Detected!', this._name);
-        if (`${error}`.indexOf('password') > -1) {
+        if (/password/.test(redirectUrl)) {
           const rethrow = new Error('PasswordPage');
           rethrow.status = 601; // Use a 601 to trigger a password page message
           throw rethrow;
         }
+
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('RedirectDetected');
         rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay
         throw rethrow;
       }
+
+      const body = await res.text();
+      response = cheerio.load(body, {
+        normalizeWhitespace: true,
+        xmlMode: true,
+      });
+    } catch (error) {
       // Handle other error responses
       this._logger.error(
         '%s: %d ERROR making request! %s',
         this._name,
-        error.statusCode,
+        error.status,
         error.messsage,
         error.stack,
       );
       const rethrow = new Error('unable to make request');
-      rethrow.status = error.statusCode || 404; // Use the status code, or a 404 is no code is given
+      rethrow.status = error.status || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;
     }
 
@@ -99,7 +100,7 @@ class SpecialParser extends Parser {
           );
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
-          rethrow.status = error.statusCode || error.status || 404;
+          rethrow.status = error.status || 404;
           throw rethrow;
         }
       } else {
@@ -116,7 +117,7 @@ class SpecialParser extends Parser {
           );
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
-          rethrow.status = error.statusCode || error.status || 404;
+          rethrow.status = error.status || 404;
           throw rethrow;
         }
         this._logger.silly(
@@ -139,7 +140,7 @@ class SpecialParser extends Parser {
               this._logger.error(
                 '%s: ERROR parsing product info page',
                 this._name,
-                err.statusCode || err.status,
+                err.status,
                 err.message,
               );
               return null;
@@ -256,7 +257,7 @@ class SpecialParser extends Parser {
     try {
       const res = await this._request(productUrl, {
         method: 'GET',
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : undefined,
+        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },

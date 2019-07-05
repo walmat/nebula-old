@@ -39,6 +39,12 @@ class ShippingRatesRunner {
       signal: this.aborter.signal, // generic abort signal
     });
 
+    this.monitorAborter = new AbortController();
+    this._monitorRequest = defaults(request, this.task.site.url, {
+      timeout: 10000,
+      signal: this.monitorAborter.signal,
+    });
+
     this.message = null;
     this.rate = null;
     this.shippingRates = [];
@@ -96,15 +102,29 @@ class ShippingRatesRunner {
     let parsed;
 
     const parsers = [
-      new AtomParser(this._request, this.task, this.proxy, this._logger),
-      new XmlParser(this._request, this.task, this.proxy, this._logger),
-      new JsonParser(this._request, this.task, this.proxy, this._logger),
+      new AtomParser(
+        this._monitorRequest,
+        this.task,
+        this.proxy,
+        this.monitorAborter,
+        this._logger,
+      ),
+      new XmlParser(this._monitorRequest, this.task, this.proxy, this.monitorAborter, this._logger),
+      new JsonParser(
+        this._monitorRequest,
+        this.task,
+        this.proxy,
+        this.monitorAborter,
+        this._logger,
+      ),
     ].map(r => r.run());
 
     try {
       parsed = await rfrl(parsers, 'parsers');
     } catch (error) {
-      return { nextState: this.states.ERROR, message: error.message || 'No product found' };
+      if (!/aborterror/i.test(error.name)) {
+        return { nextState: this.states.ERROR, message: error.message || 'No product found' };
+      }
     }
 
     const { variant, nextState, message } = this._generateVariants(parsed);
@@ -128,11 +148,15 @@ class ShippingRatesRunner {
       fullProductInfo = await Parser.getFullProductInfo(
         url,
         this.proxy,
-        this._request,
+        this._monitorRequest,
         this._logger,
       );
+      this.monitorAborter.abort();
     } catch (error) {
-      return { nextState: this.states.ERROR, message: error.messsage || 'No product found' };
+      const cont = error.some(e => /aborterror/i.test(e.name));
+      if (!cont) {
+        return { nextState: this.states.ERROR, message: error.message || 'No product found' };
+      }
     }
 
     const { variant, nextState } = this._generateVariants(fullProductInfo);
@@ -148,7 +172,13 @@ class ShippingRatesRunner {
 
   async special() {
     const ParserCreator = getSpecialParser(this.task.site);
-    const parser = ParserCreator(this._request, this.task, this.proxy, this._logger);
+    const parser = ParserCreator(
+      this._monitorRequest,
+      this.task,
+      this.proxy,
+      this.monitorAborter,
+      this._logger,
+    );
 
     let parsed;
     try {
@@ -229,7 +259,9 @@ class ShippingRatesRunner {
 
       const body = await res.json();
 
-      if (!body || (body && !body.length)) {
+      this._logger.debug(body);
+
+      if (!body || (body && !body.id)) {
         return { nextState: this.states.ERROR, message: 'Cart empty' };
       }
 
@@ -261,13 +293,19 @@ class ShippingRatesRunner {
         }&shipping_address[province]=${province ? province.value : ''}`,
         {
           method: 'GET',
-          agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : undefined,
+          agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
           headers: {
             Origin: url,
             'User-Agent': userAgent,
           },
         },
       );
+
+      const { status } = res;
+
+      if (status === 422) {
+        return { message: 'Country not supported', nextState: States.Errored };
+      }
 
       const body = await res.json();
 
