@@ -4,8 +4,6 @@ import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { CookieJar } from 'tough-cookie';
 
-const request = require('fetch-cookie')(fetch, new CookieJar());
-
 const Timer = require('../classes/timer');
 const Monitor = require('../classes/monitor');
 const RestockMonitor = require('../classes/restockMonitor');
@@ -45,6 +43,9 @@ class TaskRunner {
     this._delayer = null;
     this._aborter = new AbortController();
 
+    this._jar = new CookieJar();
+
+    const request = require('fetch-cookie')(fetch, this._jar);
     this._request = defaults(request, task.site.url, {
       timeout: 10000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
@@ -89,6 +90,7 @@ class TaskRunner {
       delayer: this._delayer,
       signal: this._aborter.signal,
       request: this._request,
+      jar: this._jar,
       timers: this._timers,
       discord: this._discord,
       slack: this._slack,
@@ -729,9 +731,9 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.paymentProcessing();
+    const { message, shouldBan, order, nextState } = await this._checkout.paymentProcessing();
 
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, order });
 
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary

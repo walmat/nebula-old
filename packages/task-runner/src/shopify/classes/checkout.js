@@ -21,6 +21,7 @@ class Checkout {
     this._context = context;
     this._logger = this._context.logger;
     this._request = this._context.request;
+    this._jar = this._context.jar;
     this._delayer = this._context.delayer;
     this._signal = this._context.signal;
     this._checkoutType = this._context.checkoutType;
@@ -415,10 +416,17 @@ class Checkout {
   }
 
   async getCtdCookie(jar) {
-    jar._jar.store.getAllCookies((_, cookies) => {
+    const store = jar.Store || jar.store;
+
+    if (!store) {
+      return null;
+    }
+
+    store.getAllCookies((_, cookies) => {
       for (let i = 0; i < cookies.length; i += 1) {
         const cookie = cookies[i];
         if (cookie.key.indexOf('_ctd') > -1) {
+          this._logger.debug('Found existing ctd cookie %j', cookie);
           return cookie;
         }
       }
@@ -475,7 +483,7 @@ class Checkout {
         return { message: `Waiting in queue - (${status})`, nextState: States.PollQueue };
       }
 
-      const ctd = await this.getCtdCookie(this._request.jar());
+      const ctd = await this.getCtdCookie(this._jar);
       const body = await res.text();
 
       this._logger.silly('CHECKOUT: %d: Queue response body: %j', status, body);
@@ -984,7 +992,7 @@ class Checkout {
             // fail silently...
           }
 
-          return { message: `Payment successful! Order ${orderName}`, nextState: States.Finished };
+          return { message: `Payment successful! Order ${orderName}`, order: { number: orderName, url: statusUrl }, nextState: States.Finished };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
@@ -1001,7 +1009,7 @@ class Checkout {
           }
 
           // TODO : restock mode...
-          return { message: 'Payment failed', nextState: States.Stopped };
+          return { message: 'Payment failed', order: { number: orderName, url: statusUrl }, nextState: States.Stopped };
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');

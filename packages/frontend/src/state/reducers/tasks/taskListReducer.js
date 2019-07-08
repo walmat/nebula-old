@@ -286,7 +286,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
           const task = taskMap[taskId];
           const { log } = task;
           if (task) {
-            const { message, size, proxy, found, apiKey, checkout } = msg;
+            const { message, size, proxy, found, apiKey, checkout, order } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
@@ -302,6 +302,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             }
             if (checkout) {
               task.checkout = checkout;
+            }
+            if (order) {
+              task.order = order;
             }
             if (log) {
               log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
@@ -362,6 +365,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       } else {
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
+        // reset the log in case any messages entered the buffer AFTER we shutdown..
+        nextState[idx].log = [];
       }
       break;
     }
@@ -379,6 +384,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         }
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
+        // reset the log in case any messages entered the buffer AFTER we shutdown..
+        nextState[idx].log = [];
       });
       break;
     }

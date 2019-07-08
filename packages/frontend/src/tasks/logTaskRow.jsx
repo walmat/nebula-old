@@ -13,6 +13,7 @@ const LogTaskRow = ({
     chosenSizes,
     sizes,
     proxy,
+    order,
     output,
   },
   style,
@@ -41,6 +42,7 @@ const LogTaskRow = ({
   if (fullscreen) {
     Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
   }
+
   return (
     <div
       key={index}
