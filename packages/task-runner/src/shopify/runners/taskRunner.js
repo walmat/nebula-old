@@ -380,16 +380,7 @@ class TaskRunner {
     }
     const { message, shouldBan, nextState } = await this._checkout.createCheckout();
 
-    const { storeId, checkoutToken } = this._checkout;
-    let checkoutUrl = null;
-    if (storeId && checkoutToken) {
-      checkoutUrl = `${this._context.task.site.url}/${storeId}/checkouts/${checkoutToken}`;
-    }
-
-    this._emitTaskEvent({
-      message,
-      checkout: checkoutUrl || undefined,
-    });
+    this._emitTaskEvent({ message });
 
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
@@ -420,7 +411,9 @@ class TaskRunner {
 
     this._emitTaskEvent({
       message,
-      order: checkoutUrl,
+      needsCatpcha: this._checkout.needsCatpcha,
+      paymentToken: this._checkout.paymentToken,
+      checkoutUrl,
     });
 
     if (nextState === States.SwapProxies) {
@@ -523,8 +516,6 @@ class TaskRunner {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
     }
-    // reset the abort controller
-    this._aborter = new AbortController();
     // Monitor will be in charge of choosing the next state
     return nextState;
   }
@@ -570,6 +561,20 @@ class TaskRunner {
       await this._delayer;
     }
     // Restock Monitor will be in charge of choosing the next state
+    return nextState;
+  }
+
+  async _handleSubmitShipping() {
+    // exit if abort is detected
+    if (this._context.aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.Aborted;
+    }
+
+    const { message, nextState } = await this._checkout.submitShipping();
+
+    this._emitTaskEvent({ message });
+
     return nextState;
   }
 
@@ -840,6 +845,7 @@ class TaskRunner {
       [States.AddToCart]: this._handleAddToCart,
       [States.ShippingRates]: this._handleShipping,
       [States.RequestCaptcha]: this._handleRequestCaptcha,
+      [States.SubmitShipping]: this._handleSubmitShipping,
       [States.PostPayment]: this._handlePostPayment,
       [States.CompletePayment]: this._handleCompletePayment,
       [States.PaymentProcess]: this._handlePaymentProcess,
@@ -889,6 +895,11 @@ class TaskRunner {
     if (this._context.task.username && this._context.task.password) {
       this._state = States.Login;
     }
+
+    if (this._context.task.checkoutUrl) {
+      this._state = States.Monitor;
+    }
+
     let shouldStop = false;
     while (this._state !== States.Stopped && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop

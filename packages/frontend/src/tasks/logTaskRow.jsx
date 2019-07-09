@@ -13,8 +13,8 @@ const LogTaskRow = ({
     chosenSizes,
     sizes,
     proxy,
-    order,
     output,
+    checkoutUrl,
   },
   style,
   fullscreen,
@@ -43,8 +43,7 @@ const LogTaskRow = ({
     Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
   }
 
-  const orderUrl = order || undefined;
-  const storeCss = orderUrl
+  const storeCss = checkoutUrl
     ? `${classMap.store.join(' ')} checkout-ready `
     : `${classMap.store.join(' ')}`;
 
@@ -85,7 +84,7 @@ const LogTaskRow = ({
           role="button"
           tabIndex={0}
           onKeyPress={() => {}}
-          onClick={() => LogTaskRow.openDefaultBrowser(orderUrl)}
+          onClick={() => LogTaskRow.openDefaultBrowser(checkoutUrl)}
         >
           {output}
         </div>

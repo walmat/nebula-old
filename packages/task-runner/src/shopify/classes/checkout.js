@@ -52,8 +52,19 @@ class Checkout {
     this.paymentToken = null;
     this.checkoutToken = null;
     this.checkoutKey = null;
-
     this.storeId = null;
+    this.needsCaptcha = false;
+    this.shouldContinue = false;
+
+    if (this._context.task.checkoutUrl) {
+      const [checkoutUrl, key] = this._context.task.checkoutUrl.split('?');
+      this.paymentToken = this._context.task.paymentToken;
+      this.needsCaptcha = this._context.task.needsCaptcha;
+      [, , , this.storeId, , this.checkoutToken] = checkoutUrl.split('/');
+      [, this.checkoutKey] = key.split('=');
+      this.shouldContinue = true;
+    }
+
     this.prices = {
       item: 0,
       shipping: 0,
@@ -62,7 +73,6 @@ class Checkout {
 
     this.selectedShippingRate = null;
     this.captchaToken = '';
-    this.needsCaptcha = false;
     this.needsLogin = (this._context.task.username && this._context.task.password) || false;
     this.needsPatched = true;
     this.captchaTokenRequest = null;
@@ -161,46 +171,40 @@ class Checkout {
       proxy,
     } = this._context;
 
-    let form;
+    const form = new URLSearchParams();
     let heads = {
       'User-Agent': userAgent,
-      Connection: 'keep-alive',
-      Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-      'Content-Type': 'application/x-www-form-urlencoded',
     };
+
     if (this.captchaToken) {
-      form = {
-        utf8: '✓',
-        authenticity_token: '',
-        'g-recaptcha-response': this.captchaToken,
-      };
+      form.append('utf8', '✓');
+      form.append('authenticity_token', '');
+      form.append('g-recaptcha-response', this.captchaToken);
       heads = {
         ...heads,
         Referer: `${url}/challenge`,
       };
     } else {
-      form = {
-        form_data: 'customer_login',
-        utf8: '✓',
-        'customer[email]': username,
-        'customer[password]': password,
-        Referer: `${url}/account/login`,
-      };
+      form.append('form_data', 'customer_login');
+      form.append('utf8', '✓');
+      form.append('customer[email]', username);
+      form.append('customer[passport]', password);
+      form.append('Referer', `${url}/account/login`);
     }
 
     this.captchaToken = '';
 
     try {
-      const res = await this._request('/account/login', {
+      const res = await this._request(`${url}/account/login`, {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
+        follow: 0,
         headers: heads,
         body: form,
       });
 
-      const { status } = res;
+      const { status, redirected, url: redirectUrl } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -214,10 +218,8 @@ class Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = res.headers.get('location');
-      this._logger.silly('Login redirected to: %j', redirectUrl);
-
-      if (redirectUrl) {
+      if (redirected) {
+        this._logger.silly('Login redirected to: %j', redirectUrl);
         // password page
         if (redirectUrl.indexOf('password') > -1) {
           // we'll do this later, let's continue...
@@ -427,7 +429,7 @@ class Checkout {
         const cookie = cookies[i];
         if (cookie.key.indexOf('_ctd') > -1) {
           this._logger.debug('Found existing ctd cookie %j', cookie);
-          return cookie;
+          return cookie.value;
         }
       }
       return null;
@@ -662,6 +664,10 @@ class Checkout {
         this.needsCaptcha = true;
       }
 
+      if (this._context.task.isQueueBypass && !this.shouldContinue) {
+        return { message: 'Submitting shipping', nextState: States.SubmitShipping };
+      }
+
       if (this.checkoutType === CheckoutTypes.fe) {
         return { message: 'Submitting information', nextState: States.PatchCheckout };
       }
@@ -690,13 +696,11 @@ class Checkout {
     }
   }
 
-  async postPayment() {
+  async submitShipping() {
     const {
       task: {
         site: { url, apiKey },
-        sizes,
       },
-      timers: { checkout },
       proxy,
     } = this._context;
     const { id } = this.chosenShippingMethod;
@@ -719,7 +723,6 @@ class Checkout {
         },
         body: JSON.stringify({
           complete: '1',
-          s: this.paymentToken,
           checkout: {
             shipping_rate: {
               id,
@@ -728,10 +731,92 @@ class Checkout {
         }),
       });
 
-      const { statusCode, headers } = res;
+      const { status } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
+        {
+          message: 'Submiting shipping',
+          nextState: States.PostPayment,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      return { message: 'Bypass done. Stopping task!', nextState: States.Finished };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %s Request Error..\n Step: Submit Shipping.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Submitting shipping',
+        nextState: States.SubmitShipping,
+      });
+
+      const message = err.statusCode
+        ? `Submitting shipping - (${err.statusCode})`
+        : 'Submitting shipping';
+
+      return nextState || { message, nextState: States.SubmitShipping };
+    }
+  }
+
+  async postPayment() {
+    const {
+      task: {
+        site: { url, apiKey },
+        sizes,
+      },
+      timers: { checkout },
+      proxy,
+    } = this._context;
+    const { id } = this.chosenShippingMethod;
+
+    const checkoutUrl = this.checkoutKey
+      ? `/${this.storeId}/checkouts/${this.checkoutToken}?key=${this.checkoutKey}`
+      : `/${this.storeId}/checkouts/${this.checkoutToken}`;
+
+    let formBody = {
+      complete: '1',
+      s: this.paymentToken,
+    };
+
+    if (!this._context.task.isQueueBypass) {
+      formBody = {
+        ...formBody,
+        checkout: {
+          shipping_rate: {
+            id,
+          },
+        },
+      };
+    }
+
+    try {
+      const res = await this._request(checkoutUrl, {
+        method: 'PATCH',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        follow: 0,
+        redirect: 'manual',
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'Content-Type': 'application/json',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+        },
+        body: JSON.stringify(formBody),
+      });
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
         {
           message: 'Posting payment',
           nextState: States.PostPayment,
@@ -832,10 +917,10 @@ class Checkout {
       // Reset captcha token so we don't use it twice
       this.captchaToken = '';
 
-      const { statusCode, headers } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Processing payment',
           nextState: States.CompletePayment,

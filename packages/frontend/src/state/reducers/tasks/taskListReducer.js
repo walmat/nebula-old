@@ -286,7 +286,17 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
           const task = taskMap[taskId];
           const { log } = task;
           if (task) {
-            const { message, size, proxy, found, apiKey, checkout, order } = msg;
+            const {
+              message,
+              size,
+              proxy,
+              found,
+              apiKey,
+              checkoutUrl,
+              paymentToken,
+              needsCaptcha,
+              order,
+            } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
@@ -300,8 +310,14 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             if (apiKey) {
               task.site.apiKey = apiKey;
             }
-            if (checkout) {
-              task.checkout = checkout;
+            if (checkoutUrl) {
+              task.checkoutUrl = checkoutUrl;
+            }
+            if (paymentToken) {
+              task.paymentToken = paymentToken;
+            }
+            if (needsCaptcha) {
+              task.needsCaptcha = needsCaptcha;
             }
             if (order) {
               task.order = order;

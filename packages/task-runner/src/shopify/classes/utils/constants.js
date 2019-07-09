@@ -36,6 +36,7 @@ const TaskRunnerStates = {
   AddToCart: 'ADD_TO_CART',
   ShippingRates: 'SHIPPING_RATES',
   RequestCaptcha: 'REQUEST_CAPTCHA',
+  SubmitShipping: 'SUBMIT_SHIPPING',
   PostPayment: 'POST_PAYMENT',
   CompletePayment: 'COMPLETE_PAYMENT',
   PaymentProcess: 'PAYMENT_PROCESS',

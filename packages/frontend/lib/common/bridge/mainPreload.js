@@ -84,11 +84,12 @@ window.onbeforeunload = () => {
   handlers.forEach(h => _deregisterForTaskEvents(h));
 };
 
-const _openInDefaultBrowser = order => {
-  if (!order || !order.url) {
+const _openInDefaultBrowser = url => {
+  if (!url) {
     return;
   }
-  shell.openExternal(order.url);
+
+  shell.openExternal(url);
 };
 
 /**

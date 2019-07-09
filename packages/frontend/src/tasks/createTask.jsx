@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import Switch from 'react-switch';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
@@ -39,6 +40,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
   constructor(props) {
     super(props);
+    this.handleChange = this.handleChange.bind(this);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.handleCreate = this.handleCreate.bind(this);
@@ -46,7 +48,12 @@ export class CreateTaskPrimitive extends PureComponent {
 
     this.state = {
       isLoading: false,
+      bypass: false,
     };
+  }
+
+  handleChange(bypass) {
+    this.setState({ bypass });
   }
 
   buildProfileOptions() {
@@ -59,6 +66,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
   saveTask(e) {
     const { task, onAddNewTask } = this.props;
+    const { bypass } = this.state;
 
     const amount = task.amount ? parseInt(task.amount, 10) : 1;
 
@@ -74,18 +82,18 @@ export class CreateTaskPrimitive extends PureComponent {
       const sizes = getAllSizes.buildSizesForCategory(fsrCategory);
       sizes.forEach(s => {
         task.sizes = [s.value];
-        onAddNewTask(task, amount);
+        onAddNewTask(task, amount, bypass);
       });
       task.sizes = prevSizes;
     } else if (task.sizes.find(s => s === 'BS')) {
       const sizes = ['4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5'];
       sizes.forEach(s => {
         task.sizes = [s];
-        onAddNewTask(task, amount);
+        onAddNewTask(task, amount, bypass);
       });
       task.sizes = prevSizes;
     } else {
-      onAddNewTask(task, amount);
+      onAddNewTask(task, amount, bypass);
     }
   }
 
@@ -152,7 +160,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
   render() {
     const { task, errors, onKeyPress, theme } = this.props;
-    const { isLoading } = this.state;
+    const { isLoading, bypass } = this.state;
     let newTaskProfileValue = null;
     if (task.profile.id) {
       newTaskProfileValue = {
@@ -301,6 +309,22 @@ export class CreateTaskPrimitive extends PureComponent {
         </div>
         <div className="row row--end row--expand row--gutter">
           <div className="col">
+            <Switch
+              checked={bypass}
+              onChange={this.handleChange}
+              onColor="#b8d9d2"
+              onHandleColor="#46adb4"
+              handleDiameter={14}
+              uncheckedIcon={false}
+              checkedIcon={false}
+              boxShadow="0px 1px 5px rgba(0, 0, 0, 0.6)"
+              activeBoxShadow="0px 0px 1px 10px rgba(0, 0, 0, 0.2)"
+              height={10}
+              width={28}
+              className="react-switch"
+            />
+          </div>
+          <div className="col">
             <input
               type="number"
               className="tasks-create__amount"
@@ -358,8 +382,8 @@ export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
-  onAddNewTask: (newTask, amount) => {
-    dispatch(taskActions.add(newTask, amount));
+  onAddNewTask: (newTask, amount, bypass) => {
+    dispatch(taskActions.add(newTask, amount, bypass));
   },
 });
 

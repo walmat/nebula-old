@@ -181,6 +181,10 @@ class APICheckout extends Checkout {
 
         this.prices.item = parseFloat(totalPrice).toFixed(2);
 
+        if (this._context.task.isQueueBypass && this.shouldContinue) {
+          return { message: 'Posting payment', nextState: States.PostPayment };
+        }
+
         if (this.chosenShippingMethod.id) {
           this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
           this.prices.total = (
