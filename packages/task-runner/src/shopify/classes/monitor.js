@@ -56,7 +56,12 @@ class Monitor {
         // status is neither 403, 429, 430, so set ban to false
         ban = false;
       }
-      if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
+      if (
+        !delayStatus &&
+        (status === ErrorCodes.ProductNotFound ||
+          status === ErrorCodes.ProductNotLive ||
+          status >= 400)
+      ) {
         delayStatus = status; // find the first error that is either a product not found or 4xx response
       }
     });
@@ -72,7 +77,20 @@ class Monitor {
       };
     }
 
-    const message = delayStatus === 601 ? 'Password page' : 'Monitoring for product';
+    let message = 'Monitoring for product';
+
+    switch (delayStatus) {
+      case ErrorCodes.ProductNotLive:
+        message = 'Product not live';
+        break;
+      case ErrorCodes.PasswordPage:
+      case 601:
+        message = 'Password page';
+        break;
+      default:
+        break;
+    }
+
     return { message, nextState: States.Monitor };
   }
 

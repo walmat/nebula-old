@@ -6,6 +6,7 @@ nebulaEnv.setUpEnvironment();
 
 const _defaultWebPreferences = {
   nodeIntegration: false,
+  contextIsolation: false,
   nodeIntegrationInWorker: false,
   webSecurity: true,
   allowRunningInsecureContent: false,
@@ -50,9 +51,28 @@ const _createWindow = options => {
       ];
     }
     callback({
+      ...details,
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': cspHeaders,
+      },
+    });
+  });
+
+  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+    const url = new URL(details.url);
+    const { host, origin } = url;
+
+    callback({
+      cancel: false,
+      ...details,
+      requestHeaders: {
+        ...details.requestHeaders,
+        host,
+        origin,
+        DNT: 1,
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
       },
     });
   });

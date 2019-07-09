@@ -45,6 +45,7 @@ class TaskRunner {
 
     this._jar = new CookieJar();
 
+    // eslint-disable-next-line global-require
     const request = require('fetch-cookie')(fetch, this._jar);
     this._request = defaults(request, task.site.url, {
       timeout: 10000, // to be overridden as necessary
@@ -419,14 +420,14 @@ class TaskRunner {
 
     this._emitTaskEvent({
       message,
-      checkout: checkoutUrl || undefined,
+      order: checkoutUrl,
     });
 
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
 
-    if (nextState === States.GetCheckout) {
+    if (nextState === States.PingCheckout) {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
     }

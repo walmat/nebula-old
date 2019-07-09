@@ -63,8 +63,6 @@ class APICheckout extends Checkout {
       }
 
       const body = await res.json();
-      this._logger.debug(body);
-
       if (
         body &&
         body.checkout &&
@@ -229,9 +227,6 @@ class APICheckout extends Checkout {
 
       const { status } = res;
 
-      const body = await res.json();
-      this._logger.debug(body);
-
       const checkStatus = stateForError(
         { status },
         {
@@ -249,8 +244,7 @@ class APICheckout extends Checkout {
         return { message: 'Country not supported', nextState: States.Errored };
       }
 
-      // const body = await res.json();
-      this._logger.debug(body);
+      const body = await res.json();
       if (body && body.errors) {
         this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', body.errors);
         const { checkout } = body.errors;

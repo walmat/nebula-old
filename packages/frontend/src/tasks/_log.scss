@@ -240,6 +240,10 @@
       padding-bottom: 0;
     }
 
+    .checkout-ready {
+      color: #91a8d0;
+    }
+
     .tasks-row-container {
       @include themify($themes) {
         border-bottom-color: themed('tableRowBottomBorderColow');

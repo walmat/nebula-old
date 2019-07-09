@@ -43,6 +43,11 @@ const LogTaskRow = ({
     Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
   }
 
+  const orderUrl = order || undefined;
+  const storeCss = orderUrl
+    ? `${classMap.store.join(' ')} checkout-ready `
+    : `${classMap.store.join(' ')}`;
+
   return (
     <div
       key={index}
@@ -58,7 +63,7 @@ const LogTaskRow = ({
         <div className={classMap.id.join(' ')} data-testid={addTestId('LogTaskRow.id')}>
           {index < 10 ? `0${index}` : index}
         </div>
-        <div className={classMap.store.join(' ')} data-testid={addTestId('LogTaskRow.store')}>
+        <div className={storeCss} data-testid={addTestId('LogTaskRow.store')}>
           {name}
         </div>
         <div className={classMap.product.join(' ')} data-testid={addTestId('LogTaskRow.product')}>
@@ -77,6 +82,10 @@ const LogTaskRow = ({
         <div
           className={`${classMap.output.join(' ')} tasks-row__log--${messageClassName}`}
           data-testid={addTestId('LogTaskRow.output')}
+          role="button"
+          tabIndex={0}
+          onKeyPress={() => {}}
+          onClick={() => LogTaskRow.openDefaultBrowser(orderUrl)}
         >
           {output}
         </div>
@@ -91,6 +100,14 @@ LogTaskRow.propTypes = {
   onClick: PropTypes.func.isRequired,
   selected: PropTypes.bool.isRequired,
   fullscreen: PropTypes.bool.isRequired,
+};
+
+LogTaskRow.openDefaultBrowser = url => {
+  if (!url || !window.Bridge) {
+    return;
+  }
+
+  window.Bridge.openInDefaultBrowser(url);
 };
 
 export default memo(LogTaskRow);

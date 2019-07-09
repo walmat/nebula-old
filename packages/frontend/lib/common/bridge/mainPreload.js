@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
 const axios = require('axios');
 const HttpsProxyAgent = require('https-proxy-agent');
 const { TaskRunnerTypes } = require('@nebula/task-runner-built').shopify;
@@ -82,6 +82,13 @@ const _deregisterForTaskEvents = handler => {
  */
 window.onbeforeunload = () => {
   handlers.forEach(h => _deregisterForTaskEvents(h));
+};
+
+const _openInDefaultBrowser = order => {
+  if (!order || !order.url) {
+    return;
+  }
+  shell.openExternal(order.url);
 };
 
 /**
@@ -227,6 +234,7 @@ process.once('loaded', () => {
     deregisterForTaskEvents: _deregisterForTaskEvents,
     startTasks: _startTasks,
     stopTasks: _stopTasks,
+    openInDefaultBrowser: _openInDefaultBrowser,
     addProxies: _addProxies,
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,

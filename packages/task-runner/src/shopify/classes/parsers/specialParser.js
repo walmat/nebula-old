@@ -36,19 +36,21 @@ class SpecialParser extends Parser {
 
       const res = await this._request(initialUrl, {
         method: 'GET',
-        redirect: 'manual',
+        redirect: 'follow',
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
       });
 
-      if (res.status === 302) {
-        const redirectUrl = res.headers.get('location');
+      console.log(res, res.url);
+
+      if (res.redirected) {
+        const redirectUrl = res.url;
 
         if (/password/.test(redirectUrl)) {
           const rethrow = new Error('PasswordPage');
-          rethrow.status = 601; // Use a 601 to trigger a password page message
+          rethrow.status = ErrorCodes.PasswordPage;
           throw rethrow;
         }
 

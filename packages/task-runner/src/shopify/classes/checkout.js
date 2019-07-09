@@ -992,7 +992,11 @@ class Checkout {
             // fail silently...
           }
 
-          return { message: `Payment successful! Order ${orderName}`, order: { number: orderName, url: statusUrl }, nextState: States.Finished };
+          return {
+            message: `Payment successful! Order ${orderName}`,
+            order: { number: orderName, url: statusUrl },
+            nextState: States.Finished,
+          };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
@@ -1009,7 +1013,7 @@ class Checkout {
           }
 
           // TODO : restock mode...
-          return { message: 'Payment failed', order: { number: orderName, url: statusUrl }, nextState: States.Stopped };
+          return { message: 'Payment failed', nextState: States.Stopped };
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');
