@@ -1084,6 +1084,10 @@ class Checkout {
           };
         }
 
+        if (/your card was declined/i.test(bodyString)) {
+          return { message: 'Card declined', nextState: States.Stopped };
+        }
+
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
 
         if (paymentProcessingErrorMessage !== null) {

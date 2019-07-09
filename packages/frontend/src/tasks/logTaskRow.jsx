@@ -31,10 +31,11 @@ const LogTaskRow = ({
   const outputColorMap = {
     'Waiting for captcha': 'warning',
     'Payment successful': 'success',
+    'Card declined': 'failed',
     'Payment failed': 'failed',
   };
 
-  const match = /Waiting for captcha|Payment successful|Payment failed/.exec(output);
+  const match = /Waiting for captcha|Payment successful|Payment failed|Card declined/i.exec(output);
   const messageClassName = match ? outputColorMap[match[0]] : 'normal';
 
   const tasksRow = `row ${selected ? 'tasks-row--selected' : 'tasks-row'}`;

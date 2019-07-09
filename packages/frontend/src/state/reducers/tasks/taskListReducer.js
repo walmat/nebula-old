@@ -420,6 +420,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
         break;
       } else {
+        // Clear cache on non-qb tasks
+        if (!nextState[idx].isQueueBypass) {
+          delete nextState[idx].checkoutUrl;
+          delete nextState[idx].paymentToken;
+        }
+
         nextState[idx].status = 'stopped';
         nextState[idx].output = '';
         nextState[idx].chosenSizes = nextState[idx].sizes;
@@ -442,6 +448,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
         if (idx === -1) {
           return;
+        }
+
+        // Clear cache on non-qb tasks
+        if (!nextState[idx].isQueueBypass) {
+          delete nextState[idx].checkoutUrl;
+          delete nextState[idx].paymentToken;
         }
 
         nextState[idx].status = 'stopped';
