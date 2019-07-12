@@ -29,6 +29,9 @@ class TaskManager {
     // Runner Map
     this._runners = {};
 
+    // Monitors Map
+    this._monitors = {};
+
     // Handlers Map
     this._handlers = {};
 
@@ -432,6 +435,7 @@ class TaskManager {
 
   async _start([runnerId, task, openProxy, type]) {
     let runner;
+    let monitor;
     if (type === RunnerTypes.Normal) {
       runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
     } else if (type === RunnerTypes.ShippingRates) {
@@ -441,9 +445,9 @@ class TaskManager {
     if (!runner) {
       return;
     }
+
     runner.site = task.site.url;
     this._runners[runnerId] = runner;
-
     this._logger.silly('Wiring up TaskRunner Events ...');
     this._setup(runner);
 

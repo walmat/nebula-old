@@ -68,6 +68,8 @@
     "sanitize-html": "^1.20.1",
     "semver": "^6.1.1",
     "shortid": "^2.2.14",
+    "threads": "^1.0.0-beta.2",
+    "tiny-worker": "^2.2.0",
     "underscore": "^1.9.1",
     "uuid": "^3.3.2",
     "whatwg-url": "^7.0.0"

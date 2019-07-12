@@ -45,13 +45,19 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
   let shouldBan = 0;
   switch (status) {
     case 403:
-    case 429:
     case 430: {
       shouldBan = status === 403 ? 2 : 1;
       return {
         message: `Swapping proxy - (${status})`,
         shouldBan,
         nextState: States.SwapProxies,
+      };
+    }
+    case 429: {
+      return {
+        message: 'Too many attempts, backing off..',
+        backoff: true,
+        nextState,
       };
     }
     case 303: {

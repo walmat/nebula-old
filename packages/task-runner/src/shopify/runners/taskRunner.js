@@ -467,6 +467,12 @@ class TaskRunner {
       this.shouldBanProxy = pollShouldBan; // Set a flag to ban the proxy if necessary
     }
 
+    if (pollState === States.PollQueue) {
+      const delay = this._context.task.errorDelay > 2000 ? this._context.task.errorDelay : 2000;
+      this._delayer = waitForDelay(delay, this._aborter.signal);
+      await this._delayer;
+    }
+
     if (pollState) {
       this._emitTaskEvent({ message: pollMessage });
       return pollState;
@@ -478,7 +484,8 @@ class TaskRunner {
     this._emitTaskEvent({ message });
 
     if (nextState === States.PollQueue) {
-      this._delayer = waitForDelay(2000, this._aborter.signal);
+      const delay = this._context.task.errorDelay > 2000 ? this._context.task.errorDelay : 2000;
+      this._delayer = waitForDelay(delay, this._aborter.signal);
       await this._delayer;
     }
 
@@ -492,7 +499,10 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
+    if (
+      !this._context.task.isQueueBypass &&
+      this._context.timers.monitor.getRunTime() > CheckoutRefresh
+    ) {
       this._emitTaskEvent({ message: 'Pinging checkout' });
       return States.PingCheckout;
     }

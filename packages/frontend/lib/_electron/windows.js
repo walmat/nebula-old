@@ -33,21 +33,17 @@ const _createWindow = options => {
   // Create new window instance
   const win = new Electron.BrowserWindow(browserWindowOptions);
 
-  const filter = {
-    urls: ['https://*.amazonaws.com'],
-  };
-
   // Attach CSP Header by Default
   win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     // The majority of styling is currently inlne, so we have to allow this!
     // TODO: move away from inline styles!
     let cspHeaders = [
-      "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob:;",
+      "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
     ];
     if (nebulaEnv.isDevelopment()) {
       // If in dev mode, allow inline scripts to run (for developer tool extensions)
       cspHeaders = [
-        "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob:;",
+        "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
       ];
     }
     callback({

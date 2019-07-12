@@ -188,11 +188,9 @@ class Checkout {
       form.append('form_data', 'customer_login');
       form.append('utf8', '✓');
       form.append('customer[email]', username);
-      form.append('customer[passport]', password);
+      form.append('customer[password]', password);
       form.append('Referer', `${url}/account/login`);
     }
-
-    this.captchaToken = '';
 
     try {
       const res = await this._request(`${url}/account/login`, {
@@ -204,7 +202,7 @@ class Checkout {
         body: form,
       });
 
-      const { status, redirected, url: redirectUrl } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -218,42 +216,32 @@ class Checkout {
         return checkStatus;
       }
 
-      if (redirected) {
-        this._logger.silly('Login redirected to: %j', redirectUrl);
-        // password page
-        if (redirectUrl.indexOf('password') > -1) {
-          // we'll do this later, let's continue...
-          return { message: 'Password page', nextState: States.Login };
-        }
+      const redirectUrl = headers.get('location');
 
-        // challenge page
-        if (redirectUrl.indexOf('challenge') > -1) {
-          this._logger.silly('CHECKOUT: Login needs captcha');
-          return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
-        }
+      if (/password/i.test(redirectUrl)) {
+        return { message: 'Password page', nextState: States.Login };
+      }
 
-        // still at login page
-        if (redirectUrl.indexOf('login') > -1) {
-          this._logger.silly('CHECKOUT: Invalid login credentials');
-          return { message: 'Invalid login credentials', nextState: States.Errored };
-        }
+      if (/challenge/i.test(redirectUrl)) {
+        return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
+      }
 
-        // since we're here, we can assume `account/login` === false
-        if (redirectUrl.indexOf('account') > -1) {
-          this._logger.silly('CHECKOUT: Logged in');
-          // check to see if we already have the storeId and checkoutToken.
-          this.needsLogin = false;
-          if (this.storeId && this.checkoutToken) {
-            if (!this.needsPatched) {
-              if (this.chosenShippingMethod.id) {
-                return { message: 'Posting payment', nextState: States.PostPayment };
-              }
-              return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
+      if (/login/i.test(redirectUrl)) {
+        return { message: 'Invalid account credentials', nextState: States.Errored };
+      }
+
+      if (/account/i.test(redirectUrl)) {
+        this.needsLogin = false;
+        if (this.storeId && this.checkoutToken) {
+          if (!this.needsPatched) {
+            if (this.chosenShippingMethod.id) {
+              return { message: 'Posting payment', nextState: States.PostPayment };
             }
-            return { message: 'Submitting information', nextState: States.PatchCheckout };
+            return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
           }
-          return { message: 'Fetching payment token', nextState: States.PaymentToken };
+          return { message: 'Submitting information', nextState: States.PatchCheckout };
         }
+        return { message: 'Fetching payment token', nextState: States.PaymentToken };
       }
 
       return { message: `Logging in (${status || 500})`, nextState: States.Login };
@@ -424,16 +412,18 @@ class Checkout {
       return null;
     }
 
+    let found = null;
     store.getAllCookies((_, cookies) => {
       for (let i = 0; i < cookies.length; i += 1) {
         const cookie = cookies[i];
         if (cookie.key.indexOf('_ctd') > -1) {
           this._logger.debug('Found existing ctd cookie %j', cookie);
-          return cookie.value;
+          found = cookie.value;
+          break;
         }
       }
-      return null;
     });
+    return found;
   }
 
   /**
