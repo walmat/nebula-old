@@ -435,7 +435,6 @@ class TaskManager {
 
   async _start([runnerId, task, openProxy, type]) {
     let runner;
-    let monitor;
     if (type === RunnerTypes.Normal) {
       runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
     } else if (type === RunnerTypes.ShippingRates) {
