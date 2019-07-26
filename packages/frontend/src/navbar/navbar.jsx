@@ -11,7 +11,7 @@ import { ReactComponent as TasksIcon } from '../_assets/tasks.svg';
 import { ReactComponent as ProfilesIcon } from '../_assets/profiles.svg';
 import { ReactComponent as ServerIcon } from '../_assets/server.svg';
 import { ReactComponent as SettingsIcon } from '../_assets/settings.svg';
-import { mapThemeToColor } from '../constants/themes';
+import { mapBackgroundThemeToColor } from '../constants/themes';
 import './navbar.css';
 
 const bodymovinOptions = {
@@ -66,7 +66,7 @@ export class NavbarPrimitive extends PureComponent {
 
   static openHarvesterWindow(theme) {
     if (window.Bridge) {
-      window.Bridge.launchCaptchaHarvester({ backgroundColor: mapThemeToColor[theme] });
+      window.Bridge.launchCaptchaHarvester({ backgroundColor: mapBackgroundThemeToColor[theme] });
     } else {
       // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
       console.error('Unable to launch harvester!');

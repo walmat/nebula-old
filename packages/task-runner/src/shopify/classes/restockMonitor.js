@@ -7,10 +7,13 @@ const { Parser } = require('./parsers');
 const Monitor = require('./monitor');
 
 class RestockMonitor extends Monitor {
-  async _delay(status) {
-    // call super method to handle delay call
-    await super._delay(status);
-    // Return custom message so we come back to the restock monitor
+  async _handleParsingErrors(errors) {
+    const { message, shouldBan, nextState } = await super._handleParsingErrors(errors);
+
+    if (nextState !== States.Monitor) {
+      return { message, shouldBan, nextState };
+    }
+
     return { message: 'Running for restocks', nextState: States.Restocking };
   }
 

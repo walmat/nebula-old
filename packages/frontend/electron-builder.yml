@@ -21,7 +21,7 @@ files:
   - node_modules/
 
 dmg:
-  background: "build/assets/background.png"
+  backgroundColor: "#46adb4"
   icon: "build/assets/icons/mac/icon.icns"
   iconSize: 128
   contents:

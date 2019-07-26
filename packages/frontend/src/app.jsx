@@ -8,7 +8,7 @@ import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
-import { THEMES, mapThemeToColor, mapToNextTheme } from './constants/themes';
+import { THEMES, mapBackgroundThemeToColor, mapToNextTheme } from './constants/themes';
 
 import { addTestId, renderSvgIcon } from './utils';
 
@@ -57,7 +57,7 @@ export class App extends PureComponent {
     if (window.Bridge) {
       const { store } = this.props;
       const { theme } = store.getState();
-      const backgroundColor = mapThemeToColor[theme];
+      const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
     }
@@ -74,7 +74,7 @@ export class App extends PureComponent {
     const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT;
     store.dispatch(globalActions.setTheme(nextTheme));
     if (window.Bridge) {
-      const backgroundColor = mapThemeToColor[nextTheme];
+      const backgroundColor = mapBackgroundThemeToColor[nextTheme];
       window.Bridge.setTheme({ backgroundColor });
     }
     this.forceUpdate();

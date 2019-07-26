@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
 const axios = require('axios');
-const httpsProxyAgent = require('https-proxy-agent');
+const HttpsProxyAgent = require('https-proxy-agent');
 const { TaskRunnerTypes } = require('@nebula/task-runner-built').shopify;
 
 const IPCKeys = require('../constants');
@@ -82,6 +82,14 @@ const _deregisterForTaskEvents = handler => {
  */
 window.onbeforeunload = () => {
   handlers.forEach(h => _deregisterForTaskEvents(h));
+};
+
+const _openInDefaultBrowser = url => {
+  if (!url) {
+    return;
+  }
+
+  shell.openExternal(url);
 };
 
 /**
@@ -194,20 +202,20 @@ const _testProxy = async (url, proxy) => {
   let start;
   let stop;
   const [host, port, username, password] = proxy.split(':');
-  const agent = new httpsProxyAgent(`http://${username}:${password}@${host}:${port}`);
+  const agent = new HttpsProxyAgent(`http://${username}:${password}@${host}:${port}`);
   try {
     start = performance.now();
-      await axios.get(url, {
-        withCredentials: true,
-        httpsAgent: agent,
-        httpAgent: agent,
-      });
+    await axios.get(url, {
+      withCredentials: true,
+      httpsAgent: agent,
+      httpAgent: agent,
+    });
     stop = performance.now();
     return (stop - start).toFixed(0);
   } catch (err) {
     return null;
   }
-}
+};
 
 /**
  * On process load, create the Bridge
@@ -227,6 +235,7 @@ process.once('loaded', () => {
     deregisterForTaskEvents: _deregisterForTaskEvents,
     startTasks: _startTasks,
     stopTasks: _stopTasks,
+    openInDefaultBrowser: _openInDefaultBrowser,
     addProxies: _addProxies,
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,

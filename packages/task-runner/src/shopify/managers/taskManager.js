@@ -29,6 +29,9 @@ class TaskManager {
     // Runner Map
     this._runners = {};
 
+    // Monitors Map
+    this._monitors = {};
+
     // Handlers Map
     this._handlers = {};
 
@@ -441,9 +444,9 @@ class TaskManager {
     if (!runner) {
       return;
     }
+
     runner.site = task.site.url;
     this._runners[runnerId] = runner;
-
     this._logger.silly('Wiring up TaskRunner Events ...');
     this._setup(runner);
 

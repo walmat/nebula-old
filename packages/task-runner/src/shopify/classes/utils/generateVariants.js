@@ -4,7 +4,11 @@ const { getRandomIntInclusive } = require('./index');
 const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
 const { ErrorCodes } = require('./constants');
 
-function generateVariants(product, sizes, site, logger = { log: () => {} }) {
+function generateVariants(product, sizes, site, logger = { log: () => {} }, random) {
+  if (random) {
+    return { variant: product.variants[0].id };
+  }
+
   // Filter out unavailable variants first
   const availableVariants = product.variants.filter(v => v.available);
   if (!availableVariants.length) {

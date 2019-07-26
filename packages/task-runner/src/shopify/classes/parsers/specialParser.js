@@ -1,4 +1,6 @@
 /* eslint-disable class-methods-use-this */
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const cheerio = require('cheerio');
 const Parser = require('./parser');
 const { ParseType } = require('../utils/parse');
@@ -6,9 +8,8 @@ const { ErrorCodes } = require('../utils/constants');
 const { userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
-  constructor(request, task, proxy, logger, name) {
-    super(request, task, proxy, logger, name || 'SpecialParser');
-    this._request = request;
+  constructor(request, task, proxy, aborter, logger, name) {
+    super(request, task, proxy, aborter, logger, name || 'SpecialParser');
   }
 
   /**
@@ -32,49 +33,49 @@ class SpecialParser extends Parser {
     let response;
     try {
       this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
-      response = await this._request({
+
+      const res = await this._request(initialUrl, {
         method: 'GET',
-        uri: initialUrl,
-        proxy: this._proxy,
-        json: false,
-        simple: true,
-        followRedirect: false,
-        rejectUnauthorized: false,
-        gzip: true,
+        redirect: 'follow',
+        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
-        transform2xxOnly: true,
-        transform: body =>
-          cheerio.load(body, {
-            normalizeWhitespace: true,
-            xmlMode: true,
-          }),
       });
-    } catch (error) {
-      // Handle Redirect response (wait for refresh delay)
-      if (error.statusCode === 302) {
-        this._logger.error('%s: Redirect Detected!', this._name);
-        if (`${error}`.indexOf('password') > -1) {
+
+      console.log(res, res.url);
+
+      if (res.redirected) {
+        const redirectUrl = res.url;
+
+        if (/password/.test(redirectUrl)) {
           const rethrow = new Error('PasswordPage');
-          rethrow.status = 601; // Use a 601 to trigger a password page message
+          rethrow.status = ErrorCodes.PasswordPage;
           throw rethrow;
         }
+
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('RedirectDetected');
         rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay
         throw rethrow;
       }
+
+      const body = await res.text();
+      response = cheerio.load(body, {
+        normalizeWhitespace: true,
+        xmlMode: true,
+      });
+    } catch (error) {
       // Handle other error responses
       this._logger.error(
         '%s: %d ERROR making request! %s',
         this._name,
-        error.statusCode,
+        error.status,
         error.messsage,
         error.stack,
       );
       const rethrow = new Error('unable to make request');
-      rethrow.status = error.statusCode || 404; // Use the status code, or a 404 is no code is given
+      rethrow.status = error.status || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;
     }
 
@@ -101,7 +102,7 @@ class SpecialParser extends Parser {
           );
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
-          rethrow.status = error.statusCode || error.status || 404;
+          rethrow.status = error.status || 404;
           throw rethrow;
         }
       } else {
@@ -118,7 +119,7 @@ class SpecialParser extends Parser {
           );
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
-          rethrow.status = error.statusCode || error.status || 404;
+          rethrow.status = error.status || 404;
           throw rethrow;
         }
         this._logger.silly(
@@ -141,7 +142,7 @@ class SpecialParser extends Parser {
               this._logger.error(
                 '%s: ERROR parsing product info page',
                 this._name,
-                err.statusCode || err.status,
+                err.status,
                 err.message,
               );
               return null;
@@ -252,26 +253,28 @@ class SpecialParser extends Parser {
     throw new Error('Not Implemented! This should be implemented by subclasses!');
   }
 
-  getProductInfoPage(productUrl) {
+  async getProductInfoPage(productUrl) {
     this._logger.log('silly', '%s: Getting Full Product Info... %s', this._name, productUrl);
-    return this._request({
-      method: 'GET',
-      uri: productUrl,
-      proxy: this._proxy,
-      rejectUnauthorized: false,
-      json: false,
-      simple: true,
-      transform2xxOnly: true,
-      gzip: true,
-      headers: {
-        'User-Agent': userAgent,
-      },
-      transform: body =>
-        cheerio.load(body, {
-          normalizeWhitespace: true,
-          xmlMode: true,
-        }),
-    });
+
+    try {
+      const res = await this._request(productUrl, {
+        method: 'GET',
+        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+        headers: {
+          'User-Agent': userAgent,
+        },
+      });
+
+      const body = await res.text();
+      const response = cheerio.load(body, {
+        normalizeWhitespace: true,
+        xmlMode: true,
+      });
+
+      return response;
+    } catch (e) {
+      throw e;
+    }
   }
 }
 

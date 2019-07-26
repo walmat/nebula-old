@@ -6,6 +6,7 @@ nebulaEnv.setUpEnvironment();
 
 const _defaultWebPreferences = {
   nodeIntegration: false,
+  contextIsolation: false,
   nodeIntegrationInWorker: false,
   webSecurity: true,
   allowRunningInsecureContent: false,
@@ -32,24 +33,21 @@ const _createWindow = options => {
   // Create new window instance
   const win = new Electron.BrowserWindow(browserWindowOptions);
 
-  const filter = {
-    urls: ['https://*.amazonaws.com'],
-  };
-
   // Attach CSP Header by Default
   win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     // The majority of styling is currently inlne, so we have to allow this!
     // TODO: move away from inline styles!
     let cspHeaders = [
-      "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob:;",
+      "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
     ];
     if (nebulaEnv.isDevelopment()) {
       // If in dev mode, allow inline scripts to run (for developer tool extensions)
       cspHeaders = [
-        "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob:;",
+        "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
       ];
     }
     callback({
+      ...details,
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': cspHeaders,
@@ -57,18 +55,55 @@ const _createWindow = options => {
     });
   });
 
-  win.webContents.session.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
+  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+    const url = new URL(details.url);
+    const { host, origin } = url;
+
     callback({
+      cancel: false,
+      ...details,
       requestHeaders: {
         ...details.requestHeaders,
+        host,
+        origin,
         DNT: 1,
-        origin: 'http://localhost:3000',
         'User-Agent':
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
-        'Content-Language': 'en-US,en;q=0.9',
       },
     });
   });
+
+  win.webContents.session.webRequest.onBeforeSendHeaders(
+    { urls: ['https://*.google.com, https://*.gstatic.com'] },
+    (details, callback) => {
+      console.log(details);
+      callback({
+        requestHeaders: {
+          ...details.requestHeaders,
+          DNT: 1,
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+          'Content-Language': 'en-US,en;q=0.9',
+        },
+      });
+    },
+  );
+
+  win.webContents.session.webRequest.onBeforeSendHeaders(
+    { urls: ['https://*.amazonaws.com'] },
+    (details, callback) => {
+      callback({
+        requestHeaders: {
+          ...details.requestHeaders,
+          DNT: 1,
+          origin: 'http://localhost:3000',
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+          'Content-Language': 'en-US,en;q=0.9',
+        },
+      });
+    },
+  );
 
   // Setup Explicit Window Permissions
   win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {

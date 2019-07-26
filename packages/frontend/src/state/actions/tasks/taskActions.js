@@ -20,9 +20,10 @@ export const TASK_ACTIONS = {
 };
 
 // Private API Requests
-const _addTaskRequest = async (task, amount) => {
+const _addTaskRequest = async (task, amount, bypass) => {
   const copy = JSON.parse(JSON.stringify(task));
   const parsedProduct = parseProductType(copy.product);
+  copy.isQueueBypass = bypass;
 
   if (parsedProduct) {
     copy.product = parsedProduct;
@@ -182,8 +183,8 @@ const statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'messageBuffer');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
-const addTask = (task, amount) => dispatch =>
-  _addTaskRequest(task, amount).then(
+const addTask = (task, amount, bypass) => dispatch =>
+  _addTaskRequest(task, amount, bypass).then(
     response => dispatch(_addTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );

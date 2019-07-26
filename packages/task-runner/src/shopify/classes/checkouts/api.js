@@ -1,9 +1,11 @@
-const { min } = require('underscore');
+import HttpsProxyAgent from 'https-proxy-agent';
 
-const { getHeaders, stateForError, waitForDelay } = require('../utils');
+const { min } = require('lodash');
+
+const { getHeaders, stateForError } = require('../utils');
 const { patchCheckoutForm } = require('../utils/forms');
 const { patchToCart } = require('../utils/forms');
-const { Types, States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
+const { States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
 const Checkout = require('../checkout');
 
 /**
@@ -25,39 +27,31 @@ class APICheckout extends Checkout {
       task: {
         site: { url, apiKey },
         profile: { shipping, billing, payment, billingMatchesShipping },
-        username,
-        password,
       },
       proxy,
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/${this.storeId}/checkouts/${this.checkoutToken}`,
+      const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: false,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
           ...getHeaders({ url, apiKey }),
-          'Accept-Language': 'en-US,en;q=0.8',
-          Accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
         },
         body: JSON.stringify(
           patchCheckoutForm(billingMatchesShipping, shipping, billing, payment, this.captchaToken),
         ),
       });
+
+      this._logger.silly('API CHECKOUT: Patch checkout status: %s', res.status);
       this.captchaToken = '';
 
-      const { statusCode, headers } = res;
+      const { status } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Submitting information',
           nextState: States.PatchCheckout,
@@ -68,45 +62,23 @@ class APICheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.location;
-      this._logger.silly('API CHECKOUT: Patch checkout redirect url: %s', redirectUrl);
-      if (!redirectUrl || /checkouts/.test(redirectUrl)) {
-        if (statusCode === 200 || statusCode === 302) {
-          this.needsPatched = false;
-          return { message: 'Monitoring for product', nextState: States.Monitor };
-        }
-
-        const message = statusCode
-          ? `Submitting information – (${statusCode})`
-          : 'Submitting information';
-
+      const body = await res.json();
+      if (
+        body &&
+        body.checkout &&
+        !body.checkout.shipping_address &&
+        !body.checkout.billing_address
+      ) {
+        const message = status ? `Submitting information – (${status})` : 'Submitting information';
         return { message, nextState: States.PatchCheckout };
       }
 
-      if (redirectUrl.indexOf('account') > -1) {
-        if (username && password) {
-          return { message: 'Logging in', nextState: States.Login };
-        }
-        return { message: 'Account required', nextState: States.Errored };
-      }
-
-      if (redirectUrl.indexOf('password') > -1) {
-        return { message: 'Password page', nextState: States.CreateCheckout };
-      }
-
-      if (redirectUrl.indexOf('throttle') > -1) {
-        return { message: 'Waiting in queue', nextState: States.PollQueue };
-      }
-
-      const message = statusCode
-        ? `Submitting information – (${statusCode})`
-        : 'Submitting information';
-
-      return { message, nextState: States.PatchCheckout };
+      this.needsPatched = false;
+      return { message: 'Monitoring for product', nextState: States.Monitor };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
-        err.statusCode,
+        err.status,
         err.message,
         err.stack,
       );
@@ -116,8 +88,8 @@ class APICheckout extends Checkout {
         nextState: States.PatchCheckout,
       });
 
-      const message = err.statusCode
-        ? `Submitting information – (${err.statusCode})`
+      const message = err.status
+        ? `Submitting information – (${err.status})`
         : 'Submitting information';
 
       return nextState || { message, nextState: States.PatchCheckout };
@@ -130,37 +102,26 @@ class APICheckout extends Checkout {
         site: { url, apiKey },
         sizes,
         product: { variants },
-        monitorDelay,
-        username,
-        password,
       },
       proxy,
       timers: { monitor, checkout: checkoutTimer },
-      type,
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/api/checkouts/${this.checkoutToken}.json`,
+      const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        simple: false,
-        json: true,
-        gzip: true,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
           ...getHeaders({ url, apiKey }),
-          'Accept-Encoding': 'gzip, deflate, br',
+          'Content-Type': 'application/json',
         },
-        body: patchToCart(variants[0]),
+        body: JSON.stringify(patchToCart(variants[0])),
       });
 
-      const { statusCode, body, headers } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Adding to cart',
           nextState: States.AddToCart,
@@ -171,20 +132,12 @@ class APICheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.location;
+      const redirectUrl = headers.get('location');
       this._logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       // check redirects
       if (redirectUrl) {
-        if (redirectUrl.indexOf('account') > -1) {
-          if (username && password) {
-            return { message: 'Logging in', nextState: States.Login };
-          }
-          return { message: 'Account required', nextState: States.Errored };
-        }
-
         if (redirectUrl.indexOf('password') > -1) {
-          await waitForDelay(monitorDelay);
           return { message: 'Password page', nextState: States.CreateCheckout };
         }
 
@@ -193,6 +146,7 @@ class APICheckout extends Checkout {
         }
       }
 
+      const body = await res.json();
       if (body.errors && body.errors.line_items) {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
@@ -200,21 +154,17 @@ class APICheckout extends Checkout {
           if (monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }
-          const nextState = sizes.includes('Random') ? States.Monitor : States.AddToCart;
+          const nextState = sizes.includes('Random') ? States.Restocking : States.AddToCart;
           return { message: 'Running for restocks', nextState };
         }
         if (error && error.variant_id[0]) {
-          if (type === Types.ShippingRates) {
-            return { message: 'Invalid variant', nextState: States.Errored };
-          }
           if (monitor.getRunTime() > CheckoutRefresh) {
             return { message: 'Pinging checkout', nextState: States.PingCheckout };
           }
-          await waitForDelay(monitorDelay);
           return { message: 'Monitoring for product', nextState: States.AddToCart };
         }
 
-        const message = statusCode ? `Adding to cart – (${statusCode})` : 'Adding to cart';
+        const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
         return { message, nextState: States.AddToCart };
       }
 
@@ -231,21 +181,25 @@ class APICheckout extends Checkout {
 
         this.prices.item = parseFloat(totalPrice).toFixed(2);
 
+        if (this._context.task.isQueueBypass && this.shouldContinue) {
+          return { message: 'Posting payment', nextState: States.PostPayment };
+        }
+
         if (this.chosenShippingMethod.id) {
           this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
           this.prices.total = (
             parseFloat(this.prices.item) + parseFloat(this.chosenShippingMethod.price)
           ).toFixed(2);
-          return { message: `Posting payment`, nextState: States.PostPayment };
+          return { message: `Fetching checkout`, nextState: States.PingCheckout };
         }
         return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
       }
-      const message = statusCode ? `Adding to cart – (${statusCode})` : 'Adding to cart';
+      const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
       return { message, nextState: States.AddToCart };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
-        err.statusCode,
+        err.status,
         err.message,
         err.stack,
       );
@@ -254,7 +208,7 @@ class APICheckout extends Checkout {
         nextState: States.AddToCart,
       });
 
-      const message = err.statusCode ? `Adding to cart – (${err.statusCode})` : 'Adding to cart';
+      const message = err.status ? `Adding to cart – (${err.status})` : 'Adding to cart';
       return nextState || { message, nextState: States.AddToCart };
     }
   }
@@ -269,27 +223,16 @@ class APICheckout extends Checkout {
     } = this._context;
 
     try {
-      const res = await this._request({
-        uri: `${url}/api/checkouts/${this.checkoutToken}/shipping_rates.json`,
+      const res = await this._request(`/api/checkouts/${this.checkoutToken}/shipping_rates.json`, {
         method: 'GET',
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: false,
-        resolveWithFullResponse: true,
-        json: true,
-        simple: false,
-        gzip: true,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          'Accept-Encoding': 'gzip, deflate',
-          'Accept-Language': 'en-GB, en-US; en; q=0.8',
-        },
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        headers: getHeaders({ url, apiKey }),
       });
 
-      const { statusCode, body } = res;
+      const { status } = res;
 
       const checkStatus = stateForError(
-        { statusCode },
+        { status },
         {
           message: 'Fetching shipping rates',
           nextState: States.ShippingRates,
@@ -301,10 +244,11 @@ class APICheckout extends Checkout {
       }
 
       // extra check for country not supported
-      if (statusCode === 422) {
+      if (status === 422) {
         return { message: 'Country not supported', nextState: States.Errored };
       }
 
+      const body = await res.json();
       if (body && body.errors) {
         this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', body.errors);
         const { checkout } = body.errors;
@@ -320,7 +264,6 @@ class APICheckout extends Checkout {
             return { message: 'Country not supported', nextState: States.Errored };
           }
         }
-        await waitForDelay(500);
         return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
       }
 
@@ -343,15 +286,14 @@ class APICheckout extends Checkout {
           parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
         ).toFixed(2);
         this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
-        return { message: 'Posting payment', nextState: States.PostPayment };
+        return { message: `Fetching checkout`, nextState: States.PingCheckout };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
-      await waitForDelay(monitorDelay);
       return { message: 'Polling for shipping rates', nextState: States.ShippingRates };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
-        err.statusCode,
+        err.status,
         err.message,
         err.stack,
       );
@@ -361,8 +303,8 @@ class APICheckout extends Checkout {
         nextState: States.ShippingRates,
       });
 
-      const message = err.statusCode
-        ? `Fetching shipping rates – (${err.statusCode})`
+      const message = err.status
+        ? `Fetching shipping rates – (${err.status})`
         : 'Fetching shipping rates';
 
       return nextState || { message, nextState: States.ShippingRates };

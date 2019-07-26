@@ -1,11 +1,13 @@
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const cheerio = require('cheerio');
 
 const DsmParser = require('./dsmParser');
 const { userAgent } = require('../../utils');
 
 class DsmUkParser extends DsmParser {
-  constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'DsmUkParser');
+  constructor(request, task, proxy, aborter, logger) {
+    super(request, task, proxy, aborter, logger, 'DsmUkParser');
   }
 
   _parseForCustomJsLink($) {
@@ -45,17 +47,12 @@ class DsmUkParser extends DsmParser {
     return customJsLink;
   }
 
-  _getCustomJsContent(uri) {
+  async _getCustomJsContent(uri) {
     this._logger.silly('%s: Requesting custom js from %s ...', this._name, uri);
-    return this._request({
+
+    return this._request(uri, {
       method: 'GET',
-      uri,
-      proxy: this._proxy,
-      rejectUnauthorized: false,
-      resolveWithFullResponse: false,
-      json: false,
-      simple: true,
-      gzip: true,
+      agent: this._proxy ? new HttpsProxyAgent(this._proxy) : undefined,
       headers: {
         'User-Agent': userAgent,
       },
@@ -99,7 +96,8 @@ class DsmUkParser extends DsmParser {
 
     try {
       const customJsLink = this._parseForCustomJsLink($);
-      const body = await this._getCustomJsContent(customJsLink);
+      const res = await this._getCustomJsContent(customJsLink);
+      const body = await res.text();
       const hash = this._parseCustomJsContent(body);
       return hash;
     } catch (err) {
@@ -121,7 +119,8 @@ class DsmUkParser extends DsmParser {
 
     try {
       const customJsLink = this._parseForCustomJsLink($);
-      const body = await this._getCustomJsContent(customJsLink);
+      const res = await this._getCustomJsContent(customJsLink);
+      const body = await res.text();
       const hash = this._parseCustomJsContent(body);
       return hash;
     } catch (err) {

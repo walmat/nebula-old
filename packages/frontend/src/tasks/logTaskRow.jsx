@@ -14,6 +14,7 @@ const LogTaskRow = ({
     sizes,
     proxy,
     output,
+    checkoutUrl,
   },
   style,
   fullscreen,
@@ -30,10 +31,11 @@ const LogTaskRow = ({
   const outputColorMap = {
     'Waiting for captcha': 'warning',
     'Payment successful': 'success',
+    'Card declined': 'failed',
     'Payment failed': 'failed',
   };
 
-  const match = /Waiting for captcha|Payment successful|Payment failed/.exec(output);
+  const match = /Waiting for captcha|Payment successful|Payment failed|Card declined/i.exec(output);
   const messageClassName = match ? outputColorMap[match[0]] : 'normal';
 
   const tasksRow = `row ${selected ? 'tasks-row--selected' : 'tasks-row'}`;
@@ -41,6 +43,11 @@ const LogTaskRow = ({
   if (fullscreen) {
     Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
   }
+
+  const storeCss = checkoutUrl
+    ? `${classMap.store.join(' ')} checkout-ready `
+    : `${classMap.store.join(' ')}`;
+
   return (
     <div
       key={index}
@@ -56,7 +63,7 @@ const LogTaskRow = ({
         <div className={classMap.id.join(' ')} data-testid={addTestId('LogTaskRow.id')}>
           {index < 10 ? `0${index}` : index}
         </div>
-        <div className={classMap.store.join(' ')} data-testid={addTestId('LogTaskRow.store')}>
+        <div className={storeCss} data-testid={addTestId('LogTaskRow.store')}>
           {name}
         </div>
         <div className={classMap.product.join(' ')} data-testid={addTestId('LogTaskRow.product')}>
@@ -75,6 +82,10 @@ const LogTaskRow = ({
         <div
           className={`${classMap.output.join(' ')} tasks-row__log--${messageClassName}`}
           data-testid={addTestId('LogTaskRow.output')}
+          role="button"
+          tabIndex={0}
+          onKeyPress={() => {}}
+          onClick={() => LogTaskRow.openDefaultBrowser(checkoutUrl)}
         >
           {output}
         </div>
@@ -89,6 +100,14 @@ LogTaskRow.propTypes = {
   onClick: PropTypes.func.isRequired,
   selected: PropTypes.bool.isRequired,
   fullscreen: PropTypes.bool.isRequired,
+};
+
+LogTaskRow.openDefaultBrowser = url => {
+  if (!url || !window.Bridge) {
+    return;
+  }
+
+  window.Bridge.openInDefaultBrowser(url);
 };
 
 export default memo(LogTaskRow);

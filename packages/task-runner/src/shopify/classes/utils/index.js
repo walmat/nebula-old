@@ -1,5 +1,7 @@
-const $ = require('cheerio');
+const delay = require('delay');
 const now = require('performance-now');
+
+const $ = require('cheerio');
 
 const rfrl = require('./rfrl');
 const { States } = require('./constants').TaskRunner;
@@ -7,11 +9,15 @@ const { States } = require('./constants').TaskRunner;
 const userAgent =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 
-const waitForDelay = delay => new Promise(resolve => setTimeout(resolve, delay));
+const waitForDelay = (time, signal) => delay(time, { signal });
 
-const stateForError = ({ statusCode, code }, { message, nextState }) => {
+const stateForError = ({ status, name, code }, { message, nextState }) => {
   // Look for errors in cause
   const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT)/.exec(code);
+
+  if (/aborterror/i.test(name)) {
+    return { nextState: States.Aborted };
+  }
 
   if (match) {
     // Check capturing group
@@ -37,15 +43,21 @@ const stateForError = ({ statusCode, code }, { message, nextState }) => {
 
   // Check request status code
   let shouldBan = 0;
-  switch (statusCode) {
+  switch (status) {
     case 403:
-    case 429:
     case 430: {
-      shouldBan = statusCode === 403 ? 2 : 1;
+      shouldBan = status === 403 ? 2 : 1;
       return {
-        message: `Swapping proxy - (${statusCode})`,
+        message: `Swapping proxy - (${status})`,
         shouldBan,
         nextState: States.SwapProxies,
+      };
+    }
+    case 429: {
+      return {
+        message: 'Too many attempts, backing off..',
+        backoff: true,
+        nextState,
       };
     }
     case 303: {
@@ -55,9 +67,9 @@ const stateForError = ({ statusCode, code }, { message, nextState }) => {
       };
     }
     default: {
-      return statusCode >= 500
+      return status >= 500
         ? {
-            message: `${message} - (${statusCode})`,
+            message: `${message} - (${status})`,
             nextState,
           }
         : null;
@@ -66,9 +78,6 @@ const stateForError = ({ statusCode, code }, { message, nextState }) => {
 };
 
 const getHeaders = ({ url, apiKey }) => ({
-  Accept: 'application/json',
-  'Content-Type': 'application/json',
-  Connection: 'keep-alive',
   'X-Shopify-Checkout-Version': '2019-10-06',
   'X-Shopify-Access-Token': `${apiKey}`,
   'x-barba': 'yes',

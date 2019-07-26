@@ -286,7 +286,17 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
           const task = taskMap[taskId];
           const { log } = task;
           if (task) {
-            const { message, size, proxy, found, apiKey } = msg;
+            const {
+              message,
+              size,
+              proxy,
+              found,
+              apiKey,
+              checkoutUrl,
+              paymentToken,
+              needsCaptcha,
+              order,
+            } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
@@ -299,6 +309,18 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             }
             if (apiKey) {
               task.site.apiKey = apiKey;
+            }
+            if (checkoutUrl) {
+              task.checkoutUrl = checkoutUrl;
+            }
+            if (paymentToken) {
+              task.paymentToken = paymentToken;
+            }
+            if (needsCaptcha) {
+              task.needsCaptcha = needsCaptcha;
+            }
+            if (order) {
+              task.order = order;
             }
             if (log) {
               log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
@@ -359,6 +381,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       } else {
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
+        // reset the log in case any messages entered the buffer AFTER we shutdown..
+        nextState[idx].log = [];
       }
       break;
     }
@@ -376,6 +400,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         }
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
+        // reset the log in case any messages entered the buffer AFTER we shutdown..
+        nextState[idx].log = [];
       });
       break;
     }
@@ -394,6 +420,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
         break;
       } else {
+        // Clear cache on non-qb tasks
+        if (!nextState[idx].isQueueBypass) {
+          delete nextState[idx].checkoutUrl;
+          delete nextState[idx].paymentToken;
+        }
+
         nextState[idx].status = 'stopped';
         nextState[idx].output = '';
         nextState[idx].chosenSizes = nextState[idx].sizes;
@@ -416,6 +448,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
         if (idx === -1) {
           return;
+        }
+
+        // Clear cache on non-qb tasks
+        if (!nextState[idx].isQueueBypass) {
+          delete nextState[idx].checkoutUrl;
+          delete nextState[idx].paymentToken;
         }
 
         nextState[idx].status = 'stopped';
