@@ -138,6 +138,7 @@ class SplitContextTaskManager extends TaskManager {
     // Attach message handler to child context
     childContext.on('message', handlers.receiveHandler);
 
+    this._logger.silly('%s finished setting up handlers for runner: %s', childContext.name, rId);
     // Store handlers for cleanup
     this._handlers[rId] = handlers;
   }

@@ -2,6 +2,8 @@
 /* eslint-disable global-require */
 const Electron = require('electron');
 
+const debug = require('electron-debug');
+
 const nebulaEnv = require('./env');
 const App = require('./app');
 
@@ -40,6 +42,7 @@ if (!appLock) {
     if (nebulaEnv.isDevelopment()) {
       console.log('Application is ready');
     }
+    debug();
     app.onReady();
   });
 

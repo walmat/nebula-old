@@ -163,6 +163,13 @@ class TaskLauncher {
         // Remove the handler for listening to task event statuses
         this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
       });
+
+      this._launcherWindow.webContents.on('crashed', async (event, killed) => {
+        console.log('CRASHED!!', event, killed);
+        this._launcherWindow.close();
+        this._launcherWindow = null;
+        await this.start();
+      });
     }
 
     this._launcherWindow.on('close', () => {

@@ -163,7 +163,6 @@ process.once('loaded', () => {
   let tma = null;
   ipcRenderer.once('LOG_PATH', (_, logPath) => {
     console.log('received log path...');
-    console.log(ipcRenderer);
     tma = new TaskManagerAdapter(logPath);
   });
 });
