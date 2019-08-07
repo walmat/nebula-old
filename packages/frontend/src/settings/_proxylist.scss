@@ -5,12 +5,17 @@
 }
 
 .settings {
+  &__title {
+    padding-top: 1px;
+    padding-bottom: 3px;
+  }
+
   .proxy-list {
     border: 1px solid #f0405e;
     border-radius: 3px;
 
     &__section-header {
-      margin-top: 10px;
+      margin-top: 7px;
       padding-bottom: 1px;
     }
 
@@ -24,7 +29,7 @@
           color: themed('placerholderColor');
         }
         width: 330px;
-        height: 504px;
+        height: 545px;
         border-radius: 3px;
         border: none;
         overflow-y: scroll;

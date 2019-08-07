@@ -179,14 +179,6 @@ export class ProxyListPrimitive extends Component {
             </div>
           </div>
         </div>
-        <div className="row">
-          <div className="col col--no-gutter-left col--expand">
-            <Select />
-          </div>
-          <div className="col">
-            <input />
-          </div>
-        </div>
       </div>
     );
   }
