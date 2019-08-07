@@ -12,7 +12,6 @@ nebulaEnv.setUpEnvironment();
 
 // reference to our application
 const app = new App();
-
 // Allow insecure content if in dev mode
 // if (nebulaEnv.isDevelopment()) {
 //   Electron.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
@@ -38,11 +37,11 @@ if (!appLock) {
   /**
    * Event fired when IPCRenderer triggers 'ready'
    */
-  Electron.app.on('ready', () => {
+  Electron.app.on('ready', async () => {
     if (nebulaEnv.isDevelopment()) {
       console.log('Application is ready');
     }
-    debug();
+    // await app._windowManager.createNewWindow('splash');
     app.onReady();
   });
 

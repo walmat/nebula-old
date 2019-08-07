@@ -128,12 +128,12 @@ const _startShippingRatesRunner = task => {
 
     // Define srr message handler to retrive data
     const srrMessageHandler = (_, payload) => {
+      console.log(payload);
       // Only respond to specific type and id
       if (payload[SRR_ID] && payload[SRR_ID].type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
         response.rates = payload[SRR_ID].rates || response.rates; // update rates if it exists
         response.selectedRate = payload[SRR_ID].selected || response.selectedRate; // update selected if it exists
-
         if (payload[SRR_ID].done) {
           // SRR is done
           _deregisterForTaskEvents(srrMessageHandler);

@@ -7,7 +7,7 @@ const _request = require('fetch-cookie')(fetch, new CookieJar());
 
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
 const { rfrl, capitalizeFirstLetter } = require('./utils');
-const { States } = require('./utils/constants').TaskRunner;
+const { States, Events } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
 const generateVariants = require('./utils/generateVariants');
@@ -32,6 +32,8 @@ class Monitor {
      * @type {TaskRunnerContext}
      */
     this._context = context;
+    this._type = this._context.type;
+    this._events = this._context.events;
     this._logger = this._context.logger;
     this._aborter = new AbortController();
     this._request = defaults(_request, context.task.site.url, {
@@ -41,6 +43,27 @@ class Monitor {
     this._delayer = this._context.delayer;
     this._signal = this._context.signal;
     this._parseType = null;
+  }
+
+  _emitEvent(event, payload) {
+    switch (event) {
+      // Emit supported events on their specific channel
+      case Events.TaskStatus: {
+        this._events.emit(event, this._context.id, payload, event);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    this._logger.silly('Event %s emitted: %j', event, payload);
+  }
+
+  _emitTaskEvent(payload = {}) {
+    if (payload.message && payload.message !== this._context.status) {
+      this._context.status = payload.message;
+      this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
+    }
   }
 
   async _handleParsingErrors(errors) {
@@ -124,7 +147,7 @@ class Monitor {
   }
 
   _generateVariants(product) {
-    const { sizes, site } = this._context.task;
+    const { sizes, site, monitorDelay } = this._context.task;
     let variants;
     let chosenSizes;
     try {
@@ -138,12 +161,9 @@ class Monitor {
         };
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
-        const nextState =
-          this._parseType === ParseType.Special ? States.Monitor : States.Restocking;
-        return {
-          message: 'Running for restocks',
-          nextState,
-        };
+        const nextState = this._parseType === ParseType.Special ? States.Monitor : States.Restocking;
+        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
+        return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
       return {

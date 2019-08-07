@@ -102,6 +102,7 @@ class APICheckout extends Checkout {
         site: { url, apiKey },
         sizes,
         product: { variants },
+        monitorDelay,
       },
       proxy,
       timers: { monitor, checkout: checkoutTimer },
@@ -151,17 +152,18 @@ class APICheckout extends Checkout {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
-          if (monitor.getRunTime() > CheckoutRefresh) {
-            return { message: 'Pinging checkout', nextState: States.PingCheckout };
-          }
+          // if (monitor.getRunTime() > CheckoutRefresh) {
+          //   return { message: 'Pinging checkout', nextState: States.PingCheckout };
+          // }
           const nextState = sizes.includes('Random') ? States.Restocking : States.AddToCart;
-          return { message: 'Running for restocks', nextState };
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
+          return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState };
         }
         if (error && error.variant_id[0]) {
-          if (monitor.getRunTime() > CheckoutRefresh) {
-            return { message: 'Pinging checkout', nextState: States.PingCheckout };
-          }
-          return { message: 'Monitoring for product', nextState: States.AddToCart };
+          // if (monitor.getRunTime() > CheckoutRefresh) {
+          //   return { message: 'Pinging checkout', nextState: States.PingCheckout };
+          // }
+          return { message: `Variant not live! Delaying ${monitorDelay}ms`, nextState: States.AddToCart };
         }
 
         const message = status ? `Adding to cart – (${status})` : 'Adding to cart';

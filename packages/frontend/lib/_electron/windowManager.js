@@ -5,7 +5,7 @@ const log = require('electron-log');
 
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('./env');
-const { createAboutWindow, createAuthWindow, createMainWindow, urls } = require('./windows');
+const { createAboutWindow, createSplashWindow, createAuthWindow, createMainWindow, urls } = require('./windows');
 
 const CaptchaWindowManager = require('./captchaWindowManager');
 
@@ -54,6 +54,8 @@ class WindowManager {
      * @type {BrowserWindow}
      */
     this._auth = null;
+
+    this._splash = null;
 
     this._shouldUpdate = false;
 
@@ -172,7 +174,7 @@ class WindowManager {
   async createNewWindow(tag) {
     let w; // window reference
     const session = await this._context._authManager.getSession();
-    if (session || ['auth', 'about'].includes(tag)) {
+    if (session || ['auth', 'about', 'splash'].includes(tag)) {
       switch (tag) {
         case 'about': {
           if (this._aboutDialog) {
@@ -189,6 +191,13 @@ class WindowManager {
           w = createAuthWindow();
           this._auth = w;
           break;
+        }
+        case 'splash': {
+          if (this._splash) {
+            return this._splash;
+          }
+          w = createSplashWindow();
+          this._splash = w;
         }
         case 'main': {
           if (this._main) {
@@ -230,15 +239,20 @@ class WindowManager {
         win.webContents.openDevTools();
       }
 
+      console.log('showing splash window!')
+
       // add window & id to windows map, notify other windows, and finally, show the window
       this._windows.set(win.id, win);
       this._notifyUpdateWindowIDs(win.id);
       win.show();
 
       if (win === this._main) {
+        console.log('opening main window!');
+        if (this._splash) {
+          this._splash.close();
+        }
         log.info('Starting update check...');
         autoUpdater.checkForUpdatesAndNotify();
-
         // generate captcha window sessions
         this._captchaWindowManager.generateSessions();
       }
@@ -270,6 +284,8 @@ class WindowManager {
         this._main = null;
       } else if (this._auth && winId === this._auth.id) {
         this._auth = null;
+      } else if (this._splash && winId === this._splash.id) {
+        this._splash = null;
       }
     };
   }

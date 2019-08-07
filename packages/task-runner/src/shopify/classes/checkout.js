@@ -6,7 +6,7 @@ const { notification } = require('./hooks');
 const { getHeaders, stateForError, userAgent } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
 const { isSpecialSite } = require('./utils/siteOptions');
-const { States, Types, CheckoutTypes } = require('./utils/constants').TaskRunner;
+const { States, Events, Types, CheckoutTypes } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   get context() {
@@ -22,6 +22,7 @@ class Checkout {
     this._logger = this._context.logger;
     this._request = this._context.request;
     this._jar = this._context.jar;
+    this._events = this._context.events;
     this._delayer = this._context.delayer;
     this._signal = this._context.signal;
     this._checkoutType = this._context.checkoutType;
@@ -76,6 +77,27 @@ class Checkout {
     this.needsLogin = (this._context.task.username && this._context.task.password) || false;
     this.needsPatched = true;
     this.captchaTokenRequest = null;
+  }
+
+  _emitEvent(event, payload) {
+    switch (event) {
+      // Emit supported events on their specific channel
+      case Events.TaskStatus: {
+        this._events.emit(event, this._context.id, payload, event);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    this._logger.silly('Event %s emitted: %j', event, payload);
+  }
+
+  _emitTaskEvent(payload = {}) {
+    if (payload.message && payload.message !== this._context.status) {
+      this._context.status = payload.message;
+      this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
+    }
   }
 
   async addToCart() {

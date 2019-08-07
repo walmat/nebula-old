@@ -45,6 +45,13 @@ class TaskRunner {
 
     this._jar = new CookieJar();
 
+    /**
+     * Create a new event emitter to handle all IPC communication
+     *
+     * Events will provide the task id, a message, and a message group
+     */
+    this._events = new EventEmitter();
+
     // eslint-disable-next-line global-require
     const request = require('fetch-cookie')(fetch, this._jar);
     this._request = defaults(request, task.site.url, {
@@ -89,6 +96,7 @@ class TaskRunner {
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
+      events: this._events,
       signal: this._aborter.signal,
       request: this._request,
       jar: this._jar,
@@ -123,13 +131,6 @@ class TaskRunner {
 
     // Add in the checkout type once we create the checkout module
     this._checkout._checkoutType = this._checkoutType;
-
-    /**
-     * Create a new event emitter to handle all IPC communication
-     *
-     * Events will provide the task id, a message, and a message group
-     */
-    this._events = new EventEmitter();
 
     this._handleAbort = this._handleAbort.bind(this);
 
@@ -537,10 +538,10 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
-      this._emitTaskEvent({ message: 'Pinging checkout' });
-      return States.PingCheckout;
-    }
+    // if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
+    //   this._emitTaskEvent({ message: 'Pinging checkout' });
+    //   return States.PingCheckout;
+    // }
 
     let res;
     try {
@@ -569,6 +570,7 @@ class TaskRunner {
     if (nextState === States.Restocking) {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Checking stock' });
     }
     // Restock Monitor will be in charge of choosing the next state
     return nextState;
@@ -606,6 +608,7 @@ class TaskRunner {
     if (nextState === States.AddToCart || nextState === States.Restocking) {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Checking stock' })
     }
 
     return nextState;
@@ -771,6 +774,7 @@ class TaskRunner {
       this._logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
+      this._emitTaskEvent({ message: `Proxy banned!` });
       this._logger.debug(
         'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
         proxy,

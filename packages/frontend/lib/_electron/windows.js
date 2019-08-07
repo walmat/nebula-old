@@ -168,6 +168,20 @@ if (nebulaEnv.isDevelopment()) {
 }
 urls.set('auth', authUrl);
 
+const createSplashWindow = () =>
+  _createWindow({
+    width: 450,
+    height: 450,
+    show: true,
+    frame: false,
+  });
+
+  let splashUrl = `file:///${Path.join(__dirname, '../../build/splash.html')}`;
+  if (nebulaEnv.isDevelopment()) {
+    splashUrl = `file:///${Path.join(__dirname, '../../public/splash.html')}`;
+  }
+  urls.set('splash', splashUrl);
+
 /**
  * Creates an About Window
  *
@@ -273,6 +287,7 @@ urls.set('main', mainUrl);
 
 module.exports = {
   createAboutWindow,
+  createSplashWindow,
   createAuthWindow,
   createCaptchaWindow,
   createMainWindow,

@@ -8,13 +8,17 @@ const Monitor = require('./monitor');
 
 class RestockMonitor extends Monitor {
   async _handleParsingErrors(errors) {
+    const {
+      monitorDelay,
+    } = this._context.task;
     const { message, shouldBan, nextState } = await super._handleParsingErrors(errors);
 
-    if (nextState !== States.Monitor) {
+    if (nextState !== States.Monitor && nextState !== States.Restocking) {
       return { message, shouldBan, nextState };
     }
 
-    return { message: 'Running for restocks', nextState: States.Restocking };
+    this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
+    return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: States.Restocking };
   }
 
   async run() {
@@ -67,7 +71,7 @@ class RestockMonitor extends Monitor {
     // Everything is setup -- kick it to checkout
     this._logger.silly('RESTOCK MONITOR: Status is OK, proceeding to checkout');
     return {
-      message: `Product restocked: ${this._context.task.product.name}`,
+      message: `Variant restocked: ${this._context.task.product.chosenSizes}`,
       nextState: States.AddToCart,
     };
   }

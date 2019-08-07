@@ -28,7 +28,7 @@ function getParseType(product, logger, site) {
     return ParseType.Unknown;
   }
 
-  if (site && isSpecialSite(site)) {
+  if (site && isSpecialSite(site) && !product.variant) {
     _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
     return ParseType.Special;
   }
@@ -37,7 +37,7 @@ function getParseType(product, logger, site) {
     _logger.log('silly', 'Parse Type determined as %s', ParseType.Variant);
     return ParseType.Variant;
   }
-
+  
   if (product.url) {
     _logger.log('silly', 'Parse Type determined as %s', ParseType.Url);
     return ParseType.Url;

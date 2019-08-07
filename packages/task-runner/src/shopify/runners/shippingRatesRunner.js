@@ -23,7 +23,7 @@ class ShippingRatesRunner {
     this.task = task;
     this.taskId = task.id;
     this.proxy = proxy;
-    this.type = type;
+    this._type = type;
 
     this._logger = createLogger({
       dir: loggerPath,
@@ -63,22 +63,56 @@ class ShippingRatesRunner {
     this._handleAbort = this._handleAbort.bind(this);
   }
 
+  // MARK: Event Registration
+  registerForEvent(event, callback) {
+    switch (event) {
+      case Events.TaskStatus: {
+        this._events.on(Events.TaskStatus, callback);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  deregisterForEvent(event, callback) {
+    switch (event) {
+      case Events.TaskStatus: {
+        this._events.removeListener(Events.TaskStatus, callback);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+
+  // MARK: Event Emitting
+  _emitEvent(event, payload) {
+    switch (event) {
+      // Emit supported events on their specific channel
+      case Events.TaskStatus: {
+        this._events.emit(event, this.id, payload, event);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    this._logger.silly('Event %s emitted: %j', event, payload);
+  }
+
+  _emitTaskEvent(payload = {}) {
+    if (payload.message && payload.message !== this.message) {
+      this.message = payload.message;
+      this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
+    }
+  }
+
   _handleAbort(id) {
     if (id === this.id) {
       this.aborted = true;
       this.aborter.abort();
-    }
-  }
-
-  _emitEvent(payload = {}) {
-    if (payload.message && payload.message !== this.status) {
-      this.status = payload.message;
-      this._events.emit(
-        Events.TaskStatus,
-        this.id,
-        { ...payload, type: this.type },
-        Events.TaskStatus,
-      );
     }
   }
 
@@ -191,14 +225,16 @@ class ShippingRatesRunner {
       this.task.product.variants = [this.task.product.variant];
       return { nextState: this.states.CART, message: 'Adding to cart' };
     }
+
     const { variant, nextState, message } = this._generateVariants(parsed);
     // check for next state (means we hit an error when generating variants)
+    
     if (nextState) {
       return { nextState, message };
     }
     this.task.product.variants = [variant];
 
-    return { nextState: this.this.states.CART, message: 'Adding to cart' };
+    return { nextState: this.states.CART, message: 'Adding to cart' };
   }
 
   async parse() {
@@ -206,6 +242,8 @@ class ShippingRatesRunner {
 
     let nextState;
     let message;
+
+    console.log(this.parseType);
 
     switch (this.parseType) {
       case ParseType.Variant: {
@@ -258,8 +296,6 @@ class ShippingRatesRunner {
       });
 
       const body = await res.json();
-
-      this._logger.debug(body);
 
       if (!body || (body && !body.id)) {
         return { nextState: this.states.ERROR, message: 'Cart empty' };
@@ -328,6 +364,7 @@ class ShippingRatesRunner {
         this.shippingRates.push(newRate);
       });
 
+      console.log('returning done');
       return { nextState: this.states.DONE, message: 'Rates found!' };
     } catch (err) {
       return { nextState: this.states.ERROR, message: err.message || 'Failed rates' };
@@ -374,8 +411,9 @@ class ShippingRatesRunner {
       // eslint-disable-next-line no-await-in-loop
       ({ nextState, message } = await this.run());
 
+      console.log('SHIPPING RATES LENGTH: ', this.shippingRates.length);
       if (this.shippingRates.length) {
-        this._emitEvent({
+        this._emitTaskEvent({
           message: 'Rates found!',
           done: true,
           rates: this.shippingRates,
@@ -386,7 +424,7 @@ class ShippingRatesRunner {
     }
 
     if (!this.shippingRates.length) {
-      this._emitEvent({ message: message || 'No shipping rates', done: true });
+      this._emitTaskEvent({ message: message || 'No shipping rates', done: true });
     }
   }
 }
