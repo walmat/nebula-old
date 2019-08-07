@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { Line } from 'rc-progress';
 import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../state/actions';
 
 import { renderSvgIcon } from '../utils';
@@ -33,11 +34,10 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
-  static _checkForUpdates() {
+  static _checkForUpdates(handler) {
     if (window.Bridge) {
-      return window.Bridge.checkForUpdates();
+      return window.Bridge.checkForUpdates(handler);
     }
-    console.error('Unable to check for updates!');
     return null;
   }
 
@@ -66,7 +66,7 @@ export class NavbarPrimitive extends PureComponent {
 
   static openHarvesterWindow(theme) {
     if (window.Bridge) {
-      window.Bridge.launchCaptchaHarvester({ backgroundColor: mapBackgroundThemeToColor[theme] });
+      return window.Bridge.launchCaptchaHarvester({ backgroundColor: mapBackgroundThemeToColor[theme] });
     } else {
       // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
       console.error('Unable to launch harvester!');
@@ -75,7 +75,7 @@ export class NavbarPrimitive extends PureComponent {
 
   static closeAllCaptchaWindows() {
     if (window.Bridge) {
-      window.Bridge.closeAllCaptchaWindows();
+      return window.Bridge.closeAllCaptchaWindows();
     } else {
       // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
       console.error('Unable to close all windows');
@@ -84,6 +84,13 @@ export class NavbarPrimitive extends PureComponent {
 
   constructor(props) {
     super(props);
+
+    this.state = {
+      error: null,
+      isUpdating: false,
+      progress: 0,
+    }
+
     const classNameCalc = (...supportedRoutes) => route =>
       supportedRoutes.includes(route) ? 'active' : null;
     this.defaultIconProps = {
@@ -110,6 +117,19 @@ export class NavbarPrimitive extends PureComponent {
     };
   }
 
+  updaterHandler(_, opts = {}) {
+    if (opts.done) {
+      this.setState({ isUpdating: false, progress: 0, error: opts.error });
+    }
+
+    if (opts.progressObj) {
+      this.setState({ progress: opts.progressObj.percent });
+      if (opts.progressObj.percent === 100) {
+        this.setState({ isUpdating: false });
+      }
+    }
+  }
+
   renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
     const { onKeyPress, onRoute, navbar, history } = this.props;
     const className = classNameGenerator(navbar.location);
@@ -134,6 +154,7 @@ export class NavbarPrimitive extends PureComponent {
 
   render() {
     const { name, version } = NavbarPrimitive._getAppData();
+    const { isUpdating, progress } = this.state;
     const { theme, onKeyPress } = this.props;
     return (
       <div className="container navbar">
@@ -177,13 +198,13 @@ export class NavbarPrimitive extends PureComponent {
                         role="button"
                         tabIndex={0}
                         onClick={() => {
-                          NavbarPrimitive._checkForUpdates();
+                          NavbarPrimitive._checkForUpdates(this.updaterHandler);
                         }}
                         onKeyPress={onKeyPress}
                       >
-                        <p className="navbar__text--app-version" title="Check for updates">
+                        {isUpdating ? <Line percent={progress} strokeWidth="4" strokeColor="#D3D3D3" /> : (<p className="navbar__text--app-version" title="Check for updates">
                           {version}
-                        </p>
+                        </p>)}
                       </div>
                     </div>
                   </div>

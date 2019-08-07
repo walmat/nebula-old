@@ -16,8 +16,14 @@ const SRR_ID = 1000;
 
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
-const _checkForUpdates = () => {
-  util.sendEvent(IPCKeys.RequestCheckForUpdates);
+const _checkForUpdates = async handler => {
+  util.sendEvent(IPCKeys.RequestCheckForUpdate);
+  ipcRenderer.on(IPCKeys.RequestCheckForUpdate, (_, { error = false, done = false, opts = {} }) => {
+    util.handleEvent(IPCKeys.RequestCheckForUpdate, handler(error, done, opts));
+    if (error || done) {
+      util.removeEvent(IPCKeys.RequestCheckForUpdate, handler(error, done, opts));
+    }
+  });
 };
 
 /**

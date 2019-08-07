@@ -11,47 +11,6 @@ const CaptchaWindowManager = require('./captchaWindowManager');
 
 nebulaEnv.setUpEnvironment();
 
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'debug';
-autoUpdater.autoInstallOnAppQuit = false;
-
-// TODO: Enable these once we start adding a custom UI (See issue #305)
-// autoUpdater.on('checking-for-update', e => {
-//   log.info('CHECKING FOR UPDATE', e);
-// });
-// autoUpdater.on('update-available', info => {
-//   log.info('UPDATE AVAILABLE: ', info);
-// });
-// autoUpdater.on('update-not-available', info => {
-//   log.info('UPDATE NOT AVAILABLE: ', info);
-// });
-// autoUpdater.on('error', err => {
-//   log.info('ERROR: ', err);
-// });
-// autoUpdater.on('download-progress', progressObj => {
-//   log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
-// });
-
-autoUpdater.on('update-downloaded', info => {
-  log.info('NEW UPDATE DOWNLOADED: ', info);
-  const { version } = info;
-  Electron.dialog.showMessageBox(
-    {
-      type: 'question',
-      title: 'New Update',
-      message: `Version ${version} has been downloaded! Nebula will automatically update on the next launch. Would you like to update now?`,
-      buttons: ['Update Now', 'Update Later'],
-      cancelId: 1,
-      defaultId: 0,
-    },
-    response => {
-      if (response === 0) {
-        autoUpdater.quitAndInstall();
-      }
-    },
-  );
-});
-
 /**
  * Manage the window.
  */
@@ -96,6 +55,8 @@ class WindowManager {
      */
     this._auth = null;
 
+    this._shouldUpdate = false;
+
     /**
      * Separate manager to handle captcha windows
      */
@@ -113,6 +74,72 @@ class WindowManager {
       WindowManager._onRequestCheckForUpdates.bind(this),
     );
     context.ipc.on(IPCKeys.ChangeTheme, this.onChangeTheme.bind(this));
+
+    /**
+     * Updater functions
+     */
+
+    autoUpdater.logger = log;
+    // autoUpdater.logger.transports.file.level = 'debug';
+    autoUpdater.autoInstallOnAppQuit = false;
+        
+    autoUpdater.on('checking-for-update', e => {
+      log.info('CHECKING FOR UPDATE', e);
+      if (this._main) {
+        this._main.webContents.send(IPCKeys.RequestCheckForUpdate);
+      }
+    });
+    
+    autoUpdater.on('update-available', info => {
+      log.info('UPDATE AVAILABLE: ', info);
+      const { version, releaseNotes } = info;
+      Electron.dialog.showMessageBox(
+        {
+          type: 'question',
+          title: `Nebula ${version} is now live! Update now?`,
+          message: releaseNotes,
+          buttons: ['Update Now', 'Update Later'],
+          cancelId: 1,
+          defaultId: 0,
+        },
+        response => {
+          if (response === 0) {
+            this._shouldUpdate = true;
+          }
+        },
+      );
+    });
+    
+    autoUpdater.on('update-not-available', info => {
+      log.info('UPDATE NOT AVAILABLE: ', info);
+      if (this._main) {
+        this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { info, done: true });
+      }
+    });
+    
+    autoUpdater.on('error', error => {
+      log.info('ERROR: ', error);
+      if (this._main) {
+        this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true, error });
+      }
+    });
+    
+    autoUpdater.on('download-progress', progressObj => {
+      log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
+      if (this._main) {
+        this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { progressObj });
+      }
+    });
+    
+    autoUpdater.on('update-downloaded', async info => {
+      log.info('NEW UPDATE DOWNLOADED: ', info);
+      if (this._shouldUpdate) {
+        if (this._main) {
+          this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
+        }
+        autoUpdater.quitAndInstall();
+      }
+    });
   }
 
   /**
@@ -238,11 +265,8 @@ class WindowManager {
         this._aboutDialog = null;
       } else if (this._main && winId === this._main.id) {
         // Stop the task launcher when the main window closes
-        await this._context.taskLauncher.stop();
-
-        // Always close captcha windows when the main window closes
-        this._captchaWindowManager.closeAllCaptchaWindows();
-
+        this._context.taskLauncher.stop();
+        Electron.BrowserWindow.getAllWindows(w => w.close());
         this._main = null;
       } else if (this._auth && winId === this._auth.id) {
         this._auth = null;

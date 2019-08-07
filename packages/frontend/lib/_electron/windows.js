@@ -55,7 +55,7 @@ const _createWindow = options => {
     });
   });
 
-  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+  win.webContents.session.webRequest.onBeforeSendHeaders({}, (details, callback) => {
     const url = new URL(details.url);
     const { host, origin } = url;
 
@@ -76,8 +76,7 @@ const _createWindow = options => {
   win.webContents.session.webRequest.onBeforeSendHeaders(
     { urls: ['https://*.google.com, https://*.gstatic.com'] },
     (details, callback) => {
-      console.log(details);
-      callback({
+      return callback({
         requestHeaders: {
           ...details.requestHeaders,
           DNT: 1,
@@ -92,7 +91,7 @@ const _createWindow = options => {
   win.webContents.session.webRequest.onBeforeSendHeaders(
     { urls: ['https://*.amazonaws.com'] },
     (details, callback) => {
-      callback({
+      return callback({
         requestHeaders: {
           ...details.requestHeaders,
           DNT: 1,
