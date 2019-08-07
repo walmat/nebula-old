@@ -82,14 +82,14 @@ class WindowManager {
     autoUpdater.logger = log;
     // autoUpdater.logger.transports.file.level = 'debug';
     autoUpdater.autoInstallOnAppQuit = false;
-        
+
     autoUpdater.on('checking-for-update', e => {
       log.info('CHECKING FOR UPDATE', e);
       if (this._main) {
         this._main.webContents.send(IPCKeys.RequestCheckForUpdate);
       }
     });
-    
+
     autoUpdater.on('update-available', info => {
       log.info('UPDATE AVAILABLE: ', info);
       const { version, releaseNotes } = info;
@@ -109,28 +109,28 @@ class WindowManager {
         },
       );
     });
-    
+
     autoUpdater.on('update-not-available', info => {
       log.info('UPDATE NOT AVAILABLE: ', info);
       if (this._main) {
         this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { info, done: true });
       }
     });
-    
+
     autoUpdater.on('error', error => {
       log.info('ERROR: ', error);
       if (this._main) {
         this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true, error });
       }
     });
-    
+
     autoUpdater.on('download-progress', progressObj => {
       log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
       if (this._main) {
         this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { progressObj });
       }
     });
-    
+
     autoUpdater.on('update-downloaded', async info => {
       log.info('NEW UPDATE DOWNLOADED: ', info);
       if (this._shouldUpdate) {

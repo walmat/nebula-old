@@ -36,9 +36,10 @@ dmg:
       y: 150
 
 mac:
-  category: public.app-category.productivity
   icon: "build/assets/icons/mac/icon.icns"
   artifactName: 'nebula.orion-${version}.${ext}'
+  target: dmg
+  category: public.app-category.productivity
 
 linux:
   icon: "build/assets/icons/png/"
