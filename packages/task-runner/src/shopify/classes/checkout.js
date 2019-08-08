@@ -134,8 +134,8 @@ class Checkout {
       const checkStatus = stateForError(
         { status },
         {
-          message: 'Fetching shipping rates',
-          nextState: States.ShippingRates,
+          message: 'Creating payment session',
+          nextState: States.PaymentToken,
         },
       );
 
@@ -153,12 +153,12 @@ class Checkout {
         }
 
         if (this._checkoutType === CheckoutTypes.fe) {
-          return { message: 'Monitoring for product', nextState: States.Monitor };
+          return { message: 'Parsing products', nextState: States.Monitor };
         }
         return { message: 'Creating checkout', nextState: States.CreateCheckout };
       }
       return {
-        message: 'Creating payment token',
+        message: 'Creating payment session',
         nextState: States.PaymentToken,
       };
     } catch (err) {
@@ -170,13 +170,13 @@ class Checkout {
       );
 
       const nextState = stateForError(err, {
-        message: 'Creating payment token',
+        message: 'Creating payment session',
         nextState: States.PaymentToken,
       });
 
       const message = err.statusCode
-        ? `Creating payment token - (${err.statusCode})`
-        : 'Creating payment token';
+        ? `Creating payment session - (${err.statusCode})`
+        : 'Creating payment session';
 
       return nextState || { message, nextState: States.PaymentToken };
     }
@@ -853,7 +853,7 @@ class Checkout {
 
         if (redirectUrl.indexOf('stock_problems') > -1) {
           if (this._checkoutType === CheckoutTypes.fe) {
-            const nextState = sizes.includes('Random') ? States.Monitor : States.GetCheckout;
+            const nextState = sizes.includes('Random') ? States.Monitor : States.PostPayment;
             return { message: 'Running for restocks', nextState };
           }
           const nextState = sizes.includes('Random') ? States.Restocking : States.PostPayment;
@@ -957,7 +957,7 @@ class Checkout {
         // out of stock
         if (redirectUrl.indexOf('stock_problems') > -1) {
           if (this._checkoutType === CheckoutTypes.fe) {
-            const nextState = sizes.includes('Random') ? States.Monitor : States.GetCheckout;
+            const nextState = sizes.includes('Random') ? States.Monitor : States.PostPayment;
             return { message: 'Running for restocks', nextState };
           }
           const nextState = sizes.includes('Random') ? States.Restocking : States.PostPayment;

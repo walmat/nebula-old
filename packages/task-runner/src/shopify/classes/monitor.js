@@ -40,6 +40,7 @@ class Monitor {
       timeout: 10000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
+    this._limiter = this._context.limiter;
     this._delayer = this._context.delayer;
     this._signal = this._context.signal;
     this._parseType = null;
@@ -100,7 +101,7 @@ class Monitor {
       };
     }
 
-    let message = 'Monitoring for product';
+    let message = 'No product found';
 
     switch (delayStatus) {
       case ErrorCodes.ProductNotLive:
@@ -114,7 +115,7 @@ class Monitor {
         break;
     }
 
-    return { message, nextState: States.Monitor };
+    return { message: `${message}. Delaying ${this._context.task.monitorDelay}ms`, nextState: States.Monitor };
   }
 
   _parseAll() {
@@ -122,6 +123,7 @@ class Monitor {
     const parsers = [
       new AtomParser(
         this._request,
+        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -129,6 +131,7 @@ class Monitor {
       ),
       new JsonParser(
         this._request,
+        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -136,6 +139,7 @@ class Monitor {
       ),
       new XmlParser(
         this._request,
+        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -200,7 +204,7 @@ class Monitor {
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
-      message: `Found product: ${this._context.task.product.name}`,
+      message: `Product found: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
     };
   }
@@ -236,7 +240,7 @@ class Monitor {
       this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
-        message: `Found product: ${this._context.task.product.name}`,
+        message: `Product found: ${this._context.task.product.name}`,
         nextState: States.AddToCart,
       };
     } catch (errors) {
@@ -251,7 +255,7 @@ class Monitor {
     const { product, site } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
-    const parser = ParserCreator(this._request, task, proxy, this._aborter, logger);
+    const parser = ParserCreator(this._request, this._limiter, task, proxy, this._aborter, logger);
 
     let parsed;
     try {
@@ -288,7 +292,7 @@ class Monitor {
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
-      message: `Found product: ${this._context.task.product.name}`,
+      message: `Product found: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
     };
   }

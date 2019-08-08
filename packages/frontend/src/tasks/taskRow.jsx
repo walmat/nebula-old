@@ -446,6 +446,7 @@ export class TaskRowPrimitive extends PureComponent {
   }
 
   render() {
+    console.log('[DEBUG]: updating taskRow.jsx');
     const { style } = this.props;
     return (
       <div style={style} className="col tasks-row-container">

@@ -74,7 +74,7 @@ class APICheckout extends Checkout {
       }
 
       this.needsPatched = false;
-      return { message: 'Monitoring for product', nextState: States.Monitor };
+      return { message: 'Parsing products', nextState: States.Monitor };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
@@ -249,6 +249,8 @@ class APICheckout extends Checkout {
       if (status === 422) {
         return { message: 'Country not supported', nextState: States.Errored };
       }
+
+      this._logger.debug('SHIPPING RATES STATUS: ', status);
 
       const body = await res.json();
       if (body && body.errors) {

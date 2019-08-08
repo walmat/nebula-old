@@ -128,6 +128,7 @@ export class LogTaskPrimitive extends PureComponent {
   }
 
   render() {
+    console.log('[DEBUG]: updating logTask.jsx');
     const { fullscreen, selected, focused } = this.state;
     const classMap = {
       sectionHeader: [

@@ -10,8 +10,8 @@ class JsonParser extends Parser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(request, task, proxy, aborter, logger) {
-    super(request, task, proxy, aborter, logger, 'JsonParser');
+  constructor(request, limiter, task, proxy, aborter, logger) {
+    super(request, limiter, task, proxy, aborter, logger, 'JsonParser');
   }
 
   async run() {
@@ -21,13 +21,13 @@ class JsonParser extends Parser {
     try {
       this._logger.silly('%s: Making request for %s/products.json ...', this._name, url);
 
-      const res = await this._request('/products.json', {
+      const res = await this._limiter.schedule(() => this._request('/products.json', {
         method: 'GET',
         headers: {
           'User-Agent': userAgent,
         },
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
-      });
+      }));
 
       ({ products } = await res.json());
     } catch (error) {

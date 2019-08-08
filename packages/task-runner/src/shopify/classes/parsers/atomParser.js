@@ -12,8 +12,8 @@ class AtomParser extends Parser {
    * @param {Proxy} the proxy to use when making requests
    * @param {Logger} (optional) A logger to log messages to
    */
-  constructor(request, task, proxy, aborter, logger) {
-    super(request, task, proxy, aborter, logger, 'AtomParser');
+  constructor(request, limiter, task, proxy, aborter, logger) {
+    super(request, limiter, task, proxy, aborter, logger, 'AtomParser');
   }
 
   async run() {
@@ -28,13 +28,13 @@ class AtomParser extends Parser {
         this._name,
         this._task.site.url,
       );
-      const res = await this._request('/collections/all.atom', {
+      const res = await this._limiter.schedule(() => this._request('/collections/all.atom', {
         method: 'GET',
         headers: {
           'User-Agent': userAgent,
         },
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
-      });
+      }));
 
       const body = await res.text();
       responseJson = await convertToJson(body);

@@ -41,6 +41,8 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
     }
   }
 
+  console.log(message, nextState);
+
   // Check request status code
   let shouldBan = 0;
   switch (status) {

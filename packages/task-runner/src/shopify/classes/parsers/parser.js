@@ -73,18 +73,20 @@ class Parser {
         ),
       ],
       `productInfo - ${productUrl}`,
+      this._logger,
     );
   }
 
   /**
    * Construct a new parser
    */
-  constructor(request, task, proxy, aborter, logger, name) {
+  constructor(request, limiter, task, proxy, aborter, logger, name) {
     this._logger = logger || { log: () => {} };
     this._name = name || 'Parser';
     this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
     this._request = request;
+    this._limiter = limiter;
     this._task = task;
     this._type = getParseType(task.product);
     this._aborter = aborter;

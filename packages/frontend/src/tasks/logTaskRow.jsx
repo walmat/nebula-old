@@ -47,7 +47,8 @@ const LogTaskRow = ({
   const storeCss = checkoutUrl
     ? `${classMap.store.join(' ')} checkout-ready `
     : `${classMap.store.join(' ')}`;
-
+  
+  console.log('[DEBUG]: updating logTaskRow.jsx');
   return (
     <div
       key={index}

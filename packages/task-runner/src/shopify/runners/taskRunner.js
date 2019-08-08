@@ -3,6 +3,7 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { CookieJar } from 'tough-cookie';
+import Bottleneck from 'bottleneck';
 
 const Timer = require('../classes/timer');
 const Monitor = require('../classes/monitor');
@@ -44,6 +45,17 @@ class TaskRunner {
     this._aborter = new AbortController();
 
     this._jar = new CookieJar();
+
+    this._limiter = new Bottleneck({
+      reservoir: 40, // initial value
+      reservoirIncreaseAmount: 2,
+      reservoirIncreaseInterval: 1000, // must be divisible by 250
+      reservoirIncreaseMaximum: 40,
+     
+      // also use maxConcurrent and/or minTime for safety
+      maxConcurrent: 5,
+      minTime: 250 // pick a value that makes sense for your use case
+    });
 
     /**
      * Create a new event emitter to handle all IPC communication
@@ -92,6 +104,7 @@ class TaskRunner {
       type,
       task,
       status: null,
+      limiter: this._limiter,
       proxy: proxy ? proxy.proxy : null,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
@@ -311,7 +324,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.login();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.login());
 
     this._emitTaskEvent({ message, proxy: this._context.rawProxy });
 
@@ -334,7 +347,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.getPaymentToken();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.getPaymentToken());
 
     this._emitTaskEvent({ message, proxy: this._context.rawProxy });
 
@@ -357,7 +370,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.parseAccessToken();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.parseAccessToken());
 
     this._emitTaskEvent({ message, apiKey: this._context.task.site.apiKey || undefined });
 
@@ -379,9 +392,11 @@ class TaskRunner {
       this._logger.silly('Abort Detected, Stopping...');
       return States.Aborted;
     }
-    const { message, shouldBan, nextState } = await this._checkout.createCheckout();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.createCheckout());
 
     this._emitTaskEvent({ message });
+
+    console.log(' In handlecreatecheckout: ', nextState);
 
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
@@ -402,7 +417,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.pingCheckout();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.pingCheckout());
 
     const { storeId, checkoutToken, checkoutKey } = this._checkout;
     let checkoutUrl = null;
@@ -435,7 +450,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.patchCheckout();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.patchCheckout());
 
     this._emitTaskEvent({ message });
 
@@ -462,7 +477,7 @@ class TaskRunner {
       nextState: pollState,
       shouldBan: pollShouldBan,
       message: pollMessage,
-    } = await this._checkout.pollQueue();
+    } = await this._limiter.schedule(() => this._checkout.pollQueue());
 
     if (pollState === States.SwapProxies) {
       this.shouldBanProxy = pollShouldBan; // Set a flag to ban the proxy if necessary
@@ -500,13 +515,13 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    if (
-      !this._context.task.isQueueBypass &&
-      this._context.timers.monitor.getRunTime() > CheckoutRefresh
-    ) {
-      this._emitTaskEvent({ message: 'Pinging checkout' });
-      return States.PingCheckout;
-    }
+    // if (
+    //   !this._context.task.isQueueBypass &&
+    //   this._context.timers.monitor.getRunTime() > CheckoutRefresh
+    // ) {
+    //   this._emitTaskEvent({ message: 'Pinging checkout' });
+    //   return States.PingCheckout;
+    // }
 
     const { message, nextState, shouldBan } = await this._monitor.run();
 
@@ -526,6 +541,7 @@ class TaskRunner {
     if (nextState === States.Monitor) {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Parsing products' });
     }
     // Monitor will be in charge of choosing the next state
     return nextState;
@@ -583,7 +599,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, nextState } = await this._checkout.submitShipping();
+    const { message, nextState } = await this._limiter.schedule(() => this._checkout.submitShipping());
 
     this._emitTaskEvent({ message });
 
@@ -597,7 +613,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.addToCart();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.addToCart());
 
     this._emitTaskEvent({ message });
 
@@ -621,7 +637,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.shippingRates();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.shippingRates());
 
     this._emitTaskEvent({ message });
 
@@ -704,7 +720,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.postPayment();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.postPayment());
 
     this._emitTaskEvent({ message });
 
@@ -727,7 +743,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.completePayment();
+    const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.completePayment());
 
     this._emitTaskEvent({ message });
 
@@ -750,7 +766,7 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, shouldBan, order, nextState } = await this._checkout.paymentProcessing();
+    const { message, shouldBan, order, nextState } = await this._limiter.schedule(() => this._checkout.paymentProcessing());
 
     this._emitTaskEvent({ message, order });
 

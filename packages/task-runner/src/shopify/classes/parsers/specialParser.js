@@ -8,8 +8,8 @@ const { ErrorCodes } = require('../utils/constants');
 const { userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
-  constructor(request, task, proxy, aborter, logger, name) {
-    super(request, task, proxy, aborter, logger, name || 'SpecialParser');
+  constructor(request, limiter, task, proxy, aborter, logger, name) {
+    super(request, limiter, task, proxy, aborter, logger, name || 'SpecialParser');
   }
 
   /**
@@ -34,16 +34,14 @@ class SpecialParser extends Parser {
     try {
       this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
 
-      const res = await this._request(initialUrl, {
+      const res = await this._limiter.schedule(() => this._request(initialUrl, {
         method: 'GET',
         redirect: 'follow',
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
-      });
-
-      console.log(res, res.url);
+      }));
 
       if (res.redirected) {
         const redirectUrl = res.url;
@@ -257,13 +255,13 @@ class SpecialParser extends Parser {
     this._logger.log('silly', '%s: Getting Full Product Info... %s', this._name, productUrl);
 
     try {
-      const res = await this._request(productUrl, {
+      const res = await this._limiter.schedule(() => this._request(productUrl, {
         method: 'GET',
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
-      });
+      }));
 
       const body = await res.text();
       const response = cheerio.load(body, {
