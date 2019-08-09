@@ -43,8 +43,6 @@ const topLevelReducer = (startState, action) => {
     return { ...state };
   }
 
-  console.log('calling top level reducer');
-
   // If not a global action, handle the action with sub reducers
   const changes = {
     tasks: taskListReducer(state.tasks, action),

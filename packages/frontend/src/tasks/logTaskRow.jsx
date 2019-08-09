@@ -48,7 +48,6 @@ const LogTaskRow = ({
     ? `${classMap.store.join(' ')} checkout-ready `
     : `${classMap.store.join(' ')}`;
   
-  console.log('[DEBUG]: updating logTaskRow.jsx');
   return (
     <div
       key={index}

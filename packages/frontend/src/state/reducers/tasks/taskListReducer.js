@@ -13,9 +13,8 @@ import { taskReducer } from './taskReducer';
 import initialTaskStates from '../../initial/tasks';
 import { SETTINGS_ACTIONS } from '../../actions/settings/settingsActions';
 
-let _num = 1;
-
 function _getIndexAndId(taskList) {
+  let _num = taskList.length + 1;
   // if the tasksList is empty, reset the numbering
   if (taskList.length === 0) {
     _num = 1;
@@ -205,7 +204,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (nextState.length !== state.length && nextState.length !== 0) {
         // adjust the id of each following task to shift down one when a task is deleted
         for (let i = task.index - 1; i < nextState.length; i += 1) {
-          _num = nextState[i].index;
           nextState[i].index -= 1;
         }
       }

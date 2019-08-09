@@ -60,7 +60,6 @@ export class ViewTaskPrimitive extends PureComponent {
   }
 
   render() {
-    console.log('[DEBUG]: updating viewTask.jsx');
     return <div className="tasks-table">{this.createTable()}</div>;
   }
 }

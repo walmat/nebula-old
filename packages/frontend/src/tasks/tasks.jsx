@@ -89,7 +89,6 @@ export class TasksPrimitive extends PureComponent {
 
   render() {
     const { errorDelay, monitorDelay, onKeyPress } = this.props;
-    console.log('[DEBUG]: updating tasks.jsx');
     return (
       <div className="container tasks">
         <div className="row">
