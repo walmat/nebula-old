@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { isEmpty } from 'lodash';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
@@ -82,7 +83,9 @@ export class App extends PureComponent {
 
   taskHandler(_, statusMessageBuffer) {
     const { store } = this.props;
-    store.dispatch(taskActions.status(statusMessageBuffer));
+    if (!isEmpty(statusMessageBuffer)) {
+      store.dispatch(taskActions.status(statusMessageBuffer));
+    } 
   }
 
   _cleanup() {
