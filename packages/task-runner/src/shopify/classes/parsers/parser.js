@@ -27,7 +27,7 @@ class Parser {
         method: 'GET',
         redirect: 'follow',
         follow: 1,
-        agent: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
@@ -37,8 +37,16 @@ class Parser {
       [
         genRequestPromise(`${productUrl}.js`).then(
           // {productUrl}.js contains the format we need -- just return it
-          async res => res.json(),
-          error => {
+          async res => {
+            if (!res.ok) {
+              const err = new Error(res.message);
+              err.status = res.status || 404;
+              err.name = res.name;
+              throw err;
+            }
+            return res.json();
+          },
+          async error => {
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
             err.status = error.status || 404;
@@ -48,6 +56,14 @@ class Parser {
         ),
         genRequestPromise(`${productUrl}.oembed`).then(
           async res => {
+
+            if (!res.ok) {
+              // Error occured, return a rejection with the status code attached
+              const err = new Error(error.message);
+              err.status = res.status || 404;
+              err.name = res.name;
+              throw err;
+            }
             // {productUrl}.oembed requires a little transformation before returning:
             const json = await res.json();
 
@@ -63,7 +79,7 @@ class Parser {
               })),
             };
           },
-          error => {
+          async error => {
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
             err.status = error.status || 404;

@@ -67,7 +67,7 @@ class TaskRunner {
     // eslint-disable-next-line global-require
     const request = require('fetch-cookie')(fetch, this._jar);
     this._request = defaults(request, task.site.url, {
-      timeout: 10000, // to be overridden as necessary
+      timeout: 60000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
 
@@ -395,8 +395,6 @@ class TaskRunner {
     const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.createCheckout());
 
     this._emitTaskEvent({ message });
-
-    console.log(' In handlecreatecheckout: ', nextState);
 
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary

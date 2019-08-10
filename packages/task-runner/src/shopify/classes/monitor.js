@@ -71,8 +71,11 @@ class Monitor {
     let delayStatus;
     let ban = true; // assume we have a softban
     let hardBan = false; // assume we don't have a hardban
-
     errors.forEach(({ status }) => {
+      if (!status) {
+        return;
+      }
+      
       if (status === 403) {
         // ban is a strict hardban, so set the flag
         hardBan = true;
@@ -94,8 +97,9 @@ class Monitor {
       this._logger.silly('Proxy was banned, swapping proxies...');
       // we can assume that it's a soft ban by default since it's either ban || hardBan
       const shouldBan = hardBan ? 2 : 1;
+      this._emitTaskEvent({ message: 'Proxy banned!' });
       return {
-        message: 'Swapping proxy',
+        message: 'Proxy banned!',
         shouldBan,
         nextState: States.SwapProxies,
       };
