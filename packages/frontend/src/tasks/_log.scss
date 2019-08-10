@@ -64,13 +64,10 @@
     display: block;
   }
 
-  .table--upper {
-    flex-grow: 1;
-  }
-
   .table--lower {
     flex-grow: 0 !important;
     height: 175px;
+    min-height: 175px;
     width: calc(100% - 16px);
     padding-left: 15px;
     padding-top: 15px;
@@ -243,6 +240,10 @@
       padding-bottom: 0;
     }
 
+    .checkout-ready {
+      color: #91a8d0;
+    }
+
     .tasks-row-container {
       @include themify($themes) {
         border-bottom-color: themed('tableRowBottomBorderColow');
@@ -251,6 +252,7 @@
       border-bottom-width: 1px;
 
       .tasks-row {
+        width: 100% !important;
         display: flex;
         height: 30px;
 
@@ -258,6 +260,7 @@
           @include themify($themes) {
             background-color: themed('liveLogtableRowSelected');
           }
+          width: 100% !important;
           display: flex;
           height: 30px;
         }
@@ -287,9 +290,10 @@
 
           &--store {
             @extend %tasks-table__text-field;
-            width: 116px;
+            width: 106px;
+            margin-right: 10px !important;
             &--fullscreen {
-              width: 122px;
+              width: 112px;
             }
           }
 
@@ -299,15 +303,17 @@
             width: 0;
             &--fullscreen {
               visibility: visible;
-              width: 126px;
+              width: 116px;
+              margin-right: 10px !important;
             }
           }
 
           &--size {
             @extend %tasks-table__text-field;
-            width: 84px;
+            width: 74px;
+            margin-right: 10px !important;
             &--fullscreen {
-              width: 64px;
+              width: 54px;
             }
           }
 
@@ -317,13 +323,15 @@
             width: 0;
             &--fullscreen {
               visibility: visible;
-              width: 142px;
+              width: 132px;
+              margin-right: 10px !important;
             }
           }
 
           &--output {
             @extend %tasks-table__text-field;
-            width: 241px;
+            width: 231px;
+            margin-right: 10px !important;
           }
         }
       }

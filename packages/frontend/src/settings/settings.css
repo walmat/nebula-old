@@ -5,12 +5,16 @@
   color: #f0405e;
 }
 
+.settings__title {
+  padding-top: 1px;
+  padding-bottom: 3px;
+}
 .settings .proxy-list {
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
 .settings .proxy-list__section-header {
-  margin-top: 10px;
+  margin-top: 7px;
   padding-bottom: 1px;
 }
 .settings .proxy-list__input-group--text {

@@ -1,3 +1,5 @@
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const { userAgent } = require('../utils');
 const Parser = require('./parser');
 
@@ -8,8 +10,8 @@ class JsonParser extends Parser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'JsonParser');
+  constructor(request, limiter, task, proxy, aborter, logger) {
+    super(request, limiter, task, proxy, aborter, logger, 'JsonParser');
   }
 
   async run() {
@@ -18,28 +20,21 @@ class JsonParser extends Parser {
     let products;
     try {
       this._logger.silly('%s: Making request for %s/products.json ...', this._name, url);
-      const response = await this._request({
+
+      const res = await this._limiter.schedule(() => this._request('/products.json', {
         method: 'GET',
-        uri: `${url}/products.json`,
-        proxy: this._proxy,
-        rejectUnauthorized: false,
-        json: false,
-        simple: true,
-        gzip: true,
         headers: {
           'User-Agent': userAgent,
         },
-      });
-      ({ products } = JSON.parse(response));
+        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+      }));
+
+      ({ products } = await res.json());
     } catch (error) {
-      this._logger.silly(
-        '%s: ERROR making request! %s %d',
-        this._name,
-        error.name,
-        error.statusCode,
-      );
+      this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
       const rethrow = new Error('unable to make request');
-      rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
+      rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given
+      rethrow.name = error.name;
       throw rethrow;
     }
     this._logger.silly('%s: Received Response, Attempting to match...', this._name);
@@ -50,6 +45,7 @@ class JsonParser extends Parser {
       throw new Error('unable to match the product');
     }
     this._logger.silly('%s: Product Found!', this._name);
+    this._aborter.abort();
     return {
       ...matchedProduct,
       // insert generated product url (for restocking purposes)

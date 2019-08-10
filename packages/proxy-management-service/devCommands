@@ -1,1 +1,0 @@
-curl -H "Max-Days: 14" --upload-file ./nebula https://transfer.sh/nebula

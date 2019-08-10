@@ -90,7 +90,8 @@ class TaskManagerAdapter {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
-          this._messageInterval = setInterval(this._taskEventMessageSender, 1500);
+          // batch status updates every 1 second
+          this._messageInterval = setInterval(this._taskEventMessageSender, 1000);
         }
       }
     });
@@ -132,7 +133,7 @@ class TaskManagerAdapter {
 
   _onStopTasksRequest(_, tasks) {
     if (tasks instanceof Array) {
-      this._taskManager.stopAll(tasks);
+      this._taskManager.stopAll(tasks, {});
     } else {
       this._taskManager.stop(tasks);
     }
@@ -163,7 +164,6 @@ process.once('loaded', () => {
   let tma = null;
   ipcRenderer.once('LOG_PATH', (_, logPath) => {
     console.log('received log path...');
-    console.log(ipcRenderer);
     tma = new TaskManagerAdapter(logPath);
   });
 });

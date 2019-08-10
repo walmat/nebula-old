@@ -12,7 +12,7 @@ const IPCKeys = {
   RequestCreateNewWindow: 'RequestCreateNewWindow',
   FinishCreateNewWindow: 'FinishCreateNewWindow',
 
-  RequestCheckForUpdates: 'RequestCheckForUpdates',
+  RequestCheckForUpdate: 'RequestCheckForUpdate',
 
   RequestSendMessage: 'RequestSendMessage',
   FinishSendMessage: 'FinishSendMessage',

@@ -15,15 +15,15 @@
   "author": "Matthew Wall",
   "license": "MIT",
   "dependencies": {
-    "@babel/runtime": "^7.4.3",
-    "bufferutil": "^3.0.3",
-    "discord.js": "^11.3.2",
-    "dotenv": "^6.0.0",
+    "@babel/runtime": "^7.4.5",
+    "bufferutil": "^4.0.1",
+    "discord.js": "^11.5.1",
+    "dotenv": "^8.0.0",
     "erlpack": "^0.1.2",
     "fs": "0.0.1-security",
-    "node-fetch": "^2.3.0",
-    "node-opus": "^0.2.9",
-    "nodemon": "^1.18.7",
+    "node-fetch": "^2.6.0",
+    "node-opus": "^0.3.2",
+    "nodemon": "^1.19.1",
     "request": "^2.87.0",
     "request-promise": "^4.2.2"
   }

@@ -1,28 +1,12 @@
 import { initialState } from '../migrators';
 
-const { serverInfo, servers: serverList } = initialState;
-const { credentials: awsCredentials, coreServer, proxyOptions, serverOptions } = serverInfo;
-const serverProperty = {
-  id: null,
-  value: '',
-  label: '',
-};
-const server = {
-  type: serverProperty,
-  size: serverProperty,
-  location: serverProperty,
-  charges: '',
-  status: '',
-  action: '',
-};
+const {
+  servers: { credentials, proxies, proxyOptions, serverListOptions },
+} = initialState;
 
 export default {
-  awsCredentials,
-  coreServer,
+  credentials,
   proxyOptions,
-  serverInfo,
-  serverOptions,
-  serverList,
-  serverProperty,
-  server,
+  serverListOptions,
+  proxies,
 };

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -11,7 +11,7 @@ import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../state/actions';
 
 import './profiles.css';
 
-export class ShippingRatesPrimitive extends Component {
+export class ShippingRatesPrimitive extends PureComponent {
   static renderButton(type, onClick, label) {
     return (
       <button
@@ -89,6 +89,7 @@ export class ShippingRatesPrimitive extends Component {
           value={value}
           options={options}
           data-testid={addTestId(`ShippingRates.input.${type}`)}
+          data-private
         />
       </div>
     );
@@ -135,6 +136,7 @@ export class ShippingRatesPrimitive extends Component {
               style={validationStatus(false)}
               placeholder=""
               data-testid={addTestId('ShippingRates.input.rate')}
+              data-private
             />
           </div>
           <div className="col col--no-gutter">
@@ -146,6 +148,7 @@ export class ShippingRatesPrimitive extends Component {
               style={validationStatus(false)}
               placeholder=""
               data-testid={addTestId('ShippingRates.input.price')}
+              data-private
             />
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -11,7 +11,14 @@ import {
   PROFILE_FIELDS,
 } from '../state/actions';
 import { buildStyle } from '../utils/styles';
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import {
+  DropdownIndicator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
+  colourStyles,
+} from '../utils/styles/select';
 import { addTestId, renderSvgIcon } from '../utils';
 
 import { ReactComponent as BillingMatchesShippingIcon } from '../_assets/Check_icons-01.svg';
@@ -20,7 +27,7 @@ import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../_assets/Ch
 
 import './profiles.css';
 
-export class LocationFieldsPrimitive extends Component {
+export class LocationFieldsPrimitive extends PureComponent {
   static buildCountryOptions() {
     return getAllCountries().map(country => ({
       value: country.code,
@@ -155,6 +162,7 @@ export class LocationFieldsPrimitive extends Component {
                       style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-firstName`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--gutter">
@@ -167,6 +175,7 @@ export class LocationFieldsPrimitive extends Component {
                       style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-lastName`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--gutter">
@@ -179,6 +188,7 @@ export class LocationFieldsPrimitive extends Component {
                       style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-address`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--gutter">
@@ -190,6 +200,7 @@ export class LocationFieldsPrimitive extends Component {
                       style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-apt`)}
+                      data-private
                     />
                   </div>
                   <div className="row row--start row--gutter">
@@ -203,13 +214,14 @@ export class LocationFieldsPrimitive extends Component {
                         style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-city`)}
+                        data-private
                       />
                     </div>
                     <div className="col col--no-gutter">
                       <Select
                         required
                         placeholder="Province"
-                        components={{ DropdownIndicator }}
+                        components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                         className={`${id}-profiles-location__input-group--province`}
                         classNamePrefix="select"
                         options={
@@ -223,6 +235,7 @@ export class LocationFieldsPrimitive extends Component {
                         )}
                         isDisabled={this.isProvinceFieldDisabled()}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-province`)}
+                        data-private
                       />
                     </div>
                   </div>
@@ -237,13 +250,14 @@ export class LocationFieldsPrimitive extends Component {
                         style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-zipCode`)}
+                        data-private
                       />
                     </div>
                     <div className="col col--no-gutter">
                       <Select
                         required
                         placeholder="Country"
-                        components={{ DropdownIndicator }}
+                        components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
                         className={`${id}-profiles-location__input-group--country`}
                         classNamePrefix="select"
                         options={LocationFieldsPrimitive.buildCountryOptions()}
@@ -255,6 +269,7 @@ export class LocationFieldsPrimitive extends Component {
                         )}
                         isDisabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-country`)}
+                        data-private
                       />
                     </div>
                   </div>
@@ -269,6 +284,7 @@ export class LocationFieldsPrimitive extends Component {
                         style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-phone`)}
+                        data-private
                       />
                     </div>
                     <div className="col col--gutter col--expand">{this.renderButtons()}</div>

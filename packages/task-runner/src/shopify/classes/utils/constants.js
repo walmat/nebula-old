@@ -36,6 +36,7 @@ const TaskRunnerStates = {
   AddToCart: 'ADD_TO_CART',
   ShippingRates: 'SHIPPING_RATES',
   RequestCaptcha: 'REQUEST_CAPTCHA',
+  SubmitShipping: 'SUBMIT_SHIPPING',
   PostPayment: 'POST_PAYMENT',
   CompletePayment: 'COMPLETE_PAYMENT',
   PaymentProcess: 'PAYMENT_PROCESS',
@@ -80,6 +81,7 @@ const TaskRunnerHarvestStates = {
  * Error Codes
  */
 const ErrorCodes = {
+  PasswordPage: 'PASSWORD_PAGE',
   ProductNotFound: 'PRODUCT_MISSING',
   ProductNotLive: 'PRODUCT_NOT_LIVE',
   VariantsNotAvailable: 'VARIANTS_NOT_AVAILABLE',

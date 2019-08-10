@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
@@ -20,7 +20,7 @@ import { ReactComponent as DestroyAllIcon } from '../_assets/destroy-all.svg';
 import '../app.css';
 import './tasks.css';
 
-export class TasksPrimitive extends Component {
+export class TasksPrimitive extends PureComponent {
   constructor(props) {
     super(props);
     this.delays = {
@@ -50,18 +50,24 @@ export class TasksPrimitive extends Component {
   }
 
   startAllTasks() {
-    const { tasks, proxies, onStartTask } = this.props;
-    tasks.forEach(t => onStartTask(t, proxies));
+    const { tasks, proxies, onStartAllTasks } = this.props;
+    if (tasks.length && tasks.some(t => t.status !== 'running')) {
+      onStartAllTasks(tasks, proxies);
+    }
   }
 
   stopAllTasks() {
-    const { tasks, onStopTask } = this.props;
-    tasks.forEach(t => onStopTask(t));
+    const { tasks, onStopAllTasks } = this.props;
+    if (tasks.length && tasks.some(t => t.status === 'running')) {
+      onStopAllTasks(tasks);
+    }
   }
 
   destroyAllTasks() {
-    const { tasks, onDestroyTask } = this.props;
-    tasks.forEach(t => onDestroyTask(t));
+    const { tasks, onDestroyAllTasks } = this.props;
+    if (tasks.length) {
+      onDestroyAllTasks(tasks);
+    }
   }
 
   renderDelay(field, value) {
@@ -82,7 +88,7 @@ export class TasksPrimitive extends Component {
   }
 
   render() {
-    const { newTask, errorDelay, monitorDelay, onKeyPress } = this.props;
+    const { errorDelay, monitorDelay, onKeyPress } = this.props;
     return (
       <div className="container tasks">
         <div className="row">
@@ -101,7 +107,7 @@ export class TasksPrimitive extends Component {
                 </div>
                 <div className="row">
                   <div className="col col--no-gutter-left">
-                    <CreateTask taskToEdit={newTask} />
+                    <CreateTask />
                   </div>
                 </div>
               </div>
@@ -212,15 +218,14 @@ export class TasksPrimitive extends Component {
 }
 
 TasksPrimitive.propTypes = {
-  newTask: tDefns.task.isRequired,
   monitorDelay: PropTypes.number.isRequired,
   errorDelay: PropTypes.number.isRequired,
   tasks: tDefns.taskList.isRequired,
   proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
   onSettingsChange: PropTypes.func.isRequired,
-  onDestroyTask: PropTypes.func.isRequired,
-  onStartTask: PropTypes.func.isRequired,
-  onStopTask: PropTypes.func.isRequired,
+  onDestroyAllTasks: PropTypes.func.isRequired,
+  onStartAllTasks: PropTypes.func.isRequired,
+  onStopAllTasks: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
 
@@ -229,7 +234,6 @@ TasksPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  newTask: state.newTask,
   monitorDelay: state.settings.monitorDelay,
   errorDelay: state.settings.errorDelay,
   tasks: state.tasks,
@@ -240,14 +244,14 @@ export const mapDispatchToProps = dispatch => ({
   onSettingsChange: changes => {
     dispatch(settingsActions.edit(changes.field, changes.value));
   },
-  onDestroyTask: task => {
-    dispatch(taskActions.destroy(task, 'all'));
+  onDestroyAllTasks: tasks => {
+    dispatch(taskActions.destroyAll(tasks));
   },
-  onStartTask: (task, proxies) => {
-    dispatch(taskActions.start(task, proxies));
+  onStartAllTasks: (tasks, proxies) => {
+    dispatch(taskActions.startAll(tasks, proxies));
   },
-  onStopTask: task => {
-    dispatch(taskActions.stop(task));
+  onStopAllTasks: tasks => {
+    dispatch(taskActions.stopAll(tasks));
   },
 });
 

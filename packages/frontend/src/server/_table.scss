@@ -1,17 +1,34 @@
 // Tasks Table Specific Rules
 @import '_mixins';
+@import '../themes';
 
-%server-table__text-field {
+%proxy-log__field {
+  white-space: nowrap;
   text-overflow: ellipsis;
+  overflow-x: hidden;
+  vertical-align: middle;
+}
+
+%proxy-log__button {
+  font-family: AvenirNext-Medium;
+  font-size: 9.5px;
+  letter-spacing: 0;
+  width: 64px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
 }
 
 %server-table__header__field {
   margin: 0;
 
   & > p {
+    @include themify($themes) {
+      color: themed('textColor');
+    }
     font-family: AvenirNext-Medium;
     font-size: 12px;
-    color: #161318;
     letter-spacing: 0;
     margin: 5px 0;
   }
@@ -19,57 +36,19 @@
 
 .server {
   .server-table-container {
-    width: 823px;
-    height: 323px;
-    margin-left: -1px !important;
-    border: 1px solid #f0405e;
+    width: 523px;
+    height: 531px;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-style: solid;
+    border-width: 1px;
     border-radius: 3px;
     margin: 0 !important;
+  }
 
-    .server-table__wrapper {
-      min-width: 0;
-      width: 100%;
-      overflow: hidden;
-      display: block;
-    }
-
-    .server-table__header {
-      margin: 0;
-      padding-bottom: 1px;
-      height: 26px;
-      min-height: 26px;
-
-      .server-table__header__type {
-        @extend %server-table__header__field;
-        margin-left: -20px;
-        width: 99px;
-      }
-
-      .server-table__header__size {
-        @extend %server-table__header__field;
-        width: 45px;
-      }
-
-      .server-table__header__location {
-        @extend %server-table__header__field;
-        width: 55px;
-      }
-
-      .server-table__header__charges {
-        @extend %server-table__header__field;
-        width: 15px;
-      }
-
-      .server-table__header__status {
-        @extend %server-table__header__field;
-        width: 35px;
-      }
-
-      .server-table__header__actions {
-        @extend %server-table__header__field;
-        width: 50px;
-      }
-    }
+  .server-log {
+    margin-top: 50px;
   }
 
   .server-table {
@@ -79,9 +58,50 @@
     overflow-y: scroll;
     overflow-x: hidden;
 
+    &__wrapper {
+      padding-left: 5px;
+      padding-right: 5px;
+      min-width: 0;
+      width: 100%;
+      overflow: hidden;
+      display: block;
+    }
+
     &__section-header {
       margin-top: -9px;
       margin-left: -1px !important;
+    }
+
+    &__header {
+      margin: 0;
+      padding-bottom: 1px;
+      height: 26px;
+      min-height: 26px;
+
+      &--account {
+        @extend %server-table__header__field;
+        width: 95px;
+      }
+
+      &--region {
+        @extend %server-table__header__field;
+        width: 55px;
+      }
+
+      &--ip {
+        @extend %server-table__header__field;
+        width: 35px;
+      }
+
+      &--speed {
+        @extend %server-table__header__field;
+        width: 55px;
+      }
+
+      &--actions {
+        @extend %server-table__header__field;
+        width: 55px;
+      }
     }
 
     .blank {
@@ -97,61 +117,80 @@
       padding-bottom: 0;
     }
 
-    .server-row-container {
-      border-bottom: #dfdfdf solid 1px;
+    .proxy-row-container {
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
+      @include themify($themes) {
+        border-bottom-color: themed('tableRowBottomBorderColow');
+      }
 
-      .server-row {
+      .proxy-log {
         display: flex;
         height: 30px;
 
-        img {
-          @include image();
-        }
-
-        &__type {
-          margin-left: -2px;
-          width: 135px;
-        }
-
-        &__size {
-          @extend %server-table__text-field;
-          width: 80px;
-        }
-
-        &__location {
-          text-overflow: ellipsis;
-          width: 100px;
-        }
-
-        &__charges {
-          @extend %server-table__text-field;
-          margin-left: 8px;
-          width: 30px;
-          & > p {
-            text-align: center;
-          }
-        }
-
-        &__status {
-          @extend %server-table__text-field;
-          width: 67px;
-        }
-
-        &__actions {
-          width: 50px;
-
-          &__button {
-            padding-bottom: 2px;
-            margin-right: 4px;
-            width: 16px;
+        &__row {
+          margin-top: -2px;
+          padding-bottom: 2px;
+          &--status {
+            @extend %proxy-log__field;
+            margin-left: 14.5px !important;
+            margin-right: 6.5px !important;
+            & > svg,
+            * {
+              width: 9px;
+            }
           }
 
-          &__button:nth-child(1) {
-            margin-left: 2px;
+          &--account {
+            @extend %proxy-log__field;
+            width: 145px;
           }
 
-          &__button:nth-child(2) {
-            margin-bottom: 2px;
+          &--region {
+            @extend %proxy-log__field;
+            width: 80px;
+          }
+
+          &--ip {
+            @extend %proxy-log__field;
+            width: 105px;
+          }
+
+          &--speed {
+            @extend %proxy-log__field;
+            width: 72px;
+          }
+
+          &--actions {
+            @extend %proxy-log__field;
+            margin-right: 15px !important;
+            width: 105px;
+
+            &__margin {
+              margin: 0 25px 0 25px !important;
+            }
+
+            &__button {
+              padding-bottom: 2px;
+              width: 16px;
+            }
+
+            &__button:first-child {
+              margin-top: 1px;
+              margin-right: 3.5px !important;
+            }
+
+            &__button:nth-child(2) {
+              margin-top: 1px;
+            }
+
+            &__button:nth-child(3) {
+              margin-top: 1px;
+            }
+
+            &__button:last-child {
+              margin-top: 1px;
+            }
           }
         }
       }

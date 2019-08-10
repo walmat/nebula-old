@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
+const axios = require('axios');
+const HttpsProxyAgent = require('https-proxy-agent');
 const { TaskRunnerTypes } = require('@nebula/task-runner-built').shopify;
 
 const IPCKeys = require('../constants');
@@ -14,8 +16,14 @@ const SRR_ID = 1000;
 
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
-const _checkForUpdates = () => {
-  util.sendEvent(IPCKeys.RequestCheckForUpdates);
+const _checkForUpdates = async handler => {
+  util.sendEvent(IPCKeys.RequestCheckForUpdate);
+  ipcRenderer.on(IPCKeys.RequestCheckForUpdate, (_, { error = false, done = false, opts = {} }) => {
+    util.handleEvent(IPCKeys.RequestCheckForUpdate, handler(error, done, opts));
+    if (error || done) {
+      util.removeEvent(IPCKeys.RequestCheckForUpdate, handler(error, done, opts));
+    }
+  });
 };
 
 /**
@@ -82,6 +90,14 @@ window.onbeforeunload = () => {
   handlers.forEach(h => _deregisterForTaskEvents(h));
 };
 
+const _openInDefaultBrowser = url => {
+  if (!url) {
+    return;
+  }
+
+  shell.openExternal(url);
+};
+
 /**
  * Sends task(s) that should be started to launcher.js
  */
@@ -112,12 +128,12 @@ const _startShippingRatesRunner = task => {
 
     // Define srr message handler to retrive data
     const srrMessageHandler = (_, payload) => {
+      console.log(payload);
       // Only respond to specific type and id
       if (payload[SRR_ID] && payload[SRR_ID].type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
         response.rates = payload[SRR_ID].rates || response.rates; // update rates if it exists
         response.selectedRate = payload[SRR_ID].selected || response.selectedRate; // update selected if it exists
-
         if (payload[SRR_ID].done) {
           // SRR is done
           _deregisterForTaskEvents(srrMessageHandler);
@@ -188,6 +204,25 @@ const _setTheme = opts => {
   util.sendEvent(IPCKeys.ChangeTheme, opts);
 };
 
+const _testProxy = async (url, proxy) => {
+  let start;
+  let stop;
+  const [host, port, username, password] = proxy.split(':');
+  const agent = new HttpsProxyAgent(`http://${username}:${password}@${host}:${port}`);
+  try {
+    start = performance.now();
+    await axios.get(url, {
+      withCredentials: true,
+      httpsAgent: agent,
+      httpAgent: agent,
+    });
+    stop = performance.now();
+    return (stop - start).toFixed(0);
+  } catch (err) {
+    return null;
+  }
+};
+
 /**
  * On process load, create the Bridge
  */
@@ -206,10 +241,12 @@ process.once('loaded', () => {
     deregisterForTaskEvents: _deregisterForTaskEvents,
     startTasks: _startTasks,
     stopTasks: _stopTasks,
+    openInDefaultBrowser: _openInDefaultBrowser,
     addProxies: _addProxies,
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,
     updateHook: _updateHook,
+    testProxy: _testProxy,
     sendWebhookTestMessage: _sendWebhookTestMessage,
   };
 });

@@ -1,23 +1,12 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
+import { List, AutoSizer } from 'react-virtualized';
 import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
 import { addTestId } from '../utils';
 
-export class LogTaskPrimitive extends Component {
-  // static massLinkChange() {
-  //   if (window.Bridge) {
-  //     // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
-  //   }
-  // }
-
-  // static massPasswordChange() {
-  //   if (window.Bridge) {
-  //     // TODO: CREATE DIALOG TO ALLOW INPUT (issue: #414)
-  //   }
-  // }
-
+export class LogTaskPrimitive extends PureComponent {
   static renderOutputLogRow(msg, i) {
     const outputColorMap = {
       'Waiting for captcha': 'warning',
@@ -36,6 +25,9 @@ export class LogTaskPrimitive extends Component {
   constructor(props) {
     super(props);
 
+    this.createTable = this.createTable.bind(this);
+    this.renderRow = this.renderRow.bind(this);
+
     this.state = {
       fullscreen: false, // fullscreen toggle
       selected: [], // list of selected tasks
@@ -43,35 +35,24 @@ export class LogTaskPrimitive extends Component {
     };
   }
 
-  shouldComponentUpdate(_, nextState) {
-    const { tasks } = this.props;
-    const { fullscreen } = this.state;
-    const runningTasks = tasks.filter(
-      task => task.status === 'running' || task.status === 'finished',
-    );
-    if (runningTasks.length || fullscreen !== nextState.fullscreen) {
-      return true;
+  componentWillReceiveProps(nextProps) {
+    if (this.props !== nextProps) {
+      this.list.forceUpdateGrid();
     }
-    return false;
   }
 
   selectRow(e, taskId) {
     // let { selected } = this.state;
-    const { fullscreen } = this.state;
+    const { fullscreen, focused } = this.state;
     if (!fullscreen) {
       return;
     }
 
-    // console.log(e.shiftKey);
-    // TODO: batch select/deselect (issue: #414)
-    // if (taskId && !selected.includes(taskId)) {
-    //   selected.push(taskId);
-    //   this.setState({ focused: taskId });
-    // } else {
-    //   selected = selected.filter(t => t !== taskId);
-    //   this.setState({ focused: selected[selected.length - 1] });
-    // }
-    this.setState({ focused: taskId, selected: [taskId] });
+    if (taskId === focused) {
+      this.setState({ focused: '', selected: [] });
+    } else {
+      this.setState({ focused: taskId, selected: [taskId] });
+    }
   }
 
   showLiveLog() {
@@ -97,58 +78,54 @@ export class LogTaskPrimitive extends Component {
 
   createTable() {
     const { tasks } = this.props;
-    const { fullscreen, focused, selected } = this.state;
-    const runningTasks = tasks.filter(
-      task => task.status === 'running' || task.status === 'finished',
-    );
+    const { focused, selected } = this.state;
 
-    if (!runningTasks.length && (focused || selected.length)) {
+    if (!tasks || (!tasks.length && (focused || selected.length))) {
       this.setState({
         selected: [],
         focused: '',
       });
     }
 
+    return (
+      <AutoSizer>
+        {({ width, height }) => (
+          <List
+            ref={r => {
+              this.list = r;
+            }}
+            width={width}
+            height={height}
+            rowHeight={30}
+            rowRenderer={this.renderRow}
+            rowCount={tasks.length}
+            overscanRowCount={10}
+          />
+        )}
+      </AutoSizer>
+    );
+  }
+
+  renderRow({ index, key, style }) {
+    const { tasks } = this.props;
+    const { fullscreen, selected } = this.state;
+
     const selectedMap = {};
     selected.forEach(id => {
       selectedMap[id] = id;
     });
-    const table = runningTasks.map(t => (
+
+    return (
       <LogTaskRow
-        onClick={e => this.selectRow(e, t.id)}
-        selected={!!selectedMap[t.id]}
-        task={t}
+        key={key}
+        onClick={e => this.selectRow(e, tasks[index].id)}
+        selected={!!selectedMap[tasks[index].id]}
+        style={style}
+        task={tasks[index]}
         fullscreen={fullscreen}
       />
-    ));
-    return table;
+    );
   }
-
-  // renderMassChangeOptions() {
-  //   const { selected, focused } = this.state;
-
-  //   if (focused || selected.length) {
-  //     return (
-  //       <div>
-  //         <button
-  //           type="button"
-  //           className="tasks-log__button--links"
-  //           onClick={() => LogTaskPrimitive.massLinkChange()}
-  //         >
-  //           Mass Link
-  //         </button>
-  //         <button
-  //           type="button"
-  //           className="tasks-log__button--password"
-  //           onClick={() => LogTaskPrimitive.massPasswordChange()}
-  //         >
-  //           Password
-  //         </button>
-  //       </div>
-  //     );
-  //   }
-  //   return null;
-  // }
 
   render() {
     const { fullscreen, selected, focused } = this.state;
@@ -264,7 +241,7 @@ LogTaskPrimitive.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  tasks: state.tasks,
+  tasks: state.tasks.filter(t => t.status === 'running'),
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);

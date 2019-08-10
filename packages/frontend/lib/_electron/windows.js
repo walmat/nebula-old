@@ -6,6 +6,7 @@ nebulaEnv.setUpEnvironment();
 
 const _defaultWebPreferences = {
   nodeIntegration: false,
+  contextIsolation: false,
   nodeIntegrationInWorker: false,
   webSecurity: true,
   allowRunningInsecureContent: false,
@@ -37,15 +38,16 @@ const _createWindow = options => {
     // The majority of styling is currently inlne, so we have to allow this!
     // TODO: move away from inline styles!
     let cspHeaders = [
-      "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
+      "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
     ];
     if (nebulaEnv.isDevelopment()) {
       // If in dev mode, allow inline scripts to run (for developer tool extensions)
       cspHeaders = [
-        "default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;",
+        "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
       ];
     }
     callback({
+      ...details,
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': cspHeaders,
@@ -53,17 +55,54 @@ const _createWindow = options => {
     });
   });
 
-  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+  win.webContents.session.webRequest.onBeforeSendHeaders({}, (details, callback) => {
+    const url = new URL(details.url);
+    const { host, origin } = url;
+
     callback({
+      cancel: false,
+      ...details,
       requestHeaders: {
         ...details.requestHeaders,
+        host,
+        origin,
         DNT: 1,
         'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) @nebula/orion/1.0.0-beta.6.1 Chrome/66.0.3359.181 Electron/3.1.4 Safari/537.36',
-        'Content-Language': 'en-US,en;q=0.9',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
       },
     });
   });
+
+  win.webContents.session.webRequest.onBeforeSendHeaders(
+    { urls: ['https://*.google.com, https://*.gstatic.com'] },
+    (details, callback) => {
+      return callback({
+        requestHeaders: {
+          ...details.requestHeaders,
+          DNT: 1,
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+          'Content-Language': 'en-US,en;q=0.9',
+        },
+      });
+    },
+  );
+
+  win.webContents.session.webRequest.onBeforeSendHeaders(
+    { urls: ['https://*.amazonaws.com'] },
+    (details, callback) => {
+      return callback({
+        requestHeaders: {
+          ...details.requestHeaders,
+          DNT: 1,
+          origin: 'http://localhost:3000',
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+          'Content-Language': 'en-US,en;q=0.9',
+        },
+      });
+    },
+  );
 
   // Setup Explicit Window Permissions
   win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
@@ -128,6 +167,20 @@ if (nebulaEnv.isDevelopment()) {
   authUrl = `file:///${Path.join(__dirname, '../../public/auth.html')}`;
 }
 urls.set('auth', authUrl);
+
+const createSplashWindow = () =>
+  _createWindow({
+    width: 450,
+    height: 450,
+    show: true,
+    frame: false,
+  });
+
+  let splashUrl = `file:///${Path.join(__dirname, '../../build/splash.html')}`;
+  if (nebulaEnv.isDevelopment()) {
+    splashUrl = `file:///${Path.join(__dirname, '../../public/splash.html')}`;
+  }
+  urls.set('splash', splashUrl);
 
 /**
  * Creates an About Window
@@ -234,6 +287,7 @@ urls.set('main', mainUrl);
 
 module.exports = {
   createAboutWindow,
+  createSplashWindow,
   createAuthWindow,
   createCaptchaWindow,
   createMainWindow,

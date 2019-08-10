@@ -1,3 +1,5 @@
+import HttpsProxyAgent from 'https-proxy-agent';
+
 const Parser = require('./parser');
 const { ParseType, convertToJson } = require('../utils/parse');
 const { userAgent } = require('../utils');
@@ -10,8 +12,8 @@ class AtomParser extends Parser {
    * @param {Proxy} the proxy to use when making requests
    * @param {Logger} (optional) A logger to log messages to
    */
-  constructor(request, task, proxy, logger) {
-    super(request, task, proxy, logger, 'AtomParser');
+  constructor(request, limiter, task, proxy, aborter, logger) {
+    super(request, limiter, task, proxy, aborter, logger, 'AtomParser');
   }
 
   async run() {
@@ -26,28 +28,21 @@ class AtomParser extends Parser {
         this._name,
         this._task.site.url,
       );
-      const response = await this._request({
+      const res = await this._limiter.schedule(() => this._request('/collections/all.atom', {
         method: 'GET',
-        uri: `${this._task.site.url}/collections/all.atom`,
-        proxy: this._proxy,
-        rejectUnauthorized: false,
-        json: false,
-        simple: true,
-        gzip: true,
         headers: {
           'User-Agent': userAgent,
         },
-      });
-      responseJson = await convertToJson(response);
+        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+      }));
+
+      const body = await res.text();
+      responseJson = await convertToJson(body);
     } catch (error) {
-      this._logger.silly(
-        '%s: ERROR making request! %s %d',
-        this._name,
-        error.name,
-        error.statusCode,
-      );
+      this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
       const rethrow = new Error('unable to make request');
-      rethrow.status = error.statusCode || 404; // Use the status code, or a 404 if no code is given
+      rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given
+      rethrow.name = error.name;
       throw rethrow;
     }
 
@@ -80,6 +75,7 @@ class AtomParser extends Parser {
         this._logger,
       );
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
+      this._aborter.abort();
       return {
         ...matchedProduct,
         ...fullProductInfo,

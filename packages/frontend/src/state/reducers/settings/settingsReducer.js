@@ -1,5 +1,6 @@
 import {
   SETTINGS_ACTIONS,
+  SERVER_ACTIONS,
   PROFILE_ACTIONS,
   mapSettingsFieldToKey,
   SETTINGS_FIELDS,
@@ -63,9 +64,11 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
         const validIncomingProxies = action.value.filter(
           (_, idx) => !action.errors.proxies || !action.errors.proxies.includes(idx),
         );
+
         // Get a list of valid removed proxies (proxies that aren't in the incoming valid proxies)
         const removedProxies = validCurrentProxies.filter(p => !validIncomingProxies.includes(p));
-        const addedProxies = validCurrentProxies.filter(p => validIncomingProxies.includes(p));
+        const addedProxies = validIncomingProxies.filter(p => !validCurrentProxies.includes(p));
+
         // Remove these proxies (if we can)
         if (window.Bridge && removedProxies.length) {
           window.Bridge.removeProxies(removedProxies);
@@ -166,6 +169,48 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
   } else if (action.type === SETTINGS_ACTIONS.ERROR) {
     // TODO: Handle error
     console.error(`Error trying to perform: ${action.action}! ${action.error}`);
+  } else if (action.type === SERVER_ACTIONS.GEN_PROXIES) {
+    if (!action || !action.response || !action.done) {
+      return Object.assign({}, state, change);
+    }
+
+    const { response } = action;
+
+    const proxies = response.map(i => i.proxy);
+
+    if (window.Bridge) {
+      window.Bridge.addProxies(proxies);
+    }
+
+    change.proxies = proxies.concat(state.proxies);
+  } else if (action.type === SERVER_ACTIONS.TERMINATE_PROXIES) {
+    if (!action || !action.response) {
+      return Object.assign({}, state, change);
+    }
+
+    const { response } = action;
+
+    const proxies = response.map(p => p.proxy);
+
+    if (window.Bridge) {
+      window.Bridge.removeProxies(proxies);
+    }
+
+    change.proxies = state.proxies.filter(p => !proxies.includes(p));
+  } else if (action.type === SERVER_ACTIONS.TERMINATE_PROXY) {
+    if (!action || !action.response) {
+      return Object.assign({}, state, change);
+    }
+
+    const {
+      response: { proxy },
+    } = action;
+
+    if (window.Bridge) {
+      window.Bridge.removeProxies([proxy]);
+    }
+
+    change.proxies = state.proxies.filter(p => p !== proxy);
   }
   return Object.assign({}, state, change);
 }

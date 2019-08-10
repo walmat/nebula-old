@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { isEmpty } from 'lodash';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
@@ -8,7 +9,7 @@ import Profiles from './profiles/profiles';
 import Server from './server/server';
 import Settings from './settings/settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
-import { THEMES, mapThemeToColor, mapToNextTheme } from './constants/themes';
+import { THEMES, mapBackgroundThemeToColor, mapToNextTheme } from './constants/themes';
 
 import { addTestId, renderSvgIcon } from './utils';
 
@@ -34,7 +35,7 @@ export class App extends PureComponent {
       e.preventDefault();
       if (window.Bridge) {
         const confirm = await window.Bridge.showDialog(
-          'Are you sure you want to deactivate Orion? Doing so will erase all data!',
+          'Are you sure you want to deactivate? Doing so will erase all data!',
           'question',
           ['Okay', 'Cancel'],
           'Confirm',
@@ -57,7 +58,7 @@ export class App extends PureComponent {
     if (window.Bridge) {
       const { store } = this.props;
       const { theme } = store.getState();
-      const backgroundColor = mapThemeToColor[theme];
+      const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
     }
@@ -74,7 +75,7 @@ export class App extends PureComponent {
     const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT;
     store.dispatch(globalActions.setTheme(nextTheme));
     if (window.Bridge) {
-      const backgroundColor = mapThemeToColor[nextTheme];
+      const backgroundColor = mapBackgroundThemeToColor[nextTheme];
       window.Bridge.setTheme({ backgroundColor });
     }
     this.forceUpdate();
@@ -82,7 +83,9 @@ export class App extends PureComponent {
 
   taskHandler(_, statusMessageBuffer) {
     const { store } = this.props;
-    store.dispatch(taskActions.status(statusMessageBuffer));
+    if (!isEmpty(statusMessageBuffer)) {
+      store.dispatch(taskActions.status(statusMessageBuffer));
+    } 
   }
 
   _cleanup() {
@@ -94,7 +97,7 @@ export class App extends PureComponent {
     const { store } = this.props;
     const { tasks } = store.getState();
     tasks.forEach(t => {
-      if (t.status !== 'stopped' || t.status !== 'idle') {
+      if (t.status === 'running') {
         store.dispatch(taskActions.stop(t));
       }
     });

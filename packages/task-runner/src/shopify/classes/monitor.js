@@ -1,11 +1,26 @@
+import AbortController from 'abort-controller';
+import fetch from 'node-fetch';
+import defaults from 'fetch-defaults';
+import { CookieJar } from 'tough-cookie';
+
+const _request = require('fetch-cookie')(fetch, new CookieJar());
+
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
-const { userAgent, rfrl, capitalizeFirstLetter, waitForDelay } = require('./utils');
-const { Types, States } = require('./utils/constants').TaskRunner;
+const { rfrl, capitalizeFirstLetter } = require('./utils');
+const { States, Events } = require('./utils/constants').TaskRunner;
 const { ErrorCodes } = require('./utils/constants');
 const { ParseType, getParseType } = require('./utils/parse');
 const generateVariants = require('./utils/generateVariants');
 
 class Monitor {
+  get aborter() {
+    return this._aborter;
+  }
+
+  get delayer() {
+    return this._delayer;
+  }
+
   constructor(context) {
     /**
      * All data needed for monitor to run
@@ -17,41 +32,39 @@ class Monitor {
      * @type {TaskRunnerContext}
      */
     this._context = context;
+    this._type = this._context.type;
+    this._events = this._context.events;
     this._logger = this._context.logger;
-    this._request = this._context.request;
+    this._aborter = new AbortController();
+    this._request = defaults(_request, context.task.site.url, {
+      timeout: 60000, // to be overridden as necessary
+      signal: this._aborter.signal, // generic abort signal
+    });
+    this._limiter = this._context.limiter;
+    this._delayer = this._context.delayer;
+    this._signal = this._context.signal;
     this._parseType = null;
   }
 
-  _waitForRefreshDelay() {
-    this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.monitorDelay);
-    return waitForDelay(this._context.task.monitorDelay);
-  }
-
-  _waitForErrorDelay() {
-    this._logger.silly('MONITOR: Waiting for %d ms...', this._context.task.errorDelay);
-    return waitForDelay(this._context.task.errorDelay);
-  }
-
-  // ASSUMPTION: this method is only called when we know we have to
-  // delay and start the monitor again...
-  async _delay(status) {
-    let delay = this._waitForRefreshDelay;
-    let message = 'Monitoring for product';
-    switch (status || 404) {
-      case 401: {
-        delay = this._waitForErrorDelay;
+  _emitEvent(event, payload) {
+    switch (event) {
+      // Emit supported events on their specific channel
+      case Events.TaskStatus: {
+        this._events.emit(event, this._context.id, payload, event);
         break;
       }
-      case 601: {
-        message = 'Password page';
+      default: {
         break;
       }
-      default:
-        break;
     }
-    await delay.call(this);
-    this._logger.silly('Monitoring not complete, remonitoring...');
-    return { message, nextState: States.Monitor };
+    this._logger.silly('Event %s emitted: %j', event, payload);
+  }
+
+  _emitTaskEvent(payload = {}) {
+    if (payload.message && payload.message !== this._context.status) {
+      this._context.status = payload.message;
+      this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
+    }
   }
 
   async _handleParsingErrors(errors) {
@@ -59,6 +72,10 @@ class Monitor {
     let ban = true; // assume we have a softban
     let hardBan = false; // assume we don't have a hardban
     errors.forEach(({ status }) => {
+      if (!status) {
+        return;
+      }
+      
       if (status === 403) {
         // ban is a strict hardban, so set the flag
         hardBan = true;
@@ -66,42 +83,70 @@ class Monitor {
         // status is neither 403, 429, 430, so set ban to false
         ban = false;
       }
-      if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
+      if (
+        !delayStatus &&
+        (status === ErrorCodes.ProductNotFound ||
+          status === ErrorCodes.ProductNotLive ||
+          status >= 400)
+      ) {
         delayStatus = status; // find the first error that is either a product not found or 4xx response
       }
     });
+
     if (ban || hardBan) {
       this._logger.silly('Proxy was banned, swapping proxies...');
       // we can assume that it's a soft ban by default since it's either ban || hardBan
       const shouldBan = hardBan ? 2 : 1;
+      this._emitTaskEvent({ message: 'Proxy banned!' });
       return {
-        message: 'Swapping proxy',
+        message: 'Proxy banned!',
         shouldBan,
         nextState: States.SwapProxies,
       };
     }
-    return this._delay(delayStatus || 404);
+
+    let message = 'No product found';
+
+    switch (delayStatus) {
+      case ErrorCodes.ProductNotLive:
+        message = 'Product not live';
+        break;
+      case ErrorCodes.PasswordPage:
+      case 601:
+        message = 'Password page';
+        break;
+      default:
+        break;
+    }
+
+    return { message: `${message}. Delaying ${this._context.task.monitorDelay}ms`, nextState: States.Monitor };
   }
 
   _parseAll() {
     // Create the parsers and start the async run methods
     const parsers = [
       new AtomParser(
-        this._context.request,
+        this._request,
+        this._limiter,
         this._context.task,
         this._context.proxy,
+        this._aborter,
         this._context.logger,
       ),
       new JsonParser(
-        this._context.request,
+        this._request,
+        this._limiter,
         this._context.task,
         this._context.proxy,
+        this._aborter,
         this._context.logger,
       ),
       new XmlParser(
-        this._context.request,
+        this._request,
+        this._limiter,
         this._context.task,
         this._context.proxy,
+        this._aborter,
         this._context.logger,
       ),
     ].map(p => p.run());
@@ -110,12 +155,13 @@ class Monitor {
   }
 
   _generateVariants(product) {
-    const { sizes, site } = this._context.task;
+    const { sizes, site, monitorDelay } = this._context.task;
     let variants;
     let chosenSizes;
     try {
       ({ variants, sizes: chosenSizes } = generateVariants(product, sizes, site, this._logger));
     } catch (err) {
+      this._logger.debug('ERROR:::: %j', err);
       if (err.code === ErrorCodes.VariantsNotMatched) {
         return {
           message: 'Unable to match variants',
@@ -123,12 +169,9 @@ class Monitor {
         };
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
-        const nextState =
-          this._parseType === ParseType.Special ? States.Monitor : States.Restocking;
-        return {
-          message: 'Running for restocks',
-          nextState,
-        };
+        const nextState = this._parseType === ParseType.Special ? States.Monitor : States.Restocking;
+        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
+        return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
       return {
@@ -147,9 +190,6 @@ class Monitor {
     } catch (errors) {
       this._logger.silly('MONITOR: All request errored out! %j', errors);
       // handle parsing errors
-      if (this._context.type === Types.ShippingRates) {
-        return { message: 'Product not found!', nextState: States.Errored };
-      }
       return this._handleParsingErrors(errors);
     }
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
@@ -168,52 +208,23 @@ class Monitor {
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
-      message: `Found product: ${this._context.task.product.name}`,
+      message: `Product found: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
     };
   }
 
   async _monitorUrl() {
     const [url] = this._context.task.product.url.split('?');
-    const { proxy } = this._context;
-    try {
-      const response = await this._request({
-        method: 'GET',
-        uri: url,
-        proxy,
-        rejectUnauthorized: false,
-        followAllRedirects: true,
-        resolveWithFullResponse: true,
-        simple: true,
-        gzip: true,
-        headers: {
-          'User-Agent': userAgent,
-        },
-      });
 
-      // Response Succeeded -- Get Product Info
-      this._logger.silly(
-        'MONITOR: Url %s responded with status code %s. Getting full info',
+    try {
+      // Try getting full product info
+      const fullProductInfo = await Parser.getFullProductInfo(
         url,
-        response.statusCode,
+        this._context.proxy,
+        this._request,
+        this._logger,
       );
-      let fullProductInfo;
-      try {
-        // Try getting full product info
-        fullProductInfo = await Parser.getFullProductInfo(
-          url,
-          this._context.proxy,
-          this._request,
-          this._logger,
-        );
-      } catch (errors) {
-        this._logger.error('MONITOR: All request errored out! %j', errors);
-        if (this._context.type === Types.ShippingRates) {
-          return { message: 'Product not found!', nextState: States.Errored };
-        }
-        // handle parsing errors
-        return this._handleParsingErrors(errors);
-      }
+
       // Generate Variants
       this._logger.silly(
         'MONITOR: Retrieve Full Product %s, Generating Variants List...',
@@ -233,26 +244,22 @@ class Monitor {
       this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
-        message: `Found product: ${this._context.task.product.name}`,
+        message: `Product found: ${this._context.task.product.name}`,
         nextState: States.AddToCart,
       };
-    } catch (error) {
-      // Redirect, Not Found, or Unauthorized Detected -- Wait and keep monitoring...
-      this._logger.error(
-        'MONITOR Monitoring Url %s responded with status code %s. Delaying and Retrying...',
-        url,
-        error.statusCode,
-      );
-      return this._delay(error.statusCode);
+    } catch (errors) {
+      // handle parsing errors
+      this._logger.error('MONITOR: All request errored out! %j', errors);
+      return this._handleParsingErrors(errors);
     }
   }
 
   async _monitorSpecial() {
-    const { task, request, proxy, logger } = this._context;
+    const { task, proxy, logger } = this._context;
     const { product, site } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
-    const parser = ParserCreator(request, task, proxy, logger);
+    const parser = ParserCreator(this._request, this._limiter, task, proxy, this._aborter, logger);
 
     let parsed;
     try {
@@ -264,10 +271,7 @@ class Monitor {
         error.message,
         error.stack,
       );
-      // Check for a product not found error
-      if (error.status === ErrorCodes.ProductNotFound) {
-        return { message: 'Error: Product Not Found!', nextState: States.Errored };
-      }
+
       return this._handleParsingErrors([error]);
     }
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
@@ -283,9 +287,6 @@ class Monitor {
       ({ variants, sizes, nextState, message } = this._generateVariants(parsed));
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
-        if (nextState === States.Monitor) {
-          await this._waitForRefreshDelay();
-        }
         return { nextState, message };
       }
     }
@@ -295,7 +296,7 @@ class Monitor {
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
-      message: `Found product: ${this._context.task.product.name}`,
+      message: `Product found: ${this._context.task.product.name}`,
       nextState: States.AddToCart,
     };
   }

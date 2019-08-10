@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { buildStyle } from '../utils/styles';
 import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import sDefns from '../utils/definitions/settingsDefinitions';
 
-export class WebhooksPrimitive extends Component {
+export class WebhooksPrimitive extends PureComponent {
   static renderWebhookButton(type, onClick, onKeyPress) {
     return (
       <div className="col col--end col--no-gutter-right">
@@ -64,6 +64,7 @@ export class WebhooksPrimitive extends Component {
               onChange={this.createOnChangeHandler(field)}
               style={buildStyle(false, errors[mapSettingsFieldToKey[field]])}
               value={value}
+              data-private
             />
           </div>
           {WebhooksPrimitive.renderWebhookButton(type, onClick, onKeyPress)}

@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 
 import {
   TASK_ACTIONS,
+  SERVER_ACTIONS,
   PROFILE_ACTIONS,
   SETTINGS_FIELDS,
   mapSettingsFieldToKey,
@@ -12,9 +13,8 @@ import { taskReducer } from './taskReducer';
 import initialTaskStates from '../../initial/tasks';
 import { SETTINGS_ACTIONS } from '../../actions/settings/settingsActions';
 
-let _num = 1;
-
-function _getIndex(taskList) {
+function _getIndexAndId(taskList) {
+  let _num = taskList.length + 1;
   // if the tasksList is empty, reset the numbering
   if (taskList.length === 0) {
     _num = 1;
@@ -30,13 +30,38 @@ function _getIndex(taskList) {
     newIndex = _num;
   }
 
-  return newIndex;
+  return { index: newIndex, id: shortId.generate() };
 }
 
 export default function taskListReducer(state = initialTaskStates.list, action) {
   let nextState = JSON.parse(JSON.stringify(state));
 
   switch (action.type) {
+    case SERVER_ACTIONS.DESTROY_PROXIES: {
+      if (!action || !action.response) {
+        break;
+      }
+
+      if (!window.Bridge) {
+        break;
+      }
+
+      const { proxies } = action.response;
+      const tasksToStop = [];
+      nextState.forEach(task => {
+        if (proxies.includes(task.proxy)) {
+          tasksToStop.push(task);
+        }
+      });
+
+      if (!tasksToStop.length) {
+        break;
+      }
+
+      window.Bridge.stopTasks(tasksToStop);
+      nextState = nextState.filter(t => !tasksToStop.includes(t));
+      break;
+    }
     // patch to check for settings updates
     case SETTINGS_ACTIONS.FETCH_SHIPPING: {
       if (
@@ -135,6 +160,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
+      const { amount } = action.response;
+
       // perform a deep copy of given task
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
@@ -149,10 +176,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         password: newTask.password,
       };
 
-      // add new task
-      newTask.id = shortId.generate();
-      newTask.index = _getIndex(nextState);
-      nextState.push(newTask);
+      [...Array(amount)].forEach(() => {
+        // add new task
+        const { index, id } = _getIndexAndId(nextState);
+        nextState.push({ ...newTask, id, index });
+      });
+
       break;
     }
     case TASK_ACTIONS.REMOVE: {
@@ -175,10 +204,17 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (nextState.length !== state.length && nextState.length !== 0) {
         // adjust the id of each following task to shift down one when a task is deleted
         for (let i = task.index - 1; i < nextState.length; i += 1) {
-          _num = nextState[i].index;
           nextState[i].index -= 1;
         }
       }
+      break;
+    }
+    case TASK_ACTIONS.REMOVE_ALL: {
+      if (!action.response || (action.response && !action.response.tasks)) {
+        break;
+      }
+
+      nextState = [];
       break;
     }
     case TASK_ACTIONS.UPDATE: {
@@ -248,7 +284,17 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
           const task = taskMap[taskId];
           const { log } = task;
           if (task) {
-            const { message, size, proxy, found, apiKey } = msg;
+            const {
+              message,
+              size,
+              proxy,
+              found,
+              apiKey,
+              checkoutUrl,
+              paymentToken,
+              needsCaptcha,
+              order,
+            } = msg;
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
@@ -261,6 +307,18 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             }
             if (apiKey) {
               task.site.apiKey = apiKey;
+            }
+            if (checkoutUrl) {
+              task.checkoutUrl = checkoutUrl;
+            }
+            if (paymentToken) {
+              task.paymentToken = paymentToken;
+            }
+            if (needsCaptcha) {
+              task.needsCaptcha = needsCaptcha;
+            }
+            if (order) {
+              task.order = order;
             }
             if (log) {
               log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
@@ -296,8 +354,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
       // get new task id
-      newTask.id = shortId.generate();
-      newTask.index = _getIndex(nextState);
+      const { index, id } = _getIndexAndId(nextState);
+      newTask.id = id;
+      newTask.index = index;
       // reset new task status
       newTask.status = 'idle';
       nextState.push(newTask);
@@ -320,7 +379,28 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       } else {
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
+        // reset the log in case any messages entered the buffer AFTER we shutdown..
+        nextState[idx].log = [];
       }
+      break;
+    }
+    case TASK_ACTIONS.START_ALL: {
+      if (!action.response || (action.response && !action.response.tasks)) {
+        break;
+      }
+
+      const { tasks } = action.response;
+
+      tasks.forEach(task => {
+        const idx = nextState.findIndex(t => t.id === task.id);
+        if (idx === -1) {
+          return;
+        }
+        nextState[idx].status = 'running';
+        nextState[idx].output = 'Starting task!';
+        // reset the log in case any messages entered the buffer AFTER we shutdown..
+        nextState[idx].log = [];
+      });
       break;
     }
     case TASK_ACTIONS.STOP: {
@@ -338,13 +418,49 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
         break;
       } else {
+        // Clear cache on non-qb tasks
+        if (!nextState[idx].isQueueBypass) {
+          delete nextState[idx].checkoutUrl;
+          delete nextState[idx].paymentToken;
+        }
+
         nextState[idx].status = 'stopped';
-        nextState[idx].output = 'Stopping task...';
+        nextState[idx].output = '';
         nextState[idx].chosenSizes = nextState[idx].sizes;
         nextState[idx].proxy = null;
         nextState[idx].product.found = null;
         nextState[idx].log = [];
       }
+      break;
+    }
+
+    case TASK_ACTIONS.STOP_ALL: {
+      if (!action.response || (action.response && !action.response.tasks)) {
+        break;
+      }
+
+      const { tasks } = action.response;
+
+      tasks.forEach(task => {
+        const idx = nextState.findIndex(t => t.id === task.id);
+
+        if (idx === -1) {
+          return;
+        }
+
+        // Clear cache on non-qb tasks
+        if (!nextState[idx].isQueueBypass) {
+          delete nextState[idx].checkoutUrl;
+          delete nextState[idx].paymentToken;
+        }
+
+        nextState[idx].status = 'stopped';
+        nextState[idx].output = '';
+        nextState[idx].chosenSizes = nextState[idx].sizes;
+        nextState[idx].proxy = null;
+        nextState[idx].product.found = null;
+        nextState[idx].log = [];
+      });
       break;
     }
     case TASK_ACTIONS.ERROR: {

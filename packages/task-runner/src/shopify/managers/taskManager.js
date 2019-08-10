@@ -29,6 +29,9 @@ class TaskManager {
     // Runner Map
     this._runners = {};
 
+    // Monitors Map
+    this._monitors = {};
+
     // Handlers Map
     this._handlers = {};
 
@@ -358,9 +361,10 @@ class TaskManager {
     };
 
     const handlers = {};
+    const emissions = runner.type === RunnerTypes.ShippingRates ? [Events.Abort] : [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook];
 
     // Generate Handlers for each event
-    [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook].forEach(
+    emissions.forEach(
       event => {
         let handler;
         switch (event) {
@@ -408,6 +412,10 @@ class TaskManager {
     // Attach Manager Handlers to Runner Events
     // TODO: Respect the scope of the _events variable (issue #137)
     // Register for status updates
+    if (runner.type === RunnerTypes.ShippingRates) {
+      runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+      return;
+    }
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
@@ -423,7 +431,8 @@ class TaskManager {
     runner._events.removeAllListeners();
 
     // Cleanup runner handlers
-    [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook].forEach(
+    const emissions = runner.type === RunnerTypes.ShippingRates ? [Events.Abort] : [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook];
+    emissions.forEach(
       event => {
         this._events.removeListener(event, handlers[event]);
       },
@@ -441,9 +450,10 @@ class TaskManager {
     if (!runner) {
       return;
     }
-    runner.site = task.site.url;
-    this._runners[runnerId] = runner;
 
+    runner.site = task.site.url;
+    runner.type = type;
+    this._runners[runnerId] = runner;
     this._logger.silly('Wiring up TaskRunner Events ...');
     this._setup(runner);
 

@@ -18,6 +18,7 @@ class TaskLauncher {
     this._eventListeners = [];
     this._captchaRequesters = {};
     this._captchaSemaphore = 0;
+    this._stopInitiated = false;
 
     this._taskEventHandler = this._taskEventHandler.bind(this);
 
@@ -162,6 +163,13 @@ class TaskLauncher {
         // Remove the handler for listening to task event statuses
         this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
       });
+
+      this._launcherWindow.webContents.on('crashed', async (event, killed) => {
+        console.log('CRASHED!!', event, killed);
+        this._launcherWindow.close();
+        this._launcherWindow = null;
+        await this.start();
+      });
     }
 
     this._launcherWindow.on('close', () => {
@@ -184,6 +192,15 @@ class TaskLauncher {
       return;
     }
 
+    if (this._stopInitiated) {
+      if (nebulaEnv.isDevelopment()) {
+        console.log('launcher stop was already initiated');
+      }
+      return;
+    }
+
+    this._stopInitiated = true;
+
     if (nebulaEnv.isDevelopment()) {
       console.log('Closing Launcher...');
     }
@@ -191,6 +208,8 @@ class TaskLauncher {
     if (this._launcherWindow) {
       this._launcherWindow.close();
     }
+
+    this._stopInitiated = false;
   }
 
   async abortAllTasks() {

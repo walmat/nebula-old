@@ -4,7 +4,7 @@ const nebulaenv = require('./env');
 const baseConfig = require('../../dynamoConfig.json');
 
 function getConfig() {
-  dotenv.load();
+  dotenv.config();
   nebulaenv.setUpEnvironment();
 
   const config = {
