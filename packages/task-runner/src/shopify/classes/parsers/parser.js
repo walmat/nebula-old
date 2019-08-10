@@ -39,6 +39,7 @@ class Parser {
           // {productUrl}.js contains the format we need -- just return it
           async res => {
             if (!res.ok) {
+              console.log(res);
               const err = new Error(res.message);
               err.status = res.status || 404;
               err.name = res.name;
@@ -47,6 +48,7 @@ class Parser {
             return res.json();
           },
           async error => {
+            console.log(error);
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
             err.status = error.status || 404;
@@ -58,6 +60,7 @@ class Parser {
           async res => {
 
             if (!res.ok) {
+              console.log(res);
               // Error occured, return a rejection with the status code attached
               const err = new Error(error.message);
               err.status = res.status || 404;
@@ -80,6 +83,7 @@ class Parser {
             };
           },
           async error => {
+            console.log(error);
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
             err.status = error.status || 404;

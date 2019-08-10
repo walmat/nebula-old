@@ -37,7 +37,7 @@ class Monitor {
     this._logger = this._context.logger;
     this._aborter = new AbortController();
     this._request = defaults(_request, context.task.site.url, {
-      timeout: 10000, // to be overridden as necessary
+      timeout: 60000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
     this._limiter = this._context.limiter;
