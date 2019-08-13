@@ -294,7 +294,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
               paymentToken,
               needsCaptcha,
               order,
+              status,
+              needsChanged,
             } = msg;
+
             task.output = message;
             if (size) {
               task.chosenSizes = [size];
@@ -319,6 +322,12 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             }
             if (order) {
               task.order = order;
+            }
+            if (status) {
+              task.status = status;
+            }
+            if (needsChanged) {
+              task.needsChanged = needsChanged;
             }
             if (log) {
               log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);

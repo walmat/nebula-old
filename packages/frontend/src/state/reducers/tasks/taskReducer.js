@@ -2,6 +2,7 @@ import { parseURL } from 'whatwg-url';
 import { PROFILE_ACTIONS, TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import initialTaskStates from '../../initial/tasks';
 import getAllSites from '../../../constants/getAllSites';
+import TASK_TYPES from '../../../constants/taskTypes';
 import {
   SETTINGS_ACTIONS,
   SETTINGS_FIELDS,
@@ -85,6 +86,35 @@ export function taskReducer(state = initialTaskStates.task, action) {
             sizes: nextSizes,
             chosenSizes: nextSizes,
             errors: Object.assign({}, state.errors, action.errors),
+          };
+          break;
+        }
+        case TASK_FIELDS.EDIT_TASK_TYPE: {
+          switch (state.type) {
+            case 'SAFE': {
+              change = {
+                type: TASK_TYPES.FAST,
+              };
+              break;
+            }
+            case 'FAST': {
+              change = {
+                type: TASK_TYPES.SAFE,
+              };
+              break;
+            }
+            default: {
+              change = {
+                type: TASK_TYPES.SAFE,
+              };
+              break;
+            }
+          }
+          break;
+        }
+        case TASK_FIELDS.TOGGLE_BYPASS: {
+          change = {
+            isQueueBypass: !state.isQueueBypass,
           };
           break;
         }

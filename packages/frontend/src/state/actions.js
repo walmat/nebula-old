@@ -12,6 +12,7 @@ import * as navbar from './actions/navbar/navbarActions';
 // Global Actions
 export const GLOBAL_ACTIONS = {
   RESET: '@@RESET',
+  IMPORT: '@@IMPORT',
   SET_THEME: '@@SET_THEME',
   MIGRATE_STATE: '@@MIGRATE_STATE',
   INIT: '@@INIT',
@@ -19,6 +20,7 @@ export const GLOBAL_ACTIONS = {
 
 export const globalActions = {
   reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
+  import: makeActionCreator(GLOBAL_ACTIONS.IMPORT, 'state'),
   setTheme: makeActionCreator(GLOBAL_ACTIONS.SET_THEME, 'theme'),
   migrateState: makeActionCreator(GLOBAL_ACTIONS.MIGRATE_STATE),
 };

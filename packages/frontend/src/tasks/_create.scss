@@ -65,6 +65,14 @@
           }
         }
       }
+
+      &--type-FAST {
+        color: #858dbb;
+      }
+
+      &--type-SAFE {
+        color: #8aa27d;
+      }
     }
 
     &__submit-row {

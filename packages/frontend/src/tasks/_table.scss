@@ -204,6 +204,26 @@
         &__id {
           width: 26px;
           text-align: center;
+
+          &--FAST {
+            color: #858dbb;
+          }
+
+          &--SAFE {
+            color: #8aa27d;
+          }
+
+          // &--checkout-ready-light {
+          //   width: 26px;
+          //   text-align: center;
+          //   color: #F68E5F;
+          // }
+
+          // &--checkout-ready-dark {
+          //   width: 26px;
+          //   text-align: center;
+          //   color: #F5DD90;
+          // }
         }
 
         &__product {
@@ -214,16 +234,62 @@
           vertical-align: middle;
           max-width: 200px;
           overflow: hidden;
+
+          &--checkout-ready-light {
+            @extend %tasks-table__text-field;
+            width: 200px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            max-width: 200px;
+            overflow: hidden;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            @extend %tasks-table__text-field;
+            width: 200px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            max-width: 200px;
+            overflow: hidden;
+            color: #f5dd90;
+          }
         }
 
         &__sites {
           text-overflow: ellipsis;
           width: 125px;
+
+          &--checkout-ready-light {
+            text-overflow: ellipsis;
+            width: 125px;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            text-overflow: ellipsis;
+            width: 125px;
+            color: #f5dd90;
+          }
         }
 
         &__profile {
           @extend %tasks-table__text-field;
           width: 125px;
+
+          &--checkout-ready-light {
+            @extend %tasks-table__text-field;
+            width: 125px;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            @extend %tasks-table__text-field;
+            width: 125px;
+            color: #f5dd90;
+          }
 
           & > p {
             text-overflow: ellipsis;
@@ -233,10 +299,32 @@
         &__sizes {
           @extend %tasks-table__text-field;
           width: 65px;
+
+          &--checkout-ready-light {
+            @extend %tasks-table__text-field;
+            width: 65px;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            @extend %tasks-table__text-field;
+            width: 65px;
+            color: #f5dd90;
+          }
         }
 
         &__account {
           width: 65px;
+
+          &--checkout-ready-light {
+            width: 65px;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            width: 65px;
+            color: #f5dd90;
+          }
         }
 
         &__actions {

@@ -2,6 +2,7 @@
  * Container for all state reducers. Reducers are available in their specific
  * files, this is just a shared import point.
  */
+import { isEmpty } from 'lodash';
 import { newTaskReducer, selectedTaskReducer } from './reducers/tasks/taskReducer';
 import taskListReducer from './reducers/tasks/taskListReducer';
 import { currentProfileReducer, selectedProfileReducer } from './reducers/profiles/profileReducer';
@@ -18,6 +19,24 @@ const topLevelReducer = (startState, action) => {
     return startState || initialState;
   }
 
+  // Use initial state if start state isn't given
+  const state = startState || initialState;
+
+  if (action.type === GLOBAL_ACTIONS.IMPORT) {
+    const { state: newState } = action;
+
+    // boundary checks
+    if (
+      !newState ||
+      isEmpty(newState) ||
+      (newState && !newState.version)
+    ) {
+      return state;
+    }
+
+    return topLevelMigrator(newState);
+  }
+
   // Check for migration and perform it
   if (action.type === GLOBAL_ACTIONS.MIGRATE_STATE || action.type === GLOBAL_ACTIONS.INIT) {
     return topLevelMigrator(startState);
@@ -27,9 +46,6 @@ const topLevelReducer = (startState, action) => {
   if (action.type === GLOBAL_ACTIONS.RESET) {
     return { ...initialState };
   }
-
-  // Use initial state if start state isn't given
-  const state = startState || initialState;
 
   // Check for set theme and adjust it here
   if (action.type === GLOBAL_ACTIONS.SET_THEME) {

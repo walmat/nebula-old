@@ -597,9 +597,9 @@ class TaskRunner {
       return States.Aborted;
     }
 
-    const { message, nextState } = await this._limiter.schedule(() => this._checkout.submitShipping());
+    const { message, status, nextState } = await this._limiter.schedule(() => this._checkout.submitShipping());
 
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, status, needsChanged: true });
 
     return nextState;
   }
@@ -613,7 +613,7 @@ class TaskRunner {
 
     const { message, shouldBan, nextState } = await this._limiter.schedule(() => this._checkout.addToCart());
 
-    this._emitTaskEvent({ message });
+    this._emitTaskEvent({ message, proxy: this._context.rawProxy });
 
     if (nextState === States.SwapProxies) {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary

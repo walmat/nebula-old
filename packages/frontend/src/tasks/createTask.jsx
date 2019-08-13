@@ -9,6 +9,7 @@ import { parseURL } from 'whatwg-url';
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
 import * as getAllSizes from '../constants/getAllSizes';
 import getAllSupportedSitesSorted from '../constants/getAllSites';
+import { THEMES } from '../constants/themes';
 
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -40,7 +41,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
   constructor(props) {
     super(props);
-    this.handleChange = this.handleChange.bind(this);
+    this.changeTaskType = this.changeTaskType.bind(this);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.handleCreate = this.handleCreate.bind(this);
@@ -48,12 +49,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
     this.state = {
       isLoading: false,
-      bypass: false,
     };
-  }
-
-  handleChange(bypass) {
-    this.setState({ bypass });
   }
 
   buildProfileOptions() {
@@ -66,7 +62,6 @@ export class CreateTaskPrimitive extends PureComponent {
 
   saveTask(e) {
     const { task, onAddNewTask } = this.props;
-    const { bypass } = this.state;
 
     const amount = task.amount ? parseInt(task.amount, 10) : 1;
 
@@ -82,19 +77,24 @@ export class CreateTaskPrimitive extends PureComponent {
       const sizes = getAllSizes.buildSizesForCategory(fsrCategory);
       sizes.forEach(s => {
         task.sizes = [s.value];
-        onAddNewTask(task, amount, bypass);
+        onAddNewTask(task, amount);
       });
       task.sizes = prevSizes;
     } else if (task.sizes.find(s => s === 'BS')) {
       const sizes = ['4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5'];
       sizes.forEach(s => {
         task.sizes = [s];
-        onAddNewTask(task, amount, bypass);
+        onAddNewTask(task, amount);
       });
       task.sizes = prevSizes;
     } else {
-      onAddNewTask(task, amount, bypass);
+      onAddNewTask(task, amount);
     }
+  }
+
+  changeTaskType() {
+    const { task: { type }, onFieldChange } = this.props;
+    onFieldChange({ field: TASK_FIELDS.EDIT_TASK_TYPE, value: type });
   }
 
   handleCreate(value) {
@@ -150,6 +150,8 @@ export class CreateTaskPrimitive extends PureComponent {
         return event => {
           onFieldChange({ field, value: event.target.value });
         };
+      case TASK_FIELDS.TOGGLE_BYPASS:
+        return () => onFieldChange({ field });
       default:
         // should never be called, but nice to have just in case
         return event => {
@@ -160,7 +162,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
   render() {
     const { task, errors, onKeyPress, theme } = this.props;
-    const { isLoading, bypass } = this.state;
+    const { isLoading } = this.state;
     let newTaskProfileValue = null;
     if (task.profile.id) {
       newTaskProfileValue = {
@@ -180,6 +182,7 @@ export class CreateTaskPrimitive extends PureComponent {
     if (task.site !== null) {
       accountFieldsDisabled = !task.site.auth && task.site.auth !== undefined;
     }
+    const { type, isQueueBypass } = task;
     return (
       <div className="tasks-create col col--start col--no-gutter">
         <div className="row row--start row--gutter">
@@ -308,12 +311,15 @@ export class CreateTaskPrimitive extends PureComponent {
           </div>
         </div>
         <div className="row row--end row--expand row--gutter">
-          <div className="col">
+          <div className="col col--no-gutter">
+            <p className={`tasks-create__input--type-${type}`} onClick={this.changeTaskType}>{type}</p>
+          </div>
+          <div className="col col--no-gutter-right">
             <Switch
-              checked={bypass}
-              onChange={this.handleChange}
-              onColor="#b8d9d2"
-              onHandleColor="#46adb4"
+              checked={isQueueBypass}
+              onChange={this.createOnChangeHandler(TASK_FIELDS.TOGGLE_BYPASS)}
+              onColor={theme === THEMES.LIGHT ? '#F8AC8A' : '#F7E6AE'}
+              onHandleColor={theme === THEMES.LIGHT ? '#F68E5F' : '#F5DD90'}
               handleDiameter={14}
               uncheckedIcon={false}
               checkedIcon={false}
@@ -382,8 +388,8 @@ export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
     dispatch(taskActions.edit(null, changes.field, changes.value));
   },
-  onAddNewTask: (newTask, amount, bypass) => {
-    dispatch(taskActions.add(newTask, amount, bypass));
+  onAddNewTask: (newTask, amount) => {
+    dispatch(taskActions.add(newTask, amount));
   },
 });
 

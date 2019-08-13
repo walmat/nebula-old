@@ -3,11 +3,12 @@ import ProxyList from './proxyList';
 import Webhooks from './webhooks';
 import Defaults from './defaults';
 import ShippingManager from './shippingManager';
+import StateFunctions from './stateFunctions';
 
 import '../app.css';
 import './settings.css';
 
-export const SettingsPrimitive = () => (
+export default () => (
   <div className="container settings">
     <div className="row">
       <div className="col col--start">
@@ -24,11 +25,10 @@ export const SettingsPrimitive = () => (
             <Webhooks />
             <Defaults />
             <ShippingManager />
+            <StateFunctions />
           </div>
         </div>
       </div>
     </div>
   </div>
 );
-
-export default SettingsPrimitive;

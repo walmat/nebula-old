@@ -20,10 +20,9 @@ export const TASK_ACTIONS = {
 };
 
 // Private API Requests
-const _addTaskRequest = async (task, amount, bypass) => {
+const _addTaskRequest = async (task, amount) => {
   const copy = JSON.parse(JSON.stringify(task));
   const parsedProduct = parseProductType(copy.product);
-  copy.isQueueBypass = bypass;
 
   if (parsedProduct) {
     copy.product = parsedProduct;
@@ -183,8 +182,8 @@ const statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'messageBuffer');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
 
 // Public Thunks
-const addTask = (task, amount, bypass) => dispatch =>
-  _addTaskRequest(task, amount, bypass).then(
+const addTask = (task, amount) => dispatch =>
+  _addTaskRequest(task, amount).then(
     response => dispatch(_addTask(response)),
     error => dispatch(handleError(TASK_ACTIONS.ADD, error)),
   );
@@ -269,6 +268,8 @@ export const TASK_FIELDS = {
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
   EDIT_AMOUNT: 'EDIT_AMOUNT',
+  TOGGLE_BYPASS: 'TOGGLE_BYPASS',
+  EDIT_TASK_TYPE: 'EDIT_TASK_TYPE',
 };
 
 export const taskActions = {
@@ -296,4 +297,6 @@ export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZES]: 'sizes',
   [TASK_FIELDS.EDIT_AMOUNT]: 'amount',
+  [TASK_FIELDS.EDIT_TASK_TYPE]: 'type',
+  [TASK_FIELDS.TOGGLE_BYPASS]: 'bypass',
 };

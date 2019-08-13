@@ -5,6 +5,11 @@ const {
   // eslint-disable-next-line import/no-extraneous-dependencies
 } = require('electron');
 
+const jsonfile = require('jsonfile');
+const cryptoJSON = require('crypto-json')
+const algorithm = 'camellia-128-cbc'
+const encoding = 'hex'
+
 const IPCKeys = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 
@@ -114,6 +119,88 @@ const _showDialog = async (message, type, buttons, title) =>
     );
   });
 
+const _showSave = async state =>
+  new Promise((resolve, reject) => {
+    dialog.showSaveDialog(
+      {
+        title: 'Please Save State File',
+        defaultPath: app.getPath('documents'),
+        buttonLabel: 'Export State',
+        filters: [
+          {
+            name: 'Nebula',
+            extensions: ['nebula'],
+          }
+        ],
+      },
+      response => {
+        if (!response) {
+          reject({ error: new Error('Canceled') });
+        }
+
+        const password = 'nebulaOrionSecretPasswordHash';
+
+        const output = cryptoJSON.encrypt(
+          state, password, {encoding, algorithm}
+        )
+
+        console.log(output)
+
+        jsonfile.writeFile(response, output)
+          .then(() => resolve({ success: true }))
+          .catch(error => reject({ error }));
+      },
+    )
+  });
+
+const _showOpen = async () =>
+  new Promise((resolve, reject) => {
+    dialog.showOpenDialog(
+      {
+        title: 'Please Select State File',
+        defaultPath: app.getPath('documents'),
+        buttonLabel: 'Import State',
+        filters: [
+          {
+            name: 'Nebula',
+            extensions: ['nebula'],
+          },
+        ],
+        properties: ['openFile'],
+      },
+      response => {
+        if (!response || response && !response.length) {
+          return reject({ error: new Error('Canceled') });
+        }
+
+        const [path] = response;
+
+        if (!path) {
+          return reject({ error: new Error('Unable to open file') });
+        }
+
+        jsonfile.readFile(path)
+          .then(data => {
+            if (!data) {
+              return reject({ error: new Error('Malformed state')});
+            }
+
+            const password = 'nebulaOrionSecretPasswordHash';
+            const state = cryptoJSON.decrypt(data, password);
+            console.log(state);
+
+            if (!state) {
+              return reject({ error: new Error('Unable to decrypt state')});
+            }
+
+
+            resolve({ success: true, data: state })
+          })
+          .catch(error => reject({ error }));
+      },
+    )
+  });
+
 const _sendDebugCmd = (...params) => {
   _sendEvent('debug', ...params);
 };
@@ -132,6 +219,8 @@ if (nebulaEnv.isDevelopment()) {
 module.exports = {
   base: {
     showDialog: _showDialog,
+    showSave: _showSave,
+    showOpen: _showOpen,
     close: _close,
     getAppData: _getAppData,
     ..._debug,

@@ -39,6 +39,8 @@ const tasksFormValidationMiddleware = store => next => action => {
     combinedErrors = combinedErrors || errors[mapTaskFieldsToKey[field]];
   });
 
+  console.log(combinedErrors);
+
   if (combinedErrors === false) {
     delete newAction.errors;
   } else {

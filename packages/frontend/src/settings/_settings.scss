@@ -90,6 +90,26 @@
     padding-left: 0.5px;
   }
 
+  &--export {
+    @extend %button-base;
+    @include themify($themes) {
+      background: themed('buttonColorPrimary');
+      color: themed('buttonPrimaryText');
+    }
+    margin-top: 19px;
+    width: 205px;
+  }
+
+  &--import {
+    @extend %button-base;
+    @include themify($themes) {
+      background: themed('buttonColorSecondary');
+      color: themed('buttonPrimaryText');
+    }
+    margin-top: 19px;
+    width: 205px;
+  }
+
   &__button {
     &--open-captcha {
       @extend %button-base;
@@ -153,9 +173,5 @@
         }
       }
     }
-  }
-
-  &__extras {
-    margin-top: 15px;
   }
 }

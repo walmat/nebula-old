@@ -1,8 +1,12 @@
-import { TASK_ACTIONS, mapTaskFieldsToKey, taskActions } from '../../actions';
+import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../../actions';
 import taskAttributeValidatorMap from '../../../utils/validation/taskAttributeValidators';
 
 const tasksAttributeValidationMiddleware = store => next => action => {
   if (action.type !== TASK_ACTIONS.EDIT) {
+    return next(action);
+  }
+
+  if (action.field === TASK_FIELDS.TOGGLE_BYPASS || action.field === TASK_FIELDS.EDIT_TASK_TYPE) {
     return next(action);
   }
 

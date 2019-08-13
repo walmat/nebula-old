@@ -757,7 +757,7 @@ class Checkout {
         return checkStatus;
       }
 
-      return { message: 'Bypass done. Stopping task!', nextState: States.Finished };
+      return { message: 'Bypass done. Stopping task!', status: 'bypassed', nextState: States.Finished };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Submit Shipping.\n\n %j %j',

@@ -144,6 +144,12 @@
 .theme-dark .tasks .tasks-create__input--field:disabled {
   background: #262626;
 }
+.tasks .tasks-create__input--type-FAST {
+  color: #858DBB;
+}
+.tasks .tasks-create__input--type-SAFE {
+  color: #8aa27d;
+}
 .tasks .tasks-create__submit-row {
   align-self: flex-end;
 }
@@ -187,7 +193,7 @@
 /*
  * Implementation of themes
  */
-.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--output, .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--product, .tasks .tasks-log .tasks-row-container .tasks-row__log--store, .tasks .tasks-log .tasks-row-container .tasks-row__log--id {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-dark, .tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-light, .tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-dark, .tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-light, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-dark, .tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-light, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--output, .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--product, .tasks .tasks-log .tasks-row-container .tasks-row__log--store, .tasks .tasks-log .tasks-row-container .tasks-row__log--id {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;
@@ -498,7 +504,7 @@
 /*
  * Implementation of themes
  */
-.tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--id, .tasks .tasks-log .tasks-row-container .tasks-row__log--store, .tasks .tasks-log .tasks-row-container .tasks-row__log--product, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy, .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-dark, .tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-light, .tasks .tasks-table .tasks-row-container .tasks-row__sizes, .tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-dark, .tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-light, .tasks .tasks-table .tasks-row-container .tasks-row__profile, .tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-dark, .tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-light, .tasks .tasks-table .tasks-row-container .tasks-row__product, .tasks .tasks-log .tasks-row-container .tasks-row__log--id, .tasks .tasks-log .tasks-row-container .tasks-row__log--store, .tasks .tasks-log .tasks-row-container .tasks-row__log--product, .tasks .tasks-log .tasks-row-container .tasks-row__log--size, .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy, .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;
@@ -695,6 +701,12 @@
   width: 26px;
   text-align: center;
 }
+.tasks .tasks-table .tasks-row-container .tasks-row__id--FAST {
+  color: #858DBB;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__id--SAFE {
+  color: #8aa27d;
+}
 .tasks .tasks-table .tasks-row-container .tasks-row__product {
   width: 200px;
   white-space: nowrap;
@@ -703,12 +715,48 @@
   max-width: 200px;
   overflow: hidden;
 }
+.tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-light {
+  width: 200px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  max-width: 200px;
+  overflow: hidden;
+  color: #F68E5F;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-dark {
+  width: 200px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  max-width: 200px;
+  overflow: hidden;
+  color: #F5DD90;
+}
 .tasks .tasks-table .tasks-row-container .tasks-row__sites {
   text-overflow: ellipsis;
   width: 125px;
 }
+.tasks .tasks-table .tasks-row-container .tasks-row__sites--checkout-ready-light {
+  text-overflow: ellipsis;
+  width: 125px;
+  color: #F68E5F;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__sites--checkout-ready-dark {
+  text-overflow: ellipsis;
+  width: 125px;
+  color: #F5DD90;
+}
 .tasks .tasks-table .tasks-row-container .tasks-row__profile {
   width: 125px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-light {
+  width: 125px;
+  color: #F68E5F;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-dark {
+  width: 125px;
+  color: #F5DD90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile > p {
   text-overflow: ellipsis;
@@ -716,8 +764,24 @@
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes {
   width: 65px;
 }
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-light {
+  width: 65px;
+  color: #F68E5F;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-dark {
+  width: 65px;
+  color: #F5DD90;
+}
 .tasks .tasks-table .tasks-row-container .tasks-row__account {
   width: 65px;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__account--checkout-ready-light {
+  width: 65px;
+  color: #F68E5F;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__account--checkout-ready-dark {
+  width: 65px;
+  color: #F5DD90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions {
   width: 50px;

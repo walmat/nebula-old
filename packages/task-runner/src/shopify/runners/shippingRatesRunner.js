@@ -4,6 +4,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { CookieJar } from 'tough-cookie';
+import Bottleneck from 'bottleneck';
 
 import { createLogger } from '../../common/logger';
 import generateVariants from '../classes/utils/generateVariants';
@@ -31,6 +32,17 @@ class ShippingRatesRunner {
       prefix: 'SRR',
     });
 
+    this._limiter = new Bottleneck({
+      reservoir: 40, // initial value
+      reservoirIncreaseAmount: 2,
+      reservoirIncreaseInterval: 1000, // must be divisible by 250
+      reservoirIncreaseMaximum: 40,
+     
+      // also use maxConcurrent and/or minTime for safety
+      maxConcurrent: 5,
+      minTime: 250 // pick a value that makes sense for your use case
+    });
+
     this.aborted = false;
     this.aborter = new AbortController();
 
@@ -41,7 +53,7 @@ class ShippingRatesRunner {
 
     this.monitorAborter = new AbortController();
     this._monitorRequest = defaults(request, this.task.site.url, {
-      timeout: 10000,
+      timeout: 60000,
       signal: this.monitorAborter.signal,
     });
 
@@ -138,14 +150,23 @@ class ShippingRatesRunner {
     const parsers = [
       new AtomParser(
         this._monitorRequest,
+        this._limiter,
         this.task,
         this.proxy,
         this.monitorAborter,
         this._logger,
       ),
-      new XmlParser(this._monitorRequest, this.task, this.proxy, this.monitorAborter, this._logger),
+      new XmlParser(
+        this._monitorRequest,
+        this._limiter,
+        this.task,
+        this.proxy,
+        this.monitorAborter,
+        this._logger
+      ),
       new JsonParser(
         this._monitorRequest,
+        this._limiter,
         this.task,
         this.proxy,
         this.monitorAborter,
@@ -364,7 +385,6 @@ class ShippingRatesRunner {
         this.shippingRates.push(newRate);
       });
 
-      console.log('returning done');
       return { nextState: this.states.DONE, message: 'Rates found!' };
     } catch (err) {
       return { nextState: this.states.ERROR, message: err.message || 'Failed rates' };
@@ -410,6 +430,8 @@ class ShippingRatesRunner {
     while (nextState !== this.states.ERROR && !this.aborted) {
       // eslint-disable-next-line no-await-in-loop
       ({ nextState, message } = await this.run());
+
+      console.log(nextState, message);
 
       console.log('SHIPPING RATES LENGTH: ', this.shippingRates.length);
       if (this.shippingRates.length) {
