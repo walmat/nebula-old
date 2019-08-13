@@ -113,9 +113,11 @@ const _destroyAllTasksRequest = async tasks => {
 
 const _startTaskRequest = async (task, proxies = []) => {
   if (task.status === 'running') {
-    throw new Error('Already running');
+    const error = new Error('Already running');
+    error.status = 401;
+    throw error;
   } else {
-    if (window.Bridge) {
+    if (window.Bridge && !task.needsChanged) {
       window.Bridge.addProxies(proxies);
       window.Bridge.startTasks(task, {});
     }
@@ -124,14 +126,15 @@ const _startTaskRequest = async (task, proxies = []) => {
 };
 
 const _startAllTasksRequest = async (tasks, proxies = []) => {
-  const newTasks = tasks.filter(t => t.status !== 'running');
-
+  const newTasks = tasks.filter(t => t.status !== 'running' && !t.needsChanged);
+  console.log(newTasks);
+  console.log(newTasks);
   if (window.Bridge) {
     window.Bridge.addProxies(proxies);
     window.Bridge.startTasks(newTasks, {});
   }
 
-  return { tasks: newTasks };
+  return { tasks };
 };
 
 const _copyTaskRequest = async task => {

@@ -58,7 +58,7 @@ export class TasksPrimitive extends PureComponent {
 
   stopAllTasks() {
     const { tasks, onStopAllTasks } = this.props;
-    if (tasks.length && tasks.some(t => t.status === 'running')) {
+    if (tasks.length && tasks.some(t => t.status === 'running' || t.status === 'bypassed')) {
       onStopAllTasks(tasks);
     }
   }

@@ -105,7 +105,7 @@ class APICheckout extends Checkout {
         monitorDelay,
       },
       proxy,
-      timers: { monitor, checkout: checkoutTimer },
+      timers: { checkout: checkoutTimer },
     } = this._context;
 
     try {
@@ -152,9 +152,9 @@ class APICheckout extends Checkout {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
-          // if (monitor.getRunTime() > CheckoutRefresh) {
-          //   return { message: 'Pinging checkout', nextState: States.PingCheckout };
-          // }
+          if (monitor.getRunTime() > CheckoutRefresh) {
+            return { message: 'Pinging checkout', nextState: States.RefreshCheckout };
+          }
           const nextState = sizes.includes('Random') ? States.Restocking : States.AddToCart;
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState };

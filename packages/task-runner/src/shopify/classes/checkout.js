@@ -6,7 +6,7 @@ const { notification } = require('./hooks');
 const { getHeaders, stateForError, userAgent } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
 const { isSpecialSite } = require('./utils/siteOptions');
-const { States, Events, Types, CheckoutTypes } = require('./utils/constants').TaskRunner;
+const { States, Events, Types, CheckoutTypes, Modes } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   get context() {
@@ -357,6 +357,7 @@ class Checkout {
         site: { url, apiKey },
       },
       proxy,
+      type,
       timers: { monitor },
     } = this._context;
 
@@ -398,7 +399,10 @@ class Checkout {
         if (redirectUrl.indexOf('checkouts') > -1) {
           [, , , this.storeId] = redirectUrl.split('/');
           [, , , , , this.checkoutToken] = redirectUrl.split('/');
-          monitor.start();
+          if (type === Modes.SAFE) {
+            monitor.start();
+            return { message: 'Parsing products', nextState: States.Monitor };
+          }
           return { message: 'Submitting information', nextState: States.PatchCheckout };
         }
       }
@@ -677,7 +681,7 @@ class Checkout {
       }
 
       if (this._context.task.isQueueBypass && !this.shouldContinue) {
-        return { message: 'Submitting shipping', nextState: States.SubmitShipping };
+        return { message: 'Bypass done. Stopping task!', status: 'bypassed', nextState: States.Finished };
       }
 
       if (this.checkoutType === CheckoutTypes.fe) {
@@ -749,7 +753,7 @@ class Checkout {
         { status },
         {
           message: 'Submiting shipping',
-          nextState: States.PostPayment,
+          nextState: States.SubmitShipping,
         },
       );
 

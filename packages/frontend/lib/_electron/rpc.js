@@ -16,26 +16,27 @@ class RPC {
     try {
       DiscordRPC.register(this.clientId);
       this.rpc = new DiscordRPC.Client({ transport: 'ipc' });
-      this.rpc.login({ clientId: this.clientId });
+      this.rpc.login({ clientId: this.clientId }).catch(console.error);
     } catch (e) {
+      console.log(e);
       // fail silently...
     }
   }
 
-  setActivity() {
-    if ((this.rpc && !this.rpc.transport.socket) || !this._context.windowManager.main) {
+  async setActivity() {
+    if (!this.rpc || !this._context.windowManager.main) {
       return;
     }
 
-    this.rpc.setActivity({
+    await this.rpc.setActivity({
       state: this.version,
       startTimestamp: this.startTimestamp,
       largeImageKey: 'logo',
       largeImageText: 'Nebula Orion',
       smallImageKey: 'twitter',
       smallImageText: '@nebulabots',
-      instance: true,
-    });
+      instance: false,
+    }).catch(console.error);
   }
 }
 

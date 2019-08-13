@@ -70,6 +70,11 @@ const TaskRunnerCheckoutTypes = {
   api: 'API',
 };
 
+const Modes = {
+  SAFE: 'SAFE',
+  FAST: 'FAST',
+};
+
 const TaskRunnerHarvestStates = {
   idle: 'IDLE',
   start: 'START',
@@ -123,7 +128,7 @@ const PollQueueStateToNextState = {
   }),
 };
 
-const CheckoutRefreshTimeout = 420000;
+const CheckoutRefreshTimeout = 900000;
 
 module.exports = {
   TaskManager: {
@@ -131,6 +136,7 @@ module.exports = {
   },
   TaskRunner: {
     Types: TaskRunnerTypes,
+    Modes,
     Events: TaskRunnerEvents,
     States: TaskRunnerStates,
     StateMap: PollQueueStateToNextState,

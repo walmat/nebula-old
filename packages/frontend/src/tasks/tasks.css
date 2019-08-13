@@ -145,7 +145,7 @@
   background: #262626;
 }
 .tasks .tasks-create__input--type-FAST {
-  color: #858DBB;
+  color: #858dbb;
 }
 .tasks .tasks-create__input--type-SAFE {
   color: #8aa27d;
@@ -702,9 +702,13 @@
   text-align: center;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__id--FAST {
-  color: #858DBB;
+  width: 26px;
+  text-align: center;
+  color: #858dbb;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__id--SAFE {
+  width: 26px;
+  text-align: center;
   color: #8aa27d;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__product {
@@ -722,7 +726,7 @@
   vertical-align: middle;
   max-width: 200px;
   overflow: hidden;
-  color: #F68E5F;
+  color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-dark {
   width: 200px;
@@ -731,7 +735,7 @@
   vertical-align: middle;
   max-width: 200px;
   overflow: hidden;
-  color: #F5DD90;
+  color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sites {
   text-overflow: ellipsis;
@@ -740,23 +744,23 @@
 .tasks .tasks-table .tasks-row-container .tasks-row__sites--checkout-ready-light {
   text-overflow: ellipsis;
   width: 125px;
-  color: #F68E5F;
+  color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sites--checkout-ready-dark {
   text-overflow: ellipsis;
   width: 125px;
-  color: #F5DD90;
+  color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile {
   width: 125px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-light {
   width: 125px;
-  color: #F68E5F;
+  color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-dark {
   width: 125px;
-  color: #F5DD90;
+  color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile > p {
   text-overflow: ellipsis;
@@ -766,22 +770,22 @@
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-light {
   width: 65px;
-  color: #F68E5F;
+  color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-dark {
   width: 65px;
-  color: #F5DD90;
+  color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account {
   width: 65px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account--checkout-ready-light {
   width: 65px;
-  color: #F68E5F;
+  color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account--checkout-ready-dark {
   width: 65px;
-  color: #F5DD90;
+  color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions {
   width: 50px;

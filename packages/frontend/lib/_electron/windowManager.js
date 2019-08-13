@@ -239,15 +239,12 @@ class WindowManager {
         win.webContents.openDevTools();
       }
 
-      console.log('showing splash window!')
-
       // add window & id to windows map, notify other windows, and finally, show the window
       this._windows.set(win.id, win);
       this._notifyUpdateWindowIDs(win.id);
       win.show();
 
       if (win === this._main) {
-        console.log('opening main window!');
         if (this._splash) {
           this._splash.close();
         }

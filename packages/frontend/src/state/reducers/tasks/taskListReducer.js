@@ -227,17 +227,18 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       const updateTask = JSON.parse(JSON.stringify(action.response.task));
 
       // Check for the task to update
-      const foundTask = nextState.find(t => t.id === updateId);
-      if (!foundTask) {
+      const idxToUpdate = nextState.findIndex(t => t.id === updateId);
+      if (idxToUpdate < 0) {
         break;
       }
-
-      // find the index of the out of date task
-      const idxToUpdate = nextState.indexOf(foundTask);
 
       // Check if current task has been setup properly
       if (updateTask.edits) {
         // Set it up properly
+        if (updateTask.edits.product && updateTask.isQueueBypass) {
+          updateTask.needsChanged = false;
+        }
+
         updateTask.profile = updateTask.edits.profile || updateTask.profile;
         updateTask.product = updateTask.edits.product || updateTask.product;
         updateTask.site = updateTask.edits.site || updateTask.site;
@@ -385,6 +386,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       // do nothing if the task is already running..
       if (nextState[idx].status === 'running') {
         break;
+      } else if (nextState[idx].status === 'bypassed' && nextState[idx].needsChanged) {
+        nextState[idx].output = 'Change product info! Start again to bypass';
+        nextState[idx].needsChanged = false;
       } else {
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
@@ -402,9 +406,16 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
       tasks.forEach(task => {
         const idx = nextState.findIndex(t => t.id === task.id);
-        if (idx === -1) {
+        if (idx === -1 || nextState[idx].status === 'running') {
           return;
         }
+
+        if (nextState[idx].status === 'bypassed' && nextState[idx].needsChanged) {
+          nextState[idx].output = 'Change product info! Start again to bypass';
+          nextState[idx].needsChanged = false;
+          return;
+        }
+
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
         // reset the log in case any messages entered the buffer AFTER we shutdown..
@@ -473,7 +484,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.ERROR: {
-      // TODO: Handle error
       console.error(`Error trying to perform: ${action.action}! Reason: ${action.error}`);
       break;
     }

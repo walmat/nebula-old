@@ -206,24 +206,16 @@
           text-align: center;
 
           &--FAST {
+            width: 26px;
+            text-align: center;
             color: #858dbb;
           }
 
           &--SAFE {
+            width: 26px;
+            text-align: center;
             color: #8aa27d;
           }
-
-          // &--checkout-ready-light {
-          //   width: 26px;
-          //   text-align: center;
-          //   color: #F68E5F;
-          // }
-
-          // &--checkout-ready-dark {
-          //   width: 26px;
-          //   text-align: center;
-          //   color: #F5DD90;
-          // }
         }
 
         &__product {
