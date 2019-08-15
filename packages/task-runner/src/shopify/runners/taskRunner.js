@@ -33,7 +33,7 @@ class TaskRunner {
     return this._state;
   }
 
-  constructor(id, task, proxy, limiter, loggerPath, type = Types.Normal) {
+  constructor(id, task, proxy, loggerPath, type = Types.Normal) {
     // Add Ids to object
     this.id = id;
     this.taskId = task.id;
@@ -42,10 +42,7 @@ class TaskRunner {
 
     this._delayer = null;
     this._aborter = new AbortController();
-
     this._jar = new CookieJar();
-
-    this._limiter = limiter;
 
     /**
      * Create a new event emitter to handle all IPC communication
@@ -94,7 +91,6 @@ class TaskRunner {
       type,
       task,
       status: null,
-      limiter: this._limiter,
       proxy: proxy ? proxy.proxy : null,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
@@ -124,7 +120,11 @@ class TaskRunner {
     /**
      * Create a new checkout object to be used for this task
      */
-    const CheckoutCreator = getCheckoutMethod(this._context.task.site, this._context.task.type, this._logger);
+    const CheckoutCreator = getCheckoutMethod(
+      this._context.task.site,
+      this._context.task.type,
+      this._logger,
+    );
     [this._checkoutType, this._checkout] = CheckoutCreator({
       ...this._context,
       getCaptcha: this.getCaptcha.bind(this),
@@ -360,7 +360,11 @@ class TaskRunner {
 
     const { message, shouldBan, nextState } = await this._checkout.parseAccessToken();
 
-    this._emitTaskEvent({ message, apiKey: this._context.task.site.apiKey || undefined, proxy: rawProxy });
+    this._emitTaskEvent({
+      message,
+      apiKey: this._context.task.site.apiKey || undefined,
+      proxy: rawProxy,
+    });
 
     if (nextState === States.SwapProxies) {
       this._emitTaskEvent({ message: `Proxy banned!` });
@@ -492,7 +496,7 @@ class TaskRunner {
       const delay = this._context.task.monitorDelay > 2000 ? this._context.task.monitorDelay : 2000;
       this._delayer = waitForDelay(delay, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Checking queue', proxy: rawProxy })
+      this._emitTaskEvent({ message: 'Checking queue', proxy: rawProxy });
     }
 
     if (nextState) {
@@ -509,7 +513,7 @@ class TaskRunner {
       const delay = this._context.task.monitorDelay > 2000 ? this._context.task.monitorDelay : 2000;
       this._delayer = waitForDelay(delay, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Checking queue', proxy: rawProxy })
+      this._emitTaskEvent({ message: 'Checking queue', proxy: rawProxy });
     }
 
     return nextState;
@@ -646,7 +650,7 @@ class TaskRunner {
     if (nextState === States.AddToCart || nextState === States.Restocking) {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Checking stock', proxy: rawProxy })
+      this._emitTaskEvent({ message: 'Checking stock', proxy: rawProxy });
     }
 
     return nextState;

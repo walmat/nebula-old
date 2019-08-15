@@ -18,33 +18,37 @@ const TaskRunnerEvents = {
   ReceiveProxy: 'RECEIVE_PROXY',
 };
 
+const MonitorStates = {
+  PARSE: 'PARSE',
+  MATCH: 'MATCH',
+  CHECK_STOCK: 'CHECK_STOCK',
+};
+
 /**
  * Task Runner States
  */
-const TaskRunnerStates = {
-  Started: 'STARTED',
-  Login: 'LOGIN',
-  PaymentToken: 'PAYMENT_TOKEN',
-  ParseAccessToken: 'PARSE_ACCESS_TOKEN',
-  CreateCheckout: 'CREATE_CHECKOUT',
-  GetCheckout: 'GET_CHECKOUT',
-  PingCheckout: 'PING_CHECKOUT',
-  PollQueue: 'POLL_QUEUE',
-  PatchCheckout: 'PATCH_CHECKOUT',
-  Monitor: 'MONITOR',
-  Restocking: 'RESTOCKING',
-  AddToCart: 'ADD_TO_CART',
-  ShippingRates: 'SHIPPING_RATES',
-  RequestCaptcha: 'REQUEST_CAPTCHA',
-  SubmitShipping: 'SUBMIT_SHIPPING',
-  PostPayment: 'POST_PAYMENT',
-  CompletePayment: 'COMPLETE_PAYMENT',
-  PaymentProcess: 'PAYMENT_PROCESS',
-  SwapProxies: 'SWAP_PROXIES',
-  Finished: 'FINISHED',
-  Errored: 'ERRORED',
-  Aborted: 'ABORTED',
-  Stopped: 'STOPPED',
+const CheckoutStates = {
+  STARTED: 'STARTED',
+  LOGIN: 'LOGIN',
+  PAYMENT_TOKEN: 'PAYMENT_TOKEN',
+  GET_SITE_DATA: 'GET_SITE_DATA',
+  ADD_TO_CART: 'ADD_TO_CART',
+  CREATE_CHECKOUT: 'CREATE_CHECKOUT',
+  GO_TO_CHECKOUT: 'PING_CHECKOUT',
+  QUEUE: 'QUEUE',
+  SUBMIT_SHIPPING: 'SUBMIT_SHIPPING',
+  GO_TO_RATES: 'GO_TO_RATES',
+  SUBMIT_RATES: 'SUBMIT_RATES',
+  GO_TO_PAYMENT: 'GO_TO_PAYMENT',
+  SUBMIT_PAYMENT: 'SUBMIT_PAYMENT',
+  PROCESS_PAYMENT: 'PROCESS_PAYMENT',
+  CAPTCHA: 'CAPTCHA',
+  RESTOCK: 'RESTOCK',
+  SWAP: 'SWAP',
+  DONE: 'DONE',
+  ERROR: 'ERROR',
+  ABORT: 'ABORT',
+  STOP: 'STOP',
 };
 
 // Runner Type will be used on frontend, so changing
@@ -97,34 +101,35 @@ const ErrorCodes = {
 /**
  * Queue state -> next state
  */
-const PollQueueStateToNextState = {
-  [TaskRunnerStates.AddToCart]: type => {
+// TODO: Rethink this!!!!
+const QueueNextState = {
+  [CheckoutStates.ADD_TO_CART]: type => {
     if (type === TaskRunnerCheckoutTypes.fe) {
       return {
         message: 'Submitting information',
-        nextState: TaskRunnerStates.PatchCheckout,
+        nextState: CheckoutStates.PatchCheckout,
       };
     }
     return {
       message: 'Fetching shipping rates',
-      nextState: TaskRunnerStates.ShippingRates,
+      nextState: CheckoutStates.ShippingRates,
     };
   },
-  [TaskRunnerStates.CreateCheckout]: type => {
+  [CheckoutStates.CreateCheckout]: type => {
     if (type === TaskRunnerCheckoutTypes.fe) {
       return {
         message: 'Fetching shipping rates',
-        nextState: TaskRunnerStates.ShippingRates,
+        nextState: CheckoutStates.ShippingRates,
       };
     }
     return {
       message: 'Submitting information',
-      nextState: TaskRunnerStates.PatchCheckout,
+      nextState: CheckoutStates.PatchCheckout,
     };
   },
-  [TaskRunnerStates.PatchCheckout]: () => ({
+  [CheckoutStates.PatchCheckout]: () => ({
     message: 'Monitoring for product',
-    nextState: TaskRunnerStates.Monitor,
+    nextState: CheckoutStates.Monitor,
   }),
 };
 
@@ -138,13 +143,16 @@ module.exports = {
     Types: TaskRunnerTypes,
     Modes,
     Events: TaskRunnerEvents,
-    States: TaskRunnerStates,
-    StateMap: PollQueueStateToNextState,
+    States: CheckoutStates,
+    StateMap: QueueNextState,
     CheckoutTypes: TaskRunnerCheckoutTypes,
     CheckoutRefresh: CheckoutRefreshTimeout,
     DelayTypes: TaskRunnerDelayTypes,
     HookTypes: TaskRunnerHookTypes,
     HarvestStates: TaskRunnerHarvestStates,
+  },
+  Monitor: {
+    States: MonitorStates,
   },
   ErrorCodes,
 };

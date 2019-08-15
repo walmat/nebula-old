@@ -27,6 +27,8 @@ class Checkout {
     this._signal = this._context.signal;
     this._checkoutType = this._context.checkoutType;
 
+    console.log(this._checkoutType, context.type);
+
     this.shippingMethods = [];
     const preFetchedShippingRates = this._context.task.profile.rates.find(
       r => r.site.url === this._context.task.site.url,
@@ -229,8 +231,8 @@ class Checkout {
       const checkStatus = stateForError(
         { status },
         {
-          message: 'Starting task setup',
-          nextState: States.Login,
+          message: 'Logging in',
+          nextState: States.LOGIN,
         },
       );
 
@@ -241,32 +243,24 @@ class Checkout {
       const redirectUrl = headers.get('location');
 
       if (/password/i.test(redirectUrl)) {
-        return { message: 'Password page', nextState: States.Login };
+        return { message: 'Password page', nextState: States.LOGIN };
       }
 
       if (/challenge/i.test(redirectUrl)) {
-        return { message: 'Captcha needed for login', nextState: States.RequestCaptcha };
+        return { message: 'Captcha needed for login', nextState: States.CAPTCHA };
       }
 
       if (/login/i.test(redirectUrl)) {
-        return { message: 'Invalid account credentials', nextState: States.Errored };
+        return { message: 'Invalid account credentials', nextState: States.ERROR };
       }
 
       if (/account/i.test(redirectUrl)) {
-        this.needsLogin = false;
-        if (this.storeId && this.checkoutToken) {
-          if (!this.needsPatched) {
-            if (this.chosenShippingMethod.id) {
-              return { message: 'Posting payment', nextState: States.PostPayment };
-            }
-            return { message: 'Fetching shipping rates', nextState: States.ShippingRates };
-          }
-          return { message: 'Submitting information', nextState: States.PatchCheckout };
-        }
-        return { message: 'Fetching payment token', nextState: States.PaymentToken };
+        this.needsLogin = false; // update global check for login
+        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
       }
 
-      return { message: `Logging in (${status || 500})`, nextState: States.Login };
+      const message = status ? `Logging in - (${status})` : 'Logging in';
+      return { message, nextState: States.LOGIN };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
@@ -277,15 +271,15 @@ class Checkout {
 
       const nextState = stateForError(err, {
         message: 'Logging in',
-        nextState: States.Login,
+        nextState: States.LOGIN,
       });
 
       const message = err.statusCode ? `Logging in - (${err.statusCode})` : 'Logging in';
-      return nextState || { message, nextState: States.Login };
+      return nextState || { message, nextState: States.LOGIN };
     }
   }
 
-  async parseAccessToken() {
+  async getSiteData() {
     const {
       task: {
         site: { url },
@@ -293,7 +287,6 @@ class Checkout {
       proxy,
     } = this._context;
 
-    this._logger.silly('API CHECKOUT: Parsing access token');
     try {
       const res = await this._request(url, {
         method: 'GET',
@@ -309,8 +302,8 @@ class Checkout {
       const checkStatus = stateForError(
         { status },
         {
-          message: 'Starting task setup',
-          nextState: States.Login,
+          message: 'Getting site data',
+          nextState: States.GET_SITE_DATA,
         },
       );
 
@@ -319,16 +312,20 @@ class Checkout {
       }
 
       const body = await res.text();
-
       const [, accessToken] = body.match(
         /<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/,
       );
-
-      if (!accessToken) {
-        return { message: 'Invalid Shopify Site', nextState: States.Stopped };
-      }
-
+      [, this.storeId] = body.match(/"shopId":(.*),"countryCode/);
       this._context.task.site.apiKey = accessToken;
+      if (!accessToken) {
+        // check the script location as well
+        const [, exists] = body.match(/"accessToken":(.*)","betas"/);
+
+        if (!exists) {
+          return { message: 'Invalid Shopify Site', nextState: States.Stopped };
+        }
+        this._context.task.site.apiKey = exists;
+      }
       return { message: 'Creating checkout', nextState: States.CreateCheckout };
     } catch (err) {
       this._logger.error(
@@ -339,15 +336,15 @@ class Checkout {
       );
 
       const nextState = stateForError(err, {
-        message: 'Parsing access token',
-        nextState: States.ParseAccessToken,
+        message: 'Getting site data',
+        nextState: States.GET_SITE_DATA,
       });
 
       const message = err.statusCode
-        ? `Parsing access token - (${err.statusCode})`
-        : 'Parsing access token';
+        ? `Getting site data - (${err.statusCode})`
+        : 'Getting site data';
 
-      return nextState || { message, nextState: States.ParseAccessToken };
+      return nextState || { message, nextState: States.GET_SITE_DATA };
     }
   }
 
@@ -357,8 +354,6 @@ class Checkout {
         site: { url, apiKey },
       },
       proxy,
-      type,
-      timers: { monitor },
     } = this._context;
 
     try {
@@ -388,28 +383,22 @@ class Checkout {
       this._logger.silly('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
-        if (redirectUrl.indexOf('password') > -1) {
-          return { message: 'Password page', nextState: States.CreateCheckout };
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', nextState: States.CREATE_CHECKOUT };
         }
 
-        if (redirectUrl.indexOf('throttle') > -1) {
-          return { message: 'Waiting in queue', nextState: States.PollQueue };
+        if (/throttle/i.test(redirectUrl)) {
+          return { message: 'Waiting in queue', nextState: States.QUEUE };
         }
 
-        if (redirectUrl.indexOf('checkouts') > -1) {
-          [, , , this.storeId] = redirectUrl.split('/');
-          [, , , , , this.checkoutToken] = redirectUrl.split('/');
-          if (type === Modes.SAFE) {
-            monitor.start();
-            return { message: 'Parsing products', nextState: States.Monitor };
-          }
-          return { message: 'Submitting information', nextState: States.PatchCheckout };
+        if (/checkouts/i.test(redirectUrl)) {
+          [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
+          return { message: 'Sending Shipping', nextState: States.SUBMIT_SHIPPING };
         }
       }
 
-      // not sure where we are, error out...
       const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      return { message, nextState: States.CreateCheckout };
+      return { message, nextState: States.CREATE_CHECKOUT };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
@@ -420,14 +409,14 @@ class Checkout {
 
       const nextState = stateForError(err, {
         message: 'Creating checkout',
-        nextState: States.CreateCheckout,
+        nextState: States.CREATE_CHECKOUT,
       });
 
       const message = err.statusCode
         ? `Creating checkout - (${err.statusCode})`
         : 'Creating checkout';
 
-      return nextState || { message, nextState: States.CreateCheckout };
+      return nextState || { message, nextState: States.CREATE_CHECKOUT };
     }
   }
 
