@@ -39,7 +39,6 @@ class Parser {
           // {productUrl}.js contains the format we need -- just return it
           async res => {
             if (!res.ok) {
-              console.log(res);
               const err = new Error(res.message);
               err.status = res.status || 404;
               err.name = res.name;
@@ -48,7 +47,6 @@ class Parser {
             return res.json();
           },
           async error => {
-            console.log(error);
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
             err.status = error.status || 404;
@@ -60,9 +58,8 @@ class Parser {
           async res => {
 
             if (!res.ok) {
-              console.log(res);
               // Error occured, return a rejection with the status code attached
-              const err = new Error(error.message);
+              const err = new Error(res.message);
               err.status = res.status || 404;
               err.name = res.name;
               throw err;
@@ -83,7 +80,6 @@ class Parser {
             };
           },
           async error => {
-            console.log(error);
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
             err.status = error.status || 404;
@@ -100,13 +96,12 @@ class Parser {
   /**
    * Construct a new parser
    */
-  constructor(request, limiter, task, proxy, aborter, logger, name) {
+  constructor(request, task, proxy, aborter, logger, name) {
     this._logger = logger || { log: () => {} };
     this._name = name || 'Parser';
     this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
     this._request = request;
-    this._limiter = limiter;
     this._task = task;
     this._type = getParseType(task.product);
     this._aborter = aborter;

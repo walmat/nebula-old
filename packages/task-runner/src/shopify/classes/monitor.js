@@ -40,7 +40,6 @@ class Monitor {
       timeout: 60000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
-    this._limiter = this._context.limiter;
     this._delayer = this._context.delayer;
     this._signal = this._context.signal;
     this._parseType = null;
@@ -119,7 +118,10 @@ class Monitor {
         break;
     }
 
-    return { message: `${message}. Delaying ${this._context.task.monitorDelay}ms`, nextState: States.Monitor };
+    return {
+      message: `${message}. Delaying ${this._context.task.monitorDelay}ms`,
+      nextState: States.Monitor,
+    };
   }
 
   _parseAll() {
@@ -127,7 +129,6 @@ class Monitor {
     const parsers = [
       new AtomParser(
         this._request,
-        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -135,7 +136,6 @@ class Monitor {
       ),
       new JsonParser(
         this._request,
-        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -143,7 +143,6 @@ class Monitor {
       ),
       new XmlParser(
         this._request,
-        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -259,7 +258,7 @@ class Monitor {
     const { product, site } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
-    const parser = ParserCreator(this._request, this._limiter, task, proxy, this._aborter, logger);
+    const parser = ParserCreator(this._request, task, proxy, this._aborter, logger);
 
     let parsed;
     try {

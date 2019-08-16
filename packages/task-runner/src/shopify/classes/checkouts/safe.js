@@ -107,7 +107,7 @@ class SafeCheckout extends Checkout {
       if (this.chosenShippingMethod.id && this.isRestocking) {
         return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
       }
-      return { message: 'Sending information', nextState: States.SUBMIT_CUSTOMER };
+      return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
@@ -123,22 +123,6 @@ class SafeCheckout extends Checkout {
       const message = err.status ? `Adding to cart - (${err.status})` : 'Adding to cart';
 
       return nextState || { message, nextState: States.ADD_TO_CART };
-    }
-  }
-
-  async createCheckout() {
-    const { message, shouldBan, nextState } = await super.createCheckout();
-
-    switch (nextState) {
-      case States.SUBMIT_SHIPPING: {
-        return {
-          message: 'Going to checkout',
-          nextState: States.GO_TO_CHECKOUT,
-        };
-      }
-      default: {
-        return { message, shouldBan, nextState };
-      }
     }
   }
 
@@ -199,6 +183,8 @@ class SafeCheckout extends Checkout {
       }
 
       const body = await res.text();
+
+      console.log(body);
 
       fs.writeFileSync(path.join(__dirname, `${step}.html`), body);
 
@@ -275,6 +261,7 @@ class SafeCheckout extends Checkout {
       'g-recaptcha-response': this.captchaToken,
       button: '',
       checkout: {
+        secret: true,
         email: payment.email,
         buyer_accepts_marketing: 0,
         shipping_address: {
@@ -302,9 +289,11 @@ class SafeCheckout extends Checkout {
       form[`${this.checkoutToken}-count`] = this.protection.length;
     }
 
+    console.log(form);
+
     try {
       const res = await this._request(
-        `/${this.storeId}/checkouts/${this.checkoutToken}?step=contact_information`,
+        `/${this.storeId}/checkouts/${this.checkoutToken}?step=shipping_method&previous_step=contact_information`,
         {
           method: 'POST',
           agent: proxy ? new HttpsProxyAgent(proxy) : null,

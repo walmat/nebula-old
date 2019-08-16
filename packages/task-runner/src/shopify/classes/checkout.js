@@ -369,7 +369,6 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey },
-        type,
       },
       proxy,
     } = this._context;
@@ -411,10 +410,7 @@ class Checkout {
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
-          if (type === Modes.SAFE) {
-            return { message: 'Parsing products', nextState: States.MONITOR };
-          }
-          return { message: 'Sending information', nextState: States.SUBMIT_CUSTOMER };
+          return { message: 'Parsing products', nextState: States.MONITOR };
         }
       }
 
