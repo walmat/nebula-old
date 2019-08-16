@@ -27,8 +27,6 @@ class Checkout {
     this._signal = this._context.signal;
     this._checkoutType = this._context.checkoutType;
 
-    console.log(this._checkoutType, context.type);
-
     this.shippingMethods = [];
     const preFetchedShippingRates = this._context.task.profile.rates.find(
       r => r.site.url === this._context.task.site.url,
@@ -107,10 +105,10 @@ class Checkout {
     const elements = $('input#field_start').nextUntil('input#field_end', 'textarea');
 
     if (!elements || !elements.length) {
-    	return [];
+      return [];
     }
 
-    let hashes = [];
+    const hashes = [];
     elements.each((_, textarea) => {
       const hash = $(textarea).attr('id');
 
@@ -159,7 +157,7 @@ class Checkout {
         { status },
         {
           message: 'Creating payment session',
-          nextState: States.PaymentToken,
+          nextState: States.PAYMENT_TOKEN,
         },
       );
 
@@ -173,17 +171,14 @@ class Checkout {
         this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
         if (!apiKey) {
-          return { message: 'Parsing Access Token', nextState: States.ParseAccessToken };
+          return { message: 'Getting site data', nextState: States.GET_SITE_DATA };
         }
 
-        if (this._checkoutType === CheckoutTypes.fe) {
-          return { message: 'Parsing products', nextState: States.Monitor };
-        }
-        return { message: 'Creating checkout', nextState: States.CreateCheckout };
+        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
       }
       return {
         message: 'Creating payment session',
-        nextState: States.PaymentToken,
+        nextState: States.PAYMENT_TOKEN,
       };
     } catch (err) {
       this._logger.error(
@@ -195,14 +190,14 @@ class Checkout {
 
       const nextState = stateForError(err, {
         message: 'Creating payment session',
-        nextState: States.PaymentToken,
+        nextState: States.PAYMENT_TOKEN,
       });
 
       const message = err.statusCode
         ? `Creating payment session - (${err.statusCode})`
         : 'Creating payment session';
 
-      return nextState || { message, nextState: States.PaymentToken };
+      return nextState || { message, nextState: States.PAYMENT_TOKEN };
     }
   }
 
@@ -344,11 +339,11 @@ class Checkout {
         const [, exists] = body.match(/"accessToken":(.*)","betas"/);
 
         if (!exists) {
-          return { message: 'Invalid Shopify Site', nextState: States.Stopped };
+          return { message: 'Invalid Shopify Site', nextState: States.STOP };
         }
         this._context.task.site.apiKey = exists;
       }
-      return { message: 'Creating checkout', nextState: States.CreateCheckout };
+      return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Parse Access Token.\n\n %j %j',
@@ -374,6 +369,7 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey },
+        type,
       },
       proxy,
     } = this._context;
@@ -393,7 +389,7 @@ class Checkout {
         { status },
         {
           message: 'Creating checkout',
-          nextState: States.CreateCheckout,
+          nextState: States.CREATE_CHECKOUT,
         },
       );
 
@@ -415,7 +411,10 @@ class Checkout {
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
-          return { message: 'Sending Shipping', nextState: States.SUBMIT_SHIPPING };
+          if (type === Modes.SAFE) {
+            return { message: 'Parsing products', nextState: States.MONITOR };
+          }
+          return { message: 'Sending information', nextState: States.SUBMIT_CUSTOMER };
         }
       }
 
@@ -692,7 +691,11 @@ class Checkout {
       }
 
       if (this._context.task.isQueueBypass && !this.shouldContinue) {
-        return { message: 'Bypass done. Stopping task!', status: 'bypassed', nextState: States.Finished };
+        return {
+          message: 'Bypass done. Stopping task!',
+          status: 'bypassed',
+          nextState: States.Finished,
+        };
       }
 
       if (this.checkoutType === CheckoutTypes.fe) {
@@ -772,7 +775,11 @@ class Checkout {
         return checkStatus;
       }
 
-      return { message: 'Bypass done. Stopping task!', status: 'bypassed', nextState: States.Finished };
+      return {
+        message: 'Bypass done. Stopping task!',
+        status: 'bypassed',
+        nextState: States.Finished,
+      };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Submit Shipping.\n\n %j %j',

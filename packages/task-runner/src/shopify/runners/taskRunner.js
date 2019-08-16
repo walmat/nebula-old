@@ -70,7 +70,7 @@ class TaskRunner {
     /**
      * Internal Task Runner State
      */
-    this._state = States.PaymentToken;
+    this._state = States.PAYMENT_TOKEN;
 
     this._captchaQueue = null;
     this._timers = {
@@ -313,14 +313,14 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.login();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -334,14 +334,14 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.getPaymentToken();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -349,16 +349,16 @@ class TaskRunner {
     return nextState;
   }
 
-  async _handleParseAccessToken() {
+  async _handleGetSiteData() {
     const { aborted, rawProxy } = this._context;
 
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.parseAccessToken();
+    const { message, shouldBan, nextState } = await this._checkout.getSiteData();
 
     this._emitTaskEvent({
       message,
@@ -366,7 +366,7 @@ class TaskRunner {
       proxy: rawProxy,
     });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -380,14 +380,14 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.createCheckout();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -401,7 +401,7 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.pingCheckout();
@@ -420,7 +420,7 @@ class TaskRunner {
       proxy: rawProxy,
     });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -434,14 +434,14 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.patchCheckout();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -455,14 +455,14 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.refreshCheckout();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -476,7 +476,7 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     let message;
@@ -485,13 +485,13 @@ class TaskRunner {
 
     ({ message, shouldBan, nextState } = await this._checkout.pollQueue());
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
       return nextState;
     }
 
-    if (nextState === States.PollQueue) {
+    if (nextState === States.QUEUE) {
       this._emitTaskEvent({ message: 'Polling queue', proxy: rawProxy });
       const delay = this._context.task.monitorDelay > 2000 ? this._context.task.monitorDelay : 2000;
       this._delayer = waitForDelay(delay, this._aborter.signal);
@@ -509,7 +509,7 @@ class TaskRunner {
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.PollQueue) {
+    if (nextState === States.QUEUE) {
       const delay = this._context.task.monitorDelay > 2000 ? this._context.task.monitorDelay : 2000;
       this._delayer = waitForDelay(delay, this._aborter.signal);
       await this._delayer;
@@ -525,17 +525,17 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._monitor.run();
 
     if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
       this._emitTaskEvent({ message: 'Pinging checkout', proxy: rawProxy });
-      return States.RefreshCheckout;
+      return States.PING_CHECKOUT;
     }
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
       return nextState;
@@ -550,7 +550,7 @@ class TaskRunner {
       proxy: rawProxy,
     });
 
-    if (nextState === States.Monitor) {
+    if (nextState === States.MONITOR) {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Parsing products', proxy: rawProxy });
@@ -565,12 +565,12 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
       this._emitTaskEvent({ message: 'Pinging checkout', proxy: rawProxy });
-      return States.RefreshCheckout;
+      return States.PING_CHECKOUT;
     }
 
     let res;
@@ -579,7 +579,7 @@ class TaskRunner {
     } catch (err) {
       if (err.code === ErrorCodes.RestockingNotSupported) {
         // If restock monitoring is not supported, go straight to ATC
-        return States.AddToCart;
+        return States.ADD_TO_CART;
       }
     }
 
@@ -594,38 +594,17 @@ class TaskRunner {
       proxy: rawProxy,
     });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
 
-    if (nextState === States.Restocking) {
+    if (nextState === States.RESTOCK) {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Checking stock', rawProxy });
     }
     // Restock Monitor will be in charge of choosing the next state
-    return nextState;
-  }
-
-  async _handleSubmitShipping() {
-    const { aborted, rawProxy } = this._context;
-
-    // exit if abort is detected
-    if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const { message, shouldBan, nextState } = await this._checkout.submitShipping();
-
-    if (nextState === States.SwapProxies) {
-      this._emitTaskEvent({ message: `Proxy banned!` });
-      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
-    }
-
-    this._emitTaskEvent({ message, status, proxy: rawProxy, needsChanged: true });
-
     return nextState;
   }
 
@@ -635,48 +614,22 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.addToCart();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
 
-    if (nextState === States.AddToCart || nextState === States.Restocking) {
+    if (nextState === States.ADD_TO_CART || nextState === States.RESTOCK) {
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Checking stock', proxy: rawProxy });
-    }
-
-    return nextState;
-  }
-
-  async _handleShipping() {
-    const { aborted, rawProxy } = this._context;
-
-    // exit if abort is detected
-    if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
-    }
-
-    const { message, shouldBan, nextState } = await this._checkout.shippingRates();
-
-    this._emitTaskEvent({ message, proxy: rawProxy });
-
-    if (nextState === States.SwapProxies) {
-      this._emitTaskEvent({ message: `Proxy banned!` });
-      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
-    }
-
-    if (nextState === States.ShippingRates) {
-      this._delayer = waitForDelay(500, this._aborter.signal);
-      await this._delayer;
     }
 
     return nextState;
@@ -690,7 +643,7 @@ class TaskRunner {
         // cancel the request if it was previously started
         this._checkout.captchaTokenRequest.cancel('aborted');
       }
-      return States.Aborted;
+      return States.ABORT;
     }
 
     // start request if it hasn't started already
@@ -703,7 +656,7 @@ class TaskRunner {
       case 'pending': {
         // waiting for token, sleep for delay and then return same state to check again
         await new Promise(resolve => setTimeout(resolve, 2000));
-        return States.RequestCaptcha;
+        return States.CAPTCHA;
       }
       case 'fulfilled': {
         // token was returned, store it and remove the request
@@ -712,8 +665,8 @@ class TaskRunner {
         // We have the token, so suspend harvesting for now
         this.suspendHarvestCaptcha();
 
-        if (this._prevState === States.PostPayment) {
-          return States.CompletePayment;
+        if (this._prevState === States.SUBMIT_PAYMENT) {
+          return States.COMPLETE_PAYMENT;
         }
 
         // return to the previous state
@@ -728,7 +681,7 @@ class TaskRunner {
         // TODO: should we emit a status update here?
         // clear out the status so we get a generic "errored out task event"
         this._context.status = null;
-        return States.Errored;
+        return States.ERROR;
       }
       default: {
         this._logger.silly(
@@ -737,25 +690,164 @@ class TaskRunner {
         );
         // clear out the status so we get a generic "errored out task event"
         this._context.status = null;
-        return States.Errored;
+        return States.ERROR;
       }
     }
   }
 
-  async _handlePostPayment() {
+  async _handleGoToCheckout() {
     const { aborted, rawProxy } = this._context;
 
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.postPayment();
+    const { message, shouldBan, nextState } = await this._checkout.getCheckout(
+      this._state,
+      'Going to checkout',
+      'contact_information',
+      null,
+    );
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+
+    if (nextState === States.GO_TO_SHIPPING) {
+      this._delayer = waitForDelay(500, this._aborter.signal);
+      await this._delayer;
+    }
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    return nextState;
+  }
+
+  async _handleSubmitCustomer() {
+    const { aborted, rawProxy } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { message, shouldBan, nextState } = await this._checkout.submitCustomer();
+
+    this._emitTaskEvent({ message, proxy: rawProxy });
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+
+    return nextState;
+  }
+
+  async _handleGoToShipping() {
+    const { aborted, rawProxy } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { message, shouldBan, nextState } = await this._checkout.getCheckout(
+      this._state,
+      'Fetching shipping rates',
+      'shipping_method',
+      'contact_information',
+    );
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+
+    if (nextState === States.GO_TO_SHIPPING) {
+      this._delayer = waitForDelay(500, this._aborter.signal);
+      await this._delayer;
+    }
+
+    this._emitTaskEvent({ message, proxy: rawProxy });
+
+    return nextState;
+  }
+
+  async _handleSubmitShipping() {
+    const { aborted, rawProxy } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { message, shouldBan, nextState } = await this._checkout.submitShipping();
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+
+    if (nextState === States.SUBMIT_SHIPPING) {
+      this._delayer = waitForDelay(500, this._aborter.signal);
+      await this._delayer;
+    }
+
+    if (this._context.task.isQueueBypass && nextState === States.DONE) {
+      this._emitTaskEvent({ message, status: 'bypassed', proxy: rawProxy, needsChanged: true });
+    } else {
+      this._emitTaskEvent({ message, proxy: rawProxy });
+    }
+
+    return nextState;
+  }
+
+  async _handleGoToPayment() {
+    const { aborted, rawProxy } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { message, shouldBan, nextState } = await this._checkout.getCheckout(
+      this._state,
+      'Submitting payment',
+      'payment_method',
+      'shipping_method',
+    );
+
+    this._emitTaskEvent({ message, proxy: rawProxy });
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+
+    return nextState;
+  }
+
+  async _handleSubmitPayment() {
+    const { aborted, rawProxy } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { message, shouldBan, nextState } = await this._checkout.submitPayment();
+
+    this._emitTaskEvent({ message, proxy: rawProxy });
+
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -769,14 +861,14 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, nextState } = await this._checkout.completePayment();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
@@ -790,19 +882,19 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return States.Aborted;
+      return States.ABORT;
     }
 
     const { message, shouldBan, order, nextState } = await this._checkout.paymentProcessing();
 
     this._emitTaskEvent({ message, order, proxy: rawProxy });
 
-    if (nextState === States.SwapProxies) {
+    if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
 
-    if (nextState === States.PaymentProcess) {
+    if (nextState === States.PROCESS_PAYMENT) {
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
     }
@@ -857,15 +949,15 @@ class TaskRunner {
   _generateEndStateHandler(state) {
     let status = 'stopped';
     switch (state) {
-      case States.Aborted: {
+      case States.ABORT: {
         status = 'aborted';
         break;
       }
-      case States.Errored: {
+      case States.ERROR: {
         status = 'errored out';
         break;
       }
-      case States.Finished: {
+      case States.DONE: {
         status = 'finished';
         break;
       }
@@ -878,7 +970,7 @@ class TaskRunner {
         message: this._context.status || `Task has ${status}`,
         done: true,
       });
-      return States.Stopped;
+      return States.STOP;
     };
   }
 
@@ -890,27 +982,30 @@ class TaskRunner {
     this._logger.silly('Handling state: %s', currentState);
 
     const stepMap = {
-      [States.Login]: this._handleLogin,
-      [States.PaymentToken]: this._handlePaymentToken,
-      [States.ParseAccessToken]: this._handleParseAccessToken,
-      [States.CreateCheckout]: this._handleCreateCheckout,
-      [States.PingCheckout]: this._handlePingCheckout,
-      [States.PollQueue]: this._handlePollQueue,
-      [States.PatchCheckout]: this._handlePatchCheckout,
-      [States.RefreshCheckout]: this._handleRefreshCheckout,
-      [States.Monitor]: this._handleMonitor,
-      [States.Restocking]: this._handleRestocking,
-      [States.AddToCart]: this._handleAddToCart,
-      [States.ShippingRates]: this._handleShipping,
-      [States.RequestCaptcha]: this._handleRequestCaptcha,
-      [States.SubmitShipping]: this._handleSubmitShipping,
-      [States.PostPayment]: this._handlePostPayment,
-      [States.CompletePayment]: this._handleCompletePayment,
-      [States.PaymentProcess]: this._handlePaymentProcess,
-      [States.SwapProxies]: this._handleSwapProxies,
-      [States.Finished]: this._generateEndStateHandler(States.Finished),
-      [States.Errored]: this._generateEndStateHandler(States.Errored),
-      [States.Aborted]: this._generateEndStateHandler(States.Aborted),
+      [States.LOGIN]: this._handleLogin,
+      [States.PAYMENT_TOKEN]: this._handlePaymentToken,
+      [States.GET_SITE_DATA]: this._handleGetSiteData,
+      [States.CREATE_CHECKOUT]: this._handleCreateCheckout,
+      // [States.PingCheckout]: this._handlePingCheckout,
+      [States.QUEUE]: this._handlePollQueue,
+      // [States.PatchCheckout]: this._handlePatchCheckout,
+      // [States.RefreshCheckout]: this._handleRefreshCheckout,
+      [States.MONITOR]: this._handleMonitor,
+      [States.RESTOCK]: this._handleRestocking,
+      [States.ADD_TO_CART]: this._handleAddToCart,
+      [States.GO_TO_CHECKOUT]: this._handleGoToCheckout,
+      [States.CAPTCHA]: this._handleRequestCaptcha,
+      [States.SUBMIT_CUSTOMER]: this._handleSubmitCustomer,
+      [States.GO_TO_SHIPPING]: this._handleGoToShipping,
+      [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,
+      [States.GO_TO_PAYMENT]: this._handleGoToPayment,
+      [States.SUBMIT_PAYMENT]: this._handlePostPayment,
+      [States.COMPLETE_PAYMENT]: this._handleCompletePayment,
+      [States.PROCESS_PAYMENT]: this._handlePaymentProcess,
+      [States.SWAP]: this._handleSwapProxies,
+      [States.DONE]: this._generateEndStateHandler(States.DONE),
+      [States.ERROR]: this._generateEndStateHandler(States.ERROR),
+      [States.ABORT]: this._generateEndStateHandler(States.ABORT),
     };
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
@@ -922,7 +1017,7 @@ class TaskRunner {
     let nextState = this._state;
 
     if (this._context.aborted) {
-      nextState = States.Aborted;
+      nextState = States.ABORT;
     }
 
     try {
@@ -930,7 +1025,7 @@ class TaskRunner {
     } catch (e) {
       if (!/aborterror/i.test(e.name)) {
         this._logger.verbose('Run loop errored out! %s', e);
-        nextState = States.Errored;
+        nextState = States.ERROR;
         return true;
       }
     }
@@ -941,7 +1036,7 @@ class TaskRunner {
       this._state = nextState;
     }
 
-    if (nextState === States.Aborted) {
+    if (nextState === States.ABORT) {
       return true;
     }
 
@@ -949,17 +1044,17 @@ class TaskRunner {
   }
 
   async start() {
-    this._prevState = States.Started;
+    this._prevState = States.STARTED;
     if (this._context.task.username && this._context.task.password) {
-      this._state = States.Login;
+      this._state = States.LOGIN;
     }
 
     if (this._context.task.isQueueBypass && this._context.task.checkoutUrl) {
-      this._state = States.Monitor;
+      this._state = States.MONITOR;
     }
 
     let shouldStop = false;
-    while (this._state !== States.Stopped && !shouldStop) {
+    while (this._state !== States.STOP && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.runSingleLoop();
     }
