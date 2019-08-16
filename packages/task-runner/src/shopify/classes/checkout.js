@@ -56,6 +56,7 @@ class Checkout {
     this.checkoutToken = null;
     this.checkoutKey = null;
     this.storeId = null;
+    this.protection = [];
     this.needsCaptcha = false;
     this.shouldContinue = false;
 
@@ -100,6 +101,27 @@ class Checkout {
       this._context.status = payload.message;
       this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
     }
+  }
+
+  async parseBotProtection($) {
+    const elements = $('input#field_start').nextUntil('input#field_end', 'textarea');
+
+    if (!elements || !elements.length) {
+    	return [];
+    }
+
+    let hashes = [];
+    elements.each((_, textarea) => {
+      const hash = $(textarea).attr('id');
+
+      this._logger.debug('BOT PROTECTION HASH: ', hash);
+      if (!hash) {
+        return;
+      }
+      hashes.push(hash);
+    });
+
+    return hashes;
   }
 
   async addToCart() {
