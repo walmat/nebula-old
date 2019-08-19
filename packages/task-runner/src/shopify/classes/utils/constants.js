@@ -104,7 +104,6 @@ const ErrorCodes = {
 /**
  * Queue state -> next state
  */
-// TODO: Rethink this!!!!
 const QueueNextState = {
   [CheckoutStates.ADD_TO_CART]: type => {
     if (type === TaskRunnerCheckoutTypes.fe) {

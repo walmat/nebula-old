@@ -201,7 +201,6 @@ class SafeCheckout extends Checkout {
       }
 
       const body = await res.text();
-
       const $ = cheerio.load(body);
 
       this.protection = await this.parseBotProtection($);
@@ -450,7 +449,6 @@ class SafeCheckout extends Checkout {
     }
 
     params = params.replace(/\s/g, '+');
-    console.log(params);
 
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
@@ -746,7 +744,6 @@ class SafeCheckout extends Checkout {
     }
 
     params = params.replace(/\s/g, '+');
-    console.log(params);
 
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {

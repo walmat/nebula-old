@@ -636,8 +636,11 @@ class Checkout {
       id,
     } = this._context;
 
-    if (checkout.getRunTime() > 20000) {
-      return { message: 'Processing timed out, check email', nextState: States.DONE };
+    if (checkout.getRunTime() > 10000) {
+      return {
+        message: 'Timeout, re-submitting payment',
+        nextState: States.SUBMIT_PAYMENT,
+      };
     }
 
     try {
@@ -724,11 +727,9 @@ class Checkout {
 
         if (paymentProcessingErrorMessage !== null) {
           if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
-            // TODO : restock mode...
             return { message: 'Payment failed (OOS)', nextState: States.RESTOCK };
           }
 
-          // TODO : restock mode...
           return { message: 'Payment failed', nextState: States.RESTOCK };
         }
       }

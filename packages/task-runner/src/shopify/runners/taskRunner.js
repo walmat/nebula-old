@@ -457,7 +457,7 @@ class TaskRunner {
     const { message, shouldBan, nextState } = await this._monitor.run();
 
     if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
-      this._emitTaskEvent({ message: 'Pinging checkout', proxy: rawProxy });
+      this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
       return States.GO_TO_CHECKOUT;
     }
 
