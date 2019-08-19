@@ -138,8 +138,6 @@ class SafeCheckout extends Checkout {
       ? `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}?previous_step=${prevStep}`
       : `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}`;
 
-    console.log(stepUrl);
-
     try {
       const res = await this._request(stepUrl, {
         method: 'GET',
@@ -300,7 +298,7 @@ class SafeCheckout extends Checkout {
             'Upgrade-Insecure-Requests': '1',
             'X-Shopify-Storefront-Access-Token': `${apiKey}`,
           },
-          body: form,
+          body: JSON.stringify(form),
         },
       );
 
