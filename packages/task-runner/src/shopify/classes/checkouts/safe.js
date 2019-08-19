@@ -4,9 +4,6 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 import Checkout from '../checkout';
 
-const fs = require('fs');
-const path = require('path');
-
 const { States } = require('../utils/constants').TaskRunner;
 const { getHeaders, stateForError, userAgent } = require('../utils');
 const { addToCart } = require('../utils/forms');
@@ -17,6 +14,7 @@ class SafeCheckout extends Checkout {
 
     switch (nextState) {
       case States.CREATE_CHECKOUT: {
+        // TODO: Fix this when splitting out monitor code
         // if (!this._context.task.product.variants || !this._context.task.product.variants.length) {
         //   return {
         //     message: 'Waiting for product',
@@ -45,7 +43,7 @@ class SafeCheckout extends Checkout {
   async addToCart() {
     const {
       task: {
-        site: { name },
+        site: { url, name },
         product: { variants, hash },
         monitorDelay,
       },
@@ -58,6 +56,9 @@ class SafeCheckout extends Checkout {
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
         },
         body: JSON.stringify(addToCart(variants[0], name, hash)),
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
@@ -94,7 +95,7 @@ class SafeCheckout extends Checkout {
         }
       }
 
-      const body = await res.text();
+      const body = await res.json();
 
       if (/cannot find variant/i.test(body)) {
         this._emitTaskEvent({ message: `Variant not live, delaying ${monitorDelay}ms` });
@@ -104,9 +105,20 @@ class SafeCheckout extends Checkout {
         };
       }
 
+      const { price } = body;
+
+      if (price) {
+        this.prices.item = price;
+      }
+
       if (this.chosenShippingMethod.id && this.isRestocking) {
         return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
       }
+
+      if (/eflash/i.test(url) || /palace/i.test(url)) {
+        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+      }
+
       return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
     } catch (err) {
       this._logger.error(
@@ -130,6 +142,7 @@ class SafeCheckout extends Checkout {
     const {
       task: {
         site: { url, apiKey },
+        monitorDelay,
       },
       proxy,
     } = this._context;
@@ -137,8 +150,6 @@ class SafeCheckout extends Checkout {
     const stepUrl = prevStep
       ? `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}?previous_step=${prevStep}`
       : `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}`;
-
-    console.log(stepUrl);
 
     try {
       const res = await this._request(stepUrl, {
@@ -151,6 +162,9 @@ class SafeCheckout extends Checkout {
           Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
         },
       });
 
@@ -180,13 +194,13 @@ class SafeCheckout extends Checkout {
         if (/throttle/i.test(redirectUrl)) {
           return { message: 'Waiting in queue', nextState: States.QUEUE };
         }
+
+        if (/stock_problems/i.test(redirectUrl)) {
+          return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: state };
+        }
       }
 
       const body = await res.text();
-
-      console.log(body);
-
-      fs.writeFileSync(path.join(__dirname, `${step}.html`), body);
 
       const $ = cheerio.load(body);
 
@@ -204,10 +218,22 @@ class SafeCheckout extends Checkout {
         }
       }
 
-      if (/captcha/i.test(body)) {
+      if (/captcha/i.test(body) && !this.captchaToken) {
         this._emitTaskEvent({ message: 'Captcha found!' });
         this.needsCaptcha = true;
         return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
+      if (step === 'payment_method' && !this.paymentGateway) {
+        this.paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+      }
+
+      if (step === 'shipping_method' && !this.chosenShippingMethod.id) {
+        this.chosenShippingMethod.id = $('.radio-wrapper').attr('data-shipping-method');
+      }
+
+      if (this._context.task.isQueueBypass && !this.shouldContinue) {
+        return { message: 'Bypass done! Task paused', status: 'bypassed', nextState: States.DONE };
       }
 
       switch (state) {
@@ -253,63 +279,81 @@ class SafeCheckout extends Checkout {
       proxy,
     } = this._context;
 
-    const form = {
-      _method: 'patch',
-      authenticity_token: this.authToken,
-      step: 'contact_information',
-      previous_step: 'contact_information',
-      'g-recaptcha-response': this.captchaToken,
-      button: '',
-      checkout: {
-        secret: true,
-        email: payment.email,
-        buyer_accepts_marketing: 0,
-        shipping_address: {
-          first_name: shipping.firstName,
-          last_name: shipping.lastName,
-          address1: shipping.address,
-          address2: shipping.apt,
-          city: shipping.city,
-          country: shipping.country.value,
-          province: shipping.province ? shipping.province.value : '',
-          state: shipping.province ? shipping.province.value : '',
-          zip: shipping.zipCode,
-          phone: shipping.phone,
-        },
-        client_details: {
-          browser_width: 1128,
-          browser_height: 386,
-          javascript_enabled: 1,
-        },
-      },
-    };
+    let params = `_method=patch&authenticty_token=${
+      this.authToken
+    }&previous_step=contact_information&step=shipping_method&checkout%5Bemail%5D=${
+      payment.email
+    }&checkout%5Bbuyer_accepts_marketing%5D=0&checkout%5Bshipping_address%5D%5Bfirst_name%5D=${
+      shipping.firstName
+    }&checkout%5Bshipping_address%5D%5Blast_name%5D=${
+      shipping.lastName
+    }&checkout%5Bshipping_address%5D%5Baddress1%5D=${
+      shipping.address
+    }&checkout%5Bshipping_address%5D%5Baddress2%5D=${
+      shipping.apt
+    }&checkout%5Bshipping_address%5D%5Bcity%5D=${
+      shipping.city
+    }&checkout%5Bshipping_address%5D%5Bcountry%5D=${
+      shipping.country.label
+    }&checkout%5Bshipping_address%5D%5Bprovince%5D=${
+      shipping.provice ? shipping.province.value : ''
+    }&checkout%5Bshipping_address%5D%5Bzip%5D=${
+      shipping.zipCode
+    }&checkout%5Bshipping_address%5D%5Bphone%5D=${
+      shipping.phone
+    }&checkout%5Bshipping_address%5D%5Bfirst_name%5D=${
+      shipping.firstName
+    }&checkout%5Bshipping_address%5D%5Blast_name%5D=${
+      shipping.lastName
+    }&checkout%5Bshipping_address%5D%5Baddress1%5D=${
+      shipping.address
+    }&checkout%5Bshipping_address%5D%5Baddress2%5D=${
+      shipping.apt
+    }&checkout%5Bshipping_address%5D%5Bcity%5D=${
+      shipping.city
+    }&checkout%5Bshipping_address%5D%5Bcountry%5D=${
+      shipping.country.label
+    }&checkout%5Bshipping_address%5D%5Bprovince%5D=${
+      shipping.province ? shipping.province.value : ''
+    }&checkout%5Bshipping_address%5D%5Bzip%5D=${
+      shipping.zipCode
+    }&checkout%5Bshipping_address%5D%5Bphone%5D=${
+      shipping.phone
+    }&checkout%5Bremember_me%5D=false&checkout%5Bremember_me%5D=0&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1358&checkout%5Bclient_details%5D%5Bbrowser_height%5D=655&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
 
     if (this.protection.length) {
-      this.protection.map(hash => (form[hash] = ''));
-      form[`${this.checkoutToken}-count`] = this.protection.length;
+      this.protection.map(hash => (params += `&${hash}=`));
+      params += `&${this.checkoutToken}-count=${this.protection.length}`;
     }
 
-    console.log(form);
+    if (this.captchaToken) {
+      params += `&g-recaptcha-response=${this.captchaToken}`;
+    }
+
+    params = params.replace(/\s/g, '+');
 
     try {
-      const res = await this._request(
-        `/${this.storeId}/checkouts/${this.checkoutToken}?step=shipping_method&previous_step=contact_information`,
-        {
-          method: 'POST',
-          agent: proxy ? new HttpsProxyAgent(proxy) : null,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          },
-          body: form,
+      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'follow',
+        follow: 1,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'content-type': 'application/x-www-form-urlencoded',
+          'Upgrade-Insecure-Requests': '1',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-      );
+        body: params,
+      });
 
-      const { status, headers } = res;
+      const { status } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -323,28 +367,46 @@ class SafeCheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.get('location');
-      this._logger.silly(`CHECKOUT: Submitting information redirect url: %s`, redirectUrl);
+      const body = await res.text();
 
-      // check if redirected
-      if (redirectUrl) {
-        if (/stock_problems/i.test(redirectUrl)) {
+      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+
+      if (match && match.length > 0) {
+        const [, step] = match;
+        if (/stock_problems/i.test(step)) {
           return {
             message: `Out of stock, delaying ${monitorDelay}ms`,
-            nextState: States.SUBMIT_CUSTOMER,
+            nextState: States.GO_TO_CHECKOUT,
           };
         }
 
-        if (/password/i.test(redirectUrl)) {
+        if (/captcha validation failed/i.test(body)) {
+          this.captchaToken = '';
+          return { message: 'Captcha failed!', nextState: States.GO_TO_CHECKOUT };
+        }
+
+        if (/password/i.test(step)) {
           return { message: 'Password page', nextState: States.SUBMIT_CUSTOMER };
         }
 
-        if (/throttle/i.test(redirectUrl)) {
+        if (/throttle/i.test(step)) {
           return { message: 'Waiting in queue', nextState: States.QUEUE };
+        }
+
+        if (/contact_information/i.test(step)) {
+          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+        }
+
+        if (/shipping_method/i.test(step)) {
+          return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+        }
+
+        if (/payment_method/i.test(step)) {
+          return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
         }
       }
 
-      return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+      return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
@@ -376,49 +438,42 @@ class SafeCheckout extends Checkout {
 
     const { id } = this.chosenShippingMethod;
 
-    const form = {
-      _method: 'patch',
-      authenticity_token: this.authToken,
-      step: 'payment_method',
-      previous_step: 'shipping_method',
-      button: '',
-      checkout: {
-        shipping_rate: {
-          id,
-        },
-        client_details: {
-          browser_width: 1128,
-          browser_height: 386,
-          javascript_enabled: 1,
-        },
-      },
-    };
+    let params = `_method=patch&authenticity_token=${
+      this.authToken
+    }&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
+      id,
+    )}&checkout%5Bclient_details%5D%5Bbrowser_width%5D=916&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
 
     if (this.protection.length) {
-      this.protection.map(hash => (form[hash] = ''));
-
-      form[`${this.checkoutToken}-count`] = this.protection.length;
+      this.protection.map(hash => (params += `&${hash}=`));
+      params += `&${this.checkoutToken}-count=${this.protection.length}`;
     }
 
-    try {
-      const res = await this._request(
-        `/${this.storeId}/checkouts/${this.checkoutToken}?step=shipping_method`,
-        {
-          method: 'POST',
-          agent: proxy ? new HttpsProxyAgent(proxy) : null,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          },
-          body: form,
-        },
-      );
+    params = params.replace(/\s/g, '+');
+    console.log(params);
 
-      const { status, headers } = res;
+    try {
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'follow',
+        follow: 1,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'content-type': 'application/x-www-form-urlencoded',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+        },
+        body: params,
+      });
+
+      const { status } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -432,28 +487,50 @@ class SafeCheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.get('location');
-      this._logger.silly(`CHECKOUT: Submitting shipping redirect url: %s`, redirectUrl);
+      const body = await res.text();
 
-      // check if redirected
-      if (redirectUrl) {
-        if (/stock_problems/i.test(redirectUrl)) {
+      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+      if (match && match.length > 0) {
+        const [, step] = match;
+
+        if (/stock_problems/i.test(step)) {
           return {
             message: `Out of stock, delaying ${monitorDelay}ms`,
             nextState: States.SUBMIT_SHIPPING,
           };
         }
 
-        if (/password/i.test(redirectUrl)) {
+        if (/captcha validation failed/i.test(body)) {
+          this.captchaToken = '';
+          return { message: 'Captcha failed!', nextState: States.GO_TO_CHECKOUT };
+        }
+
+        if (/password/i.test(step)) {
           return { message: 'Password page', nextState: States.SUBMIT_SHIPPING };
         }
 
-        if (/throttle/i.test(redirectUrl)) {
+        if (/throttle/i.test(step)) {
           return { message: 'Waiting in queue', nextState: States.QUEUE };
+        }
+
+        if (/contact_information/i.test(step)) {
+          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+        }
+
+        if (/shipping_method/i.test(step)) {
+          return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+        }
+
+        if (/payment_method/i.test(step)) {
+          return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
         }
       }
 
-      return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
+      if (/captcha/i.test(body)) {
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
+      return { message: 'Submitting shipping', nextState: States.GO_TO_SHIPPING };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit shipping .\n\n %j %j',
@@ -477,85 +554,151 @@ class SafeCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         profile: { billing, billingMatchesShipping },
+        monitorDelay,
       },
+      timers: { checkout },
       proxy,
     } = this._context;
 
-    let form = {
-      _method: 'patch',
-      authenticity_token: this.authToken,
-      previous_step: 'payment_method',
-      step: '',
-      complete: 1,
-      s: this.paymentToken,
-      checkout: {
-        payment_gateway: this.paymentGateway,
-        credit_card: {
-          vault: false,
-        },
-        different_billing_address: billingMatchesShipping,
-        remember_me: false,
-        vault_phone: billing.phone,
-        total_price: this.prices.total,
-        client_details: {
-          browser_width: 1128,
-          browser_height: 386,
-          javascript_enabled: 1,
-        },
-      },
-    };
+    let params = `_method=patch&authenticity_token=${encodeURIComponent(
+      this.authToken,
+    )}&previous_step=payment_method&step=&s=${
+      this.paymentToken
+    }&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bpayment_gateway%5D=${
+      this.paymentGateway
+    }&checkout%5Bdifferent_billing_address%5D=${!billingMatchesShipping}`;
 
     if (!billingMatchesShipping) {
-      form = {
-        ...form,
-        checkout: {
-          ...form.checkout,
-          checkout: {
-            billing_address: {
-              first_name: billing.firstName,
-              last_name: billing.lastName,
-              address1: billing.address,
-              address2: billing.apt,
-              company: '',
-              city: billing.city,
-              country: billing.country.value,
-              province: billing.province ? billing.province.value : '',
-              state: billing.province ? billing.province.value : '',
-              zip: billing.zipCode,
-              phone: billing.phone,
-            }
-          }
-        }
-      }
+      params += `&checkout%5Bbilling_address%5D%5Bfirst_name%5D=${
+        billing.firstName
+      }&checkout%5Bbilling_address%5D%5Blast_name%5D=${
+        billing.lastName
+      }&checkout%5Bbilling_address%5D%5Baddress1%5D=${
+        billing.address
+      }&checkout%5Bbilling_address%5D%5Baddress2%5D=${
+        billing.apt
+      }&checkout%5Bbilling_address%5D%5Bcity%5D=${
+        billing.city
+      }&checkout%5Bbilling_address%5D%5Bcountry%5D=${
+        billing.country.value
+      }&checkout%5Bbilling_address%5D%5Bprovince%5D=${
+        billing.province ? billing.province.label : ''
+      }&checkout%5Bbilling_address%5D%5Bzip%5D=${
+        billing.zipCode
+      }&checkout%5Bbilling_address%5D%5Bfirst_name%5D=${
+        billing.firstName
+      }&checkout%5Bbilling_address%5D%5Blast_name%5D=${
+        billing.lastName
+      }&checkout%5Bbilling_address%5D%5Baddress1%5D=${
+        billing.address
+      }&checkout%5Bbilling_address%5D%5Baddress2%5D=${
+        billing.apt
+      }&checkout%5Bbilling_address%5D%5Bcity%5D=${
+        billing.city
+      }&checkout%5Bbilling_address%5D%5Bcountry%5D=${
+        billing.country.label
+      }&checkout%5Bbilling_address%5D%5Bprovince%5D=${
+        billing.province ? billing.province.value : ''
+      }&checkout%5Bbilling_address%5D%5Bzip%5D=${billing.zipCode}`;
+    }
+
+    params += `&checkout%5Bremember_me%5D=false&checkout%5Bremember_me%5D=0&checkout%5Bvault_phone%5D=&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=899&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
+
+    if (this.prices.total) {
+      params += `&checkout%5Btotal_price%5D=${this.prices.total}`;
     }
 
     if (this.protection.length) {
-      this.protection.map(hash => (form[hash] = ''));
-
-      form[`${this.checkoutToken}-count`] = this.protection.length;
+      this.protection.map(hash => (params += `&${hash}=`));
+      params += `&${this.checkoutToken}-count=${this.protection.length}`;
     }
 
+    params = params.replace(/\s/g, '+');
+
     try {
-      const res = await this._request(
-        `/${this.storeId}/checkouts/${this.checkoutToken}?step=shipping_method`,
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'follow',
+        follow: 1,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'content-type': 'application/x-www-form-urlencoded',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+        },
+        body: params,
+      });
+
+      const { status } = res;
+
+      const checkStatus = stateForError(
+        { status },
         {
-          method: 'POST',
-          agent: proxy ? new HttpsProxyAgent(proxy) : null,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          },
-          body: form,
+          message: 'Submitting payment',
+          nextState: States.SUBMIT_PAYMENT,
         },
       );
 
-      // TODO: stock_problems, password, processing, etc...
+      if (checkStatus) {
+        return checkStatus;
+      }
 
-      return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+      const body = await res.text();
+
+      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+
+      if (match && match.length > 0) {
+        const [, step] = match;
+
+        if (/processing/i.test(step)) {
+          checkout.start();
+          return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+        }
+
+        if (/password/i.test(step)) {
+          return { message: 'Password page', nextState: States.SUBMIT_PAYMENT };
+        }
+
+        if (/throttle/i.test(step)) {
+          return { message: 'Waiting in queue', nextState: States.QUEUE };
+        }
+
+        if (/contact_information/i.test(step)) {
+          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+        }
+
+        if (/shipping_method/i.test(step)) {
+          return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+        }
+
+        if (/payment_method/i.test(step)) {
+          return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
+        }
+
+        if (/review/i.test(step)) {
+          return { message: 'Completing payment', nextState: States.GO_TO_REVIEW };
+        }
+      }
+
+      if (/stock_problems/i.test(body)) {
+        return {
+          message: `Out of stock, delaying ${monitorDelay}ms`,
+          nextState: States.SUBMIT_PAYMENT,
+        };
+      }
+
+      if (/captcha/i.test(body)) {
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
+      return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit shipping information .\n\n %j %j',
@@ -578,52 +721,117 @@ class SafeCheckout extends Checkout {
     const {
       task: {
         site: { url, apiKey },
+        monitorDelay,
       },
+      timers: { checkout },
       proxy,
     } = this._context;
 
-    const form = {
-      _method: 'patch',
-      authenticity_token: this.authToken,
-      complete: 1,
-      button: '',
-      checkout: {
-        total_price: this.prices.total,
-        client_details: {
-          browser_width: 1128,
-          browser_height: 386,
-          javascript_enabled: 1,
-        },
-      },
-    };
+    let params = `_method=patch&authenticity_token=${this.authToken}&complete=1&button=`;
 
-    if (this.protection.length) {
-      this.protection.map(hash => (form[hash] = ''));
-
-      form[`${this.checkoutToken}-count`] = this.protection.length;
+    if (this.prices.total) {
+      params += `&checkout%5Btotal_price%5D=${this.prices.total}`;
     }
 
+    params +=
+      '&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1';
+
+    if (this.protection.length) {
+      this.protection.map(hash => (params += `&${hash}=`));
+      params += `&${this.checkoutToken}-count=${this.protection.length}`;
+    }
+
+    if (this.captchaToken) {
+      params += `&g-recaptcha-response=${this.captchaToken}`;
+    }
+
+    params = params.replace(/\s/g, '+');
+    console.log(params);
+
     try {
-      const res = await this._request(
-        `/${this.storeId}/checkouts/${this.checkoutToken}?step=review`,
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'follow',
+        follow: 1,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'content-type': 'application/x-www-form-urlencoded',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+        },
+        body: params,
+      });
+
+      const { status } = res;
+
+      const checkStatus = stateForError(
+        { status },
         {
-          method: 'POST',
-          agent: proxy ? new HttpsProxyAgent(proxy) : null,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          },
-          body: form,
+          message: 'Submitting payment',
+          nextState: States.COMPLETE_PAYMENT,
         },
       );
 
-      // TODO: stock_problems, password, processing, etc...
+      if (checkStatus) {
+        return checkStatus;
+      }
 
-      return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+      const body = await res.text();
+
+      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+
+      if (match && match.length > 0) {
+        const [, step] = match;
+
+        if (/processing/i.test(step)) {
+          checkout.stop();
+          return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+        }
+
+        if (/password/i.test(step)) {
+          return { message: 'Password page', nextState: States.COMPLETE_PAYMENT };
+        }
+
+        if (/throttle/i.test(step)) {
+          return { message: 'Waiting in queue', nextState: States.QUEUE };
+        }
+
+        if (/contact_information/i.test(step)) {
+          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+        }
+
+        if (/shipping_method/i.test(step)) {
+          return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+        }
+
+        if (/payment_method/i.test(step)) {
+          return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
+        }
+
+        if (/review/i.test(step)) {
+          return { message: 'Completing payment', nextState: States.GO_TO_REVIEW };
+        }
+      }
+
+      if (/stock_problems/i.test(body)) {
+        return {
+          message: `Out of stock, delaying ${monitorDelay}ms`,
+          nextState: States.SUBMIT_PAYMENT,
+        };
+      }
+
+      if (/captcha/i.test(body)) {
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
+      return { message: 'Processing payment', nextState: States.COMPLETE_PAYMENT };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit shipping information .\n\n %j %j',

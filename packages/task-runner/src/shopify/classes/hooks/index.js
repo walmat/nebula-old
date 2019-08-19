@@ -3,6 +3,7 @@ const Discord = require('./discord');
 const notification = async (slack, discord, payload) => {
   const {
     success,
+    type,
     product,
     price,
     site,
@@ -18,6 +19,7 @@ const notification = async (slack, discord, payload) => {
   const promises = [
     await slack.build(
       success,
+      type,
       product,
       price,
       site,
@@ -31,6 +33,7 @@ const notification = async (slack, discord, payload) => {
     ),
     await discord.build(
       success,
+      type,
       product,
       price,
       site,
@@ -44,7 +47,20 @@ const notification = async (slack, discord, payload) => {
     ),
     await new Discord(
       'https://discordapp.com/api/webhooks/542618948634542101/U2W9S028eFVJxm40doq4DxMZo1EaLMRZMgrp2nOQoryzG_ysif8fltjhbsPbZSCfzx2J',
-    ).build(success, product, price, site, null, null, sizes, checkoutSpeed, null, null, image),
+    ).build(
+      success,
+      type,
+      product,
+      price,
+      site,
+      null,
+      null,
+      sizes,
+      checkoutSpeed,
+      null,
+      null,
+      image,
+    ),
   ];
 
   return Promise.all(promises);

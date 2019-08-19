@@ -120,7 +120,7 @@ class Monitor {
 
     return {
       message: `${message}. Delaying ${this._context.task.monitorDelay}ms`,
-      nextState: States.Monitor,
+      nextState: States.MONITOR,
     };
   }
 

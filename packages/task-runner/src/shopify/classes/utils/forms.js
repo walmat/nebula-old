@@ -77,6 +77,8 @@ const patchCheckoutForm = (billingMatchesShipping, shipping, billing, payment, c
 
 const addToCart = (variant, name, hash) => {
   const base = {
+    form_type: 'product',
+    utf8: '✓',
     id: variant,
     add: '',
   };

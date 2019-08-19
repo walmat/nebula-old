@@ -9,6 +9,7 @@ class Slack {
 
   async build(
     success = false,
+    type,
     product,
     price,
     site,
@@ -24,8 +25,8 @@ class Slack {
       const payload = {
         attachments: [
           {
-            fallback: success ? 'Successful checkout!' : 'Payment failed!',
-            title: success ? 'Successful checkout!' : 'Payment failed!',
+            fallback: success ? `Successful checkout (${type})` : 'Payment failed!',
+            title: success ? `Successful checkout (${type})` : 'Payment failed!',
             color: success ? '#46ADB4' : '#EF415E',
             fields: [
               {

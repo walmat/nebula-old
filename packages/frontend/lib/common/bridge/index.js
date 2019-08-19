@@ -1,3 +1,4 @@
+/* eslint-disable prefer-promise-reject-errors */
 const {
   remote: { dialog, app, getCurrentWindow },
   ipcRenderer,
@@ -6,9 +7,6 @@ const {
 } = require('electron');
 
 const jsonfile = require('jsonfile');
-const cryptoJSON = require('crypto-json')
-const algorithm = 'camellia-128-cbc'
-const encoding = 'hex'
 
 const IPCKeys = require('../constants');
 const nebulaEnv = require('../../_electron/env');
@@ -130,7 +128,7 @@ const _showSave = async state =>
           {
             name: 'Nebula',
             extensions: ['nebula'],
-          }
+          },
         ],
       },
       response => {
@@ -138,19 +136,12 @@ const _showSave = async state =>
           reject({ error: new Error('Canceled') });
         }
 
-        const password = 'nebulaOrionSecretPasswordHash';
-
-        const output = cryptoJSON.encrypt(
-          state, password, {encoding, algorithm}
-        )
-
-        console.log(output)
-
-        jsonfile.writeFile(response, output)
+        jsonfile
+          .writeFile(response, state)
           .then(() => resolve({ success: true }))
           .catch(error => reject({ error }));
       },
-    )
+    );
   });
 
 const _showOpen = async () =>
@@ -169,7 +160,7 @@ const _showOpen = async () =>
         properties: ['openFile'],
       },
       response => {
-        if (!response || response && !response.length) {
+        if (!response || (response && !response.length)) {
           return reject({ error: new Error('Canceled') });
         }
 
@@ -179,26 +170,18 @@ const _showOpen = async () =>
           return reject({ error: new Error('Unable to open file') });
         }
 
-        jsonfile.readFile(path)
+        return jsonfile
+          .readFile(path)
           .then(data => {
             if (!data) {
-              return reject({ error: new Error('Malformed state')});
+              return reject({ error: new Error('Malformed state') });
             }
 
-            const password = 'nebulaOrionSecretPasswordHash';
-            const state = cryptoJSON.decrypt(data, password);
-            console.log(state);
-
-            if (!state) {
-              return reject({ error: new Error('Unable to decrypt state')});
-            }
-
-
-            resolve({ success: true, data: state })
+            return resolve({ success: true, data });
           })
           .catch(error => reject({ error }));
       },
-    )
+    );
   });
 
 const _sendDebugCmd = (...params) => {

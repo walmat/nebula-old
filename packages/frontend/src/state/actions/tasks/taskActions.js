@@ -127,8 +127,7 @@ const _startTaskRequest = async (task, proxies = []) => {
 
 const _startAllTasksRequest = async (tasks, proxies = []) => {
   const newTasks = tasks.filter(t => t.status !== 'running' && !t.needsChanged);
-  console.log(newTasks);
-  console.log(newTasks);
+
   if (window.Bridge) {
     window.Bridge.addProxies(proxies);
     window.Bridge.startTasks(newTasks, {});

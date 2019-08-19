@@ -10,6 +10,7 @@ class Discord {
 
   build(
     success = false,
+    type,
     product,
     price,
     site,
@@ -23,7 +24,7 @@ class Discord {
   ) {
     if (this.hook) {
       const embed = new RichEmbed()
-        .setTitle(success ? 'Successful checkout!' : 'Payment failed!')
+        .setTitle(success ? `Successful checkout (${type})` : 'Payment failed!')
         .setColor(success ? 4631988 : 15679838)
         .setThumbnail(image)
         .setTimestamp(new Date())
@@ -33,7 +34,7 @@ class Discord {
         .addField('Order #', order ? `[${order.number}](${order.url})` : 'None', true)
         .addField('Billing Profile', profile ? `${profile}` : 'None', true)
         .addField('Size(s)', `${sizes[0]}`, true)
-        .addField('Checkout Speed (ms)', `${checkoutSpeed}`, true)
+        .addField('Checkout Speed (ms)', `${checkoutSpeed || NaN}`, true)
         .addField('Shipping Method', shippingMethod ? `${shippingMethod}` : 'None', true)
         .addField('Logger File', logger ? `${logger}` : 'None', true)
         .setFooter(

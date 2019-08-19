@@ -35,13 +35,14 @@ const CheckoutStates = {
   MONITOR: 'MONITOR',
   ADD_TO_CART: 'ADD_TO_CART',
   CREATE_CHECKOUT: 'CREATE_CHECKOUT',
-  GO_TO_CHECKOUT: 'PING_CHECKOUT',
+  GO_TO_CHECKOUT: 'GO_TO_CHECKOUT',
   QUEUE: 'QUEUE',
   SUBMIT_CUSTOMER: 'SUBMIT_CUSTOMER',
   GO_TO_SHIPPING: 'GO_TO_SHIPPING',
   SUBMIT_SHIPPING: 'SUBMIT_SHIPPING',
   GO_TO_PAYMENT: 'GO_TO_PAYMENT',
   SUBMIT_PAYMENT: 'SUBMIT_PAYMENT',
+  GO_TO_REVIEW: 'GO_TO_REVIEW',
   COMPLETE_PAYMENT: 'COMPLETE_PAYMENT',
   PROCESS_PAYMENT: 'PROCESS_PAYMENT',
   CAPTCHA: 'CAPTCHA',
@@ -109,29 +110,29 @@ const QueueNextState = {
     if (type === TaskRunnerCheckoutTypes.fe) {
       return {
         message: 'Submitting information',
-        nextState: CheckoutStates.PatchCheckout,
+        nextState: CheckoutStates.SUBMIT_CUSTOMER,
       };
     }
     return {
       message: 'Fetching shipping rates',
-      nextState: CheckoutStates.ShippingRates,
+      nextState: CheckoutStates.GO_TO_SHIPPING,
     };
   },
-  [CheckoutStates.CreateCheckout]: type => {
+  [CheckoutStates.CREATE_CHECKOUT]: type => {
     if (type === TaskRunnerCheckoutTypes.fe) {
       return {
         message: 'Fetching shipping rates',
-        nextState: CheckoutStates.ShippingRates,
+        nextState: CheckoutStates.GO_TO_SHIPPING,
       };
     }
     return {
       message: 'Submitting information',
-      nextState: CheckoutStates.PatchCheckout,
+      nextState: CheckoutStates.SUBMIT_CUSTOMER,
     };
   },
-  [CheckoutStates.PatchCheckout]: () => ({
+  [CheckoutStates.SUBMIT_CUSTOMER]: () => ({
     message: 'Monitoring for product',
-    nextState: CheckoutStates.Monitor,
+    nextState: CheckoutStates.MONITOR,
   }),
 };
 
