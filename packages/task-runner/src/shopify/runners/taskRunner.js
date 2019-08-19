@@ -531,8 +531,8 @@ class TaskRunner {
     const { message, shouldBan, nextState } = await this._monitor.run();
 
     if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
-      this._emitTaskEvent({ message: 'Pinging checkout', proxy: rawProxy });
-      return States.PING_CHECKOUT;
+      this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
+      return States.GO_TO_CHECKOUT;
     }
 
     if (nextState === States.SWAP) {
@@ -570,7 +570,7 @@ class TaskRunner {
 
     if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
       this._emitTaskEvent({ message: 'Pinging checkout', proxy: rawProxy });
-      return States.PING_CHECKOUT;
+      return States.GO_TO_CHECKOUT;
     }
 
     let res;
@@ -986,10 +986,7 @@ class TaskRunner {
       [States.PAYMENT_TOKEN]: this._handlePaymentToken,
       [States.GET_SITE_DATA]: this._handleGetSiteData,
       [States.CREATE_CHECKOUT]: this._handleCreateCheckout,
-      // [States.PingCheckout]: this._handlePingCheckout,
       [States.QUEUE]: this._handlePollQueue,
-      // [States.PatchCheckout]: this._handlePatchCheckout,
-      // [States.RefreshCheckout]: this._handleRefreshCheckout,
       [States.MONITOR]: this._handleMonitor,
       [States.RESTOCK]: this._handleRestocking,
       [States.ADD_TO_CART]: this._handleAddToCart,

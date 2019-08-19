@@ -6,7 +6,7 @@ const { notification } = require('./hooks');
 const { getHeaders, stateForError, userAgent } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
 const { isSpecialSite } = require('./utils/siteOptions');
-const { States, Events, Types, CheckoutTypes, Modes } = require('./utils/constants').TaskRunner;
+const { States, Events, Types } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   get context() {
@@ -628,8 +628,8 @@ class Checkout {
       id,
     } = this._context;
 
-    if (checkout.getRunTime() > 20000) {
-      return { message: 'Processing timed out, check email', nextState: States.Finished };
+    if (checkout.getRunTime() > 10000) {
+      return { message: 'Processing timeout, submitting payment', nextState: States.SUBMIT_PAYMENT };
     }
 
     try {
@@ -653,7 +653,7 @@ class Checkout {
         { status },
         {
           message: 'Processing payment',
-          nextState: States.PaymentProcess,
+          nextState: States.PROCESS_PAYMENT,
         },
       );
 
@@ -703,12 +703,12 @@ class Checkout {
           return {
             message: `Payment successful! Order ${orderName}`,
             order: { number: orderName, url: statusUrl },
-            nextState: States.Finished,
+            nextState: States.DONE,
           };
         }
 
         if (/your card was declined/i.test(bodyString)) {
-          return { message: 'Card declined', nextState: States.Stopped };
+          return { message: 'Card declined', nextState: States.STOP };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
@@ -716,20 +716,20 @@ class Checkout {
         if (paymentProcessingErrorMessage !== null) {
           // TODO: temporary stop special parsers from entering restock mode
           if (isSpecialSite({ name, url })) {
-            return { message: 'Payment failed', nextState: States.Stopped };
+            return { message: 'Payment failed', nextState: States.STOP };
           }
 
           if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
             // TODO : restock mode...
-            return { message: 'Payment failed (OOS)', nextState: States.Stopped };
+            return { message: 'Payment failed (OOS)', nextState: States.STOP };
           }
 
           // TODO : restock mode...
-          return { message: 'Payment failed', nextState: States.Stopped };
+          return { message: 'Payment failed', nextState: States.STOP };
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');
-      return { message: 'Processing payment', nextState: States.PaymentProcess };
+      return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Process Payment.\n\n %j %j',
@@ -740,14 +740,14 @@ class Checkout {
 
       const nextState = stateForError(err, {
         message: 'Processing payment',
-        nextState: States.PaymentProcess,
+        nextState: States.PROCESS_PAYMENT,
       });
 
       const message = err.statusCode
         ? `Processing payment - (${err.statusCode})`
         : 'Processing payment';
 
-      return nextState || { message, nextState: States.PaymentProcess };
+      return nextState || { message, nextState: States.PROCESS_PAYMENT };
     }
   }
 }
