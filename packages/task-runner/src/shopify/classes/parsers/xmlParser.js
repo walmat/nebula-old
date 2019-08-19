@@ -11,8 +11,8 @@ class XmlParser extends Parser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(request, limiter, task, proxy, aborter, logger) {
-    super(request, limiter, task, proxy, aborter, logger, 'XmlParser');
+  constructor(request, task, proxy, aborter, logger) {
+    super(request, task, proxy, aborter, logger, 'XmlParser');
   }
 
   async run() {
@@ -28,13 +28,13 @@ class XmlParser extends Parser {
         this._task.site.url,
       );
 
-      const res = await this._limiter.schedule(() => this._request('/sitemap_products_1.xml?from=1&to=299999999999999999', {
+      const res = await this._request('/sitemap_products_1.xml?from=1&to=299999999999999999', {
         method: 'GET',
         headers: {
           'User-Agent': userAgent,
         },
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
-      }));
+      });
 
       const body = await res.text();
       responseJson = await convertToJson(body);

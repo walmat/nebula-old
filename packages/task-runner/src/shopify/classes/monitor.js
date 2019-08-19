@@ -40,7 +40,6 @@ class Monitor {
       timeout: 60000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
-    this._limiter = this._context.limiter;
     this._delayer = this._context.delayer;
     this._signal = this._context.signal;
     this._parseType = null;
@@ -75,7 +74,7 @@ class Monitor {
       if (!status) {
         return;
       }
-      
+
       if (status === 403) {
         // ban is a strict hardban, so set the flag
         hardBan = true;
@@ -101,7 +100,7 @@ class Monitor {
       return {
         message: 'Proxy banned!',
         shouldBan,
-        nextState: States.SwapProxies,
+        nextState: States.SWAP,
       };
     }
 
@@ -119,7 +118,10 @@ class Monitor {
         break;
     }
 
-    return { message: `${message}. Delaying ${this._context.task.monitorDelay}ms`, nextState: States.Monitor };
+    return {
+      message: `${message}. Delaying ${this._context.task.monitorDelay}ms`,
+      nextState: States.MONITOR,
+    };
   }
 
   _parseAll() {
@@ -127,7 +129,6 @@ class Monitor {
     const parsers = [
       new AtomParser(
         this._request,
-        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -135,7 +136,6 @@ class Monitor {
       ),
       new JsonParser(
         this._request,
-        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -143,7 +143,6 @@ class Monitor {
       ),
       new XmlParser(
         this._request,
-        this._limiter,
         this._context.task,
         this._context.proxy,
         this._aborter,
@@ -165,18 +164,18 @@ class Monitor {
       if (err.code === ErrorCodes.VariantsNotMatched) {
         return {
           message: 'Unable to match variants',
-          nextState: States.Stopped,
+          nextState: States.STOP,
         };
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
-        const nextState = this._parseType === ParseType.Special ? States.Monitor : States.Restocking;
+        const nextState = this._parseType === ParseType.Special ? States.MONITOR : States.RESTOCK;
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
         return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
       return {
         message: 'Task has errored out!',
-        nextState: States.Errored,
+        nextState: States.ERROR,
       };
     }
     return { variants, sizes: chosenSizes };
@@ -209,7 +208,7 @@ class Monitor {
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Product found: ${this._context.task.product.name}`,
-      nextState: States.AddToCart,
+      nextState: States.ADD_TO_CART,
     };
   }
 
@@ -245,7 +244,7 @@ class Monitor {
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       return {
         message: `Product found: ${this._context.task.product.name}`,
-        nextState: States.AddToCart,
+        nextState: States.ADD_TO_CART,
       };
     } catch (errors) {
       // handle parsing errors
@@ -259,7 +258,7 @@ class Monitor {
     const { product, site } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
-    const parser = ParserCreator(this._request, this._limiter, task, proxy, this._aborter, logger);
+    const parser = ParserCreator(this._request, task, proxy, this._aborter, logger);
 
     let parsed;
     try {
@@ -297,14 +296,14 @@ class Monitor {
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Product found: ${this._context.task.product.name}`,
-      nextState: States.AddToCart,
+      nextState: States.ADD_TO_CART,
     };
   }
 
   async run() {
     if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return { nextState: States.Aborted };
+      return { nextState: States.ABORT };
     }
 
     this._parseType = getParseType(
@@ -319,7 +318,7 @@ class Monitor {
         // TODO: Add a way to determine if variant is correct
         this._logger.silly('MONITOR: Variant Parsing Detected');
         this._context.task.product.variants = [this._context.task.product.variant];
-        result = { message: 'Adding to cart', nextState: States.AddToCart };
+        result = { message: 'Adding to cart', nextState: States.ADD_TO_CART };
         break;
       }
       case ParseType.Url: {
@@ -342,11 +341,11 @@ class Monitor {
           'MONITOR: Unable to Monitor Type: %s -- Delaying and Retrying...',
           this._parseType,
         );
-        return { message: 'Invalid Product Input given!', nextState: States.Errored };
+        return { message: 'Invalid Product Input given!', nextState: States.ERROR };
       }
     }
     // If the next state is an error, use the message as the ending status
-    if (result.nextState === States.Errored) {
+    if (result.nextState === States.ERROR) {
       this._context.status = result.message;
     }
     return result;

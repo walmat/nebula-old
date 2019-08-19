@@ -22,7 +22,7 @@
     "afterinstall": "electron-builder install-app-deps",
     "clean": "rimraf build dist",
     "compile": "yarn run build",
-    "pack": "electron-builder --mac --linux --win --publish=always",
+    "pack": "electron-builder --mac --win --publish=always",
     "publish": "run-s clean compile pack",
     "prod": "cross-env NODE_ENV=production electron .",
     "compile-sass": "./tool/compile_css.sh",

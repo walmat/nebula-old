@@ -16,7 +16,7 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
   const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT)/.exec(code);
 
   if (/aborterror/i.test(name)) {
-    return { nextState: States.Aborted };
+    return { nextState: States.ABORT };
   }
 
   if (match) {
@@ -27,7 +27,7 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
         return {
           message: 'Swapping proxy',
           shouldBan: 0, // just swap with no ban
-          nextState: States.SwapProxies,
+          nextState: States.SWAP,
         };
       }
       // request timeout or socket freeze timeout
@@ -50,7 +50,7 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
       return {
         message: `Swapping proxy - (${status})`,
         shouldBan,
-        nextState: States.SwapProxies,
+        nextState: States.SWAP,
       };
     }
     case 429: {
@@ -63,7 +63,7 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
     case 303: {
       return {
         message: 'Waiting in queue - (303)',
-        nextState: States.PollQueue,
+        nextState: States.QUEUE,
       };
     }
     default: {

@@ -1,6 +1,5 @@
 import EventEmitter from 'eventemitter3';
 import shortid from 'shortid';
-import Bottleneck from 'bottleneck';
 
 const TaskRunner = require('../runners/taskRunner');
 const ProxyManager = require('../classes/proxyManager');
@@ -32,9 +31,6 @@ class TaskManager {
 
     // Monitors Map
     this._monitors = {};
-
-    // API Call Rate Limiters Map
-    this._limiters = {};
 
     // Handlers Map
     this._handlers = {};
@@ -365,52 +361,53 @@ class TaskManager {
     };
 
     const handlers = {};
-    const emissions = runner.type === RunnerTypes.ShippingRates ? [Events.Abort] : [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook];
+    const emissions =
+      runner.type === RunnerTypes.ShippingRates
+        ? [Events.Abort]
+        : [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook];
 
     // Generate Handlers for each event
-    emissions.forEach(
-      event => {
-        let handler;
-        switch (event) {
-          case Events.Abort: {
-            // Abort handler has a special function so use that instead of default handler
-            handler = id => {
-              if (id === runner.id || id === 'ALL') {
-                // TODO: Respect the scope of the runner's methods (issue #137)
-                runner._handleAbort(runner.id);
-              }
-            };
-            break;
-          }
-          case Events.Harvest: {
-            // Harvest handler has a special function so use that instead of default handler
-            handler = (id, token) => {
-              if (id === runner.id || id === 'ALL') {
-                // TODO: Respect the scope of the runner's methods (issue #137)
-                runner._handleHarvest(runner.id, token);
-              }
-            };
-            break;
-          }
-          case Events.SendProxy: {
-            // Send proxy has a side effect so set it then generate the handler
-            const sideEffects = (id, proxy) => {
-              // Store proxy on worker so we can release it during cleanup
-              this._runners[id].proxy = proxy;
-            };
-            handler = handlerGenerator(TaskRunner.Events.ReceiveProxy, sideEffects);
-            break;
-          }
-          default: {
-            handler = handlerGenerator(event, null);
-            break;
-          }
+    emissions.forEach(event => {
+      let handler;
+      switch (event) {
+        case Events.Abort: {
+          // Abort handler has a special function so use that instead of default handler
+          handler = id => {
+            if (id === runner.id || id === 'ALL') {
+              // TODO: Respect the scope of the runner's methods (issue #137)
+              runner._handleAbort(runner.id);
+            }
+          };
+          break;
         }
-        // Store handler for cleanup
-        handlers[event] = handler;
-        this._events.on(event, handler, this);
-      },
-    );
+        case Events.Harvest: {
+          // Harvest handler has a special function so use that instead of default handler
+          handler = (id, token) => {
+            if (id === runner.id || id === 'ALL') {
+              // TODO: Respect the scope of the runner's methods (issue #137)
+              runner._handleHarvest(runner.id, token);
+            }
+          };
+          break;
+        }
+        case Events.SendProxy: {
+          // Send proxy has a side effect so set it then generate the handler
+          const sideEffects = (id, proxy) => {
+            // Store proxy on worker so we can release it during cleanup
+            this._runners[id].proxy = proxy;
+          };
+          handler = handlerGenerator(TaskRunner.Events.ReceiveProxy, sideEffects);
+          break;
+        }
+        default: {
+          handler = handlerGenerator(event, null);
+          break;
+        }
+      }
+      // Store handler for cleanup
+      handlers[event] = handler;
+      this._events.on(event, handler, this);
+    });
     this._handlers[runner.id] = handlers;
 
     // Attach Manager Handlers to Runner Events
@@ -435,41 +432,19 @@ class TaskManager {
     runner._events.removeAllListeners();
 
     // Cleanup runner handlers
-    const emissions = runner.type === RunnerTypes.ShippingRates ? [Events.Abort] : [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook];
-    emissions.forEach(
-      event => {
-        this._events.removeListener(event, handlers[event]);
-      },
-    );
+    const emissions =
+      runner.type === RunnerTypes.ShippingRates
+        ? [Events.Abort]
+        : [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook];
+    emissions.forEach(event => {
+      this._events.removeListener(event, handlers[event]);
+    });
   }
 
   async _start([runnerId, task, openProxy, type]) {
-    let limiter = null;
-    Object.entries(this._limiters).find(([key, value]) => {
-      if (key === task.site.url) {
-        limiter = value;
-      }
-    })
-
-    if (!limiter) {
-      limiter = new Bottleneck({
-        reservoir: 80, // initial value
-        reservoirIncreaseAmount: 2,
-        reservoirIncreaseInterval: 1000, // must be divisible by 250
-        reservoirIncreaseMaximum: 80,
-       
-        // also use maxConcurrent and/or minTime for safety
-        maxConcurrent: 1000,
-        minTime: 100 // pick a value that makes sense for your use case
-      });
-      
-      // add in the limiter...
-      this._limiters[task.site.url] = limiter;
-    }
-
     let runner;
     if (type === RunnerTypes.Normal) {
-      runner = new TaskRunner(runnerId, task, openProxy, limiter, this._loggerPath);
+      runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
     } else if (type === RunnerTypes.ShippingRates) {
       runner = new ShippingRatesRunner(runnerId, task, openProxy, this._loggerPath);
     }
@@ -477,7 +452,7 @@ class TaskManager {
     if (!runner) {
       return;
     }
-    
+
     runner.site = task.site.url;
     runner.type = type;
     this._runners[runnerId] = runner;
