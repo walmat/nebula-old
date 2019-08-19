@@ -13,12 +13,12 @@ class RestockMonitor extends Monitor {
     } = this._context.task;
     const { message, shouldBan, nextState } = await super._handleParsingErrors(errors);
 
-    if (nextState !== States.Monitor && nextState !== States.Restocking) {
+    if (nextState !== States.MONITOR && nextState !== States.RESTOCK) {
       return { message, shouldBan, nextState };
     }
 
     this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-    return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: States.Restocking };
+    return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: States.RESTOCK };
   }
 
   async run() {
@@ -26,7 +26,7 @@ class RestockMonitor extends Monitor {
     // Check for Abort
     if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      return { nextState: States.Aborted };
+      return { nextState: States.ABORT };
     }
 
     // Check for restock support (product has a restock url)
@@ -72,7 +72,7 @@ class RestockMonitor extends Monitor {
     this._logger.silly('RESTOCK MONITOR: Status is OK, proceeding to checkout');
     return {
       message: `Variant restocked: ${this._context.task.product.chosenSizes}`,
-      nextState: States.AddToCart,
+      nextState: States.ADD_TO_CART,
     };
   }
 }

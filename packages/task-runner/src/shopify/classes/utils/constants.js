@@ -109,29 +109,29 @@ const QueueNextState = {
     if (type === TaskRunnerCheckoutTypes.fe) {
       return {
         message: 'Submitting information',
-        nextState: CheckoutStates.PatchCheckout,
+        nextState: CheckoutStates.SUBMIT_CUSTOMER,
       };
     }
     return {
       message: 'Fetching shipping rates',
-      nextState: CheckoutStates.ShippingRates,
+      nextState: CheckoutStates.GO_TO_SHIPPING,
     };
   },
-  [CheckoutStates.CreateCheckout]: type => {
+  [CheckoutStates.CREATE_CHECKOUT]: type => {
     if (type === TaskRunnerCheckoutTypes.fe) {
       return {
         message: 'Fetching shipping rates',
-        nextState: CheckoutStates.ShippingRates,
+        nextState: CheckoutStates.GO_TO_SHIPPING,
       };
     }
     return {
       message: 'Submitting information',
-      nextState: CheckoutStates.PatchCheckout,
+      nextState: CheckoutStates.SUBMIT_CUSTOMER,
     };
   },
-  [CheckoutStates.PatchCheckout]: () => ({
+  [CheckoutStates.SUBMIT_SHIPPING]: () => ({
     message: 'Monitoring for product',
-    nextState: CheckoutStates.Monitor,
+    nextState: CheckoutStates.MONITOR,
   }),
 };
 

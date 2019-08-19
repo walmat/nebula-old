@@ -183,11 +183,6 @@ class SafeCheckout extends Checkout {
       }
 
       const body = await res.text();
-
-      console.log(body);
-
-      fs.writeFileSync(path.join(__dirname, `${step}.html`), body);
-
       const $ = cheerio.load(body);
 
       this.protection = await this.parseBotProtection($);
