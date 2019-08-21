@@ -11,6 +11,7 @@ class Discord {
   build(
     success = false,
     type,
+    checkoutUrl,
     product,
     price,
     site,
@@ -19,7 +20,6 @@ class Discord {
     sizes,
     checkoutSpeed,
     shippingMethod,
-    logger,
     image,
   ) {
     if (this.hook) {
@@ -36,11 +36,14 @@ class Discord {
         .addField('Size(s)', `${sizes[0]}`, true)
         .addField('Checkout Speed (ms)', `${checkoutSpeed || NaN}`, true)
         .addField('Shipping Method', shippingMethod ? `${shippingMethod}` : 'None', true)
-        .addField('Logger File', logger ? `${logger}` : 'None', true)
         .setFooter(
           'Nebula Orion © 2019',
           'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
         );
+
+      if (checkoutUrl) {
+        embed.setURL(checkoutUrl);
+      }
       return this.hook.send(embed);
     }
     return null;

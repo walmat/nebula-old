@@ -51,11 +51,11 @@ class Timer {
    * @return
    */
   getRunTime(time = now()) {
-    return (time - this._start).toFixed(3);
+    return (time - this._start).toFixed(2);
   }
 
   getTotalTime() {
-    return this._total.toFixed(3);
+    return this._total.toFixed(2);
   }
 }
 

@@ -34,8 +34,6 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
     return option.toUpperCase();
   });
 
-  console.log(variantsBySize);
-
   // Get the groups in the same order as the sizes
   const mappedVariants = sizes.map(size => {
     if (size === 'Random') {
@@ -43,8 +41,6 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
       const variants = variantsBySize[Object.keys(variantsBySize)[val]];
       return variants;
     }
-
-    console.log(size);
     // Determine if we are checking for shoe sizes or not
     let sizeMatcher;
     if (/[0-9]+/.test(size)) {
@@ -52,10 +48,7 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
       sizeMatcher = s => new RegExp(`${size}`, 'i').test(s);
     } else {
       // We are matching a garment size
-      sizeMatcher = s => {
-        console.log(new RegExp(`^${size}`, 'i').test(s.trim()));
-        return !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
-      }
+      sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
     }
     const variant = Object.keys(variantsBySize).find(sizeMatcher);
     return variantsBySize[variant];

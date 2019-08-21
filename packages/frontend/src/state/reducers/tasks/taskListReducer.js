@@ -283,8 +283,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         const { type } = msg;
         if (type !== 'srr') {
           const task = taskMap[taskId];
-          const { log } = task;
           if (task) {
+            const { log } = task;
+
             const {
               message,
               size,

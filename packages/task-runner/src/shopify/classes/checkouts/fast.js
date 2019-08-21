@@ -68,12 +68,12 @@ class FastCheckout extends Checkout {
 
       // check redirects
       if (redirectUrl) {
-        if (redirectUrl.indexOf('password') > -1) {
-          return { message: 'Password page', nextState: States.CREATE_CHECKOUT };
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }
 
-        if (redirectUrl.indexOf('throttle') > -1) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+        if (/throttle/i.test(redirectUrl)) {
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
       }
 
@@ -83,18 +83,19 @@ class FastCheckout extends Checkout {
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
           if (monitor.getRunTime() > CheckoutRefresh) {
-            return { message: 'Pinging checkout', nextState: States.GO_TO_CHECKOUT };
+            return { message: 'Refreshing checkout', nextState: States.GO_TO_CHECKOUT };
           }
-          const nextState = sizes.includes('Random') ? States.Restocking : States.AddToCart;
+          const nextState = sizes.includes('Random') ? States.RESTOCK : States.ADD_TO_CART;
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState };
+          return { message: `Out of stock! Delaying ${monitorDelay}ms`, delay: true, nextState };
         }
         if (error && error.variant_id[0]) {
           if (monitor.getRunTime() > CheckoutRefresh) {
-            return { message: 'Pinging checkout', nextState: States.GO_TO_CHECKOUT };
+            return { message: 'Refreshing checkout', nextState: States.GO_TO_CHECKOUT };
           }
           return {
             message: `Variant not live! Delaying ${monitorDelay}ms`,
+            delay: true,
             nextState: States.ADD_TO_CART,
           };
         }
@@ -117,7 +118,7 @@ class FastCheckout extends Checkout {
         this.prices.item = parseFloat(totalPrice).toFixed(2);
 
         if (this._context.task.isQueueBypass && this.shouldContinue) {
-          return { message: 'Posting payment', nextState: States.SUBMIT_PAYMENT };
+          return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
         }
 
         if (this.chosenShippingMethod.id) {
@@ -126,7 +127,7 @@ class FastCheckout extends Checkout {
             parseFloat(this.prices.item) + parseFloat(this.chosenShippingMethod.price)
           ).toFixed(2);
         }
-        return { message: `Fetching checkout`, nextState: States.GO_TO_CHECKOUT };
+        return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
       }
       const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
       return { message, nextState: States.ADD_TO_CART };
@@ -250,7 +251,7 @@ class FastCheckout extends Checkout {
       proxy,
     } = this._context;
 
-    // reset monitor timer in all cases
+    // reset monitor timer
     monitor.stop();
     monitor.reset();
 
@@ -273,7 +274,7 @@ class FastCheckout extends Checkout {
       const checkStatus = stateForError(
         { status },
         {
-          message: 'Pinging checkout',
+          message: 'Refreshing checkout',
           nextState: States.GO_TO_CHECKOUT,
         },
       );
@@ -283,16 +284,16 @@ class FastCheckout extends Checkout {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly('CHECKOUT: Pinging checkout redirect url: %s', redirectUrl);
+      this._logger.silly('CHECKOUT: Get checkout redirect url: %s', redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
         // processing
-        if (redirectUrl.indexOf('password') > -1) {
-          return { message: 'Password page', nextState: States.CREATE_CHECKOUT };
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }
 
-        if (redirectUrl.indexOf('throttle') > -1) {
+        if (/throttle/i.test(redirectUrl)) {
           return { message: 'Waiting in queue', nextState: States.QUEUE };
         }
       }
@@ -324,7 +325,7 @@ class FastCheckout extends Checkout {
 
       // start the monitor timer again...
       monitor.start();
-      return { message: 'Fetching rates', nextState: States.GO_TO_SHIPPING };
+      return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Ping Checkout.\n\n %j %j',
@@ -334,13 +335,13 @@ class FastCheckout extends Checkout {
       );
 
       const nextState = stateForError(err, {
-        message: 'Pinging checkout',
+        message: 'Refreshing checkout',
         nextState: States.GO_TO_CHECKOUT,
       });
 
       const message = err.statusCode
-        ? `Pinging checkout - (${err.statusCode})`
-        : 'Pinging checkout';
+        ? `Refreshing checkout - (${err.statusCode})`
+        : 'Refreshing checkout';
 
       return nextState || { message, nextState: States.GO_TO_CHECKOUT };
     }
@@ -381,8 +382,6 @@ class FastCheckout extends Checkout {
         return { message: 'Country not supported', nextState: States.ERROR };
       }
 
-      this._logger.debug('SHIPPING RATES STATUS: ', status);
-
       const body = await res.json();
       if (body && body.errors) {
         this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', body.errors);
@@ -399,7 +398,7 @@ class FastCheckout extends Checkout {
             return { message: 'Country not supported', nextState: States.ERROR };
           }
         }
-        return { message: 'Polling for shipping rates', nextState: States.GO_TO_SHIPPING };
+        return { message: 'Polling shipping rates', delay: true, nextState: States.GO_TO_SHIPPING };
       }
 
       if (body && body.shipping_rates && body.shipping_rates.length > 0) {
@@ -424,7 +423,7 @@ class FastCheckout extends Checkout {
         return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
-      return { message: 'Polling for shipping rates', nextState: States.GO_TO_SHIPPING };
+      return { message: 'Polling shipping rates', delay: true, nextState: States.GO_TO_SHIPPING };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
@@ -451,6 +450,7 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         sizes,
+        monitorDelay,
       },
       timers: { checkout },
       proxy,
@@ -511,16 +511,17 @@ class FastCheckout extends Checkout {
 
       // check if redirected
       if (redirectUrl) {
-        if (redirectUrl.indexOf('processing') > -1) {
+        if (/processing/i.test(redirectUrl)) {
           this._context.task.checkoutSpeed = checkout.getRunTime();
+          checkout.stop();
           checkout.reset();
-          checkout.start();
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
         }
 
-        if (redirectUrl.indexOf('stock_problems') > -1) {
+        if (/stock_problems/i.test(redirectUrl)) {
           const nextState = sizes.includes('Random') ? States.RESTOCK : States.SUBMIT_PAYMENT;
-          return { message: 'Running for restocks', nextState };
+          const delay = nextState === States.SUBMIT_PAYMENT;
+          return { message: `Out of stock! Delaying ${monitorDelay}ms`, delay, nextState };
         }
       }
 
@@ -568,8 +569,6 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         sizes,
-        username,
-        password,
       },
       timers: { checkout },
       proxy,
@@ -613,37 +612,25 @@ class FastCheckout extends Checkout {
       this._logger.silly('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
-        // processing
-        if (redirectUrl.indexOf('processing') > -1) {
+        if (/processing/i.test(redirectUrl)) {
+          checkout.stop();
           checkout.reset();
-          checkout.start();
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
         }
 
-        // out of stock
-        if (redirectUrl.indexOf('stock_problems') > -1) {
+        if (/stock_problems/i.test(redirectUrl)) {
           const nextState = sizes.includes('Random') ? States.RESTOCK : States.SUBMIT_PAYMENT;
-          return { message: 'Running for restocks', nextState };
+          const delay = nextState === States.SUBMIT_PAYMENT;
+          return { message: 'Running for restocks', delay, nextState };
         }
 
-        // login needed
-        if (redirectUrl.indexOf('account') > -1) {
-          if (username && password) {
-            return { message: 'Logging in', nextState: States.LOGIN };
-          }
-          return { message: 'Account required', nextState: States.ERROR };
-        }
-
-        // password page
-        if (redirectUrl.indexOf('password') > -1) {
-          return { message: 'Password page', nextState: States.CREATE_CHECKOUT };
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }
       }
 
-      const body = await res.text();
-
+      checkout.stop();
       checkout.reset();
-      checkout.start();
       return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
     } catch (err) {
       this._logger.error(

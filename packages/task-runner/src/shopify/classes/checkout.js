@@ -3,9 +3,9 @@ import HttpsProxyAgent from 'https-proxy-agent';
 
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
-const { getHeaders, stateForError, userAgent } = require('./utils');
+const { getHeaders, stateForError, userAgent, currencyWithSymbol } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
-const { States, Events, Types } = require('./utils/constants').TaskRunner;
+const { States, Events, Types, Modes } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   get context() {
@@ -135,6 +135,7 @@ class Checkout {
       task: {
         site: { apiKey, url },
         profile: { payment, billing },
+        type,
       },
       proxy,
     } = this._context;
@@ -171,10 +172,10 @@ class Checkout {
         this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
         if (!apiKey) {
-          return { message: 'Getting site data', nextState: States.GET_SITE_DATA };
+          return { message: 'Fetching site data', nextState: States.GET_SITE_DATA };
         }
 
-        if (/eflash/i.test(url) || /palace/i.test(url)) {
+        if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
           return { message: 'Parsing products', nextState: States.MONITOR };
         }
         return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
@@ -263,15 +264,15 @@ class Checkout {
       const redirectUrl = headers.get('location');
 
       if (/password/i.test(redirectUrl)) {
-        return { message: 'Password page', nextState: States.LOGIN };
+        return { message: 'Password page', delay: true, nextState: States.LOGIN };
       }
 
       if (/challenge/i.test(redirectUrl)) {
-        return { message: 'Captcha needed for login', nextState: States.CAPTCHA };
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
       }
 
       if (/login/i.test(redirectUrl)) {
-        return { message: 'Invalid account credentials', nextState: States.ERROR };
+        return { message: 'Invalid login credentials', nextState: States.ERROR };
       }
 
       if (/account/i.test(redirectUrl)) {
@@ -372,6 +373,7 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey },
+        type,
       },
       proxy,
     } = this._context;
@@ -404,16 +406,16 @@ class Checkout {
 
       if (redirectUrl) {
         if (/password/i.test(redirectUrl)) {
-          return { message: 'Password page', nextState: States.CREATE_CHECKOUT };
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
-          if (/eflash/i.test(url) || /palace/i.test(url)) {
+          if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
             return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
           }
           return { message: 'Parsing products', nextState: States.MONITOR };
@@ -499,7 +501,7 @@ class Checkout {
       const checkStatus = stateForError(
         { status },
         {
-          message: 'Waiting in queue',
+          message: 'Polling queue',
           nextState: States.QUEUE,
         },
       );
@@ -522,7 +524,7 @@ class Checkout {
       if (status === 302) {
         redirectUrl = headers.get('location');
         if (redirectUrl && redirectUrl.indexOf('throttle') > -1) {
-          return { message: `Waiting in queue - (${status})`, nextState: States.QUEUE };
+          return { message: `Polling queue - (${status})`, nextState: States.QUEUE };
         }
         if (redirectUrl && redirectUrl.indexOf('_ctd') > -1) {
           this._logger.silly('CTD COOKIE: %s', ctd);
@@ -597,8 +599,8 @@ class Checkout {
         return { queue: 'done' };
       }
       this._logger.silly('CHECKOUT: Not passed queue, delaying 2000 ms');
-      const message = status ? `Waiting in queue - (${status})` : 'Waiting in queue';
-      return { message, nextState: States.QUEUE };
+      const message = status ? `Polling queue - (${status})` : 'Polling queue';
+      return { message, delay: true, nextState: States.QUEUE };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Poll Queue.\n\n %j %j',
@@ -607,13 +609,11 @@ class Checkout {
         err.stack,
       );
       const nextState = stateForError(err, {
-        message: 'Waiting in queue',
+        message: 'Polling queue',
         nextState: States.QUEUE,
       });
 
-      const message = err.statusCode
-        ? `Waiting in queue - (${err.statusCode})`
-        : 'Waiting in queue';
+      const message = err.statusCode ? `Polling queue - (${err.statusCode})` : 'Polling queue';
 
       return nextState || { message, nextState: States.QUEUE };
     }
@@ -623,25 +623,16 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey, name },
-        product: { chosenSizes, name: productName, url: productUrl, image },
+        product: { chosenSizes, name: productName, url: productUrl },
         profile: { profileName },
         checkoutSpeed,
         type,
       },
-      timers: { checkout },
       proxy,
       slack,
       discord,
       id,
     } = this._context;
-    const { total } = this.prices;
-
-    if (checkout.getRunTime() > 10000) {
-      return {
-        message: 'Timeout, re-submitting payment',
-        nextState: States.SUBMIT_PAYMENT,
-      };
-    }
 
     try {
       const res = await this._request(`${url}/api/checkouts/${this.checkoutToken}/payments`, {
@@ -674,27 +665,37 @@ class Checkout {
 
       const { payments } = body;
 
-      if (payments.length) {
+      if (payments && payments.length) {
         const bodyString = JSON.stringify(payments[0]);
+        const [payment] = payments;
 
-        this._logger.silly('CHECKOUT: Payments object: %j', payments[0]);
-        // success
-        if (bodyString.indexOf('thank_you') > -1) {
+        const {
+          currency,
+          payment_due: paymentDue,
+          line_items: lineItems,
+          web_url: webUrl,
+        } = payment.checkout;
+
+        const imageUrl = lineItems[0].image_url.startsWith('http')
+          ? lineItems[0].image_url
+          : `https:${lineItems[0].image_url}`;
+
+        this._logger.silly('CHECKOUT: Payment object: %j', payment);
+        if (/thank_you/i.test(bodyString)) {
           const {
-            checkout: {
-              order: { name: orderName, status_url: statusUrl },
-            },
-          } = payments[0];
+            order: { name: orderName, status_url: statusUrl },
+          } = payment.checkout;
 
           try {
             await notification(slack, discord, {
               success: true,
               type,
+              checkoutUrl: webUrl,
               product: {
                 name: productName,
                 url: productUrl,
               },
-              price: total,
+              price: currencyWithSymbol(paymentDue, currency),
               site: { name, url },
               order: {
                 number: orderName || 'None',
@@ -704,8 +705,7 @@ class Checkout {
               sizes: chosenSizes,
               checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
-              logger: `runner-${id}.log`,
-              image,
+              image: imageUrl,
             });
           } catch (err) {
             // fail silently...
@@ -723,19 +723,19 @@ class Checkout {
             await notification(slack, discord, {
               success: false,
               type,
+              checkoutUrl: webUrl,
               product: {
                 name: productName,
                 url: productUrl,
               },
-              price: total,
+              price: currencyWithSymbol(paymentDue, currency),
               site: { name, url },
               order: null,
               profile: profileName,
               sizes: chosenSizes,
               checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
-              logger: `runner-${id}.log`,
-              image,
+              image: imageUrl,
             });
           } catch (err) {
             // fail silently...
@@ -746,63 +746,58 @@ class Checkout {
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
 
         if (paymentProcessingErrorMessage !== null) {
-          if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
+          if (/no longer available/i.test(paymentProcessingErrorMessage)) {
             try {
               await notification(slack, discord, {
                 success: false,
                 type,
+                checkoutUrl: webUrl,
                 product: {
                   name: productName,
                   url: productUrl,
                 },
-                price: total,
+                price: currencyWithSymbol(paymentDue, currency),
                 site: { name, url },
-                order: {
-                  number: orderName || 'None',
-                  url: statusUrl,
-                },
+                order: null,
                 profile: profileName,
                 sizes: chosenSizes,
                 checkoutSpeed,
                 shippingMethod: this.chosenShippingMethod.id,
-                logger: `runner-${id}.log`,
-                image,
+                image: imageUrl,
               });
             } catch (err) {
               // fail silently...
             }
-            return { message: 'Payment failed (OOS)', nextState: States.RESTOCK };
+            return { message: 'Payment failed (OOS)', nextState: States.STOP };
           }
 
           try {
             await notification(slack, discord, {
               success: false,
               type,
+              checkoutUrl: webUrl,
               product: {
                 name: productName,
                 url: productUrl,
               },
-              price: total,
+              price: currencyWithSymbol(paymentDue, currency),
               site: { name, url },
-              order: {
-                number: orderName || 'None',
-                url: statusUrl,
-              },
+              order: null,
               profile: profileName,
               sizes: chosenSizes,
               checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
-              logger: `runner-${id}.log`,
-              image,
+              image: imageUrl,
             });
           } catch (err) {
+            console.log(err);
             // fail silently...
           }
-          return { message: 'Payment failed', nextState: States.RESTOCK };
+          return { message: 'Payment failed', nextState: States.STOP };
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');
-      return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+      return { message: 'Processing payment', delay: true, nextState: States.PROCESS_PAYMENT };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Process Payment.\n\n %j %j',

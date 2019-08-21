@@ -309,7 +309,11 @@ class TaskRunner {
   // MARK: State Machine Step Logic
 
   async _handleLogin() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -317,20 +321,30 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.login();
+    const { message, delay, shouldBan, nextState } = await this._checkout.login();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
   }
 
   async _handlePaymentToken() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -338,20 +352,30 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.getPaymentToken();
+    const { message, delay, shouldBan, nextState } = await this._checkout.getPaymentToken();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
   }
 
   async _handleGetSiteData() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -359,7 +383,7 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.getSiteData();
+    const { message, delay, shouldBan, nextState } = await this._checkout.getSiteData();
 
     this._emitTaskEvent({
       message,
@@ -370,13 +394,23 @@ class TaskRunner {
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
   }
 
   async _handleCreateCheckout() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -384,20 +418,30 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.createCheckout();
+    const { message, delay, shouldBan, nextState } = await this._checkout.createCheckout();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
   }
 
   async _handlePollQueue() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -406,10 +450,12 @@ class TaskRunner {
     }
 
     let message;
+    let delay;
     let shouldBan;
     let nextState;
 
-    ({ message, shouldBan, nextState } = await this._checkout.pollQueue());
+    // eslint-disable-next-line prefer-const
+    ({ message, delay, shouldBan, nextState } = await this._checkout.pollQueue());
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
@@ -417,12 +463,12 @@ class TaskRunner {
       return nextState;
     }
 
-    if (nextState === States.QUEUE) {
-      this._emitTaskEvent({ message: 'Polling queue', proxy: rawProxy });
-      const delay = this._context.task.monitorDelay > 2000 ? this._context.task.monitorDelay : 2000;
-      this._delayer = waitForDelay(delay, this._aborter.signal);
+    this._emitTaskEvent({ message: 'Polling queue', proxy: rawProxy });
+
+    if (delay) {
+      const waitFor = monitorDelay > 2000 ? monitorDelay : 2000;
+      this._delayer = waitForDelay(waitFor, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Checking queue', proxy: rawProxy });
     }
 
     if (nextState) {
@@ -431,22 +477,17 @@ class TaskRunner {
     }
 
     // poll queue map should be used to determine where to go next
-    ({ message, nextState } = StateMap[this._prevState](this._checkoutType));
-
+    ({ message, delay, nextState } = StateMap[this._prevState](this._checkoutType));
     this._emitTaskEvent({ message, proxy: rawProxy });
-
-    if (nextState === States.QUEUE) {
-      const delay = this._context.task.monitorDelay > 2000 ? this._context.task.monitorDelay : 2000;
-      this._delayer = waitForDelay(delay, this._aborter.signal);
-      await this._delayer;
-      this._emitTaskEvent({ message: 'Checking queue', proxy: rawProxy });
-    }
-
     return nextState;
   }
 
   async _handleMonitor() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -454,7 +495,7 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._monitor.run();
+    const { message, delay, shouldBan, nextState } = await this._monitor.run();
 
     if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
       this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
@@ -476,17 +517,22 @@ class TaskRunner {
       proxy: rawProxy,
     });
 
-    if (nextState === States.MONITOR) {
-      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Parsing products', proxy: rawProxy });
     }
+
     // Monitor will be in charge of choosing the next state
     return nextState;
   }
 
   async _handleRestocking() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -495,7 +541,7 @@ class TaskRunner {
     }
 
     if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
-      this._emitTaskEvent({ message: 'Pinging checkout', proxy: rawProxy });
+      this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
       return States.GO_TO_CHECKOUT;
     }
 
@@ -509,7 +555,7 @@ class TaskRunner {
       }
     }
 
-    const { message, nextState, shouldBan } = res;
+    const { message, delay, nextState, shouldBan } = res;
 
     const { chosenSizes, name } = this._context.task.product;
 
@@ -523,10 +569,11 @@ class TaskRunner {
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
     }
 
-    if (nextState === States.RESTOCK) {
-      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Checking stock', rawProxy });
     }
@@ -535,7 +582,11 @@ class TaskRunner {
   }
 
   async _handleAddToCart() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -543,17 +594,18 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.addToCart();
+    const { message, delay, shouldBan, nextState } = await this._checkout.addToCart();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
     }
 
-    if (nextState === States.ADD_TO_CART || nextState === States.RESTOCK) {
-      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Checking stock', proxy: rawProxy });
     }
@@ -639,18 +691,20 @@ class TaskRunner {
     }
 
     let message;
+    let delay;
     let status;
     let shouldBan;
     let nextState;
     if (this._context.task.type === Modes.SAFE) {
-      ({ message, status, shouldBan, nextState } = await this._checkout.getCheckout(
+      ({ message, delay, status, shouldBan, nextState } = await this._checkout.getCheckout(
         this._state,
+        this._prevState,
         'Going to checkout',
         'contact_information',
         'contact_information',
       ));
     } else {
-      ({ message, status, shouldBan, nextState } = await this._checkout.getCheckout());
+      ({ message, delay, status, shouldBan, nextState } = await this._checkout.getCheckout());
     }
 
     let checkoutUrl;
@@ -661,22 +715,42 @@ class TaskRunner {
     }
 
     if (nextState === States.SWAP) {
-      this._emitTaskEvent({ message: `Proxy banned!`, checkoutUrl });
+      this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
     }
 
-    if (nextState === States.GO_TO_CHECKOUT) {
+    if (delay) {
+      if (nextState === States.GO_TO_CHECKOUT) {
+        this._emitTaskEvent({
+          message: 'Going to checkout',
+          proxy: rawProxy,
+          checkoutUrl,
+          status,
+          needsChanged: isQueueBypass,
+        });
+      }
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
     }
 
-    this._emitTaskEvent({ message, status, proxy: rawProxy, checkoutUrl, needsChanged: isQueueBypass });
+    this._emitTaskEvent({
+      message,
+      status,
+      proxy: rawProxy,
+      checkoutUrl,
+      needsChanged: isQueueBypass,
+    });
 
     return nextState;
   }
 
   async _handleSubmitCustomer() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -684,20 +758,30 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.submitCustomer();
+    const { message, delay, shouldBan, nextState } = await this._checkout.submitCustomer();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
   }
 
   async _handleGoToShipping() {
-    const { aborted, rawProxy, task: { monitorDelay } } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -706,25 +790,28 @@ class TaskRunner {
     }
 
     let message;
+    let delay;
     let shouldBan;
     let nextState;
     if (this._context.task.type === Modes.SAFE) {
-      ({ message, shouldBan, nextState } = await this._checkout.getCheckout(
+      ({ message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
         this._state,
+        this._prevState,
         'Fetching shipping rates',
         'shipping_method',
         'contact_information',
       ));
     } else {
-      ({ message, shouldBan, nextState } = await this._checkout.shippingRates());
+      ({ message, delay, shouldBan, nextState } = await this._checkout.shippingRates());
     }
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
     }
 
-    if (nextState === States.GO_TO_SHIPPING) {
+    if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
     }
@@ -735,7 +822,11 @@ class TaskRunner {
   }
 
   async _handleSubmitShipping() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -743,24 +834,30 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.submitShipping();
+    const { message, delay, shouldBan, nextState } = await this._checkout.submitShipping();
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
     }
 
-    if (this._context.task.isQueueBypass && nextState === States.DONE) {
-      this._emitTaskEvent({ message, status: 'bypassed', proxy: rawProxy, needsChanged: true });
-    } else {
-      this._emitTaskEvent({ message, proxy: rawProxy });
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
+
+    this._emitTaskEvent({ message, proxy: rawProxy });
 
     return nextState;
   }
 
   async _handleGoToPayment() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -768,8 +865,9 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.getCheckout(
+    const { message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
       this._state,
+      this._prevState,
       'Submitting payment',
       'payment_method',
       'shipping_method',
@@ -782,9 +880,10 @@ class TaskRunner {
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
     }
 
-    if (nextState === States.GO_TO_PAYMENT) {
+    if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
     }
@@ -793,7 +892,11 @@ class TaskRunner {
   }
 
   async _handleSubmitPayment() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -801,20 +904,66 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.submitPayment();
+    const { message, delay, shouldBan, nextState } = await this._checkout.submitPayment();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
+    }
+
+    return nextState;
+  }
+
+  async _handleGoToReview() {
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
+
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
+      this._state,
+      this._prevState,
+      'Completing payment',
+      'review',
+      'payment_method',
+    );
+
+    this._emitTaskEvent({ message, proxy: rawProxy });
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
   }
 
   async _handleCompletePayment() {
-    const { aborted, rawProxy } = this._context;
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -822,13 +971,19 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, nextState } = await this._checkout.completePayment();
+    const { message, delay, shouldBan, nextState } = await this._checkout.completePayment();
 
     this._emitTaskEvent({ message, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;
@@ -843,16 +998,23 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, shouldBan, order, nextState } = await this._checkout.paymentProcessing();
+    const {
+      message,
+      delay,
+      shouldBan,
+      order,
+      nextState,
+    } = await this._checkout.paymentProcessing();
 
     this._emitTaskEvent({ message, order, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
     }
 
-    if (nextState === States.PROCESS_PAYMENT) {
+    if (delay) {
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
     }
@@ -955,6 +1117,7 @@ class TaskRunner {
       [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,
       [States.GO_TO_PAYMENT]: this._handleGoToPayment,
       [States.SUBMIT_PAYMENT]: this._handleSubmitPayment,
+      [States.GO_TO_REVIEW]: this._handleGoToReview,
       [States.COMPLETE_PAYMENT]: this._handleCompletePayment,
       [States.PROCESS_PAYMENT]: this._handlePaymentProcess,
       [States.SWAP]: this._handleSwapProxies,

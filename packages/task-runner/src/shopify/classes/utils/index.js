@@ -1,6 +1,5 @@
 const delay = require('delay');
 const now = require('performance-now');
-
 const $ = require('cheerio');
 
 const rfrl = require('./rfrl');
@@ -45,19 +44,13 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
   let shouldBan = 0;
   switch (status) {
     case 403:
+    case 429:
     case 430: {
       shouldBan = status === 403 ? 2 : 1;
       return {
         message: `Swapping proxy - (${status})`,
         shouldBan,
         nextState: States.SWAP,
-      };
-    }
-    case 429: {
-      return {
-        message: 'Too many attempts, backing off..',
-        backoff: true,
-        nextState,
       };
     }
     case 303: {
@@ -85,18 +78,6 @@ const getHeaders = ({ url, apiKey }) => ({
   host: `${url.split('/')[2]}`,
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });
-
-const autoParse = (body, response) => {
-  // FIXME: The content type string could contain additional values like the charset.
-  // Consider using the `content-type` library for a robust comparison.
-  if (response.headers['content-type'] === 'application/json') {
-    return JSON.parse(body);
-  }
-  if (response.headers['content-type'] === 'text/html') {
-    return $.load(body);
-  }
-  return body;
-};
 
 /**
  * Takes in either the pos_keywords/neg_keywords and trims the
@@ -130,6 +111,30 @@ const getRandomIntInclusive = (min, max) => {
   return Math.floor(Math.random() * (randMax - randMin + 1)) + randMin;
 };
 
+const currencyWithSymbol = (price, name) => {
+  switch (name) {
+    case 'usd':
+    case 'USD': {
+      return `$${price}`;
+    }
+    case 'cad':
+    case 'CAD': {
+      return `$${price} CAD`;
+    }
+    case 'eur':
+    case 'EUR': {
+      return `€${price}`;
+    }
+    case 'gbp':
+    case 'GBP': {
+      return `£${price}`;
+    }
+    default: {
+      return price;
+    }
+  }
+}
+
 const reflect = p => p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
 
 module.exports = {
@@ -138,10 +143,10 @@ module.exports = {
   waitForDelay,
   stateForError,
   getHeaders,
-  autoParse,
   trimKeywords,
   capitalizeFirstLetter,
   getRandomIntInclusive,
+  currencyWithSymbol,
   reflect,
   rfrl,
 };

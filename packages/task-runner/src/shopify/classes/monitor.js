@@ -120,6 +120,7 @@ class Monitor {
 
     return {
       message: `${message}. Delaying ${this._context.task.monitorDelay}ms`,
+      delay: true,
       nextState: States.MONITOR,
     };
   }
@@ -170,7 +171,7 @@ class Monitor {
       if (err.code === ErrorCodes.VariantsNotAvailable) {
         const nextState = this._parseType === ParseType.Special ? States.MONITOR : States.RESTOCK;
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-        return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState };
+        return { message: `Out of stock! Delaying ${monitorDelay}ms`, delay: true, nextState };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %s', err.message, err.stack);
       return {
@@ -196,10 +197,10 @@ class Monitor {
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     const { site } = this._context.task;
-    const { variants, sizes, nextState, message } = this._generateVariants(parsed);
+    const { variants, sizes, nextState, delay, message } = this._generateVariants(parsed);
     // check for next state (means we hit an error when generating variants)
     if (nextState) {
-      return { nextState, message };
+      return { nextState, delay, message };
     }
     this._logger.silly('MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;
@@ -230,10 +231,12 @@ class Monitor {
         fullProductInfo.title,
       );
       this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
-      const { variants, sizes, nextState, message } = this._generateVariants(fullProductInfo);
+      const { variants, sizes, nextState, delay, message } = this._generateVariants(
+        fullProductInfo,
+      );
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
-        return { nextState, message };
+        return { nextState, delay, message };
       }
       this._logger.silly('MONITOR: Variants Generated, updating context...');
       this._context.task.product.variants = variants;
@@ -279,14 +282,15 @@ class Monitor {
     let variants;
     let sizes;
     let nextState;
+    let delay;
     let message;
     if (product.variant) {
       variants = [product.variant];
     } else {
-      ({ variants, sizes, nextState, message } = this._generateVariants(parsed));
+      ({ variants, sizes, nextState, delay, message } = this._generateVariants(parsed));
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
-        return { nextState, message };
+        return { nextState, delay, message };
       }
     }
     this._logger.silly('MONITOR: Variants Generated, updating context...');

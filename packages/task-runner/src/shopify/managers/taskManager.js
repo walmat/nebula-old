@@ -204,15 +204,17 @@ class TaskManager {
     this._logger.silly('Testing %s with url: %s', type, hook);
     const payload = [
       true,
+      'SAFE',
+      null,
       { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
-      '150.00',
+      '$150.00',
       { name: 'Test Site', url: 'https://example.com' },
-      { number: '123123', url: 'https://example.com' },
+      { number: '#123123', url: 'https://example.com' },
       'Test Profile',
       ['Random'],
-      '900',
+      '1678.12',
       'shopify-Free%20Shipping-0.00',
-      'None',
+      null,
       'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
     ];
     if (type === HookTypes.discord) {

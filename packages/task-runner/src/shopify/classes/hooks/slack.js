@@ -10,6 +10,7 @@ class Slack {
   async build(
     success = false,
     type,
+    checkoutUrl,
     product,
     price,
     site,
@@ -18,15 +19,38 @@ class Slack {
     sizes,
     checkoutSpeed,
     shippingMethod,
-    logger,
     image,
   ) {
     if (this.hook) {
+      let fallback;
+      let title;
+
+      switch (success) {
+        case true: {
+          if (checkoutUrl) {
+            fallback = `<Successful checkout (${type})|${checkoutUrl}>`;
+            title = `<Successful checkout (${type})|${checkoutUrl}>`;
+          }
+          fallback = `Successful checkout (${type})`;
+          title = `Successful checkout (${type})`;
+          break;
+        }
+        default: {
+          if (checkoutUrl) {
+            fallback = `<Payment failed! (${type})|${checkoutUrl}>`;
+            title = `<Payment failed! (${type})|${checkoutUrl}>`;
+          }
+          fallback = `Payment failed! (${type})`;
+          title = `Payment failed! (${type})`;
+          break;
+        }
+      }
+
       const payload = {
         attachments: [
           {
-            fallback: success ? `Successful checkout (${type})` : `Payment failed! (${type})`,
-            title: success ? `Successful checkout (${type})` : `Payment failed! (${type})`,
+            fallback,
+            title,
             color: success ? '#46ADB4' : '#EF415E',
             fields: [
               {
@@ -46,7 +70,7 @@ class Slack {
               },
               {
                 title: 'Order #',
-                value: `<${order.url}|${order.number}>`,
+                value: order ? `<${order.url}|${order.number}>` : 'None',
                 short: true,
               },
               {
@@ -69,19 +93,17 @@ class Slack {
                 value: shippingMethod,
                 short: true,
               },
-              {
-                title: 'Logger File',
-                value: logger,
-                short: true,
-              },
             ],
             thumb_url: image,
             footer: 'Nebula Orion @ 2019',
-            footer_icon: 'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg', // TODO - host our own image
+            footer_icon:
+              'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
             ts: Math.floor(new Date().getTime() / 1000),
           },
         ],
       };
+
+      console.log(payload);
       return this.hook.send(payload);
     }
     return null;

@@ -1,8 +1,11 @@
+import HttpsProxyAgent from 'https-proxy-agent';
+import cheerio from 'cheerio';
+
 const {
   ErrorCodes,
   TaskRunner: { States },
 } = require('./utils/constants');
-const { capitalizeFirstLetter } = require('./utils');
+const { capitalizeFirstLetter, userAgent } = require('./utils');
 const { ParseType } = require('./utils/parse');
 const { Parser } = require('./parsers');
 const Monitor = require('./monitor');
@@ -10,14 +13,18 @@ const Monitor = require('./monitor');
 class RestockMonitor extends Monitor {
   async _handleParsingErrors(errors) {
     const { monitorDelay } = this._context.task;
-    const { message, shouldBan, nextState } = await super._handleParsingErrors(errors);
+    const { message, shouldBan, delay, nextState } = await super._handleParsingErrors(errors);
 
     if (nextState !== States.MONITOR && nextState !== States.RESTOCK) {
-      return { message, shouldBan, nextState };
+      return { message, delay, shouldBan, nextState };
     }
 
     this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-    return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: States.RESTOCK };
+    return {
+      message: `Out of stock! Delaying ${monitorDelay}ms`,
+      delay: true,
+      nextState: States.RESTOCK,
+    };
   }
 
   async checkStock() {
@@ -26,12 +33,15 @@ class RestockMonitor extends Monitor {
     } = this._context.task;
 
     let stock;
+
     try {
-      switch (Parser.isSpecial()) {
-        case ParseType.Special: {
+      switch (Parser.isSpecial) {
+        case true: {
+          this._logger.silly('RESTOCK MONITOR: Special restock mode...');
+
           let response;
           try {
-            this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
+            this._logger.silly('%s: Making request for %s ...', this._name, restockUrl);
 
             const res = await this._request(restockUrl, {
               method: 'GET',
@@ -44,27 +54,36 @@ class RestockMonitor extends Monitor {
 
             if (res.redirected) {
               const redirectUrl = res.url;
-      
+
               if (/password/.test(redirectUrl)) {
                 const rethrow = new Error('PasswordPage');
                 rethrow.status = ErrorCodes.PasswordPage;
                 throw rethrow;
               }
-      
-              // TODO: Maybe replace with a custom error object?
+
               const rethrow = new Error('RedirectDetected');
               rethrow.status = res.status || 500; // Use a 5xx status code to trigger a refresh delay
               throw rethrow;
             }
-      
+
             const body = await res.text();
             response = cheerio.load(body, {
               normalizeWhitespace: true,
               xmlMode: true,
             });
-
           } catch (error) {
-            throw [error];
+            this._logger.error(
+              '%s: %d ERROR making request! %s',
+              this._name,
+              error.status,
+              error.message,
+              error.stack,
+            );
+
+            const err = new Error('unable to make request');
+            err.status = error.status || 404; // Use the status code, or a 404 if no code is given
+            const rethrow = [err];
+            throw rethrow;
           }
 
           stock = await this.parseProductInfoPageForProduct.call(this, response);
@@ -78,7 +97,7 @@ class RestockMonitor extends Monitor {
             this._logger,
           );
         }
-      } 
+      }
     } catch (errors) {
       // bubble these up!
       throw errors;
@@ -118,10 +137,10 @@ class RestockMonitor extends Monitor {
       'RESTOCK MONITOR: Retrieve Full Product %s, Generating Variants List...',
       fullProductInfo.title,
     );
-    const { variants, sizes, nextState, message } = this._generateVariants(fullProductInfo);
+    const { variants, sizes, nextState, delay, message } = this._generateVariants(fullProductInfo);
     // check for next state (means we hit an error when generating variants)
     if (nextState) {
-      return { nextState, message };
+      return { nextState, delay, message };
     }
     this._logger.silly('RESTOCK MONITOR: Variants Generated, updating context...');
     this._context.task.product.variants = variants;

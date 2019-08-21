@@ -4,7 +4,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 import Checkout from '../checkout';
 
-const { States } = require('../utils/constants').TaskRunner;
+const { States, Modes } = require('../utils/constants').TaskRunner;
 const { getHeaders, stateForError, userAgent } = require('../utils');
 const { addToCart } = require('../utils/forms');
 
@@ -46,6 +46,7 @@ class SafeCheckout extends Checkout {
         site: { url, name },
         product: { variants, hash },
         monitorDelay,
+        type,
       },
       proxy,
     } = this._context;
@@ -83,11 +84,15 @@ class SafeCheckout extends Checkout {
 
       if (redirectUrl) {
         if (redirectUrl.indexOf('stock_problems') > -1) {
-          return { message: 'Running for restocks', nextState: States.ADD_TO_CART };
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.ADD_TO_CART,
+          };
         }
 
         if (redirectUrl.indexOf('password') > -1) {
-          return { message: 'Password page', nextState: States.ADD_TO_CART };
+          return { message: 'Password page', delay: true, nextState: States.ADD_TO_CART };
         }
 
         if (redirectUrl.indexOf('throttle') > -1) {
@@ -101,6 +106,7 @@ class SafeCheckout extends Checkout {
         this._emitTaskEvent({ message: `Variant not live, delaying ${monitorDelay}ms` });
         return {
           message: `Variant not live, delaying ${monitorDelay}ms`,
+          delay: true,
           nextState: States.ADD_TO_CART,
         };
       }
@@ -115,7 +121,7 @@ class SafeCheckout extends Checkout {
         return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
       }
 
-      if (/eflash/i.test(url) || /palace/i.test(url)) {
+      if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
         return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
       }
 
@@ -138,12 +144,13 @@ class SafeCheckout extends Checkout {
     }
   }
 
-  async getCheckout(state, message, step, prevStep) {
+  async getCheckout(state, prevState, message, step, prevStep) {
     const {
       task: {
         site: { url, apiKey },
         monitorDelay,
       },
+      timers: { checkout, monitor },
       proxy,
     } = this._context;
 
@@ -151,6 +158,8 @@ class SafeCheckout extends Checkout {
       ? `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}?previous_step=${prevStep}`
       : `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}`;
 
+    monitor.stop();
+    monitor.reset();
     try {
       const res = await this._request(stepUrl, {
         method: 'GET',
@@ -188,7 +197,7 @@ class SafeCheckout extends Checkout {
       // check if redirected
       if (redirectUrl) {
         if (/password/i.test(redirectUrl)) {
-          return { message: 'Password page', nextState: state };
+          return { message: 'Password page', delay: true, nextState: state };
         }
 
         if (/throttle/i.test(redirectUrl)) {
@@ -196,7 +205,11 @@ class SafeCheckout extends Checkout {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: state };
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: state,
+          };
         }
 
         if (/cart/i.test(redirectUrl)) {
@@ -229,6 +242,7 @@ class SafeCheckout extends Checkout {
 
       if (step === 'payment_method' && !this.paymentGateway) {
         this.paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+        this.prices.total = $('input[name="checkout[total_price]"]').attr('value');
       }
 
       if (step === 'shipping_method' && !this.chosenShippingMethod.id) {
@@ -241,6 +255,8 @@ class SafeCheckout extends Checkout {
 
       switch (state) {
         case States.GO_TO_CHECKOUT: {
+          checkout.reset();
+          checkout.start();
           return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
         }
         case States.GO_TO_SHIPPING: {
@@ -389,7 +405,7 @@ class SafeCheckout extends Checkout {
         }
 
         if (/password/i.test(step)) {
-          return { message: 'Password page', nextState: States.SUBMIT_CUSTOMER };
+          return { message: 'Password page', delay: true, nextState: States.SUBMIT_CUSTOMER };
         }
 
         if (/throttle/i.test(step)) {
@@ -397,7 +413,7 @@ class SafeCheckout extends Checkout {
         }
 
         if (/contact_information/i.test(step)) {
-          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+          return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
         }
 
         if (/shipping_method/i.test(step)) {
@@ -498,6 +514,7 @@ class SafeCheckout extends Checkout {
         if (/stock_problems/i.test(step)) {
           return {
             message: `Out of stock, delaying ${monitorDelay}ms`,
+            delay: true,
             nextState: States.SUBMIT_SHIPPING,
           };
         }
@@ -508,7 +525,11 @@ class SafeCheckout extends Checkout {
         }
 
         if (/password/i.test(step)) {
-          return { message: 'Password page', nextState: States.SUBMIT_SHIPPING };
+          return { message: 'Password page', delay: true, nextState: States.SUBMIT_SHIPPING };
+        }
+
+        if (/processing/i.test(step)) {
+          return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
         }
 
         if (/throttle/i.test(step)) {
@@ -516,7 +537,7 @@ class SafeCheckout extends Checkout {
         }
 
         if (/contact_information/i.test(step)) {
-          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+          return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
         }
 
         if (/shipping_method/i.test(step)) {
@@ -656,16 +677,38 @@ class SafeCheckout extends Checkout {
 
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
+      if (/stock_problems/i.test(body)) {
+        return {
+          message: `Out of stock, delaying ${monitorDelay}ms`,
+          delay: true,
+          nextState: States.SUBMIT_PAYMENT,
+        };
+      }
+
+      if (/Your payment can’t be processed/i.test(body)) {
+        return {
+          message: `Payment error, delaying ${monitorDelay}ms`,
+          delay: true,
+          nextState: States.GO_TO_PAYMENT,
+        };
+      }
+
+      if (/captcha/i.test(body)) {
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
       if (match && match.length > 0) {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
-          checkout.start();
+          this._context.task.checkoutSpeed = checkout.getRunTime();
+          checkout.stop();
+          checkout.reset();
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
         }
 
         if (/password/i.test(step)) {
-          return { message: 'Password page', nextState: States.SUBMIT_PAYMENT };
+          return { message: 'Password page', delay: true, nextState: States.SUBMIT_PAYMENT };
         }
 
         if (/throttle/i.test(step)) {
@@ -673,7 +716,7 @@ class SafeCheckout extends Checkout {
         }
 
         if (/contact_information/i.test(step)) {
-          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+          return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
         }
 
         if (/shipping_method/i.test(step)) {
@@ -687,17 +730,6 @@ class SafeCheckout extends Checkout {
         if (/review/i.test(step)) {
           return { message: 'Completing payment', nextState: States.GO_TO_REVIEW };
         }
-      }
-
-      if (/stock_problems/i.test(body)) {
-        return {
-          message: `Out of stock, delaying ${monitorDelay}ms`,
-          nextState: States.SUBMIT_PAYMENT,
-        };
-      }
-
-      if (/captcha/i.test(body)) {
-        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
       }
 
       return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
@@ -743,12 +775,8 @@ class SafeCheckout extends Checkout {
       params += `&${this.checkoutToken}-count=${this.protection.length}`;
     }
 
-    if (this.captchaToken) {
-      params += `&g-recaptcha-response=${this.captchaToken}`;
-    }
-
     params = params.replace(/\s/g, '+');
-
+    console.log(params);
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',
@@ -792,7 +820,9 @@ class SafeCheckout extends Checkout {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
+          this._context.task.checkoutSpeed = checkout.getRunTime();
           checkout.stop();
+          checkout.reset();
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
         }
 
@@ -805,7 +835,7 @@ class SafeCheckout extends Checkout {
         }
 
         if (/contact_information/i.test(step)) {
-          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+          return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
         }
 
         if (/shipping_method/i.test(step)) {
@@ -824,6 +854,7 @@ class SafeCheckout extends Checkout {
       if (/stock_problems/i.test(body)) {
         return {
           message: `Out of stock, delaying ${monitorDelay}ms`,
+          delay: true,
           nextState: States.SUBMIT_PAYMENT,
         };
       }
@@ -850,22 +881,6 @@ class SafeCheckout extends Checkout {
       return nextState || { message, nextState: States.COMPLTE_PAYMENT };
     }
   }
-
-  /**
-   * *THIS IS JUST THE CHECKOUT PROCESS*
-   * 1.* Login
-   * 1. Add to cart
-   * 2. Create checkout
-   * 3. Go to checkout
-   * 3*. Request captcha
-   * 4. Submit `customer_information` step
-   * 5. Go to shipping
-   * 6. Submit `shipping_method` step
-   * 7. Go to payment
-   * 8. Submit `payment_method` step
-   * 8.* Complete payment (not always needed)
-   * 9. Process payment
-   */
 }
 
 module.exports = SafeCheckout;
