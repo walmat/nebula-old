@@ -127,7 +127,7 @@ class Parser {
     switch (this._type) {
       case ParseType.Variant: {
         this._logger.silly('%s: parsing type %s detected', this._name, this._type);
-        const product = matchVariant(products, this._task.product.variant, this._logger);
+        const product = matchVariant(products, this._task.product.variant, null, this._logger);
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?
@@ -144,7 +144,7 @@ class Parser {
           pos: this._task.product.pos_keywords,
           neg: this._task.product.neg_keywords,
         };
-        const product = matchKeywords(products, keywords, this._logger); // no need to use a custom filter at this point...
+        const product = matchKeywords(products, keywords, null, this._logger); // no need to use a custom filter at this point...
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?

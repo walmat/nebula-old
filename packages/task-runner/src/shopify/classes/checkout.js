@@ -5,7 +5,6 @@ const cheerio = require('cheerio');
 const { notification } = require('./hooks');
 const { getHeaders, stateForError, userAgent } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
-const { isSpecialSite } = require('./utils/siteOptions');
 const { States, Events, Types } = require('./utils/constants').TaskRunner;
 
 class Checkout {
@@ -635,6 +634,7 @@ class Checkout {
       discord,
       id,
     } = this._context;
+    const { total } = this.prices;
 
     if (checkout.getRunTime() > 10000) {
       return {
@@ -685,7 +685,6 @@ class Checkout {
               order: { name: orderName, status_url: statusUrl },
             },
           } = payments[0];
-          const { total } = this.prices;
 
           try {
             await notification(slack, discord, {
@@ -720,6 +719,27 @@ class Checkout {
         }
 
         if (/your card was declined/i.test(bodyString)) {
+          try {
+            await notification(slack, discord, {
+              success: false,
+              type,
+              product: {
+                name: productName,
+                url: productUrl,
+              },
+              price: total,
+              site: { name, url },
+              order: null,
+              profile: profileName,
+              sizes: chosenSizes,
+              checkoutSpeed,
+              shippingMethod: this.chosenShippingMethod.id,
+              logger: `runner-${id}.log`,
+              image,
+            });
+          } catch (err) {
+            // fail silently...
+          }
           return { message: 'Card declined', nextState: States.STOP };
         }
 
@@ -727,9 +747,57 @@ class Checkout {
 
         if (paymentProcessingErrorMessage !== null) {
           if (paymentProcessingErrorMessage.indexOf('Some items are no longer available') > -1) {
+            try {
+              await notification(slack, discord, {
+                success: false,
+                type,
+                product: {
+                  name: productName,
+                  url: productUrl,
+                },
+                price: total,
+                site: { name, url },
+                order: {
+                  number: orderName || 'None',
+                  url: statusUrl,
+                },
+                profile: profileName,
+                sizes: chosenSizes,
+                checkoutSpeed,
+                shippingMethod: this.chosenShippingMethod.id,
+                logger: `runner-${id}.log`,
+                image,
+              });
+            } catch (err) {
+              // fail silently...
+            }
             return { message: 'Payment failed (OOS)', nextState: States.RESTOCK };
           }
 
+          try {
+            await notification(slack, discord, {
+              success: false,
+              type,
+              product: {
+                name: productName,
+                url: productUrl,
+              },
+              price: total,
+              site: { name, url },
+              order: {
+                number: orderName || 'None',
+                url: statusUrl,
+              },
+              profile: profileName,
+              sizes: chosenSizes,
+              checkoutSpeed,
+              shippingMethod: this.chosenShippingMethod.id,
+              logger: `runner-${id}.log`,
+              image,
+            });
+          } catch (err) {
+            // fail silently...
+          }
           return { message: 'Payment failed', nextState: States.RESTOCK };
         }
       }

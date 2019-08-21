@@ -312,6 +312,9 @@ class Monitor {
       this._context.task.site,
     );
 
+    // PATCH in the parsetype in case we need it for restocks
+    this._context.parseType = this._parseType;
+
     let result;
     switch (this._parseType) {
       case ParseType.Variant: {

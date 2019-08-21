@@ -627,6 +627,8 @@ class TaskRunner {
       rawProxy,
       task: {
         site: { url },
+        isQueueBypass,
+        monitorDelay,
       },
     } = this._context;
 
@@ -663,12 +665,12 @@ class TaskRunner {
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
     }
 
-    if (nextState === States.GO_TO_SHIPPING) {
-      this._delayer = waitForDelay(500, this._aborter.signal);
+    if (nextState === States.GO_TO_CHECKOUT) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
     }
 
-    this._emitTaskEvent({ message, status, proxy: rawProxy, checkoutUrl, needsChanged: true });
+    this._emitTaskEvent({ message, status, proxy: rawProxy, checkoutUrl, needsChanged: isQueueBypass });
 
     return nextState;
   }
@@ -695,7 +697,7 @@ class TaskRunner {
   }
 
   async _handleGoToShipping() {
-    const { aborted, rawProxy } = this._context;
+    const { aborted, rawProxy, task: { monitorDelay } } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -723,7 +725,7 @@ class TaskRunner {
     }
 
     if (nextState === States.GO_TO_SHIPPING) {
-      this._delayer = waitForDelay(500, this._aborter.signal);
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
     }
 
@@ -746,11 +748,6 @@ class TaskRunner {
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
-    }
-
-    if (nextState === States.SUBMIT_SHIPPING) {
-      this._delayer = waitForDelay(500, this._aborter.signal);
-      await this._delayer;
     }
 
     if (this._context.task.isQueueBypass && nextState === States.DONE) {
@@ -785,6 +782,11 @@ class TaskRunner {
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+    }
+
+    if (nextState === States.GO_TO_PAYMENT) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
 
     return nextState;

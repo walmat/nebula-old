@@ -198,6 +198,10 @@ class SafeCheckout extends Checkout {
         if (/stock_problems/i.test(redirectUrl)) {
           return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: state };
         }
+
+        if (/cart/i.test(redirectUrl)) {
+          return { message: `Cart empty!`, nextState: States.ADD_TO_CART };
+        }
       }
 
       const body = await res.text();

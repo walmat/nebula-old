@@ -25,8 +25,8 @@ class Slack {
       const payload = {
         attachments: [
           {
-            fallback: success ? `Successful checkout (${type})` : 'Payment failed!',
-            title: success ? `Successful checkout (${type})` : 'Payment failed!',
+            fallback: success ? `Successful checkout (${type})` : `Payment failed! (${type})`,
+            title: success ? `Successful checkout (${type})` : `Payment failed! (${type})`,
             color: success ? '#46ADB4' : '#EF415E',
             fields: [
               {

@@ -64,18 +64,18 @@ class YeezyParser extends SpecialParser {
     );
 
     // check to see if product is live yet
-    const liveAvailableProducts = products.filter(
+    const availableLiveProducts = products.filter(
       ({ type }) => type.toUpperCase().indexOf('PLACEHOLDER') === -1,
     );
-    validateArray(liveAvailableProducts, ErrorCodes.ProductNotLive);
+    validateArray(availableLiveProducts, ErrorCodes.ProductNotLive);
 
     this._logger.silly(
       '%s: Found %d live products, filtering...',
       this._name,
-      liveAvailableProducts.length,
+      availableLiveProducts.length,
     );
 
-    const validatedProducts = liveAvailableProducts.filter(
+    const validatedProducts = availableLiveProducts.filter(
       ({ id, title, handle, variants }) => id && variants && (title || handle),
     );
 

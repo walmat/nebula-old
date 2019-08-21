@@ -17,8 +17,10 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
     throw err;
   }
 
+  const grouping = sizes.find(size => /random/i.test(size)) ? availableVariants : product.variants;
+
   // Group variants by their size
-  const variantsBySize = groupBy(availableVariants, variant => {
+  const variantsBySize = groupBy(grouping, variant => {
     // Use the variant option or the title segment
     const defaultOption = urlToVariantOption[site.url] ? urlToVariantOption[site.url] : 'option1';
     const option = variant[defaultOption] || urlToTitleSegment[site.url](variant.title);
@@ -32,6 +34,8 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
     return option.toUpperCase();
   });
 
+  console.log(variantsBySize);
+
   // Get the groups in the same order as the sizes
   const mappedVariants = sizes.map(size => {
     if (size === 'Random') {
@@ -39,6 +43,8 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
       const variants = variantsBySize[Object.keys(variantsBySize)[val]];
       return variants;
     }
+
+    console.log(size);
     // Determine if we are checking for shoe sizes or not
     let sizeMatcher;
     if (/[0-9]+/.test(size)) {
@@ -46,7 +52,10 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
       sizeMatcher = s => new RegExp(`${size}`, 'i').test(s);
     } else {
       // We are matching a garment size
-      sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
+      sizeMatcher = s => {
+        console.log(new RegExp(`^${size}`, 'i').test(s.trim()));
+        return !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
+      }
     }
     const variant = Object.keys(variantsBySize).find(sizeMatcher);
     return variantsBySize[variant];

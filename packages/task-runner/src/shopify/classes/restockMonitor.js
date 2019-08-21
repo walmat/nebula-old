@@ -3,6 +3,7 @@ const {
   TaskRunner: { States },
 } = require('./utils/constants');
 const { capitalizeFirstLetter } = require('./utils');
+const { ParseType } = require('./utils/parse');
 const { Parser } = require('./parsers');
 const Monitor = require('./monitor');
 
@@ -17,6 +18,72 @@ class RestockMonitor extends Monitor {
 
     this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
     return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: States.RESTOCK };
+  }
+
+  async checkStock() {
+    const {
+      product: { restockUrl },
+    } = this._context.task;
+
+    let stock;
+    try {
+      switch (Parser.isSpecial()) {
+        case ParseType.Special: {
+          let response;
+          try {
+            this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
+
+            const res = await this._request(restockUrl, {
+              method: 'GET',
+              redirect: 'follow',
+              agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+              headers: {
+                'User-Agent': userAgent,
+              },
+            });
+
+            if (res.redirected) {
+              const redirectUrl = res.url;
+      
+              if (/password/.test(redirectUrl)) {
+                const rethrow = new Error('PasswordPage');
+                rethrow.status = ErrorCodes.PasswordPage;
+                throw rethrow;
+              }
+      
+              // TODO: Maybe replace with a custom error object?
+              const rethrow = new Error('RedirectDetected');
+              rethrow.status = res.status || 500; // Use a 5xx status code to trigger a refresh delay
+              throw rethrow;
+            }
+      
+            const body = await res.text();
+            response = cheerio.load(body, {
+              normalizeWhitespace: true,
+              xmlMode: true,
+            });
+
+          } catch (error) {
+            throw [error];
+          }
+
+          stock = await this.parseProductInfoPageForProduct.call(this, response);
+          break;
+        }
+        default: {
+          stock = await Parser.getFullProductInfo(
+            restockUrl,
+            this._context.proxy,
+            this._request,
+            this._logger,
+          );
+        }
+      } 
+    } catch (errors) {
+      // bubble these up!
+      throw errors;
+    }
+    return stock;
   }
 
   async run() {
@@ -40,15 +107,9 @@ class RestockMonitor extends Monitor {
 
     let fullProductInfo;
     try {
-      fullProductInfo = await Parser.getFullProductInfo(
-        restockUrl,
-        this._context.proxy,
-        this._request,
-        this._logger,
-      );
+      fullProductInfo = await this.checkStock();
     } catch (errors) {
       this._logger.error('RESTOCK MONITOR: Getting full product info failed! %j', errors);
-      // handle parsing errors
       return this._handleParsingErrors(errors);
     }
 

@@ -20,6 +20,7 @@
     "delay": "^4.3.0",
     "discord.js": "^11.5.1",
     "dotenv": "^8.0.0",
+    "electron-is-dev": "^1.1.0",
     "eventemitter3": "^3.1.2",
     "fetch-cookie": "^0.7.2",
     "fetch-defaults": "^1.0.0",

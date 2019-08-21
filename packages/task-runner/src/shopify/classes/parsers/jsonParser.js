@@ -19,7 +19,7 @@ class JsonParser extends Parser {
     const { url } = this._task.site;
     let products;
     try {
-      this._logger.silly('%s: Making request for %s/products.json ...', this._name, url);
+      this._logger.silly(`%s: Making request for %s/products.json?page=-${Date.now() / 1000 | 0} ...`, this._name, url);
 
       const res = await  this._request('/products.json', {
         method: 'GET',

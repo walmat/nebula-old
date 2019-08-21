@@ -54,7 +54,7 @@ class SpecialParser extends Parser {
 
         // TODO: Maybe replace with a custom error object?
         const rethrow = new Error('RedirectDetected');
-        rethrow.status = 500; // Use a 5xx status code to trigger a refresh delay
+        rethrow.status = res.status || 500; // Use a 5xx status code to trigger a refresh delay
         throw rethrow;
       }
 

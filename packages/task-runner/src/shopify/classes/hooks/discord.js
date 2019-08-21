@@ -24,7 +24,7 @@ class Discord {
   ) {
     if (this.hook) {
       const embed = new RichEmbed()
-        .setTitle(success ? `Successful checkout (${type})` : 'Payment failed!')
+        .setTitle(success ? `Successful checkout (${type})` : `Payment failed! (${type})`)
         .setColor(success ? 4631988 : 15679838)
         .setThumbnail(image)
         .setTimestamp(new Date())
@@ -39,7 +39,7 @@ class Discord {
         .addField('Logger File', logger ? `${logger}` : 'None', true)
         .setFooter(
           'Nebula Orion © 2019',
-          'https://pbs.twimg.com/profile_images/997256678650212353/yobeESVF.jpg',
+          'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
         );
       return this.hook.send(embed);
     }
