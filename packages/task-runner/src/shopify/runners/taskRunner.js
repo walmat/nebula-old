@@ -191,7 +191,7 @@ class TaskRunner {
   }
 
   _cleanup() {
-    // console.log(this._history);
+    console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
@@ -444,7 +444,7 @@ class TaskRunner {
     const {
       aborted,
       rawProxy,
-      task: { monitorDelay },
+      task: { type },
     } = this._context;
 
     // exit if abort is detected
@@ -470,8 +470,7 @@ class TaskRunner {
     this._emitTaskEvent({ message: 'Polling queue', proxy: rawProxy });
 
     if (delay) {
-      const waitFor = monitorDelay > 2000 ? monitorDelay : 2000;
-      this._delayer = waitForDelay(waitFor, this._aborter.signal);
+      this._delayer = waitForDelay(5000, this._aborter.signal);
       await this._delayer;
     }
 
@@ -481,7 +480,7 @@ class TaskRunner {
     }
 
     // poll queue map should be used to determine where to go next
-    ({ message, delay, nextState } = StateMap[this._prevState](this._checkoutType));
+    ({ message, delay, nextState } = StateMap[this._prevState](type));
     this._emitTaskEvent({ message, proxy: rawProxy });
     return nextState;
   }
@@ -1056,6 +1055,7 @@ class TaskRunner {
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
       this._delayer = waitForDelay(errorDelay, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Proxy banned!' });
     } catch (err) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitTaskEvent({

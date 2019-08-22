@@ -413,7 +413,7 @@ class Checkout {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly('Create checkout redirect url: %j', redirectUrl);
+      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
         if (/password/i.test(redirectUrl)) {
@@ -421,14 +421,9 @@ class Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          const ctd = this.getCtdCookie(this._jar);
-
-          if (!ctd) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
-          }
-
           try {
-            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+            this._logger.debug('CALLING REDIRECT URL!!!');
+            await this._request(decodeURIComponent(redirectUrl), {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -519,7 +514,7 @@ class Checkout {
     } = this._context;
 
     try {
-      const res = await this._request('/checkout/poll?js_poll=1', {
+      const res = await this._request(`${url}/checkout/poll?js_poll=1`, {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
@@ -532,7 +527,7 @@ class Checkout {
 
       const { status, headers } = res;
 
-      this._logger.silly('Checkout: poll response %d', status);
+      this._logger.debug('Checkout: poll response %d', status);
       const checkStatus = stateForError(
         { status },
         {
@@ -545,15 +540,14 @@ class Checkout {
         return checkStatus;
       }
 
+      const body = await res.text();
+
       // check server error
       if (status === 400) {
         return { message: `Invalid checkout!`, nextState: States.CREATE_CHECKOUT };
       }
 
-      // const ctd = await this.getCtdCookie(this._jar);
-      const body = await res.text();
-
-      this._logger.silly('CHECKOUT: Queue response: %j \nBody: %j', status, body);
+      this._logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, body);
 
       let redirectUrl = null;
       if (status === 302) {
@@ -578,7 +572,7 @@ class Checkout {
 
             const respBody = await response.text();
 
-            this._logger.silly('NEW QUEUE BODY: %j', respBody);
+            this._logger.debug('NEW QUEUE BODY: %j', respBody);
 
             const [, checkoutUrl] = respBody.match(/href="(.*)"/);
 
@@ -600,24 +594,23 @@ class Checkout {
           const ctd = this.getCtdCookie(this._jar);
 
           try {
-            const response = await this._request(
-              `https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`,
-              {
-                method: 'GET',
-                agent: proxy ? new HttpsProxyAgent(proxy) : null,
-                redirect: 'manual',
-                follow: 0,
-                headers: {
-                  'Upgrade-Insecure-Requests': 1,
-                  'User-Agent': userAgent,
-                  Connection: 'Keep-Alive',
-                },
+            const response = await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
               },
-            );
+            });
 
             const respBody = await response.text();
+            this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
 
             const [, checkoutUrl] = respBody.match(/href="(.*)"/);
+            this._logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
 
             if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
               const [checkoutNoQs] = checkoutUrl.split('?');
@@ -633,9 +626,10 @@ class Checkout {
         }
         const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
         [redirectUrl] = $('input[name="checkout_url"]')
-          .val()
+          .attr('value')
           .split('?');
       }
+      this._logger.debug('QUEUE: RedirectUrl at end of fn body: %j', redirectUrl);
       if (redirectUrl) {
         const [redirectNoQs] = redirectUrl.split('?');
         [, , , this.storeId, , this.checkoutToken] = redirectNoQs.split('/');

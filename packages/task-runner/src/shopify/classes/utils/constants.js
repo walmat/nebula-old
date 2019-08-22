@@ -107,10 +107,34 @@ const ErrorCodes = {
  */
 const QueueNextState = {
   [CheckoutStates.ADD_TO_CART]: type => {
-    if (type === TaskRunnerCheckoutTypes.fe) {
+    if (type === Modes.FAST) {
       return {
-        message: 'Submitting information',
-        nextState: CheckoutStates.SUBMIT_CUSTOMER,
+        message: 'Going to checkout',
+        nextState: CheckoutStates.GO_TO_CHECKOUT,
+      };
+    }
+    return {
+      message: 'Creating checkout',
+      nextState: CheckoutStates.CREATE_CHECKOUT,
+    };
+  },
+  [CheckoutStates.CREATE_CHECKOUT]: type => {
+    if (type === Modes.FAST) {
+      return {
+        message: 'Parsing products',
+        nextState: CheckoutStates.MONITOR,
+      };
+    }
+    return {
+      message: 'Going to checkout',
+      nextState: CheckoutStates.GO_TO_CHECKOUT,
+    };
+  },
+  [CheckoutStates.SUBMIT_CUSTOMER]: type => {
+    if (type === Modes.FAST) {
+      return {
+        message: 'Monitoring for product',
+        nextState: CheckoutStates.MONITOR,
       };
     }
     return {
@@ -118,22 +142,30 @@ const QueueNextState = {
       nextState: CheckoutStates.GO_TO_SHIPPING,
     };
   },
-  [CheckoutStates.CREATE_CHECKOUT]: type => {
-    if (type === TaskRunnerCheckoutTypes.fe) {
+  [CheckoutStates.SUBMIT_SHIPPING]: type => {
+    if (type === Modes.FAST) {
       return {
-        message: 'Fetching shipping rates',
-        nextState: CheckoutStates.GO_TO_SHIPPING,
+        message: 'Submitting payment',
+        nextState: CheckoutStates.SUBMIT_PAYMENT,
       };
     }
     return {
-      message: 'Submitting information',
-      nextState: CheckoutStates.SUBMIT_CUSTOMER,
+      message: 'Submitting payment',
+      nextState: CheckoutStates.GO_TO_PAYMENT,
     };
   },
-  [CheckoutStates.SUBMIT_CUSTOMER]: () => ({
-    message: 'Monitoring for product',
-    nextState: CheckoutStates.MONITOR,
-  }),
+  [CheckoutStates.SUBMIT_PAYMENT]: type => {
+    if (type === Modes.FAST) {
+      return {
+        message: 'Completing payment',
+        nextState: CheckoutStates.COMPLETE_PAYMENT,
+      };
+    }
+    return {
+      message: 'Submitting payment',
+      nextState: CheckoutStates.GO_TO_PAYMENT,
+    };
+  },
 };
 
 // const CheckoutRefreshTimeout = 900000;
