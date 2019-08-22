@@ -174,7 +174,7 @@ class Checkout {
         this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
         if (!apiKey) {
-          return { message: 'Fetching site data', nextState: States.GET_SITE_DATA };
+          return { message: 'Getting site data', nextState: States.GET_SITE_DATA };
         }
 
         if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
@@ -306,6 +306,7 @@ class Checkout {
     const {
       task: {
         site: { url },
+        type,
       },
       proxy,
     } = this._context;
@@ -335,19 +336,26 @@ class Checkout {
       }
 
       const body = await res.text();
-      const [, accessToken] = body.match(
-        /<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/,
-      );
-      [, this.storeId] = body.match(/"shopId":(.*),"countryCode/);
-      this._context.task.site.apiKey = accessToken;
+      let match = body.match(/<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/);
+
+      let accessToken;
+      if (match && match.length) {
+        [, accessToken] = match;
+        this._context.task.site.apiKey = accessToken;
+      }
+
       if (!accessToken) {
         // check the script location as well
-        const [, exists] = body.match(/"accessToken":(.*)","betas"/);
+        match = body.match(/"accessToken":(.*)","betas"/);
 
-        if (!exists) {
+        if (!match || !match.length) {
           return { message: 'Invalid Shopify Site', nextState: States.STOP };
         }
-        this._context.task.site.apiKey = exists;
+        [, accessToken] = match;
+        this._context.task.site.apiKey = accessToken;
+      }
+      if (type === Modes.SAFE) {
+        return { message: 'Parsing products', nextState: States.MONITOR };
       }
       return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
     } catch (err) {
@@ -511,7 +519,7 @@ class Checkout {
     } = this._context;
 
     try {
-      const res = await this._request('/checkout/polljs_poll=1', {
+      const res = await this._request('/checkout/poll?js_poll=1', {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',

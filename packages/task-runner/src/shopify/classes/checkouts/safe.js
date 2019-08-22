@@ -251,6 +251,10 @@ class SafeCheckout extends Checkout {
       this.protection = await this.parseBotProtection($);
       this.authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
 
+      if (/Getting available shipping rates/i.test(body)) {
+        return { message: 'Polling shipping rates', nextState: States.GO_TO_SHIPPING };
+      }
+
       if (!this.checkoutKey) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
@@ -501,7 +505,6 @@ class SafeCheckout extends Checkout {
     }
 
     params = params.replace(/\s/g, '+');
-
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',

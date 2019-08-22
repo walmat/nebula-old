@@ -171,18 +171,20 @@ class FastCheckout extends Checkout {
   }
 
   async createCheckout() {
-    const { message, shouldBan, nextState } = await super.createCheckout();
+    const { message, delay, shouldBan, nextState } = await super.createCheckout();
 
     switch (nextState) {
       case States.MONITOR: {
         return {
           message: 'Submitting information',
+          delay,
           nextState: States.SUBMIT_CUSTOMER,
         };
       }
       default: {
         return {
           message,
+          delay,
           shouldBan,
           nextState,
         };

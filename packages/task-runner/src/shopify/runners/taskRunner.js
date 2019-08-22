@@ -191,7 +191,7 @@ class TaskRunner {
   }
 
   _cleanup() {
-    console.log(this._history);
+    // console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
@@ -434,6 +434,7 @@ class TaskRunner {
     if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Creating checkout' });
     }
 
     return nextState;
@@ -798,7 +799,6 @@ class TaskRunner {
     if (this._context.task.type === Modes.SAFE) {
       ({ message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
         this._state,
-        this._prevState,
         'Fetching shipping rates',
         'shipping_method',
         'contact_information',
@@ -869,7 +869,6 @@ class TaskRunner {
 
     const { message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
       this._state,
-      this._prevState,
       'Submitting payment',
       'payment_method',
       'shipping_method',
@@ -938,7 +937,6 @@ class TaskRunner {
 
     const { message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
       this._state,
-      this._prevState,
       'Completing payment',
       'review',
       'payment_method',

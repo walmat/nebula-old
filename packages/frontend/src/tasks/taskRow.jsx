@@ -426,15 +426,50 @@ export class TaskRowPrimitive extends PureComponent {
       <div key={task.id} className="tasks-row row">
         <div className="col col--no-gutter tasks-edit">{this.renderTableRowEditButton()}</div>
         <div className={`col col--no-gutter tasks-row__id--${task.type}`}>{id}</div>
-        <div className={isQueueBypass ? `col col--no-gutter tasks-row__product--checkout-ready-${theme}` : 'col col--no-gutter tasks-row__product'} title={task.product.raw || 'None'}>
+        <div
+          className={
+            isQueueBypass
+              ? `col col--no-gutter tasks-row__product--checkout-ready-${theme}`
+              : 'col col--no-gutter tasks-row__product'
+          }
+          title={task.product.raw || 'None'}
+        >
           {task.product.raw || 'None'}
         </div>
-        <div className={isQueueBypass ? `col col--no-gutter tasks-row__sites--checkout-ready-${theme}` : 'col col--no-gutter tasks-row__sites'}>{task.site.name || 'None'}</div>
-        <div className={isQueueBypass ? `col col--no-gutter tasks-row__profile--checkout-ready-${theme}` : 'col col--no-gutter tasks-row__profile'}>
+        <div
+          className={
+            isQueueBypass
+              ? `col col--no-gutter tasks-row__sites--checkout-ready-${theme}`
+              : 'col col--no-gutter tasks-row__sites'
+          }
+        >
+          {task.site.name || 'None'}
+        </div>
+        <div
+          className={
+            isQueueBypass
+              ? `col col--no-gutter tasks-row__profile--checkout-ready-${theme}`
+              : 'col col--no-gutter tasks-row__profile'
+          }
+        >
           {task.profile.profileName || 'None'}
         </div>
-        <div className={isQueueBypass ? `col col--no-gutter tasks-row__sizes--checkout-ready-${theme}` : 'col col--no-gutter tasks-row__sizes'}>{sizes}</div>
-        <div className={isQueueBypass ? `col col--no-gutter tasks-row__account--checkout-ready-${theme}` : 'col col--no-gutter tasks-row__account'}>
+        <div
+          className={
+            isQueueBypass
+              ? `col col--no-gutter tasks-row__sizes--checkout-ready-${theme}`
+              : 'col col--no-gutter tasks-row__sizes'
+          }
+        >
+          {sizes}
+        </div>
+        <div
+          className={
+            isQueueBypass
+              ? `col col--no-gutter tasks-row__account--checkout-ready-${theme}`
+              : 'col col--no-gutter tasks-row__account'
+          }
+        >
           {taskAccountValue ? 'Yes' : 'None'}
         </div>
         <div className="col col--no-gutter tasks-row__actions">

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import tDefns from '../utils/definitions/taskDefinitions';
 import { addTestId } from '../utils';
@@ -30,6 +30,7 @@ const LogTaskRow = ({
 
   const outputColorMap = {
     'Waiting for captcha': 'warning',
+    'Polling queue': 'warning',
     'Payment successful': 'success',
     'Card declined': 'failed',
     'Payment failed': 'failed',
@@ -47,7 +48,7 @@ const LogTaskRow = ({
   const storeCss = checkoutUrl
     ? `${classMap.store.join(' ')} checkout-ready `
     : `${classMap.store.join(' ')}`;
-  
+
   return (
     <div
       key={index}
@@ -110,4 +111,4 @@ LogTaskRow.openDefaultBrowser = url => {
   window.Bridge.openInDefaultBrowser(url);
 };
 
-export default memo(LogTaskRow);
+export default LogTaskRow;
