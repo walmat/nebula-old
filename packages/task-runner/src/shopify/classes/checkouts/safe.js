@@ -91,7 +91,7 @@ class SafeCheckout extends Checkout {
           }
 
           try {
-            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -214,7 +214,7 @@ class SafeCheckout extends Checkout {
           }
 
           try {
-            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -445,7 +445,29 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(step)) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
         if (/contact_information/i.test(step)) {
@@ -575,7 +597,7 @@ class SafeCheckout extends Checkout {
           }
 
           try {
-            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -776,7 +798,7 @@ class SafeCheckout extends Checkout {
           }
 
           try {
-            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -910,7 +932,7 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(step)) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
         if (/contact_information/i.test(step)) {

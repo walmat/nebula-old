@@ -80,7 +80,7 @@ class FastCheckout extends Checkout {
           }
 
           try {
-            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -325,7 +325,7 @@ class FastCheckout extends Checkout {
           }
 
           try {
-            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
