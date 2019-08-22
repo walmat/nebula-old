@@ -5,7 +5,7 @@ import { min } from 'lodash';
 import Checkout from '../checkout';
 
 const { States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
-const { getHeaders, stateForError } = require('../utils');
+const { getHeaders, stateForError, userAgent } = require('../utils');
 const { patchToCart, patchCheckoutForm } = require('../utils/forms');
 
 class FastCheckout extends Checkout {
@@ -73,6 +73,28 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
           return { message: 'Polling queue', nextState: States.QUEUE };
         }
       }
@@ -242,7 +264,7 @@ class FastCheckout extends Checkout {
     }
   }
 
-  async getCheckout() {
+  async getCheckout(prevState) {
     const {
       task: {
         site: { url, apiKey },
@@ -294,7 +316,29 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
       }
 
@@ -323,8 +367,11 @@ class FastCheckout extends Checkout {
         };
       }
 
-      // start the monitor timer again...
-      monitor.start();
+      if (prevState) {
+        monitor.start();
+        return { nextState: prevState };
+      }
+
       return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
     } catch (err) {
       this._logger.error(

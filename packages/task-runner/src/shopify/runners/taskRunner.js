@@ -81,6 +81,8 @@ class TaskRunner {
     this._discord = new Discord(task.discord);
     this._slack = new Slack(task.slack);
 
+    this._history = [];
+
     /**
      * The context of this task runner
      *
@@ -189,6 +191,7 @@ class TaskRunner {
   }
 
   _cleanup() {
+    console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
@@ -497,10 +500,10 @@ class TaskRunner {
 
     const { message, delay, shouldBan, nextState } = await this._monitor.run();
 
-    if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
-      this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
-      return States.GO_TO_CHECKOUT;
-    }
+    // if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
+    //   this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
+    //   return States.GO_TO_CHECKOUT;
+    // }
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
@@ -540,10 +543,10 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
-      this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
-      return States.GO_TO_CHECKOUT;
-    }
+    // if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
+    //   this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
+    //   return States.GO_TO_CHECKOUT;
+    // }
 
     let res;
     try {
@@ -698,7 +701,6 @@ class TaskRunner {
     if (this._context.task.type === Modes.SAFE) {
       ({ message, delay, status, shouldBan, nextState } = await this._checkout.getCheckout(
         this._state,
-        this._prevState,
         'Going to checkout',
         'contact_information',
         'contact_information',
@@ -1125,6 +1127,7 @@ class TaskRunner {
       [States.ERROR]: this._generateEndStateHandler(States.ERROR),
       [States.ABORT]: this._generateEndStateHandler(States.ABORT),
     };
+    this._history.push(currentState);
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
   }

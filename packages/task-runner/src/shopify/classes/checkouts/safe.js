@@ -4,7 +4,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 import Checkout from '../checkout';
 
-const { States, Modes } = require('../utils/constants').TaskRunner;
+const { States } = require('../utils/constants').TaskRunner;
 const { getHeaders, stateForError, userAgent } = require('../utils');
 const { addToCart } = require('../utils/forms');
 
@@ -14,17 +14,6 @@ class SafeCheckout extends Checkout {
 
     switch (nextState) {
       case States.CREATE_CHECKOUT: {
-        // TODO: Fix this when splitting out monitor code
-        // if (!this._context.task.product.variants || !this._context.task.product.variants.length) {
-        //   return {
-        //     message: 'Waiting for product',
-        //     nextState: States.WAIT_FOR_PRODUCT,
-        //   };
-        // }
-        // return {
-        //   message: 'Adding to cart',
-        //   nextState: States.ADD_TO_CART,
-        // };
         return {
           message: 'Parsing products',
           nextState: States.MONITOR,
@@ -43,10 +32,9 @@ class SafeCheckout extends Checkout {
   async addToCart() {
     const {
       task: {
-        site: { url, name },
+        site: { name, url },
         product: { variants, hash },
         monitorDelay,
-        type,
       },
       proxy,
     } = this._context;
@@ -83,7 +71,7 @@ class SafeCheckout extends Checkout {
       this._logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
-        if (redirectUrl.indexOf('stock_problems') > -1) {
+        if (/stock_problems/i.test(redirectUrl)) {
           return {
             message: `Out of stock! Delaying ${monitorDelay}ms`,
             delay: true,
@@ -91,12 +79,34 @@ class SafeCheckout extends Checkout {
           };
         }
 
-        if (redirectUrl.indexOf('password') > -1) {
+        if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.ADD_TO_CART };
         }
 
-        if (redirectUrl.indexOf('throttle') > -1) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+        if (/throttle/i.test(redirectUrl)) {
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
       }
 
@@ -121,11 +131,7 @@ class SafeCheckout extends Checkout {
         return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
       }
 
-      if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
-        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
-      }
-
-      return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+      return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
@@ -144,7 +150,7 @@ class SafeCheckout extends Checkout {
     }
   }
 
-  async getCheckout(state, prevState, message, step, prevStep) {
+  async getCheckout(state, message, step, prevStep) {
     const {
       task: {
         site: { url, apiKey },
@@ -201,7 +207,29 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
@@ -241,7 +269,11 @@ class SafeCheckout extends Checkout {
       }
 
       if (step === 'payment_method' && !this.paymentGateway) {
-        this.paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+        if (/No payment is required./i.test(body)) {
+          this.paymentGateway = 'free';
+        } else {
+          this.paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
+        }
         this.prices.total = $('input[name="checkout[total_price]"]').attr('value');
       }
 
@@ -533,7 +565,29 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(step)) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
         if (/contact_information/i.test(step)) {
@@ -637,7 +691,7 @@ class SafeCheckout extends Checkout {
     }
 
     params = params.replace(/\s/g, '+');
-
+    console.log(params);
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',
@@ -712,7 +766,29 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(step)) {
-          return { message: 'Waiting in queue', nextState: States.QUEUE };
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
         if (/contact_information/i.test(step)) {
@@ -776,7 +852,7 @@ class SafeCheckout extends Checkout {
     }
 
     params = params.replace(/\s/g, '+');
-    console.log(params);
+
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',

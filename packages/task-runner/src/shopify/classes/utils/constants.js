@@ -34,6 +34,7 @@ const CheckoutStates = {
   GET_SITE_DATA: 'GET_SITE_DATA',
   MONITOR: 'MONITOR',
   ADD_TO_CART: 'ADD_TO_CART',
+  GO_TO_CART: 'GO_TO_CART',
   CREATE_CHECKOUT: 'CREATE_CHECKOUT',
   GO_TO_CHECKOUT: 'GO_TO_CHECKOUT',
   QUEUE: 'QUEUE',
@@ -135,7 +136,8 @@ const QueueNextState = {
   }),
 };
 
-const CheckoutRefreshTimeout = 900000;
+// const CheckoutRefreshTimeout = 900000;
+const CheckoutRefreshTimeout = 98000;
 
 module.exports = {
   TaskManager: {

@@ -1,5 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
+import { isEmpty } from 'lodash';
+import { URL } from 'url';
 
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
@@ -383,11 +385,12 @@ class Checkout {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
+        follow: 0,
         headers: getHeaders({ url, apiKey }),
         body: JSON.stringify({}),
       });
 
-      const { status } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -401,7 +404,7 @@ class Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = res.headers.get('location');
+      const redirectUrl = headers.get('location');
       this._logger.silly('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
@@ -410,6 +413,28 @@ class Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
           return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
@@ -479,16 +504,18 @@ class Checkout {
     const {
       task: {
         site: { url },
+        type,
       },
       proxy,
       timers: { monitor },
     } = this._context;
 
     try {
-      const res = await this._request('/checkout/poll', {
+      const res = await this._request('/checkout/polljs_poll=1', {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
+        follow: 0,
         headers: {
           'User-Agent': userAgent,
           Connection: 'Keep-Alive',
@@ -512,22 +539,23 @@ class Checkout {
 
       // check server error
       if (status === 400) {
-        return { message: `Invalid checkout, recreating!`, nextState: States.CREATE_CHECKOUT };
+        return { message: `Invalid checkout!`, nextState: States.CREATE_CHECKOUT };
       }
 
-      const ctd = await this.getCtdCookie(this._jar);
+      // const ctd = await this.getCtdCookie(this._jar);
       const body = await res.text();
 
-      this._logger.silly('CHECKOUT: %d: Queue response body: %j', status, body);
+      this._logger.silly('CHECKOUT: Queue response: %j \nBody: %j', status, body);
 
       let redirectUrl = null;
       if (status === 302) {
         redirectUrl = headers.get('location');
-        if (redirectUrl && redirectUrl.indexOf('throttle') > -1) {
+
+        if (!redirectUrl || /throttle/i.test(redirectUrl)) {
           return { message: `Polling queue - (${status})`, nextState: States.QUEUE };
         }
-        if (redirectUrl && redirectUrl.indexOf('_ctd') > -1) {
-          this._logger.silly('CTD COOKIE: %s', ctd);
+
+        if (/_ctd/i.test(redirectUrl)) {
           try {
             const response = await this._request(redirectUrl, {
               method: 'GET',
@@ -544,12 +572,14 @@ class Checkout {
 
             this._logger.silly('NEW QUEUE BODY: %j', respBody);
 
-            const [, checkoutUrl] = respBody.match(new RegExp('href=\\"(.*)\\"'));
+            const [, checkoutUrl] = respBody.match(/href="(.*)"/);
 
-            if (checkoutUrl && /checkouts/.test(checkoutUrl)) {
-              [, , , this.storeId] = checkoutUrl.split('/');
-              [, , , , , this.checkoutToken] = checkoutUrl.split('/');
-              monitor.start();
+            if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
+              const [checkoutNoQs] = checkoutUrl.split('?');
+              [, , , this.storeId, , this.checkoutToken] = checkoutNoQs.split('/');
+              if (type === Modes.FAST) {
+                monitor.start();
+              }
               return { queue: 'done' };
             }
           } catch (e) {
@@ -558,27 +588,35 @@ class Checkout {
         }
         this._logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);
       } else if (status === 200) {
-        if (body === '' || (body && body.length < 2 && ctd)) {
+        if (isEmpty(body) || (!isEmpty(body) && body.length < 2)) {
+          const ctd = this.getCtdCookie(this._jar);
+
           try {
-            const response = await this._request(`https://${url}/throttle/queue?_ctd=${ctd}`, {
-              method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
-              redirect: 'manual',
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
+            const response = await this._request(
+              `https://${url}/throttle/queue?_ctd=${ctd}_ctd_update=`,
+              {
+                method: 'GET',
+                agent: proxy ? new HttpsProxyAgent(proxy) : null,
+                redirect: 'manual',
+                follow: 0,
+                headers: {
+                  'Upgrade-Insecure-Requests': 1,
+                  'User-Agent': userAgent,
+                  Connection: 'Keep-Alive',
+                },
               },
-            });
+            );
 
             const respBody = await response.text();
 
-            const [, checkoutUrl] = respBody.match(/href="(.*)>"/);
+            const [, checkoutUrl] = respBody.match(/href="(.*)"/);
 
-            if (checkoutUrl) {
-              [, , , this.storeId] = checkoutUrl.split('/');
-              [, , , , , this.checkoutToken] = checkoutUrl.split('/');
-              monitor.start();
+            if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
+              const [checkoutNoQs] = checkoutUrl.split('?');
+              [, , , this.storeId, , this.checkoutToken] = checkoutNoQs.split('/');
+              if (type === Modes.FAST) {
+                monitor.start();
+              }
               return { queue: 'done' };
             }
           } catch (error) {
@@ -592,10 +630,11 @@ class Checkout {
       }
       if (redirectUrl) {
         const [redirectNoQs] = redirectUrl.split('?');
-        [, , , this.storeId] = redirectNoQs.split('/');
-        [, , , , , this.checkoutToken] = redirectNoQs.split('/');
+        [, , , this.storeId, , this.checkoutToken] = redirectNoQs.split('/');
 
-        monitor.start();
+        if (type === Modes.FAST) {
+          monitor.start();
+        }
         return { queue: 'done' };
       }
       this._logger.silly('CHECKOUT: Not passed queue, delaying 2000 ms');
@@ -631,7 +670,6 @@ class Checkout {
       proxy,
       slack,
       discord,
-      id,
     } = this._context;
 
     try {
@@ -790,7 +828,6 @@ class Checkout {
               image: imageUrl,
             });
           } catch (err) {
-            console.log(err);
             // fail silently...
           }
           return { message: 'Payment failed', nextState: States.STOP };
