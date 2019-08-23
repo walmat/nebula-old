@@ -3,6 +3,32 @@ import PropTypes from 'prop-types';
 import tDefns from '../utils/definitions/taskDefinitions';
 import { addTestId } from '../utils';
 
+const OutputCol = ({ output, classMap, checkoutUrl}) => {
+  const outputColorMap = {
+    'Waiting for captcha': 'warning',
+    'Polling queue': 'warning',
+    'Payment successful': 'success',
+    'Card declined': 'failed',
+    'Payment failed': 'failed',
+  };
+
+  const match = /Waiting for captcha|Payment successful|Payment failed|Card declined/i.exec(output);
+  const messageClassName = match ? outputColorMap[match[0]] : 'normal';
+
+  return (
+    <div
+      className={`${classMap.output.join(' ')} tasks-row__log--${messageClassName}`}
+      data-testid={addTestId('LogTaskRow.output')}
+      role="button"
+      tabIndex={0}
+      onKeyPress={() => {}}
+      onClick={() => LogTaskRow.openDefaultBrowser(checkoutUrl)}
+    >
+      {output}
+    </div>
+  );
+};
+
 const LogTaskRow = ({
   onClick,
   selected,
@@ -28,17 +54,6 @@ const LogTaskRow = ({
     output: ['col', 'col--no-gutter', 'tasks-row__log--output'],
   };
 
-  const outputColorMap = {
-    'Waiting for captcha': 'warning',
-    'Polling queue': 'warning',
-    'Payment successful': 'success',
-    'Card declined': 'failed',
-    'Payment failed': 'failed',
-  };
-
-  const match = /Waiting for captcha|Payment successful|Payment failed|Card declined/i.exec(output);
-  const messageClassName = match ? outputColorMap[match[0]] : 'normal';
-
   const tasksRow = `row ${selected ? 'tasks-row--selected' : 'tasks-row'}`;
 
   if (fullscreen) {
@@ -49,8 +64,8 @@ const LogTaskRow = ({
     ? `${classMap.store.join(' ')} checkout-ready `
     : `${classMap.store.join(' ')}`;
 
+  // TODO: remove this after optimization improvements have been made
   console.log(`rerendering logTaskRow ${index}`);
-
   return (
     <div
       key={index}
@@ -82,16 +97,11 @@ const LogTaskRow = ({
         >
           {proxy || 'None'}
         </div>
-        <div
-          className={`${classMap.output.join(' ')} tasks-row__log--${messageClassName}`}
-          data-testid={addTestId('LogTaskRow.output')}
-          role="button"
-          tabIndex={0}
-          onKeyPress={() => {}}
-          onClick={() => LogTaskRow.openDefaultBrowser(checkoutUrl)}
-        >
-          {output}
-        </div>
+        <OutputCol
+          output={output}
+          classMap={classMap}
+          checkoutUrl={checkoutUrl}
+        />
       </div>
     </div>
   );

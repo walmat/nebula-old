@@ -37,6 +37,7 @@ class AtomParser extends Parser {
       });
 
       const body = await res.text();
+      console.log(body);
       responseJson = await convertToJson(body);
     } catch (error) {
       console.log(error);

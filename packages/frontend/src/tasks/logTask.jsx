@@ -35,13 +35,6 @@ export class LogTaskPrimitive extends PureComponent {
     };
   }
 
-  // TODO: this isn't right! We only should re-render the ones "in view"
-  componentWillReceiveProps(nextProps) {
-    if (this.props !== nextProps) {
-      this.list.forceUpdateGrid();
-    }
-  }
-
   selectRow(e, taskId) {
     // let { selected } = this.state;
     const { fullscreen, focused } = this.state;
@@ -93,15 +86,13 @@ export class LogTaskPrimitive extends PureComponent {
       <AutoSizer>
         {({ width, height }) => (
           <List
-            ref={r => {
-              this.list = r;
-            }}
             width={width}
             height={height}
             rowHeight={30}
             rowRenderer={this.renderRow}
             rowCount={tasks.length}
             overscanRowCount={10}
+            tasks={tasks} // forces a rerender on props change
           />
         )}
       </AutoSizer>
@@ -153,6 +144,7 @@ export class LogTaskPrimitive extends PureComponent {
     if (fullscreen) {
       Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
     }
+
     return (
       <div>
         <div className="row row--start">
