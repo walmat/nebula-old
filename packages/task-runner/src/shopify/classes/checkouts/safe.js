@@ -29,6 +29,99 @@ class SafeCheckout extends Checkout {
     }
   }
 
+  async createCheckout() {
+    const {
+      task: {
+        product: { variants },
+        site: { url, apiKey },
+      },
+      proxy,
+    } = this._context;
+
+    const params = `updates%5B${variants[0]}%5D=1&terms=on&checkout=Checkout&note=${this.note}`;
+
+    try {
+      const res = await this._request(`${url}/checkout`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'manual',
+        follow: 0,
+        headers: getHeaders({ url, apiKey }),
+        body: params,
+      });
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Creating checkout',
+          nextState: States.CREATE_CHECKOUT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
+
+      if (redirectUrl) {
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          try {
+            this._logger.debug('CALLING REDIRECT URL!!!');
+            await this._request(decodeURIComponent(redirectUrl), {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+
+        if (/checkouts/i.test(redirectUrl)) {
+          [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
+          return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+        }
+      }
+
+      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
+      return { message, nextState: States.CREATE_CHECKOUT };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Creating checkout',
+        nextState: States.CREATE_CHECKOUT,
+      });
+
+      const message = err.statusCode
+        ? `Creating checkout - (${err.statusCode})`
+        : 'Creating checkout';
+
+      return nextState || { message, nextState: States.CREATE_CHECKOUT };
+    }
+  }
+
   async addToCart() {
     const {
       task: {
@@ -131,7 +224,7 @@ class SafeCheckout extends Checkout {
         return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
       }
 
-      return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+      return { message: 'Going to cart', nextState: States.GO_TO_CART };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
@@ -150,11 +243,78 @@ class SafeCheckout extends Checkout {
     }
   }
 
+  async getCart() {
+    const {
+      task: {
+        site: { url, apiKey },
+      },
+      proxy,
+    } = this._context;
+
+    try {
+      const res = await this._request(`${url}/cart`, {
+        method: 'GET',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+        },
+      });
+
+      const { status } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Going to cart',
+          nextState: States.GO_TO_CART,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const body = await res.text();
+
+      const $ = cheerio.load(body, {
+        normalizeWhitespace: true,
+        xmlMode: true,
+      });
+
+      this.note = $('input[name="note"]').attr('value');
+      return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+    } catch (err) {
+      this._logger.error(
+        'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
+        err.status,
+        err.message,
+        err.stack,
+      );
+      const nextState = stateForError(err, {
+        message: 'Going to cart',
+        nextState: States.GO_TO_CART,
+      });
+
+      const message = err.status ? `Going to cart - (${err.status})` : 'Going to cart';
+
+      return nextState || { message, nextState: States.GO_TO_CART };
+    }
+  }
+
   async getCheckout(state, message, step, prevStep) {
     const {
       task: {
         site: { url, apiKey },
         monitorDelay,
+        forceCaptcha,
       },
       timers: { checkout, monitor },
       proxy,
@@ -246,6 +406,7 @@ class SafeCheckout extends Checkout {
       }
 
       const body = await res.text();
+
       const $ = cheerio.load(body);
 
       this.protection = await this.parseBotProtection($);
@@ -265,8 +426,8 @@ class SafeCheckout extends Checkout {
           this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
         }
       }
-
-      if (/captcha/i.test(body) && !this.captchaToken) {
+      
+      if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
         this._emitTaskEvent({ message: 'Captcha found!' });
         this.needsCaptcha = true;
         return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
@@ -716,7 +877,7 @@ class SafeCheckout extends Checkout {
     }
 
     params = params.replace(/\s/g, '+');
-    console.log(params);
+
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',
@@ -753,6 +914,7 @@ class SafeCheckout extends Checkout {
       }
 
       const body = await res.text();
+      console.log(body);
 
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 

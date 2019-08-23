@@ -121,8 +121,8 @@ const QueueNextState = {
   [CheckoutStates.CREATE_CHECKOUT]: type => {
     if (type === Modes.FAST) {
       return {
-        message: 'Parsing products',
-        nextState: CheckoutStates.MONITOR,
+        message: 'Submitting information',
+        nextState: CheckoutStates.SUBMIT_CUSTOMER,
       };
     }
     return {

@@ -616,6 +616,37 @@ class TaskRunner {
     return nextState;
   }
 
+  async _handleGoToCart() {
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { message, delay, shouldBan, nextState } = await this._checkout.getCart();
+
+    this._emitTaskEvent({ message, proxy: rawProxy });
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
+    }
+
+    return nextState;
+  }
+
   async _handleRequestCaptcha() {
     // exit if abort is detected
     if (this._context.aborted) {
@@ -1110,6 +1141,7 @@ class TaskRunner {
       [States.MONITOR]: this._handleMonitor,
       [States.RESTOCK]: this._handleRestocking,
       [States.ADD_TO_CART]: this._handleAddToCart,
+      [States.GO_TO_CART]: this._handleGoToCart,
       [States.GO_TO_CHECKOUT]: this._handleGoToCheckout,
       [States.CAPTCHA]: this._handleRequestCaptcha,
       [States.SUBMIT_CUSTOMER]: this._handleSubmitCustomer,

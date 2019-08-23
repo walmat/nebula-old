@@ -35,6 +35,7 @@ export class LogTaskPrimitive extends PureComponent {
     };
   }
 
+  // TODO: this isn't right! We only should re-render the ones "in view"
   componentWillReceiveProps(nextProps) {
     if (this.props !== nextProps) {
       this.list.forceUpdateGrid();
@@ -60,6 +61,7 @@ export class LogTaskPrimitive extends PureComponent {
     if (focused) {
       const { tasks } = this.props;
       const task = tasks.find(t => t.id === focused);
+      // TODO: Convert this to a react-virtualized <List />
       if (task) {
         return (
           <div className="row row--start row--expand table--lower">

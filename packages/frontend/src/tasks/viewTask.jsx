@@ -16,6 +16,7 @@ export class ViewTaskPrimitive extends PureComponent {
     });
   }
 
+  // TODO: this isn't right?
   componentWillReceiveProps(nextProps) {
     if (nextProps !== this.props) {
       // clear the cache (maybe we can just do .clear() on the changed index somehow?)
@@ -43,7 +44,7 @@ export class ViewTaskPrimitive extends PureComponent {
             rowHeight={this.cache.rowHeight}
             rowRenderer={this.renderRow}
             rowCount={tasks.length}
-            overscanRowsCount={10}
+            overscanRowCount={10}
           />
         )}
       </AutoSizer>

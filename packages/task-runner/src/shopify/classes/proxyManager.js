@@ -11,7 +11,7 @@ class ProxyManager {
     this._logger = logger;
     this._proxies = new Map();
     this.timeout = 120000; // used for soft bans
-    this.retry = 100; // retry delay for swapping
+    this.retry = 10; // retry delay for swapping
   }
 
   format(rawData) {
@@ -196,22 +196,23 @@ class ProxyManager {
       this._logger.silly('No proxy found, skipping ban');
       return;
     }
-    // free up the use list, but wait 2 min. to lift the ban
+
     delete proxy.use[site];
-    proxy.ban[site] = shouldBan;
+    proxy.ban[site] = 0;
     this._logger.debug('Ban predicate: %j, Used predicate: %j', proxy.ban[site], proxy.use[site]);
-    if (proxy.ban[site] === 1) {
-      // for a soft ban, just timeout the proxy for a couple minutes
-      this._logger.silly('Banned Proxy %s', proxyId);
-      setTimeout(() => {
-        // reset the proxy by removing the ban and opening it up again
-        this._logger.debug('Freeing up ban predicate for %s', proxy.proxy);
-        this.release(id, site, proxy.id, true);
-      }, this.timeout);
-    } else if (proxy.ban[site] === 2) {
-      // delete the proxy from the list if we've hard banned it
-      this._proxies.delete(proxyId);
-    }
+    this.release(id, site, proxy.id, true); // release no matter what now!
+    // if (proxy.ban[site] === 1) {
+    //   // for a soft ban, just timeout the proxy for a couple minutes
+    //   this._logger.silly('Banned Proxy %s', proxyId);
+    //   setTimeout(() => {
+    //     // reset the proxy by removing the ban and opening it up again
+    //     this._logger.debug('Freeing up ban predicate for %s', proxy.proxy);
+    //     this.release(id, site, proxy.id, true);
+    //   }, this.timeout);
+    // } else if (proxy.ban[site] === 2) {
+    //   // delete the proxy from the list if we've hard banned it
+    //   this._proxies.delete(proxyId);
+    // }
   }
 
   /**
@@ -251,10 +252,10 @@ class ProxyManager {
 
     // Check if we need to ban the old proxy
     this._logger.debug('Should ban old proxy?: %s', shouldBan);
-    if (shouldBan > 0) {
-      this._logger.debug('Banning old proxy... %s', oldProxy.proxy);
-      this.ban(id, site, proxyId, shouldBan);
-    }
+    // if (shouldBan > 0) {
+    this._logger.debug('Banning old proxy... %s', oldProxy.proxy);
+    this.ban(id, site, proxyId, shouldBan);
+    // }
 
     // Check if we need to release the old proxy
     if (shouldRelease) {

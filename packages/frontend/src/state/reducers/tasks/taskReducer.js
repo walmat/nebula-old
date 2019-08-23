@@ -112,9 +112,10 @@ export function taskReducer(state = initialTaskStates.task, action) {
           }
           break;
         }
-        case TASK_FIELDS.TOGGLE_BYPASS: {
+        case TASK_FIELDS.TOGGLE_CAPTCHA: {
+          console.log('toggling captcha');
           change = {
-            isQueueBypass: !state.isQueueBypass,
+            forceCaptcha: !state.forceCaptcha,
           };
           break;
         }

@@ -104,17 +104,17 @@ class FastCheckout extends Checkout {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
-          if (monitor.getRunTime() > CheckoutRefresh) {
-            return { message: 'Refreshing checkout', nextState: States.GO_TO_CHECKOUT };
-          }
+          // if (monitor.getRunTime() > CheckoutRefresh) {
+          //   return { message: 'Refreshing checkout', nextState: States.GO_TO_CHECKOUT };
+          // }
           const nextState = sizes.includes('Random') ? States.RESTOCK : States.ADD_TO_CART;
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           return { message: `Out of stock! Delaying ${monitorDelay}ms`, delay: true, nextState };
         }
         if (error && error.variant_id[0]) {
-          if (monitor.getRunTime() > CheckoutRefresh) {
-            return { message: 'Refreshing checkout', nextState: States.GO_TO_CHECKOUT };
-          }
+          // if (monitor.getRunTime() > CheckoutRefresh) {
+          //   return { message: 'Refreshing checkout', nextState: States.GO_TO_CHECKOUT };
+          // }
           return {
             message: `Variant not live! Delaying ${monitorDelay}ms`,
             delay: true,
@@ -270,6 +270,7 @@ class FastCheckout extends Checkout {
     const {
       task: {
         site: { url, apiKey },
+        forceCaptcha,
       },
       timers: { monitor },
       proxy,
@@ -357,8 +358,9 @@ class FastCheckout extends Checkout {
         }
       }
 
-      if (/captcha/.test(body)) {
+      if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
         this.needsCaptcha = true;
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
       }
 
       if (this._context.task.isQueueBypass && !this.shouldContinue) {

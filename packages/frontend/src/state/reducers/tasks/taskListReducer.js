@@ -284,7 +284,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         if (type !== 'srr') {
           const task = taskMap[taskId];
           if (task) {
-            const { log } = task;
+            let { log } = task;
 
             const {
               message,
@@ -332,6 +332,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
               task.needsChanged = needsChanged;
             }
             if (log) {
+              // TODO: REMOVE THIS WHEN I CHANGE THE TASK LOG TO REACT VIRTUALIZED
+              if (log.length > 30) {
+                task.log = [];
+              }
               log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
             }
           }

@@ -49,6 +49,8 @@ const LogTaskRow = ({
     ? `${classMap.store.join(' ')} checkout-ready `
     : `${classMap.store.join(' ')}`;
 
+  console.log(`rerendering logTaskRow ${index}`);
+
   return (
     <div
       key={index}
