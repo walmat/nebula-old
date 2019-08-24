@@ -36,7 +36,7 @@ const OutputCol = ({ output, classMap, checkoutUrl }) => {
 OutputCol.propTypes = {
   output: PropTypes.string.isRequired,
   classMap: PropTypes.any.isRequired,
-  checkoutUrl: PropTypes.string.isRequired,
+  // checkoutUrl: PropTypes.string.isRequired,
 };
 
 class LogTaskRow extends React.PureComponent {
