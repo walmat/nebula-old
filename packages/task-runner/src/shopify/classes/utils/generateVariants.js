@@ -61,14 +61,22 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
     'silly',
     'Generated valid variants: %j',
     validVariants.map(v =>
-      pick(v, 'id', 'product_id', 'title', 'price', 'option1', 'option2', 'option3'),
+      pick(v, 'id', 'product_id', 'barcode', 'title', 'price', 'option1', 'option2', 'option3'),
     ),
   );
   if (validVariants.length > 0) {
-    return {
+    let base = {
       variants: validVariants.map(v => `${v.id}`),
       sizes: validVariants.map(v => `${v.title || v.option1}`),
     };
+
+    if (/yeezysupply/i.test(site.url)) {
+      base = {
+        ...base,
+        barcode: validVariants.map(v => `${v.barcode}`),
+      };
+    }
+    return base;
   }
   const err = new Error('No variants matched');
   err.code = ErrorCodes.VariantsNotMatched;

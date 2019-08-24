@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import tDefns from '../utils/definitions/taskDefinitions';
 import { addTestId } from '../utils';
 
-const OutputCol = ({ output, classMap, checkoutUrl}) => {
+const OutputCol = ({ output, classMap, checkoutUrl }) => {
   const outputColorMap = {
     'Waiting for captcha': 'warning',
     'Polling queue': 'warning',
@@ -12,7 +12,7 @@ const OutputCol = ({ output, classMap, checkoutUrl}) => {
     'Payment failed': 'failed',
   };
 
-  const match = /Waiting for captcha|Payment successful|Payment failed|Card declined/i.exec(output);
+  const match = /Waiting for captcha|Polling queue|Payment successful|Payment failed|Card declined/i.exec(output);
   const messageClassName = match ? outputColorMap[match[0]] : 'normal';
 
   return (
@@ -65,7 +65,6 @@ const LogTaskRow = ({
     : `${classMap.store.join(' ')}`;
 
   // TODO: remove this after optimization improvements have been made
-  console.log(`rerendering logTaskRow ${index}`);
   return (
     <div
       key={index}

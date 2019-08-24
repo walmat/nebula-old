@@ -75,7 +75,7 @@ const patchCheckoutForm = (billingMatchesShipping, shipping, billing, payment, c
   return data;
 };
 
-const addToCart = (variant, name, hash) => {
+const addToCart = (variant, name, hash, props = {}) => {
   const base = {
     form_type: 'product',
     utf8: '✓',
@@ -96,6 +96,15 @@ const addToCart = (variant, name, hash) => {
       // TODO : figure out if this changes and we need to parse it out somewhere
       opts = { 'properties[_sELerAVIcKmA_aRCesTiVanDl_]': 'Zfq3N1cDdi1@' };
       break;
+    }
+    case 'Yeezy Supply': {
+      return {
+        id: variant,
+        properties: {
+          ...props,
+        },
+        quantity: 1,
+      };
     }
     default:
       break;

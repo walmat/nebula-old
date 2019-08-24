@@ -9,140 +9,36 @@ const { getHeaders, stateForError, userAgent } = require('../utils');
 const { addToCart } = require('../utils/forms');
 
 class SafeCheckout extends Checkout {
-  async login() {
-    const { message, shouldBan, nextState } = await super.login();
-
-    switch (nextState) {
-      case States.CREATE_CHECKOUT: {
-        return {
-          message: 'Parsing products',
-          nextState: States.MONITOR,
-        };
-      }
-      default: {
-        return {
-          message,
-          shouldBan,
-          nextState,
-        };
-      }
-    }
-  }
-
-  async createCheckout() {
-    const {
-      task: {
-        product: { variants },
-        site: { url, apiKey },
-      },
-      proxy,
-    } = this._context;
-
-    const params = `updates%5B${variants[0]}%5D=1&terms=on&checkout=Checkout&note=${this.note}`;
-
-    try {
-      const res = await this._request(`${url}/checkout`, {
-        method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'manual',
-        follow: 0,
-        headers: getHeaders({ url, apiKey }),
-        body: params,
-      });
-
-      const { status, headers } = res;
-
-      const checkStatus = stateForError(
-        { status },
-        {
-          message: 'Creating checkout',
-          nextState: States.CREATE_CHECKOUT,
-        },
-      );
-
-      if (checkStatus) {
-        return checkStatus;
-      }
-
-      const redirectUrl = headers.get('location');
-      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
-
-      if (redirectUrl) {
-        if (/password/i.test(redirectUrl)) {
-          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          try {
-            this._logger.debug('CALLING REDIRECT URL!!!');
-            await this._request(decodeURIComponent(redirectUrl), {
-              method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          return { message: 'Polling queue', nextState: States.QUEUE };
-        }
-
-        if (/checkouts/i.test(redirectUrl)) {
-          [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
-          return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
-        }
-      }
-
-      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      return { message, nextState: States.CREATE_CHECKOUT };
-    } catch (err) {
-      this._logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
-        err.statusCode,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Creating checkout',
-        nextState: States.CREATE_CHECKOUT,
-      });
-
-      const message = err.statusCode
-        ? `Creating checkout - (${err.statusCode})`
-        : 'Creating checkout';
-
-      return nextState || { message, nextState: States.CREATE_CHECKOUT };
-    }
-  }
-
   async addToCart() {
     const {
       task: {
         site: { name, url },
-        product: { variants, hash },
+        product: { variants, barcode, hash },
         monitorDelay,
       },
       proxy,
     } = this._context;
+
+    let properties = {};
+
+    if (barcode) {
+      properties = {
+        ...properties,
+        barcode: barcode[0],
+      };
+    }
 
     try {
       const res = await this._request('/cart/add.js', {
         method: 'POST',
         headers: {
           'User-Agent': userAgent,
-          'Content-Type': 'application/json',
+          'content-type': 'application/json',
           'sec-fetch-mode': 'navigate',
           'sec-fetch-site': 'same-origin',
           'sec-fetch-user': '?1',
         },
-        body: JSON.stringify(addToCart(variants[0], name, hash)),
+        body: JSON.stringify(addToCart(variants[0], name, hash, properties)),
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
       });
 
@@ -218,10 +114,6 @@ class SafeCheckout extends Checkout {
 
       if (price) {
         this.prices.item = price;
-      }
-
-      if (this.chosenShippingMethod.id && this.isRestocking) {
-        return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
       }
 
       return { message: 'Going to cart', nextState: States.GO_TO_CART };
@@ -309,6 +201,115 @@ class SafeCheckout extends Checkout {
     }
   }
 
+  async createCheckout() {
+    const {
+      task: {
+        product: { variants },
+        site: { url, apiKey },
+      },
+      proxy,
+    } = this._context;
+
+    let params = `updates%5B%5D=1&checkout=Checkout`;
+
+    if (/eflash/i.test(url)) {
+      params = `updates%5B%5D=1&checkout=Checkout&attributes%5Bcheckout_clicked%5D=true`;
+    }
+
+    if (/palace/i.test(url)) {
+      params = `updates%5B${variants[0]}%5D=1&terms=on&checkout=Checkout`;
+    }
+
+    if (this.note) {
+      params += `&note=${this.note}`;
+    }
+
+    try {
+      const res = await this._request(`${url}/cart`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'content-type': 'application/x-www-form-urlencoded',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+        },
+        body: params,
+      });
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Creating checkout',
+          nextState: States.CREATE_CHECKOUT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
+
+      if (redirectUrl) {
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          try {
+            await this._request(decodeURIComponent(redirectUrl), {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+
+        if (/checkouts/i.test(redirectUrl)) {
+          [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
+          return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+        }
+      }
+
+      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
+      return { message, nextState: States.CREATE_CHECKOUT };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Creating checkout',
+        nextState: States.CREATE_CHECKOUT,
+      });
+
+      const message = err.statusCode
+        ? `Creating checkout - (${err.statusCode})`
+        : 'Creating checkout';
+
+      return nextState || { message, nextState: States.CREATE_CHECKOUT };
+    }
+  }
+
   async getCheckout(state, message, step, prevStep) {
     const {
       task: {
@@ -367,14 +368,28 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
+          let newUrl = null;
+
+          // if redirect has the cookie, let's just use the redirect
+          if (/_ctd/.test(redirectUrl)) {
+            newUrl = redirectUrl;
+          }
+
+          // else, try to find the cookie in our jar
           const ctd = this.getCtdCookie(this._jar);
 
-          if (!ctd) {
+          // if neither, just jump to the queue
+          if (!ctd && !newUrl) {
             return { message: 'Polling queue', nextState: States.QUEUE };
           }
 
+          // if it doesn't have the cookie, and our jar does, build the new url
+          if (!newUrl) {
+            newUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
           try {
-            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+            await this._request(newUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -393,6 +408,7 @@ class SafeCheckout extends Checkout {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           return {
             message: `Out of stock! Delaying ${monitorDelay}ms`,
             delay: true,
@@ -426,28 +442,24 @@ class SafeCheckout extends Checkout {
           this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
         }
       }
-      
+
       if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
         this._emitTaskEvent({ message: 'Captcha found!' });
         this.needsCaptcha = true;
         return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
       }
 
+      if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
+        return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
+      }
+
       if (step === 'payment_method' && !this.paymentGateway) {
-        if (/No payment is required./i.test(body)) {
-          this.paymentGateway = 'free';
-        } else {
-          this.paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-        }
+        this.paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
         this.prices.total = $('input[name="checkout[total_price]"]').attr('value');
       }
 
       if (step === 'shipping_method' && !this.chosenShippingMethod.id) {
         this.chosenShippingMethod.id = $('.radio-wrapper').attr('data-shipping-method');
-      }
-
-      if (this._context.task.isQueueBypass && !this.shouldContinue) {
-        return { message: 'Bypass done! Task paused', status: 'bypassed', nextState: States.DONE };
       }
 
       switch (state) {
@@ -569,7 +581,7 @@ class SafeCheckout extends Checkout {
         body: params,
       });
 
-      const { status } = res;
+      const { status, url: redirectUrl } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -584,36 +596,72 @@ class SafeCheckout extends Checkout {
       }
 
       const body = await res.text();
-
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
-      if (match && match.length > 0) {
+      if (/captcha validation failed/i.test(body)) {
+        this.captchaToken = ''; // rest captcha token...
+        return { message: 'Captcha validation failed!', nextState: States.GO_TO_CHECKOUT };
+      }
+
+      if (match && match.length) {
         const [, step] = match;
         if (/stock_problems/i.test(step)) {
+          return {
+            message: `Out of stock, delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.GO_TO_CHECKOUT,
+          };
+        }
+
+        if (/contact_information/i.test(step)) {
+          return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
+        }
+
+        if (/shipping_method/i.test(step)) {
+          return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+        }
+
+        if (/payment_method/i.test(step)) {
+          return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
+        }
+      }
+
+      // if we followed a redirect at some point...
+      if (res.redirected) {
+        if (/stock_problems/i.test(redirectUrl)) {
           return {
             message: `Out of stock, delaying ${monitorDelay}ms`,
             nextState: States.GO_TO_CHECKOUT,
           };
         }
 
-        if (/captcha validation failed/i.test(body)) {
-          this.captchaToken = '';
-          return { message: 'Captcha failed!', nextState: States.GO_TO_CHECKOUT };
-        }
-
-        if (/password/i.test(step)) {
+        if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.SUBMIT_CUSTOMER };
         }
 
-        if (/throttle/i.test(step)) {
+        if (/throttle/i.test(redirectUrl)) {
+          let newUrl = null;
+
+          // if redirect has the cookie, let's just use the redirect
+          if (/_ctd/.test(redirectUrl)) {
+            newUrl = redirectUrl;
+          }
+
+          // else, try to find the cookie in our jar
           const ctd = this.getCtdCookie(this._jar);
 
-          if (!ctd) {
+          // if neither, just jump to the queue
+          if (!ctd && !newUrl) {
             return { message: 'Polling queue', nextState: States.QUEUE };
           }
 
+          // if it doesn't have the cookie, and our jar does, build the new url
+          if (!newUrl) {
+            newUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
           try {
-            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+            await this._request(newUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -629,18 +677,6 @@ class SafeCheckout extends Checkout {
           }
 
           return { message: 'Polling queue', nextState: States.QUEUE };
-        }
-
-        if (/contact_information/i.test(step)) {
-          return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
-        }
-
-        if (/shipping_method/i.test(step)) {
-          return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
-        }
-
-        if (/payment_method/i.test(step)) {
-          return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
         }
       }
 
@@ -671,6 +707,7 @@ class SafeCheckout extends Checkout {
         site: { url, apiKey },
         monitorDelay,
       },
+      timers: { checkout },
       proxy,
     } = this._context;
 
@@ -709,7 +746,7 @@ class SafeCheckout extends Checkout {
         body: params,
       });
 
-      const { status } = res;
+      const { status, url: redirectUrl } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -724,9 +761,13 @@ class SafeCheckout extends Checkout {
       }
 
       const body = await res.text();
-
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
-      if (match && match.length > 0) {
+
+      if (/captcha/i.test(body)) {
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
+      if (match && match.length) {
         const [, step] = match;
 
         if (/stock_problems/i.test(step)) {
@@ -742,23 +783,67 @@ class SafeCheckout extends Checkout {
           return { message: 'Captcha failed!', nextState: States.GO_TO_CHECKOUT };
         }
 
-        if (/password/i.test(step)) {
-          return { message: 'Password page', delay: true, nextState: States.SUBMIT_SHIPPING };
-        }
-
         if (/processing/i.test(step)) {
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
         }
 
-        if (/throttle/i.test(step)) {
+        if (/contact_information/i.test(step)) {
+          return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
+        }
+
+        if (/shipping_method/i.test(step)) {
+          return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+        }
+
+        if (/payment_method/i.test(step)) {
+          return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
+        }
+      }
+
+      // if we followed a redirect at some point...
+      if (res.redirected) {
+        if (/processing/i.test(redirectUrl)) {
+          this._context.task.checkoutSpeed = checkout.getRunTime();
+          checkout.stop();
+          checkout.reset();
+          return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+        }
+
+        if (/stock_problems/i.test(redirectUrl)) {
+          return {
+            message: `Out of stock, delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.SUBMIT_SHIPPING,
+          };
+        }
+
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.SUBMIT_SHIPPING };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          let newUrl = null;
+
+          // if redirect has the cookie, let's just use the redirect
+          if (/_ctd/.test(redirectUrl)) {
+            newUrl = redirectUrl;
+          }
+
+          // else, try to find the cookie in our jar
           const ctd = this.getCtdCookie(this._jar);
 
-          if (!ctd) {
+          // if neither, just jump to the queue
+          if (!ctd && !newUrl) {
             return { message: 'Polling queue', nextState: States.QUEUE };
           }
 
+          // if it doesn't have the cookie, and our jar does, build the new url
+          if (!newUrl) {
+            newUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
           try {
-            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+            await this._request(newUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -775,22 +860,6 @@ class SafeCheckout extends Checkout {
 
           return { message: 'Polling queue', nextState: States.QUEUE };
         }
-
-        if (/contact_information/i.test(step)) {
-          return { message: 'Submitting information', nextState: States.GO_TO_CHECKOUT };
-        }
-
-        if (/shipping_method/i.test(step)) {
-          return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
-        }
-
-        if (/payment_method/i.test(step)) {
-          return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
-        }
-      }
-
-      if (/captcha/i.test(body)) {
-        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
       }
 
       return { message: 'Submitting shipping', nextState: States.GO_TO_SHIPPING };
@@ -899,7 +968,7 @@ class SafeCheckout extends Checkout {
         body: params,
       });
 
-      const { status } = res;
+      const { status, url: redirectUrl } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -914,7 +983,6 @@ class SafeCheckout extends Checkout {
       }
 
       const body = await res.text();
-      console.log(body);
 
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
@@ -928,7 +996,7 @@ class SafeCheckout extends Checkout {
 
       if (/Your payment can’t be processed/i.test(body)) {
         return {
-          message: `Payment error, delaying ${monitorDelay}ms`,
+          message: `Processing error, retrying in ${monitorDelay}ms`,
           delay: true,
           nextState: States.GO_TO_PAYMENT,
         };
@@ -938,7 +1006,8 @@ class SafeCheckout extends Checkout {
         return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
       }
 
-      if (match && match.length > 0) {
+      // step tests
+      if (match && match.length) {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
@@ -946,36 +1015,6 @@ class SafeCheckout extends Checkout {
           checkout.stop();
           checkout.reset();
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
-        }
-
-        if (/password/i.test(step)) {
-          return { message: 'Password page', delay: true, nextState: States.SUBMIT_PAYMENT };
-        }
-
-        if (/throttle/i.test(step)) {
-          const ctd = this.getCtdCookie(this._jar);
-
-          if (!ctd) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
-          }
-
-          try {
-            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
-              method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
         if (/contact_information/i.test(step)) {
@@ -992,6 +1031,68 @@ class SafeCheckout extends Checkout {
 
         if (/review/i.test(step)) {
           return { message: 'Completing payment', nextState: States.GO_TO_REVIEW };
+        }
+      }
+
+      // if we followed a redirect at some point...
+      if (res.redirected) {
+        if (/processing/i.test(redirectUrl)) {
+          this._context.task.checkoutSpeed = checkout.getRunTime();
+          checkout.stop();
+          checkout.reset();
+          return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+        }
+
+        if (/stock_problems/i.test(redirectUrl)) {
+          return {
+            message: `Out of stock, delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.SUBMIT_PAYMENT,
+          };
+        }
+
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.GO_TO_PAYMENT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          let newUrl = null;
+
+          // if redirect has the cookie, let's just use the redirect
+          if (/_ctd/.test(redirectUrl)) {
+            newUrl = redirectUrl;
+          }
+
+          // else, try to find the cookie in our jar
+          const ctd = this.getCtdCookie(this._jar);
+
+          // if neither, just jump to the queue
+          if (!ctd && !newUrl) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          // if it doesn't have the cookie, and our jar does, build the new url
+          if (!newUrl) {
+            newUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
+          try {
+            await this._request(newUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
       }
 

@@ -1,7 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 import { isEmpty } from 'lodash';
-import { URL } from 'url';
 
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
@@ -52,22 +51,13 @@ class Checkout {
     }
 
     this.paymentToken = null;
+    this.note = null;
     this.paymentGateway = '';
     this.checkoutToken = null;
     this.checkoutKey = null;
     this.storeId = null;
     this.protection = [];
     this.needsCaptcha = false;
-    this.shouldContinue = false;
-
-    if (this._context.task.checkoutUrl) {
-      const [checkoutUrl, key] = this._context.task.checkoutUrl.split('?');
-      this.paymentToken = this._context.task.paymentToken;
-      this.needsCaptcha = this._context.task.needsCaptcha;
-      [, , , this.storeId, , this.checkoutToken] = checkoutUrl.split('/');
-      [, this.checkoutKey] = key.split('=');
-      this.shouldContinue = true;
-    }
 
     this.prices = {
       item: 0,
@@ -177,9 +167,14 @@ class Checkout {
           return { message: 'Getting site data', nextState: States.GET_SITE_DATA };
         }
 
+        if (this.needsLogin) {
+          return { message: 'Logging in', nextState: States.LOGIN };
+        }
+
         if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
           return { message: 'Parsing products', nextState: States.MONITOR };
         }
+
         return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
       }
       return {
@@ -212,6 +207,7 @@ class Checkout {
     const {
       task: {
         site: { url },
+        type,
         username,
         password,
       },
@@ -279,6 +275,14 @@ class Checkout {
 
       if (/account/i.test(redirectUrl)) {
         this.needsLogin = false; // update global check for login
+
+        // reset captcha token
+        if (this.captchaToken) {
+          this.captchaToken = '';
+        }
+        if (type === Modes.SAFE) {
+          return { message: 'Parsing products', nextState: States.MONITOR };
+        }
         return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
       }
 
@@ -355,9 +359,15 @@ class Checkout {
         this._context.task.site.apiKey = accessToken;
       }
       if (type === Modes.SAFE) {
-        return { message: 'Parsing products', nextState: States.MONITOR };
+        if (!this.needsLogin) {
+          return { message: 'Parsing products', nextState: States.MONITOR };
+        }
+        return { message: 'Logging in', nextState: States.LOGIN };
       }
-      return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+      if (!this.needsLogin) {
+        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+      }
+      return { message: 'Logging in', nextState: States.LOGIN };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Parse Access Token.\n\n %j %j',
@@ -422,7 +432,6 @@ class Checkout {
 
         if (/throttle/i.test(redirectUrl)) {
           try {
-            this._logger.debug('CALLING REDIRECT URL!!!');
             await this._request(decodeURIComponent(redirectUrl), {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
@@ -446,7 +455,10 @@ class Checkout {
           if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
             return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
           }
-          return { message: 'Parsing products', nextState: States.MONITOR };
+          return {
+            message: 'Submitting information',
+            nextState: States.SUBMIT_CUSTOMER,
+          };
         }
       }
 

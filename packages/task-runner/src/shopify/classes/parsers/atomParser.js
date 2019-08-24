@@ -37,10 +37,8 @@ class AtomParser extends Parser {
       });
 
       const body = await res.text();
-      console.log(body);
       responseJson = await convertToJson(body);
     } catch (error) {
-      console.log(error);
       this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given

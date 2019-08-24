@@ -157,9 +157,15 @@ class Monitor {
   _generateVariants(product) {
     const { sizes, site, monitorDelay } = this._context.task;
     let variants;
+    let barcode;
     let chosenSizes;
     try {
-      ({ variants, sizes: chosenSizes } = generateVariants(product, sizes, site, this._logger));
+      ({ variants, barcode, sizes: chosenSizes } = generateVariants(
+        product,
+        sizes,
+        site,
+        this._logger,
+      ));
     } catch (err) {
       this._logger.debug('ERROR:::: %j', err);
       if (err.code === ErrorCodes.VariantsNotMatched) {
@@ -179,7 +185,7 @@ class Monitor {
         nextState: States.ERROR,
       };
     }
-    return { variants, sizes: chosenSizes };
+    return { variants, barcode, sizes: chosenSizes };
   }
 
   async _monitorKeywords() {
@@ -197,12 +203,13 @@ class Monitor {
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     const { site } = this._context.task;
-    const { variants, sizes, nextState, delay, message } = this._generateVariants(parsed);
+    const { variants, barcode, sizes, nextState, delay, message } = this._generateVariants(parsed);
     // check for next state (means we hit an error when generating variants)
     if (nextState) {
       return { nextState, delay, message };
     }
     this._logger.silly('MONITOR: Variants Generated, updating context...');
+    this._context.task.product.barcode = barcode;
     this._context.task.product.variants = variants;
     this._context.task.product.chosenSizes = sizes;
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
@@ -231,7 +238,7 @@ class Monitor {
         fullProductInfo.title,
       );
       this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
-      const { variants, sizes, nextState, delay, message } = this._generateVariants(
+      const { variants, barcode, sizes, nextState, delay, message } = this._generateVariants(
         fullProductInfo,
       );
       // check for next state (means we hit an error when generating variants)
@@ -239,6 +246,7 @@ class Monitor {
         return { nextState, delay, message };
       }
       this._logger.silly('MONITOR: Variants Generated, updating context...');
+      this._context.task.product.barcode = barcode;
       this._context.task.product.variants = variants;
       this._context.task.product.chosenSizes = sizes;
 
@@ -280,6 +288,7 @@ class Monitor {
     this._logger.silly('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     let variants;
+    let barcode;
     let sizes;
     let nextState;
     let delay;
@@ -287,13 +296,14 @@ class Monitor {
     if (product.variant) {
       variants = [product.variant];
     } else {
-      ({ variants, sizes, nextState, delay, message } = this._generateVariants(parsed));
+      ({ variants, barcode, sizes, nextState, delay, message } = this._generateVariants(parsed));
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
         return { nextState, delay, message };
       }
     }
     this._logger.silly('MONITOR: Variants Generated, updating context...');
+    this._context.task.product.barcode = barcode;
     this._context.task.product.variants = variants;
     this._context.task.product.chosenSizes = sizes;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);

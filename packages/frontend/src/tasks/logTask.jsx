@@ -10,10 +10,13 @@ export class LogTaskPrimitive extends PureComponent {
   static renderOutputLogRow(msg, i) {
     const outputColorMap = {
       'Waiting for captcha': 'warning',
+      'Polling queue': 'warning',
       'Payment successful': 'success',
+      'Card declined': 'failed',
       'Payment failed': 'failed',
     };
-    const match = /Waiting for captcha|Payment successful|Payment failed/.exec(msg);
+
+    const match = /Waiting for captcha|Polling queue|Payment successful|Payment failed|Card declined/i.exec(msg);
     const messageClassName = match ? outputColorMap[match[0]] : 'normal';
     return (
       <div key={i} className="row row--start row--gutter tasks-live-log__output-row">
@@ -101,20 +104,21 @@ export class LogTaskPrimitive extends PureComponent {
 
   renderRow({ index, key, style }) {
     const { tasks } = this.props;
+    const task = tasks[index];
     const { fullscreen, selected } = this.state;
 
-    const selectedMap = {};
-    selected.forEach(id => {
-      selectedMap[id] = id;
-    });
+    // const selectedMap = {};
+    // selected.forEach(id => {
+    //   selectedMap[id] = id;
+    // });
 
     return (
       <LogTaskRow
         key={key}
-        onClick={e => this.selectRow(e, tasks[index].id)}
-        selected={!!selectedMap[tasks[index].id]}
+        onClick={e => this.selectRow(e, task.id)}
+        selected={selected.indexOf(task.id) !== -1}
         style={style}
-        task={tasks[index]}
+        task={task}
         fullscreen={fullscreen}
       />
     );

@@ -12,16 +12,7 @@ const Slack = require('../classes/hooks/slack');
 const AsyncQueue = require('../../common/asyncQueue');
 const {
   ErrorCodes,
-  TaskRunner: {
-    States,
-    Events,
-    Types,
-    DelayTypes,
-    HookTypes,
-    StateMap,
-    HarvestStates,
-    CheckoutRefresh,
-  },
+  TaskRunner: { States, Events, Types, DelayTypes, HookTypes, StateMap, HarvestStates },
 } = require('../classes/utils/constants');
 const TaskManagerEvents = require('../classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../../common/logger');
@@ -480,7 +471,7 @@ class TaskRunner {
     }
 
     // poll queue map should be used to determine where to go next
-    ({ message, delay, nextState } = StateMap[this._prevState](type));
+    ({ message, delay, nextState } = StateMap[this._prevState](type, this._context.task));
     this._emitTaskEvent({ message, proxy: rawProxy });
     return nextState;
   }
@@ -648,8 +639,12 @@ class TaskRunner {
   }
 
   async _handleRequestCaptcha() {
+    const {
+      aborted,
+      task: { type },
+    } = this._context;
     // exit if abort is detected
-    if (this._context.aborted) {
+    if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       if (this._checkout.captchaTokenRequest) {
         // cancel the request if it was previously started
@@ -677,6 +672,13 @@ class TaskRunner {
         // We have the token, so suspend harvesting for now
         this.suspendHarvestCaptcha();
 
+        if (this._prevState === States.GO_TO_CHECKOUT) {
+          if (type === Modes.FAST) {
+            return States.GO_TO_SHIPPING;
+          }
+          return States.SUBMIT_CUSTOMER;
+        }
+
         if (this._prevState === States.SUBMIT_PAYMENT) {
           return States.COMPLETE_PAYMENT;
         }
@@ -690,7 +692,6 @@ class TaskRunner {
           'Harvest Captcha status: %s, stopping...',
           this._checkout.captchaTokenRequest.status,
         );
-        // TODO: should we emit a status update here?
         // clear out the status so we get a generic "errored out task event"
         this._context.status = null;
         return States.ERROR;
@@ -713,7 +714,6 @@ class TaskRunner {
       rawProxy,
       task: {
         site: { url },
-        isQueueBypass,
         monitorDelay,
       },
     } = this._context;
@@ -726,18 +726,17 @@ class TaskRunner {
 
     let message;
     let delay;
-    let status;
     let shouldBan;
     let nextState;
     if (this._context.task.type === Modes.SAFE) {
-      ({ message, delay, status, shouldBan, nextState } = await this._checkout.getCheckout(
+      ({ message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
         this._state,
         'Going to checkout',
         'contact_information',
         'contact_information',
       ));
     } else {
-      ({ message, delay, status, shouldBan, nextState } = await this._checkout.getCheckout());
+      ({ message, delay, shouldBan, nextState } = await this._checkout.getCheckout());
     }
 
     let checkoutUrl;
@@ -754,25 +753,14 @@ class TaskRunner {
     }
 
     if (delay) {
-      if (nextState === States.GO_TO_CHECKOUT) {
-        this._emitTaskEvent({
-          message: 'Going to checkout',
-          proxy: rawProxy,
-          checkoutUrl,
-          status,
-          needsChanged: isQueueBypass,
-        });
-      }
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
     }
 
     this._emitTaskEvent({
       message,
-      status,
       proxy: rawProxy,
       checkoutUrl,
-      needsChanged: isQueueBypass,
     });
 
     return nextState;
@@ -1196,10 +1184,6 @@ class TaskRunner {
 
   async start() {
     this._prevState = States.STARTED;
-    if (this._context.task.username && this._context.task.password) {
-      this._state = States.LOGIN;
-    }
-
     if (this._context.task.isQueueBypass && this._context.task.checkoutUrl) {
       this._state = States.MONITOR;
     }

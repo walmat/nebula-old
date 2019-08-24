@@ -69,7 +69,7 @@ class FastCheckout extends Checkout {
       // check redirects
       if (redirectUrl) {
         if (/password/i.test(redirectUrl)) {
-          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+          return { message: 'Password page', delay: true, nextState: States.ADD_TO_CART };
         }
 
         if (/throttle/i.test(redirectUrl)) {
@@ -139,10 +139,6 @@ class FastCheckout extends Checkout {
 
         this.prices.item = parseFloat(totalPrice).toFixed(2);
 
-        if (this._context.task.isQueueBypass && this.shouldContinue) {
-          return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
-        }
-
         if (this.chosenShippingMethod.id) {
           this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
           this.prices.total = (
@@ -167,28 +163,6 @@ class FastCheckout extends Checkout {
 
       const message = err.status ? `Adding to cart – (${err.status})` : 'Adding to cart';
       return nextState || { message, nextState: States.ADD_TO_CART };
-    }
-  }
-
-  async createCheckout() {
-    const { message, delay, shouldBan, nextState } = await super.createCheckout();
-
-    switch (nextState) {
-      case States.MONITOR: {
-        return {
-          message: 'Submitting information',
-          delay,
-          nextState: States.SUBMIT_CUSTOMER,
-        };
-      }
-      default: {
-        return {
-          message,
-          delay,
-          shouldBan,
-          nextState,
-        };
-      }
     }
   }
 
@@ -243,6 +217,9 @@ class FastCheckout extends Checkout {
         return { message, nextState: States.SUBMIT_CUSTOMER };
       }
 
+      if (variants.length) {
+        return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
+      }
       this.needsPatched = false;
       return { message: 'Parsing products', nextState: States.MONITOR };
     } catch (err) {
@@ -299,7 +276,7 @@ class FastCheckout extends Checkout {
       const checkStatus = stateForError(
         { status },
         {
-          message: 'Refreshing checkout',
+          message: 'Going to checkout',
           nextState: States.GO_TO_CHECKOUT,
         },
       );
@@ -313,9 +290,8 @@ class FastCheckout extends Checkout {
 
       // check if redirected
       if (redirectUrl) {
-        // processing
         if (/password/i.test(redirectUrl)) {
-          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+          return { message: 'Password page', delay: true, nextState: States.GO_TO_CHECKOUT };
         }
 
         if (/throttle/i.test(redirectUrl)) {
@@ -359,16 +335,7 @@ class FastCheckout extends Checkout {
       }
 
       if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
-        this.needsCaptcha = true;
-        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
-      }
-
-      if (this._context.task.isQueueBypass && !this.shouldContinue) {
-        return {
-          message: 'Bypass done. Task paused',
-          status: 'bypassed',
-          nextState: States.DONE,
-        };
+        this.needsCaptcha = true; // mark this to do later
       }
 
       if (prevState) {
@@ -386,13 +353,13 @@ class FastCheckout extends Checkout {
       );
 
       const nextState = stateForError(err, {
-        message: 'Refreshing checkout',
+        message: 'Going to checkout',
         nextState: States.GO_TO_CHECKOUT,
       });
 
       const message = err.statusCode
-        ? `Refreshing checkout - (${err.statusCode})`
-        : 'Refreshing checkout';
+        ? `Going to checkout - (${err.statusCode})`
+        : 'Going to checkout';
 
       return nextState || { message, nextState: States.GO_TO_CHECKOUT };
     }
@@ -441,12 +408,12 @@ class FastCheckout extends Checkout {
           const errorMessage = JSON.stringify(checkout);
           if (errorMessage.indexOf('does_not_require_shipping') > -1) {
             this._logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
-            return { message: 'Retrying ATC', nextState: States.ADD_TO_CART };
+            return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
           }
 
           if (errorMessage.indexOf("can't be blank") > -1) {
             this._logger.silly('API CHECKOUT: Country not supported');
-            return { message: 'Country not supported', nextState: States.ERROR };
+            return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
           }
         }
         return { message: 'Polling shipping rates', delay: true, nextState: States.GO_TO_SHIPPING };
@@ -471,6 +438,9 @@ class FastCheckout extends Checkout {
           parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
         ).toFixed(2);
         this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
+        if (this.needsCaptcha) {
+          return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+        }
         return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
@@ -517,15 +487,11 @@ class FastCheckout extends Checkout {
       s: this.paymentToken,
     };
 
-    if (!this._context.task.isQueueBypass) {
+    if (this.captchaToken) {
       formBody = {
         ...formBody,
-        checkout: {
-          shipping_rate: {
-            id,
-          },
-        },
-      };
+        'g-recaptcha-response': this.captchaToken,
+      }
     }
 
     try {
@@ -569,6 +535,36 @@ class FastCheckout extends Checkout {
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
         }
 
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.SUBMIT_PAYMENT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+
         if (/stock_problems/i.test(redirectUrl)) {
           const nextState = sizes.includes('Random') ? States.RESTOCK : States.SUBMIT_PAYMENT;
           const delay = nextState === States.SUBMIT_PAYMENT;
@@ -578,7 +574,7 @@ class FastCheckout extends Checkout {
 
       const body = await res.text();
 
-      if (this.needsCaptcha || /captcha/i.test(body)) {
+      if ((this.needsCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
         this._context.task.checkoutSpeed = checkout.getRunTime();
         checkout.stop();
         checkout.reset();
@@ -586,8 +582,20 @@ class FastCheckout extends Checkout {
       }
 
       const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
-      if (match && /review/.test(match)) {
+      if (match && /review/i.test(match)) {
         return { message: 'Completing payment', nextState: States.COMPLETE_PAYMENT };
+      }
+
+      if (match && /contact_information/i.test(match)) {
+        return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+      }
+
+      if (match && /payment/i.test(match)) {
+        return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+      }
+
+      if (match && /shipping/i.test(match)) {
+        return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
       }
 
       this._context.task.checkoutSpeed = checkout.getRunTime();
@@ -620,10 +628,22 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         sizes,
+        monitorDelay,
       },
       timers: { checkout },
       proxy,
     } = this._context;
+
+    let form = {
+      complete: 1,
+    };
+
+    if (this.captchaToken) {
+      form = {
+        ...form,
+        'g-recaptcha-response': this.captchaToken,
+      };
+    }
 
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
@@ -636,13 +656,10 @@ class FastCheckout extends Checkout {
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
-        body: JSON.stringify({
-          complete: '1',
-          'g-recaptcha-response': this.captchaToken,
-        }),
+        body: JSON.stringify(form),
       });
 
-      // Reset captcha token so we don't use it twice
+      // Reset captcha token so we don't use it again
       this.captchaToken = '';
 
       const { status, headers } = res;
@@ -670,19 +687,69 @@ class FastCheckout extends Checkout {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          const nextState = sizes.includes('Random') ? States.RESTOCK : States.SUBMIT_PAYMENT;
-          const delay = nextState === States.SUBMIT_PAYMENT;
-          return { message: 'Running for restocks', delay, nextState };
+          const nextState = sizes.includes('Random') ? States.RESTOCK : States.COMPLETE_PAYMENT;
+          const delay = nextState === States.COMPLETE_PAYMENT;
+          return { message: `Out of stock! Delaying ${monitorDelay}ms`, delay, nextState };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          const ctd = this.getCtdCookie(this._jar);
+
+          if (!ctd) {
+            return { message: 'Polling queue', nextState: States.QUEUE };
+          }
+
+          try {
+            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
         if (/password/i.test(redirectUrl)) {
-          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+          return { message: 'Password page', delay: true, nextState: States.COMPLETE_PAYMENT };
         }
       }
 
-      checkout.stop();
-      checkout.reset();
-      return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+      const body = await res.text();
+
+      if ((this.needsCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
+        this._context.task.checkoutSpeed = checkout.getRunTime();
+        checkout.stop();
+        checkout.reset();
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
+      const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
+      if (match && /review/i.test(match)) {
+        return { message: 'Completing payment', nextState: States.COMPLETE_PAYMENT };
+      }
+
+      if (match && /contact_information/i.test(match)) {
+        return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+      }
+
+      if (match && /payment/i.test(match)) {
+        return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+      }
+
+      if (match && /shipping/i.test(match)) {
+        return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+      }
+
+      return { message: 'Submitting payment', nextState: States.COMPLETE_PAYMENT };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Complete Payment.\n\n %j %j',

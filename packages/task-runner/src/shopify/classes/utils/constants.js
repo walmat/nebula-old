@@ -130,6 +130,18 @@ const QueueNextState = {
       nextState: CheckoutStates.GO_TO_CHECKOUT,
     };
   },
+  [CheckoutStates.GO_TO_CHECKOUT]: type => {
+    if (type === Modes.FAST) {
+      return {
+        message: 'Fetching shipping rates',
+        nextState: CheckoutStates.SUBMIT_CUSTOMER,
+      };
+    }
+    return {
+      message: 'Going to checkout',
+      nextState: CheckoutStates.GO_TO_CHECKOUT,
+    };
+  },
   [CheckoutStates.SUBMIT_CUSTOMER]: type => {
     if (type === Modes.FAST) {
       return {
@@ -158,6 +170,18 @@ const QueueNextState = {
     if (type === Modes.FAST) {
       return {
         message: 'Completing payment',
+        nextState: CheckoutStates.COMPLETE_PAYMENT,
+      };
+    }
+    return {
+      message: 'Submitting payment',
+      nextState: CheckoutStates.GO_TO_PAYMENT,
+    };
+  },
+  [CheckoutStates.COMPLETE_PAYMENT]: type => {
+    if (type === Modes.FAST) {
+      return {
+        message: 'Submitting payment',
         nextState: CheckoutStates.COMPLETE_PAYMENT,
       };
     }
