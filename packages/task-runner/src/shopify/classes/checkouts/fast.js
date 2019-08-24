@@ -4,7 +4,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import { min } from 'lodash';
 import Checkout from '../checkout';
 
-const { States, CheckoutRefresh } = require('../utils/constants').TaskRunner;
+const { States } = require('../utils/constants').TaskRunner;
 const { getHeaders, stateForError, userAgent } = require('../utils');
 const { patchToCart, patchCheckoutForm } = require('../utils/forms');
 
@@ -35,7 +35,7 @@ class FastCheckout extends Checkout {
         monitorDelay,
       },
       proxy,
-      timers: { checkout: checkoutTimer, monitor },
+      timers: { checkout: checkoutTimer },
     } = this._context;
 
     try {
@@ -171,6 +171,7 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         profile: { shipping, billing, payment, billingMatchesShipping },
+        product: { variants },
       },
       proxy,
     } = this._context;
@@ -217,10 +218,10 @@ class FastCheckout extends Checkout {
         return { message, nextState: States.SUBMIT_CUSTOMER };
       }
 
-      if (variants.length) {
+      this.needsPatched = false;
+      if (variants && variants.length) {
         return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
       }
-      this.needsPatched = false;
       return { message: 'Parsing products', nextState: States.MONITOR };
     } catch (err) {
       this._logger.error(
@@ -476,6 +477,7 @@ class FastCheckout extends Checkout {
       timers: { checkout },
       proxy,
     } = this._context;
+
     const { id } = this.chosenShippingMethod;
 
     const checkoutUrl = this.checkoutKey
@@ -485,13 +487,18 @@ class FastCheckout extends Checkout {
     let formBody = {
       complete: '1',
       s: this.paymentToken,
+      checkout: {
+        shipping_rate: {
+          id,
+        },
+      },
     };
 
     if (this.captchaToken) {
       formBody = {
         ...formBody,
         'g-recaptcha-response': this.captchaToken,
-      }
+      };
     }
 
     try {
