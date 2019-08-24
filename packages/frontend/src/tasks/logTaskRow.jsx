@@ -1,3 +1,5 @@
+/* eslint-disable react/default-props-match-prop-types */
+/* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -12,7 +14,9 @@ const OutputCol = ({ output, classMap, checkoutUrl }) => {
     'Payment failed': 'failed',
   };
 
-  const match = /Waiting for captcha|Polling queue|Payment successful|Payment failed|Card declined/i.exec(output);
+  const match = /Waiting for captcha|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
+    output,
+  );
   const messageClassName = match ? outputColorMap[match[0]] : 'normal';
 
   return (
@@ -22,11 +26,17 @@ const OutputCol = ({ output, classMap, checkoutUrl }) => {
       role="button"
       tabIndex={0}
       onKeyPress={() => {}}
-      onClick={() => LogTaskRow.openDefaultBrowser(checkoutUrl)}
+      onClick={() => OutputCol.openDefaultBrowser(checkoutUrl)}
     >
       {output}
     </div>
   );
+};
+
+OutputCol.propTypes = {
+  output: PropTypes.string.isRequired,
+  classMap: PropTypes.any.isRequired,
+  checkoutUrl: PropTypes.string.isRequired,
 };
 
 const LogTaskRow = ({
@@ -64,7 +74,6 @@ const LogTaskRow = ({
     ? `${classMap.store.join(' ')} checkout-ready `
     : `${classMap.store.join(' ')}`;
 
-  // TODO: remove this after optimization improvements have been made
   return (
     <div
       key={index}
@@ -96,11 +105,7 @@ const LogTaskRow = ({
         >
           {proxy || 'None'}
         </div>
-        <OutputCol
-          output={output}
-          classMap={classMap}
-          checkoutUrl={checkoutUrl}
-        />
+        <OutputCol output={output} classMap={classMap} checkoutUrl={checkoutUrl} />
       </div>
     </div>
   );
@@ -114,7 +119,7 @@ LogTaskRow.propTypes = {
   fullscreen: PropTypes.bool.isRequired,
 };
 
-LogTaskRow.openDefaultBrowser = url => {
+OutputCol.openDefaultBrowser = url => {
   if (!url || !window.Bridge) {
     return;
   }
