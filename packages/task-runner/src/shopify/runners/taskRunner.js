@@ -1,9 +1,7 @@
-import EventEmitter from 'eventemitter3';
 import { isEqual } from 'lodash';
 import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
-import { CookieJar } from 'tough-cookie';
 
 const Timer = require('../classes/timer');
 const Discord = require('../classes/hooks/discord');
@@ -15,7 +13,6 @@ const {
   Monitor: { ParseType },
 } = require('../classes/utils/constants');
 const TaskManagerEvents = require('../classes/utils/constants').TaskManager.Events;
-const { createLogger } = require('../../common/logger');
 const { waitForDelay } = require('../classes/utils');
 const { getCheckoutMethod } = require('../classes/checkouts');
 const { Modes } = require('../classes/utils/constants').TaskRunner;
@@ -25,52 +22,35 @@ class TaskRunner {
     return this._state;
   }
 
-  constructor(id, task, proxy, loggerPath, type) {
+  constructor(context, type) {
     // Add Ids to object
-    this.id = id;
-    this.taskId = task.id;
-    this.proxy = proxy;
-    this._parseType = type;
-
-    this._delayer = null;
+    this._id = context.id;
+    this._task = context.task;
+    this.taskId = context.taskId;
+    this._proxy = context.proxy;
+    this._events = context.events;
+    this._aborted = context.aborted;
     this._aborter = new AbortController();
-    this._jar = new CookieJar();
-
-    /**
-     * Create a new event emitter to handle all IPC communication
-     *
-     * Events will provide the task id, a message, and a message group
-     */
-    this._events = new EventEmitter();
-
+    this._signal = this._aborter.signal;
     // eslint-disable-next-line global-require
-    const request = require('fetch-cookie')(fetch, this._jar);
-    this._request = defaults(request, task.site.url, {
+    const _request = require('fetch-cookie')(fetch, context.jar);
+    this._request = defaults(_request, this._task.site.url, {
       timeout: 60000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
+    this._parseType = type;
 
-    /**
-     * Logger Instance
-     */
-    this._logger = createLogger({
-      dir: loggerPath,
-      name: `TaskRunner-${id}`,
-      prefix: `runner-${id}`,
-    });
-
-    /**
-     * Internal Task Runner State
-     */
+    this._delayer = null;
+    this._captchaQueue = null;
     this._state = States.PAYMENT_TOKEN;
 
-    this._captchaQueue = null;
     this._timers = {
       checkout: new Timer(),
       monitor: new Timer(),
     };
-    this._discord = new Discord(task.discord);
-    this._slack = new Slack(task.slack);
+    this._discord = new Discord(this._task.discord);
+    this._slack = new Slack(this._task.slack);
+    this._logger = context.logger;
 
     this._productFound = false;
 
@@ -81,23 +61,17 @@ class TaskRunner {
      * @type {TaskRunnerContext}
      */
     this._context = {
-      id,
-      type,
-      task,
-      status: null,
-      proxy: proxy ? proxy.proxy : null,
-      rawProxy: proxy ? proxy.raw : null,
+      ...context,
       aborter: this._aborter,
       delayer: this._delayer,
-      events: this._events,
       signal: this._aborter.signal,
       request: this._request,
-      jar: this._jar,
+      jar: context.jar,
       timers: this._timers,
       discord: this._discord,
       slack: this._slack,
       logger: this._logger,
-      aborted: false,
+      aborted: this._aborted,
       harvestState: HarvestStates.idle,
     };
 
@@ -120,14 +94,14 @@ class TaskRunner {
     this._checkout._checkoutType = this._checkoutType;
 
     this._handleAbort = this._handleAbort.bind(this);
-    this._handleFoundProduct = this._handleFoundProduct.bind(this);
+    this._handleProduct = this._handleProduct.bind(this);
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
     this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
+    this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
   }
 
   _handleAbort(id) {
-    this._logger.debug('IN HANDLE ABORT');
     if (id === this._context.id) {
       this._context.aborted = true;
       this._aborter.abort();
@@ -161,8 +135,7 @@ class TaskRunner {
     }
   }
 
-  _handleFoundProduct(id, product, parseType) {
-    this._logger.debug('IN PRODUCT FOUND');
+  _handleProduct(id, product, parseType) {
     if (parseType === this._parseType) {
       // if it's the same task, just merge the product data
       if (id === this._context.id) {
@@ -180,6 +153,7 @@ class TaskRunner {
           product,
         };
       }
+      console.log(this._context.task.product, product);
       this._productFound = true;
     }
   }
@@ -259,7 +233,7 @@ class TaskRunner {
 
   async swapProxies() {
     // emit the swap event
-    this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
+    this._events.emit(Events.SwapProxy, this.id, this._proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
@@ -1059,7 +1033,7 @@ class TaskRunner {
       );
       // Proxy is fine, update the references
       if (proxy) {
-        this.proxy = proxy;
+        this._proxy = proxy;
         this._context.proxy = proxy.proxy;
         this._context.rawProxy = proxy.raw;
         this._checkout.context.proxy = proxy.proxy;

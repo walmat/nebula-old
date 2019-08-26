@@ -1,9 +1,6 @@
-import EventEmitter from 'eventemitter3';
 import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
-import { CookieJar } from 'tough-cookie';
-import { createLogger } from '../../common/logger';
 
 const TaskManagerEvents = require('./utils/constants').TaskManager.Events;
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
@@ -16,51 +13,40 @@ const { ErrorCodes } = require('./utils/constants');
 const generateVariants = require('./utils/generateVariants');
 
 class Monitor {
-  constructor(id, task, proxy, loggerPath, type = ParseType.Unknown) {
-    this._id = id;
-    this._task = task;
+  constructor(context, type = ParseType.Unknown) {
+    this._id = context.id;
+    this._task = context.task;
+    this.taskId = context.taskId;
     this._parseType = type;
-    this._proxy = proxy;
-    this._jar = new CookieJar();
+    this._proxy = context.proxy;
+    this._jar = context.jar;
+    this._events = context.events;
+    this._logger = context.logger;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
+    this._aborted = context.aborted;
+
     // eslint-disable-next-line global-require
-    const request = require('fetch-cookie')(fetch, this._jar);
-    this._request = defaults(request, task.site.url, {
+    const _request = require('fetch-cookie')(fetch, context.jar);
+    this._request = defaults(_request, this._task.site.url, {
       timeout: 60000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
     this._delayer = null;
 
-    /**
-     * Logger Instance
-     */
-    this._logger = createLogger({
-      dir: loggerPath,
-      name: `TaskRunner-${id}`,
-      prefix: `runner-${id}`,
-    });
-
     this._state = States.PARSE;
     this._prevState = States.PARSE;
     this.shouldBanProxy = 0;
-    this._events = new EventEmitter();
 
     this._context = {
-      id,
-      type,
-      task,
-      status: null,
-      proxy: proxy ? proxy.proxy : null,
-      rawProxy: proxy ? proxy.raw : null,
+      ...context,
       aborter: this._aborter,
       delayer: this._delayer,
-      events: this._events,
       signal: this._aborter.signal,
       request: this._request,
       jar: this._jar,
       logger: this._logger,
-      aborted: false,
+      aborted: this._aborted,
     };
 
     this._handleAbort = this._handleAbort.bind(this);
@@ -121,8 +107,8 @@ class Monitor {
   // MARK: Event Registration
   registerForEvent(event, callback) {
     switch (event) {
-      case Events.TaskStatus: {
-        this._events.on(Events.TaskStatus, callback);
+      case Events.MonitorStatus: {
+        this._events.on(Events.MonitorStatus, callback);
         break;
       }
       default:
@@ -132,8 +118,8 @@ class Monitor {
 
   deregisterForEvent(event, callback) {
     switch (event) {
-      case Events.TaskStatus: {
-        this._events.removeListener(Events.TaskStatus, callback);
+      case Events.MonitorStatus: {
+        this._events.removeListener(Events.MonitorStatus, callback);
         break;
       }
       default: {
@@ -145,7 +131,7 @@ class Monitor {
   _emitEvent(event, payload) {
     switch (event) {
       // Emit supported events on their specific channel
-      case Events.TaskStatus: {
+      case Events.MonitorStatus: {
         this._events.emit(event, this._context.id, payload, event);
         break;
       }
@@ -156,10 +142,10 @@ class Monitor {
     this._logger.silly('Event %s emitted: %j', event, payload);
   }
 
-  _emitTaskEvent(payload = {}) {
+  _emitMonitorEvent(payload = {}) {
     if (payload.message && payload.message !== this._context.status) {
       this._status = payload.message;
-      this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
+      this._emitEvent(Events.MonitorStatus, { ...payload, type: Types.Normal });
     }
   }
 
@@ -199,7 +185,7 @@ class Monitor {
       this._logger.silly('Proxy was banned, swapping proxies...');
       // we can assume that it's a soft ban by default since it's either ban || hardBan
       this.shouldBan = hardBan ? 2 : 1;
-      this._emitTaskEvent({ message: 'Proxy banned!' });
+      this._emitMonitorEvent({ message: 'Proxy banned!' });
       return States.SWAP;
     }
 
@@ -217,7 +203,9 @@ class Monitor {
         break;
     }
 
-    this._emitTaskEvent({ message: `${message}. Delaying ${this._context.task.monitorDelay}ms` });
+    this._emitMonitorEvent({
+      message: `${message}. Delaying ${this._context.task.monitorDelay}ms`,
+    });
     await this.wait(monitorDelay);
     return States.PARSE;
   }
@@ -265,16 +253,16 @@ class Monitor {
       ));
     } catch (err) {
       if (err.code === ErrorCodes.VariantsNotMatched) {
-        this._emitTaskEvent({ message: `Zero matched variants! Stopping..` });
+        this._emitMonitorEvent({ message: `Zero matched variants! Stopping..` });
         return { nextState: States.STOP };
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
+        this._emitMonitorEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
         await this.wait(monitorDelay);
         return { nextState: States.RESTOCK, delay: true };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %j', err);
-      this._emitTaskEvent({ message: `Monitor has errored out!` });
+      this._emitMonitorEvent({ message: `Monitor has errored out!` });
       return { nextState: States.ERROR };
     }
     return { variants, barcode, sizes: chosenSizes };
@@ -295,22 +283,29 @@ class Monitor {
     this._logger.silly('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
-    const { variants, barcode, sizes, nextState, delay, message } = this._generateVariants(parsed);
+    const { variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(
+      parsed,
+    );
     // check for next state (means we hit an error when generating variants)
     if (nextState) {
-      this._emitTaskEvent({ message });
+      this._emitMonitorEvent({ message });
       if (delay) {
         await this.wait(monitorDelay);
       }
       return nextState;
     }
 
-    this._logger.silly('MONITOR: Variants Generated, updating context...');
+    this._logger.silly(
+      'MONITOR: %d Variants Generated, updating context...',
+      variants ? variants.length : 0,
+    );
     this._context.task.product.barcode = barcode;
     this._context.task.product.variants = variants;
     this._context.task.product.chosenSizes = sizes;
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._logger.debug('MONITOR: Status is OK, emitting event');
+
+    this._logger.debug(this._context.task.product);
     this._events.emit(
       TaskManagerEvents.ProductFound,
       this._id,
@@ -319,7 +314,7 @@ class Monitor {
     );
 
     const { chosenSizes, name } = this._context.task.product;
-    this._emitTaskEvent({
+    this._emitMonitorEvent({
       message: `Product found: ${this._context.task.product.name}`,
       size: chosenSizes ? chosenSizes[0] : undefined,
       found: name || undefined,
@@ -346,12 +341,12 @@ class Monitor {
         fullProductInfo.title,
       );
       this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
-      const { variants, barcode, sizes, nextState, delay, message } = this._generateVariants(
+      const { variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(
         fullProductInfo,
       );
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
-        this._emitTaskEvent({ message });
+        this._emitMonitorEvent({ message });
         if (delay) {
           await this.wait(monitorDelay);
         }
@@ -373,7 +368,7 @@ class Monitor {
       );
 
       const { chosenSizes, name } = this._context.task.product;
-      this._emitTaskEvent({
+      this._emitMonitorEvent({
         message: `Product found: ${this._context.task.product.name}`,
         size: chosenSizes ? chosenSizes[0] : undefined,
         found: name || undefined,
@@ -412,10 +407,10 @@ class Monitor {
     if (product.variant) {
       variants = [product.variant];
     } else {
-      ({ variants, barcode, sizes, nextState, delay, message } = this._generateVariants(parsed));
+      ({ variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(parsed));
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
-        this._emitTaskEvent({ message });
+        this._emitMonitorEvent({ message });
         if (delay) {
           await this.wait(monitorDelay);
         }
@@ -436,7 +431,7 @@ class Monitor {
     );
 
     const { chosenSizes, name } = this._context.task.product;
-    this._emitTaskEvent({
+    this._emitMonitorEvent({
       message: `Product found: ${this._context.task.product.name}`,
       size: chosenSizes ? chosenSizes[0] : undefined,
       found: name || undefined,
@@ -510,23 +505,23 @@ class Monitor {
         this._context.rawProxy = proxy.raw;
         this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        this._emitTaskEvent({
+        this._emitMonitorEvent({
           message: `Swapped proxy to: ${proxy.raw}`,
           proxy: proxy.raw,
         });
         return this._prevState;
       }
 
-      this._emitTaskEvent({
+      this._emitMonitorEvent({
         message: `No open proxy! Delaying ${errorDelay}ms`,
       });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
       this._delayer = waitForDelay(errorDelay, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Proxy banned!' });
+      this._emitMonitorEvent({ message: 'Proxy banned!' });
     } catch (err) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
-      this._emitTaskEvent({
+      this._emitMonitorEvent({
         message: 'Error swapping proxies! Retrying...',
       });
     }

@@ -58,7 +58,7 @@ class AtomParser extends Parser {
       handle: '-', // put an empty placeholder since we only have the title provided
     }));
     this._logger.silly('%s: Translated Structure, attempting to match', this._name);
-    const matchedProduct = await super.match(products);
+    const matchedProduct = super.match(products);
 
     if (!matchedProduct) {
       this._logger.silly("%s: Couldn't find a match!", this._name);

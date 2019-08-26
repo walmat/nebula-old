@@ -1,11 +1,16 @@
 import EventEmitter from 'eventemitter3';
 import shortid from 'shortid';
+import { CookieJar } from 'tough-cookie';
 
 const TaskRunner = require('../runners/taskRunner');
 const Monitor = require('../classes/monitor');
 const ProxyManager = require('../classes/proxyManager');
 const ShippingRatesRunner = require('../runners/shippingRatesRunner');
 const { Events } = require('../classes/utils/constants').TaskManager;
+const {
+  Monitor: { Events: MonitorEvents },
+  TaskRunner: { Events: TaskRunnerEvents },
+} = require('../classes/utils/constants');
 const { getParseType } = require('../classes/utils/parse');
 const { HookTypes, Types: RunnerTypes } = require('../classes/utils/constants').TaskRunner;
 const Discord = require('../classes/hooks/discord');
@@ -28,7 +33,7 @@ class TaskManager {
     // Logger file path
     this._loggerPath = loggerPath;
 
-    // Task Runner Map
+    // Task Map
     this._runners = {};
 
     // Monitors Map
@@ -181,9 +186,15 @@ class TaskManager {
   mergeStatusUpdates(runnerId, message, event) {
     this._logger.silly('Runner %s posted new event %s - %j', runnerId, event, message);
     // For now only re emit Task Status Events
-    if (event === TaskRunner.Events.TaskStatus) {
-      this._logger.silly('Reemitting this status update...');
+    if (event === TaskRunnerEvents.TaskStatus) {
+      this._logger.silly('Reemitting this task update...');
       const { taskId } = this._runners[runnerId];
+      this._events.emit('status', taskId, message, event);
+    }
+
+    if (event === MonitorEvents.MonitorStatus) {
+      this._logger.silly('Reemitting this monitor update...');
+      const { taskId } = this._monitors[runnerId];
       this._events.emit('status', taskId, message, event);
     }
   }
@@ -272,9 +283,7 @@ class TaskManager {
     const { runnerId, openProxy } = await this.setup(task.site.url);
     this._logger.silly('Creating new runner %s for task %s', runnerId, task.id);
 
-    this._start([runnerId, task, openProxy, type]).then(() => {
-      this.cleanup(runnerId);
-    });
+    this._start([runnerId, task, openProxy, type]).then(() => this.cleanup(runnerId));
   }
 
   /**
@@ -400,7 +409,7 @@ class TaskManager {
         }
         case Events.ProductFound: {
           handler = (id, product, parseType) => {
-            runner._handleFoundProduct(id, product, parseType);
+            runner._handleProduct(id, product, parseType);
           };
           break;
         }
@@ -420,7 +429,7 @@ class TaskManager {
             // Store proxy on worker so we can release it during cleanup
             this._runners[id].proxy = proxy;
           };
-          handler = handlerGenerator(TaskRunner.Events.ReceiveProxy, sideEffects);
+          handler = handlerGenerator(TaskRunnerEvents.ReceiveProxy, sideEffects);
           break;
         }
         default: {
@@ -438,26 +447,26 @@ class TaskManager {
     // TODO: Respect the scope of the _events variable (issue #137)
     // Register for status updates
     if (runner.type === RunnerTypes.ShippingRates) {
-      runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+      runner.registerForEvent(TaskRunnerEvents.TaskStatus, this.mergeStatusUpdates);
       return;
     }
     if (monitor) {
-      monitor.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
-      monitor._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy, this);
+      monitor.registerForEvent(MonitorEvents.MonitorStatus, this.mergeStatusUpdates);
+      monitor._events.on(TaskRunnerEvents.SwapProxy, this.handleSwapProxy, this);
     }
-    runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+    runner.registerForEvent(TaskRunnerEvents.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
-    runner._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy, this);
+    runner._events.on(TaskRunnerEvents.SwapProxy, this.handleSwapProxy, this);
   }
 
   _cleanup(runner, monitor) {
     const handlers = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
-    runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+    runner.deregisterForEvent(TaskRunnerEvents.TaskStatus, this.mergeStatusUpdates);
     if (monitor) {
-      monitor.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+      monitor.deregisterForEvent(MonitorEvents.MonitorStatus, this.mergeStatusUpdates);
       monitor._events.removeAllListeners();
     }
     // TODO: Respect the scope of the _events variable (issue #137)
@@ -485,9 +494,33 @@ class TaskManager {
     let monitor;
     if (type === RunnerTypes.Normal) {
       const parseType = getParseType(task.product, task.site);
-      runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath, parseType);
+      const events = new EventEmitter();
+
+      this._jar = new CookieJar();
+      this._logger = createLogger({
+        dir: this._loggerPath,
+        name: `Task-${runnerId}`,
+        prefix: `task-${runnerId}`,
+      });
+
+      // shared context between monitor/checkout
+      this._context = {
+        id: runnerId,
+        taskId: task.id,
+        type: parseType,
+        task,
+        status: null,
+        proxy: openProxy ? openProxy.proxy : null,
+        rawProxy: openProxy ? openProxy.raw : null,
+        events,
+        jar: this._jar,
+        logger: this._logger,
+        aborted: false,
+      };
+
+      runner = new TaskRunner(this._context, parseType);
       runner.parseType = parseType;
-      monitor = new Monitor(runnerId, task, openProxy, this._loggerPath, parseType);
+      monitor = new Monitor(this._context, parseType);
     } else if (type === RunnerTypes.ShippingRates) {
       runner = new ShippingRatesRunner(runnerId, task, openProxy, this._loggerPath);
     }
