@@ -210,6 +210,51 @@ class Monitor {
     return States.PARSE;
   }
 
+  async _handleSwapProxies() {
+    const {
+      task: { errorDelay },
+    } = this._context;
+    try {
+      this._logger.silly('Waiting for new proxy...');
+      const proxy = await this.swapProxies();
+
+      this._logger.debug(
+        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
+        proxy,
+        this.shouldBanProxy,
+      );
+      // Proxy is fine, update the references
+      if (proxy) {
+        this._proxy = proxy;
+        this._context.proxy = proxy.proxy;
+        this._context.rawProxy = proxy.raw;
+        this._checkout.context.proxy = proxy.proxy;
+        this.shouldBanProxy = 0; // reset ban flag
+        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+        this._emitMonitorEvent({
+          message: `Swapped proxy to: ${proxy.raw}`,
+          proxy: proxy.raw,
+        });
+        return this._prevState;
+      }
+
+      this._emitMonitorEvent({
+        message: `No open proxy! Delaying ${errorDelay}ms`,
+      });
+      // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
+      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
+      await this._delayer;
+      this._emitMonitorEvent({ message: 'Proxy banned!' });
+    } catch (err) {
+      this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
+      this._emitMonitorEvent({
+        message: 'Error swapping proxies! Retrying...',
+      });
+    }
+    // Go back to previous state
+    return this._prevState;
+  }
+
   async _parseAll() {
     // Create the parsers and start the async run methods
     const parsers = [
@@ -407,7 +452,9 @@ class Monitor {
     if (product.variant) {
       variants = [product.variant];
     } else {
-      ({ variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(parsed));
+      ({ variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(
+        parsed,
+      ));
       // check for next state (means we hit an error when generating variants)
       if (nextState) {
         this._emitMonitorEvent({ message });
@@ -485,50 +532,6 @@ class Monitor {
     return nextState;
   }
 
-  async _handleSwapProxies() {
-    const {
-      task: { errorDelay },
-    } = this._context;
-    try {
-      this._logger.silly('Waiting for new proxy...');
-      const proxy = await this.swapProxies();
-
-      this._logger.debug(
-        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
-        proxy,
-        this.shouldBanProxy,
-      );
-      // Proxy is fine, update the references
-      if (proxy) {
-        this._proxy = proxy;
-        this._context.proxy = proxy.proxy;
-        this._context.rawProxy = proxy.raw;
-        this.shouldBanProxy = 0; // reset ban flag
-        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        this._emitMonitorEvent({
-          message: `Swapped proxy to: ${proxy.raw}`,
-          proxy: proxy.raw,
-        });
-        return this._prevState;
-      }
-
-      this._emitMonitorEvent({
-        message: `No open proxy! Delaying ${errorDelay}ms`,
-      });
-      // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
-      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
-      await this._delayer;
-      this._emitMonitorEvent({ message: 'Proxy banned!' });
-    } catch (err) {
-      this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
-      this._emitMonitorEvent({
-        message: 'Error swapping proxies! Retrying...',
-      });
-    }
-    // Go back to previous state
-    return this._prevState;
-  }
-
   async _handleStepLogic(currentState) {
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
@@ -540,7 +543,7 @@ class Monitor {
       [States.PARSE]: this._handleParse,
       [States.MATCH]: this._handleMatch,
       [States.RESTOCK]: this._handleRestock,
-      [States.SWAP]: this._handleSwap,
+      [States.SWAP]: this._handleSwapProxies,
       [States.ERROR]: () => States.STOP,
       [States.DONE]: () => States.STOP,
       [States.ABORT]: () => States.STOP,

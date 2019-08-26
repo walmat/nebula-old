@@ -29,6 +29,12 @@ class JsonParser extends Parser {
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
       });
 
+      if (/429|430|403/.test(res.status)) {
+        const error = new Error('Proxy banned!');
+        error.status = res.status;
+        throw error;
+      }
+
       ({ products } = await res.json());
     } catch (error) {
       this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);

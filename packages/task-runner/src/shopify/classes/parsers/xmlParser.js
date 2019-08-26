@@ -38,11 +38,17 @@ class XmlParser extends Parser {
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
       });
 
+      if (/429|430|403/.test(res.status)) {
+        const error = new Error('Proxy banned!');
+        error.status = res.status;
+        throw error;
+      }
+
       const body = await res.text();
       responseJson = await convertToJson(body);
     } catch (error) {
       this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
-      const rethrow = new Error('unable to make request');
+      const rethrow = new Error('Unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given
       rethrow.name = error.name;
       throw rethrow;
@@ -56,7 +62,7 @@ class XmlParser extends Parser {
       handle: item.loc[0].substring(item.loc[0].lastIndexOf('/')),
     }));
     this._logger.silly('%s: Translated Structure, attempting to match', this._name);
-    const matchedProduct = super.match(products);
+    const matchedProduct = await super.match(products);
 
     if (!matchedProduct) {
       this._logger.silly("%s: Couldn't find a match!", this._name);

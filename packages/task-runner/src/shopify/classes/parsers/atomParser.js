@@ -37,6 +37,11 @@ class AtomParser extends Parser {
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
       });
 
+      if (/429|430|403/.test(res.status)) {
+        const error = new Error('Proxy banned!');
+        error.status = res.status;
+        throw error;
+      }
       const body = await res.text();
       responseJson = await convertToJson(body);
     } catch (error) {
@@ -58,7 +63,7 @@ class AtomParser extends Parser {
       handle: '-', // put an empty placeholder since we only have the title provided
     }));
     this._logger.silly('%s: Translated Structure, attempting to match', this._name);
-    const matchedProduct = super.match(products);
+    const matchedProduct = await super.match(products);
 
     if (!matchedProduct) {
       this._logger.silly("%s: Couldn't find a match!", this._name);
