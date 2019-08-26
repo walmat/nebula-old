@@ -6,6 +6,7 @@ const TaskManagerEvents = {
   SendProxy: 'SEND_PROXY',
   ChangeDelay: 'CHANGE_DELAY',
   UpdateHook: 'UPDATE_HOOK',
+  ProductFound: 'PRODUCT_FOUND',
 };
 
 /**
@@ -21,7 +22,12 @@ const TaskRunnerEvents = {
 const MonitorStates = {
   PARSE: 'PARSE',
   MATCH: 'MATCH',
-  CHECK_STOCK: 'CHECK_STOCK',
+  RESTOCK: 'RESTOCK',
+  SWAP: 'SWAP',
+  DONE: 'DONE',
+  ERROR: 'ERROR',
+  ABORT: 'ABORT',
+  STOP: 'STOP',
 };
 
 /**
@@ -32,7 +38,7 @@ const CheckoutStates = {
   LOGIN: 'LOGIN',
   PAYMENT_TOKEN: 'PAYMENT_TOKEN',
   GET_SITE_DATA: 'GET_SITE_DATA',
-  MONITOR: 'MONITOR',
+  WAIT_FOR_PRODUCT: 'WAIT_FOR_PRODUCT',
   ADD_TO_CART: 'ADD_TO_CART',
   GO_TO_CART: 'GO_TO_CART',
   CREATE_CHECKOUT: 'CREATE_CHECKOUT',
@@ -192,6 +198,14 @@ const QueueNextState = {
   },
 };
 
+const ParseType = {
+  Unknown: 'UNKNOWN',
+  Variant: 'VARIANT',
+  Url: 'URL',
+  Keywords: 'KEYWORDS',
+  Special: 'SPECIAL',
+};
+
 // const CheckoutRefreshTimeout = 900000;
 const CheckoutRefreshTimeout = 98000;
 
@@ -213,6 +227,9 @@ module.exports = {
   },
   Monitor: {
     States: MonitorStates,
+    Events: TaskRunnerEvents,
+    DelayTypes: TaskRunnerDelayTypes,
+    ParseType,
   },
   ErrorCodes,
 };

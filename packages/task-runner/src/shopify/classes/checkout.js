@@ -172,7 +172,7 @@ class Checkout {
         }
 
         if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
-          return { message: 'Parsing products', nextState: States.MONITOR };
+          return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
         }
 
         return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
@@ -281,7 +281,7 @@ class Checkout {
           this.captchaToken = '';
         }
         if (type === Modes.SAFE) {
-          return { message: 'Parsing products', nextState: States.MONITOR };
+          return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
         }
         return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
       }
@@ -360,7 +360,7 @@ class Checkout {
       }
       if (type === Modes.SAFE) {
         if (!this.needsLogin) {
-          return { message: 'Parsing products', nextState: States.MONITOR };
+          return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
         }
         return { message: 'Logging in', nextState: States.LOGIN };
       }

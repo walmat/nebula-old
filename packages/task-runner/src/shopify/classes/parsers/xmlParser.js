@@ -1,7 +1,8 @@
 import HttpsProxyAgent from 'https-proxy-agent';
 
 const Parser = require('./parser');
-const { ParseType, convertToJson } = require('../utils/parse');
+const { convertToJson } = require('../utils/parse');
+const { ParseType } = require('../utils/constants').Monitor;
 const { userAgent } = require('../utils');
 
 class XmlParser extends Parser {
@@ -20,6 +21,7 @@ class XmlParser extends Parser {
     if (this._type !== ParseType.Keywords) {
       throw new Error('xml parsing is only supported for keyword searching');
     }
+
     let responseJson;
     try {
       this._logger.silly(
@@ -54,7 +56,7 @@ class XmlParser extends Parser {
       handle: item.loc[0].substring(item.loc[0].lastIndexOf('/')),
     }));
     this._logger.silly('%s: Translated Structure, attempting to match', this._name);
-    const matchedProduct = super.match(products);
+    const matchedProduct = await super.match(products);
 
     if (!matchedProduct) {
       this._logger.silly("%s: Couldn't find a match!", this._name);

@@ -222,7 +222,7 @@ class FastCheckout extends Checkout {
       if (variants && variants.length) {
         return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
       }
-      return { message: 'Parsing products', nextState: States.MONITOR };
+      return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',

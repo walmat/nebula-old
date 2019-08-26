@@ -1,9 +1,12 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 
-const { ParseType, getParseType, matchVariant, matchKeywords } = require('../utils/parse');
+const { getParseType, matchVariant, matchKeywords } = require('../utils/parse');
 const { userAgent, rfrl } = require('../utils');
-const { ErrorCodes } = require('../utils/constants');
+const {
+  ErrorCodes,
+  Monitor: { ParseType },
+} = require('../utils/constants');
 
 class Parser {
   /**
@@ -56,7 +59,6 @@ class Parser {
         ),
         genRequestPromise(`${productUrl}.oembed`).then(
           async res => {
-
             if (!res.ok) {
               // Error occured, return a rejection with the status code attached
               const err = new Error(res.message);
@@ -122,8 +124,8 @@ class Parser {
   /**
    * Perform Product Matching based on the parse type
    */
-  match(products) {
-    this._logger.silly('%s: starting parse...', this._name);
+  async match(products) {
+    this._logger.silly('%s: Starting match for parse type: %j', this._name, this._type);
     switch (this._type) {
       case ParseType.Variant: {
         this._logger.silly('%s: parsing type %s detected', this._name, this._type);
@@ -144,6 +146,7 @@ class Parser {
           pos: this._task.product.pos_keywords,
           neg: this._task.product.neg_keywords,
         };
+
         const product = matchKeywords(products, keywords, null, this._logger); // no need to use a custom filter at this point...
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);

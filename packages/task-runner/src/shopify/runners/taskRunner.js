@@ -1,18 +1,18 @@
 import EventEmitter from 'eventemitter3';
+import { isEqual } from 'lodash';
 import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { CookieJar } from 'tough-cookie';
 
 const Timer = require('../classes/timer');
-const Monitor = require('../classes/monitor');
-const RestockMonitor = require('../classes/restockMonitor');
 const Discord = require('../classes/hooks/discord');
 const Slack = require('../classes/hooks/slack');
 const AsyncQueue = require('../../common/asyncQueue');
 const {
   ErrorCodes,
   TaskRunner: { States, Events, Types, DelayTypes, HookTypes, StateMap, HarvestStates },
+  Monitor: { ParseType },
 } = require('../classes/utils/constants');
 const TaskManagerEvents = require('../classes/utils/constants').TaskManager.Events;
 const { createLogger } = require('../../common/logger');
@@ -25,12 +25,12 @@ class TaskRunner {
     return this._state;
   }
 
-  constructor(id, task, proxy, loggerPath, type = Types.Normal) {
+  constructor(id, task, proxy, loggerPath, type) {
     // Add Ids to object
     this.id = id;
     this.taskId = task.id;
     this.proxy = proxy;
-    this._type = type;
+    this._parseType = type;
 
     this._delayer = null;
     this._aborter = new AbortController();
@@ -72,7 +72,7 @@ class TaskRunner {
     this._discord = new Discord(task.discord);
     this._slack = new Slack(task.slack);
 
-    this._history = [];
+    this._productFound = false;
 
     /**
      * The context of this task runner
@@ -102,16 +102,6 @@ class TaskRunner {
     };
 
     /**
-     * Create a new monitor object to be used for the task
-     */
-    this._monitor = new Monitor(this._context);
-
-    /**
-     * Create a new restock monitor object to be used for task product restocking
-     */
-    this._restockMonitor = new RestockMonitor(this._context);
-
-    /**
      * Create a new checkout object to be used for this task
      */
     const CheckoutCreator = getCheckoutMethod(
@@ -133,22 +123,64 @@ class TaskRunner {
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
     this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
+    this._events.on(TaskManagerEvents.ProductFound, this._handleFoundProduct, this);
   }
 
   _handleAbort(id) {
+    this._logger.debug('IN HANDLE ABORT');
     if (id === this._context.id) {
       this._context.aborted = true;
       this._aborter.abort();
       if (this._delayer) {
         this._delayer.clear();
       }
-      this._monitor.aborter.abort();
     }
   }
 
   _handleHarvest(id, token) {
     if (id === this._context.id && this._captchaQueue) {
       this._captchaQueue.insert(token);
+    }
+  }
+
+  _compareProductInput(product, parseType) {
+    // we only care about keywords/url matching here...
+    switch (parseType) {
+      case ParseType.Keywords: {
+        const { pos_keywords: posKeywords, neg_keywords: negKeywords } = this._context.task.product;
+        const samePositiveKeywords = isEqual(product.pos_keywords.sort(), posKeywords.sort());
+        const sameNegativeKeywords = isEqual(product.neg_keywords.sort(), negKeywords.sort());
+        return samePositiveKeywords && sameNegativeKeywords;
+      }
+      case ParseType.Url: {
+        const { url } = this._context.task.product;
+        return product.url.toUpperCase() === url.toUpperCase();
+      }
+      default:
+        return false;
+    }
+  }
+
+  _handleFoundProduct(id, product, parseType) {
+    this._logger.debug('IN PRODUCT FOUND');
+    if (parseType === this._parseType) {
+      // if it's the same task, just merge the product data
+      if (id === this._context.id) {
+        this._context.task.product = {
+          ...this._context.task.product,
+          product,
+        };
+      }
+
+      const isSameData = this._compareProductInput(product, parseType);
+
+      if (isSameData) {
+        this._context.task.product = {
+          ...this._context.task.product,
+          product,
+        };
+      }
+      this._productFound = true;
     }
   }
 
@@ -182,7 +214,6 @@ class TaskRunner {
   }
 
   _cleanup() {
-    console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
@@ -296,7 +327,7 @@ class TaskRunner {
   _emitTaskEvent(payload = {}) {
     if (payload.message && payload.message !== this._context.status) {
       this._context.status = payload.message;
-      this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
+      this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
     }
   }
 
@@ -476,12 +507,8 @@ class TaskRunner {
     return nextState;
   }
 
-  async _handleMonitor() {
-    const {
-      aborted,
-      rawProxy,
-      task: { monitorDelay },
-    } = this._context;
+  async _handleWaitForProduct() {
+    const { aborted } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -489,36 +516,13 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    const { message, delay, shouldBan, nextState } = await this._monitor.run();
-
-    // if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
-    //   this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
-    //   return States.GO_TO_CHECKOUT;
-    // }
-
-    if (nextState === States.SWAP) {
-      this._emitTaskEvent({ message: `Proxy banned!` });
-      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
-      return nextState;
+    if (this._productFound) {
+      return States.ADD_TO_CART;
     }
-
-    const { chosenSizes, name } = this._context.task.product;
-
-    this._emitTaskEvent({
-      message,
-      size: chosenSizes ? chosenSizes[0] : undefined,
-      found: name || undefined,
-      proxy: rawProxy,
-    });
-
-    if (delay) {
-      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-      await this._delayer;
-      this._emitTaskEvent({ message: 'Parsing products', proxy: rawProxy });
-    }
-
-    // Monitor will be in charge of choosing the next state
-    return nextState;
+    // TODO: remove this after I figure out the event problem..
+    this._delayer = waitForDelay(10000, this._aborter.signal);
+    await this._delayer;
+    return States.WAIT_FOR_PRODUCT;
   }
 
   async _handleRestocking() {
@@ -1126,7 +1130,7 @@ class TaskRunner {
       [States.GET_SITE_DATA]: this._handleGetSiteData,
       [States.CREATE_CHECKOUT]: this._handleCreateCheckout,
       [States.QUEUE]: this._handlePollQueue,
-      [States.MONITOR]: this._handleMonitor,
+      [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.RESTOCK]: this._handleRestocking,
       [States.ADD_TO_CART]: this._handleAddToCart,
       [States.GO_TO_CART]: this._handleGoToCart,
@@ -1145,7 +1149,7 @@ class TaskRunner {
       [States.ERROR]: this._generateEndStateHandler(States.ERROR),
       [States.ABORT]: this._generateEndStateHandler(States.ABORT),
     };
-    this._history.push(currentState);
+
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
   }

@@ -2,9 +2,11 @@ import EventEmitter from 'eventemitter3';
 import shortid from 'shortid';
 
 const TaskRunner = require('../runners/taskRunner');
+const Monitor = require('../classes/monitor');
 const ProxyManager = require('../classes/proxyManager');
 const ShippingRatesRunner = require('../runners/shippingRatesRunner');
 const { Events } = require('../classes/utils/constants').TaskManager;
+const { getParseType } = require('../classes/utils/parse');
 const { HookTypes, Types: RunnerTypes } = require('../classes/utils/constants').TaskRunner;
 const Discord = require('../classes/hooks/discord');
 const Slack = require('../classes/hooks/slack');
@@ -26,7 +28,7 @@ class TaskManager {
     // Logger file path
     this._loggerPath = loggerPath;
 
-    // Runner Map
+    // Task Runner Map
     this._runners = {};
 
     // Monitors Map
@@ -239,6 +241,7 @@ class TaskManager {
   cleanup(runnerId) {
     const { proxy, site } = this._runners[runnerId];
     delete this._runners[runnerId];
+    delete this._monitors[runnerId];
     if (proxy) {
       this._proxyManager.release(runnerId, site, proxy.id, true);
     }
@@ -349,7 +352,7 @@ class TaskManager {
   }
 
   // MARK: Private Methods
-  _setup(runner) {
+  _setup(runner, monitor) {
     const handlerGenerator = (event, sideEffects) => (id, ...params) => {
       if (id === runner.id || id === 'ALL') {
         const args = [runner.id, ...params];
@@ -359,6 +362,9 @@ class TaskManager {
         }
         // TODO: Respect the scope of the _events variable (issue #137)
         runner._events.emit(event, ...args);
+        if (monitor) {
+          monitor._events.emit(event, ...args);
+        }
       }
     };
 
@@ -366,7 +372,14 @@ class TaskManager {
     const emissions =
       runner.type === RunnerTypes.ShippingRates
         ? [Events.Abort]
-        : [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook];
+        : [
+            Events.Abort,
+            Events.Harvest,
+            Events.SendProxy,
+            Events.ChangeDelay,
+            Events.UpdateHook,
+            Events.ProductFound,
+          ];
 
     // Generate Handlers for each event
     emissions.forEach(event => {
@@ -378,7 +391,17 @@ class TaskManager {
             if (id === runner.id || id === 'ALL') {
               // TODO: Respect the scope of the runner's methods (issue #137)
               runner._handleAbort(runner.id);
+              if (monitor) {
+                monitor._handleAbort(runner.id);
+              }
             }
+          };
+          break;
+        }
+        case Events.ProductFound: {
+          console.log('adding product found event');
+          handler = (id, product, parseType) => {
+            runner._handleFoundProduct(id, product, parseType);
           };
           break;
         }
@@ -419,17 +442,25 @@ class TaskManager {
       runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
       return;
     }
+    if (monitor) {
+      monitor.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+      monitor._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy, this);
+    }
     runner.registerForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
     runner._events.on(TaskRunner.Events.SwapProxy, this.handleSwapProxy, this);
   }
 
-  _cleanup(runner) {
+  _cleanup(runner, monitor) {
     const handlers = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
     runner.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+    if (monitor) {
+      monitor.deregisterForEvent(TaskRunner.Events.TaskStatus, this.mergeStatusUpdates);
+      monitor._events.removeAllListeners();
+    }
     // TODO: Respect the scope of the _events variable (issue #137)
     runner._events.removeAllListeners();
 
@@ -437,7 +468,14 @@ class TaskManager {
     const emissions =
       runner.type === RunnerTypes.ShippingRates
         ? [Events.Abort]
-        : [Events.Abort, Events.Harvest, Events.SendProxy, Events.ChangeDelay, Events.UpdateHook];
+        : [
+            Events.Abort,
+            Events.ProductFound,
+            Events.Harvest,
+            Events.SendProxy,
+            Events.ChangeDelay,
+            Events.UpdateHook,
+          ];
     emissions.forEach(event => {
       this._events.removeListener(event, handlers[event]);
     });
@@ -445,8 +483,12 @@ class TaskManager {
 
   async _start([runnerId, task, openProxy, type]) {
     let runner;
+    let monitor;
     if (type === RunnerTypes.Normal) {
-      runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath);
+      const parseType = getParseType(task.product, task.site);
+      runner = new TaskRunner(runnerId, task, openProxy, this._loggerPath, parseType);
+      runner.parseType = parseType;
+      monitor = new Monitor(runnerId, task, openProxy, this._loggerPath, parseType);
     } else if (type === RunnerTypes.ShippingRates) {
       runner = new ShippingRatesRunner(runnerId, task, openProxy, this._loggerPath);
     }
@@ -457,14 +499,19 @@ class TaskManager {
 
     runner.site = task.site.url;
     runner.type = type;
+    this._monitors[runnerId] = monitor;
     this._runners[runnerId] = runner;
-    this._logger.silly('Wiring up TaskRunner Events ...');
-    this._setup(runner);
+    this._logger.silly('Wiring up Events ...');
+    this._setup(runner, monitor);
 
     // Start the runner asynchronously
-    this._logger.silly('Starting Runner ...');
+    this._logger.silly('Starting ...');
     try {
-      await runner.start();
+      if (monitor) {
+        await Promise.all([runner.start(), monitor.start()]);
+      } else {
+        await runner.start();
+      }
       this._logger.silly('Runner %s finished without errors', runnerId);
     } catch (error) {
       this._logger.error(
@@ -476,7 +523,7 @@ class TaskManager {
     }
 
     this._logger.silly('Performing cleanup for runner %s', runnerId);
-    this._cleanup(runner);
+    this._cleanup(runner, monitor);
   }
 }
 

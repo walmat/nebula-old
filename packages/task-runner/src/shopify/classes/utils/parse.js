@@ -1,17 +1,9 @@
 const { sortBy, map, find, flatten, filter, every, some } = require('underscore');
 const { parseString } = require('xml2js');
 const { isSpecialSite } = require('./siteOptions');
+const { ParseType } = require('./constants').Monitor;
 
 module.exports = {};
-
-const ParseType = {
-  Unknown: 'UNKNOWN',
-  Variant: 'VARIANT',
-  Url: 'URL',
-  Keywords: 'KEYWORDS',
-  Special: 'SPECIAL',
-};
-module.exports.ParseType = ParseType;
 
 /**
  * Determine the type of parsing we need to
@@ -20,35 +12,27 @@ module.exports.ParseType = ParseType;
  *
  * @param {TaskProduct} product
  */
-function getParseType(product, logger, site) {
-  const _logger = logger || { log: () => {} };
-  _logger.log('silly', 'Determining Parse Type for Product...', product);
+function getParseType(product, site) {
   if (!product) {
-    _logger.log('silly', 'Product is not defined, returning: %s', ParseType.Unknown);
     return ParseType.Unknown;
   }
 
   if (site && isSpecialSite(site) && !product.variant) {
-    _logger.log('silly', 'Special Site found: %s, returning %s', site.name, ParseType.Special);
     return ParseType.Special;
   }
 
   if (product.variant) {
-    _logger.log('silly', 'Parse Type determined as %s', ParseType.Variant);
     return ParseType.Variant;
   }
-  
+
   if (product.url) {
-    _logger.log('silly', 'Parse Type determined as %s', ParseType.Url);
     return ParseType.Url;
   }
 
   if (product.pos_keywords && product.neg_keywords) {
-    _logger.log('silly', 'Parse Type Determined as %s', ParseType.Keywords);
     return ParseType.Keywords;
   }
 
-  _logger.log('silly', 'Parse Type could not be determined!');
   return ParseType.Unknown;
 }
 module.exports.getParseType = getParseType;

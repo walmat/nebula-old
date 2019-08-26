@@ -19,9 +19,9 @@ class JsonParser extends Parser {
     const { url } = this._task.site;
     let products;
     try {
-      this._logger.silly(`%s: Making request for %s/products.json?page=-${Date.now() / 1000 | 0} ...`, this._name, url);
+      this._logger.silly(`%s: Making request for %s/products.json ...`, this._name, url);
 
-      const res = await  this._request('/products.json', {
+      const res = await this._request('/products.json', {
         method: 'GET',
         headers: {
           'User-Agent': userAgent,
@@ -37,8 +37,12 @@ class JsonParser extends Parser {
       rethrow.name = error.name;
       throw rethrow;
     }
-    this._logger.silly('%s: Received Response, Attempting to match...', this._name);
-    const matchedProduct = super.match(products);
+    this._logger.silly(
+      '%s: Received %d products, Attempting to match...',
+      this._name,
+      products ? products.length : 0,
+    );
+    const matchedProduct = await super.match(products);
 
     if (!matchedProduct) {
       this._logger.silly("%s: Couldn't find a match!", this._name);

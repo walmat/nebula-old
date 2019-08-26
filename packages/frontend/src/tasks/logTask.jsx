@@ -1,7 +1,5 @@
 import React, { PureComponent } from 'react';
-// import { List, AutoSizer } from 'react-virtualized';
-import { AutoSizer, Grid } from 'react-virtualized'
-
+import { List, AutoSizer } from 'react-virtualized';
 import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
@@ -88,65 +86,20 @@ export class LogTaskPrimitive extends PureComponent {
     }
 
     return (
-
       <AutoSizer>
         {({ width, height }) => (
-          <Grid
-            cellRenderer={this.cellRenderer}
-            columnCount={1}
-            columnWidth={500}
-            height={height}
-            rowCount={tasks.length}
-            rowHeight={30}
-            //isScrollingOptOut
-            overscanRowCount={10}
+          <List
             width={width}
+            height={height}
+            rowHeight={30}
+            rowRenderer={this.renderRow}
+            rowCount={tasks.length}
+            overscanRowCount={10}
+            tasks={tasks} // forces a rerender on props change
           />
-          // <List
-          //   width={width}
-          //   height={height}
-          //   rowHeight={30}
-          //   rowRenderer={this.renderRow}
-          //   rowCount={tasks.length}
-          //   overscanRowCount={10}
-          //   tasks={tasks} // forces a rerender on props change
-          // />
         )}
       </AutoSizer>
     );
-  }
-
-  cellRenderer = ({ columnIndex, key, rowIndex, style }) => {
-    const { tasks } = this.props;
-    const task = tasks[rowIndex];
-    const { fullscreen, selected } = this.state;
-
-    // const selectedMap = {};
-    // selected.forEach(id => {
-    //   selectedMap[id] = id;
-    // });
-
-    return (
-      <LogTaskRow
-        key={key}
-        onClick={e => this.selectRow(e, task.id)}
-        selected={selected.indexOf(task.id) !== -1}
-        style={style}
-        task={task}
-        fullscreen={fullscreen}
-      />
-    );
-    // children.push(
-    //   <LogTaskRow
-    //     key={key}
-    //     onClick={e => this.selectRow(e, task.id)}
-    //     selected={selected.indexOf(task.id) !== -1}
-    //     style={style}
-    //     task={task}
-    //     fullscreen={fullscreen}
-    //   />
-    // )
-    // return children
   }
 
   renderRow({ index, key, style }) {
@@ -170,7 +123,6 @@ export class LogTaskPrimitive extends PureComponent {
       />
     );
   }
-
 
   render() {
     const { fullscreen, selected, focused } = this.state;
@@ -291,4 +243,3 @@ export const mapStateToProps = state => ({
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);
-

@@ -1,7 +1,8 @@
 import HttpsProxyAgent from 'https-proxy-agent';
 
 const Parser = require('./parser');
-const { ParseType, convertToJson } = require('../utils/parse');
+const { convertToJson } = require('../utils/parse');
+const { ParseType } = require('../utils/constants').Monitor;
 const { userAgent } = require('../utils');
 
 class AtomParser extends Parser {
@@ -57,7 +58,7 @@ class AtomParser extends Parser {
       handle: '-', // put an empty placeholder since we only have the title provided
     }));
     this._logger.silly('%s: Translated Structure, attempting to match', this._name);
-    const matchedProduct = super.match(products);
+    const matchedProduct = await super.match(products);
 
     if (!matchedProduct) {
       this._logger.silly("%s: Couldn't find a match!", this._name);
