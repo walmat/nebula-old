@@ -534,34 +534,6 @@ class Monitor {
     return this._prevState;
   }
 
-  _generateEndStateHandler(state) {
-    let status = 'stopped';
-    switch (state) {
-      case States.ABORT: {
-        status = 'aborted';
-        break;
-      }
-      case States.ERROR: {
-        status = 'errored out';
-        break;
-      }
-      case States.DONE: {
-        status = 'finished';
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-    return () => {
-      this._emitTaskEvent({
-        message: `Monitor has ${status}`,
-        done: true,
-      });
-      return States.STOP;
-    };
-  }
-
   async _handleStepLogic(currentState) {
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
@@ -574,9 +546,9 @@ class Monitor {
       [States.MATCH]: this._handleMatch,
       [States.RESTOCK]: this._handleRestock,
       [States.SWAP]: this._handleSwap,
-      [States.ERROR]: this._generateEndStateHandler(States.ERROR),
-      [States.DONE]: this._generateEndStateHandler(States.DONE),
-      [States.ABORT]: this._generateEndStateHandler(States.ABORT),
+      [States.ERROR]: () => States.STOP,
+      [States.DONE]: () => States.STOP,
+      [States.ABORT]: () => States.STOP,
     };
 
     const handler = stepMap[currentState] || defaultHandler;
