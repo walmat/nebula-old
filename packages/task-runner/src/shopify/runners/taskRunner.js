@@ -24,7 +24,7 @@ class TaskRunner {
 
   constructor(context, type) {
     // Add Ids to object
-    this._id = context.id;
+    this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
     this._proxy = context.proxy;

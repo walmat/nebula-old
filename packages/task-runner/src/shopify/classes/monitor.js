@@ -14,7 +14,7 @@ const generateVariants = require('./utils/generateVariants');
 
 class Monitor {
   constructor(context, type = ParseType.Unknown) {
-    this._id = context.id;
+    this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
     this._parseType = type;
