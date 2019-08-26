@@ -120,10 +120,10 @@ class TaskRunner {
     this._checkout._checkoutType = this._checkoutType;
 
     this._handleAbort = this._handleAbort.bind(this);
+    this._handleFoundProduct = this._handleFoundProduct.bind(this);
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
     this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
-    this._events.on(TaskManagerEvents.ProductFound, this._handleFoundProduct, this);
   }
 
   _handleAbort(id) {
@@ -172,9 +172,9 @@ class TaskRunner {
         };
       }
 
-      const isSameData = this._compareProductInput(product, parseType);
+      const isSameProductData = this._compareProductInput(product, parseType);
 
-      if (isSameData) {
+      if (isSameProductData) {
         this._context.task.product = {
           ...this._context.task.product,
           product,
@@ -1156,7 +1156,7 @@ class TaskRunner {
 
   // MARK: State Machine Run Loop
 
-  async runSingleLoop() {
+  async run() {
     let nextState = this._state;
 
     if (this._context.aborted) {
@@ -1188,14 +1188,11 @@ class TaskRunner {
 
   async start() {
     this._prevState = States.STARTED;
-    if (this._context.task.isQueueBypass && this._context.task.checkoutUrl) {
-      this._state = States.MONITOR;
-    }
 
     let shouldStop = false;
     while (this._state !== States.STOP && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
-      shouldStop = await this.runSingleLoop();
+      shouldStop = await this.run();
     }
 
     this._cleanup();

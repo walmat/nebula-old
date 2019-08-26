@@ -556,8 +556,7 @@ class Monitor {
   }
 
   // MARK: State Machine Run Loop
-
-  async runSingleLoop() {
+  async run() {
     let nextState = this._state;
 
     if (this._context.aborted) {
@@ -591,7 +590,7 @@ class Monitor {
     let shouldStop = false;
     while (this._state !== States.STOP && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
-      shouldStop = await this.runSingleLoop();
+      shouldStop = await this.run();
     }
   }
 }

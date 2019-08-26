@@ -399,7 +399,6 @@ class TaskManager {
           break;
         }
         case Events.ProductFound: {
-          console.log('adding product found event');
           handler = (id, product, parseType) => {
             runner._handleFoundProduct(id, product, parseType);
           };
