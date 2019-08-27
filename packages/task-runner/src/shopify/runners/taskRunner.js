@@ -22,12 +22,12 @@ class TaskRunner {
     return this._state;
   }
 
-  constructor(context, type) {
+  constructor(context, proxy, type) {
     // Add Ids to object
     this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
-    this._proxy = context.proxy;
+    this.proxy = proxy;
     this._events = context.events;
     this._aborted = context.aborted;
     this._aborter = new AbortController();
@@ -62,6 +62,8 @@ class TaskRunner {
      */
     this._context = {
       ...context,
+      proxy: proxy ? proxy.proxy : null,
+      rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
       signal: this._aborter.signal,
@@ -154,7 +156,6 @@ class TaskRunner {
           product,
         };
       }
-      console.log(this._context.task.product, product);
       this._productFound = true;
     }
   }
@@ -234,7 +235,7 @@ class TaskRunner {
 
   async swapProxies() {
     // emit the swap event
-    this._events.emit(Events.SwapProxy, this.id, this._proxy, this.shouldBanProxy);
+    this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
@@ -1104,7 +1105,7 @@ class TaskRunner {
       );
       // Proxy is fine, update the references
       if (proxy) {
-        this._proxy = proxy;
+        this.proxy = proxy;
         this._context.proxy = proxy.proxy;
         this._context.rawProxy = proxy.raw;
         this._checkout.context.proxy = proxy.proxy;

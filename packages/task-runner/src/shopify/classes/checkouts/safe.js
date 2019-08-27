@@ -283,7 +283,10 @@ class SafeCheckout extends Checkout {
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
-          return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+          if (/eflash/i.test(url) || /palace/i.test(url)) {
+            return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+          }
+          return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
         }
       }
 

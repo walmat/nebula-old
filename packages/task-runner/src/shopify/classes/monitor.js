@@ -13,18 +13,19 @@ const { ErrorCodes } = require('./utils/constants');
 const generateVariants = require('./utils/generateVariants');
 
 class Monitor {
-  constructor(context, type = ParseType.Unknown) {
+  constructor(context, proxy, type = ParseType.Unknown) {
     this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
-    this._parseType = type;
-    this._proxy = context.proxy;
+    this.proxy = proxy;
     this._jar = context.jar;
     this._events = context.events;
     this._logger = context.logger;
+    this._aborted = context.aborted;
+    this._parseType = type;
+
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
-    this._aborted = context.aborted;
 
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
@@ -40,6 +41,8 @@ class Monitor {
 
     this._context = {
       ...context,
+      proxy: proxy ? proxy.proxy : null,
+      rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
       signal: this._aborter.signal,
@@ -55,7 +58,6 @@ class Monitor {
   }
 
   _handleDelay(id, delay, type) {
-    console.log(id, this._context.id);
     if (id === this._context.id) {
       if (type === DelayTypes.error) {
         this._context.task.errorDelay = delay;
@@ -80,6 +82,7 @@ class Monitor {
 
   async swapProxies() {
     // emit the swap event
+    console.log(this.proxy);
     this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
       let timeout;
@@ -227,10 +230,9 @@ class Monitor {
       );
       // Proxy is fine, update the references
       if (proxy) {
-        this._proxy = proxy;
+        this.proxy = proxy;
         this._context.proxy = proxy.proxy;
         this._context.rawProxy = proxy.raw;
-        this._checkout.context.proxy = proxy.proxy;
         this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
         this._emitMonitorEvent({

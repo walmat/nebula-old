@@ -121,7 +121,7 @@ const QueueNextState = {
       };
     }
     return {
-      message: 'Creating checkout',
+      message: 'Go to checkout',
       nextState: CheckoutStates.CREATE_CHECKOUT,
     };
   },

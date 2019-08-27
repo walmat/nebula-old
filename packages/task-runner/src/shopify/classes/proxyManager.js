@@ -198,7 +198,7 @@ class ProxyManager {
     }
 
     delete proxy.use[site];
-    proxy.ban[site] = 0;
+    proxy.ban[site] = shouldBan;
     this._logger.debug('Ban predicate: %j, Used predicate: %j', proxy.ban[site], proxy.use[site]);
     this.release(id, site, proxy.id, true); // release no matter what now!
     // if (proxy.ban[site] === 1) {
@@ -231,10 +231,13 @@ class ProxyManager {
     let shouldRelease = true;
 
     const oldProxy = this._proxies.get(proxyId);
+
     if (!oldProxy) {
       this._logger.silly('No proxy found, skipping release/ban');
       shouldRelease = false;
     }
+
+    this._logger.debug('Attempting to swap: %j', oldProxy ? oldProxy.proxy : null);
 
     // Attempt to reserve a proxy first before releasing the old one
     const newProxy = await this.reserve(id, site);
@@ -245,8 +248,8 @@ class ProxyManager {
     }
 
     this._logger.debug(
-      'Swapped old proxy %s: \n Returned new proxy: %s',
-      oldProxy.proxy,
+      'Swapped old proxy: %s \n Returned new proxy: %s',
+      oldProxy ? oldProxy.proxy : null,
       newProxy.proxy,
     );
 

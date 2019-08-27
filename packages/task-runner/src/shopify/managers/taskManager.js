@@ -452,7 +452,7 @@ class TaskManager {
     }
     if (monitor) {
       monitor.registerForEvent(MonitorEvents.MonitorStatus, this.mergeStatusUpdates);
-      monitor._events.on(TaskRunnerEvents.SwapProxy, this.handleSwapProxy, this);
+      monitor._events.on(MonitorEvents.SwapProxy, this.handleSwapProxy, this);
     }
     runner.registerForEvent(TaskRunnerEvents.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
@@ -510,17 +510,15 @@ class TaskManager {
         type: parseType,
         task,
         status: null,
-        proxy: openProxy ? openProxy.proxy : null,
-        rawProxy: openProxy ? openProxy.raw : null,
         events,
         jar: this._jar,
         logger: this._logger,
         aborted: false,
       };
 
-      runner = new TaskRunner(this._context, parseType);
+      runner = new TaskRunner(this._context, openProxy, parseType);
       runner.parseType = parseType;
-      monitor = new Monitor(this._context, parseType);
+      monitor = new Monitor(this._context, openProxy, parseType);
     } else if (type === RunnerTypes.ShippingRates) {
       runner = new ShippingRatesRunner(runnerId, task, openProxy, this._loggerPath);
     }

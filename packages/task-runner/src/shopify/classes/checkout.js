@@ -6,7 +6,7 @@ const cheerio = require('cheerio');
 const { notification } = require('./hooks');
 const { getHeaders, stateForError, userAgent, currencyWithSymbol } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
-const { States, Events, Types, Modes } = require('./utils/constants').TaskRunner;
+const { States, Events, Modes } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   get context() {
@@ -167,7 +167,7 @@ class Checkout {
           return { message: 'Logging in', nextState: States.LOGIN };
         }
 
-        if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
+        if (type === Modes.SAFE && (/eflash/i.test(url) || /palace/i.test(url))) {
           return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
         }
 
@@ -276,9 +276,6 @@ class Checkout {
         if (this.captchaToken) {
           this.captchaToken = '';
         }
-        if (type === Modes.SAFE) {
-          return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
-        }
         return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
       }
 
@@ -354,7 +351,7 @@ class Checkout {
         [, accessToken] = match;
         this._context.task.site.apiKey = accessToken;
       }
-      if (type === Modes.SAFE) {
+      if (type === Modes.SAFE && (/eflash/i.test(url) || /palace/i.test(url))) {
         if (!this.needsLogin) {
           return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
         }
@@ -448,7 +445,7 @@ class Checkout {
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
-          if (type === Modes.SAFE || (/eflash/i.test(url) || /palace/i.test(url))) {
+          if (type === Modes.SAFE) {
             return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
           }
           return {
