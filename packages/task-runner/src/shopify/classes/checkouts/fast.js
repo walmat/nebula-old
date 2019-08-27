@@ -144,6 +144,7 @@ class FastCheckout extends Checkout {
           this.prices.total = (
             parseFloat(this.prices.item) + parseFloat(this.chosenShippingMethod.price)
           ).toFixed(2);
+          return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
         }
         return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
       }
@@ -533,6 +534,19 @@ class FastCheckout extends Checkout {
       const redirectUrl = headers.get('location');
       this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
+      const body = await res.text();
+
+      if (!this.checkoutKey) {
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this.checkoutKey] = match;
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
+        }
+      }
+
       // check if redirected
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
@@ -578,8 +592,6 @@ class FastCheckout extends Checkout {
           return { message: `Out of stock! Delaying ${monitorDelay}ms`, delay, nextState };
         }
       }
-
-      const body = await res.text();
 
       if ((this.needsCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
         this._context.task.checkoutSpeed = checkout.getRunTime();
@@ -686,6 +698,19 @@ class FastCheckout extends Checkout {
       const redirectUrl = headers.get('location');
       this._logger.silly('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
 
+      const body = await res.text();
+
+      if (!this.checkoutKey) {
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this.checkoutKey] = match;
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
+        }
+      }
+
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
           checkout.stop();
@@ -729,8 +754,6 @@ class FastCheckout extends Checkout {
           return { message: 'Password page', delay: true, nextState: States.COMPLETE_PAYMENT };
         }
       }
-
-      const body = await res.text();
 
       if ((this.needsCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
         this._context.task.checkoutSpeed = checkout.getRunTime();

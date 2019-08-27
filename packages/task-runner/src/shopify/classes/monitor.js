@@ -50,10 +50,12 @@ class Monitor {
     };
 
     this._handleAbort = this._handleAbort.bind(this);
+    this._handleDelay = this._handleDelay.bind(this);
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
   }
 
   _handleDelay(id, delay, type) {
+    console.log(id, this._context.id);
     if (id === this._context.id) {
       if (type === DelayTypes.error) {
         this._context.task.errorDelay = delay;

@@ -32,11 +32,7 @@ class Checkout {
       r => r.site.url === this._context.task.site.url,
     );
 
-    if (
-      this._context.type === Types.Normal &&
-      preFetchedShippingRates &&
-      preFetchedShippingRates.selectedRate
-    ) {
+    if (this._context.type && preFetchedShippingRates && preFetchedShippingRates.selectedRate) {
       const { name, price, rate } = preFetchedShippingRates.selectedRate;
       this.chosenShippingMethod = {
         name,

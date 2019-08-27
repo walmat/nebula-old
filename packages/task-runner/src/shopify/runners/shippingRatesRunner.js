@@ -4,16 +4,16 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { CookieJar } from 'tough-cookie';
-import Bottleneck from 'bottleneck';
 
 import { createLogger } from '../../common/logger';
 import generateVariants from '../classes/utils/generateVariants';
 import { rfrl, userAgent } from '../classes/utils';
 import { addToCart } from '../classes/utils/forms';
-import { ParseType, getParseType } from '../classes/utils/parse';
-import { TaskRunner } from '../classes/utils/constants';
+import { getParseType } from '../classes/utils/parse';
+import { TaskRunner, Monitor } from '../classes/utils/constants';
 import { AtomParser, JsonParser, Parser, XmlParser, getSpecialParser } from '../classes/parsers';
 
+const { ParseType } = Monitor;
 const { Types, Events } = TaskRunner;
 
 const request = require('fetch-cookie')(fetch, new CookieJar());
@@ -32,22 +32,11 @@ class ShippingRatesRunner {
       prefix: 'SRR',
     });
 
-    this._limiter = new Bottleneck({
-      reservoir: 40, // initial value
-      reservoirIncreaseAmount: 2,
-      reservoirIncreaseInterval: 1000, // must be divisible by 250
-      reservoirIncreaseMaximum: 40,
-     
-      // also use maxConcurrent and/or minTime for safety
-      maxConcurrent: 5,
-      minTime: 250 // pick a value that makes sense for your use case
-    });
-
     this.aborted = false;
     this.aborter = new AbortController();
 
     this._request = defaults(request, this.task.site.url, {
-      timeout: 10000, // to be overridden as necessary
+      timeout: 60000, // to be overridden as necessary
       signal: this.aborter.signal, // generic abort signal
     });
 
@@ -150,23 +139,14 @@ class ShippingRatesRunner {
     const parsers = [
       new AtomParser(
         this._monitorRequest,
-        this._limiter,
         this.task,
         this.proxy,
         this.monitorAborter,
         this._logger,
       ),
-      new XmlParser(
-        this._monitorRequest,
-        this._limiter,
-        this.task,
-        this.proxy,
-        this.monitorAborter,
-        this._logger
-      ),
+      new XmlParser(this._monitorRequest, this.task, this.proxy, this.monitorAborter, this._logger),
       new JsonParser(
         this._monitorRequest,
-        this._limiter,
         this.task,
         this.proxy,
         this.monitorAborter,
@@ -182,7 +162,7 @@ class ShippingRatesRunner {
       }
     }
 
-    const { variant, nextState, message } = this._generateVariants(parsed);
+    const { variant, nextState, message } = await this._generateVariants(parsed);
 
     if (nextState) {
       return { nextState, message };
@@ -214,7 +194,7 @@ class ShippingRatesRunner {
       }
     }
 
-    const { variant, nextState } = this._generateVariants(fullProductInfo);
+    const { variant, nextState } = await this._generateVariants(fullProductInfo);
     // check for next state (means we hit an error when generating variants)
     if (nextState) {
       return nextState;
@@ -247,9 +227,9 @@ class ShippingRatesRunner {
       return { nextState: this.states.CART, message: 'Adding to cart' };
     }
 
-    const { variant, nextState, message } = this._generateVariants(parsed);
+    const { variant, nextState, message } = await this._generateVariants(parsed);
     // check for next state (means we hit an error when generating variants)
-    
+
     if (nextState) {
       return { nextState, message };
     }
@@ -259,12 +239,10 @@ class ShippingRatesRunner {
   }
 
   async parse() {
-    this.parseType = getParseType(this.task.product, this._logger, this.task.site);
+    this.parseType = getParseType(this.task.product, this.task.site);
 
     let nextState;
     let message;
-
-    console.log(this.parseType);
 
     switch (this.parseType) {
       case ParseType.Variant: {
@@ -361,7 +339,7 @@ class ShippingRatesRunner {
       const { status } = res;
 
       if (status === 422) {
-        return { message: 'Country not supported', nextState: States.Errored };
+        return { message: 'Country not supported', nextState: this.states.ERROR };
       }
 
       const body = await res.json();
@@ -431,9 +409,6 @@ class ShippingRatesRunner {
       // eslint-disable-next-line no-await-in-loop
       ({ nextState, message } = await this.run());
 
-      console.log(nextState, message);
-
-      console.log('SHIPPING RATES LENGTH: ', this.shippingRates.length);
       if (this.shippingRates.length) {
         this._emitTaskEvent({
           message: 'Rates found!',
