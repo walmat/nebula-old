@@ -338,6 +338,14 @@ class FastCheckout extends Checkout {
 
       if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
         this.needsCaptcha = true; // mark this to do later
+
+        // if we are skipping the fetching rates stage, request the captcha now...
+        if (this.chosenShippingMethod.id) {
+          return {
+            message: 'Waiting for captcha',
+            nextState: States.CAPTCHA,
+          };
+        }
       }
 
       if (prevState) {

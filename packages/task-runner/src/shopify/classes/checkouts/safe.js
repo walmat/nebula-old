@@ -182,7 +182,11 @@ class SafeCheckout extends Checkout {
       });
 
       this.note = $('input[name="note"]').attr('value');
-      return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+
+      if (/eflash/i.test(url) || /palace/i.test(url)) {
+        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+      }
+      return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',

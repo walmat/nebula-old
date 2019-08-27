@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { session: Session } = require('electron');
+const { session: Session, Notification } = require('electron');
+const Path = require('path');
 const { differenceInSeconds } = require('date-fns');
 
 const { createCaptchaWindow, createYouTubeWindow, urls } = require('./windows');
@@ -102,9 +103,7 @@ class CaptchaWindowManager {
             ev.sender.send(
               'debug',
               type,
-              `Queue Line Length: ${this._tokenQueue.lineLength}, Backlog Length: ${
-                this._tokenQueue.backlogLength
-              }`,
+              `Queue Line Length: ${this._tokenQueue.lineLength}, Backlog Length: ${this._tokenQueue.backlogLength}`,
             );
             break;
           }
@@ -304,6 +303,18 @@ class CaptchaWindowManager {
       const { state, runnerId, siteKey } = this._harvestStatus;
       if (state === HARVEST_STATE.ACTIVE) {
         win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+        if (Notification.isSupported()) {
+          const sound = nebulaEnv.isDevelopment()
+            ? Path.join(__dirname, '../../public/assets/sounds/notification.mp3')
+            : Path.join(__dirname, '../../build/assets/sounds/notification.mp3');
+
+          const notif = new Notification({
+            title: 'Waiting for captcha',
+            silent: false,
+            sound,
+          });
+          notif.show();
+        }
       }
     });
 

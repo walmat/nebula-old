@@ -95,6 +95,8 @@ class TaskRunner {
     // Add in the checkout type once we create the checkout module
     this._checkout._checkoutType = this._checkoutType;
 
+    this._history = [];
+
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
     this._handleProduct = this._handleProduct.bind(this);
@@ -190,6 +192,7 @@ class TaskRunner {
   }
 
   _cleanup() {
+    console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
@@ -652,8 +655,18 @@ class TaskRunner {
         // We have the token, so suspend harvesting for now
         this.suspendHarvestCaptcha();
 
+        if (this._prevState === States.GO_TO_SHIPPING) {
+          if (type === Modes.FAST) {
+            return States.SUBMIT_PAYMENT;
+          }
+          return States.SUBMIT_SHIPPING;
+        }
+
         if (this._prevState === States.GO_TO_CHECKOUT) {
           if (type === Modes.FAST) {
+            if (this._checkout.chosenShippingMethod.id) {
+              return States.SUBMIT_PAYMENT;
+            }
             return States.GO_TO_SHIPPING;
           }
           return States.SUBMIT_CUSTOMER;
@@ -1221,6 +1234,7 @@ class TaskRunner {
     this._logger.silly('Run Loop finished, state transitioned to: %s', nextState);
 
     if (this._state !== nextState) {
+      this._history.push(this._state);
       this._prevState = this._state;
       this._state = nextState;
     }
