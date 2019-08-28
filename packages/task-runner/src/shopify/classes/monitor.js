@@ -261,21 +261,21 @@ class Monitor {
         this._request,
         this._context.task,
         this._context.proxy,
-        this._aborter,
+        new AbortController(),
         this._context.logger,
       ),
       new JsonParser(
         this._request,
         this._context.task,
         this._context.proxy,
-        this._aborter,
+        new AbortController(),
         this._context.logger,
       ),
       new XmlParser(
         this._request,
         this._context.task,
         this._context.proxy,
-        this._aborter,
+        new AbortController(),
         this._context.logger,
       ),
     ].map(p => p.run());
@@ -297,11 +297,9 @@ class Monitor {
       ));
     } catch (err) {
       if (err.code === ErrorCodes.VariantsNotMatched) {
-        this._emitMonitorEvent({ message: `Zero matched variants! Stopping..` });
-        return { nextState: States.STOP };
+        return { nextState: States.STOP, message: `Zero matched variants! Stopping...` };
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
-        this._emitMonitorEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
         return {
           nextState: States.PARSE,
           delay: true,
@@ -309,8 +307,7 @@ class Monitor {
         };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %j', err);
-      this._emitMonitorEvent({ message: `Monitor has errored out!` });
-      return { nextState: States.ERROR };
+      return { nextState: States.ERROR, message: 'Monitor has errored out!' };
     }
     return { variants, barcode, sizes: chosenSizes };
   }
@@ -343,14 +340,10 @@ class Monitor {
 
     // check for next state (means we hit an error when generating variants)
     if (nextState) {
-      console.log('inside of if statement');
       this._emitMonitorEvent({ message });
       if (delay) {
-        console.log(`waiting for ${monitorDelay}`);
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-        console.log('delayer set');
         await this._delayer;
-        console.log('waited for delay');
       }
       return nextState;
     }

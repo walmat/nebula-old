@@ -498,9 +498,10 @@ class TaskRunner {
     if (this._productFound) {
       return States.ADD_TO_CART;
     }
-    // TODO: remove this after I figure out the event problem..
-    this._delayer = waitForDelay(10000, this._aborter.signal);
+
+    this._delayer = waitForDelay(500, this._aborter.signal);
     await this._delayer;
+
     return States.WAIT_FOR_PRODUCT;
   }
 

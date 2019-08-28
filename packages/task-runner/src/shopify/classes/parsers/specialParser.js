@@ -3,8 +3,10 @@ import HttpsProxyAgent from 'https-proxy-agent';
 
 const cheerio = require('cheerio');
 const Parser = require('./parser');
-const { ParseType } = require('../utils/parse');
-const { ErrorCodes } = require('../utils/constants');
+const {
+  ErrorCodes,
+  Monitor: { ParseType },
+} = require('../utils/constants');
 const { userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
