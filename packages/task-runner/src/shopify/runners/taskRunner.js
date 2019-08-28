@@ -141,6 +141,7 @@ class TaskRunner {
   }
 
   _handleProduct(id, product, parseType) {
+    console.log(id, product, parseType);
     if (parseType === this._parseType) {
       // if it's the same task, just merge the product data
       if (id === this._context.id) {
@@ -148,17 +149,20 @@ class TaskRunner {
           ...this._context.task.product,
           product,
         };
+        this._productFound = true;
       }
 
+      // otherwise, check if the product data is the same
       const isSameProductData = this._compareProductInput(product, parseType);
 
-      if (isSameProductData) {
+      // if so, merge the product data
+      if (isSameProductData && !this._productFound) {
         this._context.task.product = {
           ...this._context.task.product,
           product,
         };
+        this._productFound = true;
       }
-      this._productFound = true;
     }
   }
 

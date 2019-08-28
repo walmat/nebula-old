@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
-import { List, AutoSizer } from 'react-virtualized';
-import ScrollableFeed from 'react-scrollable-feed';
+import { InfiniteLoader, List, AutoSizer } from 'react-virtualized';
+// import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';
@@ -16,7 +16,9 @@ export class LogTaskPrimitive extends PureComponent {
       'Payment failed': 'failed',
     };
 
-    const match = /Waiting for captcha|Polling queue|Payment successful|Payment failed|Card declined/i.exec(msg);
+    const match = /Waiting for captcha|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
+      msg,
+    );
     const messageClassName = match ? outputColorMap[match[0]] : 'normal';
     return (
       <div key={i} className="row row--start row--gutter tasks-live-log__output-row">
@@ -30,6 +32,8 @@ export class LogTaskPrimitive extends PureComponent {
 
     this.createTable = this.createTable.bind(this);
     this.renderRow = this.renderRow.bind(this);
+    this.isRowLoaded = this.isRowLoaded.bind(this);
+    this.loadMoreRows = this.loadMoreRows.bind(this);
 
     this.state = {
       fullscreen: false, // fullscreen toggle
@@ -52,33 +56,43 @@ export class LogTaskPrimitive extends PureComponent {
     }
   }
 
-  showLiveLog() {
-    const { focused } = this.state;
-    if (focused) {
-      const { tasks } = this.props;
-      const task = tasks.find(t => t.id === focused);
-      // TODO: Convert this to a react-virtualized <List />
-      if (task) {
-        return (
-          <div className="row row--start row--expand table--lower">
-            <div className="col col--start col--no-gutter tasks-live-log__wrapper">
-              <ScrollableFeed data-testid={addTestId('LogTaskPrimitive.feed')}>
-                {task.log.map((msg, i) => LogTaskPrimitive.renderOutputLogRow(msg, i))}
-              </ScrollableFeed>
-            </div>
-          </div>
-        );
-      }
-      this.setState({ focused: '' });
-    }
-    return null;
+  // showLiveLog() {
+  //   const { focused } = this.state;
+  //   if (focused) {
+  //     const { tasks } = this.props;
+  //     const task = tasks.find(t => t.id === focused);
+  //     // TODO: Convert this to a react-virtualized <List />
+  //     if (task) {
+  //       return (
+  //         <div className="row row--start row--expand table--lower">
+  //           <div className="col col--start col--no-gutter tasks-live-log__wrapper">
+  //             <ScrollableFeed data-testid={addTestId('LogTaskPrimitive.feed')}>
+  //               {task.log.map((msg, i) => LogTaskPrimitive.renderOutputLogRow(msg, i))}
+  //             </ScrollableFeed>
+  //           </div>
+  //         </div>
+  //       );
+  //     }
+  //     this.setState({ focused: '' });
+  //   }
+  //   return null;
+  // }
+
+  isRowLoaded({ index }) {
+    const { tasks } = this.props;
+    return !!tasks[index];
+  }
+
+  loadMoreRows({ start, stop }) {
+    const { tasks } = this.props;
+    return tasks.slice(start, stop);
   }
 
   createTable() {
     const { tasks } = this.props;
-    const { focused, selected } = this.state;
+    const { selected } = this.state;
 
-    if (!tasks || (!tasks.length && (focused || selected.length))) {
+    if (!tasks || (!tasks.length && selected.length)) {
       this.setState({
         selected: [],
         focused: '',
@@ -86,19 +100,29 @@ export class LogTaskPrimitive extends PureComponent {
     }
 
     return (
-      <AutoSizer>
-        {({ width, height }) => (
-          <List
-            width={width}
-            height={height}
-            rowHeight={30}
-            rowRenderer={this.renderRow}
-            rowCount={tasks.length}
-            overscanRowCount={10}
-            tasks={tasks} // forces a rerender on props change
-          />
+      <InfiniteLoader
+        isRowLoaded={this.isRowLoaded}
+        loadMoreRows={this.loadMoreRows}
+        rowCount={tasks.length}
+      >
+        {({ onRowsRendered, registerChild }) => (
+          <AutoSizer>
+            {({ width, height }) => (
+              <List
+                tasks={tasks}
+                width={width}
+                height={height}
+                onRowsRendered={onRowsRendered}
+                ref={registerChild}
+                rowHeight={30}
+                rowRenderer={this.renderRow}
+                rowCount={tasks.length}
+                overscanRowCount={10}
+              />
+            )}
+          </AutoSizer>
         )}
-      </AutoSizer>
+      </InfiniteLoader>
     );
   }
 
@@ -107,10 +131,10 @@ export class LogTaskPrimitive extends PureComponent {
     const task = tasks[index];
     const { fullscreen, selected } = this.state;
 
-    // const selectedMap = {};
-    // selected.forEach(id => {
-    //   selectedMap[id] = id;
-    // });
+    const selectedMap = {};
+    selected.forEach(id => {
+      selectedMap[id] = id;
+    });
 
     return (
       <LogTaskRow
@@ -224,7 +248,7 @@ export class LogTaskPrimitive extends PureComponent {
                 <div className="tasks-log">{this.createTable()}</div>
               </div>
             </div>
-            {fullscreen ? this.showLiveLog() : null}
+            {/* {fullscreen ? this.showLiveLog() : null} */}
           </div>
         </div>
         {/* TODO: Add this back in with #414 */}

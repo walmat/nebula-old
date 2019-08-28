@@ -52,6 +52,8 @@ class Monitor {
       aborted: this._aborted,
     };
 
+    this._history = [];
+
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
@@ -71,7 +73,6 @@ class Monitor {
   }
 
   _handleAbort(id) {
-    console.log('ABORTING!!!');
     if (id === this._context.id) {
       this._context.aborted = true;
       this._aborter.abort();
@@ -79,6 +80,10 @@ class Monitor {
         this._delayer.clear();
       }
     }
+  }
+
+  _cleanup() {
+    console.log(this._history);
   }
 
   async swapProxies() {
@@ -284,7 +289,7 @@ class Monitor {
   }
 
   async _generateVariants(product) {
-    const { sizes, site, monitorDelay } = this._context.task;
+    const { sizes, site } = this._context.task;
     let variants;
     let barcode;
     let chosenSizes;
@@ -297,14 +302,7 @@ class Monitor {
       ));
     } catch (err) {
       if (err.code === ErrorCodes.VariantsNotMatched) {
-        return { nextState: States.STOP, message: `Zero matched variants! Stopping...` };
-      }
-      if (err.code === ErrorCodes.VariantsNotAvailable) {
-        return {
-          nextState: States.PARSE,
-          delay: true,
-          message: `Out of stock! Delaying ${monitorDelay}ms`,
-        };
+        return { nextState: States.STOP, message: `Size not matched! Stopping...` };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %j', err);
       return { nextState: States.ERROR, message: 'Monitor has errored out!' };
@@ -358,10 +356,9 @@ class Monitor {
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._logger.debug('MONITOR: Status is OK, emitting event');
 
-    this._logger.debug(this._context.task.product);
     this._events.emit(
       TaskManagerEvents.ProductFound,
-      this._id,
+      this.id,
       this._context.task.product,
       this._parseType,
     );
@@ -416,7 +413,7 @@ class Monitor {
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
       this._events.emit(
         TaskManagerEvents.ProductFound,
-        this._id,
+        this.id,
         this._context.task.product,
         this._parseType,
       );
@@ -482,7 +479,7 @@ class Monitor {
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     this._events.emit(
       TaskManagerEvents.ProductFound,
-      this._id,
+      this.id,
       this._context.task.product,
       this._parseType,
     );
@@ -497,7 +494,6 @@ class Monitor {
   }
 
   async _handleParse() {
-    console.log(this._context.aborted);
     if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
@@ -510,7 +506,7 @@ class Monitor {
         this._context.task.product.variants = [this._context.task.product.variant];
         this._events.emit(
           Events.ProductFound,
-          this._id,
+          this.id,
           this._context.task.product,
           this._parseType,
         );
@@ -582,6 +578,7 @@ class Monitor {
     this._logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);
 
     if (this._state !== nextState) {
+      this._history.push(this._state);
       this._prevState = this._state;
       this._state = nextState;
     }
@@ -599,6 +596,8 @@ class Monitor {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.run();
     }
+
+    this._cleanup();
   }
 }
 

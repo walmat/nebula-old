@@ -4,23 +4,13 @@ const { getRandomIntInclusive } = require('./index');
 const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
 const { ErrorCodes } = require('./constants');
 
-function generateVariants(product, sizes, site, logger = { log: () => {} }, random) {
+async function generateVariants(product, sizes, site, logger = { log: () => {} }, random) {
   if (random) {
     return { variant: product.variants[0].id };
   }
 
-  // Filter out unavailable variants first
-  const availableVariants = product.variants.filter(v => v.available);
-  if (!availableVariants.length) {
-    const err = new Error('No variants available');
-    err.code = ErrorCodes.VariantsNotAvailable;
-    throw err;
-  }
-
-  const grouping = sizes.find(size => /random/i.test(size)) ? availableVariants : product.variants;
-
   // Group variants by their size
-  const variantsBySize = groupBy(grouping, variant => {
+  const variantsBySize = groupBy(product.variants, variant => {
     // Use the variant option or the title segment
     const defaultOption = urlToVariantOption[site.url] ? urlToVariantOption[site.url] : 'option1';
     const option = variant[defaultOption] || urlToTitleSegment[site.url](variant.title);
@@ -33,6 +23,7 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
     }
     return option.toUpperCase();
   });
+  logger.log('debug', 'VARIANTS BY SIZE: %j', variantsBySize);
 
   // Get the groups in the same order as the sizes
   const mappedVariants = sizes.map(size => {
@@ -54,11 +45,13 @@ function generateVariants(product, sizes, site, logger = { log: () => {} }, rand
     return variantsBySize[variant];
   });
 
+  logger.log('debug', 'MAPPED VARIANTS: %j', mappedVariants);
+
   // Flatten the groups to a one-level array and remove null elements
   const validVariants = filter(flatten(mappedVariants, true), v => v);
   // only pick certain properties of the variants to print
   logger.log(
-    'silly',
+    'debug',
     'Generated valid variants: %j',
     validVariants.map(v =>
       pick(v, 'id', 'product_id', 'barcode', 'title', 'price', 'option1', 'option2', 'option3'),
