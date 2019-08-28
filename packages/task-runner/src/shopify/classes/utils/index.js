@@ -1,6 +1,5 @@
 const delay = require('delay');
 const now = require('performance-now');
-const $ = require('cheerio');
 
 const rfrl = require('./rfrl');
 const { States } = require('./constants').TaskRunner;

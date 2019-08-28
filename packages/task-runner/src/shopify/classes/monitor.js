@@ -71,6 +71,7 @@ class Monitor {
   }
 
   _handleAbort(id) {
+    console.log('ABORTING!!!');
     if (id === this._context.id) {
       this._context.aborted = true;
       this._aborter.abort();
@@ -82,7 +83,6 @@ class Monitor {
 
   async swapProxies() {
     // emit the swap event
-    console.log(this.proxy);
     this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
       let timeout;
@@ -148,15 +148,11 @@ class Monitor {
   }
 
   _emitMonitorEvent(payload = {}) {
+    this._logger.debug('PAYLOAD: %j', payload);
     if (payload.message && payload.message !== this._context.status) {
       this._status = payload.message;
       this._emitEvent(Events.MonitorStatus, { ...payload, type: Types.Normal });
     }
-  }
-
-  async wait(delay) {
-    this._delayer = waitForDelay(delay, this._aborter.signal);
-    await this._delayer;
   }
 
   async _handleParsingErrors(errors) {
@@ -189,7 +185,7 @@ class Monitor {
     if (ban || hardBan) {
       this._logger.silly('Proxy was banned, swapping proxies...');
       // we can assume that it's a soft ban by default since it's either ban || hardBan
-      this.shouldBan = hardBan ? 2 : 1;
+      this.shouldBanProxy = hardBan ? 2 : 1;
       this._emitMonitorEvent({ message: 'Proxy banned!' });
       return States.SWAP;
     }
@@ -208,10 +204,9 @@ class Monitor {
         break;
     }
 
-    this._emitMonitorEvent({
-      message: `${message}. Delaying ${this._context.task.monitorDelay}ms`,
-    });
-    await this.wait(monitorDelay);
+    this._emitMonitorEvent({ message: `${message}. Delaying ${monitorDelay}ms` });
+    this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+    await this._delayer;
     return States.PARSE;
   }
 
@@ -294,7 +289,7 @@ class Monitor {
     let barcode;
     let chosenSizes;
     try {
-      ({ variants, barcode, sizes: chosenSizes } = generateVariants(
+      ({ variants, barcode, sizes: chosenSizes } = await generateVariants(
         product,
         sizes,
         site,
@@ -307,8 +302,11 @@ class Monitor {
       }
       if (err.code === ErrorCodes.VariantsNotAvailable) {
         this._emitMonitorEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-        await this.wait(monitorDelay);
-        return { nextState: States.RESTOCK, delay: true };
+        return {
+          nextState: States.PARSE,
+          delay: true,
+          message: `Out of stock! Delaying ${monitorDelay}ms`,
+        };
       }
       this._logger.error('MONITOR: Unknown error generating variants: %j', err);
       this._emitMonitorEvent({ message: `Monitor has errored out!` });
@@ -324,22 +322,35 @@ class Monitor {
       // Try parsing all files and wait for the first response
       parsed = await this._parseAll();
     } catch (errors) {
-      this._logger.silly('MONITOR: All request errored out! %j', errors);
+      this._logger.debug('MONITOR: All request errored out! %j', errors);
       // handle parsing errors
       return this._handleParsingErrors(errors);
     }
-    this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
-    this._logger.silly('MONITOR: Generating variant lists now...');
+    this._logger.debug('MONITOR: %s retrieved as a matched product', parsed.title);
+    this._logger.debug('MONITOR: Generating variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     const { variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(
       parsed,
     );
+    this._logger.debug(
+      'Variants: %j, nextState: %j, delay: %j, message: %j',
+      variants,
+      nextState,
+      delay,
+      message,
+    );
+
     // check for next state (means we hit an error when generating variants)
     if (nextState) {
+      console.log('inside of if statement');
       this._emitMonitorEvent({ message });
       if (delay) {
-        await this.wait(monitorDelay);
+        console.log(`waiting for ${monitorDelay}`);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        console.log('delayer set');
+        await this._delayer;
+        console.log('waited for delay');
       }
       return nextState;
     }
@@ -397,7 +408,8 @@ class Monitor {
       if (nextState) {
         this._emitMonitorEvent({ message });
         if (delay) {
-          await this.wait(monitorDelay);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          await this._delayer;
         }
         return nextState;
       }
@@ -463,7 +475,8 @@ class Monitor {
       if (nextState) {
         this._emitMonitorEvent({ message });
         if (delay) {
-          await this.wait(monitorDelay);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          await this._delayer;
         }
         return nextState;
       }
@@ -491,12 +504,13 @@ class Monitor {
   }
 
   async _handleParse() {
+    console.log(this._context.aborted);
     if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    let nextState;
+    let nextState = States.ERROR;
     switch (this._parseType) {
       case ParseType.Variant: {
         this._logger.silly('MONITOR: Variant Parsing Detected');
@@ -512,18 +526,15 @@ class Monitor {
       }
       case ParseType.Url: {
         this._logger.silly('MONITOR: Url Parsing Detected');
-        nextState = await this._monitorUrl();
-        break;
+        return this._monitorUrl();
       }
       case ParseType.Keywords: {
         this._logger.silly('MONITOR: Keyword Parsing Detected');
-        nextState = await this._monitorKeywords();
-        break;
+        return this._monitorKeywords();
       }
       case ParseType.Special: {
         this._logger.silly('MONITOR: Special Parsing Detected');
-        nextState = await this._monitorSpecial();
-        break;
+        return this._monitorSpecial();
       }
       default: {
         this._logger.error(
@@ -533,6 +544,7 @@ class Monitor {
         return States.ERROR;
       }
     }
+    this._logger.debug('PARSE NEXT STATE: %j', nextState);
     return nextState;
   }
 
@@ -574,7 +586,7 @@ class Monitor {
         return true;
       }
     }
-    this._logger.silly('Monitor Loop finished, state transitioned to: %s', nextState);
+    this._logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);
 
     if (this._state !== nextState) {
       this._prevState = this._state;

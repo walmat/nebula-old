@@ -399,10 +399,10 @@ class TaskManager {
           handler = id => {
             if (id === runner.id || id === 'ALL') {
               // TODO: Respect the scope of the runner's methods (issue #137)
-              runner._handleAbort(runner.id);
               if (monitor) {
                 monitor._handleAbort(runner.id);
               }
+              runner._handleAbort(runner.id);
             }
           };
           break;

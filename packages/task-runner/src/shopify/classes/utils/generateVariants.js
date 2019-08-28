@@ -4,7 +4,7 @@ const { getRandomIntInclusive } = require('./index');
 const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
 const { ErrorCodes } = require('./constants');
 
-function generateVariants(product, sizes, site, logger = { log: () => {} }, random) {
+async function generateVariants(product, sizes, site, logger = { log: () => {} }, random) {
   if (random) {
     return { variant: product.variants[0].id };
   }
