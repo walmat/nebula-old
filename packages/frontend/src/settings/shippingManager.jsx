@@ -49,13 +49,13 @@ export class ShippingManagerPrimitive extends PureComponent {
         label: 'Profile',
         placeholder: 'Choose Profile',
         type: 'profile',
-        className: 'col col--no-gutter-right',
+        className: 'col',
       },
       [SETTINGS_FIELDS.EDIT_SHIPPING_SITE]: {
         label: 'Site',
         placeholder: 'Choose Site',
         type: 'site',
-        className: 'col col--gutter-left',
+        className: 'col col--no-gutter-right settings--shipping-manager__adjust-margin',
       },
     };
     this.buttons = {
@@ -64,7 +64,7 @@ export class ShippingManagerPrimitive extends PureComponent {
         type: 'clear',
       },
       [SETTINGS_FIELDS.FETCH_SHIPPING_METHODS]: {
-        label: 'Fetch Rates',
+        label: 'Fetch',
         type: 'fetch',
       },
     };
@@ -216,9 +216,8 @@ export class ShippingManagerPrimitive extends PureComponent {
 
   render() {
     const { shipping, errors } = this.props;
-    const { profile, site, product, name, username, password } = shipping;
+    const { profile, site, product } = shipping;
     let shippingProfileValue = null;
-    let accountFieldsDisabled = true;
     if (profile && profile.id !== null) {
       shippingProfileValue = {
         value: profile.id,
@@ -226,14 +225,11 @@ export class ShippingManagerPrimitive extends PureComponent {
       };
     }
     let shippingSiteValue = null;
-    if (site) {
-      accountFieldsDisabled = !site.auth && site.auth !== undefined;
-      if (site.name) {
-        shippingSiteValue = {
-          value: site.url,
-          label: site.name,
-        };
-      }
+    if (site && site.name) {
+      shippingSiteValue = {
+        value: site.url,
+        label: site.name,
+      };
     }
     return (
       <div>
@@ -268,79 +264,19 @@ export class ShippingManagerPrimitive extends PureComponent {
                           required
                         />
                       </div>
-                      <div className="col col--gutter-left">
-                        <p className="settings--shipping-manager__input-group--label">Rate Name</p>
-                        <input
-                          className="settings--shipping-manager__input-group--name"
-                          type="text"
-                          placeholder="Free Shipping"
-                          onChange={this.createOnChangeHandler(
-                            SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME,
-                          )}
-                          value={name}
-                          style={buildStyle(
-                            false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME]],
-                          )}
-                          required
-                          data-private
-                        />
-                      </div>
-                    </div>
-                    <div className="row row--gutter">
                       {this.renderSelect(
                         SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE,
                         shippingProfileValue,
                         this.buildProfileOptions(),
                       )}
+                    </div>
+                    <div className="row row--gutter">
                       {this.renderSelect(
                         SETTINGS_FIELDS.EDIT_SHIPPING_SITE,
                         shippingSiteValue,
                         getAllSupportedSitesSorted(),
                       )}
-                    </div>
-                    <div className="row row--gutter">
-                      <div className="col col--no-gutter-right">
-                        <p className="settings--shipping-manager__input-group--label">Username</p>
-                        <input
-                          className="settings--shipping-manager__input-group--username"
-                          type="text"
-                          placeholder="johndoe@example.com"
-                          onChange={this.createOnChangeHandler(
-                            SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME,
-                          )}
-                          value={username || ''}
-                          style={buildStyle(
-                            false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME]],
-                          )}
-                          required={!accountFieldsDisabled}
-                          disabled={accountFieldsDisabled}
-                          data-private
-                        />
-                      </div>
-                      <div className="col col--gutter-right">
-                        <p className="settings--shipping-manager__input-group--label">Password</p>
-                        <input
-                          className="settings--shipping-manager__input-group--password"
-                          type="text"
-                          placeholder="***********"
-                          onChange={this.createOnChangeHandler(
-                            SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
-                          )}
-                          value={password || ''}
-                          style={buildStyle(
-                            false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD]],
-                          )}
-                          required={!accountFieldsDisabled}
-                          disabled={accountFieldsDisabled}
-                          data-private
-                        />
-                      </div>
-                    </div>
-                    <div className="row row--gutter row--end">
-                      <div className="col col--no-gutter-right">
+                      <div className="col col--end col--no-gutter-right">
                         {this.renderButton(SETTINGS_FIELDS.FETCH_SHIPPING_METHODS, shipping)}
                       </div>
                       <div className="col col--end col--gutter-left">

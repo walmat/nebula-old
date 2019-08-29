@@ -1,8 +1,9 @@
 import React from 'react';
 import ProxyList from './proxyList';
 import Webhooks from './webhooks';
-import Defaults from './defaults';
+// import Defaults from './defaults';
 import ShippingManager from './shippingManager';
+import AccountManager from './accountManager';
 import StateFunctions from './stateFunctions';
 
 import '../app.css';
@@ -23,8 +24,9 @@ export default () => (
           </div>
           <div className="col col--start settings__extras">
             <Webhooks />
-            <Defaults />
+            {/* <Defaults /> */}
             <ShippingManager />
+            <AccountManager />
             <StateFunctions />
           </div>
         </div>

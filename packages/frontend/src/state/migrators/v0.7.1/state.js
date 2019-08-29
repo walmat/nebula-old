@@ -10,7 +10,6 @@ const updateTask = task => {
   return newTask;
 };
 
-
 export default {
   ...prevState,
   version: '0.7.1',

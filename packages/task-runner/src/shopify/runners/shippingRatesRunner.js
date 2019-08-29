@@ -148,13 +148,21 @@ class ShippingRatesRunner {
       }
     }
 
-    const { variant, nextState, message } = await this._generateVariants(parsed);
+    this.task.product.variants = parsed.variants.map(v =>
+      pick(
+        v,
+        'id',
+        'product_id',
+        'title',
+        'available',
+        'price',
+        'option1',
+        'option2',
+        'option3',
+        'option4',
+      ),
+    );
 
-    if (nextState) {
-      return { nextState, message };
-    }
-
-    this.task.product.variants = [variant];
     this.task.product.url = `${this.task.site.url}/products/${parsed.handle}`;
 
     return { nextState: this.states.CART, message: 'Adding to cart' };
@@ -180,7 +188,20 @@ class ShippingRatesRunner {
       }
     }
 
-    this.task.product.variants = [fullProductInfo.variants];
+    this.task.product.variants = fullProductInfo.variants.map(v =>
+      pick(
+        v,
+        'id',
+        'product_id',
+        'title',
+        'available',
+        'price',
+        'option1',
+        'option2',
+        'option3',
+        'option4',
+      ),
+    );
 
     return { nextState: this.states.CART, message: 'Adding to cart' };
   }
@@ -203,7 +224,7 @@ class ShippingRatesRunner {
     }
 
     if (this.task.product.variant) {
-      this.task.product.variants = [this.task.product.variant];
+      this.task.product.variants = [{ id: this.task.product.variant }];
       return { nextState: this.states.CART, message: 'Adding to cart' };
     }
 
@@ -232,7 +253,7 @@ class ShippingRatesRunner {
     switch (this.parseType) {
       case ParseType.Variant: {
         this._logger.silly('RATE FETCHER: Variant Parsing Detected');
-        this.task.product.variants = [this.task.product.variant];
+        this.task.product.variants = [{ id: this.task.product.variant }];
         nextState = this.states.CART;
         break;
       }
@@ -261,11 +282,20 @@ class ShippingRatesRunner {
 
   async cart() {
     const {
-      site: { name },
+      site: { name, url },
       product: { variants, hash },
+      sizes,
     } = this.task;
 
-    this._logger.silly(`adding ${variants[0]} to cart`);
+    const variant = await pickVariant(variants, sizes, url, this._logger);
+
+    this._logger.debug('Adding %j to cart', variant);
+    if (!variant) {
+      return {
+        message: 'No size matched! Stopping...',
+        nextState: this.states.ERROR,
+      };
+    }
 
     let res;
     try {
@@ -275,7 +305,7 @@ class ShippingRatesRunner {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(addToCart(variants[0], name, hash)),
+        body: JSON.stringify(addToCart(variant, name, hash)),
         agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
       });
 

@@ -13,11 +13,8 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
       case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT:
-      case SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME:
       case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE:
       case SETTINGS_FIELDS.EDIT_SHIPPING_SITE:
-      case SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME:
-      case SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD:
         change = {
           shipping: shippingReducer(state.shipping, action),
         };
@@ -35,6 +32,42 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
             [useKey]: true,
           },
           errors: Object.assign({}, state.errors, action.errors),
+        };
+        break;
+      }
+      case SETTINGS_FIELDS.EDIT_ACCOUNT_USERNAME: {
+        change = {
+          accounts: {
+            ...state.accounts,
+            currentAccount: {
+              ...state.accounts.currentAccount,
+              username: action.value,
+            },
+          },
+        };
+        break;
+      }
+      case SETTINGS_FIELDS.EDIT_ACCOUNT_PASSWORD: {
+        change = {
+          accounts: {
+            ...state.accounts,
+            currentAccount: {
+              ...state.accounts.currentAccount,
+              password: action.value,
+            },
+          },
+        };
+        break;
+      }
+      case SETTINGS_FIELDS.EDIT_ACCOUNT_NAME: {
+        change = {
+          accounts: {
+            ...state.accounts,
+            currentAccount: {
+              ...state.accounts.currentAccount,
+              name: action.value,
+            },
+          },
         };
         break;
       }
@@ -127,6 +160,24 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       },
       errors: Object.assign({}, state.errors, action.errors),
     };
+  } else if (action.type === SETTINGS_ACTIONS.SAVE_ACCOUNT) {
+    change = {
+      accounts: {
+        ...state.accounts,
+        list: [...state.accounts.list, action.account],
+      },
+    };
+  } else if (action.type === SETTINGS_ACTIONS.SELECT_ACCOUNT) {
+    const account = state.accounts.list.find(acc => acc.name === action.account.value);
+
+    if (account) {
+      change = {
+        accounts: {
+          ...state.accounts,
+          selectedAccount: account,
+        },
+      };
+    }
   } else if (action.type === SETTINGS_ACTIONS.CLEAR_DEFAULTS) {
     change = {
       defaults: initialSettingsStates.defaults,

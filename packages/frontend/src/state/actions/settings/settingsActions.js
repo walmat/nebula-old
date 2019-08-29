@@ -5,7 +5,10 @@ import parseProductType from '../../../utils/parseProductType';
 export const SETTINGS_ACTIONS = {
   EDIT: 'EDIT_SETTINGS',
   SAVE: 'SAVE_DEFAULTS',
+  SAVE_ACCOUNT: 'SAVE_ACCOUNT',
+  SELECT_ACCOUNT: 'SELECT_ACCOUNT',
   CLEAR_DEFAULTS: 'CLEAR_DEFAULTS',
+  CLEAR_ACCOUNT: 'CLEAR_ACCOUNT',
   CLEAR_SHIPPING: 'CLEAR_SHIPPING',
   TEST: 'TEST_WEBHOOK',
   SETUP_SHIPPING: 'START_SHIPPING',
@@ -39,7 +42,10 @@ const _cleanupShipping = makeActionCreator(SETTINGS_ACTIONS.CLEANUP_SHIPPING, 's
 const _stopShipping = makeActionCreator(SETTINGS_ACTIONS.STOP_SHIPPING);
 
 const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
+const saveAccount = makeActionCreator(SETTINGS_ACTIONS.SAVE_ACCOUNT, 'account');
+const selectAccount = makeActionCreator(SETTINGS_ACTIONS.SELECT_ACCOUNT, 'account');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
+const clearAccount = makeActionCreator(SETTINGS_ACTIONS.CLEAR_ACCOUNT);
 const clearDefaults = makeActionCreator(SETTINGS_ACTIONS.CLEAR_DEFAULTS);
 const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
@@ -75,6 +81,9 @@ const stopShipping = () => dispatch =>
 export const settingsActions = {
   edit: editSettings,
   save: saveDefaults,
+  saveAccount,
+  selectAccount,
+  clearAccount,
   clearDefaults,
   clearShipping,
   test: testWebhook,
@@ -93,7 +102,12 @@ export const SETTINGS_FIELDS = {
   EDIT_DEFAULT_PROFILE: 'EDIT_DEFAULT_PROFILE',
   EDIT_DEFAULT_SIZES: 'EDIT_DEFAULT_SIZES',
   SAVE_DEFAULTS: 'SAVE_DEFAULTS',
+  SAVE_ACCOUNT: 'SAVE_ACCOUNT',
   CLEAR_DEFAULTS: 'CLEAR_DEFAULTS',
+  CLEAR_ACCOUNT: 'CLEAR_ACCOUNT',
+  EDIT_ACCOUNT_NAME: 'EDIT_ACCOUNT_NAME',
+  EDIT_ACCOUNT_USERNAME: 'EDIT_ACCOUNT_USERNAME',
+  EDIT_ACCOUNT_PASSWORD: 'EDIT_ACCOUNT_PASSWORD',
   FETCH_SHIPPING_METHODS: 'FETCH_SHIPPING_METHODS',
   CLEAR_SHIPPING_FIELDS: 'CLEAR_SHIPPING_FIELDS',
   EDIT_SHIPPING_PRODUCT: 'EDIT_SHIPPING_PRODUCT',
@@ -113,10 +127,9 @@ export const mapSettingsFieldToKey = {
   [SETTINGS_FIELDS.EDIT_ERROR_DELAY]: 'errorDelay',
   [SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]: 'profile',
   [SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]: 'sizes',
+  [SETTINGS_FIELDS.EDIT_ACCOUNT_USERNAME]: 'username',
+  [SETTINGS_FIELDS.EDIT_ACCOUNT_PASSWORD]: 'password',
   [SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]: 'product',
-  [SETTINGS_FIELDS.EDIT_SHIPPING_RATE_NAME]: 'name',
   [SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE]: 'profile',
   [SETTINGS_FIELDS.EDIT_SHIPPING_SITE]: 'site',
-  [SETTINGS_FIELDS.EDIT_SHIPPING_USERNAME]: 'username',
-  [SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD]: 'password',
 };
