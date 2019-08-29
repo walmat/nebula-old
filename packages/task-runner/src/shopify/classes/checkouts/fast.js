@@ -7,6 +7,7 @@ import Checkout from '../checkout';
 const { States } = require('../utils/constants').TaskRunner;
 const { getHeaders, stateForError, userAgent } = require('../utils');
 const { patchToCart, patchCheckoutForm } = require('../utils/forms');
+const pickVariant = require('../utils/pickVariant');
 
 class FastCheckout extends Checkout {
   /**
@@ -31,11 +32,21 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         product: { variants },
+        sizes,
         monitorDelay,
       },
       proxy,
       timers: { checkout: checkoutTimer },
     } = this._context;
+
+    const variant = await pickVariant(variants, sizes, url, this._logger);
+
+    if (!variant) {
+      return {
+        message: 'No size matched! Stopping...',
+        nextState: States.ERROR,
+      };
+    }
 
     try {
       const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
@@ -45,7 +56,7 @@ class FastCheckout extends Checkout {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(patchToCart(variants[0])),
+        body: JSON.stringify(patchToCart(variant)),
       });
 
       const { status, headers } = res;
@@ -103,15 +114,11 @@ class FastCheckout extends Checkout {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          if (this.chosenShippingMethod.id) {
-            this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
-            this.prices.total = (
-              parseFloat(this.prices.item) + parseFloat(this.chosenShippingMethod.price)
-            ).toFixed(2);
-            return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
-          }
-          return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.ADD_TO_CART,
+          };
           // return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: States. };
         }
         if (error && error.variant_id[0]) {
@@ -248,11 +255,12 @@ class FastCheckout extends Checkout {
     }
   }
 
-  async getCheckout(prevState) {
+  async getCheckout() {
     const {
       task: {
         site: { url, apiKey },
         forceCaptcha,
+        monitorDelay,
       },
       timers: { monitor },
       proxy,
@@ -295,6 +303,14 @@ class FastCheckout extends Checkout {
 
       // check if redirected
       if (redirectUrl) {
+        if (/cart/i.test(redirectUrl)) {
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.GO_TO_CHECKOUT,
+          };
+        }
+
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.GO_TO_CHECKOUT };
         }
@@ -341,19 +357,19 @@ class FastCheckout extends Checkout {
 
       if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
         this.needsCaptcha = true; // mark this to do later
+      }
 
-        // if we are skipping the fetching rates stage, request the captcha now...
-        if (this.chosenShippingMethod.id) {
+      if (this.chosenShippingMethod.id) {
+        if (this.needsCaptcha) {
           return {
             message: 'Waiting for captcha',
             nextState: States.CAPTCHA,
           };
         }
-      }
-
-      if (prevState) {
-        monitor.start();
-        return { nextState: prevState };
+        return {
+          message: 'Submitting pament',
+          nextState: States.SUBMIT_PAYMENT,
+        };
       }
 
       return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
@@ -483,7 +499,6 @@ class FastCheckout extends Checkout {
     const {
       task: {
         site: { url, apiKey },
-        sizes,
         monitorDelay,
       },
       timers: { checkout },
@@ -547,8 +562,6 @@ class FastCheckout extends Checkout {
 
       const body = await res.text();
 
-      console.log(this.captchaToken);
-
       if (!this.checkoutKey) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
@@ -604,7 +617,7 @@ class FastCheckout extends Checkout {
           return {
             message: `Out of stock! Delaying ${monitorDelay}ms`,
             delay: true,
-            nextState: States.SUBMIT_PAYMENT,
+            nextState: States.COMPLETE_PAYMENT,
           };
         }
       }
@@ -662,7 +675,6 @@ class FastCheckout extends Checkout {
     const {
       task: {
         site: { url, apiKey },
-        sizes,
         monitorDelay,
       },
       timers: { checkout },
@@ -733,9 +745,11 @@ class FastCheckout extends Checkout {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          const nextState = sizes.includes('Random') ? States.RESTOCK : States.COMPLETE_PAYMENT;
-          const delay = nextState === States.COMPLETE_PAYMENT;
-          return { message: `Out of stock! Delaying ${monitorDelay}ms`, delay, nextState };
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.COMPLETE_PAYMENT,
+          };
         }
 
         if (/throttle/i.test(redirectUrl)) {

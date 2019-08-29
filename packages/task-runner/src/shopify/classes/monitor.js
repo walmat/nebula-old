@@ -1,6 +1,7 @@
 import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
+import { pick } from 'lodash';
 
 const TaskManagerEvents = require('./utils/constants').TaskManager.Events;
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
@@ -10,7 +11,7 @@ const {
   TaskRunner: { Types },
 } = require('./utils/constants');
 const { ErrorCodes } = require('./utils/constants');
-const generateVariants = require('./utils/generateVariants');
+const generateVariants = require('./utils/pickVariant');
 
 class Monitor {
   constructor(context, proxy, type = ParseType.Unknown) {
@@ -291,15 +292,8 @@ class Monitor {
   async _generateVariants(product) {
     const { sizes, site } = this._context.task;
     let variants;
-    let barcode;
-    let chosenSizes;
     try {
-      ({ variants, barcode, sizes: chosenSizes } = await generateVariants(
-        product,
-        sizes,
-        site,
-        this._logger,
-      ));
+      ({ variants } = await generateVariants(product, sizes, site, this._logger));
     } catch (err) {
       if (err.code === ErrorCodes.VariantsNotMatched) {
         return { nextState: States.STOP, message: `Size not matched! Stopping...` };
@@ -307,11 +301,11 @@ class Monitor {
       this._logger.error('MONITOR: Unknown error generating variants: %j', err);
       return { nextState: States.ERROR, message: 'Monitor has errored out!' };
     }
-    return { variants, barcode, sizes: chosenSizes };
+    return { variants };
   }
 
   async _monitorKeywords() {
-    const { monitorDelay, site } = this._context.task;
+    const { site } = this._context.task;
     let parsed;
     try {
       // Try parsing all files and wait for the first response
@@ -322,38 +316,24 @@ class Monitor {
       return this._handleParsingErrors(errors);
     }
     this._logger.debug('MONITOR: %s retrieved as a matched product', parsed.title);
-    this._logger.debug('MONITOR: Generating variant lists now...');
+    this._logger.debug('MONITOR: Mapping variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
-    this._context.task.product.name = capitalizeFirstLetter(parsed.title);
-    const { variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(
-      parsed,
-    );
-    this._logger.debug(
-      'Variants: %j, nextState: %j, delay: %j, message: %j',
-      variants,
-      nextState,
-      delay,
-      message,
-    );
-
-    // check for next state (means we hit an error when generating variants)
-    if (nextState) {
-      this._emitMonitorEvent({ message });
-      if (delay) {
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-        await this._delayer;
-      }
-      return nextState;
-    }
-
-    this._logger.silly(
-      'MONITOR: %d Variants Generated, updating context...',
-      variants ? variants.length : 0,
-    );
-    this._context.task.product.barcode = barcode;
-    this._context.task.product.variants = variants;
-    this._context.task.product.chosenSizes = sizes;
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
+    this._context.task.product.name = capitalizeFirstLetter(parsed.title);
+    this._context.task.product.variants = parsed.variants.map(v =>
+      pick(
+        v,
+        'id',
+        'product_id',
+        'title',
+        'available',
+        'price',
+        'option1',
+        'option2',
+        'option3',
+        'option4',
+      ),
+    );
     this._logger.debug('MONITOR: Status is OK, emitting event');
 
     this._events.emit(
@@ -363,17 +343,15 @@ class Monitor {
       this._parseType,
     );
 
-    const { chosenSizes, name } = this._context.task.product;
+    const { name } = this._context.task.product;
     this._emitMonitorEvent({
-      message: `Product found: ${this._context.task.product.name}`,
-      size: chosenSizes ? chosenSizes[0] : undefined,
+      message: `Product found: ${name}`,
       found: name || undefined,
     });
     return States.DONE;
   }
 
   async _monitorUrl() {
-    const { monitorDelay } = this._context.task;
     const [url] = this._context.task.product.url.split('?');
 
     try {
@@ -387,26 +365,25 @@ class Monitor {
 
       // Generate Variants
       this._logger.silly(
-        'MONITOR: Retrieve Full Product %s, Generating Variants List...',
+        'MONITOR: Retrieve Full Product %s, Mapping Variants List...',
         fullProductInfo.title,
       );
-      this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
-      const { variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(
-        fullProductInfo,
+      this._context.task.product.variants = fullProductInfo.variants.map(v =>
+        pick(
+          v,
+          'id',
+          'product_id',
+          'title',
+          'available',
+          'price',
+          'option1',
+          'option2',
+          'option3',
+          'option4',
+        ),
       );
-      // check for next state (means we hit an error when generating variants)
-      if (nextState) {
-        this._emitMonitorEvent({ message });
-        if (delay) {
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-        }
-        return nextState;
-      }
-      this._logger.silly('MONITOR: Variants Generated, updating context...');
-      this._context.task.product.barcode = barcode;
-      this._context.task.product.variants = variants;
-      this._context.task.product.chosenSizes = sizes;
+      this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
+      this._logger.silly('MONITOR: Variants mapped! Updating context...');
 
       // Everything is setup -- kick it off to checkout
       this._logger.silly('MONITOR: Status is OK, proceeding checkout');
@@ -418,10 +395,9 @@ class Monitor {
         this._parseType,
       );
 
-      const { chosenSizes, name } = this._context.task.product;
+      const { name } = this._context.task.product;
       this._emitMonitorEvent({
-        message: `Product found: ${this._context.task.product.name}`,
-        size: chosenSizes ? chosenSizes[0] : undefined,
+        message: `Product found: ${name}`,
         found: name || undefined,
       });
       return States.DONE;
@@ -434,7 +410,7 @@ class Monitor {
 
   async _monitorSpecial() {
     const { task, proxy, logger } = this._context;
-    const { product, site, monitorDelay } = task;
+    const { site } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
     const parser = ParserCreator(this._request, task, proxy, this._aborter, logger);
@@ -447,34 +423,23 @@ class Monitor {
       return this._handleParsingErrors([error]);
     }
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
-    this._logger.silly('MONITOR: Generating variant lists now...');
+    this._logger.silly('MONITOR: Mapping variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
-    let variants;
-    let barcode;
-    let sizes;
-    let nextState;
-    let delay;
-    let message;
-    if (product.variant) {
-      variants = [product.variant];
-    } else {
-      ({ variants, barcode, sizes, nextState, delay, message } = await this._generateVariants(
-        parsed,
-      ));
-      // check for next state (means we hit an error when generating variants)
-      if (nextState) {
-        this._emitMonitorEvent({ message });
-        if (delay) {
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-        }
-        return nextState;
-      }
-    }
-    this._logger.silly('MONITOR: Variants Generated, updating context...');
-    this._context.task.product.barcode = barcode;
-    this._context.task.product.variants = variants;
-    this._context.task.product.chosenSizes = sizes;
+    this._context.task.product.variants = parsed.variants.map(v =>
+      pick(
+        v,
+        'id',
+        'product_id',
+        'title',
+        'available',
+        'price',
+        'option1',
+        'option2',
+        'option3',
+        'option4',
+      ),
+    );
+    this._logger.silly('MONITOR: Variants mapped! Updating context...');
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
     this._events.emit(
@@ -484,10 +449,9 @@ class Monitor {
       this._parseType,
     );
 
-    const { chosenSizes, name } = this._context.task.product;
+    const { name } = this._context.task.product;
     this._emitMonitorEvent({
-      message: `Product found: ${this._context.task.product.name}`,
-      size: chosenSizes ? chosenSizes[0] : undefined,
+      message: `Product found: ${name}`,
       found: name || undefined,
     });
     return States.DONE;

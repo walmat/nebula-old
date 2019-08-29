@@ -813,7 +813,7 @@ class Checkout {
             } catch (err) {
               // fail silently...
             }
-            return { message: 'Payment failed (OOS)', nextState: States.STOP };
+            return { message: 'Payment failed (OOS)', nextState: States.COMPLETE_PAYMENT };
           }
 
           try {
@@ -837,7 +837,7 @@ class Checkout {
           } catch (err) {
             // fail silently...
           }
-          return { message: 'Payment failed', nextState: States.STOP };
+          return { message: 'Payment failed!', nextState: States.COMPLETE_PAYMENT };
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');

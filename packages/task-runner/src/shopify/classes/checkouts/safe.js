@@ -7,6 +7,7 @@ import Checkout from '../checkout';
 const { States } = require('../utils/constants').TaskRunner;
 const { getHeaders, stateForError, userAgent } = require('../utils');
 const { addToCart } = require('../utils/forms');
+const pickVariant = require('../utils/pickVariant');
 
 class SafeCheckout extends Checkout {
   async addToCart() {
@@ -14,6 +15,7 @@ class SafeCheckout extends Checkout {
       task: {
         site: { name, url },
         product: { variants, barcode, hash },
+        sizes,
         monitorDelay,
       },
       proxy,
@@ -28,6 +30,15 @@ class SafeCheckout extends Checkout {
       };
     }
 
+    const variant = await pickVariant(variants, sizes, url, this._logger);
+
+    if (!variant) {
+      return {
+        message: 'No size matched! Stopping...',
+        nextState: States.ERROR,
+      };
+    }
+
     try {
       const res = await this._request('/cart/add.js', {
         method: 'POST',
@@ -38,7 +49,7 @@ class SafeCheckout extends Checkout {
           'sec-fetch-site': 'same-origin',
           'sec-fetch-user': '?1',
         },
-        body: JSON.stringify(addToCart(variants[0], name, hash, properties)),
+        body: JSON.stringify(addToCart(variant, name, hash, properties)),
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
       });
 
