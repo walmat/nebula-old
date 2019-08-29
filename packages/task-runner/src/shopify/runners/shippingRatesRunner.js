@@ -4,9 +4,10 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { CookieJar } from 'tough-cookie';
+import { pick } from 'lodash';
 
 import { createLogger } from '../../common/logger';
-import generateVariants from '../classes/utils/generateVariants';
+import pickVariant from '../classes/utils/pickVariant';
 import { rfrl, userAgent } from '../classes/utils';
 import { addToCart } from '../classes/utils/forms';
 import { getParseType } from '../classes/utils/parse';
@@ -46,6 +47,7 @@ class ShippingRatesRunner {
       signal: this.monitorAborter.signal,
     });
 
+    this.parseType = ParseType.Unknown; // default to unknown
     this.message = null;
     this.rate = null;
     this.shippingRates = [];
@@ -117,22 +119,6 @@ class ShippingRatesRunner {
     }
   }
 
-  _generateVariants(product, random = true) {
-    const { sizes, site } = this.task;
-    let variant;
-    try {
-      ({ variant } = generateVariants(product, sizes, site, this._logger, random));
-    } catch (err) {
-      this._logger.error(
-        'RATE FETCHER: Unknown error generating variants: %s',
-        err.message,
-        err.stack,
-      );
-      return { message: 'No variants', nextState: this.states.ERROR };
-    }
-    return { variant };
-  }
-
   async keywords() {
     let parsed;
 
@@ -194,13 +180,7 @@ class ShippingRatesRunner {
       }
     }
 
-    const { variant, nextState } = await this._generateVariants(fullProductInfo);
-    // check for next state (means we hit an error when generating variants)
-    if (nextState) {
-      return nextState;
-    }
-
-    this.task.product.variants = [variant];
+    this.task.product.variants = [fullProductInfo.variants];
 
     return { nextState: this.states.CART, message: 'Adding to cart' };
   }
@@ -227,20 +207,25 @@ class ShippingRatesRunner {
       return { nextState: this.states.CART, message: 'Adding to cart' };
     }
 
-    const { variant, nextState, message } = await this._generateVariants(parsed);
-    // check for next state (means we hit an error when generating variants)
-
-    if (nextState) {
-      return { nextState, message };
-    }
-    this.task.product.variants = [variant];
+    this.task.product.variants = parsed.variants.map(v =>
+      pick(
+        v,
+        'id',
+        'product_id',
+        'title',
+        'available',
+        'price',
+        'option1',
+        'option2',
+        'option3',
+        'option4',
+      ),
+    );
 
     return { nextState: this.states.CART, message: 'Adding to cart' };
   }
 
   async parse() {
-    this.parseType = getParseType(this.task.product, this.task.site);
-
     let nextState;
     let message;
 
@@ -405,6 +390,9 @@ class ShippingRatesRunner {
   async start() {
     let nextState;
     let message;
+
+    this.parseType = getParseType(this.task.product, this.task.site);
+
     while (nextState !== this.states.ERROR && !this.aborted) {
       // eslint-disable-next-line no-await-in-loop
       ({ nextState, message } = await this.run());

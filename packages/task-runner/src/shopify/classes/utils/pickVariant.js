@@ -10,7 +10,7 @@ async function pickVariant(variants, sizes, url, logger = { log: () => {} }) {
 
   logger.log('debug', 'Incoming variants: %j', variants);
 
-  return variants.find(v => {
+  const variant = variants.find(v => {
     const defaultOption = urlToVariantOption[url] ? urlToVariantOption[url] : 'option1';
     let option = v[defaultOption] || urlToTitleSegment[url](v.title);
 
@@ -18,6 +18,7 @@ async function pickVariant(variants, sizes, url, logger = { log: () => {} }) {
       option = urlToTitleSegment[url](v.title);
     }
 
+    logger.log('debug', 'Matching based off of: %j', option);
     // Determine if we are checking for shoe sizes or not
     let sizeMatcher;
     if (/[0-9]+/.test(size)) {
@@ -29,9 +30,16 @@ async function pickVariant(variants, sizes, url, logger = { log: () => {} }) {
     }
 
     if (sizeMatcher(option)) {
-      return v.id;
+      logger.log('debug', 'Choosing variant: %j', v);
+      return v;
     }
   });
+
+  if (!variant) {
+    return null;
+  }
+
+  return variant.id;
 }
 
 module.exports = pickVariant;

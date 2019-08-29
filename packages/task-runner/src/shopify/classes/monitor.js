@@ -11,7 +11,6 @@ const {
   TaskRunner: { Types },
 } = require('./utils/constants');
 const { ErrorCodes } = require('./utils/constants');
-const generateVariants = require('./utils/pickVariant');
 
 class Monitor {
   constructor(context, proxy, type = ParseType.Unknown) {
@@ -287,21 +286,6 @@ class Monitor {
     ].map(p => p.run());
     // Return the winner of the race
     return rfrl(parsers, 'parseAll');
-  }
-
-  async _generateVariants(product) {
-    const { sizes, site } = this._context.task;
-    let variants;
-    try {
-      ({ variants } = await generateVariants(product, sizes, site, this._logger));
-    } catch (err) {
-      if (err.code === ErrorCodes.VariantsNotMatched) {
-        return { nextState: States.STOP, message: `Size not matched! Stopping...` };
-      }
-      this._logger.error('MONITOR: Unknown error generating variants: %j', err);
-      return { nextState: States.ERROR, message: 'Monitor has errored out!' };
-    }
-    return { variants };
   }
 
   async _monitorKeywords() {

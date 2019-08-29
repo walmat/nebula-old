@@ -41,6 +41,7 @@ class FastCheckout extends Checkout {
 
     const variant = await pickVariant(variants, sizes, url, this._logger);
 
+    this._logger.debug('Adding %j to cart', variant);
     if (!variant) {
       return {
         message: 'No size matched! Stopping...',
@@ -122,11 +123,8 @@ class FastCheckout extends Checkout {
           // return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: States. };
         }
         if (error && error.variant_id[0]) {
-          // if (monitor.getRunTime() > CheckoutRefresh) {
-          //   return { message: 'Refreshing checkout', nextState: States.GO_TO_CHECKOUT };
-          // }
           return {
-            message: `Variant not live! Delaying ${monitorDelay}ms`,
+            message: `Variant not found! Delaying ${monitorDelay}ms`,
             delay: true,
             nextState: States.ADD_TO_CART,
           };
