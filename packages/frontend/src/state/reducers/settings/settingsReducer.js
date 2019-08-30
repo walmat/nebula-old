@@ -1,3 +1,5 @@
+import uuidv4 from 'uuid/v4';
+
 import {
   SETTINGS_ACTIONS,
   SERVER_ACTIONS,
@@ -161,20 +163,83 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       errors: Object.assign({}, state.errors, action.errors),
     };
   } else if (action.type === SETTINGS_ACTIONS.SAVE_ACCOUNT) {
+    if (
+      !action ||
+      !action.account ||
+      (action.account && !action.account.username) ||
+      (action.account && !action.account.password) ||
+      (action.account && !action.account.name)
+    ) {
+      return Object.assign({}, state, change);
+    }
+
+    const { account } = action;
+
+    // we're editing an account
+    if (action.account.id) {
+      const oldIndex = state.accounts.list.findIndex(acc => acc.id === action.account.id);
+
+      if (oldIndex < 0) {
+        return Object.assign({}, state, change);
+      }
+
+      const nextState = JSON.parse(JSON.stringify(state));
+      nextState.accounts.list[oldIndex] = account;
+      nextState.accounts.selectedAccount = null;
+      nextState.accounts.currentAccount = {
+        username: '',
+        password: '',
+        name: '',
+      };
+
+      return Object.assign({}, state, nextState);
+    }
+
+    let newId;
+    const idCheck = acc => acc.id === newId;
+    do {
+      newId = uuidv4();
+    } while (state.accounts.list.some(idCheck));
+
+    account.id = newId;
+
     change = {
       accounts: {
         ...state.accounts,
-        list: [...state.accounts.list, action.account],
+        list: [...state.accounts.list, account],
+        currentAccount: {
+          username: '',
+          password: '',
+          name: '',
+        },
       },
     };
+  } else if (action.type === SETTINGS_ACTIONS.DELETE_ACCOUNT) {
+    if (action && action.account) {
+      const newAccounts = state.accounts.list.filter(acc => acc.id !== action.account.id);
+
+      change = {
+        accounts: {
+          ...state.accounts,
+          list: newAccounts,
+          selectedAccount: null,
+          currentAccount: {
+            username: '',
+            password: '',
+            name: '',
+          },
+        },
+      };
+    }
   } else if (action.type === SETTINGS_ACTIONS.SELECT_ACCOUNT) {
-    const account = state.accounts.list.find(acc => acc.name === action.account.value);
+    const account = state.accounts.list.find(acc => acc.id === action.account.value);
 
     if (account) {
       change = {
         accounts: {
           ...state.accounts,
           selectedAccount: account,
+          currentAccount: account,
         },
       };
     }

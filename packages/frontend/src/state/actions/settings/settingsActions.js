@@ -8,7 +8,7 @@ export const SETTINGS_ACTIONS = {
   SAVE_ACCOUNT: 'SAVE_ACCOUNT',
   SELECT_ACCOUNT: 'SELECT_ACCOUNT',
   CLEAR_DEFAULTS: 'CLEAR_DEFAULTS',
-  CLEAR_ACCOUNT: 'CLEAR_ACCOUNT',
+  DELETE_ACCOUNT: 'DELETE_ACCOUNT',
   CLEAR_SHIPPING: 'CLEAR_SHIPPING',
   TEST: 'TEST_WEBHOOK',
   SETUP_SHIPPING: 'START_SHIPPING',
@@ -45,7 +45,7 @@ const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
 const saveAccount = makeActionCreator(SETTINGS_ACTIONS.SAVE_ACCOUNT, 'account');
 const selectAccount = makeActionCreator(SETTINGS_ACTIONS.SELECT_ACCOUNT, 'account');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
-const clearAccount = makeActionCreator(SETTINGS_ACTIONS.CLEAR_ACCOUNT);
+const deleteAccount = makeActionCreator(SETTINGS_ACTIONS.DELETE_ACCOUNT, 'account');
 const clearDefaults = makeActionCreator(SETTINGS_ACTIONS.CLEAR_DEFAULTS);
 const clearShipping = makeActionCreator(SETTINGS_ACTIONS.CLEAR_SHIPPING);
 const testWebhook = makeActionCreator(SETTINGS_ACTIONS.TEST, 'hook', 'test_hook_type');
@@ -83,7 +83,7 @@ export const settingsActions = {
   save: saveDefaults,
   saveAccount,
   selectAccount,
-  clearAccount,
+  deleteAccount,
   clearDefaults,
   clearShipping,
   test: testWebhook,
@@ -127,6 +127,7 @@ export const mapSettingsFieldToKey = {
   [SETTINGS_FIELDS.EDIT_ERROR_DELAY]: 'errorDelay',
   [SETTINGS_FIELDS.EDIT_DEFAULT_PROFILE]: 'profile',
   [SETTINGS_FIELDS.EDIT_DEFAULT_SIZES]: 'sizes',
+  [SETTINGS_FIELDS.EDIT_ACCOUNT_NAME]: 'name',
   [SETTINGS_FIELDS.EDIT_ACCOUNT_USERNAME]: 'username',
   [SETTINGS_FIELDS.EDIT_ACCOUNT_PASSWORD]: 'password',
   [SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]: 'product',

@@ -63,7 +63,7 @@ class Checkout {
 
     this.selectedShippingRate = null;
     this.captchaToken = '';
-    this.needsLogin = (this._context.task.username && this._context.task.password) || false;
+    this.needsLogin = this._context.task.account || false;
     this.needsPatched = true;
     this.captchaTokenRequest = null;
   }
@@ -203,9 +203,7 @@ class Checkout {
     const {
       task: {
         site: { url },
-        type,
-        username,
-        password,
+        account: { username, password },
       },
       proxy,
     } = this._context;
@@ -419,6 +417,9 @@ class Checkout {
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
+        if (/login/i.test(redirectUrl)) {
+          return { message: 'Account needed. Stopping..', nextState: States.STOP };
+        }
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }

@@ -5,7 +5,11 @@ const settingsAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing settings
   if (
     action.type !== SETTINGS_ACTIONS.EDIT ||
-    (action.field !== SETTINGS_FIELDS.EDIT_DISCORD && action.field !== SETTINGS_FIELDS.EDIT_SLACK)
+    (action.field !== SETTINGS_FIELDS.EDIT_DISCORD &&
+      action.field !== SETTINGS_FIELDS.EDIT_SLACK &&
+      action.field !== SETTINGS_FIELDS.EDIT_ACCOUNT_NAME &&
+      action.field !== SETTINGS_FIELDS.EDIT_ACCOUNT_PASSWORD &&
+      action.field !== SETTINGS_FIELDS.EDIT_ACCOUNT_USERNAME)
   ) {
     return next(action);
   }

@@ -301,6 +301,12 @@ class FastCheckout extends Checkout {
 
       // check if redirected
       if (redirectUrl) {
+        if (/login/i.test(redirectUrl)) {
+          return {
+            message: 'Login needed! Stopping...',
+            nextState: States.STOP,
+          };
+        }
         if (/cart/i.test(redirectUrl)) {
           return {
             message: `Out of stock! Delaying ${monitorDelay}ms`,

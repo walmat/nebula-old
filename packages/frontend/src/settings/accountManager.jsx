@@ -29,9 +29,9 @@ export class AccountManagerPrimitive extends PureComponent {
       },
     };
     this.buttons = {
-      [SETTINGS_FIELDS.CLEAR_ACCOUNT]: {
-        label: 'Clear',
-        type: 'clear',
+      [SETTINGS_FIELDS.DELETE_ACCOUNT]: {
+        label: 'Delete',
+        type: 'delete',
       },
       [SETTINGS_FIELDS.SAVE_ACCOUNT]: {
         label: 'Save',
@@ -46,7 +46,7 @@ export class AccountManagerPrimitive extends PureComponent {
     } = this.props;
     const opts = [];
     list.forEach(acc => {
-      opts.push({ value: acc.name, label: acc.name });
+      opts.push({ value: acc.id, label: acc.name });
     });
     return opts;
   }
@@ -69,7 +69,7 @@ export class AccountManagerPrimitive extends PureComponent {
   }
 
   renderButton(field, value) {
-    const { onKeyPress, onSaveAccount, onClearAccountFields } = this.props;
+    const { onKeyPress, onSaveAccount, onDeleteAccount } = this.props;
     const { type } = this.buttons[field];
     const { label } = this.buttons[field];
     let onClick;
@@ -78,8 +78,8 @@ export class AccountManagerPrimitive extends PureComponent {
         onClick = () => onSaveAccount(value);
         break;
       }
-      case SETTINGS_FIELDS.CLEAR_ACCOUNT: {
-        onClick = () => onClearAccountFields();
+      case SETTINGS_FIELDS.DELETE_ACCOUNT: {
+        onClick = () => onDeleteAccount(value);
         break;
       }
       default: {
@@ -108,10 +108,10 @@ export class AccountManagerPrimitive extends PureComponent {
 
     let accountValue = null;
     if (selectedAccount) {
-      const { name: accountName } = selectedAccount;
+      const { name: accountName, id } = selectedAccount;
       accountValue = {
         label: accountName,
-        value: accountName,
+        value: id,
       };
     }
 
@@ -206,10 +206,10 @@ export class AccountManagerPrimitive extends PureComponent {
                         />
                       </div>
                       <div className="col col--end col--no-gutter-right">
-                        {this.renderButton(SETTINGS_FIELDS.SAVE_ACCOUNT, selectedAccount)}
+                        {this.renderButton(SETTINGS_FIELDS.SAVE_ACCOUNT, currentAccount)}
                       </div>
                       <div className="col col--end col--gutter-left">
-                        {this.renderButton(SETTINGS_FIELDS.CLEAR_ACCOUNT)}
+                        {this.renderButton(SETTINGS_FIELDS.DELETE_ACCOUNT, selectedAccount)}
                       </div>
                     </div>
                   </div>
@@ -228,7 +228,7 @@ AccountManagerPrimitive.propTypes = {
   onSelectAccount: PropTypes.func.isRequired,
   onSettingsChange: PropTypes.func.isRequired,
   onSaveAccount: PropTypes.func.isRequired,
-  onClearAccountFields: PropTypes.func.isRequired,
+  onDeleteAccount: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
   errors: sDefns.shippingErrors.isRequired,
@@ -254,8 +254,9 @@ export const mapDispatchToProps = dispatch => ({
   onSaveAccount: account => {
     dispatch(settingsActions.saveAccount(account));
   },
-  onClearAccountFields: () => {
-    dispatch(settingsActions.clearAccount());
+  onDeleteAccount: account => {
+    console.log(account);
+    dispatch(settingsActions.deleteAccount(account));
   },
 });
 

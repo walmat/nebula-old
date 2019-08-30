@@ -264,8 +264,7 @@ const stopAllTasks = tasks => dispatch =>
 // Field Edits
 export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
-  EDIT_USERNAME: 'EDIT_USERNAME',
-  EDIT_PASSWORD: 'EDIT_PASSWORD',
+  EDIT_TASK_ACCOUNT: 'EDIT_TASK_ACCOUNT',
   EDIT_SITE: 'EDIT_SITE',
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
@@ -293,8 +292,7 @@ export const taskActions = {
 
 export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_PRODUCT]: 'product',
-  [TASK_FIELDS.EDIT_USERNAME]: 'username',
-  [TASK_FIELDS.EDIT_PASSWORD]: 'password',
+  [TASK_FIELDS.EDIT_TASK_ACCOUNT]: 'account',
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZES]: 'sizes',

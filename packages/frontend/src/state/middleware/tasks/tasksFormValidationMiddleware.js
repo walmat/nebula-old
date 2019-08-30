@@ -24,11 +24,7 @@ const tasksFormValidationMiddleware = store => next => action => {
     const field = pair[0];
     const validator = pair[1];
 
-    if (
-      response.site &&
-      !response.site.auth &&
-      (field === TASK_FIELDS.EDIT_USERNAME || field === TASK_FIELDS.EDIT_PASSWORD)
-    ) {
+    if (response.site && !response.site.auth && field === TASK_FIELDS.EDIT_TASK_ACCOUNT) {
       errors[mapTaskFieldsToKey[field]] = false;
     } else if (action.type === TASK_ACTIONS.ADD) {
       errors[mapTaskFieldsToKey[field]] = !validator(response[mapTaskFieldsToKey[field]]);

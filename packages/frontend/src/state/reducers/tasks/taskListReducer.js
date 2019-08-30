@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 import shortId from 'shortid';
-import { format } from 'date-fns';
+// import { format } from 'date-fns';
 
 import {
   TASK_ACTIONS,
@@ -284,8 +284,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         if (type !== 'srr') {
           const task = taskMap[taskId];
           if (task) {
-            // let { log } = task;
-
             const {
               message,
               size,
@@ -297,7 +295,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
               needsCaptcha,
               order,
               status,
-              needsChanged,
             } = msg;
 
             task.output = message;
@@ -328,16 +325,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             if (status) {
               task.status = status;
             }
-            if (needsChanged) {
-              task.needsChanged = needsChanged;
-            }
-            // if (log) {
-            //   // TODO: REMOVE THIS WHEN I CHANGE THE TASK LOG TO REACT VIRTUALIZED
-            //   if (log.length > 30) {
-            //     task.log = [];
-            //   }
-            //   log.push(`[${format(new Date(), 'hh:mm:ss A')}]: ${task.output}`);
-            // }
           }
         }
       });
@@ -397,8 +384,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       } else {
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
-        // reset the log in case any messages entered the buffer AFTER we shutdown..
-        nextState[idx].log = [];
       }
       break;
     }
@@ -423,8 +408,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
-        // reset the log in case any messages entered the buffer AFTER we shutdown..
-        nextState[idx].log = [];
       });
       break;
     }
@@ -454,7 +437,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         nextState[idx].chosenSizes = nextState[idx].sizes;
         nextState[idx].proxy = null;
         nextState[idx].product.found = null;
-        nextState[idx].log = [];
       }
       break;
     }
@@ -484,7 +466,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         nextState[idx].chosenSizes = nextState[idx].sizes;
         nextState[idx].proxy = null;
         nextState[idx].product.found = null;
-        nextState[idx].log = [];
       });
       break;
     }

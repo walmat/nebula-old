@@ -56,21 +56,12 @@ function validateProfile(profile) {
   return profile && profile.id;
 }
 
-/**
- * Used to validate all basic inputs
- * @param {String} input - The string input (non empty);
- */
-function validateAccountInformation(input) {
-  return input && input !== '';
-}
-
 const taskAttributeValidators = {
   [TASK_FIELDS.EDIT_PRODUCT]: validateProduct,
   [TASK_FIELDS.EDIT_SITE]: validateSite,
   [TASK_FIELDS.EDIT_PROFILE]: validateProfile,
   [TASK_FIELDS.EDIT_SIZES]: validateSizes,
-  [TASK_FIELDS.EDIT_USERNAME]: validateAccountInformation,
-  [TASK_FIELDS.EDIT_PASSWORD]: validateAccountInformation,
+  [TASK_FIELDS.EDIT_TASK_ACCOUNT]: () => true,
   [TASK_FIELDS.EDIT_AMOUNT]: () => true,
 };
 

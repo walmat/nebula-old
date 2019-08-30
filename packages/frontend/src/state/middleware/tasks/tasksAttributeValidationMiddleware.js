@@ -6,7 +6,11 @@ const tasksAttributeValidationMiddleware = store => next => action => {
     return next(action);
   }
 
-  if (action.field === TASK_FIELDS.TOGGLE_CAPTCHA || action.field === TASK_FIELDS.EDIT_TASK_TYPE) {
+  if (
+    action.field === TASK_FIELDS.TOGGLE_CAPTCHA ||
+    action.field === TASK_FIELDS.EDIT_TASK_TYPE ||
+    action.field === TASK_FIELDS.EDIT_TASK_ACCOUNT
+  ) {
     return next(action);
   }
 

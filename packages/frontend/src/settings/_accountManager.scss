@@ -77,7 +77,7 @@
         }
       }
 
-      &--clear {
+      &--delete {
         @extend %button-base;
         @include themify($themes) {
           background: themed('buttonColorSecondary') !important;

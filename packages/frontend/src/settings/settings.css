@@ -44,7 +44,7 @@
   background: #313236;
 }
 
-.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--clear, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--clear, .settings--shipping-manager__input-group--fetch {
+.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--delete, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--clear, .settings--shipping-manager__input-group--fetch {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
@@ -55,10 +55,10 @@
   border: none;
   border-radius: 3px;
 }
-.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--account-manager__input-group--clear, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--shipping-manager__input-group--clear, .theme-light .settings--shipping-manager__input-group--fetch {
+.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--account-manager__input-group--delete, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--shipping-manager__input-group--clear, .theme-light .settings--shipping-manager__input-group--fetch {
   color: #161318;
 }
-.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--account-manager__input-group--clear, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--shipping-manager__input-group--clear, .theme-dark .settings--shipping-manager__input-group--fetch {
+.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--account-manager__input-group--delete, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--shipping-manager__input-group--clear, .theme-dark .settings--shipping-manager__input-group--fetch {
   color: #efefef;
 }
 
@@ -223,7 +223,7 @@
   color: #f4f4f4 !important;
 }
 
-.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--clear, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear {
+.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--delete, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
@@ -234,10 +234,10 @@
   border: none;
   border-radius: 3px;
 }
-.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--account-manager__input-group--clear, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--shipping-manager__input-group--fetch, .theme-light .settings--shipping-manager__input-group--clear {
+.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--account-manager__input-group--delete, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--shipping-manager__input-group--fetch, .theme-light .settings--shipping-manager__input-group--clear {
   color: #161318;
 }
-.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--account-manager__input-group--clear, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--shipping-manager__input-group--fetch, .theme-dark .settings--shipping-manager__input-group--clear {
+.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--account-manager__input-group--delete, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--shipping-manager__input-group--fetch, .theme-dark .settings--shipping-manager__input-group--clear {
   color: #efefef;
 }
 
@@ -342,15 +342,15 @@
   opacity: 0.5;
   cursor: not-allowed !important;
 }
-.settings--account-manager__input-group--clear {
+.settings--account-manager__input-group--delete {
   width: 83px !important;
   margin-right: 7.5px;
 }
-.theme-light .settings--account-manager__input-group--clear {
+.theme-light .settings--account-manager__input-group--delete {
   background: #46adb4 !important;
   color: #f4f4f4 !important;
 }
-.theme-dark .settings--account-manager__input-group--clear {
+.theme-dark .settings--account-manager__input-group--delete {
   background: #46adb4 !important;
   color: #f4f4f4 !important;
 }
@@ -368,7 +368,7 @@
   border-radius: 3px;
 }
 
-.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear, .settings--account-manager__input-group--save, .settings--account-manager__input-group--clear {
+.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear, .settings--account-manager__input-group--save, .settings--account-manager__input-group--delete {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
@@ -379,10 +379,10 @@
   border: none;
   border-radius: 3px;
 }
-.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--shipping-manager__input-group--fetch, .theme-light .settings--shipping-manager__input-group--clear, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--account-manager__input-group--clear {
+.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--shipping-manager__input-group--fetch, .theme-light .settings--shipping-manager__input-group--clear, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--account-manager__input-group--delete {
   color: #161318;
 }
-.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--shipping-manager__input-group--fetch, .theme-dark .settings--shipping-manager__input-group--clear, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--account-manager__input-group--clear {
+.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--shipping-manager__input-group--fetch, .theme-dark .settings--shipping-manager__input-group--clear, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--account-manager__input-group--delete {
   color: #efefef;
 }
 

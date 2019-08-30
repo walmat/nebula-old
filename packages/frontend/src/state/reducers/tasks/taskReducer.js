@@ -113,9 +113,14 @@ export function taskReducer(state = initialTaskStates.task, action) {
           break;
         }
         case TASK_FIELDS.TOGGLE_CAPTCHA: {
-          console.log('toggling captcha');
           change = {
             forceCaptcha: !state.forceCaptcha,
+          };
+          break;
+        }
+        case TASK_FIELDS.EDIT_TASK_ACCOUNT: {
+          change = {
+            account: action.value,
           };
           break;
         }

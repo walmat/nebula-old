@@ -279,42 +279,6 @@ export class TaskRowPrimitive extends PureComponent {
                 data-testid={addTestId(`${testIdBase}.sizesSelect`)}
               />
             </div>
-            <div className="col edit-field">
-              <p className="edit-field__label">Username</p>
-              <input
-                className="edit-field__input"
-                type="text"
-                placeholder="johndoe@example.com"
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_USERNAME)}
-                value={edits.username || ''}
-                style={buildStyle(
-                  editAccountFieldDisabled,
-                  errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_USERNAME]],
-                )}
-                required={!editAccountFieldDisabled}
-                disabled={editAccountFieldDisabled}
-                data-testid={addTestId(`${testIdBase}.usernameInput`)}
-                data-private
-              />
-            </div>
-            <div className="col edit-field">
-              <p className="edit-field__label">Password</p>
-              <input
-                className="edit-field__input"
-                type="text"
-                placeholder="***********"
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PASSWORD)}
-                value={edits.password || ''}
-                style={buildStyle(
-                  editAccountFieldDisabled,
-                  errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PASSWORD]],
-                )}
-                required={!editAccountFieldDisabled}
-                disabled={editAccountFieldDisabled}
-                data-testid={addTestId(`${testIdBase}.passwordInput`)}
-                data-private
-              />
-            </div>
           </div>
           <div className="row row--end">
             <div className="col action">
@@ -417,10 +381,6 @@ export class TaskRowPrimitive extends PureComponent {
     if (task.sizes.length) {
       sizes = task.sizes.reduce((acc, cur, idx) => `${idx ? `${acc}, ` : ''}${cur}`, '');
     }
-    let taskAccountValue = null;
-    if (task.username && task.password) {
-      taskAccountValue = task.username;
-    }
 
     return (
       <div key={task.id} className="tasks-row row">
@@ -470,7 +430,7 @@ export class TaskRowPrimitive extends PureComponent {
               : 'col col--no-gutter tasks-row__account'
           }
         >
-          {taskAccountValue ? 'Yes' : 'None'}
+          {task.account ? 'Yes' : 'None'}
         </div>
         <div className="col col--no-gutter tasks-row__actions">
           <div className="row row--gutter">
