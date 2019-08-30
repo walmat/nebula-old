@@ -13,7 +13,7 @@ import * as getAllSizes from '../constants/getAllSizes';
 import getAllSupportedSitesSorted from '../constants/getAllSites';
 import { THEMES } from '../constants/themes';
 
-import sDefns from '../utils/definitions/settingsDefinitions';
+// import sDefns from '../utils/definitions/settingsDefinitions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 

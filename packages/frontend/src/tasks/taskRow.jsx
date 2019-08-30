@@ -181,7 +181,6 @@ export class TaskRowPrimitive extends PureComponent {
     let editProfile = null;
     let editSizes = [];
     let editSite = null;
-    let editAccountFieldDisabled = true;
     if (edits.product && edits.product.raw) {
       editProduct = edits.product.raw;
     }
@@ -199,7 +198,6 @@ export class TaskRowPrimitive extends PureComponent {
         value: edits.site.url,
         label: edits.site.name,
       };
-      editAccountFieldDisabled = !edits.site.auth && edits.site.auth !== undefined;
     }
     return (
       <div key={`${task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">

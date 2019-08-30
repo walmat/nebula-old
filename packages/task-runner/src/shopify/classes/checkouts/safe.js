@@ -568,7 +568,9 @@ class SafeCheckout extends Checkout {
     }&checkout%5Bremember_me%5D=false&checkout%5Bremember_me%5D=0&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1358&checkout%5Bclient_details%5D%5Bbrowser_height%5D=655&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
 
     if (this.protection.length) {
+      params += '&field_start=hidden';
       this.protection.map(hash => (params += `&${hash}=`));
+      params += '&field_end=hidden';
       params += `&${this.checkoutToken}-count=${this.protection.length}`;
     }
 
@@ -738,7 +740,9 @@ class SafeCheckout extends Checkout {
     )}&checkout%5Bclient_details%5D%5Bbrowser_width%5D=916&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
 
     if (this.protection.length) {
+      params += '&field_start=hidden';
       this.protection.map(hash => (params += `&${hash}=`));
+      params += '&field_end=hidden';
       params += `&${this.checkoutToken}-count=${this.protection.length}`;
     }
 
@@ -959,7 +963,9 @@ class SafeCheckout extends Checkout {
     }
 
     if (this.protection.length) {
+      params += '&field_start=hidden';
       this.protection.map(hash => (params += `&${hash}=`));
+      params += '&field_end=hidden';
       params += `&${this.checkoutToken}-count=${this.protection.length}`;
     }
 
@@ -1153,7 +1159,9 @@ class SafeCheckout extends Checkout {
       '&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1';
 
     if (this.protection.length) {
+      params += '&field_start=hidden';
       this.protection.map(hash => (params += `&${hash}=`));
+      params += '&field_end=hidden';
       params += `&${this.checkoutToken}-count=${this.protection.length}`;
     }
 
