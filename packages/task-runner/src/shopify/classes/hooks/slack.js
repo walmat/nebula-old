@@ -16,7 +16,7 @@ class Slack {
     site,
     order,
     profile,
-    sizes,
+    size,
     checkoutSpeed,
     shippingMethod,
     image,
@@ -80,7 +80,7 @@ class Slack {
               },
               {
                 title: 'Size(s)',
-                value: sizes[0],
+                value: size,
                 short: true,
               },
               {

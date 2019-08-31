@@ -32,14 +32,14 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         product: { variants },
-        sizes,
+        size,
         monitorDelay,
       },
       proxy,
       timers: { checkout: checkoutTimer },
     } = this._context;
 
-    const variant = await pickVariant(variants, sizes, url, this._logger);
+    const variant = await pickVariant(variants, size, url, this._logger);
 
     this._logger.debug('Adding %j to cart', variant);
     if (!variant) {
@@ -49,6 +49,10 @@ class FastCheckout extends Checkout {
       };
     }
 
+    const { option, id } = variant;
+
+    this._context.task.product.size = option;
+
     try {
       const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
@@ -57,7 +61,7 @@ class FastCheckout extends Checkout {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(patchToCart(variant)),
+        body: JSON.stringify(patchToCart(id)),
       });
 
       const { status, headers } = res;

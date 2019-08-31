@@ -284,10 +284,10 @@ class ShippingRatesRunner {
     const {
       site: { name, url },
       product: { variants, hash },
-      sizes,
+      size,
     } = this.task;
 
-    const variant = await pickVariant(variants, sizes, url, this._logger);
+    const variant = await pickVariant(variants, size, url, this._logger);
 
     this._logger.debug('Adding %j to cart', variant);
     if (!variant) {

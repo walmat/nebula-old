@@ -670,7 +670,7 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey, name },
-        product: { chosenSizes, name: productName, url: productUrl },
+        product: { size, name: productName, url: productUrl },
         profile: { profileName },
         checkoutSpeed,
         type,
@@ -748,7 +748,7 @@ class Checkout {
                 url: statusUrl,
               },
               profile: profileName,
-              sizes: chosenSizes,
+              size,
               checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,
@@ -778,7 +778,7 @@ class Checkout {
               site: { name, url },
               order: null,
               profile: profileName,
-              sizes: chosenSizes,
+              size,
               checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,
@@ -786,7 +786,7 @@ class Checkout {
           } catch (err) {
             // fail silently...
           }
-          return { message: 'Card declined', nextState: States.STOP };
+          return { message: 'Card declined', nextState: States.COMPLETE_PAYMENT };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
@@ -806,7 +806,7 @@ class Checkout {
                 site: { name, url },
                 order: null,
                 profile: profileName,
-                sizes: chosenSizes,
+                size,
                 checkoutSpeed,
                 shippingMethod: this.chosenShippingMethod.id,
                 image: imageUrl,
@@ -830,7 +830,7 @@ class Checkout {
               site: { name, url },
               order: null,
               profile: profileName,
-              sizes: chosenSizes,
+              size,
               checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,

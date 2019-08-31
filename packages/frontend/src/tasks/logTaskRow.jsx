@@ -50,7 +50,7 @@ const LogTaskRow = ({
     index,
     site: { name },
     product: { found, raw },
-    chosenSizes,
+    chosenSize,
     sizes,
     proxy,
     output,
@@ -100,7 +100,7 @@ const LogTaskRow = ({
           {found || raw}
         </div>
         <div className={classMap.size.join(' ')} data-testid={addTestId('LogTaskRow.size')}>
-          {chosenSizes || sizes}
+          {chosenSize || sizes}
         </div>
         <div
           className={classMap.proxy.join(' ')}

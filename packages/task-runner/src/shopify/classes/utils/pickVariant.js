@@ -1,11 +1,14 @@
+/* eslint-disable consistent-return */
+/* eslint-disable array-callback-return */
 const { getRandomIntInclusive } = require('./index');
 const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
 
-async function pickVariant(variants, sizes, url, logger = { log: () => {} }) {
-  const [size] = sizes; // temporary: only support one size
+async function pickVariant(variants, size, url, logger = { log: () => {} }) {
   if (/random/i.test(size)) {
     const rand = getRandomIntInclusive(0, variants.length - 1);
-    return variants[rand].id;
+    const variant = variants[rand];
+    const option = variant.option1 || variant.option2 || variant.option3;
+    return { id: variant.id, option };
   }
 
   logger.log('debug', 'Incoming variants: %j', variants);
@@ -39,7 +42,9 @@ async function pickVariant(variants, sizes, url, logger = { log: () => {} }) {
     return null;
   }
 
-  return variant.id;
+  const option = variant.option1 || variant.option2 || variant.option3;
+
+  return { id: variant.id, option };
 }
 
 module.exports = pickVariant;

@@ -22,7 +22,7 @@ import addTestId from '../utils/addTestId';
 import { buildStyle } from '../utils/styles';
 
 export class CreateTaskPrimitive extends PureComponent {
-  static createOption(value) {
+  static createSite(value) {
     const sites = getAllSupportedSitesSorted();
     const exists = sites.find(s => s.value.indexOf(value) > -1);
     if (exists) {
@@ -42,6 +42,13 @@ export class CreateTaskPrimitive extends PureComponent {
     return { name: URL.host, url: `${URL.scheme}://${URL.host}` };
   }
 
+  static createSize(value) {
+    if (!value) {
+      return null;
+    }
+    return value;
+  }
+
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
@@ -50,7 +57,8 @@ export class CreateTaskPrimitive extends PureComponent {
     this.saveTask = this.saveTask.bind(this);
 
     this.state = {
-      isLoading: false,
+      isLoadingSite: false,
+      isLoadingSize: false,
     };
   }
 
@@ -82,44 +90,65 @@ export class CreateTaskPrimitive extends PureComponent {
     const amount = task.amount ? parseInt(task.amount, 10) : 1;
 
     e.preventDefault();
-    const prevSizes = task.sizes;
+    const prevSize = task.size;
     const fsrMap = {
       FSR: "US/UK Men's",
       'CL FSR': 'Clothing',
     };
-    const fsrSize = task.sizes.find(s => fsrMap[s]);
+    const fsrSize = fsrMap[task.size];
     if (fsrSize) {
       const fsrCategory = fsrMap[fsrSize];
       const sizes = getAllSizes.buildSizesForCategory(fsrCategory);
       sizes.forEach(s => {
-        task.sizes = [s.value];
+        task.size = s.value;
         onAddNewTask(task, amount);
       });
-      task.sizes = prevSizes;
-    } else if (task.sizes.find(s => s === 'BS')) {
+      task.size = prevSize;
+    } else if (task.size === 'BS') {
       const sizes = ['4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5'];
       sizes.forEach(s => {
-        task.sizes = [s];
+        task.size = s;
         onAddNewTask(task, amount);
       });
-      task.sizes = prevSizes;
+      task.sizes = prevSize;
     } else {
       onAddNewTask(task, amount);
     }
   }
 
-  handleCreate(value) {
+  handleCreate(field, value) {
     const { onFieldChange } = this.props;
-    this.setState({ isLoading: true });
-    setTimeout(() => {
-      const newOption = CreateTaskPrimitive.createOption(value);
-      if (newOption) {
-        onFieldChange({ field: TASK_FIELDS.EDIT_SITE, value: newOption });
+
+    switch (field) {
+      case TASK_FIELDS.EDIT_SITE: {
+        this.setState({ isLoadingSite: true });
+        setTimeout(() => {
+          const newOption = CreateTaskPrimitive.createSite(value);
+          if (newOption) {
+            onFieldChange({ field: TASK_FIELDS.EDIT_SITE, value: newOption });
+          }
+          this.setState({
+            isLoadingSite: false,
+          });
+        }, 150);
+        break;
       }
-      this.setState({
-        isLoading: false,
-      });
-    }, 500);
+      case TASK_FIELDS.EDIT_SIZES: {
+        this.setState({ isLoadingSize: true });
+        setTimeout(() => {
+          const newSize = CreateTaskPrimitive.createSize(value);
+          if (newSize) {
+            onFieldChange({ field: TASK_FIELDS.EDIT_SIZES, value: newSize });
+          }
+          this.setState({
+            isLoadingSize: false,
+          });
+        }, 150);
+        break;
+      }
+      default:
+        break;
+    }
   }
 
   createOnChangeHandler(field) {
@@ -163,14 +192,7 @@ export class CreateTaskPrimitive extends PureComponent {
         };
       case TASK_FIELDS.EDIT_SIZES:
         return event => {
-          if (Array.isArray(event)) {
-            onFieldChange({ field, value: event.map(s => s.value) });
-          } else {
-            // Hot fix for single size changes -- dispatch two events to mock a
-            // multi select remove and then add.
-            onFieldChange({ field, value: [] });
-            onFieldChange({ field, value: [event.value] });
-          }
+          onFieldChange({ field, value: event.value });
         };
       case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
@@ -189,7 +211,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
   render() {
     const { task, errors, onKeyPress, theme } = this.props;
-    const { isLoading } = this.state;
+    const { isLoadingSite, isLoadingSize } = this.state;
     let newTaskProfileValue = null;
     if (task.profile.id) {
       newTaskProfileValue = {
@@ -197,7 +219,14 @@ export class CreateTaskPrimitive extends PureComponent {
         label: task.profile.profileName,
       };
     }
-    const sizes = task.sizes.map(size => ({ value: size, label: `${size}` }));
+
+    let newSizeValue = null;
+    if (task.size) {
+      newSizeValue = {
+        label: task.size,
+        value: task.size,
+      };
+    }
     let newTaskSiteValue = null;
     if (task.site && task.site.name !== null) {
       newTaskSiteValue = {
@@ -244,8 +273,8 @@ export class CreateTaskPrimitive extends PureComponent {
                 <p className="tasks-create__label">Site</p>
                 <CreatableSelect
                   isClearable={false}
-                  isDisabled={isLoading}
-                  isLoading={isLoading}
+                  isDisabled={isLoadingSite}
+                  isLoading={isLoadingSite}
                   required
                   className="tasks-create__input tasks-create__input--field"
                   classNamePrefix="select"
@@ -256,7 +285,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                   )}
                   onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
-                  onCreateOption={this.handleCreate}
+                  onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SITE, v)}
                   value={newTaskSiteValue}
                   options={getAllSupportedSitesSorted()}
                   data-testid={addTestId('CreateTask.siteSelect')}
@@ -288,8 +317,9 @@ export class CreateTaskPrimitive extends PureComponent {
             </div>
             <div className="col col--no-gutter tasks-create__input-group--site">
               <p className="tasks-create__label">Size</p>
-              <Select
+              <CreatableSelect
                 required
+                isLoading={isLoadingSize}
                 isClearable={false}
                 placeholder="Choose Size"
                 components={{ DropdownIndicator }}
@@ -297,8 +327,9 @@ export class CreateTaskPrimitive extends PureComponent {
                   theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
                 )}
+                onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SIZES, v)}
                 onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
-                value={sizes}
+                value={newSizeValue}
                 options={getAllSizes.default()}
                 className="tasks-create__input tasks-create__input--field"
                 classNamePrefix="select"

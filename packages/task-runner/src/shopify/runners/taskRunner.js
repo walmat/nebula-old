@@ -577,7 +577,9 @@ class TaskRunner {
 
     const { message, delay, shouldBan, nextState } = await this._checkout.addToCart();
 
-    this._emitTaskEvent({ message, proxy: rawProxy });
+    const { size } = this._context.task.product;
+
+    this._emitTaskEvent({ message, proxy: rawProxy, size });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });

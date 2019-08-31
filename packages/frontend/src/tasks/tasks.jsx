@@ -139,7 +139,7 @@ export class TasksPrimitive extends PureComponent {
                     <p>Billing Profile</p>
                   </div>
                   <div className="col tasks-table__header__sizes">
-                    <p>Sizes</p>
+                    <p>Size</p>
                   </div>
                   <div className="col tasks-table__header__pairs">
                     <p>Account</p>

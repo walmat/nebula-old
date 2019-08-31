@@ -17,7 +17,7 @@ class Discord {
     site,
     order,
     profile,
-    sizes,
+    size,
     checkoutSpeed,
     shippingMethod,
     image,
@@ -33,7 +33,7 @@ class Discord {
         .addField('Store', `[${site.name}](${site.url})`, true)
         .addField('Order #', order ? `[${order.number}](${order.url})` : 'None', true)
         .addField('Billing Profile', profile ? `${profile}` : 'None', true)
-        .addField('Size(s)', `${sizes[0]}`, true)
+        .addField('Size(s)', `${size}`, true)
         .addField('Checkout Speed (ms)', `${checkoutSpeed || NaN}`, true)
         .addField('Shipping Method', shippingMethod ? `${shippingMethod}` : 'None', true)
         .setFooter(

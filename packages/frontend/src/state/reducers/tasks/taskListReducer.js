@@ -299,7 +299,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
             task.output = message;
             if (size) {
-              task.chosenSizes = [size];
+              task.chosenSize = size;
             }
             if (proxy) {
               task.proxy = proxy;
@@ -434,7 +434,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
         nextState[idx].status = 'stopped';
         nextState[idx].output = '';
-        nextState[idx].chosenSizes = nextState[idx].sizes;
+        nextState[idx].chosenSize = nextState[idx].size;
         nextState[idx].proxy = null;
         nextState[idx].product.found = null;
       }
@@ -463,7 +463,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
         nextState[idx].status = 'stopped';
         nextState[idx].output = '';
-        nextState[idx].chosenSizes = nextState[idx].sizes;
+        nextState[idx].chosenSize = nextState[idx].size;
         nextState[idx].proxy = null;
         nextState[idx].product.found = null;
       });

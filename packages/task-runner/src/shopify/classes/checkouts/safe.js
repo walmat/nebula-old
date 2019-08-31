@@ -15,7 +15,7 @@ class SafeCheckout extends Checkout {
       task: {
         site: { name, url },
         product: { variants, barcode, hash },
-        sizes,
+        size,
         monitorDelay,
       },
       proxy,
@@ -30,7 +30,7 @@ class SafeCheckout extends Checkout {
       };
     }
 
-    const variant = await pickVariant(variants, sizes, url, this._logger);
+    const variant = await pickVariant(variants, size, url, this._logger);
 
     if (!variant) {
       return {
@@ -38,6 +38,10 @@ class SafeCheckout extends Checkout {
         nextState: States.ERROR,
       };
     }
+
+    const { option, id } = variant;
+
+    this._context.task.product.size = option;
 
     try {
       const res = await this._request('/cart/add.js', {
@@ -49,7 +53,7 @@ class SafeCheckout extends Checkout {
           'sec-fetch-site': 'same-origin',
           'sec-fetch-user': '?1',
         },
-        body: JSON.stringify(addToCart(variant, name, hash, properties)),
+        body: JSON.stringify(addToCart(id, name, hash, properties)),
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
       });
 

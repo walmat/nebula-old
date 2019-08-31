@@ -375,10 +375,6 @@ export class TaskRowPrimitive extends PureComponent {
     if (task.index) {
       id = task.index < 10 ? `0${task.index}` : task.index;
     }
-    let sizes = 'None';
-    if (task.sizes.length) {
-      sizes = task.sizes.reduce((acc, cur, idx) => `${idx ? `${acc}, ` : ''}${cur}`, '');
-    }
 
     return (
       <div key={task.id} className="tasks-row row">
@@ -419,7 +415,7 @@ export class TaskRowPrimitive extends PureComponent {
               : 'col col--no-gutter tasks-row__sizes'
           }
         >
-          {sizes}
+          {task.size}
         </div>
         <div
           className={

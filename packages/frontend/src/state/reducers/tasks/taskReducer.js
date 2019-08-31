@@ -74,17 +74,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
           break;
         }
         case TASK_FIELDS.EDIT_SIZES: {
-          let nextSizes = JSON.parse(JSON.stringify(state.sizes));
-          if (nextSizes === null) {
-            nextSizes = initialTaskStates.task.sizes;
-          } else if (action.value && action.value.length > state.sizes.length) {
-            nextSizes.unshift(...action.value.filter(s => !state.sizes.find(v => s === v)));
-          } else {
-            nextSizes = state.sizes.filter(s => action.value.find(v => s === v));
-          }
           change = {
-            sizes: nextSizes,
-            chosenSizes: nextSizes,
+            size: action.value,
+            chosenSize: action.value,
             errors: Object.assign({}, state.errors, action.errors),
           };
           break;
