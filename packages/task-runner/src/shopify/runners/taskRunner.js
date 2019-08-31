@@ -141,6 +141,8 @@ class TaskRunner {
   }
 
   _handleProduct(id, product, parseType) {
+    console.log('in handle product!!');
+    console.log(id, product, parseType);
     if (parseType === this._parseType) {
       // if it's the same task, just merge the product data
       if (id === this._context.id) {

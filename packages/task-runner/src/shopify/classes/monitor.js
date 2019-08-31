@@ -447,19 +447,20 @@ class Monitor {
       return States.ABORT;
     }
 
-    let nextState = States.ERROR;
     switch (this._parseType) {
       case ParseType.Variant: {
         this._logger.silly('MONITOR: Variant Parsing Detected');
+        this._logger.silly('MONITOR: Variants mapped! Updating context...');
         this._context.task.product.variants = [{ id: this._context.task.product.variant }];
+
+        this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
         this._events.emit(
-          Events.ProductFound,
+          TaskManagerEvents.ProductFound,
           this.id,
           this._context.task.product,
           this._parseType,
         );
-        nextState = States.DONE;
-        break;
+        return States.DONE;
       }
       case ParseType.Url: {
         this._logger.silly('MONITOR: Url Parsing Detected');
@@ -481,8 +482,6 @@ class Monitor {
         return States.ERROR;
       }
     }
-    this._logger.debug('PARSE NEXT STATE: %j', nextState);
-    return nextState;
   }
 
   async _handleStepLogic(currentState) {
