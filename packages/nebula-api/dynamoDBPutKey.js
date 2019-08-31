@@ -6,7 +6,7 @@ const config = require('./src/utils/setupDynamoConfig').getConfig();
 const { hash } = require('./hash');
 const { salt, algo, output } = require('./hashConfig.json');
 
-const keys = []; // add these here when we need to add keys
+const keys = ['26a2513fe36cd9d903ab1586f1f88201d14aed7303fe0efb86c1584a8cde696a']; // add these here when we need to add keys
 AWS.config.update(config);
 const dynamodb = new AWS.DynamoDB();
 

@@ -49,7 +49,7 @@ function validateSite(site) {
  * @param {Array} sizes - array of sizes
  */
 function validateSizes(sizes) {
-  return sizes && sizes.length > 0;
+  return sizes;
 }
 
 function validateProfile(profile) {

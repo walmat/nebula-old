@@ -114,7 +114,7 @@ const _stopTasks = tasks => {
 
 const _startShippingRatesRunner = task => {
   const request = {
-    task: { ...task, id: SRR_ID, sizes: ['Random'] },
+    task: { ...task, id: SRR_ID, size: 'Random' },
     cancel: () => {},
     promise: null,
   };

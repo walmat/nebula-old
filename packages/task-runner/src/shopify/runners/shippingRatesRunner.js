@@ -297,6 +297,9 @@ class ShippingRatesRunner {
       };
     }
 
+    const { option, id } = variant;
+
+    this.task.product.size = option;
     let res;
     try {
       res = await this._request('/cart/add.js', {
@@ -305,7 +308,7 @@ class ShippingRatesRunner {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(addToCart(variant, name, hash)),
+        body: JSON.stringify(addToCart(id, name, hash)),
         agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
       });
 

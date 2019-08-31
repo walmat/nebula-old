@@ -451,7 +451,7 @@ class Monitor {
     switch (this._parseType) {
       case ParseType.Variant: {
         this._logger.silly('MONITOR: Variant Parsing Detected');
-        this._context.task.product.variants = [this._context.task.product.variant];
+        this._context.task.product.variants = [{ id: this._context.task.product.variant }];
         this._events.emit(
           Events.ProductFound,
           this.id,
