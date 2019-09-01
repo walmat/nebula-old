@@ -6,8 +6,8 @@ const { ErrorCodes } = require('../../utils/constants');
  * Base Special Parser for all DSM Sites
  */
 class DsmParser extends SpecialParser {
-  constructor(request, task, proxy, aborter, logger, name = 'DsmParser') {
-    super(request, task, proxy, aborter, logger, name);
+  constructor(request, type, task, proxy, aborter, logger, name = 'DsmParser') {
+    super(request, type, task, proxy, aborter, logger, name);
 
     /**
      * Some Dsm Sites requires specific hashes to be attached when adding

@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 
-const { getParseType, matchVariant, matchKeywords } = require('../utils/parse');
+const { matchVariant, matchKeywords } = require('../utils/parse');
 const { userAgent, rfrl } = require('../utils');
 const {
   ErrorCodes,
@@ -98,14 +98,14 @@ class Parser {
   /**
    * Construct a new parser
    */
-  constructor(request, task, proxy, aborter, logger, name) {
+  constructor(request, type, task, proxy, aborter, logger, name) {
     this._logger = logger || { log: () => {} };
     this._name = name || 'Parser';
     this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
     this._request = request;
     this._task = task;
-    this._type = getParseType(task.product);
+    this._type = type;
     this._aborter = aborter;
     this._logger.log('silly', '%s: constructed', this._name);
   }

@@ -13,8 +13,8 @@ class AtomParser extends Parser {
    * @param {Proxy} the proxy to use when making requests
    * @param {Logger} (optional) A logger to log messages to
    */
-  constructor(request, task, proxy, aborter, logger) {
-    super(request, task, proxy, aborter, logger, 'AtomParser');
+  constructor(request, type, task, proxy, aborter, logger) {
+    super(request, type, task, proxy, aborter, logger, 'AtomParser');
   }
 
   async run() {

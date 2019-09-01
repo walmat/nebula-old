@@ -52,8 +52,6 @@ class TaskRunner {
     this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
 
-    this._productFound = false;
-
     /**
      * The context of this task runner
      *
@@ -122,7 +120,7 @@ class TaskRunner {
     }
   }
 
-  _compareProductInput(product, parseType) {
+  async _compareProductInput(product, parseType) {
     // we only care about keywords/url matching here...
     switch (parseType) {
       case ParseType.Keywords: {
@@ -140,29 +138,20 @@ class TaskRunner {
     }
   }
 
-  _handleProduct(id, product, parseType) {
-    console.log('in handle product!!');
-    console.log(id, product, parseType);
+  async _handleProduct(id, product, parseType) {
     if (parseType === this._parseType) {
-      // if it's the same task, just merge the product data
-      if (id === this._context.id) {
+      const isSameProductData = await this._compareProductInput(product, parseType);
+
+      if (
+        (isSameProductData && !this._context.productFound) ||
+        (id === this.id && !this._context.productFound)
+      ) {
         this._context.task.product = {
           ...this._context.task.product,
-          product,
+          ...product,
         };
-        this._productFound = true;
-      }
 
-      // otherwise, check if the product data is the same
-      const isSameProductData = this._compareProductInput(product, parseType);
-
-      // if so, merge the product data
-      if (isSameProductData && !this._productFound) {
-        this._context.task.product = {
-          ...this._context.task.product,
-          product,
-        };
-        this._productFound = true;
+        this._context.productFound = true;
       }
     }
   }
@@ -500,7 +489,7 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    if (this._productFound) {
+    if (this._context.productFound) {
       return States.ADD_TO_CART;
     }
 

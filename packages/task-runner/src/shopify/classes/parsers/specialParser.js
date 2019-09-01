@@ -10,8 +10,8 @@ const {
 const { userAgent } = require('../utils');
 
 class SpecialParser extends Parser {
-  constructor(request, task, proxy, aborter, logger, name) {
-    super(request, task, proxy, aborter, logger, name || 'SpecialParser');
+  constructor(request, type, task, proxy, aborter, logger, name) {
+    super(request, type, task, proxy, aborter, logger, name || 'SpecialParser');
   }
 
   /**

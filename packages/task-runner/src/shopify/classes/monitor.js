@@ -1,7 +1,7 @@
 import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
-import { pick } from 'lodash';
+import { pick, isEqual } from 'lodash';
 
 const TaskManagerEvents = require('./utils/constants').TaskManager.Events;
 const { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser } = require('./parsers');
@@ -56,6 +56,8 @@ class Monitor {
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
+
+    this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
   }
 
@@ -68,6 +70,42 @@ class Monitor {
       }
       if (this._delayer) {
         this._delayer.clear();
+      }
+    }
+  }
+
+  async _compareProductInput(product, parseType) {
+    // we only care about keywords/url matching here...
+    switch (parseType) {
+      case ParseType.Keywords: {
+        const { pos_keywords: posKeywords, neg_keywords: negKeywords } = this._context.task.product;
+        const samePositiveKeywords = isEqual(product.pos_keywords.sort(), posKeywords.sort());
+        const sameNegativeKeywords = isEqual(product.neg_keywords.sort(), negKeywords.sort());
+        return samePositiveKeywords && sameNegativeKeywords;
+      }
+      case ParseType.Url: {
+        const { url } = this._context.task.product;
+        return product.url.toUpperCase() === url.toUpperCase();
+      }
+      default:
+        return false;
+    }
+  }
+
+  async _handleProduct(id, product, parseType) {
+    if (parseType === this._parseType) {
+      const isSameProductData = await this._compareProductInput(product, parseType);
+
+      if (
+        (isSameProductData && !this._context.productFound) ||
+        (id === this.id && !this._context.productFound)
+      ) {
+        this._context.task.product = {
+          ...this._context.task.product,
+          ...product,
+        };
+
+        this._context.productFound = true;
       }
     }
   }
@@ -161,6 +199,11 @@ class Monitor {
   }
 
   async _handleParsingErrors(errors) {
+    if (this._context.aborted || this._context.productFound) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
     const { monitorDelay } = this._context.task;
     let delayStatus;
     let ban = true; // assume we have a softban
@@ -264,6 +307,7 @@ class Monitor {
     const parsers = [
       new AtomParser(
         this._request,
+        this._parseType,
         this._context.task,
         this._context.proxy,
         new AbortController(),
@@ -271,6 +315,7 @@ class Monitor {
       ),
       new JsonParser(
         this._request,
+        this._parseType,
         this._context.task,
         this._context.proxy,
         new AbortController(),
@@ -278,6 +323,7 @@ class Monitor {
       ),
       new XmlParser(
         this._request,
+        this._parseType,
         this._context.task,
         this._context.proxy,
         new AbortController(),
@@ -289,6 +335,11 @@ class Monitor {
   }
 
   async _monitorKeywords() {
+    if (this._context.aborted || this._context.productFound) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
     const { site } = this._context.task;
     let parsed;
     try {
@@ -336,6 +387,11 @@ class Monitor {
   }
 
   async _monitorUrl() {
+    if (this._context.aborted || this._context.productFound) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
     const [url] = this._context.task.product.url.split('?');
 
     try {
@@ -393,11 +449,23 @@ class Monitor {
   }
 
   async _monitorSpecial() {
+    if (this._context.aborted || this._context.productFound) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
     const { task, proxy, logger } = this._context;
     const { site } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
-    const parser = ParserCreator(this._request, task, proxy, this._aborter, logger);
+    const parser = ParserCreator(
+      this._request,
+      this._parseType,
+      task,
+      proxy,
+      this._aborter,
+      logger,
+    );
 
     let parsed;
     try {
@@ -442,7 +510,7 @@ class Monitor {
   }
 
   async _handleParse() {
-    if (this._context.aborted) {
+    if (this._context.aborted || this._context.productFound) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
@@ -509,8 +577,9 @@ class Monitor {
   async run() {
     let nextState = this._state;
 
-    if (this._context.aborted) {
+    if (this._context.aborted || this._context.productFound) {
       nextState = States.ABORT;
+      return true;
     }
 
     try {
@@ -539,6 +608,12 @@ class Monitor {
 
   async start() {
     let shouldStop = false;
+
+    if (this._context.productFound) {
+      this._state = States.STOP;
+      shouldStop = true;
+    }
+
     while (this._state !== States.STOP && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.run();
