@@ -34,49 +34,12 @@ export class LogTaskPrimitive extends PureComponent {
     this.renderRow = this.renderRow.bind(this);
     this.isRowLoaded = this.isRowLoaded.bind(this);
     this.loadMoreRows = this.loadMoreRows.bind(this);
+    this.renderMassChangeOptions = this.renderMassChangeOptions.bind(this);
 
     this.state = {
       fullscreen: false, // fullscreen toggle
-      selected: [], // list of selected tasks
-      focused: '', // task in focused (used for showing the log data)
     };
   }
-
-  selectRow(e, taskId) {
-    // let { selected } = this.state;
-    const { fullscreen, focused } = this.state;
-    if (!fullscreen) {
-      return;
-    }
-
-    if (taskId === focused) {
-      this.setState({ focused: '', selected: [] });
-    } else {
-      this.setState({ focused: taskId, selected: [taskId] });
-    }
-  }
-
-  // showLiveLog() {
-  //   const { focused } = this.state;
-  //   if (focused) {
-  //     const { tasks } = this.props;
-  //     const task = tasks.find(t => t.id === focused);
-  //     // TODO: Convert this to a react-virtualized <List />
-  //     if (task) {
-  //       return (
-  //         <div className="row row--start row--expand table--lower">
-  //           <div className="col col--start col--no-gutter tasks-live-log__wrapper">
-  //             <ScrollableFeed data-testid={addTestId('LogTaskPrimitive.feed')}>
-  //               {task.log.map((msg, i) => LogTaskPrimitive.renderOutputLogRow(msg, i))}
-  //             </ScrollableFeed>
-  //           </div>
-  //         </div>
-  //       );
-  //     }
-  //     this.setState({ focused: '' });
-  //   }
-  //   return null;
-  // }
 
   isRowLoaded({ index }) {
     const { tasks } = this.props;
@@ -90,14 +53,6 @@ export class LogTaskPrimitive extends PureComponent {
 
   createTable() {
     const { tasks } = this.props;
-    const { selected } = this.state;
-
-    if (!tasks || (!tasks.length && selected.length)) {
-      this.setState({
-        selected: [],
-        focused: '',
-      });
-    }
 
     return (
       <InfiniteLoader
@@ -126,30 +81,21 @@ export class LogTaskPrimitive extends PureComponent {
     );
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  renderMassChangeOptions() {
+    return <></>;
+  }
+
   renderRow({ index, key, style }) {
     const { tasks } = this.props;
     const task = tasks[index];
-    const { fullscreen, selected } = this.state;
+    const { fullscreen } = this.state;
 
-    const selectedMap = {};
-    selected.forEach(id => {
-      selectedMap[id] = id;
-    });
-
-    return (
-      <LogTaskRow
-        key={key}
-        onClick={e => this.selectRow(e, task.id)}
-        selected={selected.indexOf(task.id) !== -1}
-        style={style}
-        task={task}
-        fullscreen={fullscreen}
-      />
-    );
+    return <LogTaskRow key={key} style={style} task={task} fullscreen={fullscreen} />;
   }
 
   render() {
-    const { fullscreen, selected, focused } = this.state;
+    const { fullscreen } = this.state;
     const classMap = {
       sectionHeader: [
         'body-text',
@@ -194,8 +140,6 @@ export class LogTaskPrimitive extends PureComponent {
               onDoubleClick={() =>
                 this.setState({
                   fullscreen: !fullscreen,
-                  selected: fullscreen ? [] : selected, // opposite toggle for coming in/out of FS mode
-                  focused: fullscreen ? '' : focused, // opposite toggle for coming in/out of FS mode
                 })
               }
               data-testid={addTestId('LogTaskPrimitive.tableHeader')}
@@ -248,11 +192,9 @@ export class LogTaskPrimitive extends PureComponent {
                 <div className="tasks-log">{this.createTable()}</div>
               </div>
             </div>
-            {/* {fullscreen ? this.showLiveLog() : null} */}
           </div>
         </div>
-        {/* TODO: Add this back in with #414 */}
-        {/* {focused || selected.length ? this.renderMassChangeOptions() : null} */}
+        {this.renderMassChangeOptions()}
       </div>
     );
   }
