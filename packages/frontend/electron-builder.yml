@@ -10,14 +10,13 @@ publish:
   url: 'https://nebula-deployment.herokuapp.com'
 
 directories:
-  buildResources: _assets/
+  buildResources: src/_assets
   output: orion/
 
 files:
   - package.json
   - dist/
   - build/
-  - release-notes.md
   - .env.prod
   - node_modules/
 
