@@ -57,6 +57,8 @@ class TaskManager {
 
     this._proxyManager = new ProxyManager(this._logger);
 
+    this.productInterval = null;
+
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }
 
@@ -120,6 +122,18 @@ class TaskManager {
     const { site } = this._runners[runnerId];
     const newProxy = await this._proxyManager.swap(runnerId, proxyId, site, shouldBan);
     this._events.emit(Events.SendProxy, runnerId, newProxy);
+  }
+
+  async handleProduct(runnerId, product, parseType) {
+    const interval = setInterval(() => {
+      const runner = Object.values(this._runners).find(r => r.id === runnerId);
+
+      if (!runner || (runner && runner._aborted)) {
+        clearInterval(interval);
+      }
+
+      this._events.emit(Events.ProductFound, runnerId, product, parseType);
+    }, 1000);
   }
 
   /**
@@ -410,6 +424,9 @@ class TaskManager {
         case Events.ProductFound: {
           handler = (id, product, parseType) => {
             runner._handleProduct(id, product, parseType);
+            if (monitor) {
+              monitor._handleProduct(id, product, parseType);
+            }
           };
           break;
         }
@@ -452,6 +469,7 @@ class TaskManager {
     }
     if (monitor) {
       monitor.registerForEvent(MonitorEvents.MonitorStatus, this.mergeStatusUpdates);
+      monitor._events.on(Events.ProductFound, this.handleProduct, this);
       monitor._events.on(MonitorEvents.SwapProxy, this.handleSwapProxy, this);
     }
     runner.registerForEvent(TaskRunnerEvents.TaskStatus, this.mergeStatusUpdates);
@@ -509,6 +527,7 @@ class TaskManager {
         taskId: task.id,
         type: parseType,
         task,
+        productFound: false,
         status: null,
         events,
         jar: this._jar,

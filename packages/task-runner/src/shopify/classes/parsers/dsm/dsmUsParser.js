@@ -1,8 +1,8 @@
 const DsmParser = require('./dsmParser');
 
 class DsmUsParser extends DsmParser {
-  constructor(request, task, proxy, aborter, logger) {
-    super(request, task, proxy, aborter, logger, 'DsmUsParser');
+  constructor(request, type, task, proxy, aborter, logger) {
+    super(request, type, task, proxy, aborter, logger, 'DsmUsParser');
   }
 
   parseProductInfoPageForHash($) {
