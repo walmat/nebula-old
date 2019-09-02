@@ -232,7 +232,7 @@ class TaskRunner {
 
   async swapProxies() {
     // emit the swap event
-    this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
+    this._events.emit(Events.SwapTaskProxy, this.id, this.proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
@@ -1118,13 +1118,14 @@ class TaskRunner {
         this.proxy = proxy;
         this._context.proxy = proxy.proxy;
         this._context.rawProxy = proxy.raw;
-        this._checkout.context.proxy = proxy.proxy;
+        this._checkout._context.proxy = proxy.proxy;
         this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
         this._emitTaskEvent({
           message: `Swapped proxy to: ${proxy.raw}`,
           proxy: proxy.raw,
         });
+        this._logger.debug('Rewinding to state: %s', this._prevState);
         return this._prevState;
       }
 
@@ -1141,6 +1142,7 @@ class TaskRunner {
         message: 'Error swapping proxies! Retrying...',
       });
     }
+
     // Go back to previous state
     return this._prevState;
   }

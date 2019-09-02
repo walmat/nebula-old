@@ -11,7 +11,7 @@ const waitForDelay = (time, signal) => delay(time, { signal });
 
 const stateForError = ({ status, name, code }, { message, nextState }) => {
   // Look for errors in cause
-  const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT)/.exec(code);
+  const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND)/.exec(code);
 
   if (/aborterror/i.test(name)) {
     return { nextState: States.ABORT };
@@ -21,6 +21,7 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
     // Check capturing group
     switch (match[1]) {
       // connection reset
+      case 'ENOTFOUND':
       case 'ECONNRESET': {
         return {
           message: 'Swapping proxy',

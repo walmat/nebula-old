@@ -16,7 +16,8 @@ const TaskRunnerEvents = {
   All: 'ALL',
   TaskStatus: 'TASK_STATUS',
   MonitorStatus: 'MONITOR_STATUS',
-  SwapProxy: 'SWAP_PROXY',
+  SwapTaskProxy: 'SWAP_TASK_PROXY',
+  SwapMonitorProxy: 'SWAP_MONITOR_PROXY',
   ReceiveProxy: 'RECEIVE_PROXY',
 };
 

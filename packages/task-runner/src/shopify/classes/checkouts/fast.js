@@ -41,7 +41,6 @@ class FastCheckout extends Checkout {
 
     const variant = await pickVariant(variants, size, url, this._logger);
 
-    this._logger.debug('Adding %j to cart', variant);
     if (!variant) {
       return {
         message: 'No size matched! Stopping...',
@@ -165,7 +164,7 @@ class FastCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
-        err.status,
+        err.type,
         err.message,
         err.stack,
       );

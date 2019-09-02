@@ -126,7 +126,7 @@ class Monitor {
 
   async swapProxies() {
     // emit the swap event
-    this._events.emit(Events.SwapProxy, this.id, this.proxy, this.shouldBanProxy);
+    this._events.emit(Events.SwapMonitorProxy, this.id, this.proxy, this.shouldBanProxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {

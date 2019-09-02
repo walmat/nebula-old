@@ -15,7 +15,7 @@ class ProxyManager {
   }
 
   format(rawData) {
-    this._logger.silly('Formatting proxy data %s...', rawData);
+    this._logger.debug('Formatting proxy data %s...', rawData);
     if (!rawData || /^(127.*|localhost)/.test(rawData)) {
       return null;
     }
@@ -48,12 +48,12 @@ class ProxyManager {
    * @param {Proxy} proxy the proxy to register
    */
   register(proxy) {
-    this._logger.silly('Registering proxy...');
+    this._logger.debug('Registering proxy...');
     let id;
     const proxyHash = hash(proxy);
     for (const p of this._proxies.values()) {
       if (p.hash.includes(proxyHash)) {
-        this._logger.silly('Proxy already exists with hash %s! proxy not added', proxyHash);
+        this._logger.debug('Proxy already exists with hash %s! proxy not added', proxyHash);
         return;
       }
     }
@@ -74,7 +74,7 @@ class ProxyManager {
       ban: {},
       use: {},
     });
-    this._logger.silly('Proxy Added with id %s', id);
+    this._logger.debug('Proxy Added with id %s', id);
   }
 
   /**
@@ -88,7 +88,7 @@ class ProxyManager {
    * @param {Proxy} proxy the proxy to deregister
    */
   deregister(proxy) {
-    this._logger.silly('Deregistering proxy...');
+    this._logger.debug('Deregistering proxy...');
     const proxyHash = hash(proxy);
     let stored = null;
     for (const p of this._proxies.values()) {
@@ -99,12 +99,12 @@ class ProxyManager {
     }
 
     if (!stored) {
-      this._logger.silly('Proxy with hash %s not found! Skipping removal', proxyHash);
+      this._logger.debug('Proxy with hash %s not found! Skipping removal', proxyHash);
       return;
     }
     this._logger.debug('Proxy found with hash %s. Removing now', proxyHash);
     this._proxies.delete(stored.id);
-    this._logger.silly('Proxy removed with id %s', stored.id);
+    this._logger.debug('Proxy removed with id %s', stored.id);
   }
 
   /**
@@ -121,7 +121,7 @@ class ProxyManager {
       // Force wait limit to be 0 if we have an invalid parameter value passed in
       newTimeout = 0;
     }
-    this._logger.silly(
+    this._logger.debug(
       'Reserving proxy for runner %s for site %s... Looking through %d proxies',
       id,
       site,
@@ -131,13 +131,13 @@ class ProxyManager {
 
     for (const p of this._proxies.values()) {
       this._logger.debug(
-        '%s: \n\n Ban predicate: %j, Used predicate: %j, Conditional: %s',
+        '%s:\n\n Ban predicate: %j, Used predicate: %j, Conditional: %s',
         p.proxy,
         p.ban[site],
         p.use[site],
-        !p.use[site] && (!p.ban[site] || p.ban[site] === 0),
+        !p.use[site],
       );
-      if (!p.use[site] && (!p.ban[site] || p.ban[site] === 0)) {
+      if (!p.use[site]) {
         proxy = p;
         // immediately remove the proxy from the list
         this._proxies.delete(proxy.id);
@@ -145,17 +145,20 @@ class ProxyManager {
         proxy.use[site] = true;
         // push the proxy back onto the end of the stack
         this._proxies.set(proxy.id, proxy);
-        this._logger.silly('Returning proxy: %s', proxy.id);
+        this._logger.debug('Returning proxy: %s', proxy.proxy);
         return proxy;
       }
     }
     if (!wait || newTimeout === 0) {
-      this._logger.silly('Not waiting for open proxy, returning null');
+      this._logger.debug('Not waiting for open proxy, returning null');
       return null;
     }
-    this._logger.silly('All proxies are reserved, waiting for open proxy...');
+    this._logger.debug('All proxies are reserved, waiting for open proxy...');
     return new Promise(resolve => {
-      setTimeout(() => resolve(this.reserve(id, site, wait, newTimeout - 1)), this.retry); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
+      setTimeout(
+        async () => resolve(await this.reserve(id, site, wait, newTimeout - 1)),
+        this.retry,
+      ); // wait for 1 sec, then try again // TODO should we change this timeout to something smaller?
     });
   }
 
@@ -165,11 +168,11 @@ class ProxyManager {
    * @param {String} runnerId the id of the runner this proxy is being released from
    * @param {String} proxyId the id of the proxy to release
    */
-  release(id, site, proxyId, force = false) {
-    this._logger.silly('Releasing proxy %s for runner %s on site %s...', proxyId, id, site);
+  async release(id, site, proxyId, force = false) {
+    this._logger.debug('Releasing proxy %s for runner %s on site %s...', proxyId, id, site);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
-      this._logger.silly('No proxy found, skipping release');
+      this._logger.debug('No proxy found, skipping release');
       return;
     }
     // if the application is forced closed, force the proxy list to be freed up
@@ -178,7 +181,7 @@ class ProxyManager {
     }
     // otherwise, just free up the use list
     delete proxy.use[site];
-    this._logger.silly('Released Proxy %s', proxyId);
+    this._logger.debug('Released Proxy %s', proxyId);
   }
 
   /**
@@ -189,21 +192,21 @@ class ProxyManager {
    * @param {String} proxyId the id of the proxy to ban
    * @param {Number} shouldBan 0 = just swap, 1 = soft ban, 2 = hard ban
    */
-  ban(id, site, proxyId, shouldBan = 0) {
-    this._logger.silly('Banning proxy %s for runner %s on site %s ...', proxyId, id, site);
-    const proxy = this._proxies.get(proxyId);
-    if (!proxy) {
-      this._logger.silly('No proxy found, skipping ban');
-      return;
-    }
+  // async ban(id, site, proxyId, shouldBan = 0) {
+    // this._logger.debug('Banning proxy %s for runner %s on site %s ...', proxyId, id, site);
+    // const proxy = this._proxies.get(proxyId);
+    // if (!proxy) {
+    //   this._logger.debug('No proxy found, skipping ban');
+    //   return;
+    // }
 
-    delete proxy.use[site];
-    proxy.ban[site] = shouldBan;
-    this._logger.debug('Ban predicate: %j, Used predicate: %j', proxy.ban[site], proxy.use[site]);
-    this.release(id, site, proxy.id, true); // release no matter what now!
+    // delete proxy.use[site];
+    // proxy.ban[site] = shouldBan;
+    // this._logger.debug('Releasing old proxy... %s', proxy.proxy);
+    // await this.release(id, site, proxy.id, true); // release no matter what now!
     // if (proxy.ban[site] === 1) {
     //   // for a soft ban, just timeout the proxy for a couple minutes
-    //   this._logger.silly('Banned Proxy %s', proxyId);
+    //   this._logger.debug('Banned Proxy %s', proxyId);
     //   setTimeout(() => {
     //     // reset the proxy by removing the ban and opening it up again
     //     this._logger.debug('Freeing up ban predicate for %s', proxy.proxy);
@@ -213,7 +216,7 @@ class ProxyManager {
     //   // delete the proxy from the list if we've hard banned it
     //   this._proxies.delete(proxyId);
     // }
-  }
+  // }
 
   /**
    * Swap a proxy for a runner
@@ -233,7 +236,7 @@ class ProxyManager {
     const oldProxy = this._proxies.get(proxyId);
 
     if (!oldProxy) {
-      this._logger.silly('No proxy found, skipping release/ban');
+      this._logger.debug('No old proxy found, skipping release');
       shouldRelease = false;
     }
 
@@ -243,7 +246,7 @@ class ProxyManager {
     const newProxy = await this.reserve(id, site);
 
     if (!newProxy) {
-      this._logger.silly('No new proxy available, skipping release/ban');
+      this._logger.debug('No new proxy available, skipping release/ban');
       return null;
     }
 
@@ -253,19 +256,14 @@ class ProxyManager {
       newProxy.proxy,
     );
 
-    // Check if we need to ban the old proxy
-    this._logger.debug('Should ban old proxy?: %s', shouldBan);
-    // if (shouldBan > 0) {
-    this._logger.debug('Banning old proxy... %s', oldProxy.proxy);
-    this.ban(id, site, proxyId, shouldBan);
-    // }
-
-    // Check if we need to release the old proxy
+    // Check if we need to release and ban the old proxy
     if (shouldRelease) {
       this._logger.debug('Releasing old proxy... %s', oldProxy.proxy);
-      this.release(id, site, proxyId);
+
+      await this.release(id, site, proxyId, true);
+      // await this.ban(id, site, proxyId, shouldBan);
     }
-    this._logger.silly('New proxy: %j', newProxy.proxy);
+    this._logger.debug('New proxy: %j', newProxy.proxy);
     // Return the new reserved proxy
     return newProxy;
   }

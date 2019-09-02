@@ -118,6 +118,8 @@ class TaskManager {
    * @param {Bool} shouldBan
    */
   async handleSwapProxy(runnerId, proxy, shouldBan) {
+    this._logger.debug('Swapping proxy: %j for task %s', proxy, runnerId);
+
     const proxyId = proxy ? proxy.id : null;
     const { site } = this._runners[runnerId];
     const newProxy = await this._proxyManager.swap(runnerId, proxyId, site, shouldBan);
@@ -470,12 +472,12 @@ class TaskManager {
     if (monitor) {
       monitor.registerForEvent(MonitorEvents.MonitorStatus, this.mergeStatusUpdates);
       monitor._events.on(Events.ProductFound, this.handleProduct, this);
-      monitor._events.on(MonitorEvents.SwapProxy, this.handleSwapProxy, this);
+      monitor._events.on(MonitorEvents.SwapMonitorProxy, this.handleSwapProxy, this);
     }
     runner.registerForEvent(TaskRunnerEvents.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
-    runner._events.on(TaskRunnerEvents.SwapProxy, this.handleSwapProxy, this);
+    runner._events.on(TaskRunnerEvents.SwapTaskProxy, this.handleSwapProxy, this);
   }
 
   _cleanup(runner, monitor) {
@@ -538,6 +540,8 @@ class TaskManager {
       runner = new TaskRunner(this._context, openProxy, parseType);
       runner.parseType = parseType;
       monitor = new Monitor(this._context, openProxy, parseType);
+      monitor.site = task.site.url;
+      monitor.type = type;
     } else if (type === RunnerTypes.ShippingRates) {
       runner = new ShippingRatesRunner(runnerId, task, openProxy, this._loggerPath);
     }
