@@ -90,8 +90,15 @@ export class ViewTaskPrimitive extends PureComponent {
   renderRow({ index, key, style, parent }) {
     const { tasks } = this.props;
     return (
-      <CellMeasurer key={key} cache={this.cache} parent={parent} columnIndex={0} rowIndex={index}>
-        <TaskRow task={tasks[index]} style={style} />
+      <CellMeasurer
+        key={key}
+        style={style}
+        cache={this.cache}
+        parent={parent}
+        columnIndex={0}
+        rowIndex={index}
+      >
+        <TaskRow key={key} task={tasks[index]} style={style} />
       </CellMeasurer>
     );
   }
