@@ -695,7 +695,8 @@
   vertical-align: middle;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__edit {
-  width: 16px;
+  margin-top: 4.5px;
+  width: 6px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__id {
   width: 26px;

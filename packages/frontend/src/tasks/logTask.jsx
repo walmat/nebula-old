@@ -72,7 +72,7 @@ export class LogTaskPrimitive extends PureComponent {
                 rowHeight={30}
                 rowRenderer={this.renderRow}
                 rowCount={tasks.length}
-                overscanRowCount={10}
+                overscanRowCount={20}
               />
             )}
           </AutoSizer>

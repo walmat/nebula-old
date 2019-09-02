@@ -1,5 +1,11 @@
 import React, { PureComponent } from 'react';
-import { List, AutoSizer, CellMeasurer, CellMeasurerCache } from 'react-virtualized';
+import {
+  InfiniteLoader,
+  List,
+  AutoSizer,
+  CellMeasurer,
+  CellMeasurerCache,
+} from 'react-virtualized';
 import { connect } from 'react-redux';
 import TaskRow from './taskRow';
 import defns from '../utils/definitions/taskDefinitions';
@@ -9,6 +15,9 @@ export class ViewTaskPrimitive extends PureComponent {
     super(props);
     this.createTable = this.createTable.bind(this);
     this.renderRow = this.renderRow.bind(this);
+    this.isRowLoaded = this.isRowLoaded.bind(this);
+    this.loadMoreRows = this.loadMoreRows.bind(this);
+    this._setListRef = this._setListRef.bind(this);
 
     this.cache = new CellMeasurerCache({
       fixedWidth: true,
@@ -16,39 +25,66 @@ export class ViewTaskPrimitive extends PureComponent {
     });
   }
 
-  // TODO: this isn't right?
-  componentWillReceiveProps(nextProps) {
-    if (nextProps !== this.props) {
-      // clear the cache (maybe we can just do .clear() on the changed index somehow?)
-      this.cache.clearAll();
-      // recalculate the row that changed (pass index in as param when we figure that out)
-      this.tasks.recomputeRowHeights();
+  componentDidUpdate(prevProps) {
+    const {
+      selectedTask: { id },
+    } = this.props;
 
-      // lastly, force an update to the entire grid to shift it
-      this.tasks.forceUpdateGrid();
+    if (id !== prevProps.selectedTask.id) {
+      this.cache.clearAll();
+      if (this._list) {
+        this._list.recomputeRowHeights();
+      }
     }
+  }
+
+  isRowLoaded({ index }) {
+    const { tasks } = this.props;
+    return !!tasks[index];
+  }
+
+  loadMoreRows({ start, stop }) {
+    const { tasks } = this.props;
+    return tasks.slice(start, stop);
   }
 
   createTable() {
     const { tasks } = this.props;
     return (
-      <AutoSizer>
-        {({ width, height }) => (
-          <List
-            ref={r => {
-              this.tasks = r;
-            }}
-            width={width}
-            height={height}
-            deferredMeasurementCache={this.cache}
-            rowHeight={this.cache.rowHeight}
-            rowRenderer={this.renderRow}
-            rowCount={tasks.length}
-            overscanRowCount={10}
-          />
-        )}
-      </AutoSizer>
+      <InfiniteLoader
+        isRowLoaded={this.isRowLoaded}
+        loadMoreRows={this.loadMoreRows}
+        rowCount={tasks.length}
+      >
+        {({ onRowsRendered, registerChild }) => {
+          this._registerList = registerChild;
+
+          return (
+            <AutoSizer>
+              {({ width, height }) => (
+                <List
+                  tasks={tasks}
+                  width={width}
+                  height={height}
+                  onRowsRendered={onRowsRendered}
+                  ref={this._setListRef}
+                  deferredMeasurementCache={this.cache}
+                  rowHeight={this.cache.rowHeight}
+                  rowRenderer={this.renderRow}
+                  rowCount={tasks.length}
+                  overscanRowCount={50}
+                />
+              )}
+            </AutoSizer>
+          );
+        }}
+      </InfiniteLoader>
     );
+  }
+
+  _setListRef(ref) {
+    this._list = ref;
+    this._registerList(ref);
   }
 
   renderRow({ index, key, style, parent }) {
@@ -67,10 +103,12 @@ export class ViewTaskPrimitive extends PureComponent {
 
 ViewTaskPrimitive.propTypes = {
   tasks: defns.taskList.isRequired,
+  selectedTask: defns.task.isRequired,
 };
 
 export const mapStateToProps = state => ({
   tasks: state.tasks,
+  selectedTask: state.selectedTask,
 });
 
 export default connect(mapStateToProps)(ViewTaskPrimitive);

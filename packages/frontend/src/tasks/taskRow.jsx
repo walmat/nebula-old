@@ -378,7 +378,7 @@ export class TaskRowPrimitive extends PureComponent {
 
     return (
       <div key={task.id} className="tasks-row row">
-        <div className="col col--no-gutter tasks-edit">{this.renderTableRowEditButton()}</div>
+        <div className="col col--no-gutter tasks-row__edit">{this.renderTableRowEditButton()}</div>
         <div className={`col col--no-gutter tasks-row__id--${task.type}`}>{id}</div>
         <div
           className={
