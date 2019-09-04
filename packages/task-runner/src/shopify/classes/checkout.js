@@ -613,8 +613,6 @@ class Checkout {
             ctd = this._ctd;
           }
 
-          console.log(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`);
-
           try {
             const response = await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
@@ -627,8 +625,6 @@ class Checkout {
                 Connection: 'Keep-Alive',
               },
             });
-
-            console.log(response);
 
             const respBody = await response.text();
             this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);

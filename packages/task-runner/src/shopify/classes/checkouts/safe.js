@@ -286,11 +286,8 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-
           const queryStrings = new URL(redirectUrl).search;
-          console.log(queryStrings);
           const parsed = parse(queryStrings);
-          console.log(parsed);
 
           if (parsed && parsed._ctd) {
             this._logger.info('FIRST _CTD: ', parsed._ctd);
