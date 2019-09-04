@@ -2,6 +2,7 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
+import { parse } from 'query-string';
 import Checkout from '../checkout';
 
 const { States } = require('../utils/constants').TaskRunner;
@@ -229,6 +230,10 @@ class SafeCheckout extends Checkout {
       proxy,
     } = this._context;
 
+    if (!/eflash|palace/i.test(url)) {
+      return super.createCheckout();
+    }
+
     let params = `updates%5B%5D=1&checkout=Checkout`;
 
     if (/eflash/i.test(url)) {
@@ -281,6 +286,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
+
+          const queryStrings = new URL(redirectUrl).search;
+          console.log(queryStrings);
+          const parsed = parse(queryStrings);
+          console.log(parsed);
+
+          if (parsed && parsed._ctd) {
+            this._logger.info('FIRST _CTD: ', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
           try {
             await this._request(decodeURIComponent(redirectUrl), {
               method: 'GET',

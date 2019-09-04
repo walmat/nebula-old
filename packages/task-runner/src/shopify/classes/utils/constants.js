@@ -126,13 +126,21 @@ const QueueNextState = {
       nextState: CheckoutStates.CREATE_CHECKOUT,
     };
   },
-  [CheckoutStates.CREATE_CHECKOUT]: type => {
+  [CheckoutStates.CREATE_CHECKOUT]: (type, task) => {
     if (type === Modes.FAST) {
       return {
         message: 'Submitting information',
         nextState: CheckoutStates.SUBMIT_CUSTOMER,
       };
     }
+
+    if (!/eflash|palace/i.test(task.site.url)) {
+      return {
+        message: 'Waiting for product',
+        nextState: CheckoutStates.WAIT_FOR_PRODUCT,
+      };
+    }
+
     return {
       message: 'Going to checkout',
       nextState: CheckoutStates.GO_TO_CHECKOUT,

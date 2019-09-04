@@ -514,32 +514,28 @@ class TaskManager {
     let monitor;
     if (type === RunnerTypes.Normal) {
       const parseType = getParseType(task.product, task.site);
-      const events = new EventEmitter();
-
-      this._jar = new CookieJar();
-      this._logger = createLogger({
-        dir: this._loggerPath,
-        name: `Task-${runnerId}`,
-        prefix: `task-${runnerId}`,
-      });
 
       // shared context between monitor/checkout
-      this._context = {
+      const context = {
         id: runnerId,
         taskId: task.id,
         type: parseType,
         task,
         productFound: false,
         status: null,
-        events,
-        jar: this._jar,
-        logger: this._logger,
+        events: new EventEmitter(),
+        jar: new CookieJar(),
+        logger: createLogger({
+          dir: this._loggerPath,
+          name: `Task-${runnerId}`,
+          prefix: `task-${runnerId}`,
+        }),
         aborted: false,
       };
 
-      runner = new TaskRunner(this._context, openProxy, parseType);
+      runner = new TaskRunner(context, openProxy, parseType);
       runner.parseType = parseType;
-      monitor = new Monitor(this._context, openProxy, parseType);
+      monitor = new Monitor(context, openProxy, parseType);
       monitor.site = task.site.url;
       monitor.type = type;
     } else if (type === RunnerTypes.ShippingRates) {

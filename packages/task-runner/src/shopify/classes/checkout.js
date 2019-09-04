@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 import { isEmpty } from 'lodash';
+import { parse } from 'query-string';
 
 const cheerio = require('cheerio');
 const { notification } = require('./hooks');
@@ -425,8 +426,16 @@ class Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this._logger.info('FIRST _CTD: ', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
           try {
-            await this._request(decodeURIComponent(redirectUrl), {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -447,7 +456,7 @@ class Checkout {
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
           if (type === Modes.SAFE) {
-            return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+            return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
           }
           return {
             message: 'Submitting information',
@@ -491,7 +500,7 @@ class Checkout {
       for (let i = 0; i < cookies.length; i += 1) {
         const cookie = cookies[i];
         if (cookie.key.indexOf('_ctd') > -1) {
-          this._logger.debug('Found existing ctd cookie %j', cookie);
+          this._logger.debug('Found existing ctd cookie %j', cookie.value);
           found = cookie.value;
           break;
         }
@@ -597,7 +606,14 @@ class Checkout {
         this._logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);
       } else if (status === 200) {
         if (isEmpty(body) || (!isEmpty(body) && body.length < 2)) {
-          const ctd = this.getCtdCookie(this._jar);
+          let ctd;
+          if (!this._ctd) {
+            ctd = await this.getCtdCookie(this._jar);
+          } else {
+            ctd = this._ctd;
+          }
+
+          console.log(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`);
 
           try {
             const response = await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
@@ -611,6 +627,8 @@ class Checkout {
                 Connection: 'Keep-Alive',
               },
             });
+
+            console.log(response);
 
             const respBody = await response.text();
             this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
@@ -631,9 +649,11 @@ class Checkout {
           }
         }
         const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
-        [redirectUrl] = $('input[name="checkout_url"]')
-          .attr('value')
-          .split('?');
+        const [checkoutUrl] = $('input[name="checkout_url"]');
+
+        if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
+          [redirectUrl] = checkoutUrl.split('?');
+        }
       }
       this._logger.debug('QUEUE: RedirectUrl at end of fn body: %j', redirectUrl);
       if (redirectUrl) {

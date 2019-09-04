@@ -33,6 +33,7 @@
     "open": "6.3.0",
     "performance-now": "^2.1.0",
     "phone-formatter": "0.0.2",
+    "query-string": "^6.8.3",
     "shortid": "^2.2.14",
     "slack-webhook": "^1.0.0",
     "tough-cookie": "^3.0.1",
