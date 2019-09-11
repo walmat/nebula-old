@@ -15,11 +15,16 @@ class YeezyParser extends SpecialParser {
     // Look for all `.js-product-json`'s
     const products = [];
 
+    const messages = {
+      [ErrorCodes.ProductNotFound]: 'No items found!',
+      [ErrorCodes.ProductNotLive]: 'Placeholder live!',
+    };
+
     const validateArray = (arr = [], errorCode = ErrorCodes.ProductNotFound) => {
       if (arr.length === 0) {
         // If no products are found, throw an error, but specify a special status to stop the task
         // TODO: Maybe replace with a custom error object?
-        const error = new Error('No Items Found');
+        const error = new Error(messages[errorCode] || 'No Items Found');
         error.status = errorCode;
         throw error;
       }

@@ -2,6 +2,7 @@ const { sortBy, map, find, flatten, filter, every, some } = require('underscore'
 const { parseString } = require('xml2js');
 const { isSpecialSite } = require('./siteOptions');
 const { ParseType } = require('./constants').Monitor;
+const { Platforms } = require('../../../constants');
 
 module.exports = {};
 
@@ -12,9 +13,52 @@ module.exports = {};
  *
  * @param {TaskProduct} product
  */
-function getParseType(product, site) {
+function getParseType(product, site, platform = Platforms.Shopify) {
   if (!product) {
     return ParseType.Unknown;
+  }
+
+  switch (platform) {
+    case Platforms.Shopify: {
+      if (site && isSpecialSite(site) && !product.variant) {
+        return ParseType.Special;
+      }
+
+      if (product.variant) {
+        return ParseType.Variant;
+      }
+
+      if (product.url) {
+        return ParseType.Url;
+      }
+
+      if (product.pos_keywords && product.neg_keywords) {
+        return ParseType.Keywords;
+      }
+      break;
+    }
+    case Platforms.Supreme: {
+      if (product.variant) {
+        return ParseType.Variant;
+      }
+
+      if (product.url) {
+        return ParseType.Url;
+      }
+
+      if (product.pos_keywords && product.neg_keywords) {
+        return ParseType.Keywords;
+      }
+      break;
+    }
+    case Platforms.Footsites: {
+      break;
+    }
+    case Platforms.Mesh: {
+      break;
+    }
+    default:
+      break;
   }
 
   if (site && isSpecialSite(site) && !product.variant) {

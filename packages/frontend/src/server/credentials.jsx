@@ -8,6 +8,7 @@ import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, mapServerFieldToKey, serverActions } from '../state/actions';
 import {
   DropdownIndicator,
+  IndicatorSeparator,
   Control,
   Menu,
   Option,
@@ -268,7 +269,14 @@ export class AWSCredentialsPrimitive extends PureComponent {
                   data-private
                   isClearable
                   placeholder="Choose Credentials"
-                  components={{ DropdownIndicator, Control, MenuList, Menu, Option }}
+                  components={{
+                    DropdownIndicator,
+                    IndicatorSeparator,
+                    Control,
+                    MenuList,
+                    Menu,
+                    Option,
+                  }}
                   className="server-credentials__input server-credentials__input--field"
                   classNamePrefix="select"
                   styles={colourStyles(theme, buildStyle(false, null))}

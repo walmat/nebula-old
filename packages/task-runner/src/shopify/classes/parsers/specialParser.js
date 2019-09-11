@@ -7,7 +7,7 @@ const {
   ErrorCodes,
   Monitor: { ParseType },
 } = require('../utils/constants');
-const { userAgent } = require('../utils');
+const { userAgent } = require('../../../common');
 
 class SpecialParser extends Parser {
   constructor(request, type, task, proxy, aborter, logger, name) {
@@ -31,6 +31,8 @@ class SpecialParser extends Parser {
       initialUrl = this._task.product.url;
     }
 
+    console.log(this._type);
+
     // Make initial request to site
     let response;
     try {
@@ -39,11 +41,20 @@ class SpecialParser extends Parser {
       const res = await this._request(initialUrl, {
         method: 'GET',
         redirect: 'follow',
+        follow: 5,
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
       });
+
+      this._logger.info('SPECIAL PARSER INITIAL RESPONSE STATUS: %j', res.status);
+
+      if (/429|430/.test(res.status)) {
+        const rethrow = new Error('Proxy Banned!');
+        rethrow.status = res.status;
+        throw rethrow;
+      }
 
       if (res.redirected) {
         const redirectUrl = res.url;

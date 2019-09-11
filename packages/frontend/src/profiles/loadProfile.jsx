@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
   DropdownIndicator,
+  IndicatorSeparator,
   Control,
   Menu,
   MenuList,
@@ -92,7 +93,14 @@ export class LoadProfilePrimitive extends PureComponent {
                         <Select
                           required
                           placeholder="Load Profile"
-                          components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
+                          components={{
+                            DropdownIndicator,
+                            IndicatorSeparator,
+                            Control,
+                            Option,
+                            Menu,
+                            MenuList,
+                          }}
                           className="profiles-load__input-group--select"
                           classNamePrefix="select"
                           styles={colourStyles(theme, buildStyle(false, null))}

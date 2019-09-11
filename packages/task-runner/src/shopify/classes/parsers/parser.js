@@ -1,8 +1,8 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 
+const { rfrl, userAgent } = require('../../../common');
 const { matchVariant, matchKeywords } = require('../utils/parse');
-const { userAgent, rfrl } = require('../utils');
 const {
   ErrorCodes,
   Monitor: { ParseType },

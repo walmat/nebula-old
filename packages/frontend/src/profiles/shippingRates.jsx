@@ -3,7 +3,7 @@ import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { DropdownIndicator, colourStyles } from '../utils/styles/select';
+import { DropdownIndicator, IndicatorSeparator, colourStyles } from '../utils/styles/select';
 import addTestId from '../utils/addTestId';
 import validationStatus from '../utils/validationStatus';
 import defns from '../utils/definitions/profileDefinitions';
@@ -79,7 +79,7 @@ export class ShippingRatesPrimitive extends PureComponent {
         <Select
           required
           placeholder={placeholder}
-          components={{ DropdownIndicator }}
+          components={{ DropdownIndicator, IndicatorSeparator }}
           isMulti={false}
           isClearable={false}
           className={`profiles-rates__input-group--${type}`}

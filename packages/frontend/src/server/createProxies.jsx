@@ -5,6 +5,7 @@ import NumberFormat from 'react-number-format';
 import Select from 'react-select';
 import {
   DropdownIndicator,
+  IndicatorSeparator,
   Control,
   Menu,
   MenuList,
@@ -210,7 +211,14 @@ export class CreateProxiesPrimitive extends PureComponent {
                   required
                   data-private
                   placeholder="Choose Credentials"
-                  components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
+                  components={{
+                    DropdownIndicator,
+                    IndicatorSeparator,
+                    Control,
+                    Option,
+                    Menu,
+                    MenuList,
+                  }}
                   classNamePrefix="select"
                   className="proxy-options__input--credentials"
                   styles={colourStyles(theme, buildStyle(false, null))}
@@ -231,7 +239,7 @@ export class CreateProxiesPrimitive extends PureComponent {
                 <Select
                   required
                   placeholder="AWS Location"
-                  components={{ DropdownIndicator }}
+                  components={{ DropdownIndicator, IndicatorSeparator }}
                   classNamePrefix="select"
                   className="proxy-options__input--location"
                   styles={colourStyles(theme, buildStyle(false, null))}

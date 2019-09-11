@@ -4,12 +4,17 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import { min } from 'lodash';
 import Checkout from '../checkout';
 
-const { States } = require('../utils/constants').TaskRunner;
-const { getHeaders, stateForError, userAgent } = require('../utils');
+const { States, Modes } = require('../utils/constants').TaskRunner;
+const { ParseType } = require('../utils/constants').Monitor;
+const { userAgent } = require('../../../common');
+const { getHeaders, stateForError } = require('../utils');
 const { patchToCart, patchCheckoutForm } = require('../utils/forms');
 const pickVariant = require('../utils/pickVariant');
 
 class FastCheckout extends Checkout {
+  constructor(context, type = Modes.FAST) {
+    super(context, type);
+  }
   /**
    * *THIS IS JUST THE CHECKOUT PROCESS*
    * 1.* Login **DONE** `States.LOGIN`
@@ -31,15 +36,21 @@ class FastCheckout extends Checkout {
     const {
       task: {
         site: { url, apiKey },
-        product: { variants },
+        product: { variants, randomInStock },
         size,
         monitorDelay,
       },
       proxy,
       timers: { checkout: checkoutTimer },
+      parseType,
     } = this._context;
 
-    const variant = await pickVariant(variants, size, url, this._logger);
+    let variant;
+    if (parseType !== ParseType.Variant) {
+      variant = await pickVariant(variants, size, url, this._logger, randomInStock);
+    } else {
+      [variant] = variants;
+    }
 
     if (!variant) {
       return {

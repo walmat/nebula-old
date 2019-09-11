@@ -3,7 +3,7 @@ import HttpsProxyAgent from 'https-proxy-agent';
 const Parser = require('./parser');
 const { convertToJson } = require('../utils/parse');
 const { ParseType } = require('../utils/constants').Monitor;
-const { userAgent } = require('../utils');
+const { userAgent } = require('../../../common');
 
 class XmlParser extends Parser {
   /**

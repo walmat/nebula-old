@@ -13,6 +13,7 @@ import {
 import { buildStyle } from '../utils/styles';
 import {
   DropdownIndicator,
+  IndicatorSeparator,
   Control,
   Menu,
   MenuList,
@@ -221,7 +222,14 @@ export class LocationFieldsPrimitive extends PureComponent {
                       <Select
                         required
                         placeholder="Province"
-                        components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
+                        components={{
+                          DropdownIndicator,
+                          IndicatorSeparator,
+                          Control,
+                          Option,
+                          Menu,
+                          MenuList,
+                        }}
                         className={`${id}-profiles-location__input-group--province`}
                         classNamePrefix="select"
                         options={
@@ -257,7 +265,14 @@ export class LocationFieldsPrimitive extends PureComponent {
                       <Select
                         required
                         placeholder="Country"
-                        components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
+                        components={{
+                          DropdownIndicator,
+                          IndicatorSeparator,
+                          Control,
+                          Option,
+                          Menu,
+                          MenuList,
+                        }}
                         className={`${id}-profiles-location__input-group--country`}
                         classNamePrefix="select"
                         options={LocationFieldsPrimitive.buildCountryOptions()}

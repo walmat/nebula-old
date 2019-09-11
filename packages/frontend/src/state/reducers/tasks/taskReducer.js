@@ -1,6 +1,7 @@
 import { parseURL } from 'whatwg-url';
 import { PROFILE_ACTIONS, TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import initialTaskStates from '../../initial/tasks';
+import PLATFORMS from '../../../constants/platforms';
 import getAllSites from '../../../constants/getAllSites';
 import TASK_TYPES from '../../../constants/taskTypes';
 import {
@@ -8,6 +9,15 @@ import {
   SETTINGS_FIELDS,
   mapSettingsFieldToKey,
 } from '../../actions/settings/settingsActions';
+
+const siteToPlatform = url => {
+  if (/supreme/i.test(url)) {
+    return PLATFORMS.Supreme;
+  }
+
+  // TODO: more checks for other platforms here...
+  return PLATFORMS.Shopify;
+};
 
 export function taskReducer(state = initialTaskStates.task, action) {
   let change = {};
@@ -33,7 +43,16 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (!URL || !URL.host) {
             break;
           }
-          const newSite = getAllSites().find(s => URL.host.includes(s.value.split('/')[2]));
+          let newSite;
+          const allSites = getAllSites();
+
+          allSites.forEach(category => {
+            const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
+            if (exists) {
+              newSite = exists;
+            }
+          });
+
           if (!newSite || newSite.label === state.site.name) {
             break;
           }
@@ -46,8 +65,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
               special: newSite.special || false,
               auth: newSite.auth,
             },
-            username: null,
-            password: null,
+            account: null,
             errors: Object.assign({}, state.errors, action.errors),
           };
           break;
@@ -58,16 +76,15 @@ export function taskReducer(state = initialTaskStates.task, action) {
               break;
             }
             change = {
+              platform: siteToPlatform(action.value.url),
               site: action.value,
-              username: null,
-              password: null,
+              account: null,
               errors: Object.assign({}, state.errors, action.errors),
             };
           } else {
             change = {
               site: initialTaskStates.site,
-              username: initialTaskStates.task.username,
-              password: initialTaskStates.task.password,
+              account: null,
               errors: Object.assign({}, state.errors, action.errors),
             };
           }
@@ -107,12 +124,51 @@ export function taskReducer(state = initialTaskStates.task, action) {
         case TASK_FIELDS.TOGGLE_CAPTCHA: {
           change = {
             forceCaptcha: !state.forceCaptcha,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+          break;
+        }
+        case TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK: {
+          change = {
+            product: {
+              ...state.product,
+              randomInStock: !state.product.randomInStock,
+            },
+            errors: Object.assign({}, state.errors, action.errors),
           };
           break;
         }
         case TASK_FIELDS.EDIT_TASK_ACCOUNT: {
           change = {
             account: action.value,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+          break;
+        }
+        case TASK_FIELDS.EDIT_TASK_CATEGORY: {
+          change = {
+            category: action.value,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+          break;
+        }
+        case TASK_FIELDS.EDIT_PRODUCT_VARIATION: {
+          change = {
+            product: {
+              ...state.product,
+              variation: action.value,
+            },
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+          break;
+        }
+        case TASK_FIELDS.EDIT_AMOUNT: {
+          const strValue = action.value || ''; // If action.value is empty, we'll use 0
+          const amount = parseInt(strValue, 10);
+
+          change = {
+            amount,
+            errors: Object.assign({}, state.errors, action.errors),
           };
           break;
         }
@@ -120,6 +176,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
           if (!mapTaskFieldsToKey[action.field]) {
             break;
           }
+
           change = {
             [mapTaskFieldsToKey[action.field]]:
               action.value || initialTaskStates.task[mapTaskFieldsToKey[action.field]],
@@ -152,7 +209,17 @@ export function taskReducer(state = initialTaskStates.task, action) {
             if (!URL || !URL.host) {
               break;
             }
-            const newSite = getAllSites().find(s => URL.host.includes(s.value.split('/')[2]));
+
+            let newSite;
+            const allSites = getAllSites();
+
+            allSites.forEach(category => {
+              const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
+              if (exists) {
+                newSite = exists;
+              }
+            });
+
             if (!newSite || newSite.label === state.site.name) {
               break;
             }
@@ -166,8 +233,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
                   special: newSite.special || false,
                   auth: newSite.auth,
                 },
-                username: null,
-                password: null,
+                account: null,
                 errors: Object.assign({}, state.edits.errors, action.errors),
               },
             };
@@ -192,8 +258,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 ...state.edits,
                 errors: Object.assign({}, state.edits.errors, action.errors),
                 site: action.value,
-                username: null,
-                password: null,
+                account: null,
               },
             };
           } else {
@@ -202,37 +267,24 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 ...state.edits,
                 errors: Object.assign({}, state.edits.errors, action.errors),
                 site: initialTaskStates.edit.site,
-                username: initialTaskStates.edit.site,
-                password: initialTaskStates.edit.site,
+                account: null,
               },
             };
           }
           break;
         }
         case TASK_FIELDS.EDIT_SIZES: {
-          let nextSizes = JSON.parse(JSON.stringify(state.edits.sizes));
-          if (nextSizes === null) {
-            if (action.value) {
-              nextSizes = action.value;
-            }
-          } else if (action.value && action.value.length > nextSizes.length) {
-            nextSizes.unshift(...action.value.filter(s => !state.edits.sizes.find(v => s === v)));
-          } else {
-            nextSizes = state.edits.sizes.filter(s => action.value.find(v => s === v));
-          }
-
           change = {
             edits: {
               ...state.edits,
-              sizes: nextSizes,
+              size: action.value,
               errors: Object.assign({}, state.edits.errors, action.errors),
             },
           };
+
           break;
         }
-        case TASK_FIELDS.EDIT_PROFILE:
-        case TASK_FIELDS.EDIT_PASSWORD:
-        case TASK_FIELDS.EDIT_USERNAME: {
+        case TASK_FIELDS.EDIT_PROFILE: {
           change = {
             edits: {
               ...state.edits,
@@ -273,7 +325,7 @@ export function newTaskReducer(state = initialTaskStates.task, action, defaults 
       // If adding a valid new task, we shouldn't reset the current task to default values
       return Object.assign({}, state, {
         profile: defaults.useProfile ? defaults.profile : state.profile,
-        sizes: defaults.useSizes ? defaults.sizes : state.sizes,
+        size: defaults.useSizes ? defaults.size : state.size,
       });
     }
     case SETTINGS_ACTIONS.FETCH_SHIPPING: {

@@ -1,26 +1,3 @@
-const TaskManagerEvents = {
-  Abort: 'ABORT',
-  StartHarvest: 'START_CAPTCHA_HARVEST',
-  StopHarvest: 'STOP_CAPTCHA_HARVEST',
-  Harvest: 'CAPTCHA_HARVEST',
-  SendProxy: 'SEND_PROXY',
-  ChangeDelay: 'CHANGE_DELAY',
-  UpdateHook: 'UPDATE_HOOK',
-  ProductFound: 'PRODUCT_FOUND',
-};
-
-/**
- * Task Runner Event Channel Constants
- */
-const TaskRunnerEvents = {
-  All: 'ALL',
-  TaskStatus: 'TASK_STATUS',
-  MonitorStatus: 'MONITOR_STATUS',
-  SwapTaskProxy: 'SWAP_TASK_PROXY',
-  SwapMonitorProxy: 'SWAP_MONITOR_PROXY',
-  ReceiveProxy: 'RECEIVE_PROXY',
-};
-
 const MonitorStates = {
   PARSE: 'PARSE',
   MATCH: 'MATCH',
@@ -81,14 +58,10 @@ const TaskRunnerHookTypes = {
   discord: 'discord',
 };
 
-const TaskRunnerCheckoutTypes = {
-  fe: 'FRONTEND',
-  api: 'API',
-};
-
 const Modes = {
   SAFE: 'SAFE',
   FAST: 'FAST',
+  UNKNOWN: 'UNKNOWN',
 };
 
 const TaskRunnerHarvestStates = {
@@ -107,7 +80,6 @@ const ErrorCodes = {
   ProductNotLive: 'PRODUCT_NOT_LIVE',
   VariantsNotAvailable: 'VARIANTS_NOT_AVAILABLE',
   VariantsNotMatched: 'VARIANTS_NOT_MATCHED',
-  RestockingNotSupported: 'RESTOCK_NOT_SUPPORTED',
 };
 
 /**
@@ -216,20 +188,14 @@ const ParseType = {
   Special: 'SPECIAL',
 };
 
-// const CheckoutRefreshTimeout = 900000;
 const CheckoutRefreshTimeout = 98000;
 
 module.exports = {
-  TaskManager: {
-    Events: TaskManagerEvents,
-  },
   TaskRunner: {
     Types: TaskRunnerTypes,
     Modes,
-    Events: TaskRunnerEvents,
     States: CheckoutStates,
     StateMap: QueueNextState,
-    CheckoutTypes: TaskRunnerCheckoutTypes,
     CheckoutRefresh: CheckoutRefreshTimeout,
     DelayTypes: TaskRunnerDelayTypes,
     HookTypes: TaskRunnerHookTypes,
@@ -237,7 +203,6 @@ module.exports = {
   },
   Monitor: {
     States: MonitorStates,
-    Events: TaskRunnerEvents,
     DelayTypes: TaskRunnerDelayTypes,
     ParseType,
   },

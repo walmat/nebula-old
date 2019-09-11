@@ -1,7 +1,7 @@
 /* eslint-disable no-case-declarations */
 import shortId from 'shortid';
-// import { format } from 'date-fns';
 
+import PLATFORMS from '../../../constants/platforms';
 import {
   TASK_ACTIONS,
   SERVER_ACTIONS,
@@ -162,6 +162,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
       const { amount } = action.response;
 
+      if (amount && Number.isNaN(amount)) {
+        break;
+      }
+
       // perform a deep copy of given task
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
@@ -170,11 +174,25 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         ...newTask.edits,
         profile: newTask.profile,
         product: newTask.product,
-        sizes: newTask.sizes,
+        size: newTask.size,
         site: newTask.site,
-        username: newTask.username,
-        password: newTask.password,
       };
+
+      switch (newTask.platform) {
+        case PLATFORMS.Supreme: {
+          delete newTask.type;
+          delete newTask.account;
+          break;
+        }
+        case PLATFORMS.Shopify: {
+          delete newTask.product.variation;
+          delete newTask.checkoutDelay;
+          delete newTask.category;
+          break;
+        }
+        default:
+          break;
+      }
 
       [...Array(amount)].forEach(() => {
         // add new task
@@ -234,34 +252,23 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
       // Check if current task has been setup properly
       if (updateTask.edits) {
-        // Set it up properly
-        if (updateTask.edits.product && updateTask.isQueueBypass) {
-          updateTask.needsChanged = false;
-        }
-
         updateTask.profile = updateTask.edits.profile || updateTask.profile;
         updateTask.product = updateTask.edits.product || updateTask.product;
         updateTask.site = updateTask.edits.site || updateTask.site;
-        updateTask.sizes = updateTask.edits.sizes || updateTask.sizes;
-        updateTask.username = updateTask.edits.username || updateTask.username;
-        updateTask.password = updateTask.edits.password || updateTask.password;
+        updateTask.size = updateTask.edits.size || updateTask.size;
       }
       // copy over to edits
       updateTask.edits = {
         ...updateTask.edits,
         profile: updateTask.profile,
         product: updateTask.product,
-        sizes: updateTask.sizes,
+        size: updateTask.size,
         site: updateTask.site,
-        username: updateTask.username,
-        password: updateTask.password,
         errors: {
           profile: null,
           product: null,
-          sizes: null,
+          size: null,
           site: null,
-          username: null,
-          password: null,
         },
       };
 

@@ -7,6 +7,7 @@ import { parseURL } from 'whatwg-url';
 import { buildStyle } from '../utils/styles';
 import {
   DropdownIndicator,
+  IndicatorSeparator,
   Control,
   Menu,
   MenuList,
@@ -185,7 +186,7 @@ export class ShippingManagerPrimitive extends PureComponent {
             isLoading={isLoading}
             required
             placeholder={placeholder}
-            components={{ DropdownIndicator }}
+            components={{ DropdownIndicator, IndicatorSeparator }}
             isMulti={false}
             className={`settings--shipping-manager__input-group--${type}`}
             classNamePrefix="select"
@@ -198,7 +199,7 @@ export class ShippingManagerPrimitive extends PureComponent {
           <Select
             required
             placeholder={placeholder}
-            components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
+            components={{ DropdownIndicator, IndicatorSeparator, Control, Option, Menu, MenuList }}
             isMulti={false}
             isClearable={false}
             className={`settings--shipping-manager__input-group--${type}`}

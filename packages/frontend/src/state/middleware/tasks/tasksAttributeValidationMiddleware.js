@@ -8,14 +8,14 @@ const tasksAttributeValidationMiddleware = store => next => action => {
 
   if (
     action.field === TASK_FIELDS.TOGGLE_CAPTCHA ||
-    action.field === TASK_FIELDS.EDIT_TASK_TYPE ||
-    action.field === TASK_FIELDS.EDIT_TASK_ACCOUNT
+    action.field === TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK ||
+    action.field === TASK_FIELDS.EDIT_TASK_TYPE
   ) {
     return next(action);
   }
 
   // Check for valid payload structure and dispatch an error if invalid
-  if (!action.field || (!action.value && action.value !== '')) {
+  if (!action.field || (!action.value && (action.value !== '' && action.value !== null))) {
     return store.dispatch(taskActions.error(action.type, 'invalid action structure!'));
   }
 

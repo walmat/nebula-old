@@ -3,17 +3,17 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
-const Timer = require('../classes/timer');
-const Discord = require('../classes/hooks/discord');
-const Slack = require('../classes/hooks/slack');
+const Timer = require('../../common/timer');
+const Discord = require('../../common/discord');
+// const Slack = require('../../common/slack');
 const AsyncQueue = require('../../common/asyncQueue');
+const { Events } = require('../../constants').Runner;
 const {
-  ErrorCodes,
-  TaskRunner: { States, Events, Types, DelayTypes, HookTypes, StateMap, HarvestStates },
+  TaskRunner: { States, Types, DelayTypes, HookTypes, StateMap, HarvestStates },
   Monitor: { ParseType },
 } = require('../classes/utils/constants');
-const TaskManagerEvents = require('../classes/utils/constants').TaskManager.Events;
-const { waitForDelay } = require('../classes/utils');
+const TaskManagerEvents = require('../../constants').Manager.Events;
+const { waitForDelay } = require('../../common');
 const { getCheckoutMethod } = require('../classes/checkouts');
 const { Modes } = require('../classes/utils/constants').TaskRunner;
 
@@ -35,7 +35,7 @@ class TaskRunner {
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
-      timeout: 60000, // to be overridden as necessary
+      timeout: 120000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
     this._parseType = type;
@@ -49,7 +49,7 @@ class TaskRunner {
       monitor: new Timer(),
     };
     this._discord = new Discord(this._task.discord);
-    this._slack = new Slack(this._task.slack);
+    // this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
 
     /**
@@ -62,6 +62,7 @@ class TaskRunner {
       ...context,
       proxy: proxy ? proxy.proxy : null,
       rawProxy: proxy ? proxy.raw : null,
+      parseType: this._parseType,
       aborter: this._aborter,
       delayer: this._delayer,
       signal: this._aborter.signal,
@@ -69,7 +70,7 @@ class TaskRunner {
       jar: context.jar,
       timers: this._timers,
       discord: this._discord,
-      slack: this._slack,
+      // slack: this._slack,
       logger: this._logger,
       aborted: this._aborted,
       harvestState: HarvestStates.idle,
@@ -83,15 +84,12 @@ class TaskRunner {
       this._context.task.type,
       this._logger,
     );
-    [this._checkoutType, this._checkout] = CheckoutCreator({
+    this._checkout = CheckoutCreator({
       ...this._context,
       getCaptcha: this.getCaptcha.bind(this),
       stopHarvestCaptcha: this.stopHarvestCaptcha.bind(this),
       suspendHarvestCaptcha: this.suspendHarvestCaptcha.bind(this),
     });
-
-    // Add in the checkout type once we create the checkout module
-    this._checkout._checkoutType = this._checkoutType;
 
     this._history = [];
 
@@ -169,12 +167,6 @@ class TaskRunner {
     }
   }
 
-  /**
-   * Propagates to change the appropriate hook
-   * @param {String} id
-   * @param {String} hook
-   * @param {String} type
-   */
   _handleUpdateHooks(id, hook, type) {
     if (id === this._context.id) {
       if (type === HookTypes.Discord) {
@@ -499,60 +491,6 @@ class TaskRunner {
     return States.WAIT_FOR_PRODUCT;
   }
 
-  async _handleRestocking() {
-    const {
-      aborted,
-      rawProxy,
-      task: { monitorDelay },
-    } = this._context;
-
-    // exit if abort is detected
-    if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    // if (this._context.timers.monitor.getRunTime() > CheckoutRefresh) {
-    //   this._emitTaskEvent({ message: 'Refreshing checkout', proxy: rawProxy });
-    //   return States.GO_TO_CHECKOUT;
-    // }
-
-    let res;
-    try {
-      res = await this._restockMonitor.run();
-    } catch (err) {
-      if (err.code === ErrorCodes.RestockingNotSupported) {
-        // If restock monitoring is not supported, go straight to ATC
-        return States.ADD_TO_CART;
-      }
-    }
-
-    const { message, delay, nextState, shouldBan } = res;
-
-    const { chosenSizes, name } = this._context.task.product;
-
-    this._emitTaskEvent({
-      message,
-      size: chosenSizes ? chosenSizes[0] : undefined,
-      found: name || undefined,
-      proxy: rawProxy,
-    });
-
-    if (nextState === States.SWAP) {
-      this._emitTaskEvent({ message: `Proxy banned!` });
-      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
-      return nextState;
-    }
-
-    if (delay) {
-      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-      await this._delayer;
-      this._emitTaskEvent({ message: 'Checking stock', rawProxy });
-    }
-    // Restock Monitor will be in charge of choosing the next state
-    return nextState;
-  }
-
   async _handleAddToCart() {
     const {
       aborted,
@@ -742,16 +680,34 @@ class TaskRunner {
       return nextState;
     }
 
-    if (delay) {
-      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-      await this._delayer;
-    }
-
     this._emitTaskEvent({
       message,
       proxy: rawProxy,
       checkoutUrl,
     });
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
+
+      switch (nextState) {
+        case States.GO_TO_CHECKOUT: {
+          this._emitTaskEvent({ message: 'Submitting information' });
+          break;
+        }
+        case States.GO_TO_SHIPPING: {
+          this._emitTaskEvent({ message: 'Submitting shipping' });
+          break;
+        }
+        case States.GO_TO_PAYMENT: {
+          this._emitTaskEvent({ message: 'Submitting payment' });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
 
     return nextState;
   }
@@ -781,17 +737,35 @@ class TaskRunner {
       checkoutUrl = `${url}/${storeId}/checkouts/${checkoutToken}?key=${checkoutKey}`;
     }
 
-    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
-
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
       return nextState;
     }
 
+    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+
     if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
+
+      switch (nextState) {
+        case States.GO_TO_CHECKOUT: {
+          this._emitTaskEvent({ message: 'Submitting information' });
+          break;
+        }
+        case States.GO_TO_SHIPPING: {
+          this._emitTaskEvent({ message: 'Submitting shipping' });
+          break;
+        }
+        case States.GO_TO_PAYMENT: {
+          this._emitTaskEvent({ message: 'Submitting payment' });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
 
     return nextState;
@@ -841,12 +815,30 @@ class TaskRunner {
       return nextState;
     }
 
+    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+
     if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
-    }
 
-    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+      switch (nextState) {
+        case States.GO_TO_CHECKOUT: {
+          this._emitTaskEvent({ message: 'Submitting information' });
+          break;
+        }
+        case States.GO_TO_SHIPPING: {
+          this._emitTaskEvent({ message: 'Submitting shipping' });
+          break;
+        }
+        case States.GO_TO_PAYMENT: {
+          this._emitTaskEvent({ message: 'Submitting payment' });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
 
     return nextState;
   }
@@ -882,12 +874,30 @@ class TaskRunner {
       return nextState;
     }
 
+    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+
     if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
-    }
 
-    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+      switch (nextState) {
+        case States.GO_TO_CHECKOUT: {
+          this._emitTaskEvent({ message: 'Submitting information' });
+          break;
+        }
+        case States.GO_TO_SHIPPING: {
+          this._emitTaskEvent({ message: 'Submitting shipping' });
+          break;
+        }
+        case States.GO_TO_PAYMENT: {
+          this._emitTaskEvent({ message: 'Submitting payment' });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
 
     return nextState;
   }
@@ -924,17 +934,35 @@ class TaskRunner {
 
     this._context.timers.checkout.start();
 
-    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
-
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!`, proxy: rawProxy, checkoutUrl });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
       return nextState;
     }
 
+    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+
     if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
+
+      switch (nextState) {
+        case States.GO_TO_CHECKOUT: {
+          this._emitTaskEvent({ message: 'Submitting information' });
+          break;
+        }
+        case States.GO_TO_SHIPPING: {
+          this._emitTaskEvent({ message: 'Submitting shipping' });
+          break;
+        }
+        case States.GO_TO_PAYMENT: {
+          this._emitTaskEvent({ message: 'Submitting payment' });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
 
     return nextState;
@@ -965,17 +993,35 @@ class TaskRunner {
       checkoutUrl = `${url}/${storeId}/checkouts/${checkoutToken}?key=${checkoutKey}`;
     }
 
-    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
-
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!`, proxy: rawProxy, checkoutUrl });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
       return nextState;
     }
 
+    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+
     if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
+
+      switch (nextState) {
+        case States.GO_TO_CHECKOUT: {
+          this._emitTaskEvent({ message: 'Submitting information' });
+          break;
+        }
+        case States.GO_TO_SHIPPING: {
+          this._emitTaskEvent({ message: 'Submitting shipping' });
+          break;
+        }
+        case States.GO_TO_PAYMENT: {
+          this._emitTaskEvent({ message: 'Submitting payment' });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
 
     return nextState;
@@ -1010,17 +1056,35 @@ class TaskRunner {
       checkoutUrl = `${url}/${storeId}/checkouts/${checkoutToken}?key=${checkoutKey}`;
     }
 
-    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
-
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!`, proxy: rawProxy, checkoutUrl });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
       return nextState;
     }
 
+    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+
     if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
+
+      switch (nextState) {
+        case States.GO_TO_CHECKOUT: {
+          this._emitTaskEvent({ message: 'Submitting information' });
+          break;
+        }
+        case States.GO_TO_SHIPPING: {
+          this._emitTaskEvent({ message: 'Submitting shipping' });
+          break;
+        }
+        case States.GO_TO_PAYMENT: {
+          this._emitTaskEvent({ message: 'Submitting payment' });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
 
     return nextState;
@@ -1051,17 +1115,35 @@ class TaskRunner {
       checkoutUrl = `${url}/${storeId}/checkouts/${checkoutToken}?key=${checkoutKey}`;
     }
 
-    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
-
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!`, proxy: rawProxy, checkoutUrl });
       this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
       return nextState;
     }
 
+    this._emitTaskEvent({ message, proxy: rawProxy, checkoutUrl });
+
     if (delay) {
       this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
       await this._delayer;
+
+      switch (nextState) {
+        case States.GO_TO_CHECKOUT: {
+          this._emitTaskEvent({ message: 'Submitting information' });
+          break;
+        }
+        case States.GO_TO_SHIPPING: {
+          this._emitTaskEvent({ message: 'Submitting shipping' });
+          break;
+        }
+        case States.GO_TO_PAYMENT: {
+          this._emitTaskEvent({ message: 'Submitting payment' });
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
 
     return nextState;
@@ -1189,7 +1271,6 @@ class TaskRunner {
       [States.CREATE_CHECKOUT]: this._handleCreateCheckout,
       [States.QUEUE]: this._handlePollQueue,
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
-      [States.RESTOCK]: this._handleRestocking,
       [States.ADD_TO_CART]: this._handleAddToCart,
       [States.GO_TO_CART]: this._handleGoToCart,
       [States.GO_TO_CHECKOUT]: this._handleGoToCheckout,

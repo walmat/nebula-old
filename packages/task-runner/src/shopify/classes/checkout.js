@@ -4,10 +4,12 @@ import { isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
 const cheerio = require('cheerio');
+const { Events } = require('../../constants').Runner;
+const { userAgent, currencyWithSymbol } = require('../../common');
 const { notification } = require('./hooks');
-const { getHeaders, stateForError, userAgent, currencyWithSymbol } = require('./utils');
+const { getHeaders, stateForError } = require('./utils');
 const { buildPaymentForm } = require('./utils/forms');
-const { States, Events, Modes } = require('./utils/constants').TaskRunner;
+const { States, Modes, Types } = require('./utils/constants').TaskRunner;
 
 class Checkout {
   get context() {
@@ -18,7 +20,7 @@ class Checkout {
     return this._checkoutType;
   }
 
-  constructor(context) {
+  constructor(context, type = Modes.UNKNOWN) {
     this._context = context;
     this._logger = this._context.logger;
     this._request = this._context.request;
@@ -26,14 +28,19 @@ class Checkout {
     this._events = this._context.events;
     this._delayer = this._context.delayer;
     this._signal = this._context.signal;
-    this._checkoutType = this._context.checkoutType;
+    this._checkoutType = type;
 
     this.shippingMethods = [];
     const preFetchedShippingRates = this._context.task.profile.rates.find(
       r => r.site.url === this._context.task.site.url,
     );
 
-    if (this._context.type && preFetchedShippingRates && preFetchedShippingRates.selectedRate) {
+    if (
+      type !== Modes.SAFE &&
+      this._context.type &&
+      preFetchedShippingRates &&
+      preFetchedShippingRates.selectedRate
+    ) {
       const { name, price, rate } = preFetchedShippingRates.selectedRate;
       this.chosenShippingMethod = {
         name,
@@ -84,10 +91,8 @@ class Checkout {
   }
 
   _emitTaskEvent(payload = {}) {
-    if (payload.message && payload.message !== this._context.status) {
-      this._context.status = payload.message;
-      this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
-    }
+    this._context.status = payload.message;
+    this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
   }
 
   async parseBotProtection($) {
@@ -168,7 +173,7 @@ class Checkout {
           return { message: 'Logging in', nextState: States.LOGIN };
         }
 
-        if (type === Modes.SAFE && (/eflash/i.test(url) || /palace/i.test(url))) {
+        if (type === Modes.SAFE) {
           return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
         }
 
@@ -430,7 +435,7 @@ class Checkout {
           const parsed = parse(queryStrings);
 
           if (parsed && parsed._ctd) {
-            this._logger.info('FIRST _CTD: ', parsed._ctd);
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -488,7 +493,7 @@ class Checkout {
     }
   }
 
-  async getCtdCookie(jar) {
+  async getCookie(jar, name) {
     const store = jar.Store || jar.store;
 
     if (!store) {
@@ -499,7 +504,7 @@ class Checkout {
     store.getAllCookies((_, cookies) => {
       for (let i = 0; i < cookies.length; i += 1) {
         const cookie = cookies[i];
-        if (cookie.key.indexOf('_ctd') > -1) {
+        if (cookie.key.indexOf(name) > -1) {
           this._logger.debug('Found existing ctd cookie %j', cookie.value);
           found = cookie.value;
           break;
@@ -608,7 +613,7 @@ class Checkout {
         if (isEmpty(body) || (!isEmpty(body) && body.length < 2)) {
           let ctd;
           if (!this._ctd) {
-            ctd = await this.getCtdCookie(this._jar);
+            ctd = await this.getCookie(this._jar, '_ctd');
           } else {
             ctd = this._ctd;
           }

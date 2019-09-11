@@ -1,9 +1,8 @@
 import HttpsProxyAgent from 'https-proxy-agent';
-
-const cheerio = require('cheerio');
+import cheerio from 'cheerio';
 
 const DsmParser = require('./dsmParser');
-const { userAgent } = require('../../utils');
+const { userAgent } = require('../../../../common');
 
 class DsmUkParser extends DsmParser {
   constructor(request, type, task, proxy, aborter, logger) {

@@ -1,9 +1,7 @@
-import _ from 'underscore';
-import sites from './sites.json';
+import sites from './sites';
 
 export default function getAllSupportedSitesSorted() {
-  const supported = sites.filter(val => val.supported === true);
-  return _.sortBy(supported, 'label');
+  return sites;
 }
 
 export function getSite(site) {

@@ -1,7 +1,7 @@
 const FastCheckout = require('./fast');
 const SafeCheckout = require('./safe');
 const {
-  TaskRunner: { CheckoutTypes, Modes },
+  TaskRunner: { Modes },
 } = require('../utils/constants');
 
 function getCheckoutMethod(site, type, logger) {
@@ -10,13 +10,15 @@ function getCheckoutMethod(site, type, logger) {
 
   switch (type) {
     case Modes.SAFE: {
-      return (...context) => [CheckoutTypes.fe, new SafeCheckout(...context)];
+      _logger.log('silly', 'SAFE MODE for %s', site.url);
+      return (...context) => new SafeCheckout(...context);
     }
     case Modes.FAST: {
-      return (...context) => [CheckoutTypes.fe, new FastCheckout(...context)];
+      _logger.log('silly', 'FAST MODE for %s', site.url);
+      return (...context) => new FastCheckout(...context);
     }
     default: {
-      return (...context) => [CheckoutTypes.fe, new SafeCheckout(...context)];
+      return (...context) => new SafeCheckout(...context);
     }
   }
   // if (site.special) {

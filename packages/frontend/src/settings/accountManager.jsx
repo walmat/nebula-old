@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { buildStyle } from '../utils/styles';
 import {
   DropdownIndicator,
+  IndicatorSeparator,
   Control,
   Menu,
   MenuList,
@@ -193,7 +194,14 @@ export class AccountManagerPrimitive extends PureComponent {
                         <Select
                           required
                           placeholder="Test Account"
-                          components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
+                          components={{
+                            DropdownIndicator,
+                            IndicatorSeparator,
+                            Control,
+                            Option,
+                            Menu,
+                            MenuList,
+                          }}
                           isMulti={false}
                           isClearable={false}
                           className="settings--account-manager__input-group--account"

@@ -36,6 +36,11 @@
         padding-top: 1px;
       }
 
+      &--filter {
+        padding-left: 14px;
+        margin-bottom: 2px;
+      }
+
       &--site {
         padding-left: 14px;
       }
@@ -62,6 +67,18 @@
         &:disabled {
           @include themify($themes) {
             background: themed('inputBackgroundDisabled');
+          }
+        }
+        &__short {
+          width: 79px;
+          height: 29px;
+          @include themify($themes) {
+            background: themed('inputBackground');
+          }
+          &:disabled {
+            @include themify($themes) {
+              background: themed('inputBackgroundDisabled');
+            }
           }
         }
       }

@@ -39,10 +39,22 @@ function getSpecialParser(site) {
   }
 }
 
+function getParsers(url) {
+  if (/yeezysupply|eflash|palace|kith/i.test(url)) {
+    return (...params) => [new JsonParser(...params)];
+  }
+  return (...params) => [
+    new JsonParser(...params),
+    new AtomParser(...params),
+    new XmlParser(...params),
+  ];
+}
+
 module.exports = {
   Parser,
   AtomParser,
   JsonParser,
   XmlParser,
   getSpecialParser,
+  getParsers,
 };

@@ -1,6 +1,6 @@
 import HttpsProxyAgent from 'https-proxy-agent';
 
-const { userAgent } = require('../utils');
+const { userAgent } = require('../../../common');
 const Parser = require('./parser');
 
 class JsonParser extends Parser {

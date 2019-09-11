@@ -1,11 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
 
-const {
-  TaskManager,
-  SplitWebWorkerTaskManager,
-  SplitProcessTaskManager,
-} = require('@nebula/task-runner-built').shopify;
+const { TaskManager } = require('@nebula/task-runner-built').shopify;
 
 const IPCKeys = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
@@ -22,34 +18,7 @@ class TaskManagerAdapter {
     this.statusMessageBuffer = {};
     this._messageInterval = null;
 
-    // Use environment to initialize the right task manager
-    switch (process.env.NEBULA_RUNNER_CONCURRENCY_TYPE) {
-      case 'single': {
-        this._taskManager = new TaskManager(logPath);
-        break;
-      }
-      case 'process': {
-        this._taskManager = new SplitProcessTaskManager(logPath);
-        break;
-      }
-      case 'workers': {
-        this._taskManager = new SplitWebWorkerTaskManager(logPath);
-        break;
-      }
-      default: {
-        // Use worker threads TaskManager as default if supported
-        try {
-          // TODO: Move this to worker threads when we implement it (#412)
-          this._taskManager = new SplitWebWorkerTaskManager(logPath);
-        } catch (_) {
-          console.log(
-            '[WARNING]: Web Workers are not supported in this environment! Falling back to multi-process manager...',
-          );
-          this._taskManager = new SplitProcessTaskManager(logPath);
-        }
-        break;
-      }
-    }
+    this._taskManager = new TaskManager(logPath);
 
     this._taskEventHandler = (taskId, statusMessage) => {
       // grab the old messages (if they exists)..

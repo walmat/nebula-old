@@ -4,21 +4,31 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { ReactComponent as DropDownClosed } from '../../_assets/dropdown-down.svg';
 import { ReactComponent as DropDownOpened } from '../../_assets/dropdown-up.svg';
+import { ReactComponent as ErrorsDropDownClosed } from '../../_assets/dropdown-down-errors.svg';
+import { ReactComponent as ErrorsDropDownOpened } from '../../_assets/dropdown-up-errors.svg';
 import { THEMES, mapThemeToColor } from '../../constants/themes';
 import { renderSvgIcon } from '../index';
 
 export const DropdownIndicator = props => {
   const {
     selectProps: { menuIsOpen },
+    errors,
   } = props;
+
+  let IconOpened = DropDownOpened;
+  let IconClosed = DropDownClosed;
+  if (errors) {
+    IconOpened = ErrorsDropDownOpened;
+    IconClosed = ErrorsDropDownClosed;
+  }
   return (
     <components.DropdownIndicator {...props}>
       {menuIsOpen
-        ? renderSvgIcon(DropDownOpened, {
+        ? renderSvgIcon(IconOpened, {
             alt: '',
             style: { marginRight: '-5px', cursor: 'pointer' },
           })
-        : renderSvgIcon(DropDownClosed, {
+        : renderSvgIcon(IconClosed, {
             alt: '',
             style: { marginRight: '-5px', cursor: 'pointer' },
           })}
@@ -26,8 +36,11 @@ export const DropdownIndicator = props => {
   );
 };
 DropdownIndicator.propTypes = {
+  errors: PropTypes.objectOf(PropTypes.any).isRequired,
   selectProps: PropTypes.objectOf(PropTypes.any).isRequired,
 };
+
+export const IndicatorSeparator = () => null;
 
 export const Control = props => <components.Control {...props} data-private />;
 
@@ -55,6 +68,14 @@ export const colourStyles = (theme, provided) => ({
         cursor: 'pointer',
       },
       backgroundColor,
+    };
+  },
+  DropdownIndicator: styles => {
+    console.log(styles);
+
+    return {
+      ...styles,
+      color: (provided && provided.borderColor) || '#6D6E70',
     };
   },
   option: (styles, { isDisabled, isFocused, isSelected }) => {

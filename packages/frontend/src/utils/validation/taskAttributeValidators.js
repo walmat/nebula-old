@@ -44,25 +44,24 @@ function validateSite(site) {
   return URL && URL.host;
 }
 
-/**
- * We can assume only valid sizes can be added..
- * @param {Array} sizes - array of sizes
- */
-function validateSizes(sizes) {
-  return sizes;
-}
-
 function validateProfile(profile) {
   return profile && profile.id;
+}
+
+function validateNonEmpty(input) {
+  return input;
 }
 
 const taskAttributeValidators = {
   [TASK_FIELDS.EDIT_PRODUCT]: validateProduct,
   [TASK_FIELDS.EDIT_SITE]: validateSite,
   [TASK_FIELDS.EDIT_PROFILE]: validateProfile,
-  [TASK_FIELDS.EDIT_SIZES]: validateSizes,
+  [TASK_FIELDS.EDIT_SIZES]: validateNonEmpty,
+  [TASK_FIELDS.EDIT_TASK_CATEGORY]: validateNonEmpty,
+  [TASK_FIELDS.EDIT_PRODUCT_VARIATION]: validateNonEmpty,
+  [TASK_FIELDS.EDIT_TASK_TYPE]: () => true,
   [TASK_FIELDS.EDIT_TASK_ACCOUNT]: () => true,
-  [TASK_FIELDS.EDIT_AMOUNT]: () => true,
+  [TASK_FIELDS.EDIT_AMOUNT]: input => parseInt(input, 10) > 0,
 };
 
 export default taskAttributeValidators;

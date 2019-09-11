@@ -39,17 +39,9 @@ const _updateTaskRequest = async (id, task) => {
   if (copy.edits !== null) {
     copy.profile = copy.edits.profile || copy.profile;
     copy.product = copy.edits.product || copy.product;
-    copy.sizes = copy.edits.sizes || copy.sizes;
+    copy.size = copy.edits.size || copy.size;
     copy.site = copy.edits.site || copy.site;
-    if (copy.site.auth) {
-      // if we need auth, choose the correct user/pass combo
-      copy.username = copy.edits.site ? copy.edits.username : copy.username;
-      copy.password = copy.edits.site ? copy.edits.password : copy.password;
-    } else {
-      // Clear out the user/pass component since we don't need auth
-      copy.username = '';
-      copy.password = '';
-    }
+    copy.account = copy.edits.account || copy.account;
   }
 
   // After updating the base, reparse the products to make sure the correct type is filled out
@@ -70,17 +62,14 @@ const _updateTaskRequest = async (id, task) => {
   copy.edits = {
     profile: copy.profile,
     product: copy.product,
-    sizes: copy.sizes,
+    size: copy.size,
     site: copy.site,
-    username: copy.username,
-    password: copy.password,
+    account: copy.account,
     errors: {
       profile: null,
       product: null,
-      sizes: null,
+      size: null,
       site: null,
-      username: null,
-      password: null,
     },
   };
   return { id, task: copy };
@@ -265,11 +254,14 @@ const stopAllTasks = tasks => dispatch =>
 export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
   EDIT_TASK_ACCOUNT: 'EDIT_TASK_ACCOUNT',
+  EDIT_TASK_CATEGORY: 'EDIT_TASK_CATEGORY',
+  EDIT_PRODUCT_VARIATION: 'EDIT_PRODUCT_VARIATION',
   EDIT_SITE: 'EDIT_SITE',
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZES: 'EDIT_SIZES',
   EDIT_AMOUNT: 'EDIT_AMOUNT',
   TOGGLE_CAPTCHA: 'TOGGLE_CAPTCHA',
+  TOGGLE_RANDOM_IN_STOCK: 'TOGGLE_RANDOM_IN_STOCK',
   EDIT_TASK_TYPE: 'EDIT_TASK_TYPE',
 };
 
@@ -293,10 +285,13 @@ export const taskActions = {
 export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_PRODUCT]: 'product',
   [TASK_FIELDS.EDIT_TASK_ACCOUNT]: 'account',
+  [TASK_FIELDS.EDIT_TASK_CATEGORY]: 'category',
+  [TASK_FIELDS.EDIT_PRODUCT_VARIATION]: 'variation',
   [TASK_FIELDS.EDIT_SITE]: 'site',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
-  [TASK_FIELDS.EDIT_SIZES]: 'sizes',
+  [TASK_FIELDS.EDIT_SIZES]: 'size',
   [TASK_FIELDS.EDIT_AMOUNT]: 'amount',
   [TASK_FIELDS.EDIT_TASK_TYPE]: 'type',
   [TASK_FIELDS.TOGGLE_CAPTCHA]: 'captcha',
+  [TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK]: 'randomInStock',
 };

@@ -1,4 +1,4 @@
-const { sortBy } = require('underscore');
+const { sortBy } = require('lodash');
 
 module.exports = {};
 
@@ -141,7 +141,6 @@ const sites = [
     url: 'https://eflash-us.doverstreetmarket.com',
     apiKey: 'c61dfd7121456f05d58cedf7a0b068b6',
     auth: false,
-    special: true,
     supported: true,
   },
   {
@@ -157,7 +156,6 @@ const sites = [
     url: 'https://eflash-sg.doverstreetmarket.com',
     apiKey: '0867cfd02e49786c54fd1a9fd02f03cd',
     auth: false,
-    special: true,
     supported: true,
   },
   {
@@ -165,7 +163,6 @@ const sites = [
     url: 'https://eflash-jp.doverstreetmarket.com',
     apiKey: '8cbefa53e1484d3a39a41396a00b9fe9',
     auth: false,
-    special: true,
     supported: true,
   },
   {
@@ -599,7 +596,6 @@ const sites = [
     name: 'Yeezy Supply',
     url: 'https://yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
-    special: true,
     auth: false,
     supported: true,
   },
@@ -607,7 +603,6 @@ const sites = [
     name: 'Yeezy Supply (Asia)',
     url: 'https://yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
-    special: true,
     auth: false,
     supported: true,
   },
@@ -615,7 +610,6 @@ const sites = [
     name: 'Yeezy Supply (Europe)',
     url: 'https://europe.yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
-    special: true,
     auth: false,
     supported: true,
   },
@@ -623,7 +617,6 @@ const sites = [
     name: 'Yeezy Supply 350',
     url: 'https://350.yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
-    special: true,
     auth: false,
     supported: true,
   },
@@ -631,7 +624,6 @@ const sites = [
     name: 'Yeezy Supply 700',
     url: 'https://700.yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
-    special: true,
     auth: false,
     supported: true,
   },
@@ -771,18 +763,18 @@ const sites = [
 ];
 
 function getAllSupportedSites() {
-  return sites.filter(val => val.supported === true);
+  return sites.filter(val => val.supported);
 }
 module.exports.getAllSupportedSites = getAllSupportedSites;
 
 function getAllSupportedSitesSorted() {
-  const supported = sites.filter(val => val.supported === true);
+  const supported = sites.filter(val => val.supported);
   return sortBy(supported, 'name');
 }
 module.exports.getAllSupportedSitesSorted = getAllSupportedSitesSorted;
 
 function getAllSpecialSites() {
-  return sites.filter(val => val.special === true);
+  return sites.filter(val => val.special);
 }
 module.exports.getAllSpecialSites = getAllSpecialSites;
 

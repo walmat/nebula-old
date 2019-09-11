@@ -130,7 +130,7 @@ export class TasksPrimitive extends PureComponent {
                     <p>#</p>
                   </div>
                   <div className="col tasks-table__header__product">
-                    <p>Product</p>
+                    <p>Product / Variation</p>
                   </div>
                   <div className="col tasks-table__header__sites">
                     <p>Site</p>

@@ -118,6 +118,10 @@
 .tasks .tasks-create__input-group--last {
   padding-top: 1px;
 }
+.tasks .tasks-create__input-group--filter {
+  padding-left: 14px;
+  margin-bottom: 2px;
+}
 .tasks .tasks-create__input-group--site {
   padding-left: 14px;
 }
@@ -142,6 +146,22 @@
   background: #dcdcdc;
 }
 .theme-dark .tasks .tasks-create__input--field:disabled {
+  background: #262626;
+}
+.tasks .tasks-create__input--field__short {
+  width: 79px;
+  height: 29px;
+}
+.theme-light .tasks .tasks-create__input--field__short {
+  background: #f4f4f4;
+}
+.theme-dark .tasks .tasks-create__input--field__short {
+  background: #393c3f;
+}
+.theme-light .tasks .tasks-create__input--field__short:disabled {
+  background: #dcdcdc;
+}
+.theme-dark .tasks .tasks-create__input--field__short:disabled {
   background: #262626;
 }
 .tasks .tasks-create__input--type-FAST {
