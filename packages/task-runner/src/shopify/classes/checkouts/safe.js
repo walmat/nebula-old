@@ -19,6 +19,9 @@ const pickVariant = require('../utils/pickVariant');
 class SafeCheckout extends Checkout {
   constructor(context, type = Modes.SAFE) {
     super(context, type);
+
+    this.formValues = [];
+    this.form = '';
   }
 
   async addToCart() {
@@ -220,10 +223,6 @@ class SafeCheckout extends Checkout {
             properties: /dsm uk/i.test(name)
               ? {
                   _hash: hash,
-                }
-              : /dsm us/i.test(name)
-              ? {
-                  _HASH: hash,
                 }
               : {},
           },
@@ -668,7 +667,7 @@ class SafeCheckout extends Checkout {
 
       const $ = cheerio.load(body, {
         normalizeWhitespace: true,
-        xmlMode: true,
+        xmlMode: false,
       });
 
       this.note = $('input[name="note"]').attr('value');
@@ -676,13 +675,16 @@ class SafeCheckout extends Checkout {
       $('form[action="/cart"] input, select, textarea').each((_, el) => {
         const name = $(el).attr('name');
         const value = $(el).attr('value') || '';
-        // BLACKLIST values/names
-        if (!/update cart|{{itemQty}}/i.test(value)) {
+
+        this._logger.info('Cart form value detected: { name: %j, value: %j }', name, value);
+        // Blacklisted values/names
+        if (!/update cart|Update|{{itemQty}}/i.test(value)) {
           this.cartForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
         }
       });
 
       this.cartForm = this.cartForm.slice(0, -1);
+      this._logger.info('Cart form parsed: %j', this.cartForm);
 
       return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
     } catch (err) {
@@ -719,8 +721,8 @@ class SafeCheckout extends Checkout {
       const res = await this._request(`${url}/cart`, {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'manual',
-        follow: 0,
+        redirect: 'follow',
+        follow: 5,
         headers: {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/x-www-form-urlencoded',
@@ -732,7 +734,7 @@ class SafeCheckout extends Checkout {
 
       // reset cart form in case we need to parse it again...
       this.cartForm = '';
-      const { status, headers } = res;
+      const { status, url: redirectUrl } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -746,7 +748,6 @@ class SafeCheckout extends Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.get('location');
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
@@ -939,7 +940,7 @@ class SafeCheckout extends Checkout {
         monitorDelay,
         forceCaptcha,
       },
-      timers: { checkout, monitor },
+      timers: { monitor },
       proxy,
     } = this._context;
 
@@ -953,8 +954,8 @@ class SafeCheckout extends Checkout {
       const res = await this._request(stepUrl, {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'manual',
-        follow: 0,
+        redirect: 'follow',
+        follow: 5,
         headers: {
           ...getHeaders({ url, apiKey }),
           Connection: 'Keep-Alive',
@@ -966,7 +967,7 @@ class SafeCheckout extends Checkout {
         },
       });
 
-      const { status, headers } = res;
+      const { status, url: redirectUrl } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -995,7 +996,6 @@ class SafeCheckout extends Checkout {
         }
       }
 
-      const redirectUrl = headers.get('location');
       this._logger.silly(`CHECKOUT: ${state} redirect url: %s`, redirectUrl);
 
       // check if redirected
@@ -1045,9 +1045,6 @@ class SafeCheckout extends Checkout {
         }
       }
 
-      this.protection = await this.parseBotProtection($);
-      this.authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
-
       if (/Getting available shipping rates/i.test(body)) {
         return { message: 'Polling shipping rates', nextState: States.GO_TO_SHIPPING };
       }
@@ -1059,22 +1056,14 @@ class SafeCheckout extends Checkout {
       }
 
       if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
-        return { message: 'Submitting payment', nextState: States.GO_TO_PAYMENT };
+        return { message: 'Calculating taxes', nextState: States.GO_TO_PAYMENT };
       }
 
-      if (step === 'payment_method' && !this.paymentGateway) {
-        this.paymentGateway = $('input[name="checkout[payment_gateway]"]').attr('value');
-        this.prices.total = $('input[name="checkout[total_price]"]').attr('value');
-      }
-
-      if (step === 'shipping_method' && !this.chosenShippingMethod.id) {
-        this.chosenShippingMethod.id = $('.radio-wrapper').attr('data-shipping-method');
-      }
+      this.protection = await this.parseBotProtection($);
+      this.authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
 
       switch (state) {
         case States.GO_TO_CHECKOUT: {
-          checkout.reset();
-          checkout.start();
           return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
         }
         case States.GO_TO_SHIPPING: {

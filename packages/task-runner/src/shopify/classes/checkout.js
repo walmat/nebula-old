@@ -35,18 +35,23 @@ class Checkout {
       r => r.site.url === this._context.task.site.url,
     );
 
-    if (
-      type !== Modes.SAFE &&
-      this._context.type &&
-      preFetchedShippingRates &&
-      preFetchedShippingRates.selectedRate
-    ) {
-      const { name, price, rate } = preFetchedShippingRates.selectedRate;
-      this.chosenShippingMethod = {
-        name,
-        price,
-        id: rate,
-      };
+    if (this._context.type && preFetchedShippingRates && preFetchedShippingRates.selectedRate) {
+      if (
+        type === Modes.FAST ||
+        (type === Modes.SAFE && /dsm sg|dsm jp|dsm uk/i.test(this._context.task.site.name))
+      ) {
+        const { name, price, rate } = preFetchedShippingRates.selectedRate;
+        this.chosenShippingMethod = {
+          name,
+          price,
+          id: rate,
+        };
+      } else {
+        this.chosenShippingMethod = {
+          name: null,
+          id: null,
+        };
+      }
     } else {
       this.chosenShippingMethod = {
         name: null,
@@ -660,7 +665,7 @@ class Checkout {
             // fail silently...
           }
         }
-        const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+        const $ = cheerio.load(body, { xmlMode: false, normalizeWhitespace: true });
         const [checkoutUrl] = $('input[name="checkout_url"]');
 
         if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
@@ -706,6 +711,7 @@ class Checkout {
         profile: { profileName },
         checkoutSpeed,
         type,
+        monitorDelay,
       },
       proxy,
       slack,
@@ -846,7 +852,10 @@ class Checkout {
             } catch (err) {
               // fail silently...
             }
-            return { message: 'Payment failed (OOS)', nextState: States.COMPLETE_PAYMENT };
+            return {
+              message: `Out of stock! Delaying ${monitorDelay}ms`,
+              nextState: States.COMPLETE_PAYMENT,
+            };
           }
 
           try {

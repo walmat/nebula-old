@@ -238,7 +238,6 @@ class WindowManager {
         console.log(`Window was opened, id = ${win.id}`);
         win.webContents.openDevTools();
       }
-
       // add window & id to windows map, notify other windows, and finally, show the window
       this._windows.set(win.id, win);
       this._notifyUpdateWindowIDs(win.id);

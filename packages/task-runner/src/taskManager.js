@@ -18,17 +18,16 @@ const ShopifyMonitor = require('./shopify/runners/monitor');
 const RateFetcher = require('./shopify/runners/rateFetcher');
 const { getParseType } = require('./shopify/classes/utils/parse');
 const { HookTypes, Types: RunnerTypes } = require('./shopify/classes/utils/constants').TaskRunner;
+const Discord = require('./shopify/classes/hooks/discord');
+const Slack = require('./shopify/classes/hooks/slack');
 
-// footsites includes
+// TODO: footsites includes
 
 // supreme includes
 const SupremeRunner = require('./supreme/runners/taskRunner');
 const SupremeMonitor = require('./supreme/runners/monitor');
 
-// mesh includes
-
-const Discord = require('./shopify/classes/hooks/discord');
-const Slack = require('./shopify/classes/hooks/slack');
+// TODO: mesh includes
 
 class TaskManager {
   get loggerPath() {

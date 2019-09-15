@@ -148,7 +148,7 @@ class SpecialParser extends Parser {
               };
             } catch (err) {
               this._logger.error(
-                '%s: ERROR parsing product info page',
+                '%s: %s error parsing product info page. %j',
                 this._name,
                 err.status,
                 err.message,
@@ -288,7 +288,7 @@ class SpecialParser extends Parser {
       const body = await res.text();
       const response = cheerio.load(body, {
         normalizeWhitespace: true,
-        xmlMode: true,
+        xmlMode: false,
       });
 
       return response;

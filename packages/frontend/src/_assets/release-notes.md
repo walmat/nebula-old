@@ -1,4 +1,4 @@
-Version 1.1.21:
+Version 1.1.23:
 
-- Queue pattern changes on YS
-- Added dev API logging (sensitive data is scrubbed)
+- Optimized DSM/YS Parsers
+- SAFE mode for DSM UK/JP/SG will now piggyback off FAST mode
