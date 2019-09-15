@@ -4,8 +4,8 @@ import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
 const Timer = require('../../common/timer');
-const Discord = require('../../common/discord');
-// const Slack = require('../../common/slack');
+const Discord = require('../classes/hooks/discord');
+const Slack = require('../classes/hooks/slack');
 const AsyncQueue = require('../../common/asyncQueue');
 const { Events } = require('../../constants').Runner;
 const {
@@ -49,7 +49,7 @@ class TaskRunner {
       monitor: new Timer(),
     };
     this._discord = new Discord(this._task.discord);
-    // this._slack = new Slack(this._task.slack);
+    this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
 
     /**
@@ -70,7 +70,7 @@ class TaskRunner {
       jar: context.jar,
       timers: this._timers,
       discord: this._discord,
-      // slack: this._slack,
+      slack: this._slack,
       logger: this._logger,
       aborted: this._aborted,
       harvestState: HarvestStates.idle,
